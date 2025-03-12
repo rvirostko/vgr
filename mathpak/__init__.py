@@ -2,7 +2,7 @@ from .add import poly_add, poly_vadd
 from .bit_ops import poly_bit_and, poly_bit_or, poly_bit_xor, poly_bit_not, poly_vbit_and, poly_vbit_or, poly_vbit_xor
 from .div import poly_div, poly_fdiv, poly_vdiv, poly_vfdiv
 from .exp import poly_exp
-from .general import poly_hash, poly_class, poly_sizeof, poly_repr, poly_isempty, poly_len, poly_firstitem, poly_lastitem, poly_getitem, poly_rsort, poly_sort, poly_unique
+from .general import poly_hash, poly_class, poly_sizeof, poly_repr, poly_isempty, poly_len, poly_firstitem, poly_lastitem, poly_getitem, poly_rsort, poly_sort, poly_unique, poly_type
 from .inequ import poly_eq, poly_ge, poly_gt, poly_le, poly_lt, poly_ne
 from .is_in import poly_in, poly_not_in, poly_contains, poly_not_contains
 from .logic import poly_and, poly_not, poly_or
@@ -107,6 +107,7 @@ __all__ = [
     "poly_swapcase",
     "poly_title",
     "poly_trunc",
+    "poly_type",
     "poly_unique",
     "poly_upper",
     "poly_vadd",

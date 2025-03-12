@@ -8,6 +8,7 @@ import sys
 def poly_hash(x: Any) -> int: return hash(x)
 def poly_repr(x: Any) -> str: return repr(x)
 def poly_class(x: Any) -> str: return None if x is None else x.__class__.__name__
+def poly_type(x: Any) -> str: return type(x).__name__
 def poly_len(x: Any) -> bool: return len(x) if hasattr(x, '__len__') else None
 
 def poly_sort(x: Any) -> Any: return _sorted(x, False)
