@@ -254,9 +254,9 @@ load_source_type: "JSON"i "Object"i? -> json_object
 
 assert: "Assert"i expr (":" expr)? _SEMICOLON?
 
-printf: "Printf"i ESCAPED_STRING _COMMA expr (_COMMA expr)* _SEMICOLON?
+printf: "Printf"i (ESCAPED_STRING (_COMMA expr (_COMMA expr)*)?)? _SEMICOLON?
 
-print: "Print"i expr (_COMMA expr)* _SEMICOLON?
+print: "Print"i (expr (_COMMA expr)*)? _SEMICOLON?
 
 exhibit: "Exhibit"i (var_name (_COMMA var_name)*)? _SEMICOLON?
 
@@ -361,9 +361,9 @@ product_cols: "All"i -> all
     | NAME
     | ESCAPED_STRING
 
-# Flattening operations out here allows the parse tree to hold
-# the operation type explicitly instead of a generic "OP" where
-# we need to deal with aliases
+// Flattening operations out here allows the parse tree to hold
+// the operation type explicitly instead of a generic "OP" where
+// we need to deal with aliases
 ?expr: _LPAREN expr _RPAREN
     | "!" expr -> unary_not
     | expr _DOT function -> function_call
@@ -425,6 +425,7 @@ _ENV_PREFIX = 'env'
 _VGR_PREFIX = '_vgr'
 _INTERNAL_PREFIXES = [_ARG_PREFIX, _ENV_PREFIX, _VGR_PREFIX]
 _DEBUG_KEY = 'debug'
+_ECHO_KEY = 'echo'
 _VERBOSE_KEY = 'verbose'
 
 class ImplicitContextAdder(Transformer):
@@ -681,7 +682,7 @@ def execute_print(statement: Tree) -> None:
 
 def execute_printf(statement: Tree) -> None:
     exprs = [*statement.children]
-    format_string = exprs.pop(0)
+    format_string = exprs.pop(0) if len(exprs) else ''
     output(format_string.format(*[eval_expr(expr) for expr in exprs]))
 
 def execute_exhibit(statement: Tree) -> None:
@@ -790,20 +791,29 @@ STATEMENT_HANDLERS = {
 
 def is_debug() -> bool: return bool(get_item(DD, _ARG_PREFIX, _DEBUG_KEY))
 def is_verbose() -> bool: return bool(get_item(DD, _ARG_PREFIX, _VERBOSE_KEY))
+def is_echo() -> bool: return bool(get_item(DD, _ARG_PREFIX, _ECHO_KEY))
+
+def remove_comments(input: str) -> str:
+    """Removes full-line comments but preserves blank lines for Lark metadata accuracy."""
+    # We do Hash, C-style, and SQL style
+    return re.sub(r'^[ \t]*(#|//|--).*(?:\r?\n|\r|$)', '\n', input, flags=re.MULTILINE)
 
 def execute_statements(inp: str) -> None:
-    inp = set_source(inp)
+    inp = set_source(remove_comments(inp))
     statements: Tree = PARSER.parse(inp)
     for statement in statements.children:
         handler = STATEMENT_HANDLERS.get(statement.data, None)
         if not handler: raise ValueError(f'No handler established for {statement.data}')
         statement = ConstantsNormalizer().transform(statement)
         statement = OperationBinder().transform(statement)
-        if is_debug(): print_tree(statement)
+        statement_text = source_for(statement)
         DD[_VGR_PREFIX] = {
             'grammar': _VGR_GRAMMAR,
-            'statement': inp
+            'statement': statement_text
         }
+        # TODO this does work well...
+        # if is_echo(): print(statement_text)
+        if is_debug(): print_tree(statement)
         handler(statement)
 
 def print_tree(item: Any, indent=2) -> None:
@@ -924,12 +934,14 @@ def main():
     group.add_argument('-f', '--file', nargs='*', metavar='FILE', help='Execute statements stored in a file')
     parser.add_argument('--verbose', action='store_true', help="Enable verbose mode")
     parser.add_argument('--debug', action='store_true', help="Enable debug mode")
+    parser.add_argument('--echo', action='store_true', help="Echo statements before execution to stdout")
     parser.add_argument('user_args', nargs='*', metavar='NAME=VALUE', help='Additional arguments')
     parsed = parser.parse_args()
 
     DD[_ENV_PREFIX] = import_environment()
     DD[_ARG_PREFIX] = parse_user_args(parsed.user_args)
     DD[_ARG_PREFIX][_DEBUG_KEY] = parsed.debug
+    DD[_ARG_PREFIX][_ECHO_KEY] = parsed.echo
     DD[_ARG_PREFIX][_VERBOSE_KEY] = parsed.verbose
 
     if parsed.execute:
