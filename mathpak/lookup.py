@@ -19,4 +19,7 @@ def _multi_lookup(x:Any, attr: str, values: Any) -> list[Any]:
     return list(chain.from_iterable(_lookup(x, attr, value) for value in values))
 
 def _lookup(x: Any, attr: str, value: Any) -> list[Any]:
-    return [x1 for x1 in x if isinstance(x1, dict) and poly_eq(value, x1.get(attr))]
+    # NB: since poly_eq() uses the first param to drive conversions,
+    #     we use the data we have in the records as the "right" type
+    #     and let value be adjusted accordingly
+    return [x1 for x1 in x if isinstance(x1, dict) and poly_eq(x1.get(attr), value)]
