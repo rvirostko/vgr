@@ -1,0 +1,2 @@
+
+("abs"i | "bool"i | "bytes"i | "capitalize"i | "casefold"i | "expandtabs"i | "first"i | "float"i | "hash"i | "int"i | "isalnum"i | "isalpha"i | "isascii"i | "isbool"i | "isdigit"i | "isempty"i | "islower"i | "isnumber"i | "isnumeric"i | "isprintable"i | "isspace"i | "isstr"i | "istitle"i | "isupper"i | "last"i | "len"i | "list"i | "lower"i | "lstrip"i | "number"i | "rstrip"i | "set"i | "str"i | "strip"i | "swapcase"i | "title"i | "unique"i | "upper"i)
