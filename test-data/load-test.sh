@@ -1,6 +1,6 @@
 #! /bin/bash
 
-../vgr.py --echo <<EOF
+../vgr.py --echo <<EOF  || echo "FAILED"
 
 # "Modern" style comments
     // C-style comments
