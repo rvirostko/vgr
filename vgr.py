@@ -100,6 +100,7 @@ _FUNC_OPS = {
   "TitleCase": poly_title,
   "TrueDiv": poly_div,
   "Trunc": poly_trunc,
+  "Type": poly_type,
   "Unique": poly_unique,
   "Upper": poly_upper,
 }
@@ -254,7 +255,7 @@ load_source_type: "JSON"i "Object"i? -> json_object
 
 assert: "Assert"i expr (":" expr)? _SEMICOLON?
 
-printf: "Printf"i (ESCAPED_STRING (_COMMA expr (_COMMA expr)*)?)? _SEMICOLON?
+printf: "Printf"i (expr (_COMMA expr (_COMMA expr)*)?)? _SEMICOLON?
 
 print: "Print"i (expr (_COMMA expr)*)? _SEMICOLON?
 
@@ -682,7 +683,8 @@ def execute_print(statement: Tree) -> None:
 
 def execute_printf(statement: Tree) -> None:
     exprs = [*statement.children]
-    format_string = exprs.pop(0) if len(exprs) else ''
+    format_string = eval_expr(exprs.pop(0)) if len(exprs) else ''
+    if not isinstance(format_string, str): raise TypeError(f'Format must be a string; found {type(format_string).__name__}')
     output(format_string.format(*[eval_expr(expr) for expr in exprs]))
 
 def execute_exhibit(statement: Tree) -> None:
