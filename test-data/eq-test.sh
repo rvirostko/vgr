@@ -28,6 +28,10 @@
     Printf "\"{}\" tests-", v.class()
     Printf fmt4, v.repr(), c1.repr(), v == c1, v.repr(), c2.repr(), v == c2, v.repr(), c3.repr(), v == c3, v.repr(), c4.repr(), v == c4
     Printf fmt4, c1.repr(), v.repr(), c1 == v, c2.repr(), v.repr(), c2 == v, c3.repr(), v.repr(), c3 == v, c4.repr(), v.repr(), c4 == v
+    Printf fmt4.replacestr("==", "<"), v.repr(), c1.repr(), v < c1, v.repr(), c2.repr(), v < c2, v.repr(), c3.repr(), v < c3, v.repr(), c4.repr(), v < c4
+    Printf fmt4.replacestr("==", ">"), v.repr(), c1.repr(), v > c1, v.repr(), c2.repr(), v > c2, v.repr(), c3.repr(), v > c3, v.repr(), c4.repr(), v > c4
+    Printf fmt4.replacestr("==", "<="), v.repr(), c1.repr(), v <= c1, v.repr(), c2.repr(), v <= c2, v.repr(), c3.repr(), v <= c3, v.repr(), c4.repr(), v <= c4
+    Printf fmt4.replacestr("==", ">="), v.repr(), c1.repr(), v >= c1, v.repr(), c2.repr(), v >= c2, v.repr(), c3.repr(), v >= c3, v.repr(), c4.repr(), v >= c4
     Print
 
 -- Float to other values
@@ -35,6 +39,10 @@
     Printf "\"{}\" tests-", v.class()
     Printf fmt4, v.repr(), c1.repr(), v == c1, v.repr(), c2.repr(), v == c2, v.repr(), c3.repr(), v == c3, v.repr(), c4.repr(), v == c4
     Printf fmt4, c1.repr(), v.repr(), c1 == v, c2.repr(), v.repr(), c2 == v, c3.repr(), v.repr(), c3 == v, c4.repr(), v.repr(), c4 == v
+    Printf fmt4.replacestr("==", "<"), v.repr(), c1.repr(), v < c1, v.repr(), c2.repr(), v < c2, v.repr(), c3.repr(), v < c3, v.repr(), c4.repr(), v < c4
+    Printf fmt4.replacestr("==", ">"), v.repr(), c1.repr(), v > c1, v.repr(), c2.repr(), v > c2, v.repr(), c3.repr(), v > c3, v.repr(), c4.repr(), v > c4
+    Printf fmt4.replacestr("==", "<="), v.repr(), c1.repr(), v <= c1, v.repr(), c2.repr(), v <= c2, v.repr(), c3.repr(), v <= c3, v.repr(), c4.repr(), v <= c4
+    Printf fmt4.replacestr("==", ">="), v.repr(), c1.repr(), v >= c1, v.repr(), c2.repr(), v >= c2, v.repr(), c3.repr(), v >= c3, v.repr(), c4.repr(), v >= c4
     Print
 
 -- In this case the str/pad_str will mismatch
@@ -42,9 +50,17 @@
     Printf "\"{}\" tests-", v.class()
     Printf fmt * 4, v.repr(), c1.repr(), v == c1, v.repr(), c2.repr(), v == c2, v.repr(), c3.repr(), v == c3, v.repr(), c4.repr(), v == c4
     Printf fmt * 4, c1.repr(), v.repr(), c1 == v, c2.repr(), v.repr(), c2 == v, c3.repr(), v.repr(), c3 == v, c4.repr(), v.repr(), c4 == v
+    Printf fmt4.replacestr("==", "<"), v.repr(), c1.repr(), v < c1, v.repr(), c2.repr(), v < c2, v.repr(), c3.repr(), v < c3, v.repr(), c4.repr(), v < c4
+    Printf fmt4.replacestr("==", ">"), v.repr(), c1.repr(), v > c1, v.repr(), c2.repr(), v > c2, v.repr(), c3.repr(), v > c3, v.repr(), c4.repr(), v > c4
+    Printf fmt4.replacestr("==", "<="), v.repr(), c1.repr(), v <= c1, v.repr(), c2.repr(), v <= c2, v.repr(), c3.repr(), v <= c3, v.repr(), c4.repr(), v <= c4
+    Printf fmt4.replacestr("==", ">="), v.repr(), c1.repr(), v >= c1, v.repr(), c2.repr(), v >= c2, v.repr(), c3.repr(), v >= c3, v.repr(), c4.repr(), v >= c4
     Set v = t.three_pad_str
     Printf fmt4, v.repr(), c1.repr(), v == c1, v.repr(), c2.repr(), v == c2, v.repr(), c3.repr(), v == c3, v.repr(), c4.repr(), v == c4
     Printf fmt4, c1.repr(), v.repr(), c1 == v, c2.repr(), v.repr(), c2 == v, c3.repr(), v.repr(), c3 == v, c4.repr(), v.repr(), c4 == v
+    Printf fmt4.replacestr("==", "<"), v.repr(), c1.repr(), v < c1, v.repr(), c2.repr(), v < c2, v.repr(), c3.repr(), v < c3, v.repr(), c4.repr(), v < c4
+    Printf fmt4.replacestr("==", ">"), v.repr(), c1.repr(), v > c1, v.repr(), c2.repr(), v > c2, v.repr(), c3.repr(), v > c3, v.repr(), c4.repr(), v > c4
+    Printf fmt4.replacestr("==", "<="), v.repr(), c1.repr(), v <= c1, v.repr(), c2.repr(), v <= c2, v.repr(), c3.repr(), v <= c3, v.repr(), c4.repr(), v <= c4
+    Printf fmt4.replacestr("==", ">="), v.repr(), c1.repr(), v >= c1, v.repr(), c2.repr(), v >= c2, v.repr(), c3.repr(), v >= c3, v.repr(), c4.repr(), v >= c4
     Print
 
 -- Make sure we have symetry with array
@@ -52,6 +68,10 @@
     Printf "\"{}\"/\"{}\" tests-", v.type(), w.type()
     Printf fmt, v.repr(), w.repr(), v == w
     Printf fmt, w.repr(), v.repr(), w == v
+    printf fmt.replacestr("==", "<"), w.repr(), v.repr(), w < v
+    printf fmt.replacestr("==", ">"), w.repr(), v.repr(), w > v
+    printf fmt.replacestr("==", "<="), w.repr(), v.repr(), w <= v
+    printf fmt.replacestr("==", "<="), w.repr(), v.repr(), w >= v
     Print
 
 -- Try out asserts to check these
