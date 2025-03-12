@@ -125,6 +125,32 @@ def _prepend(x: Any, y: Any) -> Any:
     if isinstance(y, (list, tuple)): return reduce(_prepend, y, x)
     raise TypeError(f'Concatenation between {type(x)} and {type(y)} not supported')
 
+def poly_replace(x: Any, old: Any, new: Any=None) -> Any:
+    if x != None and old != None:
+        if isinstance(x, str):
+            if isinstance(old, (int, float)): return poly_replace(x, str(old), new)
+            if isinstance(old, str):
+                if new == None: new = ''
+                if isinstance(new, (int, float)): new = str(new)
+                if isinstance(new, str): return x.replace(old, new)
+                if isinstance(new, (list, tuple)): return poly_replace(x, (old,), new)
+            if isinstance(old, (list, tuple)):
+                if new == None: new = ''
+                if isinstance(new, (int, float)): new = str(new)
+                if isinstance(new, (str, list, tuple)):
+                    return reduce(lambda t, args: t.replace(args[0], args[1]), zip(old, _create_new_list(len(old), new)), x)
+        else:
+            if isinstance(x, (int, float)): return poly_replace(str(x), old, new)
+            if isinstance(x, list): return [poly_replace(x1, old, new) for x1 in x]
+            if isinstance(x, tuple): return (poly_replace(x1, old, new) for x1 in x)
+    return x
+
+def _create_new_list(length: int, new: Any):
+    if isinstance(new, str): return (new,) * length
+    # Either chop to length or pad with empty entries
+    if isinstance(new, (list, tuple)): return tuple(new[:length]) + ('',) * max(0, length - len(new))
+    raise TypeError(f'Type {type(new).__name__} not supported for string replace')
+
 # Shim methods to deal with "None" arguments
 def _expandtabs(x: str, tabsize: int) -> str: return x.expandtabs() if tabsize == None else x.expandtabs(tabsize)
 def _removeprefix(x: str, prefix: str) -> str: return x if prefix == None else x.removeprefix(prefix)
@@ -156,5 +182,4 @@ def _rightstr(x: str, length: int) -> str: return x if not x or length == None e
 #	18.	split(sep=None, maxsplit=-1)
 #	19.	splitlines(keepends=False)
 
-#	12.	replace(old, new, count=-1)
 #	22.	translate(table)

@@ -82,6 +82,7 @@ _FUNC_OPS = {
   "Prepend": poly_prepend,
   "RemovePrefix": poly_removeprefix,
   "RemoveSuffix": poly_removesuffix,
+  "ReplaceStr": poly_replace,
   "Repr": poly_repr,
   "RightShift": poly_shr,
   "RightStr": poly_rightstr,
