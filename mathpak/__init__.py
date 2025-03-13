@@ -11,7 +11,7 @@ from .misc_math import poly_abs, poly_ceil, poly_floor, poly_round, poly_trunc
 from .mod import poly_mod
 from .mul import poly_mul, poly_vmul
 from .shift import poly_shl, poly_shr
-from .strings import poly_capitalize, poly_casefold, poly_endswith, poly_expandtabs, poly_isalnum, poly_isalpha, poly_isascii, poly_isdigit, poly_islower, poly_isnumeric, poly_isprintable, poly_isspace, poly_istitle, poly_isupper, poly_lower, poly_lstrip, poly_removeprefix, poly_removesuffix, poly_rstrip, poly_startswith, poly_strip, poly_swapcase, poly_title, poly_upper, poly_count, poly_index, poly_rindex, poly_rightstr, poly_leftstr, poly_substr, poly_append, poly_prepend, poly_isdecimal, poly_isidentifier, poly_replace
+from .strings import poly_capitalize, poly_casefold, poly_endswith, poly_expandtabs, poly_isalnum, poly_isalpha, poly_isascii, poly_isdigit, poly_islower, poly_isnumeric, poly_isprintable, poly_isspace, poly_istitle, poly_isupper, poly_lower, poly_lstrip, poly_removeprefix, poly_removesuffix, poly_rstrip, poly_startswith, poly_strip, poly_swapcase, poly_title, poly_upper, poly_count, poly_index, poly_rindex, poly_rightstr, poly_leftstr, poly_substr, poly_append, poly_prepend, poly_isdecimal, poly_isidentifier, poly_replace, poly_translate, poly_vappend, poly_vprepend
 from .sub import poly_sub, poly_vsub
 from .types import poly_bool, poly_float, poly_int, poly_isbool, poly_isfloat, poly_isint, poly_isnumber, poly_isstr, poly_number, poly_str
 from .lookup import poly_lookup
@@ -107,16 +107,19 @@ __all__ = [
     "poly_substr",
     "poly_swapcase",
     "poly_title",
+    "poly_translate",
     "poly_trunc",
     "poly_type",
     "poly_unique",
     "poly_upper",
     "poly_vadd",
+    "poly_vappend",
     "poly_vbit_and",
     "poly_vbit_or",
     "poly_vbit_xor",
     "poly_vdiv",
     "poly_vfdiv",
     "poly_vmul",
+    "poly_vprepend",
     "poly_vsub",
 ]

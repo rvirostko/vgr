@@ -23,7 +23,7 @@ def ni(*args)-> None: # TODO go away!
 _FUNC_OPS = {
   "Abs": poly_abs,
   "Add": poly_vadd,
-  "Append": poly_append,
+  "Append": poly_vappend,
   "Attr": None,                       # TODO see attrgetter, better name?
   "BitAnd": poly_vbit_and,
   "BitNot": poly_bit_not,
@@ -79,7 +79,7 @@ _FUNC_OPS = {
   "Mul": poly_vmul,
   "Number": poly_number,
   "Pow": poly_exp,
-  "Prepend": poly_prepend,
+  "Prepend": poly_vprepend,
   "RemovePrefix": poly_removeprefix,
   "RemoveSuffix": poly_removesuffix,
   "ReplaceStr": poly_replace,
@@ -99,6 +99,7 @@ _FUNC_OPS = {
   "SubStr": poly_substr,
   "SwapCase": poly_swapcase,
   "TitleCase": poly_title,
+  "Translate": poly_translate,
   "TrueDiv": poly_div,
   "Trunc": poly_trunc,
   "Type": poly_type,
