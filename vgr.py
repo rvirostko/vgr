@@ -14,17 +14,14 @@ import os
 import re
 import sys
 import zipfile
-
-def ni(*args)-> None: # TODO go away!
-    """Not Implemented"""
-    raise NotImplementedError()
+from data_dict import DataDictionary
 
 """Binds a (pretty) name to the function to be executed"""
 _FUNC_OPS = {
   "Abs": poly_abs,
   "Add": poly_vadd,
   "Append": poly_vappend,
-  "Attr": None,                       # TODO see attrgetter, better name?
+  #"Attr": ???,                       # TODO see attrgetter, better name?
   "BitAnd": poly_vbit_and,
   "BitNot": poly_bit_not,
   "BitOr": poly_vbit_or,
@@ -114,15 +111,15 @@ _FUNC_INDEX = {k.lower(): k for k in _FUNC_OPS}
 def get_function_op(name: str):
     """Given a function name get the function that implements it"""
     rc = _FUNC_OPS.get(_FUNC_INDEX.get(name.lower()), None)
-    if is_debug() and not rc: print(f'Warning: function not yet implemented')
-    return rc if rc else ni
+    if not rc: raise NotImplementedError(f'Function {name} not yet implemented')
+    return rc
 
 """The max value of an arg range when we have variable arguments"""
 _IS_VARARGS = float('inf')
 
 def get_arg_range(op) -> tuple:
     """Get the argument range for the function definition in the grammar"""
-    if op == None: return (0, 0) # TODO change to an assertion RSN
+    if op == None: raise ValueError('Expected a function, but got None')
     # Get the signature of the function
     sig = inspect.signature(op)
     req_args = 0
@@ -254,6 +251,7 @@ load_from: "Load"i var_name "From"i "File"i? expr load_source_type? _SEMICOLON?
 load_source_type: "JSON"i "Object"i? -> json_object
     | "JSON"i? "Object"i? "Per"i "Line"i -> json_objects
     | "CSV"i -> csv_file
+    | "TEXT"i -> text_file
 
 assert: "Assert"i expr (":" expr)? _SEMICOLON?
 
@@ -423,14 +421,6 @@ TARGET: {' | '.join(tuple(f'"{t}"i' for t in _VALID_TARGETS))}
 %ignore WS
 """
 
-_ARG_PREFIX = 'arg'
-_ENV_PREFIX = 'env'
-_VGR_PREFIX = '_vgr'
-_INTERNAL_PREFIXES = [_ARG_PREFIX, _ENV_PREFIX, _VGR_PREFIX]
-_DEBUG_KEY = 'debug'
-_ECHO_KEY = 'echo'
-_VERBOSE_KEY = 'verbose'
-
 class ImplicitContextAdder(Transformer):
     """
     Modifies 'var_ref' nodes by prepending TARGET if needed
@@ -438,21 +428,23 @@ class ImplicitContextAdder(Transformer):
         * kv -> kv (no change, type is a target type)
         * name -> kv.name (not a target type)
     """
-    _VALID_CONTEXTS = _VALID_TARGETS + _INTERNAL_PREFIXES
-    def __init__(self):
+    def __init__(self, valid_contexts):
         super().__init__()
         self._target = None
+        self._valid_contexts = None
 
-    def transform(self, tree, target: str):
+    def transform(self, tree, target: str, valid_contexts):
         try:
             self._target = target
+            self._valid_contexts = valid_contexts
             return super().transform(tree)
         finally:
             self._target = None
+            self._valid_contexts = None
 
     def var_ref(self, children):
         first_child = children[0]
-        if first_child.value not in ImplicitContextAdder._VALID_CONTEXTS:
+        if first_child.value not in self._valid_contexts:
             # Add the target as an implied context for the name
             children.insert(0, Token("NAME", self._target)) ### TODO , first_child.start_pos, first_child.line, first_child.column, first_child.end_line, first_child.end_column, first_child.end_pos))
         return Tree("var_ref", children)
@@ -481,47 +473,53 @@ class Operation(Tree):
     def execute(self, args: tuple) -> Any: return self._op(*args)
     def op_name(self) -> str: return self._op.__name__ if self._op else 'None'
 
-class TupleOperation(Operation):
-    def execute(self, args: tuple) -> Any: return self._op(args)
+def build_array(*values: Any) -> list[Any]:
+    """We build an array from the collected values"""
+    return None if values is None else list(values)
 
-def build_array(values: tuple) -> list[Any]: return None if values is None else list(values)
-def get_var(path: tuple) -> Any: return get_item(DD, *path)
+def var_ref(*path: str)-> Any:
+    """This is the lookup of a top-level variable"""
+    return DD.get_var(*path)
+
+def deref_var(data: Any, *path: str) -> Any:
+    """This is the lookup of a path relative to data"""
+    return DD.get_var_relative(data, *path)
 
 @v_args(tree=True)
 class OperationBinder(Transformer):
     """Binds functions to expression operations"""
-    def array(self, tree): return TupleOperation(tree, build_array)
-    def var_ref(self, tree): return TupleOperation(tree, get_var)
-    def unary_not(self, tree): return Operation(tree, poly_not)
-    def or_op(self, tree): return Operation(tree, poly_or)
-    def eq_op(self, tree): return Operation(tree, poly_eq)
-    def neq_op(self, tree): return Operation(tree, poly_ne)
-    def lt_op(self, tree): return Operation(tree, poly_lt)
-    def gt_op(self, tree): return Operation(tree, poly_gt)
-    def le_op(self, tree): return Operation(tree, poly_le)
-    def ge_op(self, tree): return Operation(tree, poly_ge)
     def add_op(self, tree): return Operation(tree, poly_add)
-    def sub_op(self, tree): return Operation(tree, poly_sub)
-    def mul_op(self, tree): return Operation(tree, poly_mul)
-    def div_op(self, tree): return Operation(tree, poly_div)
-    def fdiv_op(self, tree): return Operation(tree, poly_fdiv)
-    def mod_op(self, tree): return Operation(tree, poly_mod)
-    def exp_op(self, tree): return Operation(tree, poly_exp)
-    def shl_op(self, tree): return Operation(tree, poly_shl)
-    def shr_op(self, tree): return Operation(tree, poly_shr)
+    def array(self, tree): return Operation(tree, build_array)
     def bit_and_op(self, tree): return Operation(tree, poly_bit_and)
     def bit_or_op(self, tree): return Operation(tree, poly_bit_or)
     def bit_xor_op(self, tree): return Operation(tree, poly_bit_xor)
-    def in_op(self, tree): return Operation(tree, poly_in)
-    def not_in_op(self, tree): return Operation(tree, poly_not_in)
     def contains_op(self, tree): return Operation(tree, poly_contains)
-    def not_contains_op(self, tree): return Operation(tree, poly_not_contains)
-    def match_op(self, tree): return Operation(tree, poly_match)
-    def not_match_op(self, tree): return Operation(tree, poly_not_match)
-    def imatch_op(self, tree): return Operation(tree, poly_imatch)
-    def not_imatch_op(self, tree): return Operation(tree, poly_not_imatch)
+    def deref(self, tree): return Operation(tree, deref_var)
+    def div_op(self, tree): return Operation(tree, poly_div)
+    def eq_op(self, tree): return Operation(tree, poly_eq)
+    def exp_op(self, tree): return Operation(tree, poly_exp)
+    def fdiv_op(self, tree): return Operation(tree, poly_fdiv)
     def function(self, tree): return Operation(tree, get_function_op(tree.children.pop(0).value))
-    def deref(self, tree): return Operation(tree, get_item)
+    def ge_op(self, tree): return Operation(tree, poly_ge)
+    def gt_op(self, tree): return Operation(tree, poly_gt)
+    def imatch_op(self, tree): return Operation(tree, poly_imatch)
+    def in_op(self, tree): return Operation(tree, poly_in)
+    def le_op(self, tree): return Operation(tree, poly_le)
+    def lt_op(self, tree): return Operation(tree, poly_lt)
+    def match_op(self, tree): return Operation(tree, poly_match)
+    def mod_op(self, tree): return Operation(tree, poly_mod)
+    def mul_op(self, tree): return Operation(tree, poly_mul)
+    def neq_op(self, tree): return Operation(tree, poly_ne)
+    def not_contains_op(self, tree): return Operation(tree, poly_not_contains)
+    def not_imatch_op(self, tree): return Operation(tree, poly_not_imatch)
+    def not_in_op(self, tree): return Operation(tree, poly_not_in)
+    def not_match_op(self, tree): return Operation(tree, poly_not_match)
+    def or_op(self, tree): return Operation(tree, poly_or)
+    def shl_op(self, tree): return Operation(tree, poly_shl)
+    def shr_op(self, tree): return Operation(tree, poly_shr)
+    def sub_op(self, tree): return Operation(tree, poly_sub)
+    def unary_not(self, tree): return Operation(tree, poly_not)
+    def var_ref(self, tree): return Operation(tree, var_ref)
     def function_call(self, tree):
         # The expression becomes the first argument to the function,
         # and it takes the place of the wrapper from parsing
@@ -640,21 +638,16 @@ def execute_assert(statement: Tree) -> None:
         print(str(msg) if msg is not None else f'Assertion {source_for(statement)} failed', file=sys.stderr)
         sys.exit(1)
 
-def validate_user_set(path: list[str]) -> list[str]:
-    prefix: str = path[0]
-    if prefix in _INTERNAL_PREFIXES or prefix in _VALID_TARGETS:
-        # Can't slam "arg" but can modify its contents
-        if prefix != _ARG_PREFIX or len(path) < 2:
-           raise ValueError(f'Cannot set {".".join(path)} - {prefix} is immutable')
-    return path
-
 def execute_set(statement: Tree) -> None:
     var_name, expr = statement.children
-    set_item(DD, validate_user_set([name.value for name in var_name.children]), eval_expr(expr))
+    DD.set_var(eval_expr(expr), *(name.value for name in var_name.children))
+
+def execute_move(statement: Tree) -> None:
+    expr, var_name = statement.children
+    DD.set_var(eval_expr(expr), *(name.value for name in var_name.children))
 
 def execute_load_from(statement: Tree) -> None:
     var_name = statement.children[0]
-    path = validate_user_set([name.value for name in var_name.children])
     file_name = eval_expr(statement.children[1])
     if not isinstance(file_name, str): raise TypeError(f'File name must be a string; found {type(file_name).__name__}')
     # TODO make sure that file is relative to CWD
@@ -663,62 +656,49 @@ def execute_load_from(statement: Tree) -> None:
         mode = statement.children[2].data
     else:
         ext = os.path.splitext(file_name)[1].lower()
-        mode = 'csv_file' if ext == '.csv' else 'json_object'
-    if mode == 'json_object':
-        with open(file_name, 'r', encoding='utf-8') as f:
-            set_item(DD, path, json.load(f))
+        mode = 'csv_file' if ext == '.csv' else 'json_object' if ext == '.json' else 'text_file'
+    data: Any = None
+    if mode == 'text_file':
+        with open(file_name, 'r', encoding='utf-8') as f: data = f.read()
+    elif mode == 'json_object':
+        with open(file_name, 'r', encoding='utf-8') as f: data = json.load(f)
     elif mode == 'json_objects':
-        with open(file_name, 'r', encoding='utf-8') as f:
-            set_item(DD, path, [json.loads(line) for line in f if line.strip()])
+        with open(file_name, 'r', encoding='utf-8') as f: data = [json.loads(line) for line in f if line.strip()]
     elif mode == 'csv_file':
-        with open(file_name, 'r', encoding='utf-8') as f:
-            set_item(DD, path, list(csv.DictReader(f, quotechar='"')))
+        with open(file_name, 'r', encoding='utf-8') as f: data = list(csv.DictReader(f))
     else:
         raise ValueError(f'Unknown mode {mode}') # SNO
-
-def execute_move(statement: Tree) -> None:
-    expr, var_name = statement.children
-    set_item(DD, validate_user_set([name.value for name in var_name.children]), eval_expr(expr))
+    DD.set_var(data, *(name.value for name in var_name.children))
 
 def execute_print(statement: Tree) -> None:
-    output(*[eval_expr(expr) for expr in statement.children], sep=", ")
+    """Works similar to AWK's print"""
+    output(*[eval_expr(expr) for expr in statement.children], sep=DD.get_ofs(), end=DD.get_ors())
 
 def execute_printf(statement: Tree) -> None:
+    """Works similar to AWK's printf"""
     exprs = [*statement.children]
     format_string = eval_expr(exprs.pop(0)) if len(exprs) else ''
     if not isinstance(format_string, str): raise TypeError(f'Format must be a string; found {type(format_string).__name__}')
-    output(format_string.format(*[eval_expr(expr) for expr in exprs]))
+    output(format_string.format(*[eval_expr(expr) for expr in exprs]), end='')
 
 def execute_exhibit(statement: Tree) -> None:
     def exhibit_value(name: str, value: Any) -> None:
         if isinstance(value, dict):
             for key in sorted(value.keys()): exhibit_value(f'{name}.{key}', value[key])
         else:
-            output(f'{name} = {value}')
+            output(f'{name} = {repr(value)}')
     children = statement.children
     if children:
         for var_name in children:
             path = tuple(name.value for name in var_name.children)
-            exhibit_value('.'.join(path), get_item(DD, *path))
+            exhibit_value('.'.join(path), DD.get_var(*path))
     else:
-        for key in sorted(DD.keys()): exhibit_value(key, DD[key])
+        for key in sorted(DD.keys()): exhibit_value(key, DD.get_var(key))
 
-def execute_open_output(statement: Tree) -> None: ni() # TODO
-def execute_open_append(statement: Tree) -> None: ni() # TODO
-def execute_close(statement: Tree) -> None: ni() # TODO
-def execute_delete(statement: Tree) -> None: ni() # TODO
-
-def set_item(root: dict, path: list[str], data: Any) -> None:
-    d = root
-    for step in path[:-1]: d = d.setdefault(step, {})
-    d[path[-1]] = data
-
-def get_item(data: Any, *path: str) -> Any:
-    if data is not None:
-        for key in path:
-            if not isinstance(data, dict) or key not in data: return None
-            data = data[key]
-    return data
+def execute_open_output(statement: Tree) -> None: raise NotImplementedError('TODO')
+def execute_open_append(statement: Tree) -> None:  raise NotImplementedError('TODO')
+def execute_close(statement: Tree) -> None: raise NotImplementedError('TODO')
+def execute_delete(statement: Tree) -> None: raise NotImplementedError('TODO')
 
 def eval_expr(expr: Any) -> Any:
     if isinstance(expr, Tree):
@@ -729,7 +709,7 @@ def eval_expr(expr: Any) -> Any:
         raise NotImplementedError(f'Unknown type {expr.type()}')
 
 def execute_zip(statement: Tree):
-    ni() # TODO
+    if 1==1: raise NotImplementedError('TODO')
     # first child is expr for file name, ensure for str
     # comment and password are expr, ensure for str
     # for include and exclude:
@@ -761,7 +741,7 @@ def execute_zip(statement: Tree):
 
 def execute_select(statement: Tree):
     ts = TreeSplitter().split(statement)
-    statement = ImplicitContextAdder().transform(statement, ts.get_target())
+    statement = ImplicitContextAdder().transform(statement, ts.get_target(), _VALID_TARGETS + DD.get_internal_prefixes())
     ts.split(statement)
     print(f'Target     : {ts.get_target()}')
     print(f'Predicates : {len(ts.get_predicates())}')
@@ -793,10 +773,6 @@ STATEMENT_HANDLERS = {
     'zip': execute_zip,
 }
 
-def is_debug() -> bool: return bool(get_item(DD, _ARG_PREFIX, _DEBUG_KEY))
-def is_verbose() -> bool: return bool(get_item(DD, _ARG_PREFIX, _VERBOSE_KEY))
-def is_echo() -> bool: return bool(get_item(DD, _ARG_PREFIX, _ECHO_KEY))
-
 def remove_comments(input: str) -> str:
     """Removes full-line comments but preserves blank lines for Lark metadata accuracy."""
     # We do Hash, C-style, and SQL style
@@ -811,13 +787,10 @@ def execute_statements(inp: str) -> None:
         statement = ConstantsNormalizer().transform(statement)
         statement = OperationBinder().transform(statement)
         statement_text = source_for(statement)
-        DD[_VGR_PREFIX] = {
-            'grammar': _VGR_GRAMMAR,
-            'statement': statement_text
-        }
-        # TODO this does work well...
-        # if is_echo(): print(statement_text)
-        if is_debug(): print_tree(statement)
+        DD.set_statement(statement_text)
+        # TODO this does not work well...
+        # if DD.is_echo(): print(statement_text)
+        if DD.is_debug(): print_tree(statement)
         handler(statement)
 
 def print_tree(item: Any, indent=2) -> None:
@@ -869,46 +842,6 @@ def get_subtree_span(node):
     traverse(node)
     return start_pos, end_pos
 
-def coerce_value(val: str):
-    """
-    Coerce the string value to int, float, or bool.
-    Falls back to the original string.
-    """
-    if val.lower() == "none": return None
-    if val.lower() == "true": return True
-    if val.lower() == "false": return False
-    try:
-        return int(val)
-    except ValueError:
-        pass
-    try:
-        return float(val)
-    except ValueError:
-        pass
-    return val
-
-def parse_user_args(user_args: list[str]) -> dict:
-    """
-    Parse a list of 'name=value' strings into a dictionary.
-    If an argument doesn't contain '=', it's ignored.
-    """
-    rc = {}
-    for arg in user_args:
-        if '=' in arg:
-            name, value = re.split(r'\s*=\s*', arg, 1)
-            path = [step for step in re.split(r'\s*[.]\s*', name.strip()) if step]
-            if path: set_item(rc, path, coerce_value(value))
-    return rc
-
-# TODO do we care?
-ENV_EXCLUDE = [re.compile(pattern, re.IGNORECASE) for pattern in ['password', 'secret', 'token']]
-
-def import_environment() -> dict:
-    env = {}
-    for name, value in os.environ.items():
-        if not any(pattern.match(name) for pattern in ENV_EXCLUDE): env[name] = coerce_value(value)
-    return env
-
 def prompt() -> str: return 'vgr> ' # TODO future?
 
 def execute_interactive() -> None:
@@ -927,31 +860,35 @@ def execute_interactive() -> None:
             print(f'{type(e).__name__}: {e}', file=sys.stderr)
 
 PARSER = Lark(_VGR_GRAMMAR, start='statements', parser='lalr', debug=True)
-DD = {}
+
+DD: DataDictionary = None
 
 def main():
+    global DD
     parser = argparse.ArgumentParser(
-        description="Protype"
+        description="Generic Reporting for Hashicorp Vault - prototype"
     )
     group = parser.add_mutually_exclusive_group()
     group.add_argument('-e', '--execute', type=str, metavar='STATEMENTS', help='Execute the given statements')
     group.add_argument('-f', '--file', nargs='*', metavar='FILE', help='Execute statements stored in a file')
     parser.add_argument('--verbose', action='store_true', help="Enable verbose mode")
     parser.add_argument('--debug', action='store_true', help="Enable debug mode")
-    parser.add_argument('--echo', action='store_true', help="Echo statements before execution to stdout")
     parser.add_argument('user_args', nargs='*', metavar='NAME=VALUE', help='Additional arguments')
     parsed = parser.parse_args()
 
-    DD[_ENV_PREFIX] = import_environment()
-    DD[_ARG_PREFIX] = parse_user_args(parsed.user_args)
-    DD[_ARG_PREFIX][_DEBUG_KEY] = parsed.debug
-    DD[_ARG_PREFIX][_ECHO_KEY] = parsed.echo
-    DD[_ARG_PREFIX][_VERBOSE_KEY] = parsed.verbose
+    DD = DataDictionary()
+    DD.set_grammar(_VGR_GRAMMAR)
+    DD.set_debug(parsed.debug)
+    DD.set_verbose(parsed.verbose)
+    # NB: User args can override debug/echo/verbose...
+    DD.parse_user_args(parsed.user_args)
 
     if parsed.execute:
+        # For simple statements directly on the command line
         execute_statements(parsed.execute)
     elif parsed.file:
         for filepath in parsed.file:
+            # For statements stored in a file
             statements = None
             try:
                 with open(filepath, 'r') as f:
@@ -962,8 +899,10 @@ def main():
             if statements: execute_statements(statements)
     else:
         if not sys.stdin.isatty():
+            # Read from stdin, most likely from a "here" document
             execute_statements(sys.stdin.read())
         else:
+            # Interactive execution of one or more statements
             execute_interactive()
 
 if __name__ == '__main__':

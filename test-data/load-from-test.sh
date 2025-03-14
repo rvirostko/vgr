@@ -1,0 +1,97 @@
+#! /bin/bash
+
+../vgr.py 'echo=true' <<EOF  || echo "FAILED"
+
+# "Modern" style comments
+    // C-style comments
+    -- SQL style comments
+
+set bar = "//" + ("-" * 77)
+
+# This file contains a single JSON object
+# The Select For JSON Root <root> can be used to produce a file like this
+Print bar
+Load test.json.obj From "in.json"
+Exhibit test.json.obj
+Print bar
+Print
+
+# This file has a JSON array, suitable for use with Lookup()
+# The Select For JSON produces this by default
+Print bar
+Load test.json.arr From "array.json"
+Exhibit test.json.arr
+Print bar
+Print
+
+# This file has a JSON object per row.
+# The Select For JSON No Array Wrapper produces this
+# The file can be used here or prefiltered by grep before being used
+Print bar
+Load test.json.objs From "objs.txt" JSON Object Per Line
+Exhibit test.json.objs
+Print bar
+Print
+
+# CSV is CSV...
+# The lib used to load these files don't like extra spaces between
+# columns and add those space (and quotes!) to the column data
+# This also uses some syntactic sugar and using expressions
+Print bar
+Set csv_file_name:="objs"
+Load test.csv.arr From File csv_file_name + ".csv" CSV
+Exhibit test.csv.arr
+Print bar
+Print
+
+# Text allows you to read in as just text for
+# use in templates or whatever
+# Text is the default when the extension is not .csv or .json
+Print bar
+Load test.text From "objs.txt" Text
+Exhibit test.txt
+Print bar
+Print
+
+# Lookup values are somewhat flexible...
+# Internally they use poly_eq() with the value from the
+# data as the left operand, and what you are searching for as the right
+Print bar
+Set fmt="test.{2}.arr.Lookup({0!r}, {1!r}) -> {3!r}\ntest.{4}.arr.Lookup({0!r}, {1!r}) -> {5!r}\n"
+Set key="idx"; Set value=3;
+Printf fmt, key, value, "csv", test.csv.arr.Lookup(key, value), "json", test.json.arr.Lookup(key, value)
+Set value=3.0
+Printf fmt, key, value, "csv", test.csv.arr.Lookup(key, value), "json", test.json.arr.Lookup(key, value)
+# NB: the CSV has the idx column as strings, so this returns an empty array
+Set value=" 3 "
+Printf fmt, key, value, "csv", test.csv.arr.Lookup(key, value), "json", test.json.arr.Lookup(key, value)
+Set key="fname"; Set value="Justin";
+Printf fmt, key, value, "csv", test.csv.arr.Lookup(key, value), "json", test.json.arr.Lookup(key, value)
+Print bar
+Print
+
+# Order depends upon what you ask for, but unless you have a datatype error
+# You will always get back an array, even if empty
+Print bar
+Set fmt2="test.csv.arr.Lookup({!r}, {!r}, {!r}) -> {!r}\n"
+Set key="idx";
+Set value1=0; Set value2=3;
+Printf fmt2, key, value1, value2, test.csv.arr.Lookup(key, value1, value2)
+Printf fmt2, key, value2, value1, test.csv.arr.Lookup(key, value1, value2)
+Set value = [ value2, value1 ]
+Printf "test.csv.arr.Lookup({!r}, {!r}) -> {!r}\n", key, value, test.csv.arr.Lookup(key, value)
+Print bar
+Print
+
+Print bar
+Set jsmith = test.csv.arr.Lookup("lname", "Smith").Lookup("fname", "Justin").FirstItem()
+Printf "{}, {} : ID {}\n", jsmith.lname, jsmith.fname, jsmith.idx
+Set arg.ofs = " | "; Set arg.ors = " |\n"
+Print "| " + jsmith.idx, jsmith.lname, jsmith.fname;
+Set arg.ofs = None; Set arg.ors = None;
+Printf "Heap's idx={}\n", test.csv.arr.Lookup("lname", "Heap").FirstItem().idx
+Print bar
+
+Print "\nDone"
+
+EOF

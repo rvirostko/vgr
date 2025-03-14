@@ -138,6 +138,10 @@ def poly_replace(x: Any, old: Any, new: Any=None) -> Any:
 def poly_translate(x: Any, from_str: Any, to_str: Any=None) -> Any:
     if x != None and from_str != None:
         if isinstance(x, str):
+            # A lot of assumptions here, but we'll try to use it as requested
+            # This would be a good case for somebody to make a JSON object (or save it)
+            # and do a Load-From into a top-level object
+            if isinstance(from_str, dict): return x.translate(from_str)
             if isinstance(from_str, (int, float)): return poly_translate(x, str(from_str), to_str)
             if isinstance(from_str, str):
                 if to_str == None: to_str = ''
