@@ -8,7 +8,7 @@ from mathpak import poly_bool, poly_number
 from typing import Any
 
 class DataDictionary():
-    _ENV_EXCLUDE = tuple(re.compile(pattern, re.IGNORECASE) for pattern in ('^VSCODE', '^_$', '^PWD$'))
+    _ENV_EXCLUDE = tuple(re.compile(pattern, re.IGNORECASE) for pattern in ('^VSCODE', '^_$', '^(OLD)?PWD$'))
     _OS_CONSTS = ( 'defpath',  'devnull', 'extsep', 'linesep', 'name', 'pardir', 'pathsep', 'sep' )
     _ARG_PREFIX = 'arg'
     _ENV_PREFIX = 'env'
@@ -113,9 +113,9 @@ class DataDictionary():
         return rc
 
     def _get_environment(self) -> dict:
-        rc = { name: self._coerce_value(value) for name, value in os.environ.items() if not any(pattern.match(name) for pattern in self._ENV_EXCLUDE) }
+        rc = { name: self._coerce_value(value) for name, value in os.environ.items() if not any(pattern.search(name) for pattern in self._ENV_EXCLUDE) }
         for name, value in rc.items():
-            if isinstance(value, str) and re.match('_?path$', name, re.IGNORECASE): rc[name] = tuple(value.split(os.pathsep))
+            if isinstance(value, str) and re.search(r'(_)?PATH$', name, re.IGNORECASE): rc[name] = tuple(value.split(os.pathsep))
         rc['PWD'] = os.getcwd()
         return rc
 
