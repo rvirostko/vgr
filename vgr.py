@@ -1,4 +1,4 @@
-#! /usr/bin/python3
+#! /usr/bin/env python3
 
 from collections import defaultdict
 from lark import Lark, Tree, Token, Transformer, Visitor, v_args, UnexpectedCharacters, UnexpectedEOF, UnexpectedInput, UnexpectedToken
@@ -249,7 +249,7 @@ statements: statement+
 
 load_from: "Load"i var_name "From"i "File"i? expr load_source_type? _SEMICOLON?
 load_source_type: "JSON"i "Object"i? -> json_object
-    | "JSON"i? "Object"i? "Per"i "Line"i -> json_objects
+    | "JSON"i "Object"i? "Per"i "Line"i -> json_objects
     | "CSV"i -> csv_file
     | "TEXT"i -> text_file
 
@@ -261,12 +261,15 @@ print: "Print"i (expr (_COMMA expr)*)? _SEMICOLON?
 
 exhibit: "Exhibit"i (var_name (_COMMA var_name)*)? _SEMICOLON?
 
-?open: "Open"i "Output"i? "File"i? expr _SEMICOLON? -> open_output
-    | "Open"i "Output"i? "File"i? "Extend"i expr _SEMICOLON? -> open_extend
+open: "Open"i io_type "File"i? expr open_ext? _SEMICOLON?
+?io_type: ("Error"i | "stderr"i) -> stderr
+    | ("Output"i | "stdout"i) -> stdout
+?open_ext: ("Append"i | "Extend"i | "a") -> a
+    | ("Overwrite"i | "w"i) -> w
+    | ("No"i "Overwrite"i | "x"i) -> x
+close: "Close"i io_type "File"i? _SEMICOLON? -> close
 
-close: "Close"i "Output"i? "File"i? _SEMICOLON?
-
-delete: "Delete"i "File"i? expr _SEMICOLON?
+delete: "Delete"i "File"i? expr (_COMMA expr)* _SEMICOLON?
 
 zip: "Create"i "Zip"i "File"i? expr (zip_option (_COMMA zip_option)*)? _SEMICOLON?
 ?zip_option: "Password"i expr -> password
@@ -602,22 +605,6 @@ def source_for(t: Tree) -> str:
     start, end = get_subtree_span(t)
     return SOURCE[start:end]
 
-OUTPUT = None
-def do_open():
-    # TODO
-    pass
-
-def do_close() -> None:
-    try:
-        if OUTPUT:
-            pass # TODO
-    finally:
-        OUTPUT = None
-
-def output(*args, **kwargs) -> None:
-    """Same as print() except that it redirects using our output file"""
-    print(*args, file=(OUTPUT if OUTPUT else sys.stdout), **kwargs)
-
 def execute_exit(statement: Tree) -> None:
     rc: int = None
     if statement.children:
@@ -639,54 +626,104 @@ def execute_assert(statement: Tree) -> None:
         sys.exit(1)
 
 def execute_set(statement: Tree) -> None:
+    """Assign a value to a variable.
+
+* SET _variable_ [= | := | TO) _expression_ [;]
+* LET _variable_ [= | :=] _expression_ [;]
+"""
     var_name, expr = statement.children
     DD.set_var(eval_expr(expr), *(name.value for name in var_name.children))
 
 def execute_move(statement: Tree) -> None:
+    """A COBOL variant of SET.
+
+* MOVE _expression_ TO _variable_ [;]
+"""
     expr, var_name = statement.children
     DD.set_var(eval_expr(expr), *(name.value for name in var_name.children))
 
 def execute_load_from(statement: Tree) -> None:
+    """Assign a value to a variable from a file.
+
+* LOAD _variable_ FROM [FILE] _expression_ [;]
+* LOAD _variable_ FROM [FILE] _expression_ JSON [OBJECT] [;]
+* LOAD _variable_ FROM [FILE] _expression_ JSON [OBJECT] PER LINE [;]
+* LOAD _variable_ FROM [FILE] _expression_ CSV [;]
+* LOAD _variable_ FROM [FILE] _expression_ TEXT [;]
+
+The _expression_ is resolved to string as file to be loaded
+
+If no type is included, the type is inferred from the extension of the file
+name with TEXT as the default.
+"""
     var_name = statement.children[0]
-    file_name = eval_expr(statement.children[1])
-    if not isinstance(file_name, str): raise TypeError(f'File name must be a string; found {type(file_name).__name__}')
-    # TODO make sure that file is relative to CWD
+    filename = eval_filename_expr(statement.children[1])
     mode = None
     if len(statement.children) > 2:
         mode = statement.children[2].data
     else:
-        ext = os.path.splitext(file_name)[1].lower()
+        ext = os.path.splitext(filename)[1].lower()
         mode = 'csv_file' if ext == '.csv' else 'json_object' if ext == '.json' else 'text_file'
-    data: Any = None
-    if mode == 'text_file':
-        with open(file_name, 'r', encoding='utf-8') as f: data = f.read()
-    elif mode == 'json_object':
-        with open(file_name, 'r', encoding='utf-8') as f: data = json.load(f)
-    elif mode == 'json_objects':
-        with open(file_name, 'r', encoding='utf-8') as f: data = [json.loads(line) for line in f if line.strip()]
-    elif mode == 'csv_file':
-        with open(file_name, 'r', encoding='utf-8') as f: data = list(csv.DictReader(f))
-    else:
-        raise ValueError(f'Unknown mode {mode}') # SNO
-    DD.set_var(data, *(name.value for name in var_name.children))
+    with open(filename, 'r', encoding='utf-8') as f:
+        data: Any = None
+        if mode == 'text_file': data = f.read()
+        elif mode == 'json_object': data = json.load(f)
+        elif mode == 'json_objects': data = [json.loads(line) for line in f if line.strip()]
+        elif mode == 'csv_file': data = list(csv.DictReader(f))
+        else: raise ValueError(f'Unknown mode {mode}') # SNO
+        DD.set_var(data, *(name.value for name in var_name.children))
 
 def execute_print(statement: Tree) -> None:
-    """Works similar to AWK's print"""
-    output(*[eval_expr(expr) for expr in statement.children], sep=DD.get_ofs(), end=DD.get_ors())
+    """Print values, similar to AWK's print statement
+
+* PRINT [;]
+* PRINT _expression_ [, _expression_]... [;]
+
+If no expressions are given, a new line is printed (see below)
+
+The results of the expressions are separated by the string defined in _arg.ofs_.
+Lines are ended by with the _arg.ors_ string. The defaults are space and new line and
+are used if the values are set to _None_.
+"""
+    print_stdout(*[eval_expr(expr) for expr in statement.children], sep=DD.get_ofs(), end=DD.get_ors())
 
 def execute_printf(statement: Tree) -> None:
-    """Works similar to AWK's printf"""
+    """Print formatted values, similar to AWK's printf statement
+
+* PRINTF [;]
+* PRINTF _expression_ [, _expression_]... [;]
+
+If no expressions are given, nothing is printed
+
+The first expression is resolved to a string used to format the other values
+
+Formatting syntax is that used in [Python's str.format()](https://docs.python.org/3/library/string.html#formatstrings)
+
+*At this time only positional parameters are supported*
+"""
     exprs = [*statement.children]
     format_string = eval_expr(exprs.pop(0)) if len(exprs) else ''
     if not isinstance(format_string, str): raise TypeError(f'Format must be a string; found {type(format_string).__name__}')
-    output(format_string.format(*[eval_expr(expr) for expr in exprs]), end='')
+    # TODO : how would we support the printing of values in the DD?
+    print_stdout(format_string.format(*[eval_expr(expr) for expr in exprs]), end='')
 
 def execute_exhibit(statement: Tree) -> None:
+    """The display the name and values of variables
+
+* EXHIBIT _variable_ [, _variable_]... [;]
+
+The values are displayed on individual lines. If a variable has sub variables, each
+portion is displayed on its own line.
+
+Unlike PRINT and PRINTF, the values display are the _representation_ of the data, not
+its printable value. This lets you diferentiate between an integer and a string, and
+see control characters.
+"""
     def exhibit_value(name: str, value: Any) -> None:
         if isinstance(value, dict):
             for key in sorted(value.keys()): exhibit_value(f'{name}.{key}', value[key])
         else:
-            output(f'{name} = {repr(value)}')
+            print_stdout(f'{name} = {repr(value)}')
     children = statement.children
     if children:
         for var_name in children:
@@ -695,10 +732,69 @@ def execute_exhibit(statement: Tree) -> None:
     else:
         for key in sorted(DD.keys()): exhibit_value(key, DD.get_var(key))
 
-def execute_open_output(statement: Tree) -> None: raise NotImplementedError('TODO')
-def execute_open_append(statement: Tree) -> None:  raise NotImplementedError('TODO')
-def execute_close(statement: Tree) -> None: raise NotImplementedError('TODO')
-def execute_delete(statement: Tree) -> None: raise NotImplementedError('TODO')
+# TODO move
+from output import *
+_REDIR = IORedirector()
+
+def print_stdout(*args, **kwargs) -> None:
+    """Same as print() except that it can redirect to an output file"""
+    print(*args, file=_REDIR.stdout(), **kwargs)
+
+def print_stderr(*args, **kwargs) -> None:
+    """Same as print() except that it can redirect to an output file"""
+    print(*args, file=_REDIR.stderr(), **kwargs)
+
+def execute_open(statement: Tree) -> None:
+    """Send command output or error output to a file
+
+* OPEN [OUTPUT | ERROR] [FILE] _expression_ [OVERWRITE] [;]
+* OPEN [OUTPUT | ERROR] [FILE] _expression_ NO OVERWRITE [;]
+* OPEN [OUTPUT | ERROR] [FILE] _expression_ [EXTEND | APPEND] [;]
+
+The _expression_ is resolved to string as file to be opened
+
+If output is being sent to another file, it is closed first.
+
+When EXTEND or APPEND is used, output is added to the end of an existing file.
+When NO OVERWRITE is used, the command will fail if the file already exists.
+Otherwise, if OVERWRITE is used of no mode is given and the file already exists, its contents are truncated.
+
+All redirection is closed at program termination.
+
+See CLOSE
+"""
+    stream = eval_stream_name(statement.children[0])
+    filename = eval_filename_expr(statement.children[1])
+    mode = 'w'
+    if len(statement.children) > 2: mode = statement.children[2].data.lower()
+    if mode not in ('a', 'w', 'x'): raise ValueError(f'Unknown mode {mode}') # SNO
+    getattr(_REDIR, stream)(prepare_path(filename), mode=mode)
+
+def eval_stream_name(node: Tree) -> str:
+    stream = node.data.lower()
+    if stream not in ('stderr', 'stdout'): raise ValueError(f'Unknown stream {stream}') # SNO
+    return stream
+
+def eval_filename_expr(expr: Tree) -> str:
+    filename = eval_expr(expr)
+    if not isinstance(filename, str): raise TypeError(f'File name must be a string; found {type(filename).__name__}')
+    return verify_relative_path(filename)
+
+def execute_close(statement: Tree) -> None:
+    """Close the output or error file
+
+* CLOSE OUTPUT [FILE] [;]
+* CLOSE ERROR [FILE] [;]
+
+Once closed, command output and errors resumes their default destinations.
+
+All redirection is closed at program termination.
+"""
+    stream = eval_stream_name(statement.children[0])
+    getattr(_REDIR, stream)(None)
+
+def execute_delete(statement: Tree) -> None:
+    raise NotImplementedError('TODO')
 
 def eval_expr(expr: Any) -> Any:
     if isinstance(expr, Tree):
@@ -764,8 +860,7 @@ STATEMENT_HANDLERS = {
     'exit': execute_exit,
     'load_from': execute_load_from,
     'move': execute_move,
-    'open_append': execute_open_append,
-    'open_output': execute_open_output,
+    'open': execute_open,
     'print': execute_print,
     'printf': execute_printf,
     'select': execute_select,
@@ -856,7 +951,7 @@ def execute_interactive() -> None:
             break
         try:
             execute_statements(inp)
-        except (ValueError, NotImplementedError, TypeError, UnexpectedCharacters, UnexpectedEOF, UnexpectedInput, UnexpectedToken) as e:
+        except (FileExistsError, ValueError, NotImplementedError, TypeError, UnexpectedCharacters, UnexpectedEOF, UnexpectedInput, UnexpectedToken) as e:
             print(f'{type(e).__name__}: {e}', file=sys.stderr)
 
 PARSER = Lark(_VGR_GRAMMAR, start='statements', parser='lalr', debug=True)
