@@ -1,4 +1,4 @@
-#! /usr/bin/python3
+#! /usr/bin/env python3
 
 from .common import dist_list, dist_tuple, math_overrides, matching_default, time_test
 from functools import reduce

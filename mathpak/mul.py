@@ -1,4 +1,4 @@
-#! /usr/bin/python3
+#! /usr/bin/env python3
 
 from .common import dist_list, dist_tuple, time_test
 from functools import reduce

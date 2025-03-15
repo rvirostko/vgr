@@ -1,4 +1,4 @@
-#! /usr/bin/python3
+#! /usr/bin/env python3
 
 from .common import dist_list, dist_tuple, str_to_number, matching_default, time_test
 

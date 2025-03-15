@@ -1,4 +1,6 @@
-#! /usr/bin/python3
+#! /usr/bin/env python3
+
+# TODO we don't really need this... at least not here!
 
 from add import add_test
 from sub import sub_test

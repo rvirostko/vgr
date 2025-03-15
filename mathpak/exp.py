@@ -1,7 +1,6 @@
-#! /usr/bin/python3
+#! /usr/bin/env python3
 
 from .common import math_overrides, matching_default, time_test
-
 from typing import Any
 
 def poly_exp(x: Any, y: Any) -> Any:

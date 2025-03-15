@@ -1,7 +1,6 @@
-#! /usr/bin/python3
+#! /usr/bin/env python3
 
 from .common import time_test
-
 from typing import Any
 
 def poly_match(x: Any, y: Any) -> Any:
