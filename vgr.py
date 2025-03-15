@@ -1,8 +1,10 @@
 #! /usr/bin/env python3
 
 from collections import defaultdict
+from data_dict import DataDictionary
 from lark import Lark, Tree, Token, Transformer, Visitor, v_args, UnexpectedCharacters, UnexpectedEOF, UnexpectedInput, UnexpectedToken
 from mathpak import *
+from output import *
 from typing import Any
 import argparse
 import ast
@@ -14,7 +16,6 @@ import os
 import re
 import sys
 import zipfile
-from data_dict import DataDictionary
 
 """Binds a (pretty) name to the function to be executed"""
 _FUNC_OPS = {
@@ -482,11 +483,11 @@ def build_array(*values: Any) -> list[Any]:
 
 def var_ref(*path: str)-> Any:
     """This is the lookup of a top-level variable"""
-    return DD.get_var(*path)
+    return _DD.get_var(*path)
 
 def deref_var(data: Any, *path: str) -> Any:
     """This is the lookup of a path relative to data"""
-    return DD.get_var_relative(data, *path)
+    return _DD.get_var_relative(data, *path)
 
 @v_args(tree=True)
 class OperationBinder(Transformer):
@@ -632,7 +633,7 @@ def execute_set(statement: Tree) -> None:
 * LET _variable_ [= | :=] _expression_ [;]
 """
     var_name, expr = statement.children
-    DD.set_var(eval_expr(expr), *(name.value for name in var_name.children))
+    _DD.set_var(eval_expr(expr), *(name.value for name in var_name.children))
 
 def execute_move(statement: Tree) -> None:
     """A COBOL variant of SET.
@@ -640,7 +641,7 @@ def execute_move(statement: Tree) -> None:
 * MOVE _expression_ TO _variable_ [;]
 """
     expr, var_name = statement.children
-    DD.set_var(eval_expr(expr), *(name.value for name in var_name.children))
+    _DD.set_var(eval_expr(expr), *(name.value for name in var_name.children))
 
 def execute_load_from(statement: Tree) -> None:
     """Assign a value to a variable from a file.
@@ -671,7 +672,7 @@ name with TEXT as the default.
         elif mode == 'json_objects': data = [json.loads(line) for line in f if line.strip()]
         elif mode == 'csv_file': data = list(csv.DictReader(f))
         else: raise ValueError(f'Unknown mode {mode}') # SNO
-        DD.set_var(data, *(name.value for name in var_name.children))
+        _DD.set_var(data, *(name.value for name in var_name.children))
 
 def execute_print(statement: Tree) -> None:
     """Print values, similar to AWK's print statement
@@ -685,7 +686,7 @@ The results of the expressions are separated by the string defined in _arg.ofs_.
 Lines are ended by with the _arg.ors_ string. The defaults are space and new line and
 are used if the values are set to _None_.
 """
-    print_stdout(*[eval_expr(expr) for expr in statement.children], sep=DD.get_ofs(), end=DD.get_ors())
+    print_stdout(*[eval_expr(expr) for expr in statement.children], sep=_DD.get_ofs(), end=_DD.get_ors())
 
 def execute_printf(statement: Tree) -> None:
     """Print formatted values, similar to AWK's printf statement
@@ -710,10 +711,13 @@ Formatting syntax is that used in [Python's str.format()](https://docs.python.or
 def execute_exhibit(statement: Tree) -> None:
     """The display the name and values of variables
 
+* EXHIBIT [;]
 * EXHIBIT _variable_ [, _variable_]... [;]
 
 The values are displayed on individual lines. If a variable has sub variables, each
 portion is displayed on its own line.
+
+Without arguments, all variables are displayed
 
 Unlike PRINT and PRINTF, the values display are the _representation_ of the data, not
 its printable value. This lets you diferentiate between an integer and a string, and
@@ -728,13 +732,9 @@ see control characters.
     if children:
         for var_name in children:
             path = tuple(name.value for name in var_name.children)
-            exhibit_value('.'.join(path), DD.get_var(*path))
+            exhibit_value('.'.join(path), _DD.get_var(*path))
     else:
-        for key in sorted(DD.keys()): exhibit_value(key, DD.get_var(key))
-
-# TODO move
-from output import *
-_REDIR = IORedirector()
+        for key in sorted(_DD.keys()): exhibit_value(key, _DD.get_var(key))
 
 def print_stdout(*args, **kwargs) -> None:
     """Same as print() except that it can redirect to an output file"""
@@ -837,7 +837,7 @@ def execute_zip(statement: Tree):
 
 def execute_select(statement: Tree):
     ts = TreeSplitter().split(statement)
-    statement = ImplicitContextAdder().transform(statement, ts.get_target(), _VALID_TARGETS + DD.get_internal_prefixes())
+    statement = ImplicitContextAdder().transform(statement, ts.get_target(), _VALID_TARGETS + _DD.get_internal_prefixes())
     ts.split(statement)
     print(f'Target     : {ts.get_target()}')
     print(f'Predicates : {len(ts.get_predicates())}')
@@ -875,17 +875,17 @@ def remove_comments(input: str) -> str:
 
 def execute_statements(inp: str) -> None:
     inp = set_source(remove_comments(inp))
-    statements: Tree = PARSER.parse(inp)
+    statements: Tree = _PARSER.parse(inp)
     for statement in statements.children:
         handler = STATEMENT_HANDLERS.get(statement.data, None)
         if not handler: raise ValueError(f'No handler established for {statement.data}')
         statement = ConstantsNormalizer().transform(statement)
         statement = OperationBinder().transform(statement)
         statement_text = source_for(statement)
-        DD.set_statement(statement_text)
+        _DD.set_statement(statement_text)
         # TODO this does not work well...
-        # if DD.is_echo(): print(statement_text)
-        if DD.is_debug(): print_tree(statement)
+        # if _DD.is_echo(): print(statement_text)
+        if _DD.is_debug(): print_tree(statement)
         handler(statement)
 
 def print_tree(item: Any, indent=2) -> None:
@@ -954,12 +954,12 @@ def execute_interactive() -> None:
         except (FileExistsError, ValueError, NotImplementedError, TypeError, UnexpectedCharacters, UnexpectedEOF, UnexpectedInput, UnexpectedToken) as e:
             print(f'{type(e).__name__}: {e}', file=sys.stderr)
 
-PARSER = Lark(_VGR_GRAMMAR, start='statements', parser='lalr', debug=True)
-
-DD: DataDictionary = None
+_PARSER = Lark(_VGR_GRAMMAR, start='statements', parser='lalr', debug=True)
+_REDIR = IORedirector()
+_DD: DataDictionary = None
 
 def main():
-    global DD
+    global _DD
     parser = argparse.ArgumentParser(
         description="Generic Reporting for Hashicorp Vault - prototype"
     )
@@ -971,12 +971,12 @@ def main():
     parser.add_argument('user_args', nargs='*', metavar='NAME=VALUE', help='Additional arguments')
     parsed = parser.parse_args()
 
-    DD = DataDictionary()
-    DD.set_grammar(_VGR_GRAMMAR)
-    DD.set_debug(parsed.debug)
-    DD.set_verbose(parsed.verbose)
+    _DD = DataDictionary()
+    _DD.set_grammar(_VGR_GRAMMAR)
+    _DD.set_debug(parsed.debug)
+    _DD.set_verbose(parsed.verbose)
     # NB: User args can override debug/echo/verbose...
-    DD.parse_user_args(parsed.user_args)
+    _DD.parse_user_args(parsed.user_args)
 
     if parsed.execute:
         # For simple statements directly on the command line
