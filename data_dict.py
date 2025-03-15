@@ -8,8 +8,7 @@ from mathpak import poly_bool, poly_number
 from typing import Any
 
 class DataDictionary():
-    # TODO do we care about possible secrets?
-    _ENV_EXCLUDE = tuple(re.compile(pattern, re.IGNORECASE) for pattern in ('^VSCODE', '^_$', '^PWD$', 'password', 'secret', 'token'))
+    _ENV_EXCLUDE = tuple(re.compile(pattern, re.IGNORECASE) for pattern in ('^VSCODE', '^_$', '^PWD$'))
     _OS_CONSTS = ( 'defpath',  'devnull', 'extsep', 'linesep', 'name', 'pardir', 'pathsep', 'sep' )
     _ARG_PREFIX = 'arg'
     _ENV_PREFIX = 'env'
@@ -121,7 +120,7 @@ class DataDictionary():
         return rc
 
     def _set_var(self, start: dict, data: Any, *path: str) -> None:
-        if not start or not path: return
+        if start == None or not path: return
         current = start
         for step in path[:-1]:
             # If the next step doesn't exist, create it as dictionary
