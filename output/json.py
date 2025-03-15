@@ -1,4 +1,4 @@
-#! /usr/bin/python3
+#! /usr/bin/env python3
 
 import json
 import sys
@@ -7,11 +7,9 @@ from .base import FileRecordWriter
 
 class JSONRecordWriter(FileRecordWriter):
 
-    __DEFAULT_ROOT = 'results'
-
     def __init__(self, file: FileIO=sys.stdout.buffer):
         super().__init__(file)
-        self._root = self.__DEFAULT_ROOT
+        self._root = None
         self._indent = 2
         self._compact = False
         self._include_null = True
@@ -19,8 +17,7 @@ class JSONRecordWriter(FileRecordWriter):
         self._array_wrapper = True
 
     def set_root(self, name: str):
-        self._root = name
-        if name is None: self._array_wrapper = False
+        self._root = None if name is None else name.strip()
         return self
 
     def set_indent(self, value: int=0):
