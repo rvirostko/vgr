@@ -254,9 +254,9 @@ load_source_type: "JSON"i "Object"i? -> json_object
     | "CSV"i -> csv_file
     | "TEXT"i -> text_file
 
-assert: "Assert"i expr (":" expr)? _SEMICOLON?
+assert: "Assert"i expr (":" expr (_COMMA expr)*)? _SEMICOLON?
 
-printf: "Printf"i (expr (_COMMA expr (_COMMA expr)*)?)? _SEMICOLON?
+printf: "Printf"i (expr (_COMMA expr)*)? _SEMICOLON?
 
 print: "Print"i (expr (_COMMA expr)*)? _SEMICOLON?
 
@@ -617,13 +617,33 @@ def execute_exit(statement: Tree) -> None:
     sys.exit(rc)
 
 def execute_assert(statement: Tree) -> None:
-    # First required operand is the assertion itself
-    v: Any = poly_bool(eval_expr(statement.children[0]))
+    """Assert that a condition is met, terminating execution if it is not
+
+* ASSERT _expression_ [;]
+* ASSERT _expression_ : _expression_ [, _expression]... [;]
+
+The first expression is evaluated as a boolean value which must be true for execution to continue.
+
+The optional expressions following the colon compose a a string message printed if the first expression
+is not true. It is composed in the same manner as Printf, with the first one being a string containing
+formatting syntax as used in [Python's str.format()](https://docs.python.org/3/library/string.html#formatstrings)
+
+If no message is given the the failing expression is used as the message
+
+Execution ends with an exit code of 1 indicating failure
+"""
+    exprs = [*statement.children]
+    v: bool = poly_bool(eval_expr(exprs.pop(0))) if len(exprs) else False
     if not v:
-        msg: Any = None
-        # message is optional
-        if len(statement.children) > 1: msg = poly_str(eval_expr(statement.children[1]))
-        print(str(msg) if msg is not None else f'Assertion {source_for(statement)} failed', file=sys.stderr)
+        msg: str = None
+        if len(exprs) > 0:
+            try:
+                msg = poly_str(eval_expr(exprs.pop(0)))
+                if msg is not None: msg = msg.format(*[eval_expr(expr) for expr in exprs])
+            except Exception as e:
+                print_stderr("While evaluating Assertion: ", e)
+                msg = None
+        print_stderr(str(msg) if msg is not None else f'Assertion {source_for(statement)} failed')
         sys.exit(1)
 
 def execute_set(statement: Tree) -> None:
@@ -699,14 +719,10 @@ If no expressions are given, nothing is printed
 The first expression is resolved to a string used to format the other values
 
 Formatting syntax is that used in [Python's str.format()](https://docs.python.org/3/library/string.html#formatstrings)
-
-*At this time only positional parameters are supported*
 """
     exprs = [*statement.children]
-    format_string = eval_expr(exprs.pop(0)) if len(exprs) else ''
-    if not isinstance(format_string, str): raise TypeError(f'Format must be a string; found {type(format_string).__name__}')
-    # TODO : how would we support the printing of values in the DD?
-    print_stdout(format_string.format(*[eval_expr(expr) for expr in exprs]), end='')
+    format_string = poly_str(eval_expr(exprs.pop(0))) if len(exprs) else ''
+    print_stdout(str(format_string).format(*[eval_expr(expr) for expr in exprs]), end='')
 
 def execute_exhibit(statement: Tree) -> None:
     """The display the name and values of variables
@@ -893,13 +909,13 @@ def print_tree(item: Any, indent=2) -> None:
     if isinstance(item, Tree):
         tree: Tree = item
         op = f':{tree.op_name()}' if isinstance(item, Operation) else ''
-        print(f'{prefix}({tree.data}{op}', end=('\n' if tree.children else ''), file=sys.stderr)
+        print_stderr(f'{prefix}({tree.data}{op}', end=('\n' if tree.children else ''))
         for child in tree.children: print_tree(child, indent + 2)
-        print(f'{prefix if tree.children else ""})', file=sys.stderr)  # close the rule
+        print_stderr(f'{prefix if tree.children else ""})')  # close the rule
     else:
         if isinstance(item, Token):
             token: Token = item
-            print(f'{prefix}{token.type}: {token.value} (Pos: {token.line}:{token.column} {type(token.value)})', file=sys.stderr)
+            print_stderr(f'{prefix}{token.type}: {token.value} (Pos: {token.line}:{token.column} {type(token.value)})')
         else:
             raise ValueError(item.type()) # What else can there be?
 
@@ -951,8 +967,8 @@ def execute_interactive() -> None:
             break
         try:
             execute_statements(inp)
-        except (FileExistsError, ValueError, NotImplementedError, TypeError, UnexpectedCharacters, UnexpectedEOF, UnexpectedInput, UnexpectedToken) as e:
-            print(f'{type(e).__name__}: {e}', file=sys.stderr)
+        except Exception as e:
+            print_stderr(f'{type(e).__name__}: {e}')
 
 _PARSER = Lark(_VGR_GRAMMAR, start='statements', parser='lalr', debug=True)
 _REDIR = IORedirector()
@@ -989,7 +1005,7 @@ def main():
                 with open(filepath, 'r') as f:
                     statements = f.read()
             except Exception as e:
-                print(f"Error reading file {filepath}: {e}", file=sys.stderr)
+                print_stderr(f"Error reading file {filepath}: {e}")
                 break
             if statements: execute_statements(statements)
     else:
