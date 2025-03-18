@@ -35,8 +35,9 @@ class LimitedFileHistory(FileHistory):
 
     def append_string(self, string: str) -> None:
         super().append_string(string)
+        # NB: list is store most recent to oldest
         if len(self._loaded_strings) > self._max_lines:
-            self._loaded_strings = self._loaded_strings[-self._max_lines:]
+            self._loaded_strings = self._loaded_strings[:self._max_lines]
 
 class CmdLine:
 
