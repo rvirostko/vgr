@@ -2,9 +2,12 @@
 
 from collections import defaultdict
 from data_dict import DataDictionary
-from lark import Lark, Tree, Token, Transformer, Visitor, v_args, UnexpectedCharacters, UnexpectedEOF, UnexpectedInput, UnexpectedToken
+from interactive import CmdLine
+from lark import Lark, Tree, Token, Transformer, Visitor, v_args
 from mathpak import *
 from output import *
+from prompt_toolkit import prompt
+from prompt_toolkit.history import FileHistory
 from typing import Any
 import argparse
 import ast
@@ -12,6 +15,7 @@ import csv
 import glob
 import inspect
 import json
+import os
 import os
 import re
 import sys
@@ -233,20 +237,29 @@ FLOAT_NUMBER: /[+-]/? (_SPECIAL_DEC _EXP_PART | _DECIMAL _EXP_PART?)
 NAME: /[A-Za-z_]([A-Za-z0-9_]|-+[A-Za-z])*/
 
 statements: statement+
-?statement: assign
-    | load_from
-    | assert
-    | print | printf | exhibit
-    | open
+?statement: assert
     | close
-    | delete
-    | select
-    | zip
+    | debug
+    | echo
+    | exhibit
     | exit
+    | load_from
+    | open
+    | print
+    | printf
+    | select
+    | set
+    | verbose
+    | zip
 
-?assign: "Let"i var_name ("=" | ":=") expr _SEMICOLON? -> set
-    | "Set"i var_name ("=" | ":=" | "To"i) expr _SEMICOLON? -> set
-    | "Move"i expr "To"i var_name _SEMICOLON? -> move // This is here because Ian inadvertantly reminded me it exists
+# simple boolean on/off, true/false
+# these are "proper statements" as the control the behavior of other statements
+debug: "Debug"i expr _SEMICOLON?
+echo: "Echo"i expr _SEMICOLON?
+verbose: "Verbose"i expr _SEMICOLON?
+
+set: "Let"i var_name ("=" | ":=") expr _SEMICOLON?
+    | "Set"i var_name ("=" | ":=" | "To"i) expr _SEMICOLON?
 
 load_from: "Load"i var_name "From"i "File"i? expr load_source_type? _SEMICOLON?
 load_source_type: "JSON"i "Object"i? -> json_object
@@ -269,8 +282,6 @@ open: "Open"i io_type "File"i? expr open_ext? _SEMICOLON?
     | ("Overwrite"i | "w"i) -> w
     | ("No"i "Overwrite"i | "x"i) -> x
 close: "Close"i io_type "File"i? _SEMICOLON? -> close
-
-delete: "Delete"i "File"i? expr (_COMMA expr)* _SEMICOLON?
 
 zip: "Create"i "Zip"i "File"i? expr (zip_option (_COMMA zip_option)*)? _SEMICOLON?
 ?zip_option: "Password"i expr -> password
@@ -606,7 +617,54 @@ def source_for(t: Tree) -> str:
     start, end = get_subtree_span(t)
     return SOURCE[start:end]
 
+def _flag_value(statement: Tree) -> bool:
+    # default for a flag is a request to turn on
+    if not statement.children: return True
+    return poly_bool(poly_firstitem(eval_expr(statement.children[0])))
+
+def execute_echo(statement: Tree) -> None:
+    """Turn echo mode on or off
+
+* ECHO [;]
+* ECHO _expression_ [;]
+
+When on, statements are echoed before execution
+"""
+    _DD.set_echo(_flag_value(statement))
+    print_verbose('Echo =', _DD.is_echo())
+
+def execute_debug(statement: Tree) -> None:
+    """Turn debug mode on or off
+
+* DEBUG [;]
+* DEBUG _expression_ [;]
+
+When on, additional technical output is generated.
+"""
+    _DD.set_debug(_flag_value(statement))
+    print_verbose('Debug =', _DD.is_debug())
+
+def execute_verbose(statement: Tree) -> None:
+    """Turn verbose mode on or off
+
+* VERBOSE [;]
+* VERBOSE _expression_ [;]
+
+When on, additional operational output is generated.
+"""
+    _DD.set_verbose(_flag_value(statement))
+    print_verbose('Verbose =', _DD.is_verbose()) # Yeah... can only print true
+
 def execute_exit(statement: Tree) -> None:
+    """Terminate execution
+
+* EXIT [;]
+* EXIT _expression_ [;]
+
+The _expression_ is a numeric the code returned to the shell.
+The default return code is zero.
+Note that "True" returns one and "False" returns zero.
+"""
     rc: int = None
     if statement.children:
         x: Any = poly_firstitem(eval_expr(statement.children[0]))
@@ -614,6 +672,7 @@ def execute_exit(statement: Tree) -> None:
             rc = poly_int(x)
         except ValueError:
             rc = int(poly_bool(x))
+    print_verbose('Exit Code =', rc)
     sys.exit(rc)
 
 def execute_assert(statement: Tree) -> None:
@@ -653,14 +712,6 @@ def execute_set(statement: Tree) -> None:
 * LET _variable_ [= | :=] _expression_ [;]
 """
     var_name, expr = statement.children
-    _DD.set_var(eval_expr(expr), *(name.value for name in var_name.children))
-
-def execute_move(statement: Tree) -> None:
-    """A COBOL variant of SET.
-
-* MOVE _expression_ TO _variable_ [;]
-"""
-    expr, var_name = statement.children
     _DD.set_var(eval_expr(expr), *(name.value for name in var_name.children))
 
 def execute_load_from(statement: Tree) -> None:
@@ -760,6 +811,12 @@ def print_stderr(*args, **kwargs) -> None:
     """Same as print() except that it can redirect to an output file"""
     print(*args, file=_REDIR.stderr(), **kwargs)
 
+def print_debug(*args, **kwargs) -> None:
+    if _DD.is_debug(): print_stderr(*args, **kwargs)
+
+def print_verbose(*args, **kwargs) -> None:
+    if _DD.is_verbose(): print_stderr(*args, **kwargs)
+
 def execute_open(statement: Tree) -> None:
     """Send command output or error output to a file
 
@@ -785,6 +842,7 @@ See CLOSE
     if len(statement.children) > 2: mode = statement.children[2].data.lower()
     if mode not in ('a', 'w', 'x'): raise ValueError(f'Unknown mode {mode}') # SNO
     getattr(_REDIR, stream)(prepare_path(filename), mode=mode)
+    print_verbose(stream, "redirected to", filename)
 
 def eval_stream_name(node: Tree) -> str:
     stream = node.data.lower()
@@ -808,9 +866,7 @@ All redirection is closed at program termination.
 """
     stream = eval_stream_name(statement.children[0])
     getattr(_REDIR, stream)(None)
-
-def execute_delete(statement: Tree) -> None:
-    raise NotImplementedError('TODO')
+    print_verbose(stream, "closed")
 
 def eval_expr(expr: Any) -> Any:
     if isinstance(expr, Tree):
@@ -871,16 +927,17 @@ def execute_select(statement: Tree):
 STATEMENT_HANDLERS = {
     'assert': execute_assert,
     'close': execute_close,
-    'delete': execute_delete,
+    'debug': execute_debug,
+    'echo': execute_echo,
     'exhibit': execute_exhibit,
     'exit': execute_exit,
     'load_from': execute_load_from,
-    'move': execute_move,
     'open': execute_open,
     'print': execute_print,
     'printf': execute_printf,
     'select': execute_select,
     'set': execute_set,
+    'verbose': execute_verbose,
     'zip': execute_zip,
 }
 
@@ -953,22 +1010,44 @@ def get_subtree_span(node):
     traverse(node)
     return start_pos, end_pos
 
-def prompt() -> str: return 'vgr> ' # TODO future?
+class VGRCmdLine(CmdLine):
+
+    def execute_statements(self, text: str) -> None:
+        try:
+            execute_statements(text)
+        except Exception as e:
+            print(f'{type(e).__name__}: {e}')
+
+    @property
+    def debug(self) -> bool: return _DD.is_debug()
+
+    @property
+    def verbose(self) -> bool: return _DD.is_verbose()
+
+    @verbose.setter
+    def verbose(self, value: bool): _DD.set_verbose(value)
+
+    @property
+    def prompt(self) -> str: return _DD.get_shell_prompt()
+
+    @prompt.setter
+    def prompt(self, value: str): _DD.set_shell_prompt(value)
+
+    @property
+    def history_filename(self) -> str: return _DD.get_shell_history()
+
+    @property
+    def max_history_entries(self) -> int: return _DD.get_shell_history_size()
+
+    @max_history_entries.setter
+    def max_history_entries(self, value: int): _DD.set_shell_history_size(value)
 
 def execute_interactive() -> None:
     print("Type 'exit' to exit")
-    while True:
-        try:
-            inp = input(prompt())
-        except KeyboardInterrupt:
-            print()
-            break
-        except EOFError:
-            break
-        try:
-            execute_statements(inp)
-        except Exception as e:
-            print_stderr(f'{type(e).__name__}: {e}')
+    try:
+        VGRCmdLine().run()
+    finally:
+        _REDIR.end_redirects()
 
 _PARSER = Lark(_VGR_GRAMMAR, start='statements', parser='lalr', debug=True)
 _REDIR = IORedirector()
@@ -984,6 +1063,8 @@ def main():
     group.add_argument('-f', '--file', nargs='*', metavar='FILE', help='Execute statements stored in a file')
     parser.add_argument('--verbose', action='store_true', help="Enable verbose mode")
     parser.add_argument('--debug', action='store_true', help="Enable debug mode")
+    parser.add_argument('--echo', action='store_true', help="Enable statement echo")
+    parser.add_argument('--prompt', metavar="PROMPT", type=str, help="Interactive prompt")
     parser.add_argument('user_args', nargs='*', metavar='NAME=VALUE', help='Additional arguments')
     parsed = parser.parse_args()
 
@@ -991,8 +1072,11 @@ def main():
     _DD.set_grammar(_VGR_GRAMMAR)
     _DD.set_debug(parsed.debug)
     _DD.set_verbose(parsed.verbose)
+    _DD.set_echo(parsed.echo)
+    if parsed.prompt: _DD.set_shell_prompt(parsed.prompt)
     # NB: User args can override debug/echo/verbose...
     _DD.parse_user_args(parsed.user_args)
+    # ... as can commands in a script
 
     if parsed.execute:
         # For simple statements directly on the command line
