@@ -1,6 +1,10 @@
 #! /bin/bash
 
-../vgr.py 'echo=true' <<EOF  || echo "FAILED"
+../vgr.py <<EOF  || echo "FAILED"
+
+Echo False
+Verbose False
+Debug False
 
 # "Modern" style comments
     // C-style comments

@@ -1,11 +1,15 @@
 #! /bin/bash
 
-../vgr.py 'echo=true' <<EOF || echo "FAILED"
+../vgr.py <<EOF || echo "FAILED"
 
 # Test out casting for comparisons
 # Test out transitive property for equality
 # Test out printf syntax
 # int, float, str, and array
+
+Echo False
+Verbose False
+Debug False
 
 -- Generate our "threes" data
     set t.three_int = 3
