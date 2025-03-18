@@ -4,13 +4,16 @@ from typing import Any
 
 from .common import str_to_number
 
-TRUE_STRS = ('true', 't', 'yes', 'y')
+TRUE_STRS = ('true', 't', 'yes', 'y', 'on')
+FALSE_STRS = ('false', 'f', 'no', 'n', 'off')
 
 def poly_bool(x: Any) -> bool:
     if x is None: return False
     if poly_isnumber(x): return bool(x)
     if poly_isstr(x):
-        if x.strip().lower() in TRUE_STRS: return True
+        x = x.strip().lower()
+        if x in TRUE_STRS: return True
+        if x in FALSE_STRS: return False
         try: return bool(str_to_number(x))
         except Exception: return True
     return True
