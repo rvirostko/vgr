@@ -254,9 +254,9 @@ statements: statement+
 
 # simple boolean on/off, true/false
 # these are "proper statements" as the control the behavior of other statements
-debug: "Debug"i expr _SEMICOLON?
-echo: "Echo"i expr _SEMICOLON?
-verbose: "Verbose"i expr _SEMICOLON?
+debug: "Debug"i expr? _SEMICOLON?
+echo: "Echo"i expr? _SEMICOLON?
+verbose: "Verbose"i expr? _SEMICOLON?
 
 set: "Let"i var_name ("=" | ":=") expr _SEMICOLON?
     | "Set"i var_name ("=" | ":=" | "To"i) expr _SEMICOLON?
