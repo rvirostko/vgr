@@ -1,11 +1,11 @@
 #! /usr/bin/env python3
 
-import string
+from mathpak import poly_bool, poly_number
+from typing import Any
 import math
 import os
 import re
-from mathpak import poly_bool, poly_number
-from typing import Any
+import string
 
 class DataDictionary():
     _ENV_EXCLUDE = tuple(re.compile(pattern, re.IGNORECASE) for pattern in ('^VSCODE', '^_$', '^(OLD)?PWD$'))
@@ -23,6 +23,15 @@ class DataDictionary():
     _VERBOSE_VAR = 'verbose'
     _OFS_VAR = 'ofs'  # Like AWK's Output Field Separator
     _ORS_VAR = 'ors' # Like AWK's Output Record Separator
+    _PROMPT = 'prompt'
+    _HISTORY = 'history'
+    _HISTORY_SIZE = 'history_size'
+    _GRAMMAR = 'grammar'
+
+    _DEFAULT_PROMPT = 'vgr> '
+    _DEFAULT_HISTORY = '~/.vgr_history'
+    _DEFAULT_HISTORY_SIZE = 100
+    _VGR_ENV_PREFIX = 'VGR_'
 
     _DD = {}
 
@@ -41,6 +50,10 @@ class DataDictionary():
         # either Set or with command line arguments
         self._set_var(self._DD, self._defaut_ofs(), self._ARG_PREFIX, self._OFS_VAR)
         self._set_var(self._DD, self._defaut_ors(), self._ARG_PREFIX, self._ORS_VAR)
+        # Import values from the environment
+        self._set_var(self._DD, self._get_vgr_default(self._PROMPT, self._DEFAULT_PROMPT), self._VGR_PREFIX, self._PROMPT)
+        self._set_var(self._DD, self._get_vgr_default(self._HISTORY, self._DEFAULT_HISTORY), self._VGR_PREFIX, self._HISTORY)
+        self._set_var(self._DD, self._get_vgr_default_int(self._HISTORY_SIZE, self._DEFAULT_HISTORY_SIZE), self._VGR_PREFIX, self._HISTORY_SIZE)
 
     def get_internal_prefixes(self) -> tuple: return self._INTERNAL_PREFIXES
 
@@ -49,14 +62,26 @@ class DataDictionary():
     def set_debug(self, v: bool=True) -> None: self._set_var(self._DD, bool(v), self._ARG_PREFIX, self._DEBUG_VAR)
     def set_verbose(self, v: bool=True) -> None: self._set_var(self._DD, bool(v), self._ARG_PREFIX, self._VERBOSE_VAR)
     def set_echo(self, v: bool=True) -> None: self._set_var(self._DD, bool(v), self._ARG_PREFIX, self._ECHO_VAR)
-    def set_grammar(self, grammar: str) -> None: self._set_var(self._DD, grammar, self._VGR_PREFIX, 'grammar')
+    def set_grammar(self, grammar: str) -> None: self._set_var(self._DD, grammar, self._VGR_PREFIX, self._GRAMMAR)
     def set_statement(self, statement: str) -> None: self._set_var(self._DD, statement, self._VGR_PREFIX, 'statement')
 
     def is_debug(self) -> bool: return bool(self._get_var(self._DD, self._ARG_PREFIX, self._DEBUG_VAR))
     def is_echo(self) -> bool: return bool(self._get_var(self._DD, self._ARG_PREFIX, self._ECHO_VAR))
     def is_verbose(self) -> bool: return bool(self._get_var(self._DD, self._ARG_PREFIX, self._VERBOSE_VAR))
+
+    def get_grammar(self) -> str: return str(self._get_var(self._DD, self._VGR_PREFIX, self._GRAMMAR))
+
     def get_ofs(self) -> str: return str(self._get_var(self._DD, self._ARG_PREFIX, self._OFS_VAR) or self._defaut_ofs())
     def get_ors(self) -> str: return str(self._get_var(self._DD, self._ARG_PREFIX, self._ORS_VAR) or self._defaut_ors())
+
+    def get_shell_prompt(self) -> str: return str(self._get_var(self._DD, self._VGR_PREFIX, self._PROMPT)) or self._DEFAULT_PROMPT
+    def set_shell_prompt(self, v: str) -> None: self._set_var(self._DD, str(v or self._DEFAULT_PROMPT), self._VGR_PREFIX, self._PROMPT)
+    def get_shell_history(self) -> str: return os.path.expanduser(str(self._get_var(self._DD, self._VGR_PREFIX, self._HISTORY)) or self._DEFAULT_HISTORY)
+    def get_shell_history_size(self) -> int:
+        try:
+            return int(self._get_var(self._DD, self._VGR_PREFIX, self._HISTORY_SIZE)) or self._DEFAULT_HISTORY_SIZE
+        except:
+            return self._DEFAULT_HISTORY_SIZE
 
     def set_var(self, value: Any, *path: str) -> None:
         """Set an item within the dictionary"""
@@ -106,7 +131,6 @@ class DataDictionary():
 
     def _get_os_consts(self) -> dict:
         rc = { key: value for key, value in self._get_consts(os).items() if key in self._OS_CONSTS }
-        rc['cwd'] = os.getcwd()
         rc['uid'] = os.getuid()
         rc['gid'] = os.getgid()
         rc['login'] = os.getenv('USER') or os.getlogin()
@@ -116,7 +140,6 @@ class DataDictionary():
         rc = { name: self._coerce_value(value) for name, value in os.environ.items() if not any(pattern.search(name) for pattern in self._ENV_EXCLUDE) }
         for name, value in rc.items():
             if isinstance(value, str) and re.search(r'(_)?PATH$', name, re.IGNORECASE): rc[name] = tuple(value.split(os.pathsep))
-        rc['PWD'] = os.getcwd()
         return rc
 
     def _set_var(self, start: dict, data: Any, *path: str) -> None:
@@ -156,3 +179,11 @@ class DataDictionary():
     def _defaut_ofs(self) -> str: return os.getenv('OFS', ' ')
 
     def _defaut_ors(self) -> str: return os.getenv('ORS', '\n')
+
+    def _get_vgr_default(self, env_var: str, default: Any) -> str: return os.getenv(self._VGR_ENV_PREFIX + env_var.upper(), default)
+
+    def _get_vgr_default_int(self, env_var: str, default: Any) -> str:
+        try:
+            return int(self.get_vgr_default(env_var.upper(), default))
+        except:
+            return default
