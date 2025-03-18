@@ -1060,7 +1060,7 @@ def main():
     )
     group = parser.add_mutually_exclusive_group()
     group.add_argument('-e', '--execute', type=str, metavar='STATEMENTS', help='Execute the given statements')
-    group.add_argument('-f', '--file', nargs='*', metavar='FILE', help='Execute statements stored in a file')
+    group.add_argument('-f', '--file', action='append', metavar='FILE', help='Execute statements stored in a file')
     parser.add_argument('--verbose', action='store_true', help="Enable verbose mode")
     parser.add_argument('--debug', action='store_true', help="Enable debug mode")
     parser.add_argument('--echo', action='store_true', help="Enable statement echo")
