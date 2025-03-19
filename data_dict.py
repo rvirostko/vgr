@@ -33,6 +33,9 @@ class DataDictionary():
     _DEFAULT_HISTORY_SIZE = 100
     _VGR_ENV_PREFIX = 'VGR_'
 
+    # These can't appear in a path name (to prevent confusion)
+    _RESERVED_WORDS = ('true', 'false', 'none', 'null', 'inf', 'nan')
+
     _DD = {}
 
     def __init__(self):
@@ -103,7 +106,7 @@ class DataDictionary():
         """
         for arg in user_args:
             if '=' in arg:
-                name, value = re.split(r'\s*=\s*', arg, 1)
+                name, value = re.split(r'\s*=', arg, 1)
                 path = tuple(step for step in re.split(r'\s*[.]\s*', name.strip()))
                 if path:
                     match = re.fullmatch(r'\s*"([^"]*)"\s*', value)
@@ -115,6 +118,8 @@ class DataDictionary():
         # Check for anything that is None, isn't a string, or strings that are "empty"
         if any(step is None or not isinstance(step, str) or all(sc.isspace() for sc in step) for step in path) :
             raise ValueError(f"Invalid path: {'.'.join(map(str, path))}")
+        if any(step.lower() in self._RESERVED_WORDS for step in path):
+            raise ValueError(f'Invalid path: {".".join(path)} contains reserved values')
         return path
 
     def _validate_user_set_path(self, *path: str) -> tuple:
@@ -174,7 +179,7 @@ class DataDictionary():
         if value == None or isinstance(value, (bool, int, float, dict, list, tuple)): return value
         if value.strip().lower() in ('true', 'false'): return poly_bool(value)
         try: return poly_number(value)
-        except TypeError: return None if value.lower() == 'none' else value
+        except TypeError: return None if value.strip().lower() == 'none' else value
 
     def _defaut_ofs(self) -> str: return os.getenv('OFS', ' ')
 
