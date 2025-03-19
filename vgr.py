@@ -3,23 +3,23 @@
 from collections import defaultdict
 from data_dict import DataDictionary
 from interactive import CmdLine
-from lark import Lark, Tree, Token, Transformer, Visitor, v_args
+from lark import Lark, Tree, Token, Transformer, Visitor, v_args, exceptions
 from mathpak import *
 from output import *
-from prompt_toolkit import prompt
-from prompt_toolkit.history import FileHistory
 from typing import Any
 import argparse
 import ast
 import csv
+import fnmatch
 import glob
 import inspect
 import json
-import os
+import math
 import os
 import re
 import sys
 import zipfile
+
 
 """Binds a (pretty) name to the function to be executed"""
 _FUNC_OPS = {
@@ -112,6 +112,9 @@ _FUNC_OPS = {
 """This index provides a way to find functions independent of case.
 Use get_function_op() to find entries"""
 _FUNC_INDEX = {k.lower(): k for k in _FUNC_OPS}
+
+"""List of tokens that we don't try to translate in exceptions"""
+_TOKEN_PASS = ('NAME')
 
 def get_function_op(name: str):
     """Given a function name get the function that implements it"""
@@ -214,7 +217,9 @@ _CSB: "]"
 // Converted to their literal values after parsing
 TRUE: "true"i
 FALSE: "false"i
-NONE: "none"i | "nil"i | "null"i
+NONE: "none"i | "null"i
+INF: "inf"i
+NAN: "nan"i
 
 // Numeric values
 // NB: octal and binary regexs are shorter than the length
@@ -253,7 +258,7 @@ statements: statement+
     | zip
 
 # simple boolean on/off, true/false
-# these are "proper statements" as the control the behavior of other statements
+# these are "proper statements" as they control the behavior of other statements
 debug: "Debug"i expr? _SEMICOLON?
 echo: "Echo"i expr? _SEMICOLON?
 verbose: "Verbose"i expr? _SEMICOLON?
@@ -289,7 +294,7 @@ zip: "Create"i "Zip"i "File"i? expr (zip_option (_COMMA zip_option)*)? _SEMICOLO
     | "Include"i expr+ -> include
     | "Exclude"i expr+ -> exclude
 
-exit: "Exit"i expr?
+exit: "Exit"i expr? _SEMICOLON?
 
 select: "Select"i outputs? "From"i TARGET where_clause? (join_clause+ | auto_join_clause)? product_clause? limit_clause? for_clause? _SEMICOLON?
 
@@ -414,6 +419,7 @@ product_cols: "All"i -> all
     | _OSB (expr (_COMMA expr)*)? _CSB -> array         // may become CARRAY at runtime
     | TRUE | FALSE
     | NONE
+    | INF | NAN                                         // becomes FLOAT at runtime
     | ESCAPED_STRING                                    // becomes STRING at runtime
     | HEX_NUMBER | BIN_NUMBER | OCT_NUMBER | DEC_NUMBER // becomes INT at runtime
     | FLOAT_NUMBER                                      // becomes FLOAT at runtime
@@ -472,6 +478,8 @@ class ConstantsNormalizer(Transformer):
     def TRUE(self, token): return self._new_token(token, token.type, True)
     def FALSE(self, token): return self._new_token(token, token.type, False)
     def NONE(self, token): return self._new_token(token, 'NONE', None)
+    def INF(self, token): return self._new_token(token, 'FLOAT', math.inf)
+    def NAN(self, token): return self._new_token(token, 'FLOAT', math.nan)
     def DEC_NUMBER(self, token): return self._to_int(token, 10)
     def HEX_NUMBER(self, token): return self._to_int(token, 16)
     def OCT_NUMBER(self, token): return self._to_int(token, 8)
@@ -849,10 +857,16 @@ def eval_stream_name(node: Tree) -> str:
     if stream not in ('stderr', 'stdout'): raise ValueError(f'Unknown stream {stream}') # SNO
     return stream
 
+def eval_to_list_str(clause: Tree, name: str) -> str:
+    return [eval_to_str(expr, name) for expr in clause.children]
+
+def eval_to_str(expr: Tree, name: str) -> str:
+    rc = eval_expr(expr)
+    if not isinstance(rc, str): raise TypeError(f'{name} must be a string; found {type(rc).__name__}')
+    return rc
+
 def eval_filename_expr(expr: Tree) -> str:
-    filename = eval_expr(expr)
-    if not isinstance(filename, str): raise TypeError(f'File name must be a string; found {type(filename).__name__}')
-    return verify_relative_path(filename)
+    return verify_relative_path(eval_to_str(expr, 'File name'))
 
 def execute_close(statement: Tree) -> None:
     """Close the output or error file
@@ -877,35 +891,63 @@ def eval_expr(expr: Any) -> Any:
         raise NotImplementedError(f'Unknown type {expr.type()}')
 
 def execute_zip(statement: Tree):
-    if 1==1: raise NotImplementedError('TODO')
-    # first child is expr for file name, ensure for str
-    # comment and password are expr, ensure for str
-    # for include and exclude:
-    #   children are expr.
-    #   they can resolve to str, list or tuple
-    #   if str, add to list
-    #   if list/tuple, unwrap and recursively add (but must be strs)
-    #
-    zip_name: str = 'foo'
+    """Create a ZIP Archive
+
+* CREATE ZIP [FILE] _expression_ [_option_ [, _option_]...]
+
+Options are
+
+* INCLUDE _expression_...
+* EXCLUDE _expression_...
+* COMMENT _expression_
+* PASSWORD _expression_
+
+Include and exclude expressions are strings that include files or
+directories. Directories are included recursively. Files and directories must
+be relative to the current directory.
+
+_Password is not currently implemented but may be specified_
+
+"""
+    zip_name = eval_filename_expr(statement.children.pop(0))
     include_patterns: list[str] = []
     exclude_patterns: list[str] = []
-    # TODO make sure we have at least one include
-    comment: str = ''
-    # TODO default comment?
-    password: str = '' # TODO need other lib?
-    with zipfile.ZipFile(zip_name, "w", zipfile.ZIP_DEFLATED) as zf:
-        # TODO is this for write? zf.setpassword(password.bytes())
-        added_files = set()
-        # Collect files to include
-        for pattern in include_patterns:
-            for file in glob.glob(pattern, recursive=True):
-                if os.path.isfile(file): added_files.add(os.path.abspath(file))
-        for pattern in exclude_patterns:
-            for file in glob.glob(pattern, recursive=True): added_files.remove(os.path.abspath(file))
-        # TODO warning if there are no files
-        for file in sorted(added_files): zf.write(file, os.path.relpath(file))
-        if comment: zf.comment = comment.encode("utf-8")
-        # TODO print verbose msg to stdout
+    comment: str = None
+    password: str = None
+    for child in statement.children:
+        arg_type = child.data
+        if arg_type == 'include': include_patterns.extend(eval_to_list_str(child, 'Include'))
+        elif arg_type == 'exclude': exclude_patterns.extend(eval_to_list_str(child, 'Exclude'))
+        elif arg_type == 'comment': comment = eval_to_str(child.children[0], 'Comment')
+        elif arg_type == 'password': password = eval_to_str(child.children[0], 'Password')
+        else: raise ValueError(f'Unhandled type {repr(arg_type)}')
+    added_files = set()
+    # General follow zip's -r behavior when it comes to subdirs
+    for pattern in include_patterns:
+        for match in glob.glob(pattern, recursive=True):
+            abs_match = verify_relative_path(os.path.abspath(match))
+            if os.path.isfile(abs_match):
+                added_files.add(abs_match)
+            elif os.path.isdir(abs_match):
+                # Mimic `zip -r`, adding all files under the directory
+                for root, _, files in os.walk(abs_match):
+                    for file in files: added_files.add(os.path.abspath(os.path.join(root, file)))
+    # Use the excluded patterns to filter what was included
+    added_files = {
+        f for f in added_files if not any(fnmatch.fnmatch(f, pattern) for pattern in exclude_patterns)
+    }
+    print_verbose('Creating', zip_name)
+    with zipfile.ZipFile(prepare_path(zip_name), 'w', zipfile.ZIP_DEFLATED) as zf:
+        # TODO this is only used for reading, so we need to switch libraries
+        if password: zf.setpassword(password.encode())
+        if comment: zf.comment = comment.encode('utf-8')
+        if added_files:
+            for file in sorted(added_files):
+                relpath = os.path.relpath(file)
+                print_verbose('Adding', relpath)
+                zf.write(file, relpath)
+        else:
+            print_verbose('Created an empty archive')
 
 def execute_select(statement: Tree):
     ts = TreeSplitter().split(statement)
@@ -948,16 +990,16 @@ def remove_comments(input: str) -> str:
 
 def execute_statements(inp: str) -> None:
     inp = set_source(remove_comments(inp))
+    if not inp or inp.isspace(): return
     statements: Tree = _PARSER.parse(inp)
     for statement in statements.children:
         handler = STATEMENT_HANDLERS.get(statement.data, None)
         if not handler: raise ValueError(f'No handler established for {statement.data}')
         statement = ConstantsNormalizer().transform(statement)
         statement = OperationBinder().transform(statement)
-        statement_text = source_for(statement)
+        statement_text = inp[statement.meta.start_pos : statement.meta.end_pos]
         _DD.set_statement(statement_text)
-        # TODO this does not work well...
-        # if _DD.is_echo(): print(statement_text)
+        if _DD.is_echo(): print_stdout(statement_text)
         if _DD.is_debug(): print_tree(statement)
         handler(statement)
 
@@ -1010,13 +1052,58 @@ def get_subtree_span(node):
     traverse(node)
     return start_pos, end_pos
 
+def token_value(token_name) -> str:
+    """Lark tokens to their values for error display"""
+    if token_name not in _TOKEN_PASS:
+        for terminal in _PARSER.parser.lexer_conf.terminals:
+            # Get the regex pattern or literal value
+            if terminal.name == token_name: return repr(terminal.pattern.value)
+    # Fallback to token name if no mapping is found
+    return token_name
+
+def get_expected(e: Exception) -> str:
+    rc = ''
+
+    if hasattr(e, 'token') and e.token:
+        rc += token_value(e.token) + 'unexpected.'
+
+    if hasattr(e, 'expected') and e.expected:
+        expected = [tok for tok in e.expected]
+        if expected:
+            rc = '\nExpected '
+            values = [token_value(tok) for tok in sorted(expected)]
+            if len(values) == 1: rc += values[0]
+            elif len(values) == 2: rc += values[0] + ' or ' + values[1]
+            else: rc += ', '.join(values[:-1]) + ', or ' + values[-1]
+            rc += '.'
+    return rc
+
+_ERROR_XLATE = {
+    exceptions.UnexpectedInput: "Syntax error",
+    exceptions.UnexpectedToken: "Unexpected input",
+    exceptions.UnexpectedEOF: "Unexpected End-of-File",
+    exceptions.UnexpectedCharacters: "Unexpected character",
+    exceptions.ParseError: "Error",
+    ValueError: "Error"
+}
+
+def exception_type(e: Exception) -> str:
+    """
+    Convert the exception type into a human-readable string based on a dictionary.
+    If no custom message is found, fallback to the default class name.
+    """
+    etype = type(e)
+    return _ERROR_XLATE.get(etype, etype.__name__)
+
 class VGRCmdLine(CmdLine):
 
     def execute_statements(self, text: str) -> None:
         try:
             execute_statements(text)
+        except exceptions.UnexpectedInput as e:  # Covers most parsing errors
+            print(f'{e.get_context(text)}{exception_type(e)} at line {e.line}, column {e.column}.{get_expected(e)}')
         except Exception as e:
-            print(f'{type(e).__name__}: {e}')
+            print(exception_type(e), ': ', str(e))
 
     @property
     def debug(self) -> bool: return _DD.is_debug()
@@ -1049,7 +1136,7 @@ def execute_interactive() -> None:
     finally:
         _REDIR.end_redirects()
 
-_PARSER = Lark(_VGR_GRAMMAR, start='statements', parser='lalr', debug=True)
+_PARSER = Lark(_VGR_GRAMMAR, start='statements', parser='lalr', debug=True, propagate_positions=True)
 _REDIR = IORedirector()
 _DD: DataDictionary = None
 
