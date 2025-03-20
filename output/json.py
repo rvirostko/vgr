@@ -43,13 +43,15 @@ class JSONRecordWriter(FileRecordWriter):
 
     def start(self) -> bool:
         if not super().start(): return False
-        if self._array_wrapper:
+        if self._root:
             # "object mode" : entire output is an object with <root> as an array
-            self._root = self._root or JSONRecordWriter.__DEFAULT_ROOT
             self._formater = JSONRecordWriter.ObjectModeFormater(self)
         else:
-            # "list mode" : output is a series of lines, each a json object
-            self._formater = JSONRecordWriter.ListModeFormater(self)
+            if self._array_wrapper:
+                self._formater = JSONRecordWriter.ArrayModeFormater(self)
+            else:
+                # "list mode" : output is a series of lines, each a json object
+                self._formater = JSONRecordWriter.ListModeFormater(self)
         self._formater.start()
         return True
 
@@ -82,6 +84,33 @@ class JSONRecordWriter(FileRecordWriter):
             self._writer.println(*args)
 
         def flush(self) -> None: self._writer.flush()
+
+    class ArrayModeFormater(JFormater):
+        def __init__(self, writer):
+            super().__init__(writer)
+
+        def start(self) -> None:
+            self.print('[')
+            self._first = True
+            self.flush()
+
+        def finish(self) -> None:
+            self.opt_nl()
+            self.println(']')
+            self.flush()
+
+        def write(self, obj: dict) -> None:
+            if self._first:
+                self._first = False
+            else:
+                self.print(',')
+            self.opt_nl()
+            self.print(json.dumps(obj,
+                        indent=self._writer._indent,
+                        sort_keys=self._writer._sort_keys,
+                        ensure_ascii=self._writer._encode_ascii,
+                        separators=self._separators))
+            self.flush()
 
     class ObjectModeFormater(JFormater):
         def __init__(self, writer):

@@ -1,8 +1,13 @@
 #! /usr/bin/python3
 
+import sys
+import os
+
+# Add the parent directory to sys.path
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
+
 from output import JSONRecordWriter, CSVRecordWriter, MarkdownRecordWriter, RecordLimiter, RecordCartesianProduct, RecordWriter, TemplateRecordWriter
 
-import sys
 def main():
 
     # These would be in the data from the select statement's parse tree
@@ -28,7 +33,7 @@ def main():
         ["Complex", 99, {'a': 1, 'b': [2,3]}]
     ]
 
-    for output_type in ('markdown', 'json', 'json-root', 'csv', 'template'):
+    for output_type in ('markdown', 'json-array', 'json-root', 'json-line', 'csv', 'template'):
         out: RecordWriter = None
         if output_type == 'markdown':
             out = (MarkdownRecordWriter().
@@ -51,13 +56,13 @@ def main():
                     set_encode_ascii(ascii).
                     set_headers(headers).
                     set_compact(compact).
-                    set_root(root).
                     set_include_null(include_null).
                     set_indent(indent).
                     set_sort_keys(sort_keys))
             if output_type == 'json-root':
                 out.set_root('results')
-                out.set_exclude_array_wrapper(False)
+            if output_type == 'json-line':
+                out.set_exclude_array_wrapper()
         else:
             raise ValueError(output_type)
 
