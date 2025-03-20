@@ -1,0 +1,19 @@
+[MASTER]
+ignore=experiments
+
+[MESSAGES CONTROL]
+disable=
+    missing-docstring,
+    too-few-public-methods,
+    import-error
+
+enable=
+    logging-format-interpolation,
+    consider-using-f-string
+
+[FORMAT]
+max-line-length=100
+
+[DESIGN]
+max-args=5
+max-attributes=7
