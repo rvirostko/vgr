@@ -2,19 +2,23 @@
 
 from abc import ABC, abstractmethod
 from argparse import ArgumentParser, Namespace, OPTIONAL
-from data_dict import DataDictionary # TODO temp
-from mathpak import poly_bool
-from prompt_toolkit import PromptSession
-from prompt_toolkit.history import FileHistory
 import os
 import re
 import socket
 import sys
 import time
+
+from prompt_toolkit import PromptSession
+from prompt_toolkit.history import FileHistory
+
 from ls import list_files
+from mathpak import poly_bool
 
 class CustomArgParser(ArgumentParser):
-    def error(self, message): raise ValueError(message[:1].upper() + message[1:] )
+    """A non-exiting argument parser"""
+    def error(self, message):
+        """Format a ValueError the way we want and don't exit"""
+        raise ValueError(message[:1].upper() + message[1:] )
 
 class ParserBuilder(ABC):
     """Helper for fluent building of ArgumentParser instances"""
@@ -22,22 +26,30 @@ class ParserBuilder(ABC):
         self._parser = CustomArgParser(add_help=False, exit_on_error=False, prog='', description=None, usage=None)
 
     def parser(self) -> ArgumentParser:
+        """Return the parser we just built"""
         return self._parser
 
     def argument(self, *args, **kwargs) -> "ParserBuilder":
+        """Add the argument and continue"""
         self._parser.add_argument(*args, **kwargs)
         return self
 
 class LimitedFileHistory(FileHistory):
+    """A file-based history that enforces a max line limit"""
     def __init__(self, filename, max_lines: int=100):
         super().__init__(filename)
         self._max_lines = min(max(2, max_lines), 2048)
 
     def append_string(self, string: str) -> None:
+        """If the history lines exceeds the max, discard the oldest ones"""
         super().append_string(string)
         # NB: list is store most recent to oldest
         if len(self._loaded_strings) > self._max_lines:
             self._loaded_strings = self._loaded_strings[:self._max_lines]
+
+    def clear(self) -> None:
+        """Clear the history"""
+        self._loaded_strings = []
 
 class CmdLine:
 
@@ -68,12 +80,12 @@ class CmdLine:
         "$": lambda: '$',
         "d": lambda: time.strftime('%a %b %d'),           # Date
         "e": lambda: '\033',                              # Escape character
-        "H": lambda: socket.gethostname(),                # Full hostname
+        "H": socket.gethostname,                          # Full hostname
         "h": lambda: socket.gethostname().split('.')[0],  # Short hostname
         "n": lambda: '\n',
         "t": lambda: time.strftime('%H:%M:%S'),           # Time
         "u": lambda: os.getenv('USER', 'unknown'),
-        "w": lambda: os.getcwd(),                         # Full path
+        "w": os.getcwd,                                   # Full path
         "W": lambda: os.path.basename(os.getcwd()),       # Name only
     }
 
@@ -161,7 +173,7 @@ Command History Help -
                 for i, line in enumerate(self._history.get_strings(), start=1): print(f"{i}: {line}")
             else:
                 if values.clear is not None:
-                    self._history._loaded_strings = []
+                    self._history.clear()
                     self._print_verbose('History cleared')
                 if values.max is not None:
                     self.max_history_entries = self._history._max_lines = values.max
@@ -185,7 +197,7 @@ To execute commands in multiline editing mode, use META-Return instead.
             if self.multiline: print(f'Use Meta-Return to execute commands')
 
     def _exec_prompt(self, *args):
-        """
+        r"""
 Prompt Help -
 
 * prompt : print the template used to generate the interactive prompt
@@ -198,9 +210,9 @@ Bash Shell:
 * \e - the escape character
 * \h - host name, short
 * \H - host name, full
-* \\n - a new line
-* \\t - the time
-* \\u - user name
+* \n - a new line
+* \t - the time
+* \u - user name
 * \w - current directory
 * \W - current directory, name only
 
@@ -272,13 +284,13 @@ Run any of these command with _help_ for more information
     def _print_stderr(self, *args, **kwargs) -> None: print(*args, **kwargs, file=sys.stderr)
 
     def _print_debug(self, *args, **kwargs) -> None:
-        if(self.debug): self._print_stderr(*args, **kwargs)
+        if self.debug: self._print_stderr(*args, **kwargs)
 
     def _print_verbose(self, *args, **kwargs) -> None:
-        if(self.verbose): print(*args, **kwargs)
+        if self.verbose: print(*args, **kwargs)
 
     @abstractmethod
-    def execute_statements(text: str) -> None: pass
+    def execute_statements(self, text: str) -> None: pass
 
     @property
     @abstractmethod
@@ -304,7 +316,7 @@ Run any of these command with _help_ for more information
     @abstractmethod
     def max_history_entries(self) -> int: pass
 
-    @prompt.setter
+    @max_history_entries.setter
     @abstractmethod
     def max_history_entries(self, value: int): pass
 

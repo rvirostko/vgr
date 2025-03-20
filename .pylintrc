@@ -1,5 +1,5 @@
 [MASTER]
-ignore=experiments
+ignore-patterns=**/experiments/**
 
 [MESSAGES CONTROL]
 disable=
