@@ -1,5 +1,5 @@
 [MASTER]
-ignore-patterns=**/experiments/**
+ignore-paths=^src/experiments/.*$
 
 [MESSAGES CONTROL]
 disable=
