@@ -16,7 +16,7 @@ def poly_rsort(x: Any) -> Any: return _sorted(x, True)
 
 def poly_isempty(x: Any) -> bool:
     if isinstance(x, str): return not x or not x.strip()
-    return x == None or not x
+    return x is None or not x
 
 def poly_sizeof(x: Any) -> int:
     """Recursively calculates the size of an object and all its contents"""
@@ -26,12 +26,12 @@ def poly_sizeof(x: Any) -> int:
     return base
 
 def poly_getitem(x:Any, index: Any) -> Any:
-    if x == None or isinstance(x, (int, float, str)): return x
+    if x is None or isinstance(x, (int, float, str)): return x
     if isinstance(x, (list, tuple)):
         if isinstance(index, list): return _dist_list(poly_getitem, x, index)
         if isinstance(index, tuple): return _dist_tuple(poly_getitem, x, index)
         i: int = int(index) if isinstance(index, (int, float)) else str_to_number(index) if isinstance(index, str) else None
-        return x[i] if i != None and i >= 0 and i < len(x) else None
+        return x[i] if i is not None and i >= 0 and i < len(x) else None
     if isinstance(x, dict):
         # TODO look up by keys?
         return None
@@ -40,7 +40,7 @@ def poly_getitem(x:Any, index: Any) -> Any:
 def poly_firstitem(x: Any) -> Any: return poly_getitem(x, 0)
 
 def poly_lastitem(x: Any) -> Any:
-    if x == None or isinstance(x, (int, float, str)): return x
+    if x is None or isinstance(x, (int, float, str)): return x
     if isinstance(x, (list, tuple)): return x[-1] if len(x) > 0 else None
     if isinstance(x, dict): return None
     raise TypeError(f'Unsupported type: {type(x)}')

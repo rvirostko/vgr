@@ -160,10 +160,10 @@ Command History Help -
             if all(value is None for value in vars(values).values()):
                 for i, line in enumerate(self._history.get_strings(), start=1): print(f"{i}: {line}")
             else:
-                if values.clear != None:
+                if values.clear is not None:
                     self._history._loaded_strings = []
                     self._print_verbose('History cleared')
-                if values.max != None:
+                if values.max is not None:
                     self.max_history_entries = self._history._max_lines = values.max
                     self._print_verbose('History max entries =', values.max)
 

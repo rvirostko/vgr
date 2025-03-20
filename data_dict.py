@@ -148,7 +148,7 @@ class DataDictionary():
         return rc
 
     def _set_var(self, start: dict, data: Any, *path: str) -> None:
-        if start == None or not path: return
+        if start is None or not path: return
         current = start
         for step in path[:-1]:
             # If the next step doesn't exist, create it as dictionary
@@ -176,7 +176,7 @@ class DataDictionary():
         Coerce the string value to None, int, float, or bool.
         Falls back to the original string.
         """
-        if value == None or isinstance(value, (bool, int, float, dict, list, tuple)): return value
+        if value is None or isinstance(value, (bool, int, float, dict, list, tuple)): return value
         if value.strip().lower() in ('true', 'false'): return poly_bool(value)
         try: return poly_number(value)
         except TypeError: return None if value.strip().lower() == 'none' else value

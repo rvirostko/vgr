@@ -88,8 +88,8 @@ def poly_rindex(x: Any, sub: Any=None) -> Any: return _apply_arg(poly_rindex, _r
 def poly_vappend(x: Any, *args) -> Any: return reduce(poly_append, args, x)
 
 def poly_append(x: Any, y: Any) -> Any:
-    if x == None: return None if y == None else poly_append('', y)
-    if y == None: return poly_append(x, '')
+    if x is None: return None if y is None else poly_append('', y)
+    if y is None: return poly_append(x, '')
     # NB: non-string like behavior
     if isinstance(x, (list, tuple)) and isinstance(y, (list, tuple)): return type(x)(x + y)
     if isinstance(x, str) and isinstance(y, str): return x + y
@@ -103,8 +103,8 @@ def poly_append(x: Any, y: Any) -> Any:
 def poly_vprepend(x: Any, *args) -> Any: return reduce(poly_prepend, args, x)
 
 def poly_prepend(x: Any, y: Any) -> Any:
-    if x == None: return None if y == None else poly_prepend('', y)
-    if y == None: return poly_prepend(x, '')
+    if x is None: return None if y is None else poly_prepend('', y)
+    if y is None: return poly_prepend(x, '')
     # NB: non-string like behavior
     if isinstance(x, (list, tuple)) and isinstance(y, (list, tuple)): return type(x)(y + x)
     if isinstance(x, str) and isinstance(y, str): return y + x
@@ -116,16 +116,16 @@ def poly_prepend(x: Any, y: Any) -> Any:
     raise TypeError(f'Concatenation between {type(x)} and {type(y)} not supported')
 
 def poly_replace(x: Any, old: Any, new: Any=None) -> Any:
-    if x != None and old != None:
+    if x is not None and old is not None:
         if isinstance(x, str):
             if isinstance(old, (int, float)): return poly_replace(x, str(old), new)
             if isinstance(old, str):
-                if new == None: new = ''
+                if new is None: new = ''
                 if isinstance(new, (int, float)): new = str(new)
                 if isinstance(new, str): return x.replace(old, new)
                 if isinstance(new, (list, tuple)): return poly_replace(x, (old,), new)
             if isinstance(old, (list, tuple)):
-                if new == None: new = ''
+                if new is None: new = ''
                 if isinstance(new, (int, float)): new = str(new)
                 if isinstance(new, (str, list, tuple)):
                     return reduce(lambda t, args: t.replace(args[0], args[1]), zip(old, _create_new_list(len(old), new)), x)
@@ -136,7 +136,7 @@ def poly_replace(x: Any, old: Any, new: Any=None) -> Any:
     return x
 
 def poly_translate(x: Any, from_str: Any, to_str: Any=None) -> Any:
-    if x != None and from_str != None:
+    if x is not None and from_str is not None:
         if isinstance(x, str):
             # A lot of assumptions here, but we'll try to use it as requested
             # This would be a good case for somebody to make a JSON object (or save it)
@@ -144,7 +144,7 @@ def poly_translate(x: Any, from_str: Any, to_str: Any=None) -> Any:
             if isinstance(from_str, dict): return x.translate(from_str)
             if isinstance(from_str, (int, float)): return poly_translate(x, str(from_str), to_str)
             if isinstance(from_str, str):
-                if to_str == None: to_str = ''
+                if to_str is None: to_str = ''
                 if isinstance(to_str, (int, float)): new = str(to_str)
                 if isinstance(to_str, str): return x.translate(_maketrans(from_str, to_str))
         else:
@@ -155,15 +155,15 @@ def poly_translate(x: Any, from_str: Any, to_str: Any=None) -> Any:
 
 # Shim methods to deal with "None" and mismatched arguments
 
-def _expandtabs(x: str, tabsize: int) -> str: return x.expandtabs() if tabsize == None else x.expandtabs(tabsize)
+def _expandtabs(x: str, tabsize: int) -> str: return x.expandtabs() if tabsize is None else x.expandtabs(tabsize)
 
-def _removeprefix(x: str, prefix: str) -> str: return x if prefix == None else x.removeprefix(prefix)
+def _removeprefix(x: str, prefix: str) -> str: return x if prefix is None else x.removeprefix(prefix)
 
-def _removesuffix(x: str, suffix: str) -> str: return x if suffix == None else x.removesuffix(suffix)
+def _removesuffix(x: str, suffix: str) -> str: return x if suffix is None else x.removesuffix(suffix)
 
-def _startswith(x: str, prefix: str) -> bool: return False if prefix == None else x.startswith(prefix)
+def _startswith(x: str, prefix: str) -> bool: return False if prefix is None else x.startswith(prefix)
 
-def _endswith(x: str, suffix: str) -> bool: return False if suffix == None else x.endswith(suffix)
+def _endswith(x: str, suffix: str) -> bool: return False if suffix is None else x.endswith(suffix)
 
 def _count(x: str, sub: str) -> int: return 0 if not sub else x.count(sub)
 
@@ -178,9 +178,9 @@ def _rindex(x: str, sub: str) -> int:
 def _maketrans(from_str: str, to_str: str=''):
     return str.maketrans({from_str[i]: to_str[i] if i < len(to_str) else None for i in range(len(from_str))})
 
-def _leftstr(x: str, length: int) -> str: return x if not x or length == None else '' if length <= 0 else x[:max(0, min(length, len(x)))]
+def _leftstr(x: str, length: int) -> str: return x if not x or length is None else '' if length <= 0 else x[:max(0, min(length, len(x)))]
 
-def _rightstr(x: str, length: int) -> str: return x if not x or length == None else '' if length <= 0 else x[-min(length, len(x)):]
+def _rightstr(x: str, length: int) -> str: return x if not x or length is None else '' if length <= 0 else x[-min(length, len(x)):]
 
 def _create_new_list(length: int, new: Any):
     if isinstance(new, str): return (new,) * length
@@ -210,7 +210,7 @@ def _apply_arg(op: Callable[[Any, Any], Any], x_method: Callable[[str, str], str
     if x is None: return None
     y = _cast_arg(y_type, y)
     if isinstance(x, x_type):
-        return x_method(x, y) if y == None or isinstance(y, y_type) else _iterate_arg(op, x, y)
+        return x_method(x, y) if y is None or isinstance(y, y_type) else _iterate_arg(op, x, y)
     if isinstance(x, list): return [op(x1, y) for x1 in x]
     if isinstance(x, tuple): return tuple(op(x1, y) for x1 in x)
     return x

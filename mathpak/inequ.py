@@ -11,8 +11,8 @@ def poly_eq(x: Any, y: Any) -> bool:
 TypeError raised on all other combinations
 """
     # None is only equal to itself
-    if x == None: return y == None
-    if y == None: return False
+    if x is None: return y is None
+    if y is None: return False
     override = _overrides.get((type(x), type(y)))
     return override(poly_eq, x, y) if override else x == y
 
@@ -31,8 +31,8 @@ def poly_lt(x: Any, y: Any) -> bool:
 TypeError raised on all other combinations
 """
     # None is less than everything except itself
-    if x == None: return y != None
-    if y == None: return False
+    if x is None: return y is not None
+    if y is None: return False
     override = _overrides.get((type(x), type(y)))
     return override(poly_lt, x, y) if override else x < y
 
@@ -43,8 +43,8 @@ def poly_gt(x: Any, y: Any) -> Any:
 TypeError raised on all other combinations
 """
     # Everything is greater than None (except itself which is just equal)
-    if x == None: return False
-    if y == None: return True
+    if x is None: return False
+    if y is None: return True
     override = _overrides.get((type(x), type(y)))
     return override(poly_gt, x, y) if override else x > y
 
@@ -55,8 +55,8 @@ def poly_le(x: Any, y: Any) -> bool:
 TypeError raised on all other combinations
 """
     # None is less than everything or equal to itself
-    if x == None: return True
-    if y == None: return False
+    if x is None: return True
+    if y is None: return False
     override = _overrides.get((type(x), type(y)))
     return override(poly_le, x, y) if override else x <= y
 
@@ -67,8 +67,8 @@ def poly_ge(x: Any, y: Any) -> bool:
 TypeError raised on all other combinations
 """
     # Everything is greater than None and it is equal to itself
-    if x == None: return y == None
-    if y == None: return True
+    if x is None: return y is None
+    if y is None: return True
     override = _overrides.get((type(x), type(y)))
     return override(poly_ge, x, y) if override else x >= y
 

@@ -27,8 +27,8 @@ def poly_mod(x: Any, y: Any) -> Any:
 
 TypeError raised on all other combinations
 """
-    if x == None: return None if y == None else poly_mod(matching_default(y), y)
-    if y == None: return poly_mod(x, matching_default(x))
+    if x is None: return None if y is None else poly_mod(matching_default(y), y)
+    if y is None: return poly_mod(x, matching_default(x))
     override = math_overrides.get((type(x), type(y)))
     return override(poly_mod, x, y) if override else x % y
 

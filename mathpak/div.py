@@ -28,8 +28,8 @@ def poly_div(x: Any, y: Any) -> Any:
 
 TypeError raised on all other combinations
 """
-    if x == None: return None if y == None else poly_div(matching_default(y), y)
-    if y == None: return poly_div(x, matching_default(x))
+    if x is None: return None if y is None else poly_div(matching_default(y), y)
+    if y is None: return poly_div(x, matching_default(x))
     override = math_overrides.get((type(x), type(y)))
     return override(poly_div, x, y) if override else x / y
 
@@ -57,8 +57,8 @@ def poly_fdiv(x: Any, y: Any) -> Any:
 
 TypeError raised on all other combinations
 """
-    if x == None: return None if y == None else poly_fdiv(matching_default(y), y)
-    if y == None: return poly_fdiv(x, matching_default(x))
+    if x is None: return None if y is None else poly_fdiv(matching_default(y), y)
+    if y is None: return poly_fdiv(x, matching_default(x))
     override = math_overrides.get((type(x), type(y)))
     return override(poly_fdiv, x, y) if override else x // y
 

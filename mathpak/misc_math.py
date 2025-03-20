@@ -36,7 +36,7 @@ def poly_round(x: Any, ndigits: int=0) -> Any:
     return x
 
 def _dist(op: Callable[[Any], Any], x: Any) -> Any:
-    if x == None: return None
+    if x is None: return None
     # Distribute the operation over the collection
     if isinstance(x, list): return [op(x1) for x1 in x]
     if isinstance(x, tuple): return tuple(op(x1) for x1 in x)

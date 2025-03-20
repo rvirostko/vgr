@@ -74,8 +74,8 @@ def poly_bit_and(x: Any, y: Any) -> Any:
 
 TypeError raised on all other combinations
 """
-    if x == None: return None if y == None else poly_bit_and(0, y)
-    if y == None: return poly_bit_and(x, 0)
+    if x is None: return None if y is None else poly_bit_and(0, y)
+    if y is None: return poly_bit_and(x, 0)
     override = _overrides.get((type(x), type(y)))
     return override(poly_bit_and, x, y) if override else x & y
 
@@ -87,8 +87,8 @@ def poly_bit_or(x: Any, y: Any) -> Any:
 
 TypeError raised on all other combinations
 """
-    if x == None: return None if y == None else poly_bit_or(0, y)
-    if y == None: return poly_bit_or(x, 0)
+    if x is None: return None if y is None else poly_bit_or(0, y)
+    if y is None: return poly_bit_or(x, 0)
     override = _or_overrides.get((type(x), type(y)))
     if not override: override = _overrides.get((type(x), type(y)))
     return override(poly_bit_or, x, y) if override else x | y
@@ -109,8 +109,8 @@ def poly_bit_xor(x: Any, y: Any) -> Any:
 
 TypeError raised on all other combinations
 """
-    if x == None: return None if y == None else poly_bit_xor(0, y)
-    if y == None: return poly_bit_xor(x, 0)
+    if x is None: return None if y is None else poly_bit_xor(0, y)
+    if y is None: return poly_bit_xor(x, 0)
     override = _overrides.get((type(x), type(y)))
     return override(poly_bit_xor, x, y) if override else x ^ y
 
@@ -121,7 +121,7 @@ def poly_bit_not(x: Any) -> Any:
 
 TypeError raised on all other combinations
 """
-    if x == None: return None
+    if x is None: return None
     override = _overrides.get((type(x), int))
     if override: override(lambda x, _: poly_bit_not(x), x, 0)
     mask = 0xFF # Default to at least 8 bits

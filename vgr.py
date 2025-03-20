@@ -138,7 +138,7 @@ _IS_VARARGS = float('inf')
 
 def get_arg_range(op) -> tuple:
     """Get the argument range for the function definition in the grammar"""
-    if op == None: raise ValueError('Expected a function, but got None')
+    if op is None: raise ValueError('Expected a function, but got None')
     # Get the signature of the function
     sig = inspect.signature(op)
     req_args = 0

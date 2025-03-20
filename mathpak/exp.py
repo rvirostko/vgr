@@ -26,8 +26,8 @@ def poly_exp(x: Any, y: Any) -> Any:
 
 TypeError raised on all other combinations
 """
-    if x == None: return None if y == None else poly_exp(matching_default(y), y)
-    if y == None: return poly_exp(x, matching_default(x))
+    if x is None: return None if y is None else poly_exp(matching_default(y), y)
+    if y is None: return poly_exp(x, matching_default(x))
     override = math_overrides.get((type(x), type(y)))
     return override(poly_exp, x, y) if override else x ** y
 

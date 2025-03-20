@@ -39,7 +39,7 @@ def poly_mul(x: Any, y: Any) -> Any:
 
 TypeError raised on all other combinations
 """
-    if x == None or y == None: return None
+    if x is None or y is None: return None
     override = _overrides.get((type(x), type(y)))
     return override(poly_mul, x, y) if override else x * y
 

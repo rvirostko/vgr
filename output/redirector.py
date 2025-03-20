@@ -20,7 +20,7 @@ class Redirection():
     def redirect_to(self, *args, **kwargs):
         if not args: return self
         first_arg = args[0]
-        if first_arg == None: return self.end_redirect()
+        if first_arg is None: return self.end_redirect()
         # Redirect a shared output
         if isinstance(first_arg, IOBase):
             return self._redirect_to_file(first_arg, True)

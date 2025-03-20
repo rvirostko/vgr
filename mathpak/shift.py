@@ -27,8 +27,8 @@ def poly_shl(x: Any, y: Any) -> Any:
 
 TypeError raised on all other combinations
 """
-    if x == None: return None if y == None else poly_shl(matching_default(y), y)
-    if y == None: return poly_shl(x, matching_default(x))
+    if x is None: return None if y is None else poly_shl(matching_default(y), y)
+    if y is None: return poly_shl(x, matching_default(x))
     override = _overrides.get((type(x), type(y)))
     return override(poly_shl, x, y) if override else x << y
 
@@ -76,8 +76,8 @@ def poly_shr(x: Any, y: Any) -> Any:
 
 TypeError raised on all other combinations
     """
-    if x == None: return None if y == None else poly_shr(matching_default(y), y)
-    if y == None: return poly_shr(x, matching_default(x))
+    if x is None: return None if y is None else poly_shr(matching_default(y), y)
+    if y is None: return poly_shr(x, matching_default(x))
     override = _overrides.get((type(x), type(y)))
     return override(poly_shr, x, y) if override else x >> y
 

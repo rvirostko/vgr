@@ -32,8 +32,8 @@ def poly_sub(x: Any, y: Any) -> Any:
 
 TypeError raised on all other combinations
 """
-    if x == None: return None if y == None else poly_sub(matching_default(y), y)
-    if y == None: return poly_sub(x, matching_default(x))
+    if x is None: return None if y is None else poly_sub(matching_default(y), y)
+    if y is None: return poly_sub(x, matching_default(x))
     type_x = type(x)
     if type_x == dict:
         override = _sub_overrides.get((type_x, type(y)))
