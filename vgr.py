@@ -20,6 +20,17 @@ import re
 import sys
 import zipfile
 
+# BUG: set this to true -- works, set this to
+#set this to None
+#  (set
+#    (var_name
+#      NAME: this (Pos: 1:5 <class 'str'>)
+#    )
+#    (var_ref:var_ref
+#      NAME: None (Pos: 1:13 <class 'str'>)
+#    )
+#  )
+#Error :  Invalid path: None contains reserved values
 
 """Binds a (pretty) name to the function to be executed"""
 _FUNC_OPS = {
@@ -257,11 +268,15 @@ statements: statement+
     | verbose
     | zip
 
-# simple boolean on/off, true/false
-# these are "proper statements" as they control the behavior of other statements
-debug: "Debug"i expr? _SEMICOLON?
-echo: "Echo"i expr? _SEMICOLON?
-verbose: "Verbose"i expr? _SEMICOLON?
+// TODO: RSN
+// unset: "Unset"i var_name _SEMICOLON?
+// source: "Source"i (expr (_COMMA expr)*)? _SEMICOLON?
+
+// simple boolean on/off, true/false
+// these are "proper statements" as they control the behavior of other statements
+debug: "Debug"i (("=" | ":=" | "Is"i)? expr)? _SEMICOLON?
+echo: "Echo"i (("=" | ":=" | "Is"i)? expr)? _SEMICOLON?
+verbose: "Verbose"i (("=" | ":=" | "Is"i)? expr)? expr? _SEMICOLON?
 
 set: "Let"i var_name ("=" | ":=") expr _SEMICOLON?
     | "Set"i var_name ("=" | ":=" | "To"i) expr _SEMICOLON?
@@ -272,7 +287,7 @@ load_source_type: "JSON"i "Object"i? -> json_object
     | "CSV"i -> csv_file
     | "TEXT"i -> text_file
 
-assert: "Assert"i expr (":" expr (_COMMA expr)*)? _SEMICOLON?
+assert: "Assert"i (expr (":" expr (_COMMA expr)*)?)? _SEMICOLON?
 
 printf: "Printf"i (expr (_COMMA expr)*)? _SEMICOLON?
 
@@ -283,7 +298,7 @@ exhibit: "Exhibit"i (var_name (_COMMA var_name)*)? _SEMICOLON?
 open: "Open"i io_type "File"i? expr open_ext? _SEMICOLON?
 ?io_type: ("Error"i | "stderr"i) -> stderr
     | ("Output"i | "stdout"i) -> stdout
-?open_ext: ("Append"i | "Extend"i | "a") -> a
+?open_ext: ("Append"i | "Extend"i | "a"i) -> a
     | ("Overwrite"i | "w"i) -> w
     | ("No"i "Overwrite"i | "x"i) -> x
 close: "Close"i io_type "File"i? _SEMICOLON? -> close
@@ -296,7 +311,9 @@ zip: "Create"i "Zip"i "File"i? expr (zip_option (_COMMA zip_option)*)? _SEMICOLO
 
 exit: "Exit"i expr? _SEMICOLON?
 
-select: "Select"i outputs? "From"i TARGET where_clause? (join_clause+ | auto_join_clause)? product_clause? limit_clause? for_clause? _SEMICOLON?
+select: "Select"i outputs? "From"i TARGET where_clause? product_clause? limit_clause? for_clause? _SEMICOLON?
+
+// TODO Future (join_clause+ | auto_join_clause)?
 
 ?for_clause: "For"i for_json
     | "For"i for_csv
@@ -352,15 +369,15 @@ exclude_nulls: ("Exclude"i | "No"i | "Without"i) ("Nulls"i | "Null"i "Values"i)
 include_nulls: ("Include"i | "With"i) ("Nulls"i | "Null"i "Values"i)
 omit_headers: ("Omit"i | "No"i) "Headers"i
 
-join_clause: "Join"i TARGET "To"i NAME join_as? join_using?
-join_as: "As"i (NAME | ESCAPED_STRING)
-join_using: "Using"i attr_ref (_COMMA attr_ref)*
-attr_ref: NAME (_DOT (NAME))+
-
-auto_join_clause: "Auto"i "Join"i auto_join?
-?auto_join: "All"i -> all
-    | "None"i -> none
-    | NAME (_COMMA NAME)*
+// TODO future
+//join_clause: "Join"i TARGET "To"i NAME join_as? join_using?
+//join_as: "As"i (NAME | ESCAPED_STRING)
+//join_using: "Using"i attr_ref (_COMMA attr_ref)*
+//attr_ref: NAME (_DOT (NAME))+
+//auto_join_clause: "Auto"i "Join"i auto_join?
+//?auto_join: "All"i -> all
+//    | "None"i -> none
+//    | NAME (_COMMA NAME)*
 
 ?outputs: (output (_COMMA output)*)
 
@@ -371,8 +388,8 @@ where_clause: "Where"i expr (("And"i | "&&") expr)*
 
 // Either LIMIT <number> (OFFSET <number>)? or FETCH FIRST <number> ROWS ONLY
 limit_clause: _limit_offset | _fetch_first
-_limit_offset: "Limit"i (DEC_NUMBER | var_name) ("Offset"i (DEC_NUMBER | var_name))?
-_fetch_first: "Fetch"i "First"i (DEC_NUMBER | var_name) "Rows"i "Only"i
+_limit_offset: "Limit"i expr ("Offset"i expr)?
+_fetch_first: "Fetch"i "First"i expr "Rows"i "Only"i
 
 product_clause: "Cartesian"i? "Product"i product_cols
 product_cols: "All"i -> all
@@ -402,8 +419,8 @@ product_cols: "All"i -> all
     | expr ("^" | "Xor"i) expr -> bit_xor_op
     | expr ("<<" | "LShift"i) expr -> shl_op
     | expr (">>" | "RShift"i) expr -> shr_op
-    | expr ("==" | "Equals"i  | "Is"i | "Is"i? "Equal"i "To"i) expr -> eq_op
-    | expr ("!=" | "<>" | "\u2260" | "Is"i "Not"i | "Is"i? "Not"i "Equal"i "To"i) expr -> neq_op
+    | expr ("==" | "Equals"i | "Is"i | "Is"i? "Equal"i "To"i) expr -> eq_op
+    | expr ("!=" | "<>" | "\u2260" | "Is"i "Not"i | "Is"i? "Not"i "Equal"i "To"i | (("Doesnt"i | "Does"i? "Not"i) "Equal"i)) expr -> neq_op
     | expr ("<" | "Is"i? "Less"i "Than"i) expr -> lt_op
     | expr (">" | "Is"i? "Greater"i "Than"i) expr -> gt_op
     | expr ("<=" | "\u2264" | "Is"? "Not"i "Greater"i "Than"i) expr -> le_op
@@ -708,9 +725,10 @@ Execution ends with an exit code of 1 indicating failure
                 msg = poly_str(eval_expr(exprs.pop(0)))
                 if msg is not None: msg = msg.format(*[eval_expr(expr) for expr in exprs])
             except Exception as e:
-                print_stderr("While evaluating Assertion: ", e)
+                print_stderr(f'While evaluating {source_for(statement)} on line {statement.meta.line}: ', e)
                 msg = None
-        print_stderr(str(msg) if msg is not None else f'Assertion {source_for(statement)} failed')
+        print_stderr(f'Line {statement.meta.line}:',
+                     (str(msg) if msg is not None else f'{source_for(statement)} failed'))
         sys.exit(1)
 
 def execute_set(statement: Tree) -> None:
@@ -825,6 +843,10 @@ def print_debug(*args, **kwargs) -> None:
 def print_verbose(*args, **kwargs) -> None:
     if _DD.is_verbose(): print_stderr(*args, **kwargs)
 
+def print_exception(statement: Tree, e: Exception) -> None:
+    print_stderr(f'Line {statement.meta.line}: {source_for(statement)}')
+    print_stderr(exception_type(e), ': ', str(e))
+
 def execute_open(statement: Tree) -> None:
     """Send command output or error output to a file
 
@@ -849,8 +871,12 @@ See CLOSE
     mode = 'w'
     if len(statement.children) > 2: mode = statement.children[2].data.lower()
     if mode not in ('a', 'w', 'x'): raise ValueError(f'Unknown mode {mode}') # SNO
-    getattr(_REDIR, stream)(prepare_path(filename), mode=mode)
-    print_verbose(stream, "redirected to", filename)
+    try:
+        getattr(_REDIR, stream)(prepare_path(filename), mode=mode)
+        print_verbose(stream, "redirected to", filename)
+    except Exception as e:
+        print_exception(statement, e)
+        sys.exit(1)
 
 def eval_stream_name(node: Tree) -> str:
     stream = node.data.lower()
