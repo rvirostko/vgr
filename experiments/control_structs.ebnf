@@ -1,0 +1,42 @@
+start: (statement | procedure_definition)*
+
+STRING: SINGLE_QUOTE_STRING | DOUBLE_QUOTE_STRING
+SINGLE_QUOTE_STRING: /'([^'\\]*(\\.[^'\\]*)*)'/
+DOUBLE_QUOTE_STRING: /"([^"\\]*(\\.[^"\\]*)*)"/
+
+statement: foo
+         | bar
+         | control_structure
+         | break
+         | continue
+
+procedure_definition: "procedure"i var "(" (var ("," var)*)? ")" "begin"i? statement* "end"i
+
+foo: "foo"i
+bar: "bar"i
+
+?control_structure: if_statement
+                | unless_statement
+                | while_statement
+                | until_statement
+                | foreach_statement
+                | procedure_call
+
+if_statement: "if"i expression (break | continue) -> if
+    | "if"i expression "then"i? statement+ else_clause? "end"i -> if
+unless_statement: "unless"i expression "do"i? statement+ else_clause? "end"i -> unless
+while_statement: "while"i expression "do"? statement+ "end"i -> while
+until_statement: "until"i expression "do"? statement+ "end"i -> until
+foreach_statement: "foreach"i var "in"i expression "do"i? statement+ "end"i -> foreach
+procedure_call: "call"i var "(" (expression ("," expression)*)? ")" -> call
+
+else_clause: "else"i statement+ -> else
+break: "break"i
+continue: "continue"i
+
+expression: comparison
+          | var
+
+comparison: var ("=" | "!=") var
+
+var: /[a-zA-Z_][a-zA-Z0-9_]*/
