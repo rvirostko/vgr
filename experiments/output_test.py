@@ -13,9 +13,8 @@ def main():
     # These would be in the data from the select statement's parse tree
     offset = 0#4
     limit = None#4
-    ascii = False#True
+    encode_ascii = False#True
     include_null = False#True
-    root = None#'people'
     compact = True
     indent = 2
     sort_keys = True
@@ -37,15 +36,15 @@ def main():
         out: RecordWriter = None
         if output_type == 'markdown':
             out = (MarkdownRecordWriter().
-                    set_encode_ascii(ascii).
+                    set_encode_ascii(encode_ascii).
                     set_headers(headers))
         elif output_type == 'template':
             out = (TemplateRecordWriter().
-                   set_encode_ascii(ascii).
+                   set_encode_ascii(encode_ascii).
                    set_headers(headers))
         elif output_type == 'csv':
             out = (CSVRecordWriter().
-                    set_encode_ascii(ascii).
+                    set_encode_ascii(encode_ascii).
                     set_headers(headers).
                     set_quoting().
                     set_quotechar().
@@ -53,7 +52,7 @@ def main():
                     set_escapechar())
         elif output_type.startswith('json'):
             out = (JSONRecordWriter().
-                    set_encode_ascii(ascii).
+                    set_encode_ascii(encode_ascii).
                     set_headers(headers).
                     set_compact(compact).
                     set_include_null(include_null).

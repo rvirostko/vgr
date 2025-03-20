@@ -7,7 +7,8 @@ from pathlib import Path
 from datetime import datetime
 from stat import filemode
 
-def list_files(path=".", long_format=False, human_readable=False, recursive=False, all_files=False):
+def list_files(path=".", long_format=False, human_readable=False, recursive=False, all_files=False) -> None:
+    """List files in the manner of a Unix shell"""
     orig_path = path
     path = Path(path).expanduser().resolve()
     if not path.exists():
@@ -15,9 +16,12 @@ def list_files(path=".", long_format=False, human_readable=False, recursive=Fals
     else:
         _list_files(path, orig_path, long_format, human_readable, recursive, all_files)
 
-def _list_files(path, orig_path, long_format=False, human_readable=False, recursive=False, all_files=False):
+def _list_files(path, orig_path, long_format=False, human_readable=False, recursive=False, all_files=False) -> None:
+    """Handles recusive listing behavior"""
     entries = sorted(get_items(path), key=unix_ls_sort_key)
-    if not all_files: entries = [e for e in entries if not e.name.startswith(".")]
+    # Filter out dot files
+    if not all_files:
+        entries = [e for e in entries if not e.name.startswith(".")]
     size_width = max((len(str(e.stat().st_size)) for e in entries), default=0) if long_format else 0
 
     def format_entry(e):
@@ -45,18 +49,19 @@ def get_items(path: str):
 def format_date(date: datetime) -> str:
     now = datetime.now()
     # If the date is within the last year, show Month, Day, Time
-    if (now - date).days < 365:
-        return date.strftime("%b %d %H:%M")
-    else:
-        return date.strftime("%b %d  %Y")
+    return date.strftime("%b %d %H:%M") if (now - date).days < 365 else date.strftime("%b %d  %Y")
 
 def unix_ls_sort_key(p):
     """Sorts with uppercase letters before lowercase in file/directory names."""
     name = p.name
     return [(c.islower(), c) for c in name]
 
-def human_readable_size(size, decimal_places=1):
+def human_readable_size(size) -> str:
+    """Emulate ls's way of showing file sizes"""
+    ind = 'P'
     for unit in ['B', 'K', 'M', 'G', 'T']:
-        if size < 1024.0: return f"{size:.{decimal_places}f}{unit}"
+        if size < 1024.0:
+            ind = unit
+            break;
         size /= 1024.0
-    return f"{size:.{decimal_places}f}P"
+    return f"{size:.1f}{ind}"
