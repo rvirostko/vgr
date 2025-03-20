@@ -192,3 +192,271 @@ arg.ors = '\n'
 arg.verbose = False
 ```
 The purpose of `Exhibit` is to aid in debugging.
+
+## Expressions and Operators
+
+Much of what you will need to do in VGR relies on expressions. These can be simply the names of variables, data from Vault, or strings and numbers.
+
+If you've every done any coding you'll recognize many of the items that are found in expressions:
+
+* **Number constants** : either integer or floating point values. Number can be expressed in hexidecimal (`0x2a`), octal (`0o52`), or binary (`0b101010`) as well a decimal values. `Inf` represents infinity and `NaN` for not-a-number.
+* **String constants** : simply quoted strings with traditional backslash escapes as well as escaped Unicode values.
+* **Boolean constants** : `True` and `False`, no quotes.
+* **Special constants** : `None` and `Null`, which are equivalent.
+* **Arrays** : Arrays themsleves are composed of expressions which may be constants or computed values. Arrays are hetrogenous and can be nested:
+```
+vgr> set foo = 5
+vgr> set bar = 3
+vgr> set foo_bar = [ foo, bar, "foo", "bar" ]
+vgr> print foo_bar
+[5, 3, 'foo', 'bar']
+vgr> set foo_bar = [ [foo, bar], ["foo", "bar"] ]
+vgr> print foo_bar
+[[5, 3], ['foo', 'bar']]
+```
+Armed with variables and values you can create complicated expressions that test conditions and transform results.
+
+### Operators
+
+Operators are used to conpare and transform values. Many are arithmetic operations while others are string or array oriented. Arithmetic operations work primarily with numbers, but are polymorphic. They'll do their best to intuit the request based on the data types involved; we'll look at that in a bit.
+
+The basic arithmetic operations are:
+* Addition, Sutraction, Multiplication, and Division: Unsurprisingly these are `+`, `-`, `*`, and `/` respectively, although you can use fancy Unicode values like `÷` and `×` too.
+* _Floor Division_ : `//` returns an integer result of division
+* Modulus : you can specify either `%` or `Mod`
+* Raising to a power : you can specify `**` or `Pow`
+* [Bitwise AND](https://en.wikipedia.org/wiki/Bitwise_operation#AND), [Bitwise OR](https://en.wikipedia.org/wiki/Bitwise_operation#OR), and [Bitwise XOR](https://en.wikipedia.org/wiki/Bitwise_operation#XOR) : These use `&`, `|`, and `^` respectively. You can also use `Xor` for the latter.
+* [Bit Shifting](https://en.wikipedia.org/wiki/Bitwise_operation#Shift_operations) : use `<<` or `LShift` for left shift and `>>` or `RShift` for right shift.
+```
+vgr> set x = 5
+vgr> set y = 3
+vgr> set arg.ofs=" | "
+vgr> print x + y, x - y, x / y, x // y, x % y
+8 | 2 | 1.6666666666666667 | 1 | 2
+vgr> printf "x={:b}, y={:b} : {:b} | {:b} | {:b} |\n", x, y, x & y, x | y, x ^ y
+x=101, y=11 : 1 | 111 | 110 |
+vgr> print x >> 1, y << 2
+2 | 12
+```
+
+Comparison operations work with both numeric and non-numeric data.
+* Equality : use `==`, `Equals`, `Is`, `Is Equal To`
+* Inequality : use `!=`, `<>`, `Is Not`, `Is Not Equal To`
+* Less Than : use `<` | `Is Less Than`
+* Greater Than : use `>` | `Is Greater Than`
+* Less Than or Equal To : use `<=` or `Is Not Greater Than`
+* Greater Than or Equal To : use `>=` or `Is Not Less Than`
+
+In the longer text versions, the `Is` is optional, and in all words can be in any mixture of upper and lower case. Results of comparison operations are always `True` or `False`.
+
+```
+vgr> set x = 5
+vgr> set y = 3
+vgr> set arg.ofs=" | "
+vgr> print x == y, x != y, x < y, x > y, x <= y, x >= y
+False | True | False | True | False | True
+```
+
+### Operator Precedence and Parentheses
+
+Use parentheses if explicit order of evaluations is required.
+```
+vgr> set x = 5
+vgr> set y = 3
+vgr> set arg.ofs=" | "
+vgr> print x * y + 2, (x * y) + 2, x * (y + 2)
+25 | 17 | 25
+```
+### Whitespace in Expressions
+
+Typically whitespace, spaces, tabs, newlines, etc, are not important in expressions. However, difficulty may arise with the use of signed numbers, and while using parentheses solves the problem, using spaces around operators is encouraged on functional and aesthetic grounds.
+```
+vgr> print x*y+2,x*y-2
+print x*y+2,x*y-2
+         ^
+Unexpected input at line 1, column 10.
+vgr> print x*y+ 2,x*y- 2
+25 | 5
+vgr> print x * y + +2, x * y - -2
+25 | 25
+```
+
+### String and List Operators
+
+* `Is In` and `Is Not In` : is the left-side value present in the right-side value or not
+* `Contains` and `Does Not Contain` : is the right-side value present in the left-side or not; effectively the reverse of In
+* `Match` and `Does Not Match` : TBD. You can also use `~` and `!~` respectively
+("~" | "Match"i | "Matches"i) expr -> match_op
+("!~" | ("Doesnt"i | "Does"i? "Not"i) "Match"i) expr -> not_match_op
+
+There are also `IMatch` versions that performs comparisons indepent of case
+
+_**THESE OPERATORS ARE UNDER DEVELOPMENT**_
+
+### Polymorphic Operations
+
+
+
+### Fluent Functions
+
+## Comments
+True to its polyglot nature, three different commenting styles are available and may be freely intermixed. All comments are stand-alone, that is they are the only thing on a line. They may be preceed by whitespace.
+
+* SQL Style : Comments start with `--`
+* Shell Style : Comments tart with `#`
+* 'C', Java, et al Style : Comments start with `//`
+
+## Statements
+
+Several statements have already been discussed and demonstrated: `Set`, `Print`, `Printf` and `Exhibit`. And if you've used the interactive interface you've likely used `Exit`. Here we'll cover the remaining statments, and especially `Select`.
+
+### Runtime Control Options
+There are three statements that change the behavior of subsequent statements.
+
+* `Debug` : prints technical information to stderr during execution. Its use is self explanitory.
+* `Echo` : prints the command to stderr prior to execution. Useful for debugging and logging. Off by default.
+* `Verbose` : prints additional information to stderr during execution. Useful for detailed logging. Off by default.
+
+These statements take an optional expression which is evaluated as a boolean. If no expression is provided, the control is turned on.
+```
+vgr> Echo; Verbose;
+Verbose;
+Verbose = True
+vgr> Print arg.echo, arg.verbose
+Print arg.echo, arg.verbose
+True True
+vgr> Verbose False; Echo 0;
+Verbose False;
+Echo 0;
+```
+
+> **Pro Tip…**
+>
+> Keep typing `Echo On` and still having it be off? That's because `On` is a variable name, not a keyword or a constant. So why not make your own constants?
+> ```
+> vgr> Set On to True
+> vgr> Set Off to False
+> vgr> Echo On; Verbose On;
+> Verbose On;
+> Verbose = True
+> ```
+> Just remember that variable names are case sensitive, so you'll need to be consistent in you usage.
+
+### Exit and Assert
+Exit terminates the application unconditionally, while Assert does so only if a condition check fails.
+
+* `Exit` : terminate with a zero return code
+* `Exit expression` : terminate with the exit code given by the expression. Non-numeric results are turned into booleans using Python's "trutiness" rules.
+```
+./vgr.py -e "Exit" && echo "Exited"
+Exited
+./vgr.py -e "Exit 17" || echo $?
+17
+```
+* `Assert` : unconditional exit with a return code of one
+* `Assert expression` : if the expression resolves to a False value, the application exits with a return code of one. An error message is printed.
+* `Assert expression : message...` : This acts like _if not this, then printf the message and exit_. We'll demonstrate.
+
+```
+vgr> Set Limit to Inf
+vgr> Assert Limit Less Than (64 * 1024)
+Line 1: Assert Limit Less Than (64 * 1024) failed
+$ echo $?
+1
+```
+With a message you can customize the output
+```
+vgr> Set Limit to Inf
+vgr> Assert Limit Less Than (64 * 1024) : "The Limit was set to {}, which is too high!", Limit
+Line 1: The Limit was set to inf, which is too high!
+```
+
+### Load From
+TODO
+
+### Open and Close
+`Open` and `Close` are used to direct the output of statements to files. While you can always use standard I/O redirection, these statements allow you to, for example, run multiple `Selects` and place the results in multiple files.
+
+Two types of output, or streams, are defined: `Output` and `Error`. These have aliases of `Stdout` and `Stderr` respectively. The resulting output of statements like `Print`, `Printf`, and `Select` go to the **output stream**. Output generated by `Exhibit` and `Assert`, as well as that resulting from `Debug`, `Echo`, or `Verbose` being active, goes to the **error stream**.
+
+* `Open` _stream_ expression : opens the file named by the expression for output in Overwrite mode.
+* `Open` _stream_ expression _mode_ : open the file with a specific mode. See below for details.
+* `Close` _stream_ : closes the stream. If one was never opened, the statement has no effect.
+
+#### Open Mode
+Three type of open mode are available:
+* `Append` or `Extend` : if the file exists, output is added to it; if not the file is created
+* `Overwrite` : the file if it exists is overwritten. This is the default mode used when a mode is not specified.
+* `No Overwrite` : if the file exists it is not overwritten. An error message is printed and the application exits with an error code.
+
+When VGR exits, all opened files are closed automatically.
+
+> **Pro Tip…**
+>
+> The stream name can be followed by an optional `File` keyword.
+> ```
+> Open Output File "out.dat"
+> // ...
+> Close Output File
+> ```
+> Additionally you can use the Python file mode shorthands `A`, `W`, and `X` for the file mode: these are keywords and don't need to be quoted.
+> ```
+> Open stdout arg.out_name + ".dat" X
+> ```
+
+### Create ZIP
+After you've generated output files from statements, you can use VGR to create a ZIP file. The syntax is similar to `Open`, but you do need to specify what will be added to the file.
+```
+Create ZIP expression options...
+```
+The options can be specified as many times as you need or want.
+* Include _expression_... : a list of expressions that specify the archive's content. You can use a long space separated list or use Include multiple times.
+* Exclude _expression_... : a list of expressions that define patterns of exclusion from the archive's content. Like with Include, you can use one line or many.
+* Comment _expression_ : a comment that will be added to the archive
+* Password _expression_ : a password to secure the archive _**NOT WORKING ATM; NEED TO REPLACE ZIP MODULE**_
+
+Let's take a look at an example:
+```
+Create ZIP File "reports.zip"
+  // All of our output
+  Include "out",
+  Include "*.csv" "*.json",
+  Exclude "*.log" "*.err",
+  // Somday we should add the creator...
+  Comment "Today's data!";
+```
+Assuming that `out` is a directory, the first `Include` will recursively add all files in it to our archive list. Then we add in all CSV and JSON files from the current directory with the next `Include`. The `Exclude` option, which could be the first of the options, is used to remove any files added by an `Include` that match those patterns.
+
+Also note that you can add comments in the middle of the statement, as long as they start at the begining of a line.
+
+If none of the `Include` patterns match, or if an `Exclude` removes everything, an empty archive will be constructed.
+
+> **Pro Tip…**
+>
+> Let's handle that "someday" in the comment...
+> ```
+>  Comment "Report created by " + os.login;
+>```
+> Don't forget that there are predefined variables with information that you can access: use `Exhibit` to see what's available!
+
+### The Select Statement
+
+#### From Clause - The Source for Data
+
+#### Outputs - Data selection
+
+#### Where Clause - Limiting Data
+
+#### Product Clause - Expanding Rows
+
+#### Limit Clause - Limiting Output
+
+#### For Clause - Defining the Output
+
+##### JSON Output
+
+##### CSV Output
+
+##### Markdown Output
+
+##### Template Output with Django
