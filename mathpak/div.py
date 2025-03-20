@@ -1,10 +1,14 @@
 #! /usr/bin/env python3
 
-from .common import math_overrides, matching_default, time_test
 from functools import reduce
 from typing import Any
 
-def poly_vdiv(x: Any, *args): return reduce(poly_div, args, x)
+from .common import math_overrides, matching_default
+
+def poly_vdiv(x: Any, *args):
+    """Varargs version of poly_div"""
+    return reduce(poly_div, args, x)
+
 def poly_div(x: Any, y: Any) -> Any:
     """Polymorphic division function.
 
@@ -33,7 +37,10 @@ TypeError raised on all other combinations
     override = math_overrides.get((type(x), type(y)))
     return override(poly_div, x, y) if override else x / y
 
-def poly_vfdiv(x: Any, *args): return reduce(poly_fdiv, args, x)
+def poly_vfdiv(x: Any, *args):
+    """Varargs version of poly_fdiv"""
+    return reduce(poly_fdiv, args, x)
+
 def poly_fdiv(x: Any, y: Any) -> Any:
     """Polymorphic floor division function.
 
@@ -61,30 +68,3 @@ TypeError raised on all other combinations
     if y is None: return poly_fdiv(x, matching_default(x))
     override = math_overrides.get((type(x), type(y)))
     return override(poly_fdiv, x, y) if override else x // y
-
-def div_test():
-    cases = [
-        (0, 2),
-        (5, 2),
-        (5, 2.0),
-        (5, ' +2 '),
-        (5.0, 2),
-        (5.0, 2.0),
-        (5.0, '2'),
-        ('5.0', 2),
-        ('5.0', 2.0),
-        ('5.0', '2.0'),
-        ([5, 10, 15], 2),
-        ([5, 10, 15], 2.0),
-        ([5, 10, 15], '2'),
-        ((5, 10, 15), 2),
-        ((5, 10, 15), 2.0),
-        ((5, 10, 15), '2'),
-        (None, 5),
-        #(5, None), #ZeroDivisionError
-        (None, None),
-    ]
-    time_test(poly_div, cases,1)
-    time_test(poly_fdiv, cases, 1)
-
-if __name__ == "__main__": div_test()

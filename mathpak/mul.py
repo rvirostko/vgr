@@ -1,11 +1,15 @@
 #! /usr/bin/env python3
 
-from .common import dist_list, dist_tuple, time_test
 from functools import reduce
 from typing import Any
 import itertools
 
-def poly_vmul(x: Any, *args): return reduce(poly_mul, args, x)
+from .common import dist_list, dist_tuple
+
+def poly_vmul(x: Any, *args):
+    """Varargs version of poly_mul"""
+    return reduce(poly_mul, args, x)
+
 def poly_mul(x: Any, y: Any) -> Any:
     """Polymorphic multiplication function.
 
@@ -63,44 +67,3 @@ _overrides = {
     (tuple, list): lambda _, x, y: _prod_tuple(x, y),
     (tuple, tuple): lambda _, x, y: _prod_tuple(x, y),
 }
-
-def mul_test():
-    cases = [
-        ( 2, 4 ),
-        ( 2, 4.0 ),
-        ( 2, "x" ),
-        ( 2, [2, 4] ),
-        ( 2, (2, 4) ),
-        ( 3.1, 4 ),
-        ( 3.1, 4.0 ),
-        ( 3.1, "x" ),
-        ( 3.1, [2, 4] ),
-        ( 3.1, (2, 4) ),
-        ( "y", 3 ),
-        ( "y", 3.1 ),
-        ( "y", "x" ),
-        ( "y", [2, 4] ),
-        ( "y", (2, 4) ),
-        ( [3, 6], 2 ),
-        ( [3, 6], 2.0 ),
-        ( [3, 6], "z" ),
-        ( [3, 6], [2, 4] ),
-        ( [3, 6], [2, 4] ),
-        ( [], (2, 4) ),
-        ( [1], (2, 4) ),
-        ( (4, 8), 2 ),
-        ( (4, 8), 2.0 ),
-        ( (4, 8), "z" ),
-        ( (4, 8), [2, 4] ),
-        ( (4, 8), (2, 4) ),
-        ( tuple(), (2, 4) ),
-        ( (1,), (2, 4) ),
-        ( None, 5 ),
-        ( None, [5] ),
-        ( 5, None ),
-        ( [5], None ),
-        ( None, None)
-    ]
-    time_test(poly_mul, cases)
-
-if __name__ == "__main__": mul_test()

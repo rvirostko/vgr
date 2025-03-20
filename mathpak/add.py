@@ -1,10 +1,14 @@
 #! /usr/bin/env python3
 
-from .common import dist_list, dist_tuple, math_overrides, matching_default, time_test
 from functools import reduce
 from typing import Any
 
-def poly_vadd(x: Any, *args): return reduce(poly_add, args, x)
+from .common import dist_list, dist_tuple, math_overrides, matching_default
+
+def poly_vadd(x: Any, *args):
+    """Varargs version of poly_add"""
+    return reduce(poly_add, args, x)
+
 def poly_add(x: Any, y: Any) -> Any:
     """Polymorphic addition function.
 
@@ -57,37 +61,3 @@ _overrides = {
     (tuple, list): lambda _, x, y: x + tuple(y),
     (dict, dict): lambda _, x, y: {**x, **y}
 }
-
-def add_test():
-    cases = [
-        (1, 2),
-        (1, 2.5),
-        (1, "3.0"),
-        (1, [2, 3]),
-        (1, (2, 3)),
-        (2.5, 3),
-        (2.5, 4.5),
-        (2.5, "5.5"),
-        (2.5, [6, 7]),
-        (2.5, (8, 9)),
-        ("a", "b"),
-        ("x", 4),
-        ("y", 6.7),
-        ("z", [1, 2]),
-        ("w", (3, 4)),
-        ([1, 2], 3),
-        ([1, 2], "x"),
-        ([1, 2], [3, 4]),
-        ([1, 2], (5, 6)),
-        ((1, 2), 3),
-        ((1, 2), "x"),
-        ((1, 2), [3, 4]),
-        ((1, 2), (5, 6)),
-        ({"a": 1}, {"b": 2}),
-        (None, 5),
-        (7, None),
-        (None, None),
-    ]
-    time_test(poly_add, cases, 1)
-
-if __name__ == "__main__": add_test()

@@ -1,8 +1,9 @@
 #! /usr/bin/env python3
 
-from .common import dist_list, dist_tuple, time_test, str_to_number
 from functools import reduce
 from typing import Any, Callable
+
+from .common import dist_list, dist_tuple, str_to_number
 
 def _str_num_op(op: Callable[[Any, Any], Any], x: str, y: Any) -> Any:
     """See if the string can be converted to a number before applying the operation"""
@@ -10,7 +11,7 @@ def _str_num_op(op: Callable[[Any, Any], Any], x: str, y: Any) -> Any:
     try:
         return op(int(str_to_number(x)), y)
     except TypeError:
-        return _int_str_op(op, y, x)
+        return _int_str_op(op, y, x) # TODO reversed? Explain?
 
 def _int_str_op(op: Callable[[Any, Any], Any], x: int, y: str) -> str:
     """The operation is distributed over the characters in the string"""
@@ -66,7 +67,10 @@ _overrides = {
     (tuple, str): dist_tuple,
 }
 
-def poly_vbit_and(x: Any, *args) -> Any: return poly_bit_and(x, poly_vbit_or(0, args))
+def poly_vbit_and(x: Any, *args) -> Any:
+    """Varargs version of poly_bit_and"""
+    return poly_bit_and(x, poly_vbit_or(0, args))
+
 def poly_bit_and(x: Any, y: Any) -> Any:
     """Polymorphic bitwise and function.
 
@@ -101,7 +105,10 @@ _or_overrides = {
     (dict, dict): lambda _, x, y: {**x, **y},
 }
 
-def poly_vbit_xor(x: Any, *args) -> Any: return poly_bit_xor(x, poly_vbit_or(0, args))
+def poly_vbit_xor(x: Any, *args) -> Any:
+    """Varags version of poly_bit_xor"""
+    return poly_bit_xor(x, poly_vbit_or(0, args))
+
 def poly_bit_xor(x: Any, y: Any) -> Any:
     """Polymorphic bitwise xor function.
 
@@ -133,45 +140,3 @@ TypeError raised on all other combinations
         # Create a bitmask with all bits set up to rounded_bits
         mask = (1 << rounded_bits) - 1
     return x ^ mask
-
-def bit_test():
-    cases = [
-        ( 1, 5 ),
-        ( 1, 5.0 ),
-        ( 1, "5.0"),
-        ( 1, [ 5, 5.0 ]),
-        ( 1, ( 5, 5.0 )),
-        ( 4.0, 5 ),
-        ( 4.0, 5.0 ),
-        ( 4.0, "5.0" ),
-        ( "4.0", 5.0 ),
-        ( "4.0", "5.0" ),
-        ( "55", "value"),
-        ( "value", "55" ),
-        ( "value", "key" ),
-        ( "key", "value" ),
-        ( 4.0, [ 5, 5.0 ] ),
-        ( 4.0, ( 5, 5.0 ) ),
-        ( [5, 5.0], 4 ),
-        ( [5, 5.0], 4.0 ),
-        ( [5, 5.0], "4" ),
-        ( (5, 5.0), 4 ),
-        ( (5, 5.0), 4.0 ),
-        ( (5, 5.0), "4" ),
-        ( None, 1 ),
-        ( 1, None ),
-        ( None, None ),
-    ]
-    or_cases = [
-        ( [5, 6], [7, 8] ),
-        ( [5, 6], (7, 8) ),
-        ( (5, 6), [7, 8] ),
-        ( (5, 6), (7, 8) ),
-        ( {'a': 1}, {'b': 2} ),
-    ]
-    or_cases.extend(cases)
-    time_test(poly_bit_and, cases, 1)
-    time_test(poly_bit_or, or_cases, 1)
-    time_test(poly_bit_xor, cases, 1)
-
-if __name__ == "__main__": bit_test()

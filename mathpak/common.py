@@ -1,13 +1,32 @@
 #! /usr/bin/env python3
 
-from typing import Any, Callable
+"""
+Routines and values that can be used by operator and function implementations.
+"""
 
-def str_to_number(s: str):
+from typing import Any, Callable, Union
+
+Number = Union[int, float]
+
+NoneType = type(None)
+
+# See matching_default()
+_DEFAULTS_BY_TYPE = {
+    dict : {},
+    float : 0.0,
+    int : 0,
+    list : [],
+    str : '',
+    tuple : tuple(),
+}
+
+def str_to_number(s: str) -> Number:
+    """Attempts to convert a string to a number value. Raises TypeError if it can't."""
     try:
         x: float = float(s.strip())
         return int(x) if x.is_integer() else x
-    except ValueError:
-        raise TypeError(f'Cannot convert "{s}" to a number')
+    except ValueError as e:
+        raise TypeError(f'Cannot convert "{s}" to a number') from e
 
 def dist_list(op: Callable[[Any, Any], Any], x: list, y: Any) -> list:
     """Distribute op over the list: [op(<list>, y)]"""
@@ -18,13 +37,16 @@ def dist_tuple(op: Callable[[Any, Any], Any], x: tuple, y: Any) -> tuple:
     return tuple(op(x1, y) for x1 in x)
 
 def matching_default(x: Any) -> Any:
-    t = type(x)
-    if t in (int, float): return 0
-    if t is list: return []
-    if t is tuple: return tuple()
-    if t is dict: return {}
-    if t is str: return ''
-    raise TypeError(f'No default value for {t.__name__}')
+    """Given an object, return a _default_ value that matches its type"""
+    xtype = type(x)
+    default = _DEFAULTS_BY_TYPE.get(xtype)
+    if default is not None: return default
+    raise TypeError(f'No default value for {xtype.__name__}')
+
+def op_key(x: Any, y: Any) -> tuple:
+    """The key used to look up behavior by operand type"""
+    # TODO none type handling here in the future
+    return (type(x), type(y))
 
 # For non-commutative mathematical operations that don't define behaviors for
 # dictionaries and have "natural" operations on int/float
@@ -43,30 +65,3 @@ math_overrides = {
     (tuple, float): dist_tuple,
     (tuple, str): dist_tuple,
 }
-
-import timeit
-def time_test(op, cases: list[tuple], times: int=100_000) -> None:
-    def tester():
-        for x, y in cases:
-            try:
-                op(x, y)
-            except TypeError as e:
-                print(f'TypeError: {e}')
-    if times == 1:
-        print()
-        print(60*'=')
-        print(op.__doc__, end='')
-        print(60*'=')
-        for x, y in cases:
-            try:
-                print(f'{op.__name__}({repr(x)}, {repr(y)}) = ', end='')
-                print(f'{repr(op(x, y))}')
-            except TypeError as e:
-                print(f'TypeError: {e}')
-    else:
-        factor = times / 1_000_000
-        time = timeit.timeit(tester, number=times)
-        print(f"{op.__name__}(): {time / factor:.2f} usec")
-
-def main(): pass
-if __name__ == "__main__": main()

@@ -1,10 +1,14 @@
 #! /usr/bin/env python3
 
-from .common import math_overrides, matching_default, time_test
 from functools import reduce
 from typing import Any
 
-def poly_vsub(x: Any, *args): return reduce(poly_sub, args, x)
+from .common import math_overrides, matching_default
+
+def poly_vsub(x: Any, *args):
+    """Varargs version of poly_sub"""
+    return reduce(poly_sub, args, x)
+
 def poly_sub(x: Any, y: Any) -> Any:
     """Polymorphic subtraction function.
 
@@ -51,36 +55,3 @@ _sub_overrides = {
     (dict, tuple): lambda _, x, y: _dict_sub(x, y),
     (dict, dict): lambda _, x, y:  _dict_sub(x, [k for k in y.keys()]),
 }
-
-def sub_test():
-
-    cases = [
-        (5, 3),
-        (5, 3.2),
-        (5, "2.5"),
-        (5.5, 3),
-        (5.5, 3.2),
-        (5.5, "2.5"),
-        ("5.5", 3),
-        ("5.5", 3.2),
-        ("5.5", "2.5"),
-        ([5, 10, 15], 3),
-        ([5.5, 10.2, 15.8], 3),
-        ([5, 10, 15], 2.5),
-        ([5.5, 10.2, 15.8], 2.5),
-        ([5, 10, 15], "2.5"),
-        ((5, 10, 15), 3),
-        ((5.5, 10.2, 15.8), 3),
-        ((5, 10, 15), 2.5),
-        ((5.5, 10.2, 15.8), 2.5),
-        ((5, 10, 15), "2.5"),
-        ({"a": 1, "b": 2}, "a"),
-        ({"a": 1, "b": 2}, ["a", "d"]),
-        ({"a": 1, "b": 2}, ("a", "b")),
-        ({"a": 1, "b": 2}, {"a": 3}),
-        (None, 5),
-        (5, None),
-    ]
-    time_test(poly_sub, cases, 1)
-
-if __name__ == "__main__": sub_test()

@@ -1,8 +1,10 @@
 #! /usr/bin/env python3
 
+"""Polymorphic inequality operators"""
+
 from typing import Any, Callable, Iterable
 
-from .common import str_to_number, time_test
+from .common import str_to_number
 
 def poly_eq(x: Any, y: Any) -> bool:
     """Polymorphic equals comparison.
@@ -123,50 +125,3 @@ def _lex_comp(cmp: Callable[[Any, Any], bool], x: Iterable, y: Iterable) -> bool
     # the other, so we apply the comparison to the length
     # which determines the desired order
     return cmp(len(x), len(y))
-
-def inequ_test():
-    cases = [
-        (True, 3),
-        (False, 3),
-        (2, True),
-        (2, False),
-        (True, True),
-        (False, False),
-        (True, 1),
-        (False, 0),
-        ("a", "b"),
-        ("a", 1),
-        ("a", 1.0),
-        (1, "2"),
-        (1.0, "+2"),
-        (2, 3),
-        (2, 3.5),
-        (2, "3"),
-        (2.5, 3),
-        (2.5, 3.5),
-        (2.5, "3"),
-        (2.5, "frog"),
-        ("2", 3),
-        ("2", 3.5),
-        ("2", "3"),
-        ([2, 3, 4], 2),
-        ([2.5, 3.5], 2.0),
-        ([2, 3, 4], "2"),
-        ("-2.0", [2, 3, 4]),
-        ((2, 3, 4), 2),
-        ((2.5, 3.5), 2.0),
-        (2.0, (2.5, 3.5)),
-        ((2, 3, 4), "2"),
-        ((2, 3, 4), ["2", 3, 4.0]),
-        (None, 3),
-        (2, None),
-        (None, None),
-    ]
-    #time_test(poly_eq, cases, 1)
-    #time_test(poly_neq, cases, 1)
-    #time_test(poly_lt, cases, 1)
-    #time_test(poly_gt, cases, 1)
-    #time_test(poly_le, cases, 1)
-    time_test(poly_ge, cases, 1)
-
-if __name__ == "__main__": inequ_test()

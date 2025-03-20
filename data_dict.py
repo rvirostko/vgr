@@ -1,13 +1,15 @@
 #! /usr/bin/env python3
 
-from mathpak import poly_bool, poly_number
 from typing import Any
 import math
 import os
 import re
 import string
 
+from mathpak import poly_bool, poly_number
+
 class DataDictionary():
+    """TODO"""
     _ENV_EXCLUDE = tuple(re.compile(pattern, re.IGNORECASE) for pattern in ('^VSCODE', '^_$', '^(OLD)?PWD$'))
     _OS_CONSTS = ( 'defpath',  'devnull', 'extsep', 'linesep', 'name', 'pardir', 'pathsep', 'sep' )
     _ARG_PREFIX = 'arg'
@@ -83,7 +85,7 @@ class DataDictionary():
     def get_shell_history_size(self) -> int:
         try:
             return int(self._get_var(self._DD, self._VGR_PREFIX, self._HISTORY_SIZE)) or self._DEFAULT_HISTORY_SIZE
-        except:
+        except ValueError:
             return self._DEFAULT_HISTORY_SIZE
 
     def set_var(self, value: Any, *path: str) -> None:
@@ -152,12 +154,12 @@ class DataDictionary():
         current = start
         for step in path[:-1]:
             # If the next step doesn't exist, create it as dictionary
-            next = current.setdefault(step, {})
+            next_step = current.setdefault(step, {})
             # If it isn't a dictionary, it has to become one
-            if not isinstance(next, dict):
-                next = {}
-                current[step] = next
-            current = next
+            if not isinstance(next_step, dict):
+                next_step = {}
+                current[step] = next_step
+            current = next_step
         # Last step in the path gets the data
         current[path[-1]] = data
 
@@ -178,17 +180,26 @@ class DataDictionary():
         """
         if value is None or isinstance(value, (bool, int, float, dict, list, tuple)): return value
         if value.strip().lower() in ('true', 'false'): return poly_bool(value)
-        try: return poly_number(value)
-        except TypeError: return None if value.strip().lower() == 'none' else value
+        try:
+            return poly_number(value)
+        except TypeError:
+            return None if value.strip().lower() == 'none' else value
 
-    def _defaut_ofs(self) -> str: return os.getenv('OFS', ' ')
+    def _defaut_ofs(self) -> str:
+        """Either AWK's OFS default in the env or a space"""
+        return os.getenv('OFS', ' ')
 
-    def _defaut_ors(self) -> str: return os.getenv('ORS', '\n')
+    def _defaut_ors(self) -> str:
+        """Either AWK's ORS default in the env or a newline"""
+        return os.getenv('ORS', '\n')
 
-    def _get_vgr_default(self, env_var: str, default: Any) -> str: return os.getenv(self._VGR_ENV_PREFIX + env_var.upper(), default)
+    def _get_vgr_default(self, env_var: str, default: Any) -> str:
+        """Look for a matching environment variable (uppercase) and return it or the default value"""
+        return os.getenv(self._VGR_ENV_PREFIX + env_var.upper(), default)
 
     def _get_vgr_default_int(self, env_var: str, default: Any) -> str:
+        """Look for a matching environment variable (uppercase) and try to convert to an int"""
         try:
-            return int(self.get_vgr_default(env_var.upper(), default))
-        except:
+            return int(self._get_vgr_default(env_var, default))
+        except ValueError:
             return default

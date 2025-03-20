@@ -1,8 +1,10 @@
 #! /usr/bin/env python3
 
-from .common import math_overrides, matching_default, time_test
 from typing import Any
 
+from .common import math_overrides, matching_default
+
+# TODO rename "pow"
 def poly_exp(x: Any, y: Any) -> Any:
     """Polymorphic exponential function.
 
@@ -30,27 +32,3 @@ TypeError raised on all other combinations
     if y is None: return poly_exp(x, matching_default(x))
     override = math_overrides.get((type(x), type(y)))
     return override(poly_exp, x, y) if override else x ** y
-
-def exp_test():
-    cases = [
-        (2, 3),
-        (2, 3.5),
-        (2, "3.5"),
-        (2.5, 3),
-        (2.5, 3.5),
-        (2.5, "3.5"),
-        ("2.5", 3),
-        ("2.5", 3.5),
-        ("2.5", "3.5"),
-        ([2, 3, 4], 2),
-        ([2.5, 3.5], 2.0),
-        ([2, 3, 4], "2.0"),
-        ((2, 3, 4), 2),
-        ((2.5, 3.5), 2.0),
-        ((2, 3, 4), "2.0"),
-        (None, 3),
-        (2, None),
-    ]
-    time_test(poly_exp, cases, 1)
-
-if __name__ == "__main__": exp_test()
