@@ -1010,9 +1010,9 @@ STATEMENT_HANDLERS = {
 }
 
 def remove_comments(input: str) -> str:
-    """Removes full-line comments but preserves blank lines for Lark metadata accuracy."""
+    """Removes comments but preserves lines for Lark metadata accuracy."""
     # We do Hash, C-style, and SQL style
-    return re.sub(r'^[ \t]*(#|//|--).*(?:\r?\n|\r|$)', '\n', input, flags=re.MULTILINE)
+    return re.sub(r'(^|;)[ \t]*(#|//|--).*', r'\1\n', input)
 
 def execute_statements(inp: str) -> None:
     inp = set_source(remove_comments(inp))

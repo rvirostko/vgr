@@ -242,8 +242,8 @@ vgr> print x >> 1, y << 2
 Comparison operations work with both numeric and non-numeric data.
 * Equality : use `==`, `Equals`, `Is`, `Is Equal To`
 * Inequality : use `!=`, `<>`, `Is Not`, `Is Not Equal To`
-* Less Than : use `<` | `Is Less Than`
-* Greater Than : use `>` | `Is Greater Than`
+* Less Than : use `<` or `Is Less Than`
+* Greater Than : use `>` or `Is Greater Than`
 * Less Than or Equal To : use `<=` or `Is Not Greater Than`
 * Greater Than or Equal To : use `>=` or `Is Not Less Than`
 
@@ -286,25 +286,32 @@ vgr> print x * y + +2, x * y - -2
 * `Is In` and `Is Not In` : is the left-side value present in the right-side value or not
 * `Contains` and `Does Not Contain` : is the right-side value present in the left-side or not; effectively the reverse of In
 * `Match` and `Does Not Match` : TBD. You can also use `~` and `!~` respectively
-("~" | "Match"i | "Matches"i) expr -> match_op
-("!~" | ("Doesnt"i | "Does"i? "Not"i) "Match"i) expr -> not_match_op
 
 There are also `IMatch` versions that performs comparisons indepent of case
 
 _**THESE OPERATORS ARE UNDER DEVELOPMENT**_
 
 ### Polymorphic Operations
-
-
+TODO
 
 ### Fluent Functions
+TODO
 
 ## Comments
-True to its polyglot nature, three different commenting styles are available and may be freely intermixed. All comments are stand-alone, that is they are the only thing on a line. They may be preceed by whitespace.
+True to its polyglot nature, three different commenting styles are available and may be freely intermixed. Can be the only thing on a line or they can appear after a statement end delineated by a `;`. They may be preceed by spaces or tabs.
 
 * SQL Style : Comments start with `--`
 * Shell Style : Comments tart with `#`
 * 'C', Java, et al Style : Comments start with `//`
+```
+# Just like in a Shell Scripts, AWK, or Python...
+      // Or back in 'C' and Java
+-- SQL-ish too
+Set x to 42; # This is fine
+Set x to 42 -- But this is an error
+             ^
+Unexpected input at line 4, column 14.
+```
 
 ## Statements
 
