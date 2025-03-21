@@ -86,7 +86,7 @@ _FUNC_OPS = {
   "Mod": poly_mod,
   "Mul": poly_vmul,
   "Number": poly_number,
-  "Pow": poly_exp,
+  "Pow": poly_pow,
   "Prepend": poly_vprepend,
   "RemovePrefix": poly_removeprefix,
   "RemoveSuffix": poly_removesuffix,
