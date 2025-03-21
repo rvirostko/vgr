@@ -117,9 +117,10 @@ _FUNC_OPS = {
   "Upper": poly_upper,
 }
 
-"""This index provides a way to find functions independent of case.
-Use get_function_op() to find entries"""
-_FUNC_INDEX = {k.lower(): k for k in _FUNC_OPS}
+# This index provides a way to find functions independent of case.
+# Use get_function_op() to find entries.
+# It's also used to generate the big regex to identify function names
+_FUNC_INDEX = {k.lower(): k for k in _FUNC_OPS} | { re.sub(r'([a-z])([A-Z])', r'\1_\2', k).lower(): k for k in _FUNC_OPS  }
 
 # List of tokens that we don't try to translate in exceptions
 _TOKEN_PASS = ('NAME',)
@@ -127,8 +128,8 @@ _TOKEN_PASS = ('NAME',)
 def get_function_op(name: str):
     """Given a function name get the function that implements it"""
     rc = _FUNC_OPS.get(_FUNC_INDEX.get(name.lower()), None)
-    if not rc: raise NotImplementedError(f'Function {name} not yet implemented')
-    return rc
+    if rc: return rc
+    raise NotImplementedError(f'Function {name} not implemented') # SNO
 
 # The max value of an arg range when we have variable arguments
 _IS_VARARGS = float('inf')
@@ -159,8 +160,14 @@ def get_function_defs(w: int=99) -> str:
     """Dynamically generate the LARK patterns for functions based on our dictionary"""
     w = str(w)
     # Group the functions acording to their argument counts
+    # Take into account alias found in _FUNC_INDEX
     func_groups = defaultdict(list)
-    for name, op in _FUNC_OPS.items(): func_groups[get_arg_range(op)].append(name)
+    for name, op in _FUNC_OPS.items():
+        arg_range = get_arg_range(op)
+        func_groups[arg_range].append(name)
+        for alias in [k for k, v in _FUNC_INDEX.items() if v == name]:
+            if alias != name.lower():
+                func_groups[arg_range].append(alias)
     fnames = {}
     rc = ''
     # Generate the list of function names per arg count group
