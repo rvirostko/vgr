@@ -195,7 +195,7 @@ product_cols: "All"i -> all
     | expr ("/" | "\u00F7") expr -> div_op
     | expr "//" expr -> fdiv_op
     | expr ("%" | "Mod"i) expr -> mod_op
-    | expr ("**" | "Pow"i) expr -> exp_op
+    | expr ("**" | "Pow"i) expr -> pow_op
     | expr "&" expr -> bit_and_op
     | expr "|" expr -> bit_or_op
     | expr ("^" | "Xor"i) expr -> bit_xor_op

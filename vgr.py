@@ -66,6 +66,7 @@ _FUNC_OPS = {
   "IsIdentifier":  poly_isidentifier,
   "IsInt": poly_isint,
   "IsLower": poly_islower,
+  "IsList": poly_islist,
   "IsNumber": poly_isnumber,
   "IsNumeric": poly_isnumeric,
   "IsPrintable": poly_isprintable,
@@ -80,6 +81,7 @@ _FUNC_OPS = {
   "LeftStr": poly_leftstr,
   "LeftStrip": poly_lstrip,
   "Len": poly_len,
+  "List": poly_list,
   "Lookup": poly_lookup,
   "Lower": poly_lower,
   "Match": poly_match,
@@ -295,7 +297,7 @@ class OperationBinder(Transformer):
     def deref(self, tree): return Operation(tree, deref_var)
     def div_op(self, tree): return Operation(tree, poly_div)
     def eq_op(self, tree): return Operation(tree, poly_eq)
-    def exp_op(self, tree): return Operation(tree, poly_exp)
+    def pow_op(self, tree): return Operation(tree, poly_pow)
     def fdiv_op(self, tree): return Operation(tree, poly_fdiv)
     def function(self, tree): return Operation(tree, get_function_op(tree.children.pop(0).value))
     def ge_op(self, tree): return Operation(tree, poly_ge)
