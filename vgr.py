@@ -18,7 +18,7 @@ import zipfile
 from lark import Lark, Tree, Token, Transformer, Visitor, v_args, exceptions
 
 from mathpak import *
-from output import prepare_path, verify_relative_path, IORedirector
+from output import prepare_path, verify_relative_path, IORedirector, expand_filename
 
 from data_dict import DataDictionary
 from interactive import CmdLine
@@ -931,11 +931,11 @@ class VGRCmdLine(CmdLine):
 
     @property
     def history_filename(self) -> str:
-        return self._expand_fn(str(self._dd.get_var(None, *self._HISTORY_PATH) or self._DEFAULT_HISTORY))
+        return expand_filename(str(self._dd.get_var(None, *self._HISTORY_PATH) or self._DEFAULT_HISTORY))
 
     @history_filename.setter
     def history_filename(self, value: str) -> None:
-        self._dd.set_var(None, self._expand_fn(value or self._DEFAULT_HISTORY), *self._HISTORY_PATH)
+        self._dd.set_var(None, expand_filename(value or self._DEFAULT_HISTORY), *self._HISTORY_PATH)
 
     @property
     def max_history_entries(self) -> int:
@@ -958,9 +958,6 @@ class VGRCmdLine(CmdLine):
             return int(self._get_vgr_default(env_var, default))
         except ValueError:
             return default
-
-    def _expand_fn(self, fn: str) -> str:
-        return os.path.abspath(os.path.expanduser(fn))
 
 def execute_interactive() -> None:
     print("Type 'exit' to exit")

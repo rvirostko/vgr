@@ -1,8 +1,9 @@
 #! /usr/bin/env python3
 
-from .inequ import poly_eq
 from itertools import chain
 from typing import Any
+
+from .inequ import poly_eq
 
 def poly_lookup(x: Any, attr: Any, *args) -> Any:
     if not isinstance(x, (list, tuple)): return None

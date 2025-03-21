@@ -88,6 +88,16 @@ def _num_str_op(op: Callable[[Any, Any], Any], x: Any, y: str) -> Any:
     except TypeError:
         return op(str(x), y)
 
+def _lex_comp(cmp: Callable[[Any, Any], bool], x: Iterable, y: Iterable) -> bool:
+    """Performs lexicographic comparison on non-scalar iterables using cmp for element-wise comparison."""
+    for xi, yi in zip(x, y):
+        # Once the equality fails, we apply the given comparison to the failing pair
+        if not poly_eq(xi, yi): return cmp(xi, yi)
+    # At this point, one is a prefix (or exact match) of
+    # the other, so we apply the comparison to the length
+    # which determines the desired order
+    return cmp(len(x), len(y))
+
 # Most items do a "natural" compare, except numeric/string
 # and all collections
 # NB: str/str doe NOT attempt math conversions (it probably should)
@@ -107,21 +117,11 @@ _overrides = {
     (list, int): lambda op, x, y: _lex_comp(op, x, [y]),
     (list, float): lambda op, x, y: _lex_comp(op, x, [y]),
     (list, str): lambda op, x, y: _lex_comp(op, x, [y]),
-    (list, list): lambda op, x, y: _lex_comp(op, x, y),
-    (list, tuple): lambda op, x, y: _lex_comp(op, x, y),
+    (list, list): _lex_comp,
+    (list, tuple): _lex_comp,
     (tuple, int): lambda op, x, y: _lex_comp(op, x, [y]),
     (tuple, float): lambda op, x, y: _lex_comp(op, x, [y]),
     (tuple, str): lambda op, x, y: _lex_comp(op, x, [y]),
-    (tuple, list): lambda op, x, y: _lex_comp(op, x, y),
-    (tuple, tuple): lambda op, x, y: _lex_comp(op, x, y),
+    (tuple, list): _lex_comp,
+    (tuple, tuple): _lex_comp,
 }
-
-def _lex_comp(cmp: Callable[[Any, Any], bool], x: Iterable, y: Iterable) -> bool:
-    """Performs lexicographic comparison on non-scalar iterables using cmp for element-wise comparison."""
-    for xi, yi in zip(x, y):
-        # Once the equality fails, we apply the given comparison to the failing pair
-        if not poly_eq(xi, yi): return cmp(xi, yi)
-    # At this point, one is a prefix (or exact match) of
-    # the other, so we apply the comparison to the length
-    # which determines the desired order
-    return cmp(len(x), len(y))

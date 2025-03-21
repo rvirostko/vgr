@@ -1,9 +1,10 @@
 #! /usr/bin/env python3
 
-from .common import str_to_number
 from functools import reduce
 from typing import Any, Callable
 import math
+
+from .common import str_to_number
 
 def poly_abs(x: Any) -> Any:
     if isinstance(x, str): return poly_abs(str_to_number(x))

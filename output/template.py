@@ -2,11 +2,12 @@
 
 import sys
 from io import FileIO
-from .base import FileRecordWriter
 
 import django
 from django.conf import settings
 from django.template import Engine, Context
+
+from .base import FileRecordWriter
 
 class TemplateRecordWriter(FileRecordWriter):
 
@@ -23,7 +24,8 @@ class TemplateRecordWriter(FileRecordWriter):
                     'BACKEND': 'django.template.backends.django.DjangoTemplates',
                 } ])
             django.setup()
-        self.set_template(self.__DEFAULT_TEMPLATE)
+        self._template_text = self.__DEFAULT_TEMPLATE
+        self._template = None
         self.set_auto_escape(False)
         self.set_debug(False)
         self.set_include_null()
@@ -51,7 +53,8 @@ class TemplateRecordWriter(FileRecordWriter):
         return self
 
     def read_template(self, file_name: str):
-        with open(file_name, 'r') as file: self.set_template(file.read())
+        with open(file_name, 'r', encoding='utf-8') as file:
+            self.set_template(file.read())
         return self
 
     def start(self) -> bool:
@@ -66,9 +69,6 @@ class TemplateRecordWriter(FileRecordWriter):
     def finish(self):
         self._template = None
         return super().finish()
-
-    def write_headers(self) -> bool:
-        return super().write_headers()
 
     def write(self, record: list[any]) -> bool:
         context = Context({

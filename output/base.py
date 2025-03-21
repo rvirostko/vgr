@@ -1,10 +1,11 @@
 #! /usr/bin/env python3
 
+from abc import ABC, abstractmethod
+from collections.abc import Iterable
+from io import FileIO, TextIOWrapper
+from typing import Any
 import json
 import sys
-from abc import ABC, abstractmethod
-from io import FileIO, TextIOWrapper
-from collections.abc import Iterable
 
 class RecordWriter(ABC):
 
@@ -14,21 +15,21 @@ class RecordWriter(ABC):
     @abstractmethod
     def start(self) -> bool:
         """Returns True if writing can continue"""
-        pass
 
     @abstractmethod
     def finish(self):
-        pass
+        """Called when writing is complete"""
 
     @abstractmethod
-    def write(self, record: list[any]) -> bool:
-        """Write a single record to the output
-        Returns True if writing can continue"""
-        pass
+    def write(self, record: list[Any]) -> bool:
+        """
+        Write a single record to the output
+        Returns True if writing can continue
+        """
 
     @abstractmethod
     def close(self):
-        pass
+        """Called to close/release resources"""
 
     def __enter__(self):
         return self
@@ -47,7 +48,7 @@ class DelegatingRecordWriter(RecordWriter):
     def finish(self):
         self._delegate.finish()
 
-    def write(self, record: list[any]) -> bool:
+    def write(self, record: list[Any]) -> bool:
         return self._delegate.write(record)
 
     def close(self):
@@ -63,8 +64,8 @@ class FileRecordWriter(RecordWriter):
         self._headers = []
         self._omit_headers = False
 
-    def set_headers(self, headers: list[any]=[]):
-        self._headers = headers
+    def set_headers(self, headers: list[Any]):
+        self._headers = headers or []
         return self
 
     def set_omit_headers(self, enable: bool=True):
@@ -108,7 +109,8 @@ class FileRecordWriter(RecordWriter):
 
     def flush(self) -> None: self._output.flush()
 
-    def stringify(self, record: list[any]) -> list[any]: return [_stringify(item) for item in record]
+    def stringify(self, record: list[any]) -> list[any]:
+        return [_stringify(item) for item in record]
 
     def objectify(self, record: list[any], include_null: bool=True) -> dict:
         obj: dict = None
@@ -123,7 +125,7 @@ class FileRecordWriter(RecordWriter):
             # Override the close method to prevent closing the underlying buffer
             self.flush()
 
-def _stringify(obj: any) -> str:
+def _stringify(obj: Any) -> str:
     # Scalars, including str, are returned as-is
     if isinstance(obj, (str, int, float, bool, type(None))): return str(obj)
     # Compact JSON format for dictionaries

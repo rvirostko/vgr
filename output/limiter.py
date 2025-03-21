@@ -12,7 +12,8 @@ class RecordLimiter(DelegatingRecordWriter):
     @classmethod
     def wrap(cls, output: RecordWriter, limit: int=0, offset: int=0) -> RecordWriter:
         """Wraps output if applicable"""
-        return RecordLimiter(output).set_limit(limit).set_offset(offset) if cls._is_pos(limit) or cls._is_pos(offset) else output
+        if not cls._is_pos(limit) and not cls._is_pos(offset): return output
+        return RecordLimiter(output).set_limit(limit).set_offset(offset)
 
     def set_limit(self, limit: int=0):
         self._limit = limit if self._is_pos(limit) else None

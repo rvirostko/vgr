@@ -17,6 +17,8 @@ class CSVRecordWriter(FileRecordWriter):
 
     def __init__(self, file: FileIO=sys.stdout.buffer):
         super().__init__(file)
+        self._outstr = None
+        self._writer = None
         self.set_delimiter()
         self.set_quotechar()
         self.set_escapechar()
@@ -43,7 +45,7 @@ class CSVRecordWriter(FileRecordWriter):
         self._quoting = self.__QUOTING.get(value.strip().lower(), self.__DEFAULT_QUOTING) if value else self.__DEFAULT_QUOTING
         return self
 
-    def _sanitize_char(cls, value: str, default: str=None):
+    def _sanitize_char(self, value: str, default: str=None):
         if not value: value = default
         # Use only the first character
         return value[0] if value else None

@@ -59,11 +59,11 @@ _overrides = {
     (str, list): lambda op, x, y: dist_list(op, y, x),
     (str, tuple): lambda op, x, y: dist_tuple(op, y, x),
     (list, float): lambda _, x, y: x * int(y),
-    (list, str): lambda op, x, y: dist_list(op, x, y),
+    (list, str): dist_list,
     (list, list): lambda _, x, y: _prod_list(x, y),
     (list, tuple): lambda _, x, y: _prod_list(x, y),
     (tuple, float): lambda _, x, y: x * int(y),
-    (tuple, str): lambda op, x, y: dist_tuple(op, x, y),
+    (tuple, str): dist_tuple,
     (tuple, list): lambda _, x, y: _prod_tuple(x, y),
     (tuple, tuple): lambda _, x, y: _prod_tuple(x, y),
 }
