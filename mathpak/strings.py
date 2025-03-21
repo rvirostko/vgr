@@ -175,7 +175,7 @@ def poly_translate(x: Any, from_str: Any, to_str: Any=None) -> Any:
             if isinstance(from_str, (int, float)): return poly_translate(x, str(from_str), to_str)
             if isinstance(from_str, str):
                 if to_str is None: to_str = ''
-                if isinstance(to_str, (int, float)): new = str(to_str)
+                if isinstance(to_str, (int, float)): return str(to_str)
                 if isinstance(to_str, str): return x.translate(_maketrans(from_str, to_str))
         else:
             if isinstance(x, (int, float)): return poly_translate(str(x), from_str, to_str)
