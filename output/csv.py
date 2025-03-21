@@ -14,36 +14,65 @@ class CSVRecordWriter(FileRecordWriter):
             'none': csv.QUOTE_NONE
         }
     __DEFAULT_QUOTING = csv.QUOTE_NONNUMERIC
+    __DEFAULT_DELIMITER = ','
+    __DEFAULT_QUOTE_CHAR = '"'
+    __DEFAULT_ESCAPE_CHAR = '\\'
+    __DEFAULT_LINE_TERMINATOR = '\n'
 
-    def __init__(self, file: FileIO=sys.stdout.buffer):
+    def __init__(self, file: FileIO=sys.stdout.buffer, **kwargs):
         super().__init__(file)
         self._outstr = None
         self._writer = None
-        self.set_delimiter()
-        self.set_quotechar()
-        self.set_escapechar()
-        self.set_lineterminator()
-        self.set_quoting()
+        self._delimiter = self.__DEFAULT_DELIMITER
+        self._quotechar = self.__DEFAULT_QUOTE_CHAR
+        self._escapechar = self.__DEFAULT_ESCAPE_CHAR
+        self._lineterminator = self.__DEFAULT_LINE_TERMINATOR
+        self._quoting = self.__DEFAULT_QUOTING
+        self._setattrs(**kwargs)
 
-    def set_delimiter(self, value: str=None):
-        self._delimiter = self._sanitize_char(value, ',')
-        return self
+    def _attrs(self) -> list:
+        return super()._attrs() + ['delimiter', 'quotechar', 'escapechar', 'lineterminator', 'quoting']
 
-    def set_quotechar(self, value: str=None):
-        self._quotechar = self._sanitize_char(value, '"')
-        return self
+    @property
+    def delimiter(self) -> str:
+        return self._delimiter
 
-    def set_escapechar(self, value: str=None):
-        self._escapechar = self._sanitize_char(value, '\\')
-        return self
+    @delimiter.setter
+    def set_delimiter(self, value: str):
+        self._delimiter = self._sanitize_char(value, self.__DEFAULT_DELIMITER)
 
-    def set_lineterminator(self, value: str=None):
-        self._lineterminator = value if value else "\n"
-        return self
+    @property
+    def quotechar(self) -> str:
+        return self._quotechar
 
-    def set_quoting(self, value: str=None):
-        self._quoting = self.__QUOTING.get(value.strip().lower(), self.__DEFAULT_QUOTING) if value else self.__DEFAULT_QUOTING
-        return self
+    @quotechar.setter
+    def quotechar(self, value: str):
+        self._quotechar = self._sanitize_char(value, self.__DEFAULT_QUOTE_CHAR)
+
+    @property
+    def escapechar(self) -> str:
+        return self._escapechar
+
+    @escapechar.setter
+    def escapechar(self, value: str):
+        self._escapechar = self._sanitize_char(value, self.__DEFAULT_ESCAPE_CHAR)
+
+    @property
+    def lineterminator(self) -> str:
+        return self._lineterminator
+
+    @lineterminator.setter
+    def lineterminator(self, value: str):
+        self._lineterminator = value if value is not None else self.__DEFAULT_LINE_TERMINATOR
+
+    @property
+    def quoting(self) -> str:
+        s = [k for k, v in self.__QUOTING.items() if v == self._quoting]
+        return s[0] if s else self.__DEFAULT_QUOTING
+
+    @quoting.setter
+    def quoting(self, value: str=None):
+       self._quoting = self.__QUOTING.get(value.strip().lower(), self.__DEFAULT_QUOTING) if value is not None else self.__DEFAULT_QUOTING
 
     def _sanitize_char(self, value: str, default: str=None):
         if not value: value = default
@@ -53,13 +82,13 @@ class CSVRecordWriter(FileRecordWriter):
     def start(self) -> bool:
         self._outstr = StringIO()
         self._writer = csv.writer(self._outstr,
-                                    delimiter=self._delimiter,
-                                    quotechar=self._quotechar,
-                                    escapechar=self._escapechar,
-                                    lineterminator=self._lineterminator,
-                                    quoting=self._quoting)
+                                  delimiter=self._delimiter,
+                                  quotechar=self._quotechar,
+                                  escapechar=self._escapechar,
+                                  lineterminator=self._lineterminator,
+                                  quoting=self._quoting
+                                )
         self._flush_str()
-        # TODO asci/unicode/excel
         return super().start()
 
     def finish(self) -> None:
@@ -81,7 +110,7 @@ class CSVRecordWriter(FileRecordWriter):
         return True
 
     def _flush_str(self) -> None:
-        self.print(self._outstr.getvalue())
+        self.print(self._to_ascii(self._outstr.getvalue()))
         # Clear the buffer and reset to start
         self._outstr.truncate(0)
         self._outstr.seek(0)

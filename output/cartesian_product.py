@@ -5,7 +5,7 @@ from .base import RecordWriter, DelegatingRecordWriter
 
 class RecordCartesianProduct(DelegatingRecordWriter):
 
-    def __init__(self, delegate: RecordWriter, product: list[bool]):
+    def __init__(self, delegate: RecordWriter, product: list[bool], **kwargs):
         super().__init__(delegate)
         self._product = product
 
@@ -39,3 +39,6 @@ class RecordCartesianProduct(DelegatingRecordWriter):
                 iterable_values.append([value])
         # itertools perform the product and we yeild multiple rows of data
         for x in itertools.product(*iterable_values): yield x
+
+
+

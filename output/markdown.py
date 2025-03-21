@@ -9,14 +9,22 @@ class MarkdownRecordWriter(FileRecordWriter):
     __ESC_BAR = '\\|'
     __WS = [ '\t', '\n', '\r' ]
 
-    def __init__(self, file: FileIO=sys.stdout.buffer):
+    def __init__(self, file: FileIO=sys.stdout.buffer, **kwargs):
         super().__init__(file)
+        self._setattrs(**kwargs)
 
     def write(self, record: list[any]) -> bool:
         record = self.stringify(record)
         for item in record: self.print(self.__BAR, self._clean_text(item))
         self.println(self.__BAR)
         return True
+
+    def print(self, *args):
+        if self.encode_utf8:
+            super().print(*args)
+        else:
+            for a in args:
+                super().print(''.join(f"\\u{ord(c):04x}" if ord(c) > 127 else c for c in a))
 
     def write_headers(self):
         if self.write(self._headers):

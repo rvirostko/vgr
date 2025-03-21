@@ -15,7 +15,7 @@ class TemplateRecordWriter(FileRecordWriter):
     {% for key, value in data.items %}{{ key }}: {{ value|escape }}
     {% endfor %}"""
 
-    def __init__(self, file: FileIO=sys.stdout.buffer):
+    def __init__(self, file: FileIO=sys.stdout.buffer, **kwargs):
         super().__init__(file)
         if not settings.configured:
             # 'DIRS': ['templates']
@@ -30,6 +30,7 @@ class TemplateRecordWriter(FileRecordWriter):
         self.set_debug(False)
         self.set_include_null()
         self._tags = []
+        self._setattrs(**kwargs)
 
     def set_auto_escape(self, enable: bool=True):
         self._auto_escape = enable
@@ -75,7 +76,7 @@ class TemplateRecordWriter(FileRecordWriter):
             "headers": self._headers,
             "data": self.objectify(record, self._include_null)
         })
-        self.print(self._template.render(context))
+        self.print(self._to_ascii(self._template.render(context)))
         #self.flush()
         return True
 
