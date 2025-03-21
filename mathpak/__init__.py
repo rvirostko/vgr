@@ -21,8 +21,8 @@ from .strings import poly_swapcase, poly_title, poly_upper, poly_count, poly_ind
 from .strings import poly_substr, poly_append, poly_prepend, poly_isdecimal, poly_isidentifier, poly_replace, poly_translate
 from .strings import poly_vappend, poly_vprepend
 from .sub import poly_sub, poly_vsub
-from .types import coerce_value, poly_bool, poly_float, poly_int, poly_isbool, poly_isfloat, poly_isint, poly_isnumber
-from .types import poly_isstr, poly_number, poly_str
+from .types import coerce_value, poly_bool, poly_float, poly_int, poly_isbool, poly_isfloat, poly_isint, poly_isnumber, poly_islist, poly_list
+from .types import poly_isstr, poly_number, poly_str, poly_islist, poly_list
 from .lookup import poly_lookup
 
 __all__ = [
@@ -68,6 +68,7 @@ __all__ = [
     "poly_isfloat",
     "poly_isidentifier",
     "poly_isint",
+    "poly_islist",
     "poly_islower",
     "poly_isnumber",
     "poly_isnumeric",
@@ -80,6 +81,7 @@ __all__ = [
     "poly_le",
     "poly_leftstr",
     "poly_len",
+    "poly_list",
     "poly_lookup",
     "poly_lower",
     "poly_lstrip",

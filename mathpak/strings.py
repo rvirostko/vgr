@@ -127,7 +127,7 @@ def poly_append(x: Any, y: Any) -> Any:
     if isinstance(x, list): return [poly_append(x1, y) for x1 in x]
     if isinstance(x, tuple): return (poly_append(x1, y) for x1 in x)
     if isinstance(y, (list, tuple)): return reduce(poly_append, y, x)
-    raise TypeError(f'Concatenation between {type(x)} and {type(y)} not supported')
+    raise TypeError(f'Concatenation between {type(x).__name__} and {type(y).__name__} not supported')
 
 def poly_vprepend(x: Any, *args) -> Any:
     return reduce(poly_prepend, args, x)
@@ -143,7 +143,7 @@ def poly_prepend(x: Any, y: Any) -> Any:
     if isinstance(x, list): return [poly_prepend(x1, y) for x1 in x]
     if isinstance(x, tuple): return (poly_prepend(x1, y) for x1 in x)
     if isinstance(y, (list, tuple)): return reduce(poly_prepend, y, x)
-    raise TypeError(f'Concatenation between {type(x)} and {type(y)} not supported')
+    raise TypeError(f'Concatenation between {type(x).__name__} and {type(y).__name__} not supported')
 
 def poly_replace(x: Any, old: Any, new: Any=None) -> Any:
     if x is not None and old is not None:

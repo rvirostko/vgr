@@ -2,81 +2,75 @@
 
 from typing import Any
 
-from .common import dist_list, dist_tuple, str_to_number, matching_default
+from .common import dist_x_list, dist_x_tuple, str_to_int, X_None_Op, Y_None_Op, get_operation, matching_default
 
 def poly_shl(x: Any, y: Any) -> Any:
     """Polymorphic shift left function.
 
-| x     | y     | returns | operation                                     |
-|-------|-------|---------|-----------------------------------------------|
-| int   | int   | int     | x << y                                        |
-| int   | float | int     | x << int(y)                                   |
-| int   | str   | int     | x << int(y)                                   |
-| float | int   | int     | int(x) << y                                   |
-| float | float | int     | int(x) << y                                   |
-| float | str   | int     | int(x) << int(y)                              |
-| str   | int   | int     | int(x) << y                                   |
-| str   | float | int     | int(x) << y                                   |
-| str   | str   | int     | int(x) << int(y)                              |
-| list  | int   | list    | distributed shift: elements in x << by y      |
-| list  | float | list    | distributed shift: elements in x << by y      |
-| list  | str   | list    | distributed shift: elements in x << by int(y) |
-| tuple | int   | tuple   | distributed shift: elements in x << by y      |
-| tuple | float | tuple   | distributed shift: elements in x << by y      |
-| tuple | str   | tuple   | distributed shift: elements in x << by int(y) |
+| x     | y     | returns | operation        |
+|-------|-------|---------|------------------|
+| int   | int   | int     | x << y           |
+| int   | float | int     | x << int(y)      |
+| int   | str   | int     | x << int(y)      |
+| float | int   | int     | int(x) << y      |
+| float | float | int     | int(x) << y      |
+| float | str   | int     | int(x) << int(y) |
+| str   | int   | int     | int(x) << y      |
+| str   | float | int     | int(x) << y      |
+| str   | str   | int     | int(x) << int(y) |
+| list  | int   | list    | distributed      |
+| list  | float | list    | distributed      |
+| list  | str   | list    | distributed      |
+| tuple | int   | tuple   | distributed      |
+| tuple | float | tuple   | distributed      |
+| tuple | str   | tuple   | distributed      |
 
 TypeError raised on all other combinations
 """
-    if x is None: return None if y is None else poly_shl(matching_default(y), y)
-    if y is None: return poly_shl(x, matching_default(x))
-    override = _overrides.get((type(x), type(y)))
-    return override(poly_shl, x, y) if override else x << y
+    operation = get_operation(x, y, shift_operations)
+    return operation(poly_shl, x, y) if operation else x << y
 
 def poly_shr(x: Any, y: Any) -> Any:
     """Polymorphic shift right function.
 
-| x     | y     | returns | operation                                     |
-|-------|-------|---------|-----------------------------------------------|
-| int   | int   | int     | x >> y                                        |
-| int   | float | int     | x >> int(y)                                   |
-| int   | str   | int     | x >> int(y)                                   |
-| float | int   | int     | int(x) >> y                                   |
-| float | float | int     | int(x) >> int(y)                              |
-| float | str   | int     | int(x) >> int(y)                              |
-| str   | int   | int     | int(x) >> y                                   |
-| str   | float | int     | int(x) >> int(y)                              |
-| str   | str   | int     | int(x) >> int(y)                              |
-| list  | int   | list    | distributed shift: elements in x >> by y      |
-| list  | float | list    | distributed shift: elements in x >> by y      |
-| list  | str   | list    | distributed shift: elements in x >> by int(y) |
-| tuple | int   | tuple   | distributed shift: elements in x >> by y      |
-| tuple | float | tuple   | distributed shift: elements in x >> by y      |
-| tuple | str   | tuple   | distributed shift: elements in x >> by int(y) |
-| None  | Any   | Any     | same as poly_shr(0, y)                        |
-| Any   | None  | Any     | same as poly_shr(x, 0)                        |
+| x     | y     | returns | operation        |
+|-------|-------|---------|------------------|
+| int   | int   | int     | x >> y           |
+| int   | float | int     | x >> int(y)      |
+| int   | str   | int     | x >> int(y)      |
+| float | int   | int     | int(x) >> y      |
+| float | float | int     | int(x) >> int(y) |
+| float | str   | int     | int(x) >> int(y) |
+| str   | int   | int     | int(x) >> y      |
+| str   | float | int     | int(x) >> int(y) |
+| str   | str   | int     | int(x) >> int(y) |
+| list  | int   | list    | distributed      |
+| list  | float | list    | distributed      |
+| list  | str   | list    | distributed      |
+| tuple | int   | tuple   | distributed      |
+| tuple | float | tuple   | distributed      |
+| tuple | str   | tuple   | distributed      |
 
 TypeError raised on all other combinations
     """
-    if x is None: return None if y is None else poly_shr(matching_default(y), y)
-    if y is None: return poly_shr(x, matching_default(x))
-    override = _overrides.get((type(x), type(y)))
-    return override(poly_shr, x, y) if override else x >> y
+    operation = get_operation(x, y, shift_operations)
+    return operation(poly_shr, x, y) if operation else x >> y
 
-def _str_to_int(x: str) -> int: return int(str_to_number(x))
-
-_overrides = {
-    (int, str): lambda op, x, y: op(x, _str_to_int(y)),
+shift_operations = {
+    X_None_Op: lambda op, _, y: None if y is None else op(matching_default(y), y),
+    Y_None_Op: lambda op, x, _: op(x, matching_default(x)),
+    (int, str): lambda op, x, y: op(x, str_to_int(y)),
     (int, float): lambda op, x, y: op(x, int(y)),
     (float, int): lambda op, x, y: op(int(x), y),
     (float, float): lambda op, x, y: op(int(x), int(y)),
-    (float, str): lambda op, x, y: op(int(x), _str_to_int(y)),
-    (str, int): lambda op, x, y: op(_str_to_int(x), y),
-    (str, float): lambda op, x, y: op(_str_to_int(x), int(y)),
-    (str, str): lambda op, x, y: op(_str_to_int(x), _str_to_int(y)),
-    (list, int): dist_list,
-    (list, float): lambda op, x, y: dist_list(op, x, int(y)),
-    (list, str): lambda op, x, y: dist_list(op, x, _str_to_int(y)),
-    (tuple, int): dist_tuple,
-    (tuple, float): lambda op, x, y: dist_tuple(op, x, int(y)),
-    (tuple, str): lambda op, x, y: dist_tuple(op, x, _str_to_int(y)),
+    (float, str): lambda op, x, y: op(int(x), str_to_int(y)),
+    (str, int): lambda op, x, y: op(str_to_int(x), y),
+    (str, float): lambda op, x, y: op(str_to_int(x), int(y)),
+    (str, str): lambda op, x, y: op(str_to_int(x), str_to_int(y)),
+    (list, int): dist_x_list,
+    (list, float): lambda op, x, y: dist_x_list(op, x, int(y)),
+    (list, str): lambda op, x, y: dist_x_list(op, x, str_to_int(y)),
+    (tuple, int): dist_x_tuple,
+    (tuple, float): lambda op, x, y: dist_x_tuple(op, x, int(y)),
+    (tuple, str): lambda op, x, y: dist_x_tuple(op, x, str_to_int(y)),
 }

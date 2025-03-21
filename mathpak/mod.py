@@ -2,7 +2,7 @@
 
 from typing import Any
 
-from .common import math_overrides, matching_default
+from .common import numeric_operations, get_operation
 
 def poly_mod(x: Any, y: Any) -> Any:
     """Polymorphic modulus function.
@@ -27,7 +27,5 @@ def poly_mod(x: Any, y: Any) -> Any:
 
 TypeError raised on all other combinations
 """
-    if x is None: return None if y is None else poly_mod(matching_default(y), y)
-    if y is None: return poly_mod(x, matching_default(x))
-    override = math_overrides.get((type(x), type(y)))
-    return override(poly_mod, x, y) if override else x % y
+    operation = get_operation(x, y, numeric_operations)
+    return operation(poly_mod, x, y) if operation else x % y

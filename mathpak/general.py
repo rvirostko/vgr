@@ -48,7 +48,7 @@ def poly_getitem(x:Any, index: Any) -> Any:
     if isinstance(x, dict):
         # TODO look up by keys?
         return None
-    raise TypeError(f'Unsupported type: {type(x)}')
+    raise TypeError(f'Unsupported type: {type(x).__name__}')
 
 def poly_firstitem(x: Any) -> Any:
     return poly_getitem(x, 0)
@@ -57,7 +57,7 @@ def poly_lastitem(x: Any) -> Any:
     if x is None or isinstance(x, (int, float, str)): return x
     if isinstance(x, (list, tuple)): return x[-1] if len(x) > 0 else None
     if isinstance(x, dict): return None
-    raise TypeError(f'Unsupported type: {type(x)}')
+    raise TypeError(f'Unsupported type: {type(x).__name__}')
 
 def poly_unique(x: Any) -> Any:
     if isinstance(x, str): return poly_unique(x.encode()).decode()

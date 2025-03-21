@@ -4,7 +4,7 @@ from functools import reduce
 from typing import Any
 import itertools
 
-from .common import dist_list, dist_tuple
+from .common import dist_x_list, dist_x_tuple, dist_y_list, dist_y_tuple, X_None_Op, Y_None_Op, get_operation
 
 def poly_vmul(x: Any, *args):
     """Varargs version of poly_mul"""
@@ -43,27 +43,31 @@ def poly_mul(x: Any, y: Any) -> Any:
 
 TypeError raised on all other combinations
 """
-    if x is None or y is None: return None
-    override = _overrides.get((type(x), type(y)))
-    return override(poly_mul, x, y) if override else x * y
+    operation = get_operation(x, y, mul_operations)
+    return operation(poly_mul, x, y) if operation else x * y
 
-def _prod_list(x: list, y: Any) -> list: return list(itertools.product(iter(x), iter(y)))
-def _prod_tuple(x: tuple, y: Any) -> tuple: return tuple(itertools.product(iter(x), iter(y)))
+def product_list(_, x: list, y: Any) -> list:
+    return list(itertools.product(iter(x), iter(y)))
 
-_overrides = {
+def product_tuple(_, x: tuple, y: Any) -> tuple:
+    return tuple(itertools.product(iter(x), iter(y)))
+
+mul_operations = {
+    X_None_Op: lambda _, x, y: None,
+    Y_None_Op: lambda _, x, y: None,
     (float, str): lambda _, x, y: int(x) * y,
     (float, list): lambda _, x, y: int(x) * y,
     (float, tuple): lambda _, x, y: int(x) * y,
     (str, float): lambda _, x, y: x * int(y),
     (str, str): lambda _, x, y: x + y, # TODO rethink?
-    (str, list): lambda op, x, y: dist_list(op, y, x),
-    (str, tuple): lambda op, x, y: dist_tuple(op, y, x),
+    (str, list): dist_y_list,
+    (str, tuple): dist_y_tuple,
     (list, float): lambda _, x, y: x * int(y),
-    (list, str): dist_list,
-    (list, list): lambda _, x, y: _prod_list(x, y),
-    (list, tuple): lambda _, x, y: _prod_list(x, y),
+    (list, str): dist_x_list,
+    (list, list): product_list,
+    (list, tuple): product_list,
     (tuple, float): lambda _, x, y: x * int(y),
-    (tuple, str): dist_tuple,
-    (tuple, list): lambda _, x, y: _prod_tuple(x, y),
-    (tuple, tuple): lambda _, x, y: _prod_tuple(x, y),
+    (tuple, str): dist_x_tuple,
+    (tuple, list): product_tuple,
+    (tuple, tuple): product_tuple,
 }

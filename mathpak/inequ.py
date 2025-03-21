@@ -78,14 +78,14 @@ def _str_num_op(op: Callable[[Any, Any], Any], x: str, y: Any) -> Any:
     """See if the string can be converted to a number before applying the operation"""
     try:
         return op(str_to_number(x), y)
-    except TypeError:
+    except ValueError:
         return op(x, str(y))
 
 def _num_str_op(op: Callable[[Any, Any], Any], x: Any, y: str) -> Any:
     """See if the string can be converted to a number before applying the operation"""
     try:
         return op(x, str_to_number(y))
-    except TypeError:
+    except ValueError:
         return op(str(x), y)
 
 def _lex_comp(cmp: Callable[[Any, Any], bool], x: Iterable, y: Iterable) -> bool:

@@ -29,7 +29,7 @@ def poly_round(x: Any, ndigits: int=0) -> Any:
     else:
         if isinstance(ndigits, str): return poly_round(str_to_number(ndigits))
         if isinstance(ndigits, (list, tuple)): return reduce(poly_round, ndigits, x)
-        raise TypeError(f'Unsupported type: {type(ndigits)}')
+        raise TypeError(f'Unsupported type: {type(ndigits).__name__}')
     if hasattr(x, '__round__'): return round(x, ndigits)
     # Distribute the operation over the collection
     if isinstance(x, list): return [poly_round(x1, ndigits) for x1 in x]
