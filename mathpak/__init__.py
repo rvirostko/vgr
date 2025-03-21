@@ -3,7 +3,7 @@
 from .add import poly_add, poly_vadd
 from .bit_ops import poly_bit_and, poly_bit_or, poly_bit_xor, poly_bit_not, poly_vbit_and, poly_vbit_or, poly_vbit_xor
 from .div import poly_div, poly_fdiv, poly_vdiv, poly_vfdiv
-from .exp import poly_exp
+from .pow import poly_pow
 from .general import poly_hash, poly_class, poly_sizeof, poly_repr, poly_isempty, poly_len, poly_firstitem, poly_lastitem
 from .general import poly_getitem, poly_rsort, poly_sort, poly_unique, poly_type
 from .inequ import poly_eq, poly_ge, poly_gt, poly_le, poly_lt, poly_ne
@@ -45,7 +45,6 @@ __all__ = [
     "poly_div",
     "poly_endswith",
     "poly_eq",
-    "poly_exp",
     "poly_expandtabs",
     "poly_fdiv",
     "poly_firstitem",
@@ -96,6 +95,7 @@ __all__ = [
     "poly_not",
     "poly_number",
     "poly_or",
+    "poly_pow",
     "poly_prepend",
     "poly_removeprefix",
     "poly_removesuffix",
