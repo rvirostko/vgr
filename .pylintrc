@@ -5,7 +5,10 @@ ignore=experiments
 disable=
     missing-docstring,
     too-few-public-methods,
-    import-error
+    import-error,
+    multiple-statements,
+    too-many-arguments,
+    too-many-positional-arguments
 
 enable=
     logging-format-interpolation,

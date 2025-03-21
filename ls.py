@@ -25,11 +25,15 @@ def _list_files(path, orig_path, long_format=False, human_readable=False, recurs
     size_width = max((len(str(e.stat().st_size)) for e in entries), default=0) if long_format else 0
 
     def format_entry(e):
-        if long_format:
-            stat = e.stat()
-            size = human_readable_size(stat.st_size) if human_readable else f"{stat.st_size:>{size_width}}"
-            return f"{filemode(stat.st_mode)} {pwd.getpwuid(stat.st_uid).pw_name} {grp.getgrgid(stat.st_gid).gr_name} {size} {format_date(datetime.fromtimestamp(stat.st_mtime))} {e.name}"
-        return e.name
+        if not long_format: return e.name
+        stat = e.stat()
+        size = human_readable_size(stat.st_size) if human_readable else f"{stat.st_size:>{size_width}}"
+        return ' '.join((filemode(stat.st_mode),
+                        pwd.getpwuid(stat.st_uid).pw_name,
+                        grp.getgrgid(stat.st_gid).gr_name,
+                        str(size),
+                        format_date(datetime.fromtimestamp(stat.st_mtime)),
+                        e.name))
 
     if recursive:
         for f in [e for e in entries if e.is_file()]:
@@ -62,6 +66,6 @@ def human_readable_size(size) -> str:
     for unit in ['B', 'K', 'M', 'G', 'T']:
         if size < 1024.0:
             ind = unit
-            break;
+            break
         size /= 1024.0
     return f"{size:.1f}{ind}"

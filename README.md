@@ -1,4 +1,5 @@
 # VGR - Vault Generic Reporting
+
 Working/transfer area for "Vault Generic Reporting"
 
 ## Getting started
@@ -9,21 +10,21 @@ There are four ways to run VGR:
 
 ### Statements on the command line
 
-  ```
-  $./vgr.py -e 'Print "Hello World"'
-  Hello World
-  ```
+```Bash
+$./vgr.py -e 'Print "Hello World"'
+Hello World
+```
 
   Multiple statements can be specified using semicolons:
 
-```
+```Bash
 $./vgr.py -e 'Set h to "Hello"; Set w to "World"; Print h, w'
 Hello World
 ```
 
 ### Statements stored in a file
 
-```
+```Bash
 $echo 'Print "Hello World"'>hello.txt
 $./vgr.py -f hello.txt
 Hello World
@@ -31,7 +32,7 @@ Hello World
 
 Multiple files can be run, with the internal variables and environment shared between them:
 
-```
+```Bash
 $echo 'Set h to "Hello"; Set w to "World"' > set_vars.txt
 $echo 'Print h, w' > hello.txt
 $./vgr.py -f set_vars.txt -f hello.txt
@@ -40,14 +41,14 @@ Hello World
 
 ### Statements from stdin
 
-```
+```Bash
 $cat set_vars.txt hello.txt | ./vgr.py
 Hello World
 ```
 
 ### Using 'Here' documents
 
-```
+```Bash
 $../vgr.py <<EOF || echo "FAILED"
 Set h to "Hello"
 Set w to "World"
@@ -57,7 +58,8 @@ EOF
 
 ### Interactively
 
-```
+```Text
+$../vgr.py
 Type 'exit' to exit
 vgr> Set h to "Hello"
 vgr> Set w to "World"
@@ -66,7 +68,7 @@ Hello World
 vgr>
 ```
 
-The interactive command line supports history, using `Ctrl-R and` the up and down arrows, as well as some basic file commands and a help system. Just type `help` to get more details. (_NB: help is a work in progress_)
+The interactive command line supports history, using `Ctrl-R` and the up and down arrows, as well as some basic file commands and a help system. Just type `help` to get more details. (_NB: help is a work in progress_)
 
 ## Variables, Expressions, and Operators
 
@@ -77,41 +79,49 @@ VGR has a hierarchical, global data model, viewed as variables. Some variables a
 * `math` : Python math constants such as `math.e` and `math.inf`. Read-only.
 * `os` : Operating system constants such as `os.linesep` and `os.extsep`. Read-only.
 * `string` : More constants that can be used with string functions, like `string.hexdigits` and `string.ascii_letters`. Read-only.
-* `_vgr` : Read-only internals, some dynamic, other changed by shell commands. If your interested, you can always do `Print _vgr.grammar`
+* `_vgr` : Read-only internals, some dynamic, other changed by shell commands. If you're interested, you can always do `Print _vgr.grammar`
 
 Another set of variable are used by VGR `Select` statements and are used by their target data. For example, querying for Key-Value stores will cause ns, mount, and kv variable set with information from Vault. These are not read-only, but values you set will be overwritten by `Select`.
 
 Variables are case sensitive.
-```
+
+```Text
 vgr> set Five to 5
 vgr> set five to 6
 vgr> print Five, five, FIVE
 5 6 None
 ```
+
 Variable names are hierachical.
-```
+
+```Text
 vgr> set data.Five to 5
 vgr> set data.Six to 6
 vgr> print data
 {'Five': 5, 'Six': 6}
 ```
+
 Note that you didn't need to create `data` first, and the same goes for deeper hierarchies.
-```
+
+```Text
 vgr> set this.is.several.layers.deep = 5
 vgr> print this
 {'is': {'several': {'layers': {'deep': 5}}}}
 ```
+
 Print displays these variable paths as a Python dictionary, which is mostly interchangable with a JSON object. Mostly.
 
 Steps in a variable path can be expressed in _snake_ or _kabab_ case.
-```
+
+```Text
 vgr> set _this.is-several.layers_._deep_ = 5
 vgr> print _this.is-several.layers_._deep_
 5
 ```
 
 Steps in the variable path can contain ASCII alphanumeric characters, and the dash or underscore characters. They can start with an underscore, but not a dash:
-```
+
+```Text
 vgr> Set _valid = 0
 vgr> Set -not-valid = 0
 Set -not-valid = 0
@@ -123,7 +133,8 @@ Expected NAME.
 ## Things like variables, but they aren't
 
 Besides obvious things like keywords in the language, there are some names that look like variables but aren't. These are `None`, `Null`, `Inf`, `Nan`, `True`, and `False`. These are used in expressions, but can't be used in variables.
-```
+
+```Text
 vgr> set True to False
 Error :  Invalid path: True contains reserved values
 vgr> Set my.inf = -1
@@ -136,33 +147,41 @@ vgr> Set my._inf = -1
 As shown earlier, the most common way looking at the contents of variables is `Print`, but there are others.
 
 #### Print Statement
+
 `Print` works much like AWK's print command. You can print any number of variables or expressions separated by commas.
-```
+
+```Text
 vgr> Set h to "Hello"
 vgr> Set w to "World"
 vgr> Print h, w
 Hello World
-  ```
-  Invoking `Print` without argument will just create a blank line... but not always.
-  `Print` works like AWK, which means that items separated by commas get a _output field separator_ (OFS) placed between them and and an _output record separator_ (ORS) at the end. In VGR, these values are stored in `arg.ofs` and `arg.ors`. They are initially set from the environment, just like with AWK, but you can change them on the command line:
-  ```
-  vgr.py 'ofs= | ' -e 'Set a to 5; Set b to 6; Print a, b'
+```
+
+Invoking `Print` without argument will just create a blank line... but not always. `Print` works like AWK, which means that items separated by commas get a _output field separator_ (OFS) placed between them and and an _output record separator_ (ORS) at the end. In VGR, these values are stored in `arg.ofs` and `arg.ors`. They are initially set from the environment, just like with AWK, but you can change them on the command line:
+
+```Bash
+vgr.py 'ofs= | ' -e 'Set a to 5; Set b to 6; Print a, b'
 5 | 6
-  ```
-  Or you can change them at runtime:
-  ```
+```
+
+Or you can change them at runtime:
+
+```Text
 vgr> Set arg.ofs = " | "
 vgr> Set arg.ors = " |\n"
 vgr> Print "Hello", "World"
 Hello | World |
-  ```
+ ```
+
 You need to add the `\n` to get a newline in your record separator if you don't want the text to bunch up.
 
 If you set either separators to an empty string or to `None` the default values of a space and a newline will be used.
 
 ### Printf Statement
+
 `Printf` uses [Python's str.format()](https://docs.python.org/3/library/string.html#formatstrings) to format data. The first argument is the format string, which may require additional expression depending upon its contents.
-```
+
+```Text
 vgr> Set h to "Hello"
 vgr> Set w to "World"
 vgr> Printf "{} {}!\n", h, w
@@ -170,18 +189,23 @@ Hello World!
 vgr> Printf "{1}, {0}?\n", w, h
 Hello, World?
 ```
+
 `Printf` does not use the field or record separators, and if you want a newline printed at the end, it must be provided either in the format string or as part of the arguments.
 
 ### Exhibit Statement
-`Exhibit` is inspired by COBOL, and display information about variables. When looking at a single value, there is little difference from using `Print`:
-```
+
+`Exhibit` is inspired by COBOL and displays information about variables. When looking at a single value, there is little difference from using `Print`:
+
+```Text
 vgr> Print h
 Hello
 vgr> Exhibit h
 h = 'Hello'
 ```
+
 You can see a bigger difference when printing variables that are dictionaries:
-```
+
+```Text
 vgr> Print arg
 {'debug': False, 'echo': False, 'verbose': False, 'ofs': ' ', 'ors': '\n'}
 vgr> Exhibit arg
@@ -191,6 +215,7 @@ arg.ofs = ' '
 arg.ors = '\n'
 arg.verbose = False
 ```
+
 The purpose of `Exhibit` is to aid in debugging.
 
 ## Expressions and Operators
@@ -204,7 +229,8 @@ If you've every done any coding you'll recognize many of the items that are foun
 * **Boolean constants** : `True` and `False`, no quotes.
 * **Special constants** : `None` and `Null`, which are equivalent.
 * **Arrays** : Arrays themsleves are composed of expressions which may be constants or computed values. Arrays are hetrogenous and can be nested:
-```
+
+```Text
 vgr> set foo = 5
 vgr> set bar = 3
 vgr> set foo_bar = [ foo, bar, "foo", "bar" ]
@@ -214,6 +240,7 @@ vgr> set foo_bar = [ [foo, bar], ["foo", "bar"] ]
 vgr> print foo_bar
 [[5, 3], ['foo', 'bar']]
 ```
+
 Armed with variables and values you can create complicated expressions that test conditions and transform results.
 
 ### Operators
@@ -221,13 +248,15 @@ Armed with variables and values you can create complicated expressions that test
 Operators are used to conpare and transform values. Many are arithmetic operations while others are string or array oriented. Arithmetic operations work primarily with numbers, but are polymorphic. They'll do their best to intuit the request based on the data types involved; we'll look at that in a bit.
 
 The basic arithmetic operations are:
+
 * Addition, Sutraction, Multiplication, and Division: Unsurprisingly these are `+`, `-`, `*`, and `/` respectively, although you can use fancy Unicode values like `÷` and `×` too.
 * _Floor Division_ : `//` returns an integer result of division
 * Modulus : you can specify either `%` or `Mod`
 * Raising to a power : you can specify `**` or `Pow`
 * [Bitwise AND](https://en.wikipedia.org/wiki/Bitwise_operation#AND), [Bitwise OR](https://en.wikipedia.org/wiki/Bitwise_operation#OR), and [Bitwise XOR](https://en.wikipedia.org/wiki/Bitwise_operation#XOR) : These use `&`, `|`, and `^` respectively. You can also use `Xor` for the latter.
 * [Bit Shifting](https://en.wikipedia.org/wiki/Bitwise_operation#Shift_operations) : use `<<` or `LShift` for left shift and `>>` or `RShift` for right shift.
-```
+
+```Text
 vgr> set x = 5
 vgr> set y = 3
 vgr> set arg.ofs=" | "
@@ -240,6 +269,7 @@ vgr> print x >> 1, y << 2
 ```
 
 Comparison operations work with both numeric and non-numeric data.
+
 * Equality : use `==`, `Equals`, `Is`, `Is Equal To`
 * Inequality : use `!=`, `<>`, `Is Not`, `Is Not Equal To`
 * Less Than : use `<` or `Is Less Than`
@@ -249,7 +279,7 @@ Comparison operations work with both numeric and non-numeric data.
 
 In the longer text versions, the `Is` is optional, and in all words can be in any mixture of upper and lower case. Results of comparison operations are always `True` or `False`.
 
-```
+```Text
 vgr> set x = 5
 vgr> set y = 3
 vgr> set arg.ofs=" | "
@@ -260,17 +290,20 @@ False | True | False | True | False | True
 ### Operator Precedence and Parentheses
 
 Use parentheses if explicit order of evaluations is required.
-```
+
+```Text
 vgr> set x = 5
 vgr> set y = 3
 vgr> set arg.ofs=" | "
 vgr> print x * y + 2, (x * y) + 2, x * (y + 2)
 25 | 17 | 25
 ```
+
 ### Whitespace in Expressions
 
 Typically whitespace, spaces, tabs, newlines, etc, are not important in expressions. However, difficulty may arise with the use of signed numbers, and while using parentheses solves the problem, using spaces around operators is encouraged on functional and aesthetic grounds.
-```
+
+```Text
 vgr> print x*y+2,x*y-2
 print x*y+2,x*y-2
          ^
@@ -292,18 +325,22 @@ There are also `IMatch` versions that performs comparisons indepent of case
 _**THESE OPERATORS ARE UNDER DEVELOPMENT**_
 
 ### Polymorphic Operations
+
 TODO
 
 ### Fluent Functions
+
 TODO
 
 ## Comments
+
 True to its polyglot nature, three different commenting styles are available and may be freely intermixed. Can be the only thing on a line or they can appear after a statement end delineated by a `;`. They may be preceed by spaces or tabs.
 
 * SQL Style : Comments start with `--`
 * Shell Style : Comments tart with `#`
 * 'C', Java, et al Style : Comments start with `//`
-```
+
+```Text
 # Just like in a Shell Scripts, AWK, or Python...
       // Or back in 'C' and Java
 -- SQL-ish too
@@ -318,6 +355,7 @@ Unexpected input at line 4, column 14.
 Several statements have already been discussed and demonstrated: `Set`, `Print`, `Printf` and `Exhibit`. And if you've used the interactive interface you've likely used `Exit`. Here we'll cover the remaining statments, and especially `Select`.
 
 ### Runtime Control Options
+
 There are three statements that change the behavior of subsequent statements.
 
 * `Debug` : prints technical information to stderr during execution. Its use is self explanitory.
@@ -325,7 +363,8 @@ There are three statements that change the behavior of subsequent statements.
 * `Verbose` : prints additional information to stderr during execution. Useful for detailed logging. Off by default.
 
 These statements take an optional expression which is evaluated as a boolean. If no expression is provided, the control is turned on.
-```
+
+```Text
 vgr> Echo; Verbose;
 Verbose;
 Verbose = True
@@ -340,48 +379,57 @@ Echo 0;
 > **Pro Tip…**
 >
 > Keep typing `Echo On` and still having it be off? That's because `On` is a variable name, not a keyword or a constant. So why not make your own constants?
-> ```
+>
+> ```Text
 > vgr> Set On to True
 > vgr> Set Off to False
 > vgr> Echo On; Verbose On;
 > Verbose On;
 > Verbose = True
 > ```
+>
 > Just remember that variable names are case sensitive, so you'll need to be consistent in you usage.
 
 ### Exit and Assert
+
 Exit terminates the application unconditionally, while Assert does so only if a condition check fails.
 
 * `Exit` : terminate with a zero return code
 * `Exit expression` : terminate with the exit code given by the expression. Non-numeric results are turned into booleans using Python's "trutiness" rules.
-```
+
+```Text
 ./vgr.py -e "Exit" && echo "Exited"
 Exited
 ./vgr.py -e "Exit 17" || echo $?
 17
 ```
+
 * `Assert` : unconditional exit with a return code of one
 * `Assert expression` : if the expression resolves to a False value, the application exits with a return code of one. An error message is printed.
 * `Assert expression : message...` : This acts like _if not this, then printf the message and exit_. We'll demonstrate.
 
-```
+```Text
 vgr> Set Limit to Inf
 vgr> Assert Limit Less Than (64 * 1024)
 Line 1: Assert Limit Less Than (64 * 1024) failed
 $ echo $?
 1
 ```
+
 With a message you can customize the output
-```
+
+```Text
 vgr> Set Limit to Inf
 vgr> Assert Limit Less Than (64 * 1024) : "The Limit was set to {}, which is too high!", Limit
 Line 1: The Limit was set to inf, which is too high!
 ```
 
 ### Load From
+
 TODO
 
 ### Open and Close
+
 `Open` and `Close` are used to direct the output of statements to files. While you can always use standard I/O redirection, these statements allow you to, for example, run multiple `Selects` and place the results in multiple files.
 
 Two types of output, or streams, are defined: `Output` and `Error`. These have aliases of `Stdout` and `Stderr` respectively. The resulting output of statements like `Print`, `Printf`, and `Select` go to the **output stream**. Output generated by `Exhibit` and `Assert`, as well as that resulting from `Debug`, `Echo`, or `Verbose` being active, goes to the **error stream**.
@@ -391,7 +439,9 @@ Two types of output, or streams, are defined: `Output` and `Error`. These have a
 * `Close` _stream_ : closes the stream. If one was never opened, the statement has no effect.
 
 #### Open Mode
-Three type of open mode are available:
+
+Three types of open mode are available:
+
 * `Append` or `Extend` : if the file exists, output is added to it; if not the file is created
 * `Overwrite` : the file if it exists is overwritten. This is the default mode used when a mode is not specified.
 * `No Overwrite` : if the file exists it is not overwritten. An error message is printed and the application exits with an error code.
@@ -400,30 +450,40 @@ When VGR exits, all opened files are closed automatically.
 
 > **Pro Tip…**
 >
-> The stream name can be followed by an optional `File` keyword.
-> ```
+> The stream name can be followed by an optional `File` keyword for readability.
+>
+> ```Text
 > Open Output File "out.dat"
 > // ...
 > Close Output File
 > ```
-> Additionally you can use the Python file mode shorthands `A`, `W`, and `X` for the file mode: these are keywords and don't need to be quoted.
-> ```
+>
+> Additionally you can use the Python file mode shorthands `A`, `W`, and `X` for the file mode.
+>
+> ```Text
 > Open stdout arg.out_name + ".dat" X
 > ```
+>
+> These are keywords and should not to be quoted.
 
 ### Create ZIP
+
 After you've generated output files from statements, you can use VGR to create a ZIP file. The syntax is similar to `Open`, but you do need to specify what will be added to the file.
-```
+
+```Text
 Create ZIP expression options...
 ```
+
 The options can be specified as many times as you need or want.
-* Include _expression_... : a list of expressions that specify the archive's content. You can use a long space separated list or use Include multiple times.
-* Exclude _expression_... : a list of expressions that define patterns of exclusion from the archive's content. Like with Include, you can use one line or many.
-* Comment _expression_ : a comment that will be added to the archive
-* Password _expression_ : a password to secure the archive _**NOT WORKING ATM; NEED TO REPLACE ZIP MODULE**_
+
+* `Include` _expression_... : a list of expressions that specify the archive's content. You can use a long space separated list or use Include multiple times.
+* `Exclude` _expression_... : a list of expressions that define patterns of exclusion from the archive's content. Like with Include, you can use one line or many.
+* `Comment` _expression_ : a comment that will be added to the archive
+* `Password` _expression_ : a password to secure the archive _**NOT WORKING ATM; NEED TO REPLACE ZIP MODULE**_
 
 Let's take a look at an example:
-```
+
+```Text
 Create ZIP File "reports.zip"
   // All of our output
   Include "out",
@@ -432,6 +492,7 @@ Create ZIP File "reports.zip"
   // Somday we should add the creator...
   Comment "Today's data!";
 ```
+
 Assuming that `out` is a directory, the first `Include` will recursively add all files in it to our archive list. Then we add in all CSV and JSON files from the current directory with the next `Include`. The `Exclude` option, which could be the first of the options, is used to remove any files added by an `Include` that match those patterns.
 
 Also note that you can add comments in the middle of the statement, as long as they start at the begining of a line.
@@ -441,29 +502,54 @@ If none of the `Include` patterns match, or if an `Exclude` removes everything, 
 > **Pro Tip…**
 >
 > Let's handle that "someday" in the comment...
-> ```
+>
+> ```Text
 >  Comment "Report created by " + os.login;
->```
-> Don't forget that there are predefined variables with information that you can access: use `Exhibit` to see what's available!
+> ```
+>
+> Don't forget that there are predefined variables with information that you can
+> access: use `Exhibit` to see what's available!
 
 ### The Select Statement
 
+TODO
+
 #### From Clause - The Source for Data
+
+TODO
 
 #### Outputs - Data selection
 
+TODO
+
 #### Where Clause - Limiting Data
+
+TODO
 
 #### Product Clause - Expanding Rows
 
+TODO
+
 #### Limit Clause - Limiting Output
+
+TODO
 
 #### For Clause - Defining the Output
 
+TODO
+
 ##### JSON Output
+
+TODO
 
 ##### CSV Output
 
+TODO
+
 ##### Markdown Output
 
+TODO
+
 ##### Template Output with Django
+
+TODO

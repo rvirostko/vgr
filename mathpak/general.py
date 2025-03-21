@@ -1,18 +1,31 @@
 #! /usr/bin/env python3
 
-from .common import str_to_number
 from collections.abc import Iterable
 from typing import Any, Callable
 import sys
 
-def poly_hash(x: Any) -> int: return hash(x)
-def poly_repr(x: Any) -> str: return repr(x)
-def poly_class(x: Any) -> str: return None if x is None else x.__class__.__name__
-def poly_type(x: Any) -> str: return type(x).__name__
-def poly_len(x: Any) -> bool: return len(x) if hasattr(x, '__len__') else None
+from .common import str_to_number
 
-def poly_sort(x: Any) -> Any: return _sorted(x, False)
-def poly_rsort(x: Any) -> Any: return _sorted(x, True)
+def poly_hash(x: Any) -> int:
+    return hash(x)
+
+def poly_repr(x: Any) -> str:
+    return repr(x)
+
+def poly_class(x: Any) -> str:
+    return None if x is None else x.__class__.__name__
+
+def poly_type(x: Any) -> str:
+    return type(x).__name__
+
+def poly_len(x: Any) -> bool:
+    return len(x) if hasattr(x, '__len__') else None
+
+def poly_sort(x: Any) -> Any:
+    return _sorted(x, False)
+
+def poly_rsort(x: Any) -> Any:
+    return _sorted(x, True)
 
 def poly_isempty(x: Any) -> bool:
     if isinstance(x, str): return not x or not x.strip()
@@ -37,7 +50,8 @@ def poly_getitem(x:Any, index: Any) -> Any:
         return None
     raise TypeError(f'Unsupported type: {type(x)}')
 
-def poly_firstitem(x: Any) -> Any: return poly_getitem(x, 0)
+def poly_firstitem(x: Any) -> Any:
+    return poly_getitem(x, 0)
 
 def poly_lastitem(x: Any) -> Any:
     if x is None or isinstance(x, (int, float, str)): return x
@@ -53,9 +67,15 @@ def poly_unique(x: Any) -> Any:
     # If we've not seen it before, we add to the return
     return type(x)(x1 for x1 in x if x1 not in unique and not unique.add(x1))
 
-def _dist_list(op: Callable[[Any, Any], Any], x: Any, y: list) -> list: return [op(x, y1) for y1 in y]
-def _dist_tuple(op: Callable[[Any, Any], Any], x: Any, y: list) -> tuple: return tuple(op(x, y1) for y1 in y)
-def _is_iterable(x: Any) -> bool: return isinstance(x, Iterable) and not isinstance(x, str)
+def _dist_list(op: Callable[[Any, Any], Any], x: Any, y: list) -> list:
+    return [op(x, y1) for y1 in y]
+
+def _dist_tuple(op: Callable[[Any, Any], Any], x: Any, y: list) -> tuple:
+    return tuple(op(x, y1) for y1 in y)
+
+def _is_iterable(x: Any) -> bool:
+    return isinstance(x, Iterable) and not isinstance(x, str)
+
 def _sorted(x:Any, reverse: bool) -> Any:
     if isinstance(x, str): return _sorted(x.encode(), reverse).decode()
     return type(x)(sorted(x, reverse=reverse)) if _is_iterable(x) else x

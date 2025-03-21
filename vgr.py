@@ -1,11 +1,6 @@
 #! /usr/bin/env python3
 
 from collections import defaultdict
-from data_dict import DataDictionary
-from interactive import CmdLine
-from lark import Lark, Tree, Token, Transformer, Visitor, v_args, exceptions
-from mathpak import *
-from output import *
 from typing import Any
 import argparse
 import ast
@@ -20,19 +15,17 @@ import re
 import sys
 import zipfile
 
-# BUG: set this to true -- works, set this to
-#set this to None
-#  (set
-#    (var_name
-#      NAME: this (Pos: 1:5 <class 'str'>)
-#    )
-#    (var_ref:var_ref
-#      NAME: None (Pos: 1:13 <class 'str'>)
-#    )
-#  )
-#Error :  Invalid path: None contains reserved values
+from lark import Lark, Tree, Token, Transformer, Visitor, v_args, exceptions
 
-"""Binds a (pretty) name to the function to be executed"""
+from mathpak import *
+from output import prepare_path, verify_relative_path, IORedirector
+
+from data_dict import DataDictionary
+from interactive import CmdLine
+
+# Binds a (pretty) name to the function to be executed
+# Additionally, we should use functions here rather than lambdas
+# so we can grab the __DOC__ for help functions.
 _FUNC_OPS = {
   "Abs": poly_abs,
   "Add": poly_vadd,
@@ -69,7 +62,9 @@ _FUNC_OPS = {
   "IsDecimal": poly_isdecimal,
   "IsDigit": poly_isdigit,
   "IsEmpty": poly_isempty,
+  "IsFloat": poly_isfloat,
   "IsIdentifier":  poly_isidentifier,
+  "IsInt": poly_isint,
   "IsLower": poly_islower,
   "IsNumber": poly_isnumber,
   "IsNumeric": poly_isnumeric,
@@ -124,8 +119,8 @@ _FUNC_OPS = {
 Use get_function_op() to find entries"""
 _FUNC_INDEX = {k.lower(): k for k in _FUNC_OPS}
 
-"""List of tokens that we don't try to translate in exceptions"""
-_TOKEN_PASS = ('NAME')
+# List of tokens that we don't try to translate in exceptions
+_TOKEN_PASS = ('NAME',)
 
 def get_function_op(name: str):
     """Given a function name get the function that implements it"""
@@ -133,7 +128,7 @@ def get_function_op(name: str):
     if not rc: raise NotImplementedError(f'Function {name} not yet implemented')
     return rc
 
-"""The max value of an arg range when we have variable arguments"""
+# The max value of an arg range when we have variable arguments
 _IS_VARARGS = float('inf')
 
 def get_arg_range(op) -> tuple:
@@ -179,7 +174,7 @@ def get_function_defs(w: int=99) -> str:
         # the pattern in such as way that we look ahead for the open paren, but don't capture it.
         rc += '\n' + label + '.' + w + ': ' + '/('
         rc += '|'.join(key for key in sorted(func_groups[(min_args, max_args)], key=lambda x: (-len(x), x)))
-        rc += ')\\s*(?=\()/i'
+        rc += ')\\s*(?=[(])/i'
     first = True
     # The function rule is a combination of the by-arg-length names and a pattern for their argument count
     for (min_args, max_args), label in fnames.items():
@@ -214,251 +209,6 @@ def get_function_defs(w: int=99) -> str:
 
 _VALID_TARGETS = ['ns', 'mount', 'aws', 'kv', 'ldap', 'db', 'db_role']
 
-_VGR_GRAMMAR=f"""
-
-// Omitted from the parse tree
-_DOT: "."
-_COMMA: ","
-_LPAREN: "("
-_RPAREN: ")"
-_SEMICOLON: ";"
-_OSB: "["
-_CSB: "]"
-
-// Converted to their literal values after parsing
-TRUE: "true"i
-FALSE: "false"i
-NONE: "none"i | "null"i
-INF: "inf"i
-NAN: "nan"i
-
-// Numeric values
-// NB: octal and binary regexs are shorter than the length
-//     of the decimal regex, so we need to boost their
-//     priorities so the former's leading zero doesn't get
-//     prematurely matched by the latter.
-HEX_NUMBER.2: /0[xX](_?[0-9a-fA-F])+/
-OCT_NUMBER.2: /0[oO](_?[0-7])+/
-BIN_NUMBER.2: /0[bB](_?[01])+/
-DEC_NUMBER: /[+-]?[0-9](_?[0-9])*/
-_SPECIAL_DEC: /[0-9](_?[0-9])*/
-_EXP_PART: /[eE][+-][0-9](_?[0-9])*/
-// NB: slight difference from Python as floats can't end with a "."
-_DECIMAL: _DOT _SPECIAL_DEC | _SPECIAL_DEC _DOT _SPECIAL_DEC
-FLOAT_NUMBER: /[+-]/? (_SPECIAL_DEC _EXP_PART | _DECIMAL _EXP_PART?)
-
-// "snake case", "kabab case", and mixed version of the two
-// For "kabab", it cannot start with a hyphen and an alpha character must follow a hyphen
-// This is an attempt to prevent some subtraction operations from looking like identifiers
-NAME: /[A-Za-z_]([A-Za-z0-9_]|-+[A-Za-z])*/
-
-statements: statement+
-?statement: assert
-    | close
-    | debug
-    | echo
-    | exhibit
-    | exit
-    | load_from
-    | open
-    | print
-    | printf
-    | select
-    | set
-    | verbose
-    | zip
-
-// TODO: RSN
-// unset: "Unset"i var_name _SEMICOLON?
-// source: "Source"i (expr (_COMMA expr)*)? _SEMICOLON?
-
-// simple boolean on/off, true/false
-// these are "proper statements" as they control the behavior of other statements
-debug: "Debug"i (("=" | ":=" | "Is"i)? expr)? _SEMICOLON?
-echo: "Echo"i (("=" | ":=" | "Is"i)? expr)? _SEMICOLON?
-verbose: "Verbose"i (("=" | ":=" | "Is"i)? expr)? expr? _SEMICOLON?
-
-set: "Let"i var_name ("=" | ":=") expr _SEMICOLON?
-    | "Set"i var_name ("=" | ":=" | "To"i) expr _SEMICOLON?
-
-load_from: "Load"i var_name "From"i "File"i? expr load_source_type? _SEMICOLON?
-load_source_type: "JSON"i "Object"i? -> json_object
-    | "JSON"i "Object"i? "Per"i "Line"i -> json_objects
-    | "CSV"i -> csv_file
-    | "TEXT"i -> text_file
-
-assert: "Assert"i (expr (":" expr (_COMMA expr)*)?)? _SEMICOLON?
-
-printf: "Printf"i (expr (_COMMA expr)*)? _SEMICOLON?
-
-print: "Print"i (expr (_COMMA expr)*)? _SEMICOLON?
-
-exhibit: "Exhibit"i (var_name (_COMMA var_name)*)? _SEMICOLON?
-
-open: "Open"i io_type "File"i? expr open_ext? _SEMICOLON?
-?io_type: ("Error"i | "stderr"i) -> stderr
-    | ("Output"i | "stdout"i) -> stdout
-?open_ext: ("Append"i | "Extend"i | "a"i) -> a
-    | ("Overwrite"i | "w"i) -> w
-    | ("No"i "Overwrite"i | "x"i) -> x
-close: "Close"i io_type "File"i? _SEMICOLON? -> close
-
-zip: "Create"i "Zip"i "File"i? expr (zip_option (_COMMA zip_option)*)? _SEMICOLON?
-?zip_option: "Password"i expr -> password
-    | "Comment"i expr -> comment
-    | "Include"i expr+ -> include
-    | "Exclude"i expr+ -> exclude
-
-exit: "Exit"i expr? _SEMICOLON?
-
-select: "Select"i outputs? "From"i TARGET where_clause? product_clause? limit_clause? for_clause? _SEMICOLON?
-
-// TODO Future (join_clause+ | auto_join_clause)?
-
-?for_clause: "For"i for_json
-    | "For"i for_csv
-    | "For"i for_markdown
-    | "For"i for_template
-
-for_json: "JSON"i (json_option (_COMMA json_option)*)?
-?json_option: encode_ascii
-    | encode_unicode
-    | encode_unicode_sig
-    | "Root"i NAME -> root
-    | "Indent"i (DEC_NUMBER | NONE | var_name) -> indent
-    | "Compact"i -> compact
-    | include_nulls
-    | exclude_nulls
-    | "With" "Array"i? "Wrapper"i -> with_wrapper
-    | ("Without"i | "No"i) "Array"i? "Wrapper"i -> no_wrapper
-    | ("Sort"i "Keys"i? | "Sorted"i) -> sorted
-
-for_csv: "CSV"i (csv_option (_COMMA csv_option)*)?
-?csv_option: encode_ascii
-    | encode_unicode
-    | encode_unicode_sig
-    | "Delimiter"i (ESCAPED_STRING | var_name) -> delimiter
-    | "Quote"i ("Char"i | "Character"i) (ESCAPED_STRING | var_name) -> quotechar
-    | "Escape"i ("Char"i | "Character"i) (ESCAPED_STRING | var_name) -> escapechar
-    | "Line"i ("Ender"i | "Terminator"i) (ESCAPED_STRING | var_name) -> lineterminator
-    | "Quote"i CSV_QUOTE_TYPE
-    | omit_headers
-CSV_QUOTE_TYPE: "Minimal"i | "All"i | "Nonnumeric"i | "None"i
-
-for_markdown: "MarkDown"i (markdown_option (_COMMA markdown_option)*)?
-?markdown_option: encode_ascii
-    | encode_unicode
-    | encode_unicode_sig
-    | omit_headers
-
-for_template: TEMPLATE_TYPE? "Template"i "File"i? (ESCAPED_STRING | var_name) (_COMMA template_option)*
-TEMPLATE_TYPE: "Record"i | "Batch"i
-?template_option: encode_ascii
-    | encode_unicode
-    | encode_unicode_sig
-    | "Auto"i "Escape"i -> auto_escape
-    | "Debug"i -> debug
-    | include_nulls
-    | exclude_nulls
-    | "Tags"i (ESCAPED_STRING | var_name) -> tags
-
-encode_ascii: "Ascii"i
-encode_unicode: "Unicode"i | "UTF8"i | "UTF-8"i
-encode_unicode_sig: "Excel"i | "UTF-8-SIG"i | "UTF8-SIG"i
-exclude_nulls: ("Exclude"i | "No"i | "Without"i) ("Nulls"i | "Null"i "Values"i)
-include_nulls: ("Include"i | "With"i) ("Nulls"i | "Null"i "Values"i)
-omit_headers: ("Omit"i | "No"i) "Headers"i
-
-// TODO future
-//join_clause: "Join"i TARGET "To"i NAME join_as? join_using?
-//join_as: "As"i (NAME | ESCAPED_STRING)
-//join_using: "Using"i attr_ref (_COMMA attr_ref)*
-//attr_ref: NAME (_DOT (NAME))+
-//auto_join_clause: "Auto"i "Join"i auto_join?
-//?auto_join: "All"i -> all
-//    | "None"i -> none
-//    | NAME (_COMMA NAME)*
-
-?outputs: (output (_COMMA output)*)
-
-output: expr
-    | expr "As"i (NAME | ESCAPED_STRING) -> output_as
-
-where_clause: "Where"i expr (("And"i | "&&") expr)*
-
-// Either LIMIT <number> (OFFSET <number>)? or FETCH FIRST <number> ROWS ONLY
-limit_clause: _limit_offset | _fetch_first
-_limit_offset: "Limit"i expr ("Offset"i expr)?
-_fetch_first: "Fetch"i "First"i expr "Rows"i "Only"i
-
-product_clause: "Cartesian"i? "Product"i product_cols
-product_cols: "All"i -> all
-    | "None"i -> none
-    | col_spec (_COMMA col_spec)*
-?col_spec: DEC_NUMBER
-    | NAME
-    | ESCAPED_STRING
-
-// Flattening operations out here allows the parse tree to hold
-// the operation type explicitly instead of a generic "OP" where
-// we need to deal with aliases
-?expr: _LPAREN expr _RPAREN
-    | "!" expr -> unary_not
-    | expr _DOT function -> function_call
-    | expr _DOT NAME -> deref
-    | expr ("||" | "Or"i) expr -> or_op
-    | expr ("+" | "\uFF0B") expr -> add_op
-    | expr ("-" | "\u2212") expr -> sub_op
-    | expr ("*" | "\u00D7") expr -> mul_op
-    | expr ("/" | "\u00F7") expr -> div_op
-    | expr "//" expr -> fdiv_op
-    | expr ("%" | "Mod"i) expr -> mod_op
-    | expr ("**" | "Pow"i) expr -> exp_op
-    | expr "&" expr -> bit_and_op
-    | expr "|" expr -> bit_or_op
-    | expr ("^" | "Xor"i) expr -> bit_xor_op
-    | expr ("<<" | "LShift"i) expr -> shl_op
-    | expr (">>" | "RShift"i) expr -> shr_op
-    | expr ("==" | "Equals"i | "Is"i | "Is"i? "Equal"i "To"i) expr -> eq_op
-    | expr ("!=" | "<>" | "\u2260" | "Is"i "Not"i | "Is"i? "Not"i "Equal"i "To"i | (("Doesnt"i | "Does"i? "Not"i) "Equal"i)) expr -> neq_op
-    | expr ("<" | "Is"i? "Less"i "Than"i) expr -> lt_op
-    | expr (">" | "Is"i? "Greater"i "Than"i) expr -> gt_op
-    | expr ("<=" | "\u2264" | "Is"? "Not"i "Greater"i "Than"i) expr -> le_op
-    | expr (">=" | "\u2265" | "Is"i? "Not"i "Less"i "Than"i) expr -> ge_op
-    | expr "Is"i? "In"i expr -> in_op
-    | expr "Is"i? "Not"i "In"i expr -> not_in_op
-    | expr "Contains"i expr -> contains_op
-    | expr (("Doesnt"i | "Does"i? "Not"i) "Contain"i) expr -> not_contains_op
-    | expr ("~" | "Match"i | "Matches"i) expr -> match_op
-    | expr ("IMatch"i | "IMatches"i) expr -> imatch_op
-    | expr ("!~" | ("Doesnt"i | "Does"i? "Not"i) "Match"i) expr -> not_match_op
-    | expr (("Doesnt"i | "Does"i? "Not"i) "IMatch"i) expr -> not_imatch_op
-    | _OSB (expr (_COMMA expr)*)? _CSB -> array         // may become CARRAY at runtime
-    | TRUE | FALSE
-    | NONE
-    | INF | NAN                                         // becomes FLOAT at runtime
-    | ESCAPED_STRING                                    // becomes STRING at runtime
-    | HEX_NUMBER | BIN_NUMBER | OCT_NUMBER | DEC_NUMBER // becomes INT at runtime
-    | FLOAT_NUMBER                                      // becomes FLOAT at runtime
-    | NAME -> var_ref
-
-var_name: NAME (_DOT NAME)*
-
-// ---- BEGIN GENERATED CODE ----
-
-// -- FROM get_function_defs()
-{get_function_defs()}
-
-// -- FROM _VALID_TARGETS
-TARGET: {' | '.join(tuple(f'"{t}"i' for t in _VALID_TARGETS))}
-
-// ---- END GENERATED CODE ----
-
-%import common.ESCAPED_STRING
-%import common.WS
-%ignore WS
-"""
-
 class ImplicitContextAdder(Transformer):
     """
     Modifies 'var_ref' nodes by prepending TARGET if needed
@@ -466,12 +216,12 @@ class ImplicitContextAdder(Transformer):
         * kv -> kv (no change, type is a target type)
         * name -> kv.name (not a target type)
     """
-    def __init__(self, valid_contexts):
+    def __init__(self):
         super().__init__()
         self._target = None
         self._valid_contexts = None
 
-    def transform(self, tree, target: str, valid_contexts):
+    def add_contexts(self, tree, target: str, valid_contexts):
         try:
             self._target = target
             self._valid_contexts = valid_contexts
@@ -484,9 +234,14 @@ class ImplicitContextAdder(Transformer):
         first_child = children[0]
         if first_child.value not in self._valid_contexts:
             # Add the target as an implied context for the name
-            children.insert(0, Token("NAME", self._target)) ### TODO , first_child.start_pos, first_child.line, first_child.column, first_child.end_line, first_child.end_column, first_child.end_pos))
+            children.insert(0, Token("NAME", self._target))
+            # TODO , first_child.start_pos, first_child.line, first_child.column,
+            # first_child.end_line, first_child.end_column, first_child.end_pos))
         return Tree("var_ref", children)
 
+# pylint: disable=invalid-name
+# disabled because we MUST have methods named the same as the tokens
+# and the tokens MUST have uppercase names
 class ConstantsNormalizer(Transformer):
     def ESCAPED_STRING(self, token):
         # Removes the quoting and interprets escape sequences
@@ -503,8 +258,11 @@ class ConstantsNormalizer(Transformer):
     def BIN_NUMBER(self, token): return self._to_int(token, 2)
     def FLOAT_NUMBER(self, token): return self._new_token(token, 'FLOAT', float(token.value))
     def _to_int(self, token, base: int): return self._new_token(token, 'INT', int(token.value, base))
-    def _new_token(self, token, type: str, value: Any): return Token(type, value, token.start_pos, token.line, token.column, token.end_line, token.end_column, token.end_pos)
+    def _new_token(self, token, new_type: str, value: Any):
+        return Token(new_type, value, token.start_pos, token.line, token.column,
+                     token.end_line, token.end_column, token.end_pos)
     # TODO arrays?
+# pylint: enable=invalid-name
 
 class Operation(Tree):
     def __init__(self, base: Tree, op):
@@ -519,11 +277,11 @@ def build_array(*values: Any) -> list[Any]:
 
 def var_ref(*path: str)-> Any:
     """This is the lookup of a top-level variable"""
-    return _DD.get_var(*path)
+    return _DD.get_var_user(*path)
 
 def deref_var(data: Any, *path: str) -> Any:
     """This is the lookup of a path relative to data"""
-    return _DD.get_var_relative(data, *path)
+    return _DD.get_var_user_relative(data, *path)
 
 @v_args(tree=True)
 class OperationBinder(Transformer):
@@ -573,6 +331,7 @@ class TreeSplitter(Visitor):
         self._target = None
         self._predicates = None
         self._outputs = None
+        self._labels = None
         self._limit = None
         self._offset = None
 
@@ -631,16 +390,52 @@ class TreeSplitter(Visitor):
         if len(children) >= 1: self._limit = poly_int(poly_firstitem(eval_expr(children[0])))
         if len(children) >= 2: self._offset = poly_int(poly_firstitem(eval_expr(children[1])))
 
-SOURCE: str = None
-def set_source(s: str) -> str:
-    global SOURCE
-    SOURCE = s
-    return s
+class StatementSourceMgr:
+    def __init__(self, statement_text, origin: str=''):
+        self._statement_text: str = statement_text or ''
+        self._origin: str = origin
 
-def source_for(t: Tree) -> str:
-    if not SOURCE: return ''
-    start, end = get_subtree_span(t)
-    return SOURCE[start:end]
+    def source_for(self, tree: Tree) -> str:
+        if not self._statement_text or tree is None: return ''
+        start, end = self._subtree_span(tree)
+        return self._statement_text[start:end]
+
+    def origin(self) -> str:
+        return self._origin
+
+    def _subtree_span(self, node):
+        """
+        Recursively finds the start and end positions of a subtree in the source text.
+
+        Returns:
+            (start_pos, end_pos) where:
+            - start_pos is the earliest character index of any token in the subtree.
+            - end_pos is the last character index + 1 of any token in the subtree.
+            If no tokens are found, returns (None, None).
+        """
+        start_pos = None
+        end_pos = None
+
+        def traverse(n):
+            nonlocal start_pos, end_pos
+            if isinstance(n, Token):
+                if n.start_pos is not None:
+                    if start_pos is None or n.start_pos < start_pos:
+                        start_pos = n.start_pos
+                    if end_pos is None or (n.end_pos is not None and n.end_pos > end_pos):
+                        end_pos = n.end_pos
+            elif isinstance(n, Tree):
+                for child in n.children: traverse(child)
+                # Some Tree nodes have meta positions, but we can't fully trust it.
+                if hasattr(n, "meta") and n.meta:
+                    if hasattr(n.meta, "start_pos") and n.meta.start_pos is not None:
+                        if start_pos is None or n.meta.start_pos < start_pos:
+                            start_pos = n.meta.start_pos
+                    if hasattr(n.meta, "end_pos") and n.meta.end_pos is not None:
+                        if end_pos is None or n.meta.end_pos > end_pos:
+                            end_pos = n.meta.end_pos
+        traverse(node)
+        return start_pos, end_pos
 
 def _flag_value(statement: Tree) -> bool:
     # default for a flag is a request to turn on
@@ -725,10 +520,10 @@ Execution ends with an exit code of 1 indicating failure
                 msg = poly_str(eval_expr(exprs.pop(0)))
                 if msg is not None: msg = msg.format(*[eval_expr(expr) for expr in exprs])
             except Exception as e:
-                print_stderr(f'While evaluating {source_for(statement)} on line {statement.meta.line}: ', e)
+                print_stderr(f'While evaluating {SOURCE_MGR.source_for(statement)} on line {statement.meta.line}: ', e)
                 msg = None
         print_stderr(f'Line {statement.meta.line}:',
-                     (str(msg) if msg is not None else f'{source_for(statement)} failed'))
+                     (str(msg) if msg is not None else f'{SOURCE_MGR.source_for(statement)} failed'))
         sys.exit(1)
 
 def execute_set(statement: Tree) -> None:
@@ -738,7 +533,7 @@ def execute_set(statement: Tree) -> None:
 * LET _variable_ [= | :=] _expression_ [;]
 """
     var_name, expr = statement.children
-    _DD.set_var(eval_expr(expr), *(name.value for name in var_name.children))
+    _DD.set_var_user(eval_expr(expr), *(name.value for name in var_name.children))
 
 def execute_load_from(statement: Tree) -> None:
     """Assign a value to a variable from a file.
@@ -769,7 +564,7 @@ name with TEXT as the default.
         elif mode == 'json_objects': data = [json.loads(line) for line in f if line.strip()]
         elif mode == 'csv_file': data = list(csv.DictReader(f))
         else: raise ValueError(f'Unknown mode {mode}') # SNO
-        _DD.set_var(data, *(name.value for name in var_name.children))
+        _DD.set_var_user(data, *(name.value for name in var_name.children))
 
 def execute_print(statement: Tree) -> None:
     """Print values, similar to AWK's print statement
@@ -783,7 +578,9 @@ The results of the expressions are separated by the string defined in _arg.ofs_.
 Lines are ended by with the _arg.ors_ string. The defaults are space and new line and
 are used if the values are set to _None_.
 """
-    print_stdout(*[eval_expr(expr) for expr in statement.children], sep=_DD.get_ofs(), end=_DD.get_ors())
+    print_stdout(*[eval_expr(expr) for expr in statement.children],
+                    sep=str(_DD.get_var_user(*_OFS_PATH) or ' '),
+                    end=str(_DD.get_var_user(*_ORS_PATH) or '\n'))
 
 def execute_printf(statement: Tree) -> None:
     """Print formatted values, similar to AWK's printf statement
@@ -825,7 +622,7 @@ see control characters.
     if children:
         for var_name in children:
             path = tuple(name.value for name in var_name.children)
-            exhibit_value('.'.join(path), _DD.get_var(*path))
+            exhibit_value('.'.join(path), _DD.get_var_user(*path))
     else:
         for key in sorted(_DD.keys()): exhibit_value(key, _DD.get_var(key))
 
@@ -844,7 +641,7 @@ def print_verbose(*args, **kwargs) -> None:
     if _DD.is_verbose(): print_stderr(*args, **kwargs)
 
 def print_exception(statement: Tree, e: Exception) -> None:
-    print_stderr(f'Line {statement.meta.line}: {source_for(statement)}')
+    print_stderr(f'Line {statement.meta.line}: {SOURCE_MGR.source_for(statement)}')
     print_stderr(exception_type(e), ': ', str(e))
 
 def execute_open(statement: Tree) -> None:
@@ -912,9 +709,8 @@ def eval_expr(expr: Any) -> Any:
     if isinstance(expr, Tree):
         if isinstance(expr, Operation): return expr.execute(tuple(eval_expr(arg_exp) for arg_exp in expr.children))
         raise NotImplementedError(f'Unhandled type {expr.data}')
-    else:
-        if isinstance(expr, Token): return expr.value
-        raise NotImplementedError(f'Unknown type {expr.type()}')
+    if isinstance(expr, Token): return expr.value
+    raise NotImplementedError(f'Unknown type {expr.type()}')
 
 def execute_zip(statement: Tree):
     """Create a ZIP Archive
@@ -977,20 +773,22 @@ _Password is not currently implemented but may be specified_
 
 def execute_select(statement: Tree):
     ts = TreeSplitter().split(statement)
-    statement = ImplicitContextAdder().transform(statement, ts.get_target(), _VALID_TARGETS + _DD.get_internal_prefixes())
+    # If the user has defined something, or it is one of the pre-loaded
+    # prefixes or the target types, then it is a known context and
+    # not subject to getting the target prefix added to it
+    statement = ImplicitContextAdder().add_contexts(statement, ts.get_target(), _VALID_TARGETS + _DD.keys())
     ts.split(statement)
     print(f'Target     : {ts.get_target()}')
     print(f'Predicates : {len(ts.get_predicates())}')
-    for i, p in enumerate(ts.get_predicates()): print(f'\t{i + 1} : {source_for(p)}')
+    for i, p in enumerate(ts.get_predicates()): print(f'\t{i + 1} : {SOURCE_MGR.source_for(p)}')
     print(f'Outputs    : {len(ts.get_outputs())}')
     for i, o in enumerate(ts.get_outputs()):
-        text = source_for(o)
+        text = SOURCE_MGR.source_for(o)
         label = ts.get_label(o)
-        label = "_".join(text.strip().split()) if label is None else label
+        label = '_'.join(text.strip().split()) if label is None else label
         print(f'\t{i + 1} : {text} "{label}"')
     print(f'Limit      : {ts.get_limit()}')
     print(f'Offset     : {ts.get_offset()}')
-    print_tree(statement)
 
 STATEMENT_HANDLERS = {
     'assert': execute_assert,
@@ -1009,23 +807,25 @@ STATEMENT_HANDLERS = {
     'zip': execute_zip,
 }
 
-def remove_comments(input: str) -> str:
+def remove_comments(input_text: str) -> str:
     """Removes comments but preserves lines for Lark metadata accuracy."""
     # We do Hash, C-style, and SQL style
-    return re.sub(r'(^|;)[ \t]*(#|//|--).*', r'\1\n', input)
+    return re.sub(r'(^|;)[ \t]*(#|//|--).*', r'\1\n', input_text)
 
-def execute_statements(inp: str) -> None:
-    inp = set_source(remove_comments(inp))
-    if not inp or inp.isspace(): return
-    statements: Tree = _PARSER.parse(inp)
+def execute_statements(statement_text: str, source: str=None) -> None:
+    statement_text = remove_comments(statement_text)
+    if not statement_text or statement_text.isspace(): return
+    statements: Tree = _PARSER.parse(statement_text)
+    global SOURCE_MGR
+    SOURCE_MGR = StatementSourceMgr(statement_text, source)
     for statement in statements.children:
-        handler = STATEMENT_HANDLERS.get(statement.data, None)
-        if not handler: raise ValueError(f'No handler established for {statement.data}')
+        handler = STATEMENT_HANDLERS.get(statement.data)
+        if not handler: raise NotImplementedError(f'No handler established for {statement.data}')
         statement = ConstantsNormalizer().transform(statement)
         statement = OperationBinder().transform(statement)
-        statement_text = inp[statement.meta.start_pos : statement.meta.end_pos]
-        _DD.set_statement(statement_text)
-        if _DD.is_echo(): print_stdout(statement_text)
+        text = statement_text[statement.meta.start_pos : statement.meta.end_pos]
+        _DD.set_var(None,text, *_STATEMENT_PATH)
+        if _DD.is_echo(): print_stdout(text)
         if _DD.is_debug(): print_tree(statement)
         handler(statement)
 
@@ -1043,40 +843,6 @@ def print_tree(item: Any, indent=2) -> None:
             print_stderr(f'{prefix}{token.type}: {token.value} (Pos: {token.line}:{token.column} {type(token.value)})')
         else:
             raise ValueError(item.type()) # What else can there be?
-
-def get_subtree_span(node):
-    """
-    Recursively finds the start and end positions of a subtree in the source text.
-
-    Returns:
-        (start_pos, end_pos) where:
-        - start_pos is the earliest character index of any token in the subtree.
-        - end_pos is the last character index + 1 of any token in the subtree.
-        If no tokens are found, returns (None, None).
-    """
-    start_pos = None
-    end_pos = None
-
-    def traverse(n):
-        nonlocal start_pos, end_pos
-        if isinstance(n, Token):
-            if n.start_pos is not None:
-                if start_pos is None or n.start_pos < start_pos:
-                    start_pos = n.start_pos
-                if end_pos is None or (n.end_pos is not None and n.end_pos > end_pos):
-                    end_pos = n.end_pos
-        elif isinstance(n, Tree):
-            for child in n.children: traverse(child)
-            # Some Tree nodes have meta positions, but we can't fully trust it.
-            if hasattr(n, "meta") and n.meta:
-                if hasattr(n.meta, "start_pos") and n.meta.start_pos is not None:
-                    if start_pos is None or n.meta.start_pos < start_pos:
-                        start_pos = n.meta.start_pos
-                if hasattr(n.meta, "end_pos") and n.meta.end_pos is not None:
-                    if end_pos is None or n.meta.end_pos > end_pos:
-                        end_pos = n.meta.end_pos
-    traverse(node)
-    return start_pos, end_pos
 
 def token_value(token_name) -> str:
     """Lark tokens to their values for error display"""
@@ -1122,6 +888,21 @@ def exception_type(e: Exception) -> str:
     return _ERROR_XLATE.get(etype, etype.__name__)
 
 class VGRCmdLine(CmdLine):
+    _VGR_ENV_PREFIX = 'VGR_'
+    _VGR_PREFIX = '_vgr'
+    _PROMPT_PATH = (_VGR_PREFIX, 'prompt')
+    _HISTORY_PATH = (_VGR_PREFIX, 'history')
+    _HISTORY_SIZE_PATH = (_VGR_PREFIX, 'history_size')
+    _DEFAULT_HISTORY_SIZE = 100
+    _DEFAULT_HISTORY = '~/.vgr_history'
+    _DEFAULT_PROMPT = 'vgr> '
+
+    def __init__(self, dd: DataDictionary):
+        self._dd = dd
+        self.prompt = self._get_vgr_default(self._PROMPT_PATH[1], self._DEFAULT_PROMPT)
+        self.history_filename = self._get_vgr_default(self._HISTORY_PATH[1], self._DEFAULT_HISTORY)
+        self.max_history_entries = self._get_vgr_default_int(self._HISTORY_SIZE_PATH[1], self._DEFAULT_HISTORY_SIZE)
+        super().__init__()
 
     def execute_statements(self, text: str) -> None:
         try:
@@ -1132,42 +913,76 @@ class VGRCmdLine(CmdLine):
             print(exception_type(e), ': ', str(e))
 
     @property
-    def debug(self) -> bool: return _DD.is_debug()
+    def debug(self) -> bool: return self._dd.is_debug()
 
     @property
-    def verbose(self) -> bool: return _DD.is_verbose()
+    def verbose(self) -> bool: return self._dd.is_verbose()
 
     @verbose.setter
-    def verbose(self, value: bool): _DD.set_verbose(value)
+    def verbose(self, value: bool): self._dd.set_verbose(value)
 
     @property
-    def prompt(self) -> str: return _DD.get_shell_prompt()
+    def prompt(self) -> str:
+        return str(self._dd.get_var(None, *self._PROMPT_PATH) or self._DEFAULT_PROMPT)
 
     @prompt.setter
-    def prompt(self, value: str): _DD.set_shell_prompt(value)
+    def prompt(self, value: str):
+        self._dd.set_var(None, value or self._DEFAULT_PROMPT, *self._PROMPT_PATH)
 
     @property
-    def history_filename(self) -> str: return _DD.get_shell_history()
+    def history_filename(self) -> str:
+        return self._expand_fn(str(self._dd.get_var(None, *self._HISTORY_PATH) or self._DEFAULT_HISTORY))
+
+    @history_filename.setter
+    def history_filename(self, value: str) -> None:
+        self._dd.set_var(None, self._expand_fn(value or self._DEFAULT_HISTORY), *self._HISTORY_PATH)
 
     @property
-    def max_history_entries(self) -> int: return _DD.get_shell_history_size()
+    def max_history_entries(self) -> int:
+        try:
+            return int(self._dd.get_var(None, *self._HISTORY_SIZE_PATH) or self._DEFAULT_HISTORY_SIZE)
+        except ValueError:
+            return self._DEFAULT_HISTORY_SIZE
 
     @max_history_entries.setter
-    def max_history_entries(self, value: int): _DD.set_shell_history_size(value)
+    def max_history_entries(self, value: int) -> None:
+        self._dd.set_var(None, value or self._DEFAULT_HISTORY_SIZE, *self._HISTORY_SIZE_PATH)
+
+    def _get_vgr_default(self, env_var: str, default: Any) -> str:
+        """Look for a matching environment variable (uppercase) and return it or the default value"""
+        return os.getenv(self._VGR_ENV_PREFIX + env_var.upper(), default)
+
+    def _get_vgr_default_int(self, env_var: str, default: Any) -> str:
+        """Look for a matching environment variable (uppercase) and try to convert to an int"""
+        try:
+            return int(self._get_vgr_default(env_var, default))
+        except ValueError:
+            return default
+
+    def _expand_fn(self, fn: str) -> str:
+        return os.path.abspath(os.path.expanduser(fn))
 
 def execute_interactive() -> None:
     print("Type 'exit' to exit")
     try:
-        VGRCmdLine().run()
+        VGRCmdLine(_DD).run()
     finally:
         _REDIR.end_redirects()
 
-_PARSER = Lark(_VGR_GRAMMAR, start='statements', parser='lalr', debug=True, propagate_positions=True)
-_REDIR = IORedirector()
 _DD: DataDictionary = None
+_PARSER: Lark = None
+_REDIR: IORedirector = None
+# Initialize with no text
+SOURCE_MGR: StatementSourceMgr = StatementSourceMgr('')
+_VGR_PREFIX = '_vgr'
+_GRAMMAR_PATH = (_VGR_PREFIX, 'grammar')
+_STATEMENT_PATH = (_VGR_PREFIX, 'statement')
+_ARG_PREFIX = 'arg'
+_OFS_PATH = (_ARG_PREFIX, 'ofs')
+_ORS_PATH = (_ARG_PREFIX, 'ors')
 
 def main():
-    global _DD
+    global _DD, _REDIR, _PARSER
     parser = argparse.ArgumentParser(
         description="Generic Reporting for Hashicorp Vault - prototype"
     )
@@ -1177,34 +992,61 @@ def main():
     parser.add_argument('--verbose', action='store_true', help="Enable verbose mode")
     parser.add_argument('--debug', action='store_true', help="Enable debug mode")
     parser.add_argument('--echo', action='store_true', help="Enable statement echo")
-    parser.add_argument('--prompt', metavar="PROMPT", type=str, help="Interactive prompt")
+    parser.add_argument('--grammar',  metavar="FILE", type=str, default='vgr.ebnf', help='Grammar definition')
     parser.add_argument('user_args', nargs='*', metavar='NAME=VALUE', help='Additional arguments')
     parsed = parser.parse_args()
 
     _DD = DataDictionary()
-    _DD.set_grammar(_VGR_GRAMMAR)
+    _DD.add_protected_prefix(_ARG_PREFIX)
+    _DD.add_immutable_prefix(_VGR_PREFIX)
     _DD.set_debug(parsed.debug)
     _DD.set_verbose(parsed.verbose)
     _DD.set_echo(parsed.echo)
-    if parsed.prompt: _DD.set_shell_prompt(parsed.prompt)
+    # Pick up the defaults AWK would use
+    # Since we don't allow the env space to be changed,
+    # we have to keep our own copies for the user to change with
+    # either Set or with command line arguments
+    _DD.set_var(None, os.getenv('OFS', ' '), *_OFS_PATH)
+    _DD.set_var(None, os.getenv('ORS', '\n'), *_ORS_PATH)
+
     # NB: User args can override debug/echo/verbose...
-    _DD.parse_user_args(parsed.user_args)
-    # ... as can commands in a script
+    for arg in parsed.user_args:
+        if '=' in arg:
+            name, value = re.split(r'\s*=', arg, 1)
+            path = tuple(step for step in re.split(r'\s*[.]\s*', name.strip()))
+            if path:
+                # Strip off the quotes
+                match = re.fullmatch(r'\s*"([^"]*)"\s*', value)
+                path = (_ARG_PREFIX,) + path
+                _DD.set_var(None, match.group(1) if match else coerce_value(value), *path)
+
+    _REDIR = IORedirector()
+
+    with open(parsed.grammar, "r", encoding="utf-8") as file:
+        grammar = file.read()
+        generated = '\n\n'.join((
+            get_function_defs(),
+            'TARGET: ' + ' | '.join(tuple(f'"{t}"i' for t in _VALID_TARGETS)),
+        ))
+        grammar = grammar.format(GENERATED_CODE=generated)
+        _DD.set_var(None, grammar, *_GRAMMAR_PATH)
+        _PARSER = Lark(grammar, start='statements', parser='lalr', debug=True, propagate_positions=True)
 
     if parsed.execute:
         # For simple statements directly on the command line
         execute_statements(parsed.execute)
     elif parsed.file:
+        # NB: we don't "sandbox" these files like we do with others
         for filepath in parsed.file:
             # For statements stored in a file
-            statements = None
+            statement_text = None
             try:
-                with open(filepath, 'r') as f:
-                    statements = f.read()
-            except Exception as e:
+                with open(filepath, 'r', encoding='utf-8') as f:
+                    statement_text = f.read()
+            except OSError as e:
                 print_stderr(f"Error reading file {filepath}: {e}")
                 break
-            if statements: execute_statements(statements)
+            execute_statements(statement_text, filepath)
     else:
         if not sys.stdin.isatty():
             # Read from stdin, most likely from a "here" document

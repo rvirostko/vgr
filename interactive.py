@@ -1,7 +1,13 @@
 #! /usr/bin/env python3
 
+"""
+The base of a Unix shell like editable command line. Include some commands for history control
+and simple file control (cd and ls only).
+Also the base of a "help" system.
+"""
+
 from abc import ABC, abstractmethod
-from argparse import ArgumentParser, Namespace, OPTIONAL
+from argparse import ArgumentParser, ArgumentError, ArgumentTypeError, Namespace, OPTIONAL
 import os
 import re
 import socket
@@ -194,7 +200,7 @@ To execute commands in multiline editing mode, use META-Return instead.
         if values is not None:
             if values.multiline is not None: self.multiline = values.multiline
             self._print_verbose('Multiline mode is', self.multiline)
-            if self.multiline: print(f'Use Meta-Return to execute commands')
+            if self.multiline: print('Use Meta-Return to execute commands')
 
     def _exec_prompt(self, *args):
         r"""
@@ -274,7 +280,7 @@ Run any of these command with _help_ for more information
             return None
         try:
             return parser.parse_args(args)
-        except Exception as e:
+        except (ArgumentError, ArgumentTypeError, TypeError, ValueError) as e:
             self._print_exception(e)
             return None
 
@@ -339,10 +345,6 @@ Run any of these command with _help_ for more information
                     if r is not None:
                         command, options = r
                         if command in self._dispatch:
-                            try:
-                                self._dispatch[command](*options)
-                            except Exception as e:
-                                self._print_exception(e)
-                            continue
+                            self._dispatch[command](*options)
                     # Didn't look like a shell command, so it must be a statement
                     self.execute_statements(text)

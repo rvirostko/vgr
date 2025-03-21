@@ -6,7 +6,7 @@ import os
 import re
 import string
 
-from mathpak import poly_bool, poly_number
+from mathpak import coerce_value
 
 class DataDictionary():
     """TODO"""
@@ -17,103 +17,97 @@ class DataDictionary():
     _MATH_PREFIX = 'math'
     _OS_PREFIX = 'os'
     _STRING_PREFIX = 'string'
-    _VGR_PREFIX = '_vgr'
-    _INTERNAL_PREFIXES = ( _ARG_PREFIX, _ENV_PREFIX, _MATH_PREFIX, _OS_PREFIX, _STRING_PREFIX, _VGR_PREFIX )
 
     _DEBUG_VAR = 'debug'
     _ECHO_VAR = 'echo'
     _VERBOSE_VAR = 'verbose'
-    _OFS_VAR = 'ofs'  # Like AWK's Output Field Separator
-    _ORS_VAR = 'ors' # Like AWK's Output Record Separator
-    _PROMPT = 'prompt'
-    _HISTORY = 'history'
-    _HISTORY_SIZE = 'history_size'
-    _GRAMMAR = 'grammar'
-
-    _DEFAULT_PROMPT = 'vgr> '
-    _DEFAULT_HISTORY = '~/.vgr_history'
-    _DEFAULT_HISTORY_SIZE = 100
-    _VGR_ENV_PREFIX = 'VGR_'
-
     # These can't appear in a path name (to prevent confusion)
     _RESERVED_WORDS = ('true', 'false', 'none', 'null', 'inf', 'nan')
 
     _DD = {}
 
     def __init__(self):
-        self._set_var(self._DD, self._get_environment(), self._ENV_PREFIX)
-        self._set_var(self._DD, self._get_string_consts(), self._STRING_PREFIX)
-        self._set_var(self._DD, self._get_math_consts(), self._MATH_PREFIX)
-        self._set_var(self._DD, self._get_os_consts(), self._OS_PREFIX)
-        self._DD[self._VGR_PREFIX] = {}
+        self._immutable_prefixes = tuple()
+        self._protected_prefixes = tuple()
+        self.add_immutable_prefix(self._ENV_PREFIX)
+        self.set_var(self._DD, self._get_environment(), self._ENV_PREFIX)
+        self.add_immutable_prefix(self._STRING_PREFIX)
+        self.set_var(self._DD, self._get_string_consts(), self._STRING_PREFIX)
+        self.add_immutable_prefix(self._MATH_PREFIX)
+        self.set_var(self._DD, self._get_math_consts(), self._MATH_PREFIX)
+        self.add_immutable_prefix(self._OS_PREFIX)
+        self.set_var(self._DD, self._get_os_consts(), self._OS_PREFIX)
+        # Id like these to move...
         self.set_debug(False)
         self.set_echo(False)
         self.set_verbose(False)
-        # Pick up the defaults AWK would use
-        # Since we don't allow the env space to be changed,
-        # we have to keep our own copies for the user to change with
-        # either Set or with command line arguments
-        self._set_var(self._DD, self._defaut_ofs(), self._ARG_PREFIX, self._OFS_VAR)
-        self._set_var(self._DD, self._defaut_ors(), self._ARG_PREFIX, self._ORS_VAR)
-        # Import values from the environment
-        self._set_var(self._DD, self._get_vgr_default(self._PROMPT, self._DEFAULT_PROMPT), self._VGR_PREFIX, self._PROMPT)
-        self._set_var(self._DD, self._get_vgr_default(self._HISTORY, self._DEFAULT_HISTORY), self._VGR_PREFIX, self._HISTORY)
-        self._set_var(self._DD, self._get_vgr_default_int(self._HISTORY_SIZE, self._DEFAULT_HISTORY_SIZE), self._VGR_PREFIX, self._HISTORY_SIZE)
 
-    def get_internal_prefixes(self) -> tuple: return self._INTERNAL_PREFIXES
+    def add_immutable_prefix(self, prefix: str) -> None:
+        """Immutable prefixes means you cant change any part of them"""
+        self._immutable_prefixes += (prefix, )
+
+    def add_protected_prefix(self, prefix: str) -> None:
+        """Protected prefixes means you can change any part of them, but not at the top-level"""
+        self._protected_prefixes += (prefix, )
 
     def keys(self): return self._DD.keys()
 
-    def set_debug(self, v: bool=True) -> None: self._set_var(self._DD, bool(v), self._ARG_PREFIX, self._DEBUG_VAR)
-    def set_verbose(self, v: bool=True) -> None: self._set_var(self._DD, bool(v), self._ARG_PREFIX, self._VERBOSE_VAR)
-    def set_echo(self, v: bool=True) -> None: self._set_var(self._DD, bool(v), self._ARG_PREFIX, self._ECHO_VAR)
-    def set_grammar(self, grammar: str) -> None: self._set_var(self._DD, grammar, self._VGR_PREFIX, self._GRAMMAR)
-    def set_statement(self, statement: str) -> None: self._set_var(self._DD, statement, self._VGR_PREFIX, 'statement')
+    # This block might be moving... At least echo should
+    def set_debug(self, v: bool=True) -> None: self.set_var(self._DD, bool(v), self._ARG_PREFIX, self._DEBUG_VAR)
+    def set_verbose(self, v: bool=True) -> None: self.set_var(self._DD, bool(v), self._ARG_PREFIX, self._VERBOSE_VAR)
+    def set_echo(self, v: bool=True) -> None: self.set_var(self._DD, bool(v), self._ARG_PREFIX, self._ECHO_VAR)
+    def is_debug(self) -> bool: return bool(self.get_var(self._DD, self._ARG_PREFIX, self._DEBUG_VAR))
+    def is_echo(self) -> bool: return bool(self.get_var(self._DD, self._ARG_PREFIX, self._ECHO_VAR))
+    def is_verbose(self) -> bool: return bool(self.get_var(self._DD, self._ARG_PREFIX, self._VERBOSE_VAR))
 
-    def is_debug(self) -> bool: return bool(self._get_var(self._DD, self._ARG_PREFIX, self._DEBUG_VAR))
-    def is_echo(self) -> bool: return bool(self._get_var(self._DD, self._ARG_PREFIX, self._ECHO_VAR))
-    def is_verbose(self) -> bool: return bool(self._get_var(self._DD, self._ARG_PREFIX, self._VERBOSE_VAR))
-
-    def get_grammar(self) -> str: return str(self._get_var(self._DD, self._VGR_PREFIX, self._GRAMMAR))
-
-    def get_ofs(self) -> str: return str(self._get_var(self._DD, self._ARG_PREFIX, self._OFS_VAR) or self._defaut_ofs())
-    def get_ors(self) -> str: return str(self._get_var(self._DD, self._ARG_PREFIX, self._ORS_VAR) or self._defaut_ors())
-
-    def get_shell_prompt(self) -> str: return str(self._get_var(self._DD, self._VGR_PREFIX, self._PROMPT)) or self._DEFAULT_PROMPT
-    def set_shell_prompt(self, v: str) -> None: self._set_var(self._DD, str(v or self._DEFAULT_PROMPT), self._VGR_PREFIX, self._PROMPT)
-    def get_shell_history(self) -> str: return os.path.expanduser(str(self._get_var(self._DD, self._VGR_PREFIX, self._HISTORY)) or self._DEFAULT_HISTORY)
-    def get_shell_history_size(self) -> int:
-        try:
-            return int(self._get_var(self._DD, self._VGR_PREFIX, self._HISTORY_SIZE)) or self._DEFAULT_HISTORY_SIZE
-        except ValueError:
-            return self._DEFAULT_HISTORY_SIZE
-
-    def set_var(self, value: Any, *path: str) -> None:
-        """Set an item within the dictionary"""
-        self._set_var(self._DD, value, *self._validate_user_set_path(*self._validate_user_path(*path)))
-
-    def get_var(self, *path: str) -> Any:
-        """Get an item within the dictionary"""
-        return self.get_var_relative(self._DD, *self._validate_user_path(*path))
-
-    def get_var_relative(self, start: dict, *path: str) -> Any:
-        """Get an item relative to start"""
-        return self._get_var(start, *self._validate_user_path(*path))
-
-    def parse_user_args(self, user_args: list[str]) -> None:
+    def set_var_user(self, value: Any, *path: str) -> None:
         """
-        Parse a list of 'name=value' strings into .
-        If an argument doesn't contain '=', it's ignored.
-        These are meant to be simple values, not collections.
+        Set an item within the dictionary.
+        This is a method to call with user input.
         """
-        for arg in user_args:
-            if '=' in arg:
-                name, value = re.split(r'\s*=', arg, 1)
-                path = tuple(step for step in re.split(r'\s*[.]\s*', name.strip()))
-                if path:
-                    match = re.fullmatch(r'\s*"([^"]*)"\s*', value)
-                    path = (self._ARG_PREFIX,) + path
-                    self.set_var(match.group(1) if match else self._coerce_value(value), *path)
+        self.set_var(self._DD, value, *self._validate_user_set_path(*self._validate_user_path(*path)))
+
+    def get_var_user(self, *path: str) -> Any:
+        """
+        Get an item within the dictionary.
+        This is a method to call with user input.
+        """
+        return self.get_var_user_relative(self._DD, *self._validate_user_path(*path))
+
+    def get_var_user_relative(self, start: dict, *path: str) -> Any:
+        """
+        Get an item relative to start.
+        This is a method to call with user input.
+        """
+        return self.get_var(start, *self._validate_user_path(*path)) if start is not None else None
+
+    def set_var(self, start: dict, data: Any, *path: str) -> None:
+        """
+        Called with vetted user args or can be called directly.
+        Pass in None for start when traversing a full path.
+        """
+        current = start or self._DD
+        for step in path[:-1]:
+            # If the next step doesn't exist, create it as dictionary
+            next_step = current.setdefault(step, {})
+            # If it isn't a dictionary, it has to become one
+            if not isinstance(next_step, dict):
+                next_step = {}
+                current[step] = next_step
+            current = next_step
+        # Last step in the path gets the data
+        current[path[-1]] = data
+
+    def get_var(self, data: Any, *path: str) -> Any:
+        """
+        Called with vetted user args or can be called directly.
+        Pass in None for data when traversing a full path
+        """
+        data = data or self._DD
+        for key in path:
+            if not isinstance(data, dict) or key not in data: return None
+            data = data[key]
+        return data
 
     def _validate_user_path(self, *path: str) -> tuple:
         if not path: raise ValueError('Empty/Missing path')
@@ -126,10 +120,13 @@ class DataDictionary():
 
     def _validate_user_set_path(self, *path: str) -> tuple:
         prefix: str = path[0]
-        if prefix in self._INTERNAL_PREFIXES:
-            # Can't slam "arg" but can modify its contents
-            if prefix != self._ARG_PREFIX or len(path) < 2:
-                raise ValueError(f'Cannot set {".".join(path)} - {prefix} is immutable')
+        # protected means you can't change at the top level, but
+        # you can change its properties
+        if len(path) == 1 and prefix in self._protected_prefixes:
+            raise ValueError(f'Cannot alter protected prefix {prefix}')
+        # immutable means just that
+        if prefix in self._immutable_prefixes:
+            raise ValueError(f'Cannot set {".".join(path)} - {prefix} is immutable')
         return path
 
     def _get_string_consts(self) -> dict: return self._get_consts(string)
@@ -144,62 +141,16 @@ class DataDictionary():
         return rc
 
     def _get_environment(self) -> dict:
-        rc = { name: self._coerce_value(value) for name, value in os.environ.items() if not any(pattern.search(name) for pattern in self._ENV_EXCLUDE) }
+        rc = {
+                name: coerce_value(value) for name, value in os.environ.items()
+                    if not any(pattern.search(name) for pattern in self._ENV_EXCLUDE)
+             }
         for name, value in rc.items():
-            if isinstance(value, str) and re.search(r'(_)?PATH$', name, re.IGNORECASE): rc[name] = tuple(value.split(os.pathsep))
+            if isinstance(value, str) and re.search(r'(_)?PATH$', name, re.IGNORECASE):
+                rc[name] = tuple(value.split(os.pathsep))
         return rc
 
-    def _set_var(self, start: dict, data: Any, *path: str) -> None:
-        if start is None or not path: return
-        current = start
-        for step in path[:-1]:
-            # If the next step doesn't exist, create it as dictionary
-            next_step = current.setdefault(step, {})
-            # If it isn't a dictionary, it has to become one
-            if not isinstance(next_step, dict):
-                next_step = {}
-                current[step] = next_step
-            current = next_step
-        # Last step in the path gets the data
-        current[path[-1]] = data
-
-    def _get_var(self, data: Any, *path: str) -> Any:
-        if data is not None:
-            for key in path:
-                if not isinstance(data, dict) or key not in data: return None
-                data = data[key]
-        return data
-
     def _get_consts(self, source_mod) -> dict:
-        return { key: value for key, value in vars(source_mod).items() if isinstance(value, (int, float, str, dict, list, tuple)) and not key.startswith("__") }
-
-    def _coerce_value(self, value: Any):
-        """
-        Coerce the string value to None, int, float, or bool.
-        Falls back to the original string.
-        """
-        if value is None or isinstance(value, (bool, int, float, dict, list, tuple)): return value
-        if value.strip().lower() in ('true', 'false'): return poly_bool(value)
-        try:
-            return poly_number(value)
-        except TypeError:
-            return None if value.strip().lower() == 'none' else value
-
-    def _defaut_ofs(self) -> str:
-        """Either AWK's OFS default in the env or a space"""
-        return os.getenv('OFS', ' ')
-
-    def _defaut_ors(self) -> str:
-        """Either AWK's ORS default in the env or a newline"""
-        return os.getenv('ORS', '\n')
-
-    def _get_vgr_default(self, env_var: str, default: Any) -> str:
-        """Look for a matching environment variable (uppercase) and return it or the default value"""
-        return os.getenv(self._VGR_ENV_PREFIX + env_var.upper(), default)
-
-    def _get_vgr_default_int(self, env_var: str, default: Any) -> str:
-        """Look for a matching environment variable (uppercase) and try to convert to an int"""
-        try:
-            return int(self._get_vgr_default(env_var, default))
-        except ValueError:
-            return default
+        return { key: value for key, value in vars(source_mod).items()
+                    if isinstance(value, (int, float, str, dict, list, tuple)) and not key.startswith("__")
+               }

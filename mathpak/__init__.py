@@ -4,7 +4,8 @@ from .add import poly_add, poly_vadd
 from .bit_ops import poly_bit_and, poly_bit_or, poly_bit_xor, poly_bit_not, poly_vbit_and, poly_vbit_or, poly_vbit_xor
 from .div import poly_div, poly_fdiv, poly_vdiv, poly_vfdiv
 from .exp import poly_exp
-from .general import poly_hash, poly_class, poly_sizeof, poly_repr, poly_isempty, poly_len, poly_firstitem, poly_lastitem, poly_getitem, poly_rsort, poly_sort, poly_unique, poly_type
+from .general import poly_hash, poly_class, poly_sizeof, poly_repr, poly_isempty, poly_len, poly_firstitem, poly_lastitem
+from .general import poly_getitem, poly_rsort, poly_sort, poly_unique, poly_type
 from .inequ import poly_eq, poly_ge, poly_gt, poly_le, poly_lt, poly_ne
 from .is_in import poly_in, poly_not_in, poly_contains, poly_not_contains
 from .logic import poly_and, poly_not, poly_or
@@ -13,12 +14,19 @@ from .misc_math import poly_abs, poly_ceil, poly_floor, poly_round, poly_trunc
 from .mod import poly_mod
 from .mul import poly_mul, poly_vmul
 from .shift import poly_shl, poly_shr
-from .strings import poly_capitalize, poly_casefold, poly_endswith, poly_expandtabs, poly_isalnum, poly_isalpha, poly_isascii, poly_isdigit, poly_islower, poly_isnumeric, poly_isprintable, poly_isspace, poly_istitle, poly_isupper, poly_lower, poly_lstrip, poly_removeprefix, poly_removesuffix, poly_rstrip, poly_startswith, poly_strip, poly_swapcase, poly_title, poly_upper, poly_count, poly_index, poly_rindex, poly_rightstr, poly_leftstr, poly_substr, poly_append, poly_prepend, poly_isdecimal, poly_isidentifier, poly_replace, poly_translate, poly_vappend, poly_vprepend
+from .strings import poly_capitalize, poly_casefold, poly_endswith, poly_expandtabs, poly_isalnum, poly_isalpha, poly_isascii
+from .strings import poly_isdigit, poly_islower, poly_isnumeric, poly_isprintable, poly_isspace, poly_istitle, poly_isupper
+from .strings import poly_lower, poly_lstrip, poly_removeprefix, poly_removesuffix, poly_rstrip, poly_startswith, poly_strip
+from .strings import poly_swapcase, poly_title, poly_upper, poly_count, poly_index, poly_rindex, poly_rightstr, poly_leftstr
+from .strings import poly_substr, poly_append, poly_prepend, poly_isdecimal, poly_isidentifier, poly_replace, poly_translate
+from .strings import poly_vappend, poly_vprepend
 from .sub import poly_sub, poly_vsub
-from .types import poly_bool, poly_float, poly_int, poly_isbool, poly_isfloat, poly_isint, poly_isnumber, poly_isstr, poly_number, poly_str
+from .types import coerce_value, poly_bool, poly_float, poly_int, poly_isbool, poly_isfloat, poly_isint, poly_isnumber
+from .types import poly_isstr, poly_number, poly_str
 from .lookup import poly_lookup
 
 __all__ = [
+    "coerce_value",
     "poly_abs",
     "poly_add",
     "poly_and",
