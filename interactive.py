@@ -346,5 +346,6 @@ Run any of these command with _help_ for more information
                         command, options = r
                         if command in self._dispatch:
                             self._dispatch[command](*options)
+                            continue
                     # Didn't look like a shell command, so it must be a statement
                     self.execute_statements(text)
