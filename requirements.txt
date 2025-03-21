@@ -1,3 +1,7 @@
 lark
 django
 prompt_toolkit
+
+mistune
+rich
+blessed
