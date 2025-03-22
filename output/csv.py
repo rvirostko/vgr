@@ -72,7 +72,11 @@ class CSVRecordWriter(FileRecordWriter):
 
     @quoting.setter
     def quoting(self, value: str=None):
-       self._quoting = self.__QUOTING.get(value.strip().lower(), self.__DEFAULT_QUOTING) if value is not None else self.__DEFAULT_QUOTING
+        if value is None:
+            self._quoting = self.__DEFAULT_QUOTING
+        else:
+            self._quoting = self.__QUOTING.get(value.strip().lower(), self.__DEFAULT_QUOTING)
+            # TODO need another none check
 
     def _sanitize_char(self, value: str, default: str=None):
         if not value: value = default
