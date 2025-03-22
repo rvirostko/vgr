@@ -14,8 +14,8 @@ class MarkdownRecordWriter(FileRecordWriter):
         self._setattrs(**kwargs)
 
     def write(self, record: list[any]) -> bool:
-        record = self.stringify(record)
-        for item in record: self.print(self.__BAR, self._clean_text(item))
+        for item in record:
+            self.print(self.__BAR, self._clean_text(self.stringify(item)))
         self.println(self.__BAR)
         return True
 

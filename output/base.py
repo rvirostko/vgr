@@ -60,9 +60,6 @@ class RecordWriter(ABC):
         for key, value in kwargs.items():
             if key in defined_attrs and hasattr(self, key):
                 setattr(self, key, value)
-            else:
-                print(key)
-
 
 class DelegatingRecordWriter(RecordWriter):
 
@@ -165,10 +162,6 @@ class FileRecordWriter(RecordWriter):
     def flush(self) -> None:
         self._output.flush()
 
-    def stringify(self, record: list[any]) -> list[any]:
-        """Converts all the items to strings"""
-        return [_stringify(item) for item in record]
-
     def objectify(self, record: list[any], include_null: bool=True) -> dict:
         """
         If the record is a dictionary, include all its attributes.
@@ -195,25 +188,25 @@ class FileRecordWriter(RecordWriter):
     def _attrs(self) -> list:
         return super()._attrs() + ['encoding', 'encode_ascii', 'encode_utf8', 'headers', 'omit_headers']
 
+    @classmethod
+    def stringify(cls, obj: Any) -> str:
+        """
+        Primitive "to_string()" operation.
+        scalars are just sent to str(obj).
+        dict are converted to a single line output.
+        Collections are converted to a  comma separated list.
+        """
+        if obj is None: return ''
+        if not isinstance(obj, (str, int, float)):
+            # Compact JSON format for dictionaries
+            if isinstance(obj, dict): return json.dumps(obj, separators=(",", ":"))
+            # Recursively stringify iterable elements (arrays, tuples, etc)
+            if isinstance(obj, Iterable): return ", ".join(map(cls.stringify, obj))
+        return str(obj)
+
     class NoCloseTextIOWrapper(TextIOWrapper):
         """Wrap the output so that we flush, but don't close when told to close.
         Use this when the stream was pre"""
         def close(self):
             # Override the close method to prevent closing the underlying buffer
             self.flush()
-
-def _stringify(obj: Any) -> str:
-    """
-    Primitive "to_string()" operation.
-    scalars are just sent to str(obj).
-    dict are converted to a single line output.
-    Collections are converted to a  comma separated list.
-    """
-    # Scalars, including str, are returned as-is
-    if isinstance(obj, (str, int, float, bool, type(None))): return str(obj)
-    # Compact JSON format for dictionaries
-    if isinstance(obj, dict): return json.dumps(obj, separators=(",", ":"))
-    # Recursively stringify iterable elements (arrays, tuples, etc)
-    if isinstance(obj, Iterable): return ", ".join(map(_stringify, obj))
-    # Fallback for unknown types
-    return str(obj)
