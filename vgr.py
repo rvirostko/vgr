@@ -17,11 +17,15 @@ import zipfile
 
 from lark import Lark, Tree, Token, Transformer, Visitor, v_args, exceptions
 
+from app_exceptions import ExitingException
 from mathpak import *
 from output import prepare_path, verify_relative_path, IORedirector, expand_filename
 
 from data_dict import DataDictionary
 from interactive import CmdLine
+
+_EXIT_SUCCESS = 0
+_EXIT_FAILED = 1
 
 # Binds a (pretty) name to the function to be executed
 # Additionally, we should use functions here rather than lambdas
@@ -412,6 +416,9 @@ class StatementSourceMgr:
     def origin(self) -> str:
         return self._origin
 
+    def statement_text(self) -> str:
+        return self._statement_text
+
     def _subtree_span(self, node):
         """
         Recursively finds the start and end positions of a subtree in the source text.
@@ -492,17 +499,17 @@ def execute_exit(statement: Tree) -> None:
 
 The _expression_ is a numeric the code returned to the shell.
 The default return code is zero.
-Note that "True" returns one and "False" returns zero.
+Note that in this specific case "True" returns zero and "False" returns one.
 """
-    rc: int = None
+    rc: int = _EXIT_SUCCESS
     if statement.children:
         x: Any = poly_firstitem(eval_expr(statement.children[0]))
-        try:
-            rc = poly_int(x)
-        except ValueError:
-            rc = int(poly_bool(x))
-    print_verbose('Exit Code =', rc)
-    sys.exit(rc)
+        if x is not None:
+            try:
+                rc = poly_int(x)
+            except ValueError:
+                rc = _EXIT_SUCCESS if poly_bool(x) else _EXIT_FAILED
+    raise ExitingException(rc, statement, '')
 
 def execute_assert(statement: Tree) -> None:
     """Assert that a condition is met, terminating execution if it is not
@@ -531,9 +538,8 @@ Execution ends with an exit code of 1 indicating failure
             except Exception as e:
                 print_stderr(f'While evaluating {SOURCE_MGR.source_for(statement)} on line {statement.meta.line}: ', e)
                 msg = None
-        print_stderr(f'Line {statement.meta.line}:',
-                     (str(msg) if msg is not None else f'{SOURCE_MGR.source_for(statement)} failed'))
-        sys.exit(1)
+        raise ExitingException(_EXIT_FAILED, statement,
+                               str(msg) if msg is not None else f'{SOURCE_MGR.source_for(statement)} failed')
 
 def execute_set(statement: Tree) -> None:
     """Assign a value to a variable.
@@ -682,7 +688,7 @@ See CLOSE
         print_verbose(stream, "redirected to", filename)
     except Exception as e:
         print_exception(statement, e)
-        sys.exit(1)
+        raise ExitingException(_EXIT_FAILED, statement, str(e)) from e
 
 def eval_stream_name(node: Tree) -> str:
     stream = node.data.lower()
@@ -819,7 +825,7 @@ STATEMENT_HANDLERS = {
 def remove_comments(input_text: str) -> str:
     """Removes comments but preserves lines for Lark metadata accuracy."""
     # We do Hash, C-style, and SQL style
-    return re.sub(r'(^|;)[ \t]*(#|//|--).*', r'\1\n', input_text)
+    return re.sub(r'(^|;)[ \t]*(#|//|--).*$', r'\1\n', input_text, flags=re.MULTILINE)
 
 def execute_statements(statement_text: str, source: str=None) -> None:
     statement_text = remove_comments(statement_text)
@@ -834,7 +840,7 @@ def execute_statements(statement_text: str, source: str=None) -> None:
         statement = OperationBinder().transform(statement)
         text = statement_text[statement.meta.start_pos : statement.meta.end_pos]
         _DD.set_var(None,text, *_STATEMENT_PATH)
-        if _DD.is_echo(): print_stdout(text)
+        if _DD.is_echo(): print_stderr(text)
         if _DD.is_debug(): print_tree(statement)
         handler(statement)
 
@@ -864,12 +870,10 @@ def token_value(token_name) -> str:
 
 def get_expected(e: Exception) -> str:
     rc = ''
-
     if hasattr(e, 'token') and e.token:
         rc += token_value(e.token) + 'unexpected.'
-
     if hasattr(e, 'expected') and e.expected:
-        expected = [tok for tok in e.expected]
+        expected = [e.expected]
         if expected:
             rc = '\nExpected '
             values = [token_value(tok) for tok in sorted(expected)]
@@ -896,6 +900,18 @@ def exception_type(e: Exception) -> str:
     etype = type(e)
     return _ERROR_XLATE.get(etype, etype.__name__)
 
+def print_app_exiting(e: ExitingException) -> None:
+    print_debug(SOURCE_MGR.source_for(e.statement))
+    if e.message: print_stderr(e.message)
+    print_verbose('Exit Code =', e.exit_code)
+
+def format_unexpected_input(e: exceptions.UnexpectedInput) -> str:
+    # TODO get file name if applicable
+    return f'{e.get_context(SOURCE_MGR.statement_text())}{exception_type(e)} at line {e.line}, column {e.column}.{get_expected(e)}'
+
+def format_generic_exception(e: Exception) -> str:
+    return exception_type(e) + ': ' + str(e)
+
 class VGRCmdLine(CmdLine):
     _VGR_ENV_PREFIX = 'VGR_'
     _VGR_PREFIX = '_vgr'
@@ -916,10 +932,16 @@ class VGRCmdLine(CmdLine):
     def execute_statements(self, text: str) -> None:
         try:
             execute_statements(text)
-        except exceptions.UnexpectedInput as e:  # Covers most parsing errors
-            print(f'{e.get_context(text)}{exception_type(e)} at line {e.line}, column {e.column}.{get_expected(e)}')
-        except Exception as e:
-            print(exception_type(e), ': ', str(e))
+        except exceptions.UnexpectedInput as e:
+            print(format_unexpected_input(e))
+        except ExitingException as e:
+            print_app_exiting(e)
+            # The only exit interactive mode "honors" is the actual exit request
+            # With assertions, fatal errors, et al, we just continue
+            if e.statement.data == 'exit':
+                sys.exit(e.exit_code)
+        except (ValueError, TypeError, OSError) as e:
+            print(format_generic_exception(e))
 
     @property
     def debug(self) -> bool: return self._dd.is_debug()
@@ -993,12 +1015,12 @@ def main():
         description="Generic Reporting for Hashicorp Vault - prototype"
     )
     group = parser.add_mutually_exclusive_group()
-    group.add_argument('-e', '--execute', type=str, metavar='STATEMENTS', help='Execute the given statements')
+    group.add_argument('-e', '--execute', action='append', metavar='STATEMENTS', help='Execute the given statements')
     group.add_argument('-f', '--file', action='append', metavar='FILE', help='Execute statements stored in a file')
     parser.add_argument('--verbose', action='store_true', help="Enable verbose mode")
     parser.add_argument('--debug', action='store_true', help="Enable debug mode")
     parser.add_argument('--echo', action='store_true', help="Enable statement echo")
-    parser.add_argument('--grammar',  metavar="FILE", type=str, default='vgr.ebnf', help='Grammar definition')
+    parser.add_argument('--grammar',  metavar="FILE", type=str, help='Grammar definition')
     parser.add_argument('user_args', nargs='*', metavar='NAME=VALUE', help='Additional arguments')
     parsed = parser.parse_args()
 
@@ -1028,38 +1050,55 @@ def main():
 
     _REDIR = IORedirector()
 
-    with open(parsed.grammar, "r", encoding="utf-8") as file:
+    grammar_file: str = parsed.grammar
+    if not grammar_file:
+        grammar_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'vgr.ebnf')
+    print_debug('Grammar file is', grammar_file)
+    with open(grammar_file, "r", encoding="utf-8") as file:
         grammar = file.read()
         generated = '\n\n'.join((
             get_function_defs(),
             'TARGET: ' + ' | '.join(tuple(f'"{t}"i' for t in _VALID_TARGETS)),
         ))
+        print_debug('Generated grammar =', generated)
         grammar = grammar.format(GENERATED_CODE=generated)
         _DD.set_var(None, grammar, *_GRAMMAR_PATH)
         _PARSER = Lark(grammar, start='statements', parser='lalr', debug=True, propagate_positions=True)
 
-    if parsed.execute:
-        # For simple statements directly on the command line
-        execute_statements(parsed.execute)
-    elif parsed.file:
-        # NB: we don't "sandbox" these files like we do with others
-        for filepath in parsed.file:
-            # For statements stored in a file
-            statement_text = None
-            try:
+    # The user can execute statements through multiple methods,
+    # including all at once. However, if they haven't, and there is
+    # an interactive source for text, we drop into a tiny shell
+    # that can be used for interactive testing.
+    try:
+        if parsed.execute:
+            # For simple statements directly on the command line
+            for statement in parsed.execute:
+                execute_statements(statement, '<arg>')
+        if parsed.file:
+            # NB: we don't "sandbox" these files like we do with others
+            for filepath in parsed.file:
+                # For statements stored in a file
+                statement_text = None
                 with open(filepath, 'r', encoding='utf-8') as f:
                     statement_text = f.read()
-            except OSError as e:
-                print_stderr(f"Error reading file {filepath}: {e}")
-                break
-            execute_statements(statement_text, filepath)
-    else:
-        if not sys.stdin.isatty():
-            # Read from stdin, most likely from a "here" document
-            execute_statements(sys.stdin.read())
+                execute_statements(statement_text, filepath)
+        if sys.stdin.isatty():
+            if not parsed.execute and not parsed.file:
+                execute_interactive()
         else:
-            # Interactive execution of one or more statements
-            execute_interactive()
+            # Read from stdin, most likely from a "here" document
+            # but can be from a pipe or just a "<"
+            execute_statements(sys.stdin.read(), '<stdin>')
+        sys.exit(_EXIT_SUCCESS)
+    except ExitingException as e:
+        print_app_exiting(e)
+        sys.exit(e.exit_code)
+    except exceptions.UnexpectedInput as e:
+        print_stderr(format_unexpected_input(e))
+        sys.exit(_EXIT_FAILED)
+    except (ValueError, TypeError, OSError) as e:
+        print_stderr(format_generic_exception(e))
+        sys.exit(_EXIT_FAILED)
 
 if __name__ == '__main__':
     main()
