@@ -5,14 +5,29 @@ from .base import RecordWriter, DelegatingRecordWriter
 
 class RecordCartesianProduct(DelegatingRecordWriter):
 
-    def __init__(self, delegate: RecordWriter, product: list[bool], **kwargs):
+    def __init__(self, delegate: RecordWriter, **kwargs):
+        """Use product: list[bool] to set columns to use in product"""
         super().__init__(delegate)
-        self._product = product
+        self._product = None
+        self._setattrs(**kwargs)
 
     @classmethod
-    def wrap(cls, output: RecordWriter, projections: list[bool]) -> RecordWriter:
-        """Wraps output if applicable"""
-        return RecordCartesianProduct(output, projections) if any(projections) else output
+    def wrap(cls, output: RecordWriter, **kwargs) -> RecordWriter:
+        """
+        Wraps output if applicable
+        Use product: list[bool] to set columns to use in product
+        """
+        product: list[bool] = kwargs.get('product', None)
+        if not isinstance(product, list): return output
+        return RecordCartesianProduct(output, **kwargs) if any(product) else output
+
+    @property
+    def product(self) -> list[bool]:
+        return self._product
+
+    @product.setter
+    def product(self, product: list[bool]):
+        self._product = product if isinstance(product, list) and len(product) > 0 else None
 
     def write(self, record: list[any]) -> bool:
         for row in self._row_product(record):
@@ -38,7 +53,7 @@ class RecordCartesianProduct(DelegatingRecordWriter):
                 # not a product: treat as a list of one regardless of type
                 iterable_values.append([value])
         # itertools perform the product and we yeild multiple rows of data
-        for x in itertools.product(*iterable_values): yield x
+        yield from itertools.product(*iterable_values)
 
-
-
+    def _attrs(self) -> list:
+        return super()._attrs() + ['product']

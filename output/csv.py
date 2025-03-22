@@ -100,6 +100,8 @@ class CSVRecordWriter(FileRecordWriter):
             super().finish()
 
     def write(self, record: list[any]) -> bool:
+        # TODO / BUG we don't want to change numbers tostrings
+
         self._writer.writerow(self.stringify(record))
         self._flush_str()
         return True

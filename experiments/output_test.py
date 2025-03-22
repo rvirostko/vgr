@@ -66,8 +66,13 @@ def main():
                                             out: RecordWriter = create(output_type=output_type, encode_ascii=encode_ascii, headers=headers, compact=compact, include_null=include_null, indent=indent, sort_keys=sort_keys, omit_headers=omit_headers)
                                             # Order is important since projections can generate more than one row
                                             # It depends upon how you want to interpret the limit/offset, and that is TBD
-                                            out = RecordLimiter.wrap(out, limit=limit, offset=offset)
-                                            out = RecordCartesianProduct.wrap(out, product)
+                                            wrapper_config = {
+                                                'limit': limit,
+                                                'offset': offset,
+                                                'product': product,
+                                            }
+                                            out = RecordLimiter.wrap(out, **wrapper_config)
+                                            out = RecordCartesianProduct.wrap(out, **wrapper_config)
                                             print(repr(out), flush=True)
                                             print(f'{output_type}-', flush=True)
                                             if out.start():
