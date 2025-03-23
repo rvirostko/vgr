@@ -1,4 +1,5 @@
 #! /usr/bin/python3
+# pylint: skip-file
 
 import sys
 import os

@@ -1,3 +1,5 @@
+# pylint: skip-file
+
 import mistune
 #from mistune.renderers import BaseRenderer
 from blessed import Terminal
