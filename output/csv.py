@@ -38,7 +38,7 @@ class CSVRecordWriter(FileRecordWriter):
         return self._delimiter
 
     @delimiter.setter
-    def set_delimiter(self, value: str):
+    def delimiter(self, value: str):
         self._delimiter = self._sanitize_char(value, self.__DEFAULT_DELIMITER)
 
     @property
@@ -90,7 +90,7 @@ class CSVRecordWriter(FileRecordWriter):
                                   quotechar=self._quotechar,
                                   escapechar=self._escapechar,
                                   lineterminator=self._lineterminator,
-                                  quoting=self._quoting
+                                  quoting=self._quoting,
                                 )
         self._flush_str()
         return super().start()
