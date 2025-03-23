@@ -172,11 +172,15 @@ def main():
         print_app_exiting(dd, e)
         sys.exit(e.exit_code)
     except exceptions.UnexpectedInput as e:
+        if dd.is_debug():
+            traceback.print_exc(file=sys.stderr)
         print_stderr(format_unexpected_input(e))
         print_debug(dd, e)
         sys.exit(ExitingException.EXIT_FAILED)
     except (ValueError, TypeError, OSError) as e:
-        print_stderr(format_generic_exception(e))
+        if dd.is_debug():
+            traceback.print_exc(file=sys.stderr)
+        print_stderr(format_generic_exception(e)) # TODO statment mgr
         print_debug(dd, e)
         sys.exit(ExitingException.EXIT_FAILED)
 
