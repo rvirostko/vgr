@@ -26,6 +26,7 @@ _TOKEN_PASS = ('NAME',)
 _TERMINALS = []
 
 def remember_terminals(parser: Lark) -> None:
+    _TERMINALS.clear()
     _TERMINALS.extend(parser.parser.lexer_conf.terminals)
 
 def token_value(token_name) -> str:
