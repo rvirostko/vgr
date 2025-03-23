@@ -7,10 +7,6 @@
 # Test out printf syntax
 # int, float, str, and array
 
-Echo False
-Verbose False
-Debug False
-
 -- Generate our "threes" data
     set t.three_int = 3
     set t.three_float = t.three_int.float()
@@ -91,8 +87,8 @@ Debug False
     printf fmt, "<=", w.repr(), v.repr(), w >= v
     Print
 
--- Try out asserts to check these
+-- Use asserts to check these
     Assert (v == t.three_int) == False : "Invalid array distribution for equals"
-    Assert (t.three.float == v) == False : "Invaid array distribution for equals"
+    Assert (t.three_float == v) == False : "Invaid array distribution for equals"
 
 EOF

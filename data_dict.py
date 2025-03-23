@@ -24,19 +24,18 @@ class DataDictionary():
     # These can't appear in a path name (to prevent confusion)
     _RESERVED_WORDS = ('true', 'false', 'none', 'null', 'inf', 'nan')
 
-    _DD = {}
-
     def __init__(self):
+        self._dd = {}
         self._immutable_prefixes = tuple()
         self._protected_prefixes = tuple()
         self.add_immutable_prefix(self._ENV_PREFIX)
-        self.set_var(self._DD, self._get_environment(), self._ENV_PREFIX)
+        self.set_var(self._dd, self._get_environment(), self._ENV_PREFIX)
         self.add_immutable_prefix(self._STRING_PREFIX)
-        self.set_var(self._DD, self._get_string_consts(), self._STRING_PREFIX)
+        self.set_var(self._dd, self._get_string_consts(), self._STRING_PREFIX)
         self.add_immutable_prefix(self._MATH_PREFIX)
-        self.set_var(self._DD, self._get_math_consts(), self._MATH_PREFIX)
+        self.set_var(self._dd, self._get_math_consts(), self._MATH_PREFIX)
         self.add_immutable_prefix(self._OS_PREFIX)
-        self.set_var(self._DD, self._get_os_consts(), self._OS_PREFIX)
+        self.set_var(self._dd, self._get_os_consts(), self._OS_PREFIX)
         # Id like these to move...
         self.set_debug(False)
         self.set_echo(False)
@@ -50,29 +49,29 @@ class DataDictionary():
         """Protected prefixes means you can change any part of them, but not at the top-level"""
         self._protected_prefixes += (prefix, )
 
-    def keys(self): return self._DD.keys()
+    def keys(self): return self._dd.keys()
 
     # This block might be moving... At least echo should
-    def set_debug(self, v: bool=True) -> None: self.set_var(self._DD, bool(v), self._ARG_PREFIX, self._DEBUG_VAR)
-    def set_verbose(self, v: bool=True) -> None: self.set_var(self._DD, bool(v), self._ARG_PREFIX, self._VERBOSE_VAR)
-    def set_echo(self, v: bool=True) -> None: self.set_var(self._DD, bool(v), self._ARG_PREFIX, self._ECHO_VAR)
-    def is_debug(self) -> bool: return bool(self.get_var(self._DD, self._ARG_PREFIX, self._DEBUG_VAR))
-    def is_echo(self) -> bool: return bool(self.get_var(self._DD, self._ARG_PREFIX, self._ECHO_VAR))
-    def is_verbose(self) -> bool: return bool(self.get_var(self._DD, self._ARG_PREFIX, self._VERBOSE_VAR))
+    def set_debug(self, v: bool=True) -> None: self.set_var(self._dd, bool(v), self._ARG_PREFIX, self._DEBUG_VAR)
+    def set_verbose(self, v: bool=True) -> None: self.set_var(self._dd, bool(v), self._ARG_PREFIX, self._VERBOSE_VAR)
+    def set_echo(self, v: bool=True) -> None: self.set_var(self._dd, bool(v), self._ARG_PREFIX, self._ECHO_VAR)
+    def is_debug(self) -> bool: return bool(self.get_var(self._dd, self._ARG_PREFIX, self._DEBUG_VAR))
+    def is_echo(self) -> bool: return bool(self.get_var(self._dd, self._ARG_PREFIX, self._ECHO_VAR))
+    def is_verbose(self) -> bool: return bool(self.get_var(self._dd, self._ARG_PREFIX, self._VERBOSE_VAR))
 
     def set_var_user(self, value: Any, *path: str) -> None:
         """
         Set an item within the dictionary.
         This is a method to call with user input.
         """
-        self.set_var(self._DD, value, *self._validate_user_set_path(*self._validate_user_path(*path)))
+        self.set_var(self._dd, value, *self._validate_user_set_path(*self._validate_user_path(*path)))
 
     def get_var_user(self, *path: str) -> Any:
         """
         Get an item within the dictionary.
         This is a method to call with user input.
         """
-        return self.get_var_user_relative(self._DD, *self._validate_user_path(*path))
+        return self.get_var_user_relative(self._dd, *self._validate_user_path(*path))
 
     def get_var_user_relative(self, start: dict, *path: str) -> Any:
         """
@@ -86,7 +85,7 @@ class DataDictionary():
         Called with vetted user args or can be called directly.
         Pass in None for start when traversing a full path.
         """
-        current = start or self._DD
+        current = start or self._dd
         for step in path[:-1]:
             # If the next step doesn't exist, create it as dictionary
             next_step = current.setdefault(step, {})
@@ -103,7 +102,7 @@ class DataDictionary():
         Called with vetted user args or can be called directly.
         Pass in None for data when traversing a full path
         """
-        data = data or self._DD
+        data = data or self._dd
         for key in path:
             if not isinstance(data, dict) or key not in data: return None
             data = data[key]
