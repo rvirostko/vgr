@@ -1,5 +1,8 @@
 #! /usr/bin/env python3
 
+import sys
+import traceback
+
 from lark import Lark, Tree, exceptions
 
 from src_mgr import SSM
@@ -39,7 +42,8 @@ def get_expected(e: Exception) -> str:
     if hasattr(e, 'token') and e.token:
         rc += token_value(e.token) + 'unexpected.'
     if hasattr(e, 'expected') and e.expected:
-        expected = [e.expected]
+        expected = e.expected
+        if not isinstance(expected, (list, tuple, set)): expected = [expected]
         if expected:
             rc = '\nExpected '
             values = [token_value(tok) for tok in sorted(expected)]
@@ -67,8 +71,18 @@ def exception_type(e: Exception) -> str:
     return _ERROR_XLATE.get(etype, etype.__name__)
 
 def format_generic_exception(e: Exception) -> str:
-    return exception_type(e) + ': ' + str(e)
+    try:
+        return exception_type(e) + ': ' + str(e)
+    except (TypeError, ValueError) as e2:
+        traceback.print_exc(file=sys.stderr)
+        print(e2, file=sys.stderr)
+        return str(e)
 
 def format_unexpected_input(e: exceptions.UnexpectedInput) -> str:
-    # TODO get file name if applicable
-    return f'{e.get_context(SSM.statement_text())}{exception_type(e)} at line {e.line}, column {e.column}.{get_expected(e)}'
+    try:
+        # TODO get file name if applicable
+        return f'{e.get_context(SSM.statement_text())}{exception_type(e)} at line {e.line}, column {e.column}.{get_expected(e)}'
+    except (TypeError, ValueError) as e2:
+        traceback.print_exc(file=sys.stderr)
+        print(e2, file=sys.stderr)
+        return str(e)
