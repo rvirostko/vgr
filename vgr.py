@@ -4,6 +4,7 @@ from typing import Any
 import argparse
 import os
 import sys
+import traceback
 
 from lark import Lark, exceptions
 
@@ -45,7 +46,10 @@ class VGRCmdLine(CmdLine):
         try:
             execute_statements(self._parser, self._dd, text)
         except exceptions.UnexpectedInput as e:
-            print(format_unexpected_input(e))
+            if self.debug:
+                traceback.print_exc(file=sys.stderr)
+            else:
+                print(format_unexpected_input(e))
         except ExitingException as e:
             print_app_exiting(self._dd, e)
             # The only exit interactive mode "honors" is the actual exit request
@@ -53,7 +57,10 @@ class VGRCmdLine(CmdLine):
             if e.statement.data == 'exit':
                 sys.exit(e.exit_code)
         except (ValueError, TypeError, OSError) as e:
-            print(format_generic_exception(e))
+            if self.debug:
+                traceback.print_exc(file=sys.stderr)
+            else:
+                print(format_generic_exception(e))
 
     @property
     def debug(self) -> bool: return self._dd.is_debug()
@@ -66,30 +73,30 @@ class VGRCmdLine(CmdLine):
 
     @property
     def prompt(self) -> str:
-        return str(self._dd.get_var(None, *self._PROMPT_PATH) or self._DEFAULT_PROMPT)
+        return str(self._dd.get_var(*self._PROMPT_PATH) or self._DEFAULT_PROMPT)
 
     @prompt.setter
     def prompt(self, value: str):
-        self._dd.set_var(None, value or self._DEFAULT_PROMPT, *self._PROMPT_PATH)
+        self._dd.set_var(value or self._DEFAULT_PROMPT, *self._PROMPT_PATH)
 
     @property
     def history_filename(self) -> str:
-        return expand_filename(str(self._dd.get_var(None, *self._HISTORY_PATH) or self._DEFAULT_HISTORY))
+        return expand_filename(str(self._dd.get_var(*self._HISTORY_PATH) or self._DEFAULT_HISTORY))
 
     @history_filename.setter
     def history_filename(self, value: str) -> None:
-        self._dd.set_var(None, expand_filename(value or self._DEFAULT_HISTORY), *self._HISTORY_PATH)
+        self._dd.set_var(expand_filename(value or self._DEFAULT_HISTORY), *self._HISTORY_PATH)
 
     @property
     def max_history_entries(self) -> int:
         try:
-            return int(self._dd.get_var(None, *self._HISTORY_SIZE_PATH) or self._DEFAULT_HISTORY_SIZE)
+            return int(self._dd.get_var(*self._HISTORY_SIZE_PATH) or self._DEFAULT_HISTORY_SIZE)
         except ValueError:
             return self._DEFAULT_HISTORY_SIZE
 
     @max_history_entries.setter
     def max_history_entries(self, value: int) -> None:
-        self._dd.set_var(None, value or self._DEFAULT_HISTORY_SIZE, *self._HISTORY_SIZE_PATH)
+        self._dd.set_var(value or self._DEFAULT_HISTORY_SIZE, *self._HISTORY_SIZE_PATH)
 
     def _get_vgr_default(self, env_var: str, default: Any) -> str:
         """Look for a matching environment variable (uppercase) and return it or the default value"""

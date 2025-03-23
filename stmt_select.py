@@ -4,6 +4,7 @@ from lark import Tree, Token, Transformer, Visitor
 from data_dict import DataDictionary
 from evaluate import eval_to_int
 from src_mgr import SSM
+from dbg import print_tree
 
 VALID_TARGETS = ['ns', 'mount', 'aws', 'kv', 'ldap', 'db', 'db_role']
 
@@ -89,6 +90,8 @@ class ImplicitContextAdder(Transformer):
     def add_contexts(self, tree, target: str, valid_contexts):
         try:
             self._target = target
+            print(repr(target))
+            print(repr(valid_contexts))
             self._valid_contexts = valid_contexts
             return super().transform(tree)
         finally:
@@ -109,8 +112,9 @@ def execute_select(dd: DataDictionary, statement: Tree):
     # If the user has defined something, or it is one of the pre-loaded
     # prefixes or the target types, then it is a known context and
     # not subject to getting the target prefix added to it
-    statement = ImplicitContextAdder().add_contexts(statement, ts.get_target(), VALID_TARGETS + dd.keys())
+    statement = ImplicitContextAdder().add_contexts(statement, ts.get_target(), VALID_TARGETS + [*dd.keys()])
     ts.split(statement)
+    print_tree(statement) # TODO
     print(f'Target     : {ts.get_target()}')
     print(f'Predicates : {len(ts.get_predicates())}')
     for i, p in enumerate(ts.get_predicates()): print(f'\t{i + 1} : {SSM.source_for(p)}')

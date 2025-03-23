@@ -21,8 +21,8 @@ def dd_init() -> DataDictionary:
     # Since we don't allow the env space to be changed,
     # we have to keep our own copies for the user to change with
     # either Set or with command line arguments
-    dd.set_var(None, os.getenv('OFS', ' '), *OFS_PATH)
-    dd.set_var(None, os.getenv('ORS', '\n'), *ORS_PATH)
+    dd.set_var(os.getenv('OFS', ' '), *OFS_PATH)
+    dd.set_var(os.getenv('ORS', '\n'), *ORS_PATH)
     return dd
 
 def dd_parse_user_args(dd: DataDictionary, user_args: list) -> None:
@@ -35,10 +35,10 @@ def dd_parse_user_args(dd: DataDictionary, user_args: list) -> None:
                 # Strip off the quotes
                 match = re.fullmatch(r'\s*"([^"]*)"\s*', value)
                 path = (_ARG_PREFIX,) + path
-                dd.set_var(None, match.group(1) if match else coerce_value(value), *path)
+                dd.set_var(match.group(1) if match else coerce_value(value), *path)
 
 def dd_set_statement(dd: DataDictionary, statement_text: str) -> str:
-    dd.set_var(None, statement_text, *_STATEMENT_PATH)
+    dd.set_var(statement_text, *_STATEMENT_PATH)
 
 def dd_set_grammar(dd: DataDictionary, grammar: str) -> str:
-    dd.set_var(None, grammar, *_GRAMMAR_PATH)
+    dd.set_var(grammar, *_GRAMMAR_PATH)

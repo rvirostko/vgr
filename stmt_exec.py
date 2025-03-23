@@ -9,7 +9,7 @@ from lark import Lark, Tree, Token, Transformer, v_args
 from app_exceptions import remember_terminals
 from data_dict import DataDictionary
 from dd_config import dd_set_statement
-from evaluate import bind_operations, Operation
+from evaluate import bind_operations
 from redir import print_stderr, execute_open, execute_close
 from src_mgr import SSM
 from stmt_cflags import execute_debug, execute_echo, execute_verbose
@@ -18,6 +18,7 @@ from stmt_print import execute_exhibit, execute_print, execute_printf
 from stmt_select import execute_select
 from stmt_set import execute_load_from, execute_set
 from stmt_zip import execute_zip
+from dbg import print_tree
 
 # pylint: disable=invalid-name
 # disabled because we MUST have methods named the same as the tokens
@@ -96,18 +97,3 @@ def execute_statements(parser: Lark, dd: DataDictionary, statement_text: str, so
         if dd.is_echo(): print_stderr(text)
         if dd.is_debug(): print_tree(statement)
         handler(dd, statement)
-
-def print_tree(item: Any, indent=2) -> None:
-    prefix = ' ' * indent  # Indentation for nested levels
-    if isinstance(item, Tree):
-        tree: Tree = item
-        op = f':{tree.op_name()}' if isinstance(item, Operation) else ''
-        print_stderr(f'{prefix}({tree.data}{op}', end=('\n' if tree.children else ''))
-        for child in tree.children: print_tree(child, indent + 2)
-        print_stderr(f'{prefix if tree.children else ""})')  # close the rule
-    else:
-        if isinstance(item, Token):
-            token: Token = item
-            print_stderr(f'{prefix}{token.type}: {token.value} (Pos: {token.line}:{token.column} {type(token.value).__name__})')
-        else:
-            raise ValueError(item.type()) # What else can there be?
