@@ -103,53 +103,44 @@ select: "Select"i outputs? "From"i TARGET where_clause? product_clause? limit_cl
     | "For"i for_template
 
 for_json: "JSON"i (json_option (_COMMA json_option)*)?
-?json_option: encode_ascii
-    | encode_unicode
-    | encode_unicode_sig
-    | "Root"i NAME -> root
-    | "Indent"i (DEC_NUMBER | NONE | var_name) -> indent
-    | "Compact"i -> compact
-    | include_nulls
-    | exclude_nulls
-    | "With" "Array"i? "Wrapper"i -> with_wrapper
-    | ("Without"i | "No"i) "Array"i? "Wrapper"i -> no_wrapper
-    | ("Sort"i "Keys"i? | "Sorted"i) -> sorted
+?json_option: "Encode"i? "Ascii"i (("=" | ":=") expr)? -> encode_ascii
+    | "Encode"i? ("Unicode"i | "UTF8"i | "UTF-8"i) (("=" | ":=") expr)? -> encode_unicode
+    | "Root"i (("=" | ":=") expr)? -> root
+    | "Indent"i (("=" | ":=") expr)? -> indent
+    | "Compact"i (("=" | ":=") expr)? -> compact
+    | "Exclude"i ("Nulls"i | "Null"i "Values"i) (("=" | ":=") expr)? -> exclude_nulls
+    | "Include"i ("Nulls"i | "Null"i "Values"i) (("=" | ":=") expr)? -> include_nulls
+    | "With"i? "Array"i "Wrapper"i (("=" | ":=") expr)? -> array_wrapper
+    | ("Without"i | "No"i) "Array"i "Wrapper"i (("=" | ":=") expr)? -> no_array_wrapper
+    | ("Sort"i "Keys"i? | "Sorted"i) (("=" | ":=") expr)? -> sort_keys
 
 for_csv: "CSV"i (csv_option (_COMMA csv_option)*)?
-?csv_option: encode_ascii
-    | encode_unicode
-    | encode_unicode_sig
-    | "Delimiter"i (ESCAPED_STRING | var_name) -> delimiter
-    | "Quote"i ("Char"i | "Character"i) (ESCAPED_STRING | var_name) -> quotechar
-    | "Escape"i ("Char"i | "Character"i) (ESCAPED_STRING | var_name) -> escapechar
-    | "Line"i ("Ender"i | "Terminator"i) (ESCAPED_STRING | var_name) -> lineterminator
-    | "Quote"i CSV_QUOTE_TYPE
-    | omit_headers
+?csv_option: "Encode"i? "Ascii"i (("=" | ":=") expr)? -> encode_ascii
+    | "Encode"i? ("Unicode"i | "UTF8"i | "UTF-8"i) (("=" | ":=") expr)? -> encode_unicode
+    | "Delimiter"i ("=" | ":=") expr -> delimiter
+    | "Quote"i ("Char"i | "Character"i) ("=" | ":=") expr -> quotechar
+    | "Escape"i ("Char"i | "Character"i) ("=" | ":=") expr -> escapechar
+    | "Line"i ("Ender"i | "Terminator"i) ("=" | ":=") expr -> lineterminator
+    | "Quote"i CSV_QUOTE_TYPE -> quoting
+    | "Include"i "Headers"i (("=" | ":=") expr)? -> include_headers
+    | ("No"i | "Omit"i) "Headers"i (("=" | ":=") expr)? -> omit_headers
 CSV_QUOTE_TYPE: "Minimal"i | "All"i | "Nonnumeric"i | "None"i
 
 for_markdown: "MarkDown"i (markdown_option (_COMMA markdown_option)*)?
-?markdown_option: encode_ascii
-    | encode_unicode
-    | encode_unicode_sig
-    | omit_headers
+?markdown_option: "Encode"i? "Ascii"i (("=" | ":=") expr)? -> encode_ascii
+    | "Encode"i? ("Unicode"i | "UTF8"i | "UTF-8"i) (("=" | ":=") expr)? -> encode_unicode
+    | "Include"i "Headers"i (("=" | ":=") expr)? -> include_headers
+    | ("No"i | "Omit"i) "Headers"i (("=" | ":=") expr)? -> omit_headers
 
-for_template: TEMPLATE_TYPE? "Template"i "File"i? (ESCAPED_STRING | var_name) (_COMMA template_option)*
+for_template: TEMPLATE_TYPE? "Template"i "File"i? expr (_COMMA template_option)*
 TEMPLATE_TYPE: "Record"i | "Batch"i
-?template_option: encode_ascii
-    | encode_unicode
-    | encode_unicode_sig
-    | "Auto"i "Escape"i -> auto_escape
-    | "Debug"i -> debug
-    | include_nulls
-    | exclude_nulls
-    | "Tags"i (ESCAPED_STRING | var_name) -> tags
-
-encode_ascii: "Ascii"i
-encode_unicode: "Unicode"i | "UTF8"i | "UTF-8"i
-encode_unicode_sig: "Excel"i | "UTF-8-SIG"i | "UTF8-SIG"i
-exclude_nulls: ("Exclude"i | "No"i | "Without"i) ("Nulls"i | "Null"i "Values"i)
-include_nulls: ("Include"i | "With"i) ("Nulls"i | "Null"i "Values"i)
-omit_headers: ("Omit"i | "No"i) "Headers"i
+?template_option: "Encode"i? "Ascii"i (("=" | ":=") expr)? -> encode_ascii
+    | "Encode"i? ("Unicode"i | "UTF8"i | "UTF-8"i) (("=" | ":=") expr)? -> encode_unicode
+    | "Auto"i "Escape"i (("=" | ":=") expr)? -> auto_escape
+    | "Debug"i (("=" | ":=") expr)? -> debug
+    | "Exclude"i ("Nulls"i | "Null"i "Values"i) (("=" | ":=") expr)? -> exclude_nulls
+    | "Include"i ("Nulls"i | "Null"i "Values"i) (("=" | ":=") expr)? -> include_nulls
+// TODO    | "Tags"i expr -> tags
 
 // TODO future
 //join_clause: "Join"i TARGET "To"i NAME join_as? join_using?
@@ -177,7 +168,7 @@ product_clause: "Cartesian"i? "Product"i product_cols
 product_cols: "All"i -> all
     | "None"i -> none
     | col_spec (_COMMA col_spec)*
-?col_spec: DEC_NUMBER
+?col_spec: DEC_NUMBER // One based
     | NAME
     | ESCAPED_STRING
 

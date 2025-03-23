@@ -13,13 +13,13 @@ class JSONRecordWriter(FileRecordWriter):
         self._root = None
         self._indent = 2
         self._compact = False
-        self._include_null = True
+        self._include_nulls = True
         self._sort_keys = False
         self._array_wrapper = True
         self._setattrs(**kwargs)
 
     def _attrs(self) -> list:
-        return super()._attrs() + ['root', 'indent', 'compact', 'include_null', 'sort_keys', 'array_wrapper' ]
+        return super()._attrs() + ['root', 'indent', 'compact', 'include_nulls', 'sort_keys', 'array_wrapper' ]
 
     @property
     def root(self) -> str:
@@ -47,12 +47,12 @@ class JSONRecordWriter(FileRecordWriter):
         if enable: self.indent = 0
 
     @property
-    def include_null(self) -> bool:
-        return self._include_null
+    def include_nulls(self) -> bool:
+        return self._include_nulls
 
-    @include_null.setter
-    def include_null(self, enable: bool):
-        self._include_null = bool(enable)
+    @include_nulls.setter
+    def include_nulls(self, enable: bool):
+        self._include_nulls = bool(enable)
 
     @property
     def sort_keys(self) -> bool:
@@ -86,7 +86,7 @@ class JSONRecordWriter(FileRecordWriter):
         return True
 
     def write(self, record: list[any]) -> bool:
-        self._formater.write(self.objectify(record, self._include_null))
+        self._formater.write(self.objectify(record, self._include_nulls))
         return True
 
     def finish(self) -> None:

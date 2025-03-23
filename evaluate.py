@@ -112,9 +112,10 @@ def eval_expr(dd: DataDictionary, expr: Any) -> Any:
             return expr.execute(dd, tuple(eval_expr(dd, arg_exp) for arg_exp in expr.children))
         if isinstance(expr, Operation):
             return expr.execute(tuple(eval_expr(dd, arg_exp) for arg_exp in expr.children))
-        raise NotImplementedError(f'Unhandled type {expr.data}')
+        # TODO "arrays not working?"
+        raise NotImplementedError(f'Unhandled type {repr(expr.data)}')
     if isinstance(expr, Token): return expr.value
-    raise NotImplementedError(f'Unknown type {expr.type()}')
+    raise NotImplementedError(f'Unknown type {repr(expr.type())}')
 
 def eval_to_str(dd: DataDictionary, expr: Tree, name: str) -> str:
     """Helper that makes sure you got a string back from an expression"""
