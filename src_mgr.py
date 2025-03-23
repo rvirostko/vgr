@@ -56,4 +56,3 @@ class StatementSourceMgr:
         return start_pos, end_pos
 
 SSM = StatementSourceMgr()
-
