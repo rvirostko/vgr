@@ -84,8 +84,8 @@ def execute_statements(parser: Lark, dd: DataDictionary, statement_text: str, so
     statement_text = remove_comments(statement_text)
     if not statement_text or statement_text.isspace(): return
     remember_terminals(parser)
-    statements: Tree = parser.parse(statement_text)
     SSM.set_statement(statement_text, source)
+    statements: Tree = parser.parse(statement_text)
     for statement in statements.children:
         text = statement_text[statement.meta.start_pos : statement.meta.end_pos]
         dd_set_statement(dd, text)
