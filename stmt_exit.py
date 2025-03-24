@@ -52,7 +52,7 @@ Execution ends with an exit code of 1 indicating failure
         msg: str = None
         if len(exprs) > 0:
             try:
-                msg = eval_to_str(dd, exprs.pop(0), 'Format string')
+                msg = eval_to_str(dd, exprs.pop(0), 'Format string', True)
                 if msg is not None: msg = msg.format(*[eval_expr(dd, expr) for expr in exprs])
             except (ValueError, TypeError) as e:
                 print_stderr(f'While evaluating {SSM.source_for(statement)} on line {statement.meta.line}: ', e)
