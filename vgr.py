@@ -190,8 +190,9 @@ Environment variables:
     #     an ordered list.
     exit_code: int = None
     try:
+        ordered_args = args.ordered if hasattr(args, "ordered") else []
         # Accumulated -e/-f options, stored in the order given
-        for opt in args.ordered or []:
+        for opt in ordered_args:
             stype, svalue = opt
             if stype == 'e':
                 # Simple statements directly on the command line
@@ -215,7 +216,7 @@ Environment variables:
             # "--shell" forces opening a shell
             # "--shell false" prevents opening it
             # when not given, we look to having previously executed -e/f commands
-            if args.shell is True or (args.shell is None and not args.ordered) :
+            if args.shell is True or (args.shell is None and not ordered_args):
                 print_verbose(dd, 'Starting the shell...')
                 VGRCmdLine(parser, dd).run()
                 print_verbose(dd, 'Shell exited')

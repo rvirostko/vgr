@@ -104,6 +104,11 @@ class SelectAnalyzer(Visitor):
         """
         Everything else should have been handled by other visitors
         """
+        for i, o in enumerate(self._outputs):
+            text = SSM.source_for(o)
+            label = self.get_label(o)
+            label = '_'.join(text.strip().split()) if label is None else label
+            print(f'\t{i + 1} : {text} "{label}"')
         # TODO should we build things like labels and other defaults here?
         # labels get added to output ops
 
@@ -140,7 +145,7 @@ class SelectAnalyzer(Visitor):
 
     def for_template(self, node: Tree):
         self._output_type = 'template'
-        i: int = 0;
+        i: int = 0
         if isinstance(node.children[i], Token):
             self._output_ops['template_type'] = node.children[i].value.lower()
             i += 1
@@ -239,7 +244,6 @@ def execute_select(dd: DataDictionary, statement: Tree):
     # prefixes or the target types, then it is a known context and
     # not subject to getting the target prefix added to it
     statement = ImplicitContextAdder().add_contexts(statement, target, VALID_TARGETS + [*dd.keys()])
-    print_tree(statement) # TODO
     select = SelectAnalyzer(dd).split(statement)
     print(f'Target     : {target}')
     print(f'Predicates : {len(select.predicates)}')
@@ -250,9 +254,6 @@ def execute_select(dd: DataDictionary, statement: Tree):
         label = select.get_label(o)
         label = '_'.join(text.strip().split()) if label is None else label
         print(f'\t{i + 1} : {text} "{label}"')
-    print(f'Output Ctrl: {repr(select.output_controls)}')
-    print(f'Output As : {repr(select.output_type)}')
-    print(f'Output Opt: {repr(select.output_opts)}')
     t = select.output_opts
     t['headers'] = [ "name", "age", "pos" ] # TODO hack
     writer = create_writer(select.output_type, t, select.output_controls)
