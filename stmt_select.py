@@ -2,9 +2,12 @@
 from lark import Tree, Token, Transformer, Visitor
 
 from data_dict import DataDictionary
-from evaluate import eval_to_bool, eval_to_int, eval_to_str, eval_filename_expr
-from src_mgr import SSM
 from dbg import print_tree
+from evaluate import eval_to_bool, eval_to_int, eval_to_str, eval_filename_expr
+from output import CSVRecordWriter, JSONRecordWriter, MarkdownRecordWriter, TemplateRecordWriter
+from output import RecordWriter, RecordLimiter, RecordCartesianProduct
+from redir import stdout
+from src_mgr import SSM
 
 VALID_TARGETS = ['ns', 'mount', 'aws', 'kv', 'ldap', 'db', 'db_role']
 
@@ -35,7 +38,7 @@ class SelectAnalyzer(Visitor):
     )
 
     _OPT_DISPLAY_NAME = {
-        # I not present, we just capitalize it
+        # If not present, we just capitalize it
         'array_wrapper'    : 'Array Wrapper',
         'auto_escape'      : 'Auto Escape',
         'escapechar'       : 'Escape Character',
@@ -99,10 +102,10 @@ class SelectAnalyzer(Visitor):
     #--- visitor methods
     def select(self, node: Tree):
         """
-        Just recode the target
         Everything else should have been handled by other visitors
         """
         # TODO should we build things like labels and other defaults here?
+        # labels get added to output ops
 
     def output(self, node: Tree):
         self._outputs.append(node)
@@ -112,13 +115,15 @@ class SelectAnalyzer(Visitor):
 
     def where_clause(self, node: Tree):
         self._predicates.extend(node.children)
+        # TODO analyze by usage
 
     def limit_clause(self, node: Tree):
         children = node.children
-        if len(children) >= 1: self._output_controls['limit'] = eval_to_int(self._dd, children[0], 'Limit')
-        if len(children) >= 2: self._output_controls['offset'] = eval_to_int(self._dd, children[1], 'Offset')
+        if len(children) >= 1: self._output_controls['limit'] = self._int_arg(children[0], 'Limit')
+        if len(children) >= 2: self._output_controls['offset'] = self._int_arg(children[1], 'Offset')
 
     def product_clause(self, node: Tree):
+        # TODO
         pass
 
     def for_json(self, node: Tree):
@@ -151,6 +156,7 @@ class SelectAnalyzer(Visitor):
         """This is a unified set of options"""
         for c in node.children[start:]:
             name: str = c.data
+            # First generic options
             if name in self._BOOL_OPTS:
                 self._output_ops[name] = self._bool_arg(c, self._display_name(name))
                 continue
@@ -181,13 +187,13 @@ class SelectAnalyzer(Visitor):
             raise NotImplementedError(f'Output option {repr(name)} of type {self.output_type}')
 
     def _bool_arg(self, node:Tree, name: str) -> bool:
-        return eval_to_bool(self._dd, node.children[0], name) if node.children else True
+        return eval_to_bool(self._dd, node.children[0], name, True) if node.children else True
 
     def _int_arg(self, node:Tree, name: str, default: int=0) -> int:
-        return eval_to_int(self._dd, node.children[0], name) if node.children else default
+        return eval_to_int(self._dd, node.children[0], name, True) if node.children else default
 
     def _str_arg(self, node:Tree, name: str, default: str=None) -> str:
-        return eval_to_str(self._dd, node.children[0], name) if node.children else default
+        return eval_to_str(self._dd, node.children[0], name, True) if node.children else default
 
 class ImplicitContextAdder(Transformer):
     """
@@ -247,3 +253,42 @@ def execute_select(dd: DataDictionary, statement: Tree):
     print(f'Output Ctrl: {repr(select.output_controls)}')
     print(f'Output As : {repr(select.output_type)}')
     print(f'Output Opt: {repr(select.output_opts)}')
+    t = select.output_opts
+    t['headers'] = [ "name", "age", "pos" ] # TODO hack
+    writer = create_writer(select.output_type, t, select.output_controls)
+    print(repr(writer))
+    data = [
+        ["Alice", 25, "Engineer"],
+        ["Bob", 30, "Doctor"],
+        ["Carol", 28, "Data || Analyst"],
+        ["Dave", 35, "Data | Engineer"],
+        ["Jimbo", 22, ["Hobo", "Jerk"]],
+        ["Limbo", None, ["Hobo", "流浪"]],
+        ["Complex", 99, {'a': 1, 'b': [2,3]}]
+    ]
+    if writer.start():
+        try:
+            for row in data:
+                if not writer.write(row): break
+        finally:
+            writer.finish()
+    print(flush=True)
+
+def create_writer(otype: str, opts: dict, controls: dict) -> RecordWriter:
+    writer: RecordWriter = None
+    if otype == 'csv':
+        writer = CSVRecordWriter(stdout(), **opts)
+    elif otype == 'json':
+        writer = JSONRecordWriter(stdout(), **opts)
+    elif otype == 'markdown':
+        writer = MarkdownRecordWriter(stdout(), **opts)
+    elif otype == 'template':
+        writer = TemplateRecordWriter(stdout(), **opts)
+    else:
+        raise NotImplementedError(f'Output type {repr(otype)} not implemented')
+    # Order is important since projections can generate more than one row
+    # It depends upon how you want to interpret the limit/offset, and that is TBD
+    # TODO option on "product" like "before or after limit"
+    writer = RecordLimiter.wrap(writer, **controls)
+    writer = RecordCartesianProduct.wrap(writer, **controls)
+    return writer
