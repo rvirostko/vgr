@@ -39,8 +39,8 @@ _Password is not currently implemented but may be specified_
         arg_type = child.data
         if arg_type == 'include': include_patterns.extend(eval_to_list_str(dd, child, 'Include'))
         elif arg_type == 'exclude': exclude_patterns.extend(eval_to_list_str(dd, child, 'Exclude'))
-        elif arg_type == 'comment': comment = eval_to_str(dd, child.children[0], 'Comment')
-        elif arg_type == 'password': password = eval_to_str(dd, child.children[0], 'Password')
+        elif arg_type == 'comment': comment = eval_to_str(dd, child.children[0], 'Comment', True)
+        elif arg_type == 'password': password = eval_to_str(dd, child.children[0], 'Password', True)
         else: raise ValueError(f'Unhandled type {repr(arg_type)}')
     added_files = set()
     # General follow zip's -r behavior when it comes to subdirs
