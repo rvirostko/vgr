@@ -39,6 +39,7 @@ When on, additional operational output is generated.
     print_verbose(dd, 'Verbose =', dd.is_verbose()) # Yeah... can only print true
 
 def _flag_value(dd: DataDictionary, statement: Tree, name: str) -> bool:
-    # default for a flag is a request to turn on
+    # default behavior for a flag is a request to turn on
     if not statement.children: return True
-    return eval_to_bool(dd, statement.children[0], name)
+    rc = eval_to_bool(dd, statement.children[0], name, True)
+    return False if rc is None else rc
