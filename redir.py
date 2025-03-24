@@ -1,5 +1,7 @@
 #! /usr/bin/env python3
 
+from io import IOBase
+
 from lark import Tree
 
 from evaluate import eval_filename_expr
@@ -8,6 +10,9 @@ from data_dict import DataDictionary
 from app_exceptions import ExitingException
 
 _REDIR = IORedirector()
+
+def stdout() -> IOBase:
+    return _REDIR.stdout()
 
 def print_stdout(*args, **kwargs) -> None:
     """Same as print() except that it can redirect to an output file"""
