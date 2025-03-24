@@ -56,6 +56,9 @@ class VGRCmdLine(CmdLine):
             # With assertions, fatal errors, et al, we just continue
             if e.statement.data == 'exit':
                 sys.exit(e.exit_code)
+            else:
+                if self.debug:
+                    traceback.print_exc(file=sys.stderr)
         except (ValueError, TypeError, OSError) as e:
             if self.debug:
                 traceback.print_exc(file=sys.stderr)
