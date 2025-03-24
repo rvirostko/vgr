@@ -37,8 +37,9 @@ The first expression is resolved to a string used to format the other values
 Formatting syntax is that used in [Python's str.format()](https://docs.python.org/3/library/string.html#formatstrings)
 """
     exprs = [*statement.children]
-    format_string = eval_to_str(dd, exprs.pop(0), 'Format string') if len(exprs) else ''
-    print_stdout(str(format_string).format(*[eval_expr(dd, expr) for expr in exprs]), end='')
+    format_string = eval_to_str(dd, exprs.pop(0), 'Format string', True) if len(exprs) else None
+    if format_string:
+        print_stdout(str(format_string).format(*[eval_expr(dd, expr) for expr in exprs]), end='')
 
 def execute_exhibit(dd: DataDictionary, statement: Tree) -> None:
     """The display the name and values of variables
