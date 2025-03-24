@@ -117,25 +117,28 @@ def eval_expr(dd: DataDictionary, expr: Any) -> Any:
     if isinstance(expr, Token): return expr.value
     raise NotImplementedError(f'Unknown type {repr(expr.type())}')
 
-def eval_to_str(dd: DataDictionary, expr: Tree, name: str) -> str:
+def eval_to_str(dd: DataDictionary, expr: Tree, name: str, allow_none: bool=False) -> str:
     """Helper that makes sure you got a string back from an expression"""
     rc = eval_expr(dd, expr)
+    if rc is None and allow_none: return None
     if not isinstance(rc, str): raise TypeError(f'{name} must be a string; found {type(rc).__name__}')
     return rc
 
-def eval_to_int(dd: DataDictionary, expr: Tree, name: str) -> int:
+def eval_to_int(dd: DataDictionary, expr: Tree, name: str, allow_none: bool=False) -> int:
     rc = eval_expr(dd, expr)
+    if rc is None and allow_none: return None
     if not isinstance(rc, (int, float, str)): raise TypeError(f'{name} must be an integer; found {type(rc).__name__}')
     return poly_int(rc)
 
-def eval_to_bool(dd: DataDictionary, expr: Tree, name: str) -> bool:
+def eval_to_bool(dd: DataDictionary, expr: Tree, name: str, allow_none: bool=False) -> bool:
     rc = eval_expr(dd, expr)
+    if rc is None and allow_none: return None
     if not isinstance(rc, (int, float, bool, str)): raise TypeError(f'{name} must be an boolean; found {type(rc).__name__}')
     return poly_bool(rc)
 
-def eval_filename_expr(dd: DataDictionary, expr: Tree) -> str:
+def eval_filename_expr(dd: DataDictionary, expr: Tree, allow_none: bool=False) -> str:
     """Helper that gets a string that should be a relative filename"""
-    return verify_relative_path(eval_to_str(dd, expr, 'File name'))
+    return verify_relative_path(eval_to_str(dd, expr, 'File name', allow_none))
 
 def eval_to_list_str(dd: DataDictionary, clause: Tree, name: str) -> str:
     return [eval_to_str(dd, expr, name) for expr in clause.children]
