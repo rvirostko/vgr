@@ -85,11 +85,11 @@ open: "Open"i io_type "File"i? expr open_ext? _SEMICOLON?
     | ("No"i "Overwrite"i | "x"i) -> x
 close: "Close"i io_type "File"i? _SEMICOLON? -> close
 
-zip: "Create"i "Zip"i "File"i? expr (zip_option (_COMMA zip_option)*)? _SEMICOLON?
+zip: "Create"i "Zip"i "File"i? expr (_COMMA? zip_option (_COMMA zip_option)*)? _SEMICOLON?
 ?zip_option: "Password"i expr -> password
-    | "Comment"i expr -> comment
-    | "Include"i expr+ -> include
-    | "Exclude"i expr+ -> exclude
+    | "Comment"i ("=" | ":=")? expr -> comment
+    | "Include"i ("=" | ":=")? expr+ -> include
+    | "Exclude"i ("=" | ":=")? expr+ -> exclude
 
 exit: "Exit"i expr? _SEMICOLON?
 
@@ -102,7 +102,7 @@ select: "Select"i outputs? "From"i TARGET where_clause? product_clause? limit_cl
     | "For"i for_markdown
     | "For"i for_template
 
-for_json: "JSON"i (json_option (_COMMA json_option)*)?
+for_json: "JSON"i (_COMMA? json_option (_COMMA json_option)*)?
 ?json_option: "Encode"i? "Ascii"i (("=" | ":=") expr)? -> encode_ascii
     | "Encode"i? ("Unicode"i | "UTF8"i | "UTF-8"i) (("=" | ":=") expr)? -> encode_unicode
     | "Root"i (("=" | ":=") expr)? -> root
@@ -114,7 +114,7 @@ for_json: "JSON"i (json_option (_COMMA json_option)*)?
     | ("Without"i | "No"i) "Array"i "Wrapper"i (("=" | ":=") expr)? -> no_array_wrapper
     | ("Sort"i "Keys"i? | "Sorted"i) (("=" | ":=") expr)? -> sort_keys
 
-for_csv: "CSV"i (csv_option (_COMMA csv_option)*)?
+for_csv: "CSV"i (_COMMA? csv_option (_COMMA csv_option)*)?
 ?csv_option: "Encode"i? "Ascii"i (("=" | ":=") expr)? -> encode_ascii
     | "Encode"i? ("Unicode"i | "UTF8"i | "UTF-8"i) (("=" | ":=") expr)? -> encode_unicode
     | "Delimiter"i ("=" | ":=") expr -> delimiter
@@ -126,13 +126,13 @@ for_csv: "CSV"i (csv_option (_COMMA csv_option)*)?
     | ("No"i | "Omit"i) "Headers"i (("=" | ":=") expr)? -> omit_headers
 CSV_QUOTE_TYPE: "Minimal"i | "All"i | "Nonnumeric"i | "None"i
 
-for_markdown: "MarkDown"i (markdown_option (_COMMA markdown_option)*)?
+for_markdown: "MarkDown"i (_COMMA? markdown_option (_COMMA markdown_option)*)?
 ?markdown_option: "Encode"i? "Ascii"i (("=" | ":=") expr)? -> encode_ascii
     | "Encode"i? ("Unicode"i | "UTF8"i | "UTF-8"i) (("=" | ":=") expr)? -> encode_unicode
     | "Include"i "Headers"i (("=" | ":=") expr)? -> include_headers
     | ("No"i | "Omit"i) "Headers"i (("=" | ":=") expr)? -> omit_headers
 
-for_template: TEMPLATE_TYPE? "Template"i "File"i? expr (_COMMA template_option)*
+for_template: TEMPLATE_TYPE? "Template"i "File"i? expr (_COMMA? template_option (_COMMA template_option)*)?
 TEMPLATE_TYPE: "Record"i | "Batch"i
 ?template_option: "Encode"i? "Ascii"i (("=" | ":=") expr)? -> encode_ascii
     | "Encode"i? ("Unicode"i | "UTF8"i | "UTF-8"i) (("=" | ":=") expr)? -> encode_unicode
@@ -159,9 +159,10 @@ output: expr
 
 where_clause: "Where"i expr (("And"i | "&&") expr)*
 
-// Either LIMIT <number> (OFFSET <number>)? or FETCH FIRST <number> ROWS ONLY
+// Either LIMIT <number> (OFFSET <number>)?
+// or FETCH FIRST <number> ROWS ONLY
 limit_clause: _limit_offset | _fetch_first
-_limit_offset: "Limit"i expr ("Offset"i expr)?
+_limit_offset: "Limit"i ("=" | ":=")? expr (_COMMA? "Offset"i ("=" | ":=")? expr)?
 _fetch_first: "Fetch"i "First"i expr "Rows"i "Only"i
 
 product_clause: "Cartesian"i? "Product"i product_cols
@@ -171,6 +172,7 @@ product_cols: "All"i -> all
 ?col_spec: DEC_NUMBER // One based
     | NAME
     | ESCAPED_STRING
+// TODO: option to say before or after limits
 
 // Flattening operations out here allows the parse tree to hold
 // the operation type explicitly instead of a generic "OP" where
