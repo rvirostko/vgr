@@ -2,7 +2,7 @@
 
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
-from io import FileIO, TextIOWrapper
+from io import IOBase
 from typing import Any
 import json
 import sys
@@ -83,10 +83,9 @@ class DelegatingRecordWriter(RecordWriter):
 
 class FileRecordWriter(RecordWriter):
 
-    def __init__(self, file: FileIO=sys.stdout.buffer):
+    def __init__(self, file: IOBase=sys.stdout):
         super().__init__()
         self._file = file
-        self._output: TextIOWrapper = None
         self._encode_ascii = False
         self._headers = []
         self._omit_headers = False
@@ -133,19 +132,17 @@ class FileRecordWriter(RecordWriter):
         self.encode_ascii = encoding and encoding.strip().lower == 'ascii'
 
     def start(self) -> bool:
-        self._output = FileRecordWriter.NoCloseTextIOWrapper(self._file, encoding=self.encoding)
         if self._headers and not self._omit_headers: self.write_headers()
         return True
 
     def finish(self):
-        if self._output: self._output.flush()
+        self.flush()
 
     def close(self):
         try:
-            if self._output is not None: self._output.close()
+            self.flush()
         finally:
             self._file = None
-            self._output = None
             super().close()
 
     def write_headers(self):
@@ -153,14 +150,14 @@ class FileRecordWriter(RecordWriter):
 
     def print(self, *args: any) -> None:
         """Utility method: does not add separator or line ending"""
-        print(*args, sep='', end='', file=self._output)
+        print(*args, sep='', end='', file=self._file)
 
     def println(self, *args: any) -> None:
         """Utility method: does not add separator"""
-        print(*args, sep='', file=self._output)
+        print(*args, sep='', file=self._file)
 
     def flush(self) -> None:
-        self._output.flush()
+        if self._file: self._file.flush()
 
     def objectify(self, record: list[any], include_nulls: bool=True) -> dict:
         """
@@ -203,10 +200,3 @@ class FileRecordWriter(RecordWriter):
             # Recursively stringify iterable elements (arrays, tuples, etc)
             if isinstance(obj, Iterable): return ", ".join(map(cls.stringify, obj))
         return str(obj)
-
-    class NoCloseTextIOWrapper(TextIOWrapper):
-        """Wrap the output so that we flush, but don't close when told to close.
-        Use this when the stream was pre"""
-        def close(self):
-            # Override the close method to prevent closing the underlying buffer
-            self.flush()
