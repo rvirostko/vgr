@@ -7,7 +7,7 @@ class MarkdownRecordWriter(FileRecordWriter):
     __ESC_BAR = '\\|'
     __WS = [ '\t', '\n', '\r' ]
 
-    def __init__(self, file: FileIO=sys.stdout.buffer, **kwargs):
+    def __init__(self, file: FileIO=sys.stdout, **kwargs):
         super().__init__(file)
         self._setattrs(**kwargs)
 

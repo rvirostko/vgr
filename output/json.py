@@ -5,7 +5,7 @@ from .base import FileRecordWriter
 
 class JSONRecordWriter(FileRecordWriter):
 
-    def __init__(self, file: FileIO=sys.stdout.buffer, **kwargs):
+    def __init__(self, file: FileIO=sys.stdout, **kwargs):
         super().__init__(file)
         self._formater = None
         self._root = None

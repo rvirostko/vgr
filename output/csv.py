@@ -17,7 +17,7 @@ class CSVRecordWriter(FileRecordWriter):
     __DEFAULT_ESCAPE_CHAR = '\\'
     __DEFAULT_LINE_TERMINATOR = '\n'
 
-    def __init__(self, file: FileIO=sys.stdout.buffer, **kwargs):
+    def __init__(self, file: FileIO=sys.stdout, **kwargs):
         super().__init__(file)
         self._outstr = None
         self._writer = None

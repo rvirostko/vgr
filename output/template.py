@@ -58,7 +58,7 @@ class TemplateRecordWriter(FileRecordWriter):
 {% for key, value in data.items %}{{ key }}: {{ value|escape }}
 {% endfor %}"""
 
-    def __init__(self, file: FileIO=sys.stdout.buffer, **kwargs):
+    def __init__(self, file: FileIO=sys.stdout, **kwargs):
         super().__init__(file)
         self._x()
         if not settings.configured:
