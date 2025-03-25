@@ -1,5 +1,3 @@
-#! /usr/bin/env python3
-
 from typing import Any
 
 from .common import numeric_operations, get_operation

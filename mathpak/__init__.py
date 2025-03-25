@@ -1,5 +1,3 @@
-#! /usr/bin/env python3
-
 from .add import poly_add, poly_vadd
 from .bit_ops import poly_bit_and, poly_bit_or, poly_bit_xor, poly_bit_not, poly_vbit_and, poly_vbit_or, poly_vbit_xor
 from .div import poly_div, poly_fdiv, poly_vdiv, poly_vfdiv

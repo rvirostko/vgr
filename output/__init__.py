@@ -1,5 +1,3 @@
-#! /usr/bin/env python3
-
 from .base import RecordWriter, FileRecordWriter, DelegatingRecordWriter
 from .csv import CSVRecordWriter
 from .json import JSONRecordWriter

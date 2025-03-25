@@ -1,5 +1,3 @@
-#! /usr/bin/env python3
-
 """Polymorphic inequality operators"""
 
 from typing import Any, Callable, Iterable

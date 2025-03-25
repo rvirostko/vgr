@@ -1,7 +1,4 @@
 lark
 django
+jinja2
 prompt_toolkit
-
-mistune
-rich
-blessed

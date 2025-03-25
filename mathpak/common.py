@@ -1,5 +1,3 @@
-#! /usr/bin/env python3
-
 """
 Routines and values that can be used by operator and function implementations.
 """

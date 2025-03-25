@@ -1,5 +1,3 @@
-#! /usr/bin/env python3
-
 from typing import Any
 
 from lark import v_args, Tree, Token, Transformer

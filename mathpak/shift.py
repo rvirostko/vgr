@@ -1,5 +1,3 @@
-#! /usr/bin/env python3
-
 from typing import Any
 
 from .common import dist_x_list, dist_x_tuple, str_to_int, X_None_Op, Y_None_Op, get_operation, matching_default

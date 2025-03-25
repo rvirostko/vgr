@@ -1,5 +1,3 @@
-#! /usr/bin/env python3
-
 from typing import Any
 
 from .common import str_to_number, str_to_bool, str_to_int, _TRUE_STRS, _FALSE_STRS

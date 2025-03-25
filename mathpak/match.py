@@ -1,5 +1,3 @@
-#! /usr/bin/env python3
-
 from typing import Any
 
 def poly_match(x: Any, y: Any) -> Any:

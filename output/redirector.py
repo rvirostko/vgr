@@ -1,8 +1,7 @@
-#! /usr/bin/env python3
-
 import atexit
 import sys
 from io import IOBase
+from io import UnsupportedOperation
 
 class Redirection():
     """Redirection for a standard stream (stdin, stdout, stderr)"""
@@ -72,7 +71,7 @@ At process termination, all redirections are ended.
     def __init__(self):
         if not hasattr(self, '_redirectors'):
             self._redirectors = (Redirection('stdin'), Redirection('stdout'), Redirection('stderr'))
-            atexit.register(lambda : self.end_redirects())
+            atexit.register(self.end_redirects)
 
     def stdin(self, *args, **kwargs) -> IOBase:
         return self._redirectors[0].redirect_to(*args, **kwargs).file()
@@ -87,24 +86,11 @@ At process termination, all redirections are ended.
         for redirector in self._redirectors:
             try:
                 redirector.end_redirect()
-            except:
+            except (OSError, UnsupportedOperation, ValueError):
                 pass
 
-    def __enter__(self): return self
+    def __enter__(self):
+        return self
 
-    def __exit__(self, exc_type, exc_val, exc_tb): self.end_redirects()
-
-if __name__ == "__main__":
-    redir = IORedirector()
-    print("to stdout", file=redir.stdout())
-    redir.stdout('out.txt')
-    print("out1: to a file", file=redir.stdout())
-    redir.stderr('err.txt')
-    print("err1: to a file", file=redir.stderr())
-    redir.stderr(redir.stdout()) # shared
-    print("out2: to a file", file=redir.stdout())
-    print("err2: to a file", file=redir.stderr())
-    redir.stderr(None) # stderr to normal, stdout still redirected
-    print("err3: to stderr", file=redir.stderr())
-    redir.stdout(None) # no more redirects
-    print("out3: to stdout", file=redir.stdout())
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.end_redirects()

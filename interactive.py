@@ -1,5 +1,3 @@
-#! /usr/bin/env python3
-
 """
 The base of a Unix shell like editable command line. Include some commands for history control
 and simple file control (cd and ls only).

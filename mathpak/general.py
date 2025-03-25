@@ -1,5 +1,3 @@
-#! /usr/bin/env python3
-
 from collections.abc import Iterable
 from typing import Any, Callable
 import sys
