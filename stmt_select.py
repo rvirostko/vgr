@@ -52,18 +52,18 @@ class SelectAnalyzer(Visitor):
         'sort_keys'        : 'Sort Keys',
     }
 
-    """Used in Select analysis"""
-    def __init__(self, dd: DataDictionary):
+    def __init__(self, dd: DataDictionary, target: str):
         super().__init__()
         self._dd = dd
+        self._target = target
         self._predicates = []
-        self._outputs = []
-        self._labels = []
+        self._output_statements = []
+        self._headers = []
         self._output_controls = {}
         self._output_type = None
-        self._output_ops = {}
+        self._output_opts = {}
 
-    def split(self, tree: Tree):
+    def analyze(self, tree: Tree):
         self.visit(tree)
         return self
 
@@ -73,23 +73,15 @@ class SelectAnalyzer(Visitor):
 
     @property
     def output_opts(self) -> dict:
-        return self._output_ops
+        return self._output_opts
 
-    # TODO make properties
-
-    def get_outputs(self) -> list:
-        return self._outputs
-
-    def get_label(self, output) -> str:
-        # TODO why this way? should we not get all the labels at once?
-        # if it is an output_as, it will have two children
-        # the second child will be either a NAME or a STRING, but all we need
-        # is its value regardless of type
-        return output.children[1].value if len(output.children) > 1 else None
+    @property
+    def output_statements(self) -> list:
+        return self._output_statements
 
     @property
     def predicates(self) -> list:
-        return self._predicates if self._predicates else []
+        return self._predicates
 
     @property
     def output_controls(self) -> dict:
@@ -104,19 +96,41 @@ class SelectAnalyzer(Visitor):
         """
         Everything else should have been handled by other visitors
         """
-        for i, o in enumerate(self._outputs):
-            text = SSM.source_for(o)
-            label = self.get_label(o)
-            label = '_'.join(text.strip().split()) if label is None else label
-            print(f'\t{i + 1} : {text} "{label}"')
-        # TODO should we build things like labels and other defaults here?
-        # labels get added to output ops
+        # TODO this needs to be fixed earlier...
+        # TODO is this feature really worth it?
+        if not self.output_statements:
+            # TODO need to create and store a statement
+            # the target: an expr that is a var_ref
+            #
+            self._headers.append(self._target)
+        else:
+            for i, h in enumerate(self._headers):
+                if not h:
+                    self._headers[i] = f'col_{i + 1}'
+        self.output_opts['headers'] = self._headers
 
     def output(self, node: Tree):
-        self._outputs.append(node)
+        expr = node.children[0]
+        self.output_statements.append(expr)
+        # default label for a variable name
+        # note that it will not include anything but the text
+        # the user added
+        if isinstance(expr, Tree) and expr.data == 'var_ref':
+            self._headers.append(SSM.source_for(expr).strip())
+        else:
+            # If they have some type of constant, we'll use it
+            if isinstance(expr, Token) and len(node.children) == 1:
+                self._headers.append(str(expr.value).strip())
+            else:
+                # We'll figure out the default later
+                self._headers.append('')
 
     def output_as(self, node: Tree):
-        self.output(node)
+        self.output_statements.append(node.children[0])
+        # If it is an output_as, it will have two children:
+        # The second child will be either a NAME or a STRING,
+        # but all we need is its value regardless of type
+        self._headers.append(node.children[1].value.strip())
 
     def where_clause(self, node: Tree):
         self._predicates.extend(node.children)
@@ -147,9 +161,9 @@ class SelectAnalyzer(Visitor):
         self._output_type = 'template'
         i: int = 0
         if isinstance(node.children[i], Token):
-            self._output_ops['template_type'] = node.children[i].value.lower()
+            self.output_opts['template_type'] = node.children[i].value.lower()
             i += 1
-        self._output_ops['template_file'] = eval_filename_expr(self._dd, node.children[i])
+        self.output_opts['template_file'] = eval_filename_expr(self._dd, node.children[i])
         i += 1
         # remainder are options...
         self._parse_output_ops(node, i)
@@ -163,31 +177,31 @@ class SelectAnalyzer(Visitor):
             name: str = c.data
             # First generic options
             if name in self._BOOL_OPTS:
-                self._output_ops[name] = self._bool_arg(c, self._display_name(name))
+                self.output_opts[name] = self._bool_arg(c, self._display_name(name))
                 continue
             if name in self._NEG_BOOL_OPTS:
-                self._output_ops[self._NEG_BOOL_OPTS[name]] = not self._bool_arg(c, self._display_name(name))
+                self.output_opts[self._NEG_BOOL_OPTS[name]] = not self._bool_arg(c, self._display_name(name))
                 continue
             if name in self._STR_OPTS:
-                self._output_ops[name] = self._str_arg(c, self._display_name(name))
+                self.output_opts[name] = self._str_arg(c, self._display_name(name))
                 continue
             # Now the special cases
             if name == 'encode_ascii':
-                self._output_ops[name] = self._bool_arg(c, 'Encode ASCII')
-                self._output_ops.pop('encode_unicode', None)
+                self.output_opts[name] = self._bool_arg(c, 'Encode ASCII')
+                self.output_opts.pop('encode_unicode', None)
                 continue
             if name == 'encode_unicode':
-                self._output_ops[name] = self._bool_arg(c, 'Encode Unicode')
-                self._output_ops.pop('encode_ascii', None)
+                self.output_opts[name] = self._bool_arg(c, 'Encode Unicode')
+                self.output_opts.pop('encode_ascii', None)
                 continue
             if name == 'root':
-                self._output_ops[name] = self._str_arg(c, 'Root', 'result')
+                self.output_opts[name] = self._str_arg(c, 'Root', 'result')
                 continue
             if name == 'indent':
-                self._output_ops[name] = self._int_arg(c, 'Indent', 2)
+                self.output_opts[name] = self._int_arg(c, 'Indent', 2)
                 continue
             if name == 'quoting':
-                self._output_ops[name] = c.children[0].value.lower()
+                self.output_opts[name] = c.children[0].value.lower()
                 continue
             raise NotImplementedError(f'Output option {repr(name)} of type {self.output_type}')
 
@@ -240,23 +254,19 @@ def get_target(statement: Tree) -> str:
 
 def execute_select(dd: DataDictionary, statement: Tree):
     target: str = get_target(statement)
+    print(f'Target     : {target}')
     # If the user has defined something, or it is one of the pre-loaded
     # prefixes or the target types, then it is a known context and
     # not subject to getting the target prefix added to it
     statement = ImplicitContextAdder().add_contexts(statement, target, VALID_TARGETS + [*dd.keys()])
-    select = SelectAnalyzer(dd).split(statement)
-    print(f'Target     : {target}')
-    print(f'Predicates : {len(select.predicates)}')
-    for i, p in enumerate(select.predicates): print(f'\t{i + 1} : {SSM.source_for(p)}')
-    print(f'Outputs    : {len(select.get_outputs())}')
-    for i, o in enumerate(select.get_outputs()):
-        text = SSM.source_for(o)
-        label = select.get_label(o)
-        label = '_'.join(text.strip().split()) if label is None else label
-        print(f'\t{i + 1} : {text} "{label}"')
-    t = select.output_opts
-    t['headers'] = [ "name", "age", "pos" ] # TODO hack
-    writer = create_writer(select.output_type, t, select.output_controls)
+    select = SelectAnalyzer(dd, target).analyze(statement)
+    print('Predicates :')
+    for i, p in enumerate(select.predicates):
+        print(f'\t{i + 1} : {SSM.source_for(p)}')
+    print('Outputs    :')
+    for i, o in enumerate(select.output_statements):
+        print(f'\t{i + 1} : {SSM.source_for(o)}')
+    writer = create_writer(select.output_type, select.output_opts, select.output_controls)
     print(repr(writer))
     data = [
         ["Alice", 25, "Engineer"],
