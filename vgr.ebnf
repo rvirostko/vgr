@@ -121,7 +121,7 @@ for_csv: "CSV"i (_COMMA? csv_option (_COMMA csv_option)*)?
     | "Quote"i ("Char"i | "Character"i) ("=" | ":=") expr -> quotechar
     | "Escape"i ("Char"i | "Character"i) ("=" | ":=") expr -> escapechar
     | "Line"i ("Ender"i | "Terminator"i) ("=" | ":=") expr -> lineterminator
-    | "Quote"i CSV_QUOTE_TYPE -> quoting
+    | "Quote"i ("=" | ":=") CSV_QUOTE_TYPE -> quoting
     | "Include"i "Headers"i (("=" | ":=") expr)? -> include_headers
     | ("No"i | "Omit"i) "Headers"i (("=" | ":=") expr)? -> omit_headers
 CSV_QUOTE_TYPE: "Minimal"i | "All"i | "Nonnumeric"i | "None"i
