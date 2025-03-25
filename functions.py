@@ -1,6 +1,12 @@
+"""
+Functions is responsible for converting a requested function name to an implementation.
+It also generates the grammar fragments used to identify the functions.
+"""
+
 import re
 from collections import defaultdict
 import inspect
+from typing import Any
 
 from mathpak import poly_abs, poly_vadd, poly_vappend, poly_vbit_and, poly_vbit_or, poly_vbit_xor
 from mathpak import poly_bit_not, poly_bool, poly_capitalize, poly_casefold
@@ -19,6 +25,14 @@ from mathpak import poly_replace, poly_repr, poly_shr, poly_rightstr, poly_rstri
 from mathpak import poly_rindex, poly_sizeof, poly_rsort, poly_sort, poly_startswith
 from mathpak import poly_str, poly_strip, poly_vsub, poly_substr, poly_swapcase, poly_title
 from mathpak import poly_translate, poly_div, poly_trunc, poly_type, poly_unique, poly_upper
+
+def _default_to(value: Any, default: Any) -> Any:
+    """Returns a default value if the argument is None.
+
+* Fluent: _expression_.DefaultTo(_expression_)
+* Procedural: DefaultTo(_expression_, _expression_)
+"""
+    return default if value is None else value
 
 # Binds a (pretty) name to the function to be executed
 # Additionally, we should use functions here rather than lambdas
@@ -39,6 +53,7 @@ _FUNC_OPS = {
   "Class": poly_class,
   "Contains": poly_contains,
   "CountOf": poly_count,
+  "DefaultTo": _default_to,
   "Div": poly_vdiv,
   "EndsWith": poly_endswith,
   "ExpandTabs": poly_expandtabs,
