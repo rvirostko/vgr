@@ -1,8 +1,34 @@
-start: (statement | procedure_definition)*
-
+//----
+// Allows singe and double quoted strings
+//----
 STRING: SINGLE_QUOTE_STRING | DOUBLE_QUOTE_STRING
 SINGLE_QUOTE_STRING: /'([^'\\]*(\\.[^'\\]*)*)'/
 DOUBLE_QUOTE_STRING: /"([^"\\]*(\\.[^"\\]*)*)"/
+
+//----
+// Adding a "range" ala Python, but with limits
+//----
+expr: range
+?range: expr "<" expr "<" expr -> range_lt
+    | expr "<=" expr "<" expr -> range_le_lt
+    | expr "<" expr "<=" expr -> range_lt_le
+    | expr "<=" expr "<=" expr -> range_le
+    | expr ">" expr ">" expr -> range_gt
+    | expr ">=" expr ">" expr -> range_ge_gt
+    | expr ">" expr ">=" expr -> range_gt_ge
+    | expr ">=" expr ">=" expr -> range_ge
+
+//----
+// Ternary operations
+//----
+expr: c_ternary | python_ternary
+c_ternary: expr "?" expr ":" expr // condition, true_value, false_value
+python_ternary: expr "If"i expr "Else"i expr // true_value, condition, false_value
+
+//----
+// Control flow
+//----
+start: (statement | procedure_definition)*
 
 statement: foo
          | bar
