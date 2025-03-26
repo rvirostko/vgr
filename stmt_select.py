@@ -2,11 +2,11 @@
 from lark import Tree, Token, Transformer, Visitor
 
 from data_dict import DataDictionary
-from dbg import print_tree
+#from dbg import print_tree
 from evaluate import eval_to_bool, eval_to_int, eval_to_str, eval_filename_expr
 from output import CSVRecordWriter, JSONRecordWriter, MarkdownRecordWriter, TemplateRecordWriter
 from output import RecordWriter, RecordLimiter, RecordCartesianProduct
-from redir import stdout
+from redir import stdout, stderr
 from src_mgr import SSM
 
 VALID_TARGETS = ['ns', 'mount', 'aws', 'kv', 'ldap', 'db', 'db_role']
@@ -16,18 +16,23 @@ class SelectAnalyzer(Visitor):
     _BOOL_OPTS = (
         'array_wrapper',
         'auto_escape',
+        'chain_undefined',
         'compact',
-        'debug',
+        'encode_ascii',
+        'include_headers',
         'include_nulls',
-        'omit_headers',
+        'keep_last_newline',
+        'lstrip_blocks',
         'sort_keys',
+        'trim_blocks',
     )
 
     _NEG_BOOL_OPTS = {
         # The option to what it negates
+        'encode_unicode'  : 'encode_ascii',
         'exclude_nulls'   : 'include_nulls',
-        'include_headers' : 'omit_headers',
         'no_array_wrapper': 'array_wrapper',
+        'omit_headers'    : 'include_headers',
     }
 
     _STR_OPTS = (
@@ -41,15 +46,21 @@ class SelectAnalyzer(Visitor):
         # If not present, we just capitalize it
         'array_wrapper'    : 'Array Wrapper',
         'auto_escape'      : 'Auto Escape',
+        'chain_undefined'  : 'Chain Undefined Variables',
+        'encode_ascii'     : 'Encode ASCII',
+        'encode_unicode'   : 'Encode Unicode',
         'escapechar'       : 'Escape Character',
         'exclude_nulls'    : 'Exclude Nulls',
         'include_headers'  : 'Include Headers',
         'include_nulls'    : 'Include Nulls',
+        'keep_last_newline': 'Keep Last Newline',
         'lineterminator'   : 'Line Terminator',
+        'lstrip_blocks'    : 'Left Strip Blocks',
         'no_array_wrapper' : 'No Array Wrapper',
         'omit_headers'     : 'Omit Headers',
         'quotechar'        : 'Quote Character',
         'sort_keys'        : 'Sort Keys',
+        'trim_blocks'      : 'Trim Blocks',
     }
 
     def __init__(self, dd: DataDictionary, target: str):
@@ -96,6 +107,8 @@ class SelectAnalyzer(Visitor):
         """
         Everything else should have been handled by other visitors
         """
+        self.output_opts['debug'] = self._dd.is_debug()
+        self.output_opts['verbose'] = self._dd.is_verbose()
         # TODO this needs to be fixed earlier...
         # TODO is this feature really worth it?
         if not self.output_statements:
@@ -160,7 +173,7 @@ class SelectAnalyzer(Visitor):
     def for_template(self, node: Tree):
         self._output_type = 'template'
         i: int = 0
-        if isinstance(node.children[i], Token):
+        if isinstance(node.children[i], Token) and node.children[i].type == 'TEMPLATE_TYPE':
             self.output_opts['template_type'] = node.children[i].value.lower()
             i += 1
         self.output_opts['template_file'] = eval_filename_expr(self._dd, node.children[i])
@@ -186,14 +199,6 @@ class SelectAnalyzer(Visitor):
                 self.output_opts[name] = self._str_arg(c, self._display_name(name))
                 continue
             # Now the special cases
-            if name == 'encode_ascii':
-                self.output_opts[name] = self._bool_arg(c, 'Encode ASCII')
-                self.output_opts.pop('encode_unicode', None)
-                continue
-            if name == 'encode_unicode':
-                self.output_opts[name] = self._bool_arg(c, 'Encode Unicode')
-                self.output_opts.pop('encode_ascii', None)
-                continue
             if name == 'root':
                 self.output_opts[name] = self._str_arg(c, 'Root', 'result')
                 continue
@@ -288,13 +293,13 @@ def execute_select(dd: DataDictionary, statement: Tree):
 def create_writer(otype: str, opts: dict, controls: dict) -> RecordWriter:
     writer: RecordWriter = None
     if otype == 'csv':
-        writer = CSVRecordWriter(stdout(), **opts)
+        writer = CSVRecordWriter(stdout(), stderr=stderr(), **opts)
     elif otype == 'json':
-        writer = JSONRecordWriter(stdout(), **opts)
+        writer = JSONRecordWriter(stdout(), stderr=stderr(), **opts)
     elif otype == 'markdown':
-        writer = MarkdownRecordWriter(stdout(), **opts)
+        writer = MarkdownRecordWriter(stdout(), stderr=stderr(), **opts)
     elif otype == 'template':
-        writer = TemplateRecordWriter(stdout(), **opts)
+        writer = TemplateRecordWriter(stdout(), stderr=stderr(), **opts)
     else:
         raise NotImplementedError(f'Output type {repr(otype)} not implemented')
     # Order is important since projections can generate more than one row

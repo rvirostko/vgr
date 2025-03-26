@@ -132,15 +132,17 @@ for_markdown: "MarkDown"i (_COMMA? markdown_option (_COMMA markdown_option)*)?
     | "Include"i "Headers"i (("=" | ":=") expr)? -> include_headers
     | ("No"i | "Omit"i) "Headers"i (("=" | ":=") expr)? -> omit_headers
 
-for_template: TEMPLATE_TYPE? "Template"i "File"i? expr (_COMMA? template_option (_COMMA template_option)*)?
+for_template: TEMPLATE_TYPE? ("Template"i | "Jinja"i | "Jinja2"i) "File"i? expr (_COMMA? template_option (_COMMA template_option)*)?
 TEMPLATE_TYPE: "Record"i | "Batch"i
 ?template_option: "Encode"i? "Ascii"i (("=" | ":=") expr)? -> encode_ascii
     | "Encode"i? ("Unicode"i | "UTF8"i | "UTF-8"i) (("=" | ":=") expr)? -> encode_unicode
     | "Auto"i "Escape"i (("=" | ":=") expr)? -> auto_escape
-    | "Debug"i (("=" | ":=") expr)? -> debug
-    | "Exclude"i ("Nulls"i | "Null"i "Values"i) (("=" | ":=") expr)? -> exclude_nulls
-    | "Include"i ("Nulls"i | "Null"i "Values"i) (("=" | ":=") expr)? -> include_nulls
-// TODO    | "Tags"i expr -> tags
+    | "Trim"i "Blocks"i? (("=" | ":=") expr)? -> trim_blocks
+    | "Left"i "Strip"i "Blocks"i? (("=" | ":=") expr)? -> lstrip_blocks
+    | "Keep"i "Last"i "Newline"i (("=" | ":=") expr)? -> keep_last_newline
+    | "Chain"i "Undefined"i "Variables"i? (("=" | ":=") expr)? -> chain_undefined
+    | "Include"i "Headers"i (("=" | ":=") expr)? -> include_headers
+    | ("No"i | "Omit"i) "Headers"i (("=" | ":=") expr)? -> omit_headers
 
 // TODO future
 //join_clause: "Join"i TARGET "To"i NAME join_as? join_using?
