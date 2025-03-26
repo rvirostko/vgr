@@ -12,6 +12,9 @@ _REDIR = IORedirector()
 def stdout() -> IOBase:
     return _REDIR.stdout()
 
+def stderr() -> IOBase:
+    return _REDIR.stderr()
+
 def print_stdout(*args, **kwargs) -> None:
     """Same as print() except that it can redirect to an output file"""
     print(*args, file=_REDIR.stdout(), **kwargs)
