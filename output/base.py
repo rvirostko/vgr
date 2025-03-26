@@ -1,14 +1,45 @@
+"""
+"""
+
 from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from io import IOBase
 from typing import Any
 import json
 import sys
+import unicodedata
 
 class RecordWriter(ABC):
 
     def __init__(self):
-        pass
+        self._debug = False
+        self._verbose = False
+        self._stderr = None
+
+    @property
+    def debug(self) -> bool:
+        return self._debug
+
+    @debug.setter
+    def debug(self, enable: bool):
+        self._debug = bool(enable)
+
+    @property
+    def verbose(self) -> bool:
+        return self._verbose
+
+    @verbose.setter
+    def verbose(self, enable: bool):
+        self._verbose = bool(enable)
+
+
+    @property
+    def stderr(self) -> bool:
+        return self._stderr or sys.stderr
+
+    @stderr.setter
+    def stderr(self, out: IOBase):
+        self._stderr = out if out is not None and isinstance(out, IOBase) else None
 
     @abstractmethod
     def start(self) -> bool:
@@ -25,6 +56,18 @@ class RecordWriter(ABC):
         Returns True if writing can continue
         """
 
+    def print_stderr(self, *args, **kwargs) -> None:
+        """Same as print() except that it can redirect to an output file"""
+        print(*args, file=self.stderr, **kwargs)
+
+    def print_debug(self, *args, **kwargs) -> None:
+        """If debug is on print to stderr"""
+        if self.debug: self.print_stderr(*args, **kwargs)
+
+    def print_verbose(self, *args, **kwargs) -> None:
+        """If verbose is on print to stderr"""
+        if self.verbose: self.print_stderr(*args, **kwargs)
+
     @abstractmethod
     def close(self):
         """Called to close/release resources"""
@@ -37,7 +80,7 @@ class RecordWriter(ABC):
 
     def _attrs(self) -> list:
         """Return a list of attribute names to include in __repr__"""
-        return []
+        return ['debug', 'verbose', 'stderr']
 
     def __repr__(self):
         attr_repr = []
@@ -63,6 +106,7 @@ class DelegatingRecordWriter(RecordWriter):
 
     def __init__(self, delegate: RecordWriter):
         self._delegate = delegate
+        super().__init__()
 
     def start(self) -> bool:
         return self._delegate.start()
@@ -82,11 +126,11 @@ class DelegatingRecordWriter(RecordWriter):
 class FileRecordWriter(RecordWriter):
 
     def __init__(self, file: IOBase=sys.stdout):
-        super().__init__()
         self._file = file
         self._encode_ascii = False
         self._headers = []
-        self._omit_headers = False
+        self._include_headers = True
+        super().__init__()
 
     @property
     def headers(self) -> list:
@@ -97,12 +141,12 @@ class FileRecordWriter(RecordWriter):
         self._headers = headers or []
 
     @property
-    def omit_headers(self) -> bool:
-        return self._omit_headers
+    def include_headers(self) -> bool:
+        return self._include_headers
 
-    @omit_headers.setter
-    def omit_headers(self, enable: bool):
-        self._omit_headers = bool(enable)
+    @include_headers.setter
+    def include_headers(self, enable: bool):
+        self._include_headers = bool(enable)
 
     @property
     def encode_ascii(self) -> bool:
@@ -112,25 +156,8 @@ class FileRecordWriter(RecordWriter):
     def encode_ascii(self, enable: bool):
         self._encode_ascii = bool(enable)
 
-    @property
-    def encode_utf8(self) -> bool:
-        return not self._encode_ascii
-
-    @encode_utf8.setter
-    def encode_utf8(self, enable: bool):
-        self._encode_ascii = not bool(enable)
-
-    @property
-    def encoding(self) -> str:
-        return 'ascii' if self._encode_ascii else 'utf-8'
-
-    @encoding.setter
-    def encoding(self, encoding: str):
-        """ascii for ascii; anything else for utf-8"""
-        self.encode_ascii = encoding and encoding.strip().lower == 'ascii'
-
     def start(self) -> bool:
-        if self._headers and not self._omit_headers: self.write_headers()
+        if self._headers and self._include_headers: self.write_headers()
         return True
 
     def finish(self):
@@ -177,11 +204,12 @@ class FileRecordWriter(RecordWriter):
         Conversion will only be performed if required, but skip it if
         you know you can.
         """
-        if self._encode_ascii: return ''.join(f"\\u{ord(c):04x}" if ord(c) > 127 else c for c in text)
+        if text and self.encode_ascii:
+            return unicodedata.normalize("NFKD", text).encode("ascii", "replace").decode("ascii")
         return text
 
     def _attrs(self) -> list:
-        return super()._attrs() + ['encoding', 'encode_ascii', 'encode_utf8', 'headers', 'omit_headers']
+        return super()._attrs() + ['encode_ascii', 'headers', 'include_headers']
 
     @classmethod
     def stringify(cls, obj: Any) -> str:
