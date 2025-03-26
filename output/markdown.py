@@ -18,11 +18,10 @@ class MarkdownRecordWriter(FileRecordWriter):
         return True
 
     def print(self, *args):
-        if self.encode_utf8:
-            super().print(*args)
+        if self.encode_ascii:
+            super().print(self._to_ascii(a) for a in args)
         else:
-            for a in args:
-                super().print(''.join(f"\\u{ord(c):04x}" if ord(c) > 127 else c for c in a))
+            super().print(*args)
 
     def write_headers(self):
         if self.write(self._headers):
