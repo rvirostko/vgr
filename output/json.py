@@ -62,7 +62,7 @@ class JSONRecordWriter(FileRecordWriter):
 
     @property
     def array_wrapper(self):
-        return not self._array_wrapper
+        return self._array_wrapper
 
     @array_wrapper.setter
     def array_wrapper(self, enable: bool):
