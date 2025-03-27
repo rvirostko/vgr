@@ -13,6 +13,9 @@ _ARG_PREFIX = 'arg'
 OFS_PATH = (_ARG_PREFIX, 'ofs')
 ORS_PATH = (_ARG_PREFIX, 'ors')
 
+_OS_PREFIX = 'os'
+LINESEP_PATH = (_OS_PREFIX, 'linesep')
+
 def dd_init() -> DataDictionary:
     dd = DataDictionary()
     dd.add_protected_prefix(_ARG_PREFIX)
