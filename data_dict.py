@@ -63,24 +63,37 @@ class DataDictionary():
     def is_verbose(self) -> bool:
         return bool(self.get_var(self._ARG_PREFIX, self._VERBOSE_VAR))
 
-    def set_var_user(self, value: Any, /, *path: str) -> None:
+    def set_var_user(self, value: Any, /, *path: str) -> Any:
         """
         Set an item within the dictionary.
         This is a method to call with user input.
+        Returns the value passed in.
         """
-        self.set_var(value, *self._validate_user_set_path(*self._validate_user_path(*path)))
+        return self.set_var(value, *self._validate_user_set_path(*self._validate_user_path(*path)))
 
     def get_var_user(self, /, *path: str) -> Any:
         """
         Get an item within the dictionary.
         This is a method to call with user input.
+        Returns the values stored on the path, or None if the
+        path does not lead to a dictionary.
+        Note that "None" is not a definitive "not found" statement.
         """
         return self.get_var(*self._validate_user_path(*path))
 
-    def set_var(self, data: Any, /, *path: str) -> None:
+    def unset_var_user(self, *path: str) -> Any:
+        """
+        Remove an item from the dictionary.
+        This is a method to call with user input.
+        Returns the value removed.
+        Note that "None" is not a definitive "not found" statement.
+        """
+        return self.unset_var(*self._validate_user_set_path(*self._validate_user_path(*path)))
+
+    def set_var(self, data: Any, /, *path: str) -> Any:
         """
         Called with vetted user args or can be called directly.
-        Pass in None for start when traversing a full path.
+        Returns the value passed in.
         """
         current = self._dd
         for step in path[:-1]:
@@ -93,11 +106,31 @@ class DataDictionary():
             current = next_step
         # Last step in the path gets the data
         current[path[-1]] = data
+        return data
+
+    def unset_var(self, *path: str) -> Any:
+        """
+        Called with vetted user args or can be called directly.
+        Returns the value removed.
+        Note that "None" is not a definitive "not found" statement.
+        """
+        current = self._dd
+        for step in path[:-1]:
+            # If the next step doesn't exist, or is
+            # not a dictionary, we can't go anywhere
+            # to unset something
+            next_step = current.get(step, None)
+            if not isinstance(next_step, dict): return None
+            current = next_step
+        # Last step in the path gets removed
+        return current.pop(path[-1], None)
 
     def get_var(self, *path: str) -> Any:
         """
         Called with vetted user args or can be called directly.
-        Pass in None for data when traversing a full path
+        Returns the values stored on the path, or None if the
+        path does not lead to a dictionary.
+        Note that "None" is not a definitive "not found" statement.
         """
         data = self._dd
         for key in path:
@@ -122,7 +155,7 @@ class DataDictionary():
             raise ValueError(f'Cannot alter protected prefix {prefix}')
         # immutable means just that
         if prefix in self._immutable_prefixes:
-            raise ValueError(f'Cannot set {".".join(path)} - {prefix} is immutable')
+            raise ValueError(f'Cannot alter {".".join(path)} - {prefix} is immutable')
         return path
 
     def _get_string_consts(self) -> dict: return self._get_consts(string)
