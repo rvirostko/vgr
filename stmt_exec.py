@@ -12,11 +12,13 @@ from dd_config import dd_set_statement
 from evaluate import bind_operations
 from redir import print_stderr, execute_open, execute_close
 from src_mgr import SSM
+from stmt_math import execute_add_to, execute_add_giving, execute_mul_by
+from stmt_math import execute_sub_from, execute_sub_giving, execute_div_into, execute_div_by
 from stmt_cflags import execute_debug, execute_echo, execute_verbose
 from stmt_exit import execute_assert, execute_exit
-from stmt_print import execute_exhibit, execute_print, execute_printf
+from stmt_print import execute_exhibit, execute_print, execute_printf, execute_display_on
 from stmt_select import execute_select
-from stmt_set import execute_load_from, execute_set
+from stmt_set import execute_load_from, execute_set, execute_unset, execute_inc, execute_dec, execute_move_to
 from stmt_zip import execute_zip
 from dbg import print_tree
 
@@ -59,17 +61,29 @@ class VarRefOptimizer(Transformer):
         return tree
 
 SIMPLE_STATEMENT_HANDLERS = {
+    'add_giving': execute_add_giving,
+    'add_to': execute_add_to,
     'assert': execute_assert,
     'close': execute_close,
     'debug': execute_debug,
+    'dec': execute_dec,
+    'display_on': execute_display_on,
+    'div_by': execute_div_by,
+    'div_into': execute_div_into,
     'echo': execute_echo,
     'exhibit': execute_exhibit,
     'exit': execute_exit,
+    'inc': execute_inc,
     'load_from': execute_load_from,
+    'move_to': execute_move_to,
+    'mul_by': execute_mul_by,
     'open': execute_open,
     'print': execute_print,
     'printf': execute_printf,
     'set': execute_set,
+    'sub_from': execute_sub_from,
+    'sub_giving': execute_sub_giving,
+    'unset': execute_unset,
     'verbose': execute_verbose,
     'zip': execute_zip,
 }

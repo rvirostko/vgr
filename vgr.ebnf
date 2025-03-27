@@ -35,35 +35,44 @@ FLOAT_NUMBER: /[+-]/? (_SPECIAL_DEC _EXP_PART | _DECIMAL _EXP_PART?)
 NAME: /[A-Za-z_]([A-Za-z0-9_]|-+[A-Za-z])*/
 
 statements: statement+
-?statement: assert
+?statement: add
+    | assert
     | close
     | debug
+    | display_on
+    | divide
     | echo
     | exhibit
     | exit
     | load_from
+    | move_to
+    | mul_by
     | open
     | print
     | printf
     | select
-    | set
+    | set_var
+    | subtract
+    | unset
     | verbose
     | zip
-
-// TODO: RSN
-// unset: "Unset"i var_name _SEMICOLON?
-// source: "Source"i (expr (_COMMA expr)*)? _SEMICOLON?
 
 // simple boolean on/off, true/false
 // these are "proper statements" as they control the behavior of other statements
 debug: "Debug"i (("=" | ":=" | "Is"i)? expr)? _SEMICOLON?
 echo: "Echo"i (("=" | ":=" | "Is"i)? expr)? _SEMICOLON?
-verbose: "Verbose"i (("=" | ":=" | "Is"i)? expr)? expr? _SEMICOLON?
+verbose: "Verbose"i (("=" | ":=" | "Is"i)? expr)? _SEMICOLON?
 
-set: "Let"i var_name ("=" | ":=") expr _SEMICOLON?
-    | "Set"i var_name ("=" | ":=" | "To"i) expr _SEMICOLON?
+?set_var: "Set"i (set | inc | dec) _SEMICOLON?
+    | "Let"i var_name ("=" | ":=") expr _SEMICOLON? -> set
+    | "Compute"i var_name ("=" | "Equals"i) expr _SEMICOLON? -> set
+set: var_name ("=" | ":=" | "To"i) expr
+inc: var_name "Up"i "By"i expr
+dec: var_name "Down"i "By"i expr
 
-load_from: "Load"i var_name "From"i "File"i? expr load_source_type? _SEMICOLON?
+unset: "Unset"i var_name _SEMICOLON?
+
+load_from: "Load"i var_name ("From"i | "With"i) "File"i expr load_source_type? _SEMICOLON?
 load_source_type: "JSON"i "Object"i? -> json_object
     | "JSON"i "Object"i? "Per"i "Line"i -> json_objects
     | "CSV"i -> csv_file
@@ -78,12 +87,12 @@ print: "Print"i (expr (_COMMA expr)*)? _SEMICOLON?
 exhibit: "Exhibit"i (var_name (_COMMA var_name)*)? _SEMICOLON?
 
 open: "Open"i io_type "File"i? expr open_ext? _SEMICOLON?
+close: "Close"i io_type "File"i? _SEMICOLON? -> close
 ?io_type: ("Error"i | "stderr"i) -> stderr
     | ("Output"i | "stdout"i) -> stdout
 ?open_ext: ("Append"i | "Extend"i | "a"i) -> a
     | ("Overwrite"i | "w"i) -> w
     | ("No"i "Overwrite"i | "x"i) -> x
-close: "Close"i io_type "File"i? _SEMICOLON? -> close
 
 zip: "Create"i "Zip"i "File"i? expr (_COMMA? zip_option (_COMMA zip_option)*)? _SEMICOLON?
 ?zip_option: "Password"i expr -> password
@@ -93,14 +102,41 @@ zip: "Create"i "Zip"i "File"i? expr (_COMMA? zip_option (_COMMA zip_option)*)? _
 
 exit: "Exit"i expr? _SEMICOLON?
 
-select: "Select"i outputs? "From"i TARGET where_clause? product_clause? limit_clause? for_clause? _SEMICOLON?
+?add: "Add"i expr (_COMMA expr)* "To"i var_name _SEMICOLON? -> add_to
+    | "Add"i expr (_COMMA expr)* "To"i expr "Giving"i var_name _SEMICOLON? -> add_giving
 
-// TODO Future (join_clause+ | auto_join_clause)?
+?subtract: "Subtract"i expr (_COMMA expr)* "From"i var_name _SEMICOLON? -> sub_from
+    | "Subtract"i expr (_COMMA expr)* "From"i expr "Giving"i var_name _SEMICOLON? -> sub_giving
 
-?for_clause: "For"i for_json
-    | "For"i for_csv
-    | "For"i for_markdown
-    | "For"i for_template
+mul_by: "Multiply"i expr "By"i (expr "Giving"i)? var_name _SEMICOLON?
+
+?divide: "Divide"i (div_into | div_by) _SEMICOLON?
+div_into: expr "Into"i (expr "Giving"i)? var_name
+div_by: expr "By"i expr "Giving"i var_name
+
+move_to: "Move"i CORR? expr "To"i var_name _SEMICOLON?
+CORR.80: ("Corresponding"i | "Corr"i)
+
+display_on: "Display"i (expr (_COMMA? expr)*)? (("Upon"i | "On"i) io_type)? _SEMICOLON?
+
+select: "Select"i outputs? from_clause where_clause? product_clause? limit_clause? for_clause? _SEMICOLON?
+
+?outputs: output (_COMMA output)*
+
+output: expr
+    | expr "As"i (NAME | ESCAPED_STRING) -> output_as
+
+?from_clause: "From"i TARGET
+// TODO
+//?from_clause: "From"i (from_var | from_file | from_vault)
+//from_var: ("Variable"i | "Var"i) var_name "As"i NAME
+//from_file: "File"i expr load_source_type? "As"i NAME
+//from_vault: "Vault"i? VAULT_TARGET ("As"i NAME)?
+
+// TODO - need to make just an expr and have analyzer break on right-side ANDs
+where_clause: "Where"i expr (("And"i | "&&") expr)*
+
+?for_clause: "For"i (for_json | for_csv | for_markdown | for_template)
 
 for_json: "JSON"i (_COMMA? json_option (_COMMA json_option)*)?
 ?json_option: "Encode"i? "Ascii"i (("=" | ":=") expr)? -> encode_ascii
@@ -143,23 +179,6 @@ TEMPLATE_TYPE: "Record"i | "Batch"i
     | "Chain"i "Undefined"i "Variables"i? (("=" | ":=") expr)? -> chain_undefined
     | "Include"i "Headers"i (("=" | ":=") expr)? -> include_headers
     | ("No"i | "Omit"i) "Headers"i (("=" | ":=") expr)? -> omit_headers
-
-// TODO future
-//join_clause: "Join"i TARGET "To"i NAME join_as? join_using?
-//join_as: "As"i (NAME | ESCAPED_STRING)
-//join_using: "Using"i attr_ref (_COMMA attr_ref)*
-//attr_ref: NAME (_DOT (NAME))+
-//auto_join_clause: "Auto"i "Join"i auto_join?
-//?auto_join: "All"i -> all
-//    | "None"i -> none
-//    | NAME (_COMMA NAME)*
-
-?outputs: (output (_COMMA output)*)
-
-output: expr
-    | expr "As"i (NAME | ESCAPED_STRING) -> output_as
-
-where_clause: "Where"i expr (("And"i | "&&") expr)*
 
 // Either LIMIT <number> (OFFSET <number>)?
 // or FETCH FIRST <number> ROWS ONLY
