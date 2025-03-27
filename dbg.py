@@ -8,9 +8,8 @@ def print_tree(item: Any, indent=2) -> None:
     prefix = ' ' * indent  # Indentation for nested levels
     if isinstance(item, Tree):
         tree: Tree = item
-# TODO            op = f':{tree.op_name()}' if isinstance(item, Operation) else ''
-        op = ''
-        print(f'{prefix}({tree.data}{op}', end=('\n' if tree.children else ''), file=sys.stderr)
+        op = getattr(tree, "op_name", lambda: "")()
+        print(f'{prefix}({tree.data}:{op}', end=('\n' if tree.children else ''), file=sys.stderr)
         for child in tree.children: print_tree(child, indent + 2)
         print(f'{prefix if tree.children else ""})', file=sys.stderr)  # close the rule
     else:

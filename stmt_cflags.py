@@ -1,3 +1,6 @@
+"""
+Contains the implementation for the ECHO, DEBUG and VERBOSE statements
+"""
 
 from lark import Tree
 

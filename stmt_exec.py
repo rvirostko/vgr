@@ -58,7 +58,7 @@ class VarRefOptimizer(Transformer):
                     tree = c1
         return tree
 
-STATEMENT_HANDLERS = {
+SIMPLE_STATEMENT_HANDLERS = {
     'assert': execute_assert,
     'close': execute_close,
     'debug': execute_debug,
@@ -69,10 +69,13 @@ STATEMENT_HANDLERS = {
     'open': execute_open,
     'print': execute_print,
     'printf': execute_printf,
-    'select': execute_select,
     'set': execute_set,
     'verbose': execute_verbose,
     'zip': execute_zip,
+}
+
+X_STATEMENT_HANDLERS = {
+    'select': execute_select,
 }
 
 def remove_comments(input_text: str) -> str:
@@ -89,11 +92,14 @@ def execute_statements(parser: Lark, dd: DataDictionary, statement_text: str, so
     for statement in statements.children:
         text = statement_text[statement.meta.start_pos : statement.meta.end_pos]
         dd_set_statement(dd, text)
-        handler = STATEMENT_HANDLERS.get(statement.data)
-        if not handler: raise NotImplementedError(f'No handler established for {statement.data}')
         statement = ConstantsNormalizer().transform(statement)
         statement = VarRefOptimizer().transform(statement)
-        statement = bind_operations(statement)
-        if dd.is_echo(): print_stderr(text)
+        handler = SIMPLE_STATEMENT_HANDLERS.get(statement.data)
+        if handler:
+            statement = bind_operations(statement)
+        else:
+            handler = X_STATEMENT_HANDLERS.get(statement.data)
+            if not handler: raise NotImplementedError(f'No handler established for {statement.data}')
         if dd.is_debug(): print_tree(statement)
+        if dd.is_echo(): print_stderr(text)
         handler(dd, statement)

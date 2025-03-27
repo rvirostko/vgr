@@ -1,3 +1,6 @@
+"""
+Contains the implementation for the CREATE ZIP statement
+"""
 
 import glob
 import os

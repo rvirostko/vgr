@@ -1,12 +1,18 @@
+"""
+TODO
+"""
 
-from lark import Tree, Token, Transformer, Visitor
+from abc import ABC, abstractmethod
+from typing import Any
+
+from lark import Tree, Token, Transformer, Visitor, v_args
 
 from data_dict import DataDictionary
-#from dbg import print_tree
-from evaluate import eval_to_bool, eval_to_int, eval_to_str, eval_filename_expr
+from dbg import print_tree
+from evaluate import bind_operations, eval_expr, eval_to_bool, eval_to_int, eval_to_str, eval_filename_expr
 from output import CSVRecordWriter, JSONRecordWriter, MarkdownRecordWriter, TemplateRecordWriter
 from output import RecordWriter, RecordLimiter, RecordCartesianProduct
-from redir import stdout, stderr
+from redir import stdout, stderr, print_debug
 from src_mgr import SSM
 
 VALID_TARGETS = ['ns', 'mount', 'aws', 'kv', 'ldap', 'db', 'db_role']
@@ -80,7 +86,7 @@ class SelectAnalyzer(Visitor):
 
     @property
     def output_type(self) -> str:
-        return self._output_type or 'json'
+        return self._output_type or 'csv'
 
     @property
     def output_opts(self) -> dict:
@@ -109,12 +115,7 @@ class SelectAnalyzer(Visitor):
         """
         self.output_opts['debug'] = self._dd.is_debug()
         self.output_opts['verbose'] = self._dd.is_verbose()
-        # TODO this needs to be fixed earlier...
-        # TODO is this feature really worth it?
         if not self.output_statements:
-            # TODO need to create and store a statement
-            # the target: an expr that is a var_ref
-            #
             self._headers.append(self._target)
         else:
             for i, h in enumerate(self._headers):
@@ -151,8 +152,8 @@ class SelectAnalyzer(Visitor):
 
     def limit_clause(self, node: Tree):
         children = node.children
-        if len(children) >= 1: self._output_controls['limit'] = self._int_arg(children[0], 'Limit')
-        if len(children) >= 2: self._output_controls['offset'] = self._int_arg(children[1], 'Offset')
+        if len(children) >= 1: self._output_controls['limit'] = eval_to_int(self._dd, children[0], 'Limit', True)
+        if len(children) >= 2: self._output_controls['offset'] = eval_to_int(self._dd, node.children[1], 'Offset', True)
 
     def product_clause(self, node: Tree):
         # TODO
@@ -219,6 +220,7 @@ class SelectAnalyzer(Visitor):
     def _str_arg(self, node:Tree, name: str, default: str=None) -> str:
         return eval_to_str(self._dd, node.children[0], name, True) if node.children else default
 
+@v_args(tree=True)
 class ImplicitContextAdder(Transformer):
     """
     Modifies 'var_ref' nodes by prepending TARGET if needed
@@ -242,14 +244,12 @@ class ImplicitContextAdder(Transformer):
             self._target = None
             self._valid_contexts = None
 
-    def var_ref(self, children):
-        first_child = children[0]
+    def var_ref(self, tree):
+        first_child = tree.children[0]
         if first_child.value not in self._valid_contexts:
             # Add the target as an implied context for the name
-            children.insert(0, Token("NAME", self._target))
-            # TODO , first_child.start_pos, first_child.line, first_child.column,
-            # first_child.end_line, first_child.end_column, first_child.end_pos))
-        return Tree("var_ref", children)
+            tree.children.insert(0, Token("NAME", self._target))
+        return tree
 
 def get_target(statement: Tree) -> str:
     for child in statement.children:
@@ -257,40 +257,160 @@ def get_target(statement: Tree) -> str:
             return child.value
     raise TypeError('Select statement did not have a TARGET')
 
+import json # TODO for testing
+
 def execute_select(dd: DataDictionary, statement: Tree):
     target: str = get_target(statement)
     print(f'Target     : {target}')
     # If the user has defined something, or it is one of the pre-loaded
     # prefixes or the target types, then it is a known context and
     # not subject to getting the target prefix added to it
+    # TODO should only be applied to the outputs and predicates after analysis?
     statement = ImplicitContextAdder().add_contexts(statement, target, VALID_TARGETS + [*dd.keys()])
+    statement = bind_operations(statement)
+    if dd.is_debug: print_tree(statement)
+
     select = SelectAnalyzer(dd, target).analyze(statement)
-    print('Predicates :')
-    for i, p in enumerate(select.predicates):
-        print(f'\t{i + 1} : {SSM.source_for(p)}')
+
+    # TODO
+#    print('Predicates :')
+ #   for i, p in enumerate(select.predicates):
+  #      print(f'\t{i + 1} : {SSM.source_for(p)}')
     print('Outputs    :')
     for i, o in enumerate(select.output_statements):
         print(f'\t{i + 1} : {SSM.source_for(o)}')
+        print_tree(o)
     writer = create_writer(select.output_type, select.output_opts, select.output_controls)
-    print(repr(writer))
-    data = [
-        ["Alice", 25, "Engineer"],
-        ["Bob", 30, "Doctor"],
-        ["Carol", 28, "Data || Analyst"],
-        ["Dave", 35, "Data | Engineer"],
-        ["Jimbo", 22, ["Hobo", "Jerk"]],
-        ["Limbo", None, ["Hobo", "流浪"]],
-        ["Complex", 99, {'a': 1, 'b': [2,3]}]
-    ]
-    if writer.start():
-        try:
-            for row in data:
-                if not writer.write(row): break
-        finally:
-            writer.finish()
-    print(flush=True)
+    print_debug(dd, repr(writer))
+    # TODO "Load people From "people.json"
+    with open('people.json', 'r', encoding='utf-8') as f: data = json.load(f)
+    # TODO "Select ... Variable var_name As target"
+    QueryFilter(dd, select.output_statements, writer).run_extraction(InMemoryExtractor(data, target))
+
+class DataExtractor(ABC):
+    @abstractmethod
+    def extract(self, qfilter: "QueryFilter") -> None:
+        pass
+
+    def finish(self) -> None:
+        """Override if your class requires some type of clean up"""
+
+class DataLimitExceededException(Exception):
+    def __init__(self, *args):
+        super().__init__(*args)
+
+class QueryFilter:
+    def __init__(self, dd: DataDictionary, outputs: list, writer: RecordWriter):
+        self._dd = dd
+        self._outputs = outputs
+        self._writer = writer
+
+    def run_extraction(self, extractor: DataExtractor) -> None:
+        """
+        The writer is started up, and if it can proceede, we turn
+        the process, essentially, over to the extractor.
+        Here we handle clean up, especial on the receipt of
+        a DataLimitExceededException: this is the only place where
+        this should be caught.
+        """
+        if self._writer.start():
+            try:
+                try:
+                    extractor.extract(self)
+                except DataLimitExceededException:
+                    pass
+                finally:
+                    self._writer.finish()
+            finally:
+                extractor.finish()
+
+    # An "applicable" predicate is one that has either no var refs ("True" or "5 < 7")
+    # or whose top-level var ref step is "satisfied" by being present in the
+    # data dictionary (the entry could be None, but that is a value)
+
+    # Intermediate means we are checking if we should proceed down some object
+    # tree of data. Intermediates are not sent to the output, but if any
+    # applicable predicate returns False, we'll return that to the extractor
+    # so it knows it should not pursue that path
+
+    # For target output, we check all predicates and they all must return true
+    # before we output any data
+
+    # And of course, if there are no predicates, both intermediate and target
+    # checks pass without anything being tested.
+
+    def filter_intermediate(self) -> bool:
+        # TODO eval applicable predicates until you get a failure
+        return True
+
+    def filter_target(self, data: Any) -> bool:
+        # we return true or false, which the extractor can check,
+        # but it is not prescriptive: False does not mean stop...
+        # TODO eval all predicates, if no failures...
+        record: list = None
+        if self._outputs:
+            record = [ eval_expr(self._dd, expr) for expr in self._outputs ]
+        else:
+            # Result of a "Select From ..." so your output is
+            # the entirity of the target data
+            record = [ data ]
+        if  not self._writer.write(record):
+            raise DataLimitExceededException()
+        return True
+
+    def set_data(self, key: str, data: Any) -> None:
+        """
+        Used to set intermediate and target data items in the
+        data dictionary prior to any filter call.
+        The extractor is responsible for calling unset_data()
+        on these items once they go out of scope within their
+        data model.
+        """
+        if data is None:
+            self.unset_data(key)
+        else:
+            if not isinstance(data, dict):
+                raise ValueError(f'Data for query must be a dictionary, found {type(data).__name__}')
+            self._dd.set_var_user(data, key)
+
+    def unset_data(self, key: str) -> None:
+        """
+        Used to remove intermediate and target data item
+        from the data dictionary.
+        See set_data().
+        """
+        # TODO this is where we need our "unset"
+        self._dd.set_var_user(None, key)
+
+class InMemoryExtractor(DataExtractor):
+    def __init__(self, source: list, target: str):
+        super().__init__()
+        if not isinstance(source, list):
+            raise ValueError(f'Data for in-memory query must be stored in a list, found {type(source).__name__}')
+        self._source = source
+        self._target = target
+
+    def extract(self, qfilter: QueryFilter) -> None:
+        """
+        This is simple because we have a flat data model
+        We simply iterate over our data as the target
+        additing it to the data dictionary then telling
+        the query filter to test is as a target.
+        """
+        for obj in self._source:
+            if obj is not None:
+                try:
+                    qfilter.set_data(self._target, obj)
+                    qfilter.filter_target(obj)
+                finally:
+                    qfilter.unset_data(self._target)
 
 def create_writer(otype: str, opts: dict, controls: dict) -> RecordWriter:
+    """Using the params, create and configure a writer instance.
+    otype - the type of writer
+    opts - options that configure the writer
+    controls - used in wrapper creation and configuration
+    """
     writer: RecordWriter = None
     if otype == 'csv':
         writer = CSVRecordWriter(stdout(), stderr=stderr(), **opts)

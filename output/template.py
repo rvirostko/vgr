@@ -1,5 +1,6 @@
 """
-TODO
+A RecordWriter that uses Jinja2 to produce output.
+It can operate in either a one-by-one record or batch mode.
 """
 
 import traceback

@@ -1,5 +1,6 @@
-
-from typing import Any
+"""
+Contains the implementation for the EXIT statement
+"""
 
 from lark import Tree
 
@@ -20,9 +21,9 @@ The _expression_ is a numeric the code returned to the shell.
 The default return code is zero.
 Note that in this specific case "True" returns zero and "False" returns one.
 """
-    rc: int = ExitingException.EXIT_SUCCESS
+    rc = ExitingException.EXIT_SUCCESS
     if statement.children:
-        x: Any = eval_expr(dd, statement.children[0])
+        x = eval_expr(dd, statement.children[0])
         if x is not None:
             try:
                 rc = poly_int(x)
@@ -59,4 +60,3 @@ Execution ends with an exit code of 1 indicating failure
                 msg = None
         raise ExitingException(ExitingException.EXIT_FAILED, statement,
                                str(msg) if msg is not None else f'{SSM.source_for(statement)} failed')
-

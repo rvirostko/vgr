@@ -54,6 +54,7 @@ def deref_var(data: Any, /, *path: str) -> Any:
         data = data[key]
     return data
 
+from dbg import print_tree
 # pylint: disable=too-many-public-methods
 # disabled because we MUST have a method for each rule
 # it is the way Transformer works
@@ -71,7 +72,9 @@ class OperationBinder(Transformer):
     def eq_op(self, tree): return Operation(tree, poly_eq)
     def pow_op(self, tree): return Operation(tree, poly_pow)
     def fdiv_op(self, tree): return Operation(tree, poly_fdiv)
-    def function(self, tree): return Operation(tree, get_function_op(tree.children.pop(0).value))
+    def function(self, tree):
+        print_tree(tree)
+        return Operation(tree, get_function_op(tree.children.pop(0).value))
     def ge_op(self, tree): return Operation(tree, poly_ge)
     def gt_op(self, tree): return Operation(tree, poly_gt)
     def imatch_op(self, tree): return Operation(tree, poly_imatch)
@@ -111,6 +114,7 @@ def eval_expr(dd: DataDictionary, expr: Any) -> Any:
         if isinstance(expr, Operation):
             return expr.execute(tuple(eval_expr(dd, arg_exp) for arg_exp in expr.children))
         # TODO "arrays not working?"
+        # TODO var_ref not working? (context: outputs)
         raise NotImplementedError(f'Unhandled type {repr(expr.data)}')
     if isinstance(expr, Token): return expr.value
     raise NotImplementedError(f'Unknown type {repr(expr.type())}')
