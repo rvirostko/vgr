@@ -379,14 +379,13 @@ class QueryFilter:
         from the data dictionary.
         See set_data().
         """
-        # TODO this is where we need our "unset"
-        self._dd.set_var_user(None, key)
+        self._dd.unset_var_user(key)
 
 class InMemoryExtractor(DataExtractor):
     def __init__(self, source: list, target: str):
         super().__init__()
         if not isinstance(source, list):
-            raise ValueError(f'Data for in-memory query must be stored in a list, found {type(source).__name__}')
+            raise ValueError(f'Data for query must be stored in a list, found {type(source).__name__}')
         self._source = source
         self._target = target
 
