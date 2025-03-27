@@ -22,6 +22,8 @@ $./vgr.py -e 'Set h to "Hello"; Set w to "World"; Print h, w'
 Hello World
 ```
 
+Note that semi-colons betweens statements of any type are optional, but it adds clarity when you have more than one statement per line.
+
 ### Statements stored in a file
 
 ```Bash
@@ -69,6 +71,8 @@ vgr>
 ```
 
 The interactive command line supports history, using `Ctrl-R` and the up and down arrows, as well as some basic file commands and a help system. Just type `help` to get more details. (_NB: help is a work in progress_)
+
+For more details on the command line options, send in the `--help` option to get full, up-to-date details.
 
 ## Variables, Expressions, and Operators
 
@@ -129,6 +133,28 @@ Set -not-valid = 0
 Unexpected input at line 1, column 5.
 Expected NAME.
 ```
+
+### Removing Values
+
+The Unset statment is used to remove variables.
+
+```Text
+vgr> set data.Five to 5
+vgr> set data.Six to 6
+vgr> print data
+{'Five': 5, 'Six': 6}
+vgr> unset data.Five
+vgr> print data
+{'Six': 6}
+vgr> unset data.Six
+vgr> print data
+{}
+vgr> unset data
+vgr> print data
+None
+```
+
+If you ask to remove a variable that doesn't exist, or part of its path do not exist, the request is ignored.
 
 ## Things like variables, but they aren't
 
