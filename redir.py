@@ -1,4 +1,11 @@
+"""
+Handles the stdout/stderr redirection used by statements.
+Contains the implementation of OPEN and CLOSE and utility
+methods for output.
+"""
+
 from io import IOBase
+import textwrap
 
 from lark import Tree
 
@@ -7,21 +14,21 @@ from output import IORedirector, prepare_path
 from data_dict import DataDictionary
 from app_exceptions import ExitingException
 
-_REDIR = IORedirector()
+_REDIRECTOR = IORedirector()
 
 def stdout() -> IOBase:
-    return _REDIR.stdout()
+    return _REDIRECTOR.stdout()
 
 def stderr() -> IOBase:
-    return _REDIR.stderr()
+    return _REDIRECTOR.stderr()
 
 def print_stdout(*args, **kwargs) -> None:
     """Same as print() except that it can redirect to an output file"""
-    print(*args, file=_REDIR.stdout(), **kwargs)
+    print(*args, file=_REDIRECTOR.stdout(), **kwargs)
 
 def print_stderr(*args, **kwargs) -> None:
     """Same as print() except that it can redirect to an output file"""
-    print(*args, file=_REDIR.stderr(), **kwargs)
+    print(*args, file=_REDIRECTOR.stderr(), **kwargs)
 
 def print_debug(dd: DataDictionary, /, *args, **kwargs) -> None:
     """If debug is on print to stderr"""
@@ -30,6 +37,13 @@ def print_debug(dd: DataDictionary, /, *args, **kwargs) -> None:
 def print_verbose(dd: DataDictionary, /, *args, **kwargs) -> None:
     """If verbose is on print to stderr"""
     if dd.is_verbose(): print_stderr(*args, **kwargs)
+
+def shorten(s: str, width: int=64) -> str:
+    """
+    Limits output that can appear in debug/verbose content.
+    Should be used with repr(...) when you don't know the object size.
+    """
+    return textwrap.shorten(s, width=width, placeholder="\u2026")
 
 def execute_open(dd: DataDictionary, statement: Tree) -> None:
     """Send command output or error output to a file
@@ -56,7 +70,7 @@ See CLOSE
     if len(statement.children) > 2: mode = statement.children[2].data.lower()
     if mode not in ('a', 'w', 'x'): raise ValueError(f'Unknown mode {mode}') # SNO
     try:
-        getattr(_REDIR, stream)(prepare_path(filename), mode=mode)
+        getattr(_REDIRECTOR, stream)(prepare_path(filename), mode=mode)
         print_verbose(dd, stream, "redirected to", filename)
     except Exception as e:
         raise ExitingException(ExitingException.EXIT_FAILED, statement, str(e)) from e
@@ -72,7 +86,7 @@ Once closed, command output and errors resumes their default destinations.
 All redirection is closed at program termination.
 """
     stream = _eval_stream_name(statement.children[0])
-    getattr(_REDIR, stream)(None)
+    getattr(_REDIRECTOR, stream)(None)
     print_verbose(dd, stream, "closed")
 
 def _eval_stream_name(node: Tree) -> str:
