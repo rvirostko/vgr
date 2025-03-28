@@ -109,26 +109,35 @@ name with TEXT as the default.
 """
     path = tuple(name.value for name in statement.children[0].children)
     filename = eval_filename_expr(dd, statement.children[1])
-    mode = None
-    if len(statement.children) > 2:
-        mode = statement.children[2].data
-    else:
-        ext = os.path.splitext(filename)[1].lower()
-        mode = 'csv_file' if ext == '.csv' else 'json_object' if ext == '.json' else 'text_file'
+    dtype = load_data_type(filename, statement.children[2] if len(statement.children) > 2 else None)
+    new_value = None
     with open(filename, 'r', encoding='utf-8') as f:
-        data: Any = None
-        if mode == 'text_file': data = f.read()
-        elif mode == 'json_object': data = json.load(f)
-        elif mode == 'json_objects': data = [json.loads(line) for line in f if line.strip()]
-        elif mode == 'csv_file': data = list(csv.DictReader(f))
-        else: raise ValueError(f'Unknown mode {mode}') # SNO
-        new_value = dd.set_var_user(data, *path)
-        if dd.is_verbose():
-            if isinstance(new_value, list):
-                length = len(new_value)
-                print_verbose(dd, "Loaded", '.'.join(path), 'With', length, 'Records' if length != 1 else 'Record')
-            else:
-                print_verbose(dd, "Loaded", '.'.join(path), 'With', shorten(repr(new_value)))
+        new_value = dd.set_var_user(load_file_as(f, dtype), *path)
+    if dd.is_verbose():
+        if isinstance(new_value, list):
+            length = len(new_value)
+            print_verbose(dd, "Loaded", '.'.join(path), 'With', length, 'Records' if length != 1 else 'Record')
+        else:
+            print_verbose(dd, "Loaded", '.'.join(path), 'With', shorten(repr(new_value)))
+
+def load_data_type(filename: str, token: Token) -> str:
+    """Returns one of:
+    * text_file
+    * json_object
+    * json_objects
+    * csv_file
+    """
+    if token is not None: return token.data
+    ext = os.path.splitext(filename)[1].lower()
+    return 'csv_file' if ext == '.csv' else 'json_object' if ext == '.json' else 'text_file'
+
+def load_file_as(file, dtype: str) -> Any:
+    """Read the file in according to the type, which comes for load_file_type()"""
+    if dtype == 'text_file': return file.read()
+    if dtype == 'json_object': return json.load(file)
+    if dtype == 'json_objects': return [json.loads(line) for line in file if line.strip()]
+    if dtype == 'csv_file': return list(csv.DictReader(file))
+    raise ValueError(f'Unknown file content type {repr(dtype)}') # SNO
 
 def do_set(dd: DataDictionary, value: Any, *path) -> None:
     """
