@@ -10,7 +10,7 @@ from lark import Lark, exceptions
 
 from app_exceptions import ExitingException, format_generic_exception, format_unexpected_input
 from data_dict import DataDictionary
-from dd_config import dd_init, dd_parse_user_args, dd_set_grammar
+from dd_config import dd_init, dd_parse_user_args, dd_set_grammar, DEFAULT_FROM_TYPE_PATH
 from functions import get_function_defs
 from interactive import CmdLine
 from mathpak import poly_bool
@@ -18,7 +18,7 @@ from output import expand_filename
 from redir import print_debug, print_verbose, print_stderr
 from src_mgr import SSM
 from stmt_exec import execute_statements
-from stmt_select import VALID_TARGETS
+from xtract_vault import VAULT_TARGETS
 
 def print_app_exiting(dd: DataDictionary, e: ExitingException) -> None:
     print_debug(dd, SSM.source_for(e.statement))
@@ -43,6 +43,8 @@ class VGRCmdLine(CmdLine):
         super().__init__()
 
     def run(self):
+        # If this has not been set (command line?) we use our interactive default
+        self._dd.set_var_user((self._dd.get_var_user(*DEFAULT_FROM_TYPE_PATH) or 'template-batch').lower(), *DEFAULT_FROM_TYPE_PATH)
         print("Type 'exit' to exit")
         return super().run()
 
@@ -123,7 +125,7 @@ def create_parser(dd: DataDictionary, grammar_file: str) -> Lark:
         grammar = file.read()
         generated = '\n\n'.join((
             get_function_defs(),
-            'TARGET: ' + ' | '.join(tuple(f'"{t}"i' for t in VALID_TARGETS)),
+            'VAULT_TARGET: ' + ' | '.join(tuple(f'"{t}"i' for t in VAULT_TARGETS)),
         ))
         print_debug(dd, 'Generated grammar =', generated)
         grammar = grammar.format(GENERATED_CODE=generated)
