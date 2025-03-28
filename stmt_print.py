@@ -63,9 +63,9 @@ see control characters.
                 for key in sorted(value.keys()):
                     exhibit_value(name + '.' + key, value[key])
             else:
-                print_stdout(name, ' = -empty-')
+                print_stdout(name, '= -empty-')
         else:
-            print_stdout(name, ' = ', repr(value))
+            print_stdout(name, '=', repr(value))
     children = statement.children
     if children:
         for var_name in children:
