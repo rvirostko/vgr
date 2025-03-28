@@ -13,6 +13,8 @@ _ARG_PREFIX = 'arg'
 OFS_PATH = (_ARG_PREFIX, 'ofs')
 ORS_PATH = (_ARG_PREFIX, 'ors')
 
+DEFAULT_FROM_TYPE_PATH = (_ARG_PREFIX, 'default_from_type')
+
 _OS_PREFIX = 'os'
 LINESEP_PATH = (_OS_PREFIX, 'linesep')
 
