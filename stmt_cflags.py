@@ -16,8 +16,8 @@ def execute_echo(dd: DataDictionary, statement: Tree) -> None:
 
 When on, statements are echoed before execution
 """
-    dd.set_echo(_flag_value(dd, statement, 'Echo'))
-    print_verbose(dd, 'Echo =', dd.is_echo())
+    dd.echo = _flag_value(dd, statement, 'Echo')
+    print_verbose(dd, 'Echo =', dd.echo)
 
 def execute_debug(dd: DataDictionary, statement: Tree) -> None:
     """Turn debug mode on or off
@@ -27,8 +27,8 @@ def execute_debug(dd: DataDictionary, statement: Tree) -> None:
 
 When on, additional technical output is generated.
 """
-    dd.set_debug(_flag_value(dd, statement, 'Debug'))
-    print_verbose(dd, 'Debug =', dd.is_debug())
+    dd.debug = _flag_value(dd, statement, 'Debug')
+    print_verbose(dd, 'Debug =', dd.debug)
 
 def execute_verbose(dd: DataDictionary, statement: Tree) -> None:
     """Turn verbose mode on or off
@@ -38,8 +38,8 @@ def execute_verbose(dd: DataDictionary, statement: Tree) -> None:
 
 When on, additional operational output is generated.
 """
-    dd.set_verbose(_flag_value(dd, statement, 'Verbose'))
-    print_verbose(dd, 'Verbose =', dd.is_verbose()) # Yeah... can only print true
+    dd.verbose = _flag_value(dd, statement, 'Verbose')
+    print_verbose(dd, 'Verbose =', dd.verbose) # Yeah... can only print true
 
 def _flag_value(dd: DataDictionary, statement: Tree, name: str) -> bool:
     # default behavior for a flag is a request to turn on

@@ -71,13 +71,16 @@ class VGRCmdLine(CmdLine):
                 print(format_generic_exception(e))
 
     @property
-    def debug(self) -> bool: return self._dd.is_debug()
+    def debug(self) -> bool:
+        return self._dd.debug
 
     @property
-    def verbose(self) -> bool: return self._dd.is_verbose()
+    def verbose(self) -> bool:
+        return self._dd.verbose
 
     @verbose.setter
-    def verbose(self, value: bool): self._dd.set_verbose(value)
+    def verbose(self, value: bool):
+        self._dd.verbose = value
 
     @property
     def prompt(self) -> str:
@@ -176,9 +179,9 @@ Environment variables:
     # Since it's startup, and everything else relies on the DD...
     if args.verbose: print('Creating data dictionary...', file=sys.stderr)
     dd = dd_init()
-    dd.set_debug(args.debug)
-    dd.set_verbose(args.verbose)
-    dd.set_echo(args.echo)
+    dd.debug = args.debug
+    dd.verbose = args.verbose
+    dd.echo = args.echo
     print_verbose(dd, 'Creating parser...')
     parser = create_parser(dd, args.grammar)
     if args.user_args:
@@ -232,13 +235,13 @@ Environment variables:
         print_app_exiting(dd, e)
         exit_code = e.exit_code
     except exceptions.UnexpectedInput as e:
-        if dd.is_debug():
+        if dd.debug:
             traceback.print_exc(file=sys.stderr)
         print_stderr(format_unexpected_input(e))
         print_debug(dd, e)
         exit_code = ExitingException.EXIT_FAILED
     except (ValueError, TypeError, OSError) as e:
-        if dd.is_debug():
+        if dd.debug:
             traceback.print_exc(file=sys.stderr)
         print_stderr(format_generic_exception(e)) # TODO statment mgr
         print_debug(dd, e)

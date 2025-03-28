@@ -32,11 +32,11 @@ def print_stderr(*args, **kwargs) -> None:
 
 def print_debug(dd: DataDictionary, /, *args, **kwargs) -> None:
     """If debug is on print to stderr"""
-    if dd.is_debug(): print_stderr(*args, **kwargs)
+    if dd.debug: print_stderr(*args, **kwargs)
 
 def print_verbose(dd: DataDictionary, /, *args, **kwargs) -> None:
     """If verbose is on print to stderr"""
-    if dd.is_verbose(): print_stderr(*args, **kwargs)
+    if dd.verbose: print_stderr(*args, **kwargs)
 
 def shorten(s: str, width: int=64) -> str:
     """

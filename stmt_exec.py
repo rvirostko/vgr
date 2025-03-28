@@ -114,6 +114,6 @@ def execute_statements(parser: Lark, dd: DataDictionary, statement_text: str, so
         else:
             handler = X_STATEMENT_HANDLERS.get(statement.data)
             if not handler: raise NotImplementedError(f'No handler established for {statement.data}')
-        if dd.is_debug(): print_tree(statement)
-        if dd.is_echo(): print_stderr(text)
+        if dd.debug: print_tree(statement)
+        if dd.echo: print_stderr(text)
         handler(dd, statement)

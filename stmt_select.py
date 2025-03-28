@@ -114,8 +114,8 @@ class SelectAnalyzer(Visitor):
         """
         # We add these here because they get passed to down to
         # writers et al for possible extra output (mostly Templates)
-        self.output_opts['debug'] = self._dd.is_debug()
-        self.output_opts['verbose'] = self._dd.is_verbose()
+        self.output_opts['debug'] = self._dd.debug
+        self.output_opts['verbose'] = self._dd.verbose
         # If there were no output statements (Select From...)
         # we are extracting the entire record and the target
         # name is the name for the columns
@@ -330,7 +330,7 @@ def execute_select(dd: DataDictionary, statement: Tree):
     # NB: at this point not all operations will show as bound
     # (notably in the outputs and the predicates) and
     # that is by design, so don't panic
-    if dd.is_debug(): print_tree(statement)
+    if dd.debug: print_tree(statement)
     #from_opts = select.from_opts
     #print(repr(from_opts)) # TODO
     #predicates = select.predicates
@@ -461,9 +461,7 @@ def create_extractor(dd: DataDictionary, opts: dict) -> DataExtractor:
                 data = load_file_as(f, opts['dtype'])
             if not isinstance(data, list):
                 data = [data] if isinstance(data, dict) else [{'value' : data}]
-            if dd.is_verbose():
-                length = len(data)
-                print_verbose(dd, 'Read', length, 'Records ' if length != 1 else 'Record', 'From', filename)
+            print_verbose(dd, 'Read', len(data), 'Records ' if len(data) != 1 else 'Record', 'From', filename)
             return InMemoryExtractor(data, target)
     raise NotImplementedError(f'Extractor type {repr(xtype)}')
 

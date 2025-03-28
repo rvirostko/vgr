@@ -1,3 +1,9 @@
+"""
+The DataDictionary holds hierarchical data used by the application.
+Most of the space is avaialble for the user's application, but parts--typically constants--
+are immutable.
+"""
+
 from typing import Any
 import math
 import os
@@ -7,37 +13,42 @@ import string
 from mathpak import coerce_value
 
 class DataDictionary():
-    """TODO"""
+    """
+    The following portions are immutable:
+
+    * env - the imported environment
+    * math - math constants
+    * string - string constant
+    * os - operating system specific constants
+
+    arg is mutable, but protected, meaning it cannot be unset or overwritten at
+    the top-level. Individual components within it can be changed, though.
+    """
     _ENV_EXCLUDE = tuple(re.compile(pattern, re.IGNORECASE) for pattern in ('^VSCODE', '^_$', '^(OLD)?PWD$'))
     _OS_CONSTS = ( 'defpath',  'devnull', 'extsep', 'linesep', 'name', 'pardir', 'pathsep', 'sep' )
-    _ARG_PREFIX = 'arg'
-    _ENV_PREFIX = 'env'
-    _MATH_PREFIX = 'math'
-    _OS_PREFIX = 'os'
-    _STRING_PREFIX = 'string'
 
-    _DEBUG_VAR = 'debug'
-    _ECHO_VAR = 'echo'
-    _VERBOSE_VAR = 'verbose'
+    _ARG_PREFIX = 'arg'
+    _DEBUG_PATH = (_ARG_PREFIX, 'debug')
+    _VERBOSE_PATH = (_ARG_PREFIX, 'verbose')
+    _ECHO_PATH = (_ARG_PREFIX, 'echo')
+
     # These can't appear in a path name (to prevent confusion)
     _RESERVED_WORDS = ('true', 'false', 'none', 'null', 'inf', 'nan')
 
     def __init__(self):
         self._dd = {}
+        self._debug = False
+        self._echo = False
+        self._verbose = False
         self._immutable_prefixes = tuple()
         self._protected_prefixes = tuple()
-        self.add_immutable_prefix(self._ENV_PREFIX)
-        self.set_var(self._get_environment(), self._ENV_PREFIX)
-        self.add_immutable_prefix(self._STRING_PREFIX)
-        self.set_var(self._get_string_consts(), self._STRING_PREFIX)
-        self.add_immutable_prefix(self._MATH_PREFIX)
-        self.set_var(self._get_math_consts(), self._MATH_PREFIX)
-        self.add_immutable_prefix(self._OS_PREFIX)
-        self.set_var(self._get_os_consts(), self._OS_PREFIX)
-        # Id like these to move...
-        self.set_debug(False)
-        self.set_echo(False)
-        self.set_verbose(False)
+        for mod in (math, string):
+            name = mod.__name__
+            self.set_var(self._get_consts(mod), name)
+            self.add_immutable_prefix(name)
+        for func, name in ((self._get_os_consts, 'os'), (self._get_environment, 'env')):
+            self.set_var(func(), name)
+            self.add_immutable_prefix(name)
 
     def add_immutable_prefix(self, prefix: str) -> None:
         """Immutable prefixes means you cant change any part of them"""
@@ -49,19 +60,29 @@ class DataDictionary():
 
     def keys(self): return self._dd.keys()
 
-    # This block might be moving... At least echo should
-    def set_debug(self, v: bool=True) -> None:
-        self.set_var(bool(v), self._ARG_PREFIX, self._DEBUG_VAR)
-    def set_verbose(self, v: bool=True) -> None:
-        self.set_var(bool(v), self._ARG_PREFIX, self._VERBOSE_VAR)
-    def set_echo(self, v: bool=True) -> None:
-        self.set_var(bool(v), self._ARG_PREFIX, self._ECHO_VAR)
-    def is_debug(self) -> bool:
-        return bool(self.get_var(self._ARG_PREFIX, self._DEBUG_VAR))
-    def is_echo(self) -> bool:
-        return bool(self.get_var(self._ARG_PREFIX, self._ECHO_VAR))
-    def is_verbose(self) -> bool:
-        return bool(self.get_var(self._ARG_PREFIX, self._VERBOSE_VAR))
+    @property
+    def debug(self) -> bool:
+        return bool(self.get_var(*self._DEBUG_PATH))
+
+    @debug.setter
+    def debug(self, v: bool) -> None:
+        self.set_var(bool(v), *self._DEBUG_PATH)
+
+    @property
+    def verbose(self) -> bool:
+        return bool(self.get_var(*self._VERBOSE_PATH))
+
+    @verbose.setter
+    def verbose(self, v: bool) -> None:
+        self.set_var(bool(v), *self._VERBOSE_PATH)
+
+    @property
+    def echo(self) -> bool:
+        return bool(self.get_var(*self._ECHO_PATH))
+
+    @echo.setter
+    def echo(self, v: bool) -> None:
+        self.set_var(bool(v), *self._ECHO_PATH)
 
     def set_var_user(self, value: Any, /, *path: str) -> Any:
         """
@@ -158,28 +179,27 @@ class DataDictionary():
             raise ValueError(f'Cannot alter {".".join(path)} - {prefix} is immutable')
         return path
 
-    def _get_string_consts(self) -> dict: return self._get_consts(string)
-
-    def _get_math_consts(self) -> dict: return self._get_consts(math)
-
-    def _get_os_consts(self) -> dict:
-        rc = { key: value for key, value in self._get_consts(os).items() if key in self._OS_CONSTS }
+    @classmethod
+    def _get_os_consts(cls) -> dict:
+        rc = { key: value for key, value in cls._get_consts(os).items() if key in cls._OS_CONSTS }
         rc['uid'] = os.getuid()
         rc['gid'] = os.getgid()
         rc['login'] = os.getenv('USER') or os.getlogin()
         return rc
 
-    def _get_environment(self) -> dict:
+    @classmethod
+    def _get_environment(cls) -> dict:
         rc = {
                 name: coerce_value(value) for name, value in os.environ.items()
-                    if not any(pattern.search(name) for pattern in self._ENV_EXCLUDE)
+                    if not any(pattern.search(name) for pattern in cls._ENV_EXCLUDE)
              }
         for name, value in rc.items():
             if isinstance(value, str) and re.search(r'(_)?PATH$', name, re.IGNORECASE):
                 rc[name] = tuple(value.split(os.pathsep))
         return rc
 
-    def _get_consts(self, source_mod) -> dict:
+    @classmethod
+    def _get_consts(cls, source_mod) -> dict:
         return { key: value for key, value in vars(source_mod).items()
                     if isinstance(value, (int, float, str, dict, list, tuple)) and not key.startswith("__")
                }

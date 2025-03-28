@@ -30,8 +30,7 @@ def execute_unset(dd: DataDictionary, statement: Tree) -> None:
 """
     path = tuple(name.value for name in statement.children[0].children)
     old_value = dd.unset_var_user(*path)
-    if dd.is_verbose():
-        print_verbose(dd, "Removed", shorten(repr(old_value)), 'From', '.'.join(path))
+    print_verbose(dd, "Removed", shorten(repr(old_value)), 'From', '.'.join(path))
 
 def execute_inc(dd: DataDictionary, statement: Tree) -> None:
     """Increment a counter by an amount
@@ -113,7 +112,7 @@ name with TEXT as the default.
     new_value = None
     with open(filename, 'r', encoding='utf-8') as f:
         new_value = dd.set_var_user(load_file_as(f, dtype), *path)
-    if dd.is_verbose():
+    if dd.verbose:
         if isinstance(new_value, list):
             length = len(new_value)
             print_verbose(dd, "Loaded", '.'.join(path), 'With', length, 'Records' if length != 1 else 'Record')
@@ -145,5 +144,4 @@ def do_set(dd: DataDictionary, value: Any, *path) -> None:
     Generates verbose output.
     """
     new_value = dd.set_var_user(value, *path)
-    if dd.is_verbose():
-        print_verbose(dd, "Set", '.'.join(path), 'To', shorten(repr(new_value)))
+    print_verbose(dd, "Set", '.'.join(path), 'To', shorten(repr(new_value)))

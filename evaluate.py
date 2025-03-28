@@ -3,7 +3,6 @@ from typing import Any
 from lark import v_args, Tree, Token, Transformer
 
 from data_dict import DataDictionary
-from dbg import print_tree
 from functions import get_function_op
 from mathpak import poly_add, poly_bit_and, poly_bit_xor, poly_div, poly_contains
 from mathpak import poly_bool, poly_int, poly_bit_or, poly_and
@@ -112,7 +111,6 @@ def eval_expr(dd: DataDictionary, expr: Any) -> Any:
             return expr.execute(dd, tuple(eval_expr(dd, arg_exp) for arg_exp in expr.children))
         if isinstance(expr, Operation):
             return expr.execute(tuple(eval_expr(dd, arg_exp) for arg_exp in expr.children))
-        # TODO "arrays not working?"
         raise NotImplementedError(f'Unhandled type {repr(expr.data)}')
     if isinstance(expr, Token): return expr.value
     raise NotImplementedError(f'Unknown type {repr(expr.type())}')
