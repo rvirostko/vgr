@@ -2,20 +2,22 @@
 TODO
 """
 
-from abc import ABC, abstractmethod
 from typing import Any
+from copy import deepcopy
 
 from lark import Tree, Token, Transformer, Visitor, v_args
 
 from data_dict import DataDictionary
+from data_xtract import QueryFilter, InfoOutput, DataExtractor, EndExtractException
 from dbg import print_tree
+from dd_config import DEFAULT_FROM_TYPE_PATH
 from evaluate import bind_operations, eval_expr, eval_to_bool, eval_to_int, eval_to_str, eval_filename_expr
 from output import CSVRecordWriter, JSONRecordWriter, MarkdownRecordWriter, TemplateRecordWriter
 from output import RecordWriter, RecordLimiter, RecordCartesianProduct
-from redir import stdout, stderr, print_debug
-from src_mgr import SSM
-
-VALID_TARGETS = ['ns', 'mount', 'aws', 'kv', 'ldap', 'db', 'db_role']
+from redir import stdout, stderr, print_debug, print_verbose
+from stmt_set import load_data_type, load_file_as
+from xtract_vault import VAULT_TARGETS, VaultDataExtractor
+from xtract_memory import InMemoryExtractor
 
 class SelectAnalyzer(Visitor):
 
@@ -69,24 +71,23 @@ class SelectAnalyzer(Visitor):
         'trim_blocks'      : 'Trim Blocks',
     }
 
-    def __init__(self, dd: DataDictionary, target: str):
+    def __init__(self, dd: DataDictionary):
         super().__init__()
         self._dd = dd
-        self._target = target
         self._predicates = []
+        self._from_opts = {}
         self._output_statements = []
-        self._headers = []
         self._output_controls = {}
-        self._output_type = None
         self._output_opts = {}
+        self._headers = [] # TODO why a sep item here?
 
     def analyze(self, tree: Tree):
         self.visit(tree)
         return self
 
     @property
-    def output_type(self) -> str:
-        return self._output_type or 'csv'
+    def from_opts(self) -> dict:
+        return self._from_opts
 
     @property
     def output_opts(self) -> dict:
@@ -105,32 +106,46 @@ class SelectAnalyzer(Visitor):
         return self._output_controls
 
     #----
-
-    # TODO add repr
-
-    #--- visitor methods
-    def select(self, node: Tree):
+    # visitor methods
+    #----
+    def select(self, _: Tree):
         """
         Everything else should have been handled by other visitors
         """
+        # We add these here because they get passed to down to
+        # writers et al for possible extra output (mostly Templates)
         self.output_opts['debug'] = self._dd.is_debug()
         self.output_opts['verbose'] = self._dd.is_verbose()
+        # If there were no output statements (Select From...)
+        # we are extracting the entire record and the target
+        # name is the name for the columns
         if not self.output_statements:
-            self._headers.append(self._target)
+            self._headers.append(self.from_opts['target'])
         else:
+            # Go throught the unnamed columns and assign them one
             for i, h in enumerate(self._headers):
                 if not h:
                     self._headers[i] = f'col_{i + 1}'
         self.output_opts['headers'] = self._headers
+        from_type = self.from_opts['type']
+        target = self.from_opts['target']
+        self._output_statements = [bind_operations(add_implicit(self._dd, from_type, target, o))
+                                   for o in self.output_statements]
+        # TODO for predicates, this might be premature...
+        self._predicates = [bind_operations(add_implicit(self._dd, from_type, target, p))
+                            for p in self.predicates]
 
     def output(self, node: Tree):
+        """
+        ... <expr> ...
+        Makes a default column name
+        """
+        # NB: do not bind
         expr = node.children[0]
         self.output_statements.append(expr)
-        # default label for a variable name
-        # note that it will not include anything but the text
-        # the user added
         if isinstance(expr, Tree) and expr.data == 'var_ref':
-            self._headers.append(SSM.source_for(expr).strip())
+            # For variable names, we just make that into a string
+            self._headers.append('.'.join(name.value for name in expr.children))
         else:
             # If they have some type of constant, we'll use it
             if isinstance(expr, Token) and len(node.children) == 1:
@@ -140,39 +155,78 @@ class SelectAnalyzer(Visitor):
                 self._headers.append('')
 
     def output_as(self, node: Tree):
+        """
+        ... <expr> AS [name|string] ...
+        Column is explicity named
+        """
+        # NB: do not bind
         self.output_statements.append(node.children[0])
         # If it is an output_as, it will have two children:
         # The second child will be either a NAME or a STRING,
         # but all we need is its value regardless of type
+        # NB: if blank, it will get a default later
         self._headers.append(node.children[1].value.strip())
 
+    def from_var(self, node: Tree):
+        """... From Var <name> As <target> ..."""
+        node = bind_operations(node)
+        self.from_opts['type'] = 'memory'
+        self.from_opts['var'] = tuple(name.value for name in node.children[0].children)
+        self.from_opts['target'] = node.children[1].value
+
+    def from_file(self, node: Tree):
+        """... From File <filename> <opt>? As <target> ..."""
+        node = bind_operations(node)
+        self.from_opts['type'] = 'memory'
+        filename = eval_filename_expr(self._dd, bind_operations(node.children[0]))
+        self.from_opts['file'] = filename
+        self.from_opts['dtype'] = load_data_type(filename, node.children[1] if len(node.children) > 2 else None)
+        self.from_opts['target'] = node.children[-1].value
+
+    def from_vault(self, node: Tree):
+        """... From [Vault] <vault-target> ..."""
+        node = bind_operations(node)
+        self.from_opts['type'] = 'vault'
+        self.from_opts['target'] = node.children[0].value.lower()
+
     def where_clause(self, node: Tree):
+        """... Where expr (, expr)* ..."""
+        # NB: do not bind
         self._predicates.extend(node.children)
-        # TODO analyze by usage
 
     def limit_clause(self, node: Tree):
+        """... Limit <limit> (Offset <offset>)? ..."""
+        node = bind_operations(node)
         children = node.children
-        if len(children) >= 1: self._output_controls['limit'] = eval_to_int(self._dd, children[0], 'Limit', True)
-        if len(children) >= 2: self._output_controls['offset'] = eval_to_int(self._dd, node.children[1], 'Offset', True)
+        if len(children) >= 1: self.output_controls['limit'] = eval_to_int(self._dd, children[0], 'Limit', True)
+        if len(children) >= 2: self.output_controls['offset'] = eval_to_int(self._dd, node.children[1], 'Offset', True)
 
     def product_clause(self, node: Tree):
+        node = bind_operations(node)
         # TODO
-        pass
 
     def for_json(self, node: Tree):
-        self._output_type = 'json'
+        """... For JSON <opts>* ..."""
+        node = bind_operations(node)
+        self.output_opts['type'] = 'json'
         self._parse_output_ops(node)
 
     def for_csv(self, node: Tree):
-        self._output_type = 'csv'
+        """... For CSV <opts>* ..."""
+        node = bind_operations(node)
+        self.output_opts['type'] = 'csv'
         self._parse_output_ops(node)
 
     def for_markdown(self, node: Tree):
-        self._output_type = 'markdown'
+        """... For Markdown <opts>* ..."""
+        node = bind_operations(node)
+        self.output_opts['type'] = 'markdown'
         self._parse_output_ops(node)
 
     def for_template(self, node: Tree):
-        self._output_type = 'template'
+        """... For [Record|Batch]? Template <template_file> <opts>* ..."""
+        node = bind_operations(node)
+        self.output_opts['type'] = 'template'
         i: int = 0
         if isinstance(node.children[i], Token) and node.children[i].type == 'TEMPLATE_TYPE':
             self.output_opts['template_type'] = node.children[i].value.lower()
@@ -183,6 +237,7 @@ class SelectAnalyzer(Visitor):
         self._parse_output_ops(node, i)
 
     def _display_name(self, name: str) -> str:
+        """Util to print nice looking error msgs"""
         return self._OPT_DISPLAY_NAME.get(name, name.capitalize())
 
     def _parse_output_ops(self, node:Tree, start: int=0) -> None:
@@ -209,7 +264,7 @@ class SelectAnalyzer(Visitor):
             if name == 'quoting':
                 self.output_opts[name] = c.children[0].value.lower()
                 continue
-            raise NotImplementedError(f'Output option {repr(name)} of type {self.output_type}')
+            raise NotImplementedError(f'Output option {repr(name)} of type {self.output_opts["type"]}')
 
     def _bool_arg(self, node:Tree, name: str) -> bool:
         return eval_to_bool(self._dd, node.children[0], name, True) if node.children else True
@@ -236,10 +291,8 @@ class ImplicitContextAdder(Transformer):
     def add_contexts(self, tree, target: str, valid_contexts):
         try:
             self._target = target
-            print(repr(target))
-            print(repr(valid_contexts))
             self._valid_contexts = valid_contexts
-            return super().transform(tree)
+            return super().transform(deepcopy(tree)) # TODO speculative
         finally:
             self._target = None
             self._valid_contexts = None
@@ -251,55 +304,55 @@ class ImplicitContextAdder(Transformer):
             tree.children.insert(0, Token("NAME", self._target))
         return tree
 
-def get_target(statement: Tree) -> str:
-    for child in statement.children:
-        if isinstance(child, Token) and child.type == 'TARGET':
-            return child.value
-    raise TypeError('Select statement did not have a TARGET')
+#def get_from_info(statement: Tree) -> tuple[str, str]:
+#    """
+#    A Q&D check to look at the "from" to determine info
+#    May not be needed
+#    """
+#    for child in statement.children:
+#        if isinstance(child, Tree) and child.data in { 'from_var', 'from_file', 'from_vault' }:
+#            if not child.children:
+#                raise TypeError('Select From missing target info') # SNO
+#            last_child = child.children[-1]
+#            if not isinstance(last_child, Token):
+#                raise TypeError('Select From not in expected sequence')
+#            return child.data, last_child.value
+#    raise TypeError('Select statement did not have a from clause')
 
-import json # TODO for testing
+def add_implicit(dd, from_type, target, tree) -> Tree:
+    """should only be applied to the outputs and predicates after analysis!"""
+    valid_contexts = [*dd.keys()]
+    if from_type == 'from_vault': valid_contexts += VAULT_TARGETS
+    return ImplicitContextAdder().add_contexts(tree, target,  valid_contexts )
 
 def execute_select(dd: DataDictionary, statement: Tree):
-    target: str = get_target(statement)
-    print(f'Target     : {target}')
-    # If the user has defined something, or it is one of the pre-loaded
-    # prefixes or the target types, then it is a known context and
-    # not subject to getting the target prefix added to it
-    # TODO should only be applied to the outputs and predicates after analysis?
-    statement = ImplicitContextAdder().add_contexts(statement, target, VALID_TARGETS + [*dd.keys()])
-    statement = bind_operations(statement)
-    if dd.is_debug: print_tree(statement)
-
-    select = SelectAnalyzer(dd, target).analyze(statement)
-
-    # TODO
-#    print('Predicates :')
- #   for i, p in enumerate(select.predicates):
-  #      print(f'\t{i + 1} : {SSM.source_for(p)}')
-    print('Outputs    :')
-    for i, o in enumerate(select.output_statements):
-        print(f'\t{i + 1} : {SSM.source_for(o)}')
-        print_tree(o)
-    writer = create_writer(select.output_type, select.output_opts, select.output_controls)
+    select = SelectAnalyzer(dd).analyze(statement)
+    # NB: at this point not all operations will show as bound
+    # (notably in the outputs and the predicates) and
+    # that is by design, so don't panic
+    if dd.is_debug(): print_tree(statement)
+    #from_opts = select.from_opts
+    #print(repr(from_opts)) # TODO
+    #predicates = select.predicates
+    #print('Predicates :') # TODO
+    #for i, p in enumerate(predicates):
+    #    print(f'\t{i + 1}')
+    #    print_tree(p)
+    #outputs = select.output_statements
+    #print('Outputs    :') # TODO
+    #for i, o in enumerate(outputs):
+    #    print(f'\t{i + 1}')
+    #    print_tree(o)
+    output_opts = select.output_opts
+    # If the type was not set, we use the default, and if not there, use CSV
+    output_opts['type'] = output_opts.get('type', (dd.get_var_user(*DEFAULT_FROM_TYPE_PATH) or 'csv').lower())
+    writer = create_writer(output_opts, select.output_controls)
     print_debug(dd, repr(writer))
-    # TODO "Load people From "people.json"
-    with open('people.json', 'r', encoding='utf-8') as f: data = json.load(f)
-    # TODO "Select ... Variable var_name As target"
-    QueryFilter(dd, select.output_statements, writer).run_extraction(InMemoryExtractor(data, target))
+    extractor = create_extractor(dd, select.from_opts)
+    print_debug(dd, repr(extractor))
+    QueryRunner(dd, select.output_statements, writer).run_extraction(extractor)
 
-class DataExtractor(ABC):
-    @abstractmethod
-    def extract(self, qfilter: "QueryFilter") -> None:
-        pass
-
-    def finish(self) -> None:
-        """Override if your class requires some type of clean up"""
-
-class DataLimitExceededException(Exception):
-    def __init__(self, *args):
-        super().__init__(*args)
-
-class QueryFilter:
+class QueryRunner(QueryFilter, InfoOutput):
     def __init__(self, dd: DataDictionary, outputs: list, writer: RecordWriter):
         self._dd = dd
         self._outputs = outputs
@@ -313,16 +366,17 @@ class QueryFilter:
         a DataLimitExceededException: this is the only place where
         this should be caught.
         """
+        extractor.start(self)
         if self._writer.start():
             try:
                 try:
-                    extractor.extract(self)
-                except DataLimitExceededException:
+                    extractor.extract(self, self)
+                except EndExtractException:
                     pass
                 finally:
                     self._writer.finish()
             finally:
-                extractor.finish()
+                extractor.finish(self)
 
     # An "applicable" predicate is one that has either no var refs ("True" or "5 < 7")
     # or whose top-level var ref step is "satisfied" by being present in the
@@ -355,7 +409,7 @@ class QueryFilter:
             # the entirity of the target data
             record = [ data ]
         if  not self._writer.write(record):
-            raise DataLimitExceededException()
+            raise EndExtractException()
         return True
 
     def set_data(self, key: str, data: Any) -> None:
@@ -367,10 +421,11 @@ class QueryFilter:
         data model.
         """
         if data is None:
+            # It is important that we clear this out
+            # since the presence of items in the DD can
+            # affect filter_intermediate behavior.
             self.unset_data(key)
         else:
-            if not isinstance(data, dict):
-                raise ValueError(f'Data for query must be a dictionary, found {type(data).__name__}')
             self._dd.set_var_user(data, key)
 
     def unset_data(self, key: str) -> None:
@@ -381,46 +436,55 @@ class QueryFilter:
         """
         self._dd.unset_var_user(key)
 
-class InMemoryExtractor(DataExtractor):
-    def __init__(self, source: list, target: str):
-        super().__init__()
-        if not isinstance(source, list):
-            raise ValueError(f'Data for query must be stored in a list, found {type(source).__name__}')
-        self._source = source
-        self._target = target
+    def print_debug(self, *args, **kwargs):
+        print_debug(self._dd, *args, **kwargs)
 
-    def extract(self, qfilter: QueryFilter) -> None:
-        """
-        This is simple because we have a flat data model
-        We simply iterate over our data as the target
-        additing it to the data dictionary then telling
-        the query filter to test is as a target.
-        """
-        for obj in self._source:
-            if obj is not None:
-                try:
-                    qfilter.set_data(self._target, obj)
-                    qfilter.filter_target(obj)
-                finally:
-                    qfilter.unset_data(self._target)
+    def print_verbose(self, /, *args, **kwargs):
+        print_verbose(self._dd, *args, **kwargs)
 
-def create_writer(otype: str, opts: dict, controls: dict) -> RecordWriter:
-    """Using the params, create and configure a writer instance.
-    otype - the type of writer
-    opts - options that configure the writer
+def create_extractor(dd: DataDictionary, opts: dict) -> DataExtractor:
+    """
+    Using the options, create an extractor for data.
+    """
+    xtype = opts['type']
+    target = opts['target']
+    if xtype == 'vault':
+        # TODO Much more complicated in the future...
+        return VaultDataExtractor(target)
+    if xtype == 'memory':
+        path = opts.get('var', None)
+        if path:
+            return InMemoryExtractor(dd.get_var_user(*path), target)
+        filename = opts.get('file', None)
+        if filename:
+            with open(filename, 'r', encoding='utf-8') as f:
+                data = load_file_as(f, opts['dtype'])
+            if not isinstance(data, list):
+                data = [data] if isinstance(data, dict) else [{'value' : data}]
+            if dd.is_verbose():
+                length = len(data)
+                print_verbose(dd, 'Read', length, 'Records ' if length != 1 else 'Record', 'From', filename)
+            return InMemoryExtractor(data, target)
+    raise NotImplementedError(f'Extractor type {repr(xtype)}')
+
+def create_writer(opts: dict, controls: dict) -> RecordWriter:
+    """
+    Using the options, create and configure a writer instance.
+    opts - options that define the type and configure the writer
     controls - used in wrapper creation and configuration
     """
     writer: RecordWriter = None
-    if otype == 'csv':
-        writer = CSVRecordWriter(stdout(), stderr=stderr(), **opts)
-    elif otype == 'json':
+    otype = opts['type']
+    if otype == 'json':
         writer = JSONRecordWriter(stdout(), stderr=stderr(), **opts)
     elif otype == 'markdown':
         writer = MarkdownRecordWriter(stdout(), stderr=stderr(), **opts)
-    elif otype == 'template':
+    elif otype in ('template', 'template-batch'):
+        if otype == 'template-batch': opts['template_type'] = 'batch'
         writer = TemplateRecordWriter(stdout(), stderr=stderr(), **opts)
     else:
-        raise NotImplementedError(f'Output type {repr(otype)} not implemented')
+        # CSV is the ultimate fallback
+        writer = CSVRecordWriter(stdout(), stderr=stderr(), **opts)
     # Order is important since projections can generate more than one row
     # It depends upon how you want to interpret the limit/offset, and that is TBD
     # TODO option on "product" like "before or after limit"

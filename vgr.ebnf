@@ -72,7 +72,7 @@ dec: var_name "Down"i "By"i expr
 
 unset: "Unset"i var_name _SEMICOLON?
 
-load_from: "Load"i var_name ("From"i | "With"i) "File"i expr load_source_type? _SEMICOLON?
+load_from: "Load"i var_name ("From"i | "With"i) "File"i? expr load_source_type? _SEMICOLON?
 load_source_type: "JSON"i "Object"i? -> json_object
     | "JSON"i "Object"i? "Per"i "Line"i -> json_objects
     | "CSV"i -> csv_file
@@ -126,15 +126,12 @@ select: "Select"i outputs? from_clause where_clause? product_clause? limit_claus
 output: expr
     | expr "As"i (NAME | ESCAPED_STRING) -> output_as
 
-?from_clause: "From"i TARGET
-// TODO
-//?from_clause: "From"i (from_var | from_file | from_vault)
-//from_var: ("Variable"i | "Var"i) var_name "As"i NAME
-//from_file: "File"i expr load_source_type? "As"i NAME
-//from_vault: "Vault"i? VAULT_TARGET ("As"i NAME)?
+?from_clause: "From"i (from_var | from_file | from_vault)
+from_var: ("Variable"i | "Var"i) var_name "As"i NAME
+from_file: "File"i expr load_source_type? "As"i NAME
+from_vault: "Vault"i? VAULT_TARGET
 
-// TODO - need to make just an expr and have analyzer break on right-side ANDs
-where_clause: "Where"i expr (("And"i | "&&") expr)*
+where_clause: "Where"i expr (_COMMA expr)*
 
 ?for_clause: "For"i (for_json | for_csv | for_markdown | for_template)
 
@@ -202,6 +199,7 @@ product_cols: "All"i -> all
     | "!" expr -> unary_not
     | expr _DOT function -> function_call
     | expr _DOT NAME -> deref
+    | expr ("&&" | "And"i) expr -> and_op
     | expr ("||" | "Or"i) expr -> or_op
     | expr ("+" | "\uFF0B") expr -> add_op
     | expr ("-" | "\u2212") expr -> sub_op

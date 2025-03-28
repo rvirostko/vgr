@@ -2,14 +2,15 @@ from typing import Any
 
 from lark import v_args, Tree, Token, Transformer
 
-from mathpak import poly_add, poly_bit_and, poly_bit_or, poly_bit_xor, poly_div, poly_contains
+from data_dict import DataDictionary
+from dbg import print_tree
+from functions import get_function_op
+from mathpak import poly_add, poly_bit_and, poly_bit_xor, poly_div, poly_contains
+from mathpak import poly_bool, poly_int, poly_bit_or, poly_and
 from mathpak import poly_eq, poly_pow, poly_fdiv, poly_ge, poly_imatch, poly_gt
 from mathpak import poly_in, poly_le, poly_lt, poly_match, poly_mod, poly_mul
 from mathpak import poly_ne, poly_not_contains, poly_not_imatch, poly_not_in
 from mathpak import poly_not_match, poly_or, poly_shl, poly_shr, poly_sub, poly_not
-from mathpak import poly_bool, poly_int
-from functions import get_function_op
-from data_dict import DataDictionary
 from output import verify_relative_path
 
 class Operation(Tree):
@@ -54,7 +55,6 @@ def deref_var(data: Any, /, *path: str) -> Any:
         data = data[key]
     return data
 
-from dbg import print_tree
 # pylint: disable=too-many-public-methods
 # disabled because we MUST have a method for each rule
 # it is the way Transformer works
@@ -72,9 +72,7 @@ class OperationBinder(Transformer):
     def eq_op(self, tree): return Operation(tree, poly_eq)
     def pow_op(self, tree): return Operation(tree, poly_pow)
     def fdiv_op(self, tree): return Operation(tree, poly_fdiv)
-    def function(self, tree):
-        print_tree(tree)
-        return Operation(tree, get_function_op(tree.children.pop(0).value))
+    def function(self, tree): return Operation(tree, get_function_op(tree.children.pop(0).value))
     def ge_op(self, tree): return Operation(tree, poly_ge)
     def gt_op(self, tree): return Operation(tree, poly_gt)
     def imatch_op(self, tree): return Operation(tree, poly_imatch)
@@ -89,6 +87,7 @@ class OperationBinder(Transformer):
     def not_imatch_op(self, tree): return Operation(tree, poly_not_imatch)
     def not_in_op(self, tree): return Operation(tree, poly_not_in)
     def not_match_op(self, tree): return Operation(tree, poly_not_match)
+    def and_op(self, tree): return Operation(tree, poly_and)
     def or_op(self, tree): return Operation(tree, poly_or)
     def shl_op(self, tree): return Operation(tree, poly_shl)
     def shr_op(self, tree): return Operation(tree, poly_shr)
@@ -114,7 +113,6 @@ def eval_expr(dd: DataDictionary, expr: Any) -> Any:
         if isinstance(expr, Operation):
             return expr.execute(tuple(eval_expr(dd, arg_exp) for arg_exp in expr.children))
         # TODO "arrays not working?"
-        # TODO var_ref not working? (context: outputs)
         raise NotImplementedError(f'Unhandled type {repr(expr.data)}')
     if isinstance(expr, Token): return expr.value
     raise NotImplementedError(f'Unknown type {repr(expr.type())}')
