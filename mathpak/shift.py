@@ -1,6 +1,15 @@
+"""
+Bitwise shift left and right.
+"""
+
+from functools import reduce
 from typing import Any
 
 from .common import dist_x_list, dist_x_tuple, str_to_int, X_None_Op, Y_None_Op, get_operation, matching_default
+
+def poly_vshl(x: Any, *args):
+    """Varargs version of poly_shl"""
+    return reduce(poly_shl, args, x)
 
 def poly_shl(x: Any, y: Any) -> Any:
     """Polymorphic shift left function.
@@ -27,6 +36,10 @@ TypeError raised on all other combinations
 """
     operation = get_operation(x, y, shift_operations)
     return operation(poly_shl, x, y) if operation else x << y
+
+def poly_vshr(x: Any, *args):
+    """Varargs version of poly_shr"""
+    return reduce(poly_shr, args, x)
 
 def poly_shr(x: Any, y: Any) -> Any:
     """Polymorphic shift right function.

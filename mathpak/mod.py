@@ -1,6 +1,16 @@
+"""
+Modulus operation.
+"""
+
+from functools import reduce
 from typing import Any
 
 from .common import numeric_operations, get_operation
+
+def poly_vmod(x: Any, *args):
+    """Varargs version of poly_mod"""
+    return reduce(poly_mod, args, x)
+
 
 def poly_mod(x: Any, y: Any) -> Any:
     """Polymorphic modulus function.

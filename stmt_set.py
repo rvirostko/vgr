@@ -26,11 +26,12 @@ def execute_set(dd: DataDictionary, statement: Tree) -> None:
 def execute_unset(dd: DataDictionary, statement: Tree) -> None:
     """Remove a variable.
 
-* UNSET _variable_ [;]
+* UNSET _variable_ [, _variable_]... [;]
 """
-    path = tuple(name.value for name in statement.children[0].children)
-    old_value = dd.unset_var_user(*path)
-    print_verbose(dd, "Removed", shorten(repr(old_value)), 'From', '.'.join(path))
+    for item in statement.children:
+        path = tuple(name.value for name in item.children)
+        old_value = dd.unset_var_user(*path)
+        print_verbose(dd, "Removed", shorten(repr(old_value)), 'From', '.'.join(path))
 
 def execute_inc(dd: DataDictionary, statement: Tree) -> None:
     """Increment a counter by an amount

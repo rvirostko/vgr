@@ -1,17 +1,17 @@
 from .add import poly_add, poly_vadd
 from .bit_ops import poly_bit_and, poly_bit_or, poly_bit_xor, poly_bit_not, poly_vbit_and, poly_vbit_or, poly_vbit_xor
 from .div import poly_div, poly_fdiv, poly_vdiv, poly_vfdiv
-from .pow import poly_pow
+from .pow import poly_pow, poly_vpow
 from .general import poly_hash, poly_class, poly_sizeof, poly_repr, poly_isempty, poly_len, poly_firstitem, poly_lastitem
 from .general import poly_getitem, poly_rsort, poly_sort, poly_unique, poly_type
 from .inequ import poly_eq, poly_ge, poly_gt, poly_le, poly_lt, poly_ne
 from .is_in import poly_in, poly_not_in, poly_contains, poly_not_contains
-from .logic import poly_and, poly_not, poly_or
+from .logic import poly_and, poly_not, poly_or, poly_vor, poly_vand
 from .match import poly_imatch, poly_match, poly_not_imatch, poly_not_match
 from .misc_math import poly_abs, poly_ceil, poly_floor, poly_round, poly_trunc
-from .mod import poly_mod
+from .mod import poly_mod, poly_vmod
 from .mul import poly_mul, poly_vmul
-from .shift import poly_shl, poly_shr
+from .shift import poly_shl, poly_shr, poly_vshl, poly_vshr
 from .strings import poly_capitalize, poly_casefold, poly_endswith, poly_expandtabs, poly_isalnum, poly_isalpha, poly_isascii
 from .strings import poly_isdigit, poly_islower, poly_isnumeric, poly_isprintable, poly_isspace, poly_istitle, poly_isupper
 from .strings import poly_lower, poly_lstrip, poly_removeprefix, poly_removesuffix, poly_rstrip, poly_startswith, poly_strip
