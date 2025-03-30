@@ -23,6 +23,7 @@ from .types import coerce_value, poly_bool, poly_float, poly_int, poly_isbool, p
 from .types import poly_isstr, poly_number, poly_str, poly_islist, poly_list
 from .lookup import poly_lookup
 from .vault import duration_to_ms, ms_to_duration
+from .web import parse_url
 
 __all__ = [
     "coerce_value",

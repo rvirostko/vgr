@@ -25,7 +25,7 @@ from mathpak import poly_replace, poly_repr, poly_shr, poly_rightstr, poly_rstri
 from mathpak import poly_rindex, poly_sizeof, poly_rsort, poly_sort, poly_startswith
 from mathpak import poly_str, poly_strip, poly_vsub, poly_substr, poly_swapcase, poly_title
 from mathpak import poly_translate, poly_div, poly_trunc, poly_type, poly_unique, poly_upper
-from mathpak import duration_to_ms, ms_to_duration
+from mathpak import duration_to_ms, ms_to_duration, parse_url
 
 def _default_to(value: Any, default: Any) -> Any:
     """Returns a default value if the argument is None.
@@ -95,6 +95,7 @@ _FUNC_OPS = {
   "LeftStr": poly_leftstr,
   "LeftStrip": poly_lstrip,
   "Len": poly_len,
+  "Length": poly_len,
   "List": poly_list,
   "Lookup": poly_lookup,
   "Lower": poly_lower,
@@ -103,6 +104,7 @@ _FUNC_OPS = {
   "MsToDuration": ms_to_duration, # Vault specific
   "Mul": poly_vmul,
   "Number": poly_number,
+  "ParseUrl": parse_url,
   "Pow": poly_pow,
   "Prepend": poly_vprepend,
   "RemovePrefix": poly_removeprefix,
