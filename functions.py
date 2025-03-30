@@ -25,6 +25,7 @@ from mathpak import poly_replace, poly_repr, poly_shr, poly_rightstr, poly_rstri
 from mathpak import poly_rindex, poly_sizeof, poly_rsort, poly_sort, poly_startswith
 from mathpak import poly_str, poly_strip, poly_vsub, poly_substr, poly_swapcase, poly_title
 from mathpak import poly_translate, poly_div, poly_trunc, poly_type, poly_unique, poly_upper
+from mathpak import duration_to_ms, ms_to_duration
 
 def _default_to(value: Any, default: Any) -> Any:
     """Returns a default value if the argument is None.
@@ -55,6 +56,7 @@ _FUNC_OPS = {
   "CountOf": poly_count,
   "DefaultTo": _default_to,
   "Div": poly_vdiv,
+  "DurationToMs": duration_to_ms, # Vault specific
   "EndsWith": poly_endswith,
   "ExpandTabs": poly_expandtabs,
   "FirstItem": poly_firstitem,
@@ -77,8 +79,8 @@ _FUNC_OPS = {
   "IsFloat": poly_isfloat,
   "IsIdentifier":  poly_isidentifier,
   "IsInt": poly_isint,
-  "IsLower": poly_islower,
   "IsList": poly_islist,
+  "IsLower": poly_islower,
   "IsNumber": poly_isnumber,
   "IsNumeric": poly_isnumeric,
   "IsPrintable": poly_isprintable,
@@ -98,6 +100,7 @@ _FUNC_OPS = {
   "Lower": poly_lower,
   "Match": poly_match,
   "Mod": poly_mod,
+  "MsToDuration": ms_to_duration, # Vault specific
   "Mul": poly_vmul,
   "Number": poly_number,
   "Pow": poly_pow,

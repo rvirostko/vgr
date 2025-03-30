@@ -1,0 +1,76 @@
+"""
+Functions applicable to Vault data types.
+"""
+
+from typing import Any
+import re
+
+from .misc_math import poly_floor
+
+# Used in str -> ms
+_DURATION_STR_PATTERN = re.compile(r'(-?\d+\.?\d*)(ns|us|µs|ms|s|m|h|d)?', re.IGNORECASE)
+_TIME_UNITS_LOOKUP = {
+    'ns': 1 / 1_000_000,
+    'us': 1 / 1_000,
+    'µs': 1 / 1_000,
+    'ms': 1,
+    's': 1_000,
+    'm': 60 * 1_000,
+    'h': 60 * 60 * 1_000,
+    'd': 24 * 60 * 60 * 1_000
+}
+
+# Used in ms -> str
+_TIME_UNITS_FACTOR = [
+    ('d', 24 * 60 * 60 * 1000),
+    ('h', 60 * 60 * 1000),
+    ('m', 60 * 1000),
+    ('s', 1000),
+    ('ms', 1),
+    ('us', 1 / 1000),
+    ('ns', 1 / 1_000_000)
+]
+
+def duration_to_ms(duration: Any) -> int:
+    if duration is None:
+        return None
+    # Numeric values are assumed to be in seconds
+    if isinstance(duration, (int, float)):
+        return int(duration * 1_000)
+    if not isinstance(duration, str):
+        raise ValueError(f'Unsupported duration type {repr(type(duration).__name__)}')
+    total_milliseconds = 0
+    position = 0
+    while position < len(duration):
+        match = _DURATION_STR_PATTERN.match(duration, position)
+        if not match:
+            raise ValueError(f'Invalid duration format at {position}: {repr(duration)}')
+        value, unit = match.groups()
+        value = float(value)
+        if unit is None:
+            # No unit implies seconds
+            unit = 's'
+        else:
+            unit = unit.lower()
+        if unit not in _TIME_UNITS_LOOKUP:
+            raise ValueError(f'Invalid time unit {repr(unit)} in duration string {repr(duration)}')
+        total_milliseconds += value * _TIME_UNITS_LOOKUP[unit]
+        position = match.end()
+    return int(total_milliseconds)
+
+def ms_to_duration(ms: Any) -> str:
+    if ms is None:
+        return None
+    if not isinstance(ms, (int, float)):
+        raise ValueError(f'Unsupported duration type {repr(type(ms).__name__)}')
+    if ms == 0:
+        return "0"
+    result = []
+    remaining_ms = float(ms)
+    for unit, factor in _TIME_UNITS_FACTOR:
+        if remaining_ms >= factor:
+            value = poly_floor(remaining_ms / factor, .25)
+            result.append(f'{value}{unit}')
+            remaining_ms -= value * factor
+            if remaining_ms <= 0: break
+    return ''.join(result)

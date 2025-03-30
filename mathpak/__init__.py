@@ -22,6 +22,7 @@ from .sub import poly_sub, poly_vsub
 from .types import coerce_value, poly_bool, poly_float, poly_int, poly_isbool, poly_isfloat, poly_isint, poly_isnumber
 from .types import poly_isstr, poly_number, poly_str, poly_islist, poly_list
 from .lookup import poly_lookup
+from .vault import duration_to_ms, ms_to_duration
 
 __all__ = [
     "coerce_value",

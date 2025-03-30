@@ -34,7 +34,9 @@ def poly_isbool(x: Any) -> bool:
 def poly_float(x: Any) -> float:
     if x is None: return None
     if poly_isnumber(x): return float(x)
-    if poly_isstr(x): return float(str_to_number(x))
+    if poly_isstr(x):
+        n = str_to_number(x)
+        return None if n is None else float(n)
     if isinstance(x, list): return [poly_float(x1) for x1 in x]
     if isinstance(x, tuple): return tuple(poly_float(x1) for x1 in x)
     return None

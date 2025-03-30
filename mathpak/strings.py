@@ -233,10 +233,14 @@ def _cast_arg(y_type: Type, y: Any) -> Any:
     if y_type == str: return str(y)
     if y_type == float:
         if isinstance(y, (float, int)): return float(y)
-        if isinstance(y, str): return float(str_to_number(y))
+        if isinstance(y, str):
+            n = str_to_number(y)
+            return None if n is None else float(n)
     if y_type == int:
         if isinstance(y, (float, int)): return int(y)
-        if isinstance(y, str): return int(str_to_number(y))
+        if isinstance(y, str):
+            n = str_to_number(y)
+            return None if n is None else int(n)
     return y
 
 def _apply(op: Callable[[Any], Any], x: Any) -> Any:

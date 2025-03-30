@@ -29,7 +29,11 @@ def str_to_number(s: str) -> Number:
     """
     Attempts to convert a string to a number value.
     Raises ValueError if it can't.
+    May return None
     """
+    if s is None or s.isspace(): return None
+    s = s.strip().lower()
+    if s == "none": return None
     try:
         x: float = float(s.strip())
         return int(x) if x.is_integer() else x
@@ -37,8 +41,12 @@ def str_to_number(s: str) -> Number:
         raise ValueError(f'Cannot convert {repr(s)} to a number') from e
 
 def str_to_int(x: str) -> int:
-    """See str_to_number - forces an int result"""
-    return int(str_to_number(x))
+    """
+    See str_to_number - forces an int result
+    May return None
+    """
+    n = str_to_number(x)
+    return None if n is None else int(n)
 
 def str_to_bool(x: str) -> bool:
     if x is None or x.isspace(): return False
@@ -46,7 +54,8 @@ def str_to_bool(x: str) -> bool:
     if x in _TRUE_STRS: return True
     if x in _FALSE_STRS: return False
     try:
-        return bool(str_to_number(x))
+        n = str_to_number(x)
+        return n is not None and n != 0
     except ValueError:
         # we return True just because a non-None is "truthy"
         return True
