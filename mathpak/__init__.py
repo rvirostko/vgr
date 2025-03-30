@@ -6,7 +6,7 @@ from .general import poly_hash, poly_class, poly_sizeof, poly_repr, poly_isempty
 from .general import poly_getitem, poly_rsort, poly_sort, poly_unique, poly_type
 from .inequ import poly_eq, poly_ge, poly_gt, poly_le, poly_lt, poly_ne
 from .is_in import poly_in, poly_not_in, poly_contains, poly_not_contains
-from .logic import poly_and, poly_not, poly_or, poly_vor, poly_vand
+from .logic import poly_and, poly_not, poly_or
 from .match import poly_imatch, poly_match, poly_not_imatch, poly_not_match
 from .misc_math import poly_abs, poly_ceil, poly_floor, poly_round, poly_trunc
 from .mod import poly_mod, poly_vmod

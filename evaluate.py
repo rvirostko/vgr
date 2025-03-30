@@ -4,6 +4,7 @@ Functions to:
     * Evaluate the expression
 """
 
+from abc import ABC, abstractmethod
 from typing import Any
 
 from lark import v_args, Tree, Token, Transformer
@@ -11,42 +12,79 @@ from lark import v_args, Tree, Token, Transformer
 from data_dict import DataDictionary
 from functions import get_function_op
 from mathpak import poly_vadd, poly_vbit_and, poly_vbit_xor, poly_vdiv, poly_contains
-from mathpak import poly_bool, poly_int, poly_vbit_or, poly_vand, poly_vor
+from mathpak import poly_bool, poly_int, poly_vbit_or
 from mathpak import poly_eq, poly_vpow, poly_vfdiv, poly_ge, poly_imatch, poly_gt
 from mathpak import poly_in, poly_le, poly_lt, poly_match, poly_vmod, poly_vmul
 from mathpak import poly_ne, poly_not_contains, poly_not_imatch, poly_not_in
 from mathpak import poly_not_match, poly_vshl, poly_vshr, poly_vsub, poly_not
 from output import verify_relative_path
 
-class Operation(Tree):
-    """Instance that invokes another operation : part of an expression"""
-    def __init__(self, base: Tree, op):
-        super().__init__(base.data, base.children or [])
-        self._op = op
+class Operation(Tree, ABC):
 
-    def execute(self, args: tuple) -> Any:
-        return self._op(*args)
-
-    def op_name(self) -> str:
-        return self._op.__name__ if self._op else 'None'
-
-class VarRef(Tree):
-    """
-    Instance that gets a variable from a DataDictionary
-    using a path from the root.
-    Part of an expression.
-    """
     def __init__(self, base: Tree):
         super().__init__(base.data, base.children or [])
 
-    def execute(self, dd: DataDictionary, args: tuple) -> Any:
+    @abstractmethod
+    def execute(self, dd: DataDictionary, args: list) -> Any:
+        """Do it"""
+
+    @abstractmethod
+    def op_name(self) -> str:
+        """The name"""
+
+class SimpleOperation(Operation):
+    """Instance that invokes another operation : part of an expression"""
+    def __init__(self, base: Tree, op):
+        super().__init__(base)
+        self._op = op
+
+    def execute(self, dd: DataDictionary, args: list) -> Any:
+        # We evaluate all the arguments and execute the operation
+        return self._op(*tuple(eval_expr(dd, arg) for arg in args))
+
+    def op_name(self) -> str:
+        return self._op.__name__
+
+class VarRef(Operation):
+    """
+    The children form the path to info in the data dictionary
+    """
+
+    def execute(self, dd: DataDictionary, args: list) -> Any:
         """This is the lookup of a top-level variable"""
-        return dd.get_var_user(*args)
+        # The args are all NAME tokens
+        return dd.get_var_user(*tuple(arg.value for arg in args))
 
     def op_name(self) -> str:
         return 'var_ref'
 
-class Ternary(Tree):
+class AndOperation(Operation):
+    """A short-circuiting And"""
+
+    def execute(self, dd: DataDictionary, args: list) -> Any:
+        """Return False on the first expression that evaluates to False"""
+        for arg in args:
+            if not poly_bool(eval_expr(dd, arg)):
+                return False
+        return True
+
+    def op_name(self) -> str:
+        return 'and'
+
+class OrOperation(Operation):
+    """A short-circuiting Or"""
+
+    def execute(self, dd: DataDictionary, args: list) -> Any:
+        """Return True on the first expression that evaluates to True"""
+        for arg in args:
+            if poly_bool(eval_expr(dd, arg)):
+                return True
+        return False
+
+    def op_name(self) -> str:
+        return 'or'
+
+class Ternary(Operation):
     """
     Instance that handles the implemenation of ternary expressions.
     """
@@ -58,10 +96,10 @@ class Ternary(Tree):
             second : the index of the "true" expression
             third : the index of the "false" expression
         """
-        super().__init__(base.data, base.children or [])
+        super().__init__(base)
         self._seq = seq
 
-    def execute(self, dd: DataDictionary, args: tuple) -> Any:
+    def execute(self, dd: DataDictionary, args: list) -> Any:
         """
         Using the sequence indicies, execute the predicate.
         Then depending upon the truth value, execute the "true" or
@@ -95,48 +133,48 @@ def deref_var(data: Any, /, *path: str) -> Any:
 class OperationBinder(Transformer):
     """Binds functions to expression operations"""
     # Fundemental boolean logic
-    def and_op(self, tree): return Operation(tree, poly_vand)
-    def or_op(self, tree): return Operation(tree, poly_vor)
-    def unary_not(self, tree): return Operation(tree, poly_not)
+    def and_op(self, tree): return AndOperation(tree)
+    def or_op(self, tree): return OrOperation(tree)
+    def unary_not(self, tree): return SimpleOperation(tree, poly_not)
 
     # Comparisons of some type with two operands that return booleans
-    def contains_op(self, tree): return Operation(tree, poly_contains)
-    def eq_op(self, tree): return Operation(tree, poly_eq)
-    def ge_op(self, tree): return Operation(tree, poly_ge)
-    def gt_op(self, tree): return Operation(tree, poly_gt)
-    def imatch_op(self, tree): return Operation(tree, poly_imatch)
-    def in_op(self, tree): return Operation(tree, poly_in)
-    def le_op(self, tree): return Operation(tree, poly_le)
-    def lt_op(self, tree): return Operation(tree, poly_lt)
-    def match_op(self, tree): return Operation(tree, poly_match)
-    def neq_op(self, tree): return Operation(tree, poly_ne)
-    def not_contains_op(self, tree): return Operation(tree, poly_not_contains)
-    def not_imatch_op(self, tree): return Operation(tree, poly_not_imatch)
-    def not_in_op(self, tree): return Operation(tree, poly_not_in)
-    def not_match_op(self, tree): return Operation(tree, poly_not_match)
+    def contains_op(self, tree): return SimpleOperation(tree, poly_contains)
+    def eq_op(self, tree): return SimpleOperation(tree, poly_eq)
+    def ge_op(self, tree): return SimpleOperation(tree, poly_ge)
+    def gt_op(self, tree): return SimpleOperation(tree, poly_gt)
+    def imatch_op(self, tree): return SimpleOperation(tree, poly_imatch)
+    def in_op(self, tree): return SimpleOperation(tree, poly_in)
+    def le_op(self, tree): return SimpleOperation(tree, poly_le)
+    def lt_op(self, tree): return SimpleOperation(tree, poly_lt)
+    def match_op(self, tree): return SimpleOperation(tree, poly_match)
+    def neq_op(self, tree): return SimpleOperation(tree, poly_ne)
+    def not_contains_op(self, tree): return SimpleOperation(tree, poly_not_contains)
+    def not_imatch_op(self, tree): return SimpleOperation(tree, poly_not_imatch)
+    def not_in_op(self, tree): return SimpleOperation(tree, poly_not_in)
+    def not_match_op(self, tree): return SimpleOperation(tree, poly_not_match)
 
     # Polymorphic operations with two or more operands
-    def add_op(self, tree): return Operation(tree, poly_vadd)
-    def bit_and_op(self, tree): return Operation(tree, poly_vbit_and)
-    def bit_or_op(self, tree): return Operation(tree, poly_vbit_or)
-    def bit_xor_op(self, tree): return Operation(tree, poly_vbit_xor)
-    def div_op(self, tree): return Operation(tree, poly_vdiv)
-    def fdiv_op(self, tree): return Operation(tree, poly_vfdiv)
-    def mod_op(self, tree): return Operation(tree, poly_vmod)
-    def mul_op(self, tree): return Operation(tree, poly_vmul)
-    def pow_op(self, tree): return Operation(tree, poly_vpow)
-    def shl_op(self, tree): return Operation(tree, poly_vshl)
-    def shr_op(self, tree): return Operation(tree, poly_vshr)
-    def sub_op(self, tree): return Operation(tree, poly_vsub)
+    def add_op(self, tree): return SimpleOperation(tree, poly_vadd)
+    def bit_and_op(self, tree): return SimpleOperation(tree, poly_vbit_and)
+    def bit_or_op(self, tree): return SimpleOperation(tree, poly_vbit_or)
+    def bit_xor_op(self, tree): return SimpleOperation(tree, poly_vbit_xor)
+    def div_op(self, tree): return SimpleOperation(tree, poly_vdiv)
+    def fdiv_op(self, tree): return SimpleOperation(tree, poly_vfdiv)
+    def mod_op(self, tree): return SimpleOperation(tree, poly_vmod)
+    def mul_op(self, tree): return SimpleOperation(tree, poly_vmul)
+    def pow_op(self, tree): return SimpleOperation(tree, poly_vpow)
+    def shl_op(self, tree): return SimpleOperation(tree, poly_vshl)
+    def shr_op(self, tree): return SimpleOperation(tree, poly_vshr)
+    def sub_op(self, tree): return SimpleOperation(tree, poly_vsub)
 
     # Ternary operations: indicies are for predicate, true-sise, false-side
     def c_ternary(self, tree): return Ternary(tree, (0, 1, 2))
     def py_ternary(self, tree): return Ternary(tree, (1, 0, 2))
 
     # Other operations
-    def array(self, tree): return Operation(tree, build_array)
-    def deref(self, tree): return Operation(tree, deref_var)
-    def function(self, tree): return Operation(tree, get_function_op(tree.children.pop(0).value))
+    def array(self, tree): return SimpleOperation(tree, build_array)
+    def deref(self, tree): return SimpleOperation(tree, deref_var)
+    def function(self, tree): return SimpleOperation(tree, get_function_op(tree.children.pop(0).value))
     def var_ref(self, tree): return VarRef(tree)
     def function_call(self, tree):
         # The expression becomes the first argument to the function,
@@ -156,11 +194,7 @@ def bind_operations(statement: Tree) -> Tree:
 def eval_expr(dd: DataDictionary, expr: Any) -> Any:
     """Evalutates an expression"""
     if isinstance(expr, Tree):
-        if isinstance(expr, VarRef):
-            return expr.execute(dd, tuple(eval_expr(dd, arg_exp) for arg_exp in expr.children))
         if isinstance(expr, Operation):
-            return expr.execute(tuple(eval_expr(dd, arg_exp) for arg_exp in expr.children))
-        if isinstance(expr, Ternary):
             return expr.execute(dd, expr.children)
         raise NotImplementedError(f'Unhandled type {repr(expr.data)}')
     if isinstance(expr, Token): return expr.value

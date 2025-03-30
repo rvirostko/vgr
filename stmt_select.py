@@ -12,12 +12,13 @@ from data_xtract import QueryFilter, InfoOutput, DataExtractor, EndExtractExcept
 from dbg import print_tree
 from dd_config import DEFAULT_FROM_TYPE_PATH
 from evaluate import bind_operations, eval_expr, eval_to_bool, eval_to_int, eval_to_str, eval_filename_expr
+from mathpak import poly_bool
 from output import CSVRecordWriter, JSONRecordWriter, MarkdownRecordWriter, TemplateRecordWriter
 from output import RecordWriter, RecordLimiter, RecordCartesianProduct
 from redir import stdout, stderr, print_debug, print_verbose
 from stmt_set import load_data_type, load_file_as
-from xtract_vault import VAULT_TARGETS, VaultDataExtractor
 from xtract_memory import InMemoryExtractor
+from xtract_vault import VAULT_TARGETS, VaultDataExtractor
 
 class SelectAnalyzer(Visitor):
 
@@ -84,6 +85,10 @@ class SelectAnalyzer(Visitor):
     def analyze(self, tree: Tree):
         self.visit(tree)
         return self
+
+    @property
+    def dd(self) -> DataDictionary:
+        return self._dd
 
     @property
     def from_opts(self) -> dict:
@@ -350,12 +355,12 @@ def execute_select(dd: DataDictionary, statement: Tree):
     print_debug(dd, repr(writer))
     extractor = create_extractor(dd, select.from_opts)
     print_debug(dd, repr(extractor))
-    QueryRunner(dd, select.output_statements, writer).run_extraction(extractor)
+    QueryRunner(dd, select, writer).run_extraction(extractor)
 
 class QueryRunner(QueryFilter, InfoOutput):
-    def __init__(self, dd: DataDictionary, outputs: list, writer: RecordWriter):
+    def __init__(self, dd: DataDictionary, select: SelectAnalyzer, writer: RecordWriter):
         self._dd = dd
-        self._outputs = outputs
+        self._select = select
         self._writer = writer
 
     def run_extraction(self, extractor: DataExtractor) -> None:
@@ -398,15 +403,22 @@ class QueryRunner(QueryFilter, InfoOutput):
         return True
 
     def filter_target(self, data: Any) -> bool:
-        # we return true or false, which the extractor can check,
+        # We return true or false, which the extractor can check,
         # but it is not prescriptive: False does not mean stop...
-        # TODO eval all predicates, if no failures...
+        # Evaluate all predicates: first failure causes the
+        # record to be skipped.
+        predicates = self._select.predicates
+        if predicates:
+            for predicate in predicates:
+                if not poly_bool(eval_expr(self._dd, predicate)): return False
         record: list = None
-        if self._outputs:
-            record = [ eval_expr(self._dd, expr) for expr in self._outputs ]
+        outputs = self._select.output_statements
+        if outputs:
+            record = [ eval_expr(self._dd, expr) for expr in outputs ]
         else:
             # Result of a "Select From ..." so your output is
             # the entirity of the target data
+            # TODO how does this work with JSON output?
             record = [ data ]
         if  not self._writer.write(record):
             raise EndExtractException()
