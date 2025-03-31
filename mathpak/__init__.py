@@ -17,7 +17,7 @@ from .strings import poly_isdigit, poly_islower, poly_isnumeric, poly_isprintabl
 from .strings import poly_lower, poly_lstrip, poly_removeprefix, poly_removesuffix, poly_rstrip, poly_startswith, poly_strip
 from .strings import poly_swapcase, poly_title, poly_upper, poly_count, poly_index, poly_rindex, poly_rightstr, poly_leftstr
 from .strings import poly_substr, poly_append, poly_prepend, poly_isdecimal, poly_isidentifier, poly_replace, poly_translate
-from .strings import poly_vappend, poly_vprepend
+from .strings import poly_vappend, poly_vprepend, poly_format
 from .sub import poly_sub, poly_vsub
 from .types import coerce_value, poly_bool, poly_float, poly_int, poly_isbool, poly_isfloat, poly_isint, poly_isnumber
 from .types import poly_isstr, poly_number, poly_str, poly_islist, poly_list

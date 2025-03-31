@@ -26,7 +26,9 @@ from mathpak import poly_rindex, poly_sizeof, poly_rsort, poly_sort, poly_starts
 from mathpak import poly_str, poly_strip, poly_vsub, poly_substr, poly_swapcase, poly_title
 from mathpak import poly_translate, poly_div, poly_trunc, poly_type, poly_unique, poly_upper
 from mathpak import duration_to_ms, ms_to_duration, parse_url
-from mathpak import md_blockquote, md_bold, md_code, md_code_block, md_heading, md_italics, md_link, md_ordered_list, md_strikethrough, md_unordered_list
+from mathpak import md_blockquote, md_bold, md_code, md_code_block, md_heading, md_italics, md_strikethrough
+from mathpak import md_link, md_ordered_list, md_unordered_list
+from mathpak import poly_format
 
 def _default_to(value: Any, default: Any) -> Any:
     """Returns a default value if the argument is None.
@@ -64,6 +66,7 @@ _FUNC_OPS = {
   "Float": poly_float,
   "Floor": poly_floor,
   "FloorDiv": poly_vfdiv,
+  "Format": poly_format,
   "GE": poly_ge,
   "Hash": poly_hash,
   "IMatch": poly_imatch,
