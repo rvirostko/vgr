@@ -1,3 +1,6 @@
+"""
+Implementations of PRINT, PRINTF, EXHIBIT, and DISPLAY
+"""
 
 from typing import Any
 
@@ -7,7 +10,7 @@ from data_dict import DataDictionary
 from dd_config import OFS_PATH, ORS_PATH, LINESEP_PATH
 from redir import print_stdout, print_stderr
 from evaluate import eval_expr, eval_to_str
-
+from mathpak import poly_format
 
 def execute_print(dd: DataDictionary, statement: Tree) -> None:
     """Print values, similar to AWK's print statement
@@ -37,10 +40,10 @@ The first expression is resolved to a string used to format the other values
 
 Formatting syntax is that used in [Python's str.format()](https://docs.python.org/3/library/string.html#formatstrings)
 """
-    exprs = [*statement.children]
-    format_string = eval_to_str(dd, exprs.pop(0), 'Format string', True) if len(exprs) else None
-    if format_string:
-        print_stdout(str(format_string).format(*[eval_expr(dd, expr) for expr in exprs]), end='')
+    if len(statement.children) < 1: return
+    format_string = eval_to_str(dd, statement.children[0], 'Format string', True)
+    value = poly_format(format_string, *tuple(eval_expr(dd, expr) for expr in statement.children[1:]))
+    if value: print_stdout(value, end='')
 
 def execute_exhibit(dd: DataDictionary, statement: Tree) -> None:
     """Display the name and values of variables
