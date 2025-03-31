@@ -16,25 +16,25 @@ def poly_mul(x: Any, y: Any) -> Any:
 | int   | int   | int     | x * y               |
 | int   | float | float   | float(x) * y        |
 | int   | str   | str     | string repetition   |
-| int   | list  | list    | repetition          |
-| int   | tuple | tuple   | repetition          |
+| int   | list  | list    | distributive        |
+| int   | tuple | tuple   | distributive        |
 | float | int   | float   | x * float(y)        |
 | float | float | float   | x * y               |
 | float | str   | str     | string repetition   |
-| float | list  | list    | repetition          |
-| float | tuple | tuple   | repetition          |
+| float | list  | list    | distributive        |
+| float | tuple | tuple   | distributive        |
 | str   | int   | str     | string repetition   |
 | str   | float | str     | string repetition   |
 | str   | str   | str     | concatenation       |
 | str   | list  | list    | distributive        |
 | str   | tuple | tuple   | distributive        |
-| list  | int   | list    | repetition          |
-| list  | float | list    | repetition          |
+| list  | int   | list    | distributive        |
+| list  | float | list    | distributive        |
 | list  | str   | list    | distributive        |
 | list  | list  | list    | cartesian product   |
 | list  | tuple | list    | cartesian product   |
-| tuple | int   | tuple   | repetition          |
-| tuple | float | tuple   | repetition          |
+| tuple | int   | tuple   | distributive        |
+| tuple | float | tuple   | distributive        |
 | tuple | str   | tuple   | distributive        |
 | tuple | list  | tuple   | cartesian product   |
 | tuple | tuple | tuple   | cartesian product   |
@@ -57,14 +57,16 @@ mul_operations = {
     (float, list): lambda _, x, y: int(x) * y,
     (float, tuple): lambda _, x, y: int(x) * y,
     (str, float): lambda _, x, y: x * int(y),
-    (str, str): lambda _, x, y: x + y, # TODO rethink?
+    (str, str): lambda _, x, y: x + y, # TODO rethink? This could become very complex...
     (str, list): dist_y_list,
     (str, tuple): dist_y_tuple,
-    (list, float): lambda _, x, y: x * int(y),
+    (list, int): dist_x_list,
+    (list, float): dist_x_list,
     (list, str): dist_x_list,
     (list, list): product_list,
     (list, tuple): product_list,
-    (tuple, float): lambda _, x, y: x * int(y),
+    (tuple, int): dist_x_tuple,
+    (tuple, float): dist_x_tuple,
     (tuple, str): dist_x_tuple,
     (tuple, list): product_tuple,
     (tuple, tuple): product_tuple,
