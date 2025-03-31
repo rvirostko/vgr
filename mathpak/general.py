@@ -26,7 +26,9 @@ def poly_rsort(x: Any) -> Any:
     return _sorted(x, True)
 
 def poly_isempty(x: Any) -> bool:
-    if isinstance(x, str): return not x or not x.strip()
+    if isinstance(x, str): return x is None or len(x) == 0 or x.isspace()
+    # TODO list/tuple
+    # TODO dict
     return x is None or not x
 
 def poly_sizeof(x: Any) -> int:
