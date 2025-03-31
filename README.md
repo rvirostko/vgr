@@ -576,6 +576,6 @@ TODO
 
 TODO
 
-##### Template Output with Django
+##### Template Output with Jinja2
 
 TODO
