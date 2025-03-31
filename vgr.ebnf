@@ -72,7 +72,7 @@ dec: var_name "Down"i "By"i expr
 
 unset: "Unset"i (var_name (_COMMA? var_name)*)? _SEMICOLON?
 
-load_from: "Load"i var_name ("From"i | "With"i) "File"i? expr load_source_type? _SEMICOLON?
+load_from: "Load"i var_name ("From"i | "With"i) "File"i? expr ("As"i? load_source_type)? _SEMICOLON?
 load_source_type: "JSON"i "Object"i? -> json_object
     | "JSON"i "Object"i? "Per"i "Line"i -> json_objects
     | "CSV"i -> csv_file
@@ -133,7 +133,7 @@ from_vault: "Vault"i? VAULT_TARGET
 
 where_clause: "Where"i expr (_COMMA expr)*
 
-?for_clause: "For"i (for_json | for_csv | for_markdown | for_template)
+?for_clause: "For"i (for_json | for_csv | for_markdown | for_text | for_template)
 
 for_json: "JSON"i (_COMMA? json_option (_COMMA json_option)*)?
 ?json_option: "Encode"i? "Ascii"i (("=" | ":=") expr)? -> encode_ascii
@@ -176,6 +176,10 @@ TEMPLATE_TYPE: "Record"i | "Batch"i
     | "Chain"i "Undefined"i "Variables"i? (("=" | ":=") expr)? -> chain_undefined
     | "Include"i "Headers"i (("=" | ":=") expr)? -> include_headers
     | ("No"i | "Omit"i) "Headers"i (("=" | ":=") expr)? -> omit_headers
+
+for_text: "Text"i (_COMMA? for_text_option (_COMMA for_text_option)*)?
+?for_text_option: "Encode"i? "Ascii"i (("=" | ":=") expr)? -> encode_ascii
+    | "Encode"i? ("Unicode"i | "UTF8"i | "UTF-8"i) (("=" | ":=") expr)? -> encode_unicode
 
 // Either LIMIT <number> (OFFSET <number>)?
 // or FETCH FIRST <number> ROWS ONLY
