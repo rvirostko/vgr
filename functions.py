@@ -26,6 +26,7 @@ from mathpak import poly_rindex, poly_sizeof, poly_rsort, poly_sort, poly_starts
 from mathpak import poly_str, poly_strip, poly_vsub, poly_substr, poly_swapcase, poly_title
 from mathpak import poly_translate, poly_div, poly_trunc, poly_type, poly_unique, poly_upper
 from mathpak import duration_to_ms, ms_to_duration, parse_url
+from mathpak import md_blockquote, md_bold, md_code, md_code_block, md_heading, md_italics, md_link, md_ordered_list, md_strikethrough, md_unordered_list
 
 def _default_to(value: Any, default: Any) -> Any:
     """Returns a default value if the argument is None.
@@ -38,11 +39,11 @@ def _default_to(value: Any, default: Any) -> Any:
 # Binds a (pretty) name to the function to be executed
 # Additionally, we should use functions here rather than lambdas
 # so we can grab the __DOC__ for help functions.
+ #"Attr": ???,                       # TODO see attrgetter, better name?
 _FUNC_OPS = {
   "Abs": poly_abs,
   "Add": poly_vadd,
   "Append": poly_vappend,
-  #"Attr": ???,                       # TODO see attrgetter, better name?
   "BitAnd": poly_vbit_and,
   "BitNot": poly_bit_not,
   "BitOr": poly_vbit_or,
@@ -100,6 +101,16 @@ _FUNC_OPS = {
   "Lookup": poly_lookup,
   "Lower": poly_lower,
   "Match": poly_match,
+  "MdBlockQuote": md_blockquote,
+  "MdBold": md_bold,
+  "MdCode": md_code,
+  "MdCodeBlock": md_code_block,
+  "MdHeading": md_heading,
+  "MdItalics": md_italics,
+  "MdLink": md_link,
+  "MdOrderedList": md_ordered_list,
+  "MdStrikeThrough": md_strikethrough,
+  "MdUnorderedList": md_unordered_list,
   "Mod": poly_mod,
   "MsToDuration": ms_to_duration, # Vault specific
   "Mul": poly_vmul,

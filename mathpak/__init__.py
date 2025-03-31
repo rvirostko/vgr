@@ -24,6 +24,7 @@ from .types import poly_isstr, poly_number, poly_str, poly_islist, poly_list
 from .lookup import poly_lookup
 from .vault import duration_to_ms, ms_to_duration
 from .web import parse_url
+from .markdown import md_blockquote, md_bold, md_code, md_code_block, md_heading, md_italics, md_link, md_ordered_list, md_strikethrough, md_unordered_list
 
 __all__ = [
     "coerce_value",
