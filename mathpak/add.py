@@ -1,7 +1,7 @@
 from functools import reduce
 from typing import Any
 
-from .common import get_operation, numeric_operations, dist_y_list, dist_y_tuple
+from .common import get_operation, numeric_operations, dist_x_list, dist_x_tuple, dist_y_list, dist_y_tuple
 
 def poly_vadd(x: Any, *args):
     """Varargs version of poly_add"""
@@ -52,6 +52,10 @@ add_operations = {
     (str, str): lambda _, x, y: x + y,
     (str, list): dist_y_list,
     (str, tuple): dist_y_tuple,
+    (list, int): dist_x_list,
+    (list, float): dist_x_list,
+    (tuple, int): dist_x_tuple,
+    (tuple, float): dist_x_tuple,
     (list, tuple): lambda _, x, y: x + list(y),
     (tuple, list): lambda _, x, y: x + tuple(y),
     (dict, dict): lambda _, x, y: {**x, **y}
