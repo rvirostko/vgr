@@ -16,7 +16,7 @@ def poly_ceil(x: Any) -> Any:
 
 def poly_trunc(x: Any) -> Any:
     if x is None: return None
-    if isinstance(x, str): return poly_abs(str_to_number(x))
+    if isinstance(x, str): return poly_trunc(str_to_number(x))
     return math.trunc(x) if hasattr(x, '__trunc__') else _dist(poly_trunc, x)
 
 def poly_floor(x: Any, precision: float=0) -> Any:
