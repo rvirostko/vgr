@@ -2,6 +2,7 @@ from functools import reduce
 from typing import Any, Callable, Type, Iterable
 
 from .common import str_to_number
+from .general import poly_isempty
 
 def poly_capitalize(x: Any) -> Any:
     return x.capitalize() if isinstance(x, str) else _apply(poly_capitalize, x)
@@ -162,6 +163,14 @@ def poly_replace(x: Any, old: Any, new: Any=None) -> Any:
             if isinstance(x, list): return [poly_replace(x1, old, new) for x1 in x]
             if isinstance(x, tuple): return (poly_replace(x1, old, new) for x1 in x)
     return x
+
+def poly_format(format_string: Any, *args) -> str:
+    """
+    Formatting syntax is that used in [Python's str.format()](https://docs.python.org/3/library/string.html#formatstrings)
+    """
+    if format_string is None: return None
+    format_string = str(format_string)
+    return format_string.format(*args) if not poly_isempty(format_string) else None
 
 def poly_translate(x: Any, from_str: Any, to_str: Any=None) -> Any:
     if x is not None and from_str is not None:
