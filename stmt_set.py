@@ -20,8 +20,19 @@ def execute_set(dd: DataDictionary, statement: Tree) -> None:
 
 * SET _variable_ [= | := | TO) _expression_ [;]
 """
-    path = tuple(name.value for name in statement.children[0].children)
-    do_set(dd, eval_expr(dd, statement.children[1]), *path)
+    path = _dd_path(statement.children[0])
+    expr = statement.children[1]
+    do_assignment(dd, expr, eval_expr(dd, expr), path)
+
+def do_assignment(dd: DataDictionary, expr: Tree, value: Any, path: tuple[str]) -> None:
+    """
+    Use when you are doing an assignment (set) where you cannot be sure
+    that the result is a reference to another mutable variable such as a list or dict.
+    When it is, we need to make a copy before setting the value in the DD.
+    """
+    if isinstance(expr, Tree) and expr.data == 'var_ref' and isinstance(value, (list, dict)):
+        value = deepcopy(value)
+    do_set(dd, value, *path)
 
 def execute_unset(dd: DataDictionary, statement: Tree) -> None:
     """Remove a variable.
@@ -29,7 +40,7 @@ def execute_unset(dd: DataDictionary, statement: Tree) -> None:
 * UNSET _variable_ [, _variable_]... [;]
 """
     for item in statement.children:
-        path = tuple(name.value for name in item.children)
+        path = _dd_path(item)
         old_value = dd.unset_var_user(*path)
         print_verbose(dd, "Removed", shorten(repr(old_value)), 'From', '.'.join(path))
 
@@ -41,7 +52,7 @@ def execute_inc(dd: DataDictionary, statement: Tree) -> None:
 If the variable does not exist, it is created and initialized to zero.
 This is fundamentally an arithmetic, scalar opertion.
 """
-    path = tuple(name.value for name in statement.children[0].children)
+    path = _dd_path(statement.children[0])
     x = poly_number(dd.get_var_user(*path)) or 0
     y = poly_number(eval_expr(dd, statement.children[1])) or 0
     do_set(dd, poly_add(x, y), *path)
@@ -54,7 +65,7 @@ def execute_dec(dd: DataDictionary, statement: Tree) -> None:
 If the variable does not exist, it is created and initialized to zero.
 This is fundamentally an arithmetic, scalar opertion.
 """
-    path = tuple(name.value for name in statement.children[0].children)
+    path = _dd_path(statement.children[0])
     x = poly_number(dd.get_var_user(*path)) or 0
     y = poly_number(eval_expr(dd, statement.children[1])) or 0
     do_set(dd, poly_sub(x, y), *path)
@@ -80,18 +91,23 @@ request is ignored and a regular move is performed.
         # corresponding token, but just in case...
         corresponding = fc.value == 'corr'
         start = 1
-    src = eval_expr(dd, statement.children[start])
-    path = tuple(name.value for name in statement.children[start + 1].children)
+    expr = statement.children[start]
+    path = _dd_path(statement.children[start + 1])
+    src = eval_expr(dd, expr)
     dest = dd.get_var_user(*path) if corresponding else None
     if isinstance(src, dict) and isinstance(dest, dict):
-        # should end up here if corresponding was specified,
+        # Should end up here if corresponding was specified,
         # what we are moving is a dictionary, and the
         # destination existed and is also a dictionary
-        dest = deepcopy(dest)
-        dest.update({k: src[k] for k in src if k in dest})
+        dest.update({k: src[k] for k in src if k in dest.keys()})
+        # This isn't strictly needed as we've done a modification in place
+        # However, it does print out something in verbose, so we execute
+        # for that side effect
         do_set(dd, dest, *path)
     else:
-        do_set(dd, src, *path)
+        # Either no corresponding, or either the src/dest is not a dict
+        # This is like a "regular" set
+        do_assignment(dd, expr, src, path)
 
 def execute_load_from(dd: DataDictionary, statement: Tree) -> None:
     """Assign a value to a variable from a file.
@@ -107,7 +123,7 @@ The _expression_ is resolved to string as file to be loaded
 If no type is included, the type is inferred from the extension of the file
 name with TEXT as the default.
 """
-    path = tuple(name.value for name in statement.children[0].children)
+    path = _dd_path(statement.children[0])
     filename = eval_filename_expr(dd, statement.children[1])
     dtype = load_data_type(filename, statement.children[2] if len(statement.children) > 2 else None)
     new_value = None
@@ -119,6 +135,9 @@ name with TEXT as the default.
             print_verbose(dd, "Loaded", '.'.join(path), 'With', length, 'Records' if length != 1 else 'Record')
         else:
             print_verbose(dd, "Loaded", '.'.join(path), 'With', shorten(repr(new_value)))
+
+def _dd_path(var_ref: Tree) -> tuple[str]:
+    return tuple(name.value for name in var_ref.children)
 
 def load_data_type(filename: str, token: Token) -> str:
     """Returns one of:
