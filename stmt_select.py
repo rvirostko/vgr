@@ -13,7 +13,7 @@ from dbg import print_tree
 from dd_config import DEFAULT_FROM_TYPE_PATH
 from evaluate import bind_operations, eval_expr, eval_to_bool, eval_to_int, eval_to_str, eval_filename_expr
 from mathpak import poly_bool
-from output import CSVRecordWriter, JSONRecordWriter, MarkdownRecordWriter, TemplateRecordWriter
+from output import CSVRecordWriter, JSONRecordWriter, MarkdownRecordWriter, TemplateRecordWriter, TextRecordWriter
 from output import RecordWriter, RecordLimiter, RecordCartesianProduct
 from redir import stdout, stderr, print_debug, print_verbose
 from stmt_set import load_data_type, load_file_as
@@ -209,6 +209,12 @@ class SelectAnalyzer(Visitor):
     def product_clause(self, node: Tree):
         node = bind_operations(node)
         # TODO
+
+    def for_text(self, node: Tree):
+        """... For Text <opts>* ..."""
+        node = bind_operations(node)
+        self.output_opts['type'] = 'text'
+        self._parse_output_ops(node)
 
     def for_json(self, node: Tree):
         """... For JSON <opts>* ..."""
@@ -492,6 +498,8 @@ def create_writer(opts: dict, controls: dict) -> RecordWriter:
     elif otype in ('template', 'template-batch'):
         if otype == 'template-batch': opts['template_type'] = 'batch'
         writer = TemplateRecordWriter(stdout(), stderr=stderr(), **opts)
+    elif otype == 'text':
+        writer = TextRecordWriter(stdout(), stderr=stderr(), **opts)
     else:
         # CSV is the ultimate fallback
         writer = CSVRecordWriter(stdout(), stderr=stderr(), **opts)
