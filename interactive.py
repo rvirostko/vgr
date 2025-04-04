@@ -15,7 +15,6 @@ import time
 from prompt_toolkit import PromptSession
 from prompt_toolkit.history import FileHistory
 
-from ls import list_files
 from mathpak import poly_bool
 
 class CustomArgParser(ArgumentParser):
@@ -102,7 +101,6 @@ class CmdLine:
             "cd": self._exec_cd,
             "help": self._exec_help,
             "history": self._exec_history,
-            "ls": self._exec_ls,
             "multiline": self._exec_multiline,
             "prompt": self._exec_prompt,
             "pwd": self._exec_pwd,
@@ -137,31 +135,6 @@ Pwd Help -
 """
         values = self._parse(self._NO_ARGS_PARSER, self._exec_pwd, *args)
         if values is not None: print(os.getcwd())
-
-    def _exec_ls(self, *args):
-        """
-Ls Help -
-
-* ls : list files in the current directory
-* ls path : list files in the given directory
-
-A subset of the Unix ls options are supported:
-
-* -a : show all files
-* -h : human readable file sizes in long listings
-* -l : long listing
-* -R : recursive
-
-Options maybe individually separated or concatenated.
-"""
-        values = self._parse(self._LS_PARSER, self._exec_ls, *args)
-        if values is not None:
-            try:
-                list_files(values.path, values.l, values.h, values.R, values.a)
-            except FileNotFoundError:
-                print(values.path, 'does not exist')
-            except PermissionError:
-                print('You do not have permission to access', values.path)
 
     def _exec_history(self, *args):
         """

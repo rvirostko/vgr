@@ -185,8 +185,6 @@ class DataDictionary():
     @classmethod
     def _get_os_consts(cls) -> dict:
         rc = { key: value for key, value in cls._get_consts(os).items() if key in cls._OS_CONSTS }
-        rc['uid'] = os.getuid()
-        rc['gid'] = os.getgid()
         rc['login'] = getpass.getuser() or 'unknown'
         return rc
 
