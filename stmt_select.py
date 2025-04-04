@@ -10,7 +10,7 @@ from lark import Tree, Token, Transformer, Visitor, v_args
 from data_dict import DataDictionary
 from data_xtract import QueryFilter, InfoOutput, DataExtractor, EndExtractException
 from dbg import print_tree
-from dd_config import DEFAULT_FROM_TYPE_PATH
+from dd_config import DEFAULT_FOR_TYPE_PATH, dd_clear_scratch
 from evaluate import bind_operations, eval_expr, eval_to_bool, eval_to_int, eval_to_str, eval_filename_expr
 from mathpak import poly_bool
 from output import CSVRecordWriter, JSONRecordWriter, MarkdownRecordWriter, TemplateRecordWriter, TextRecordWriter
@@ -356,7 +356,7 @@ def execute_select(dd: DataDictionary, statement: Tree):
     #    print_tree(o)
     output_opts = select.output_opts
     # If the type was not set, we use the default, and if not there, use CSV
-    output_opts['type'] = output_opts.get('type', (dd.get_var_user(*DEFAULT_FROM_TYPE_PATH) or 'csv').lower())
+    output_opts['type'] = output_opts.get('type', (dd.get_var_user(*DEFAULT_FOR_TYPE_PATH) or 'csv').lower())
     writer = create_writer(output_opts, select.output_controls)
     print_debug(dd, repr(writer))
     extractor = create_extractor(dd, select.from_opts)
@@ -426,9 +426,12 @@ class QueryRunner(QueryFilter, InfoOutput):
             # the entirity of the target data
             # TODO how does this work with JSON output?
             record = [ data ]
-        if  not self._writer.write(record):
-            raise EndExtractException()
-        return True
+        try:
+            if  not self._writer.write(record):
+                raise EndExtractException()
+            return True
+        finally:
+            dd_clear_scratch(self._dd)
 
     def set_data(self, key: str, data: Any) -> None:
         """
