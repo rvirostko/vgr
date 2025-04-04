@@ -6,11 +6,17 @@ from typing import Any, Callable, Union
 
 Number = Union[int, float]
 
+NoneType = type(None)
+AnyType = type(Any)
+
 # Operations table key for when the x value is None
-X_None_Op = (type(None), type(Any))
+X_None_Op = (NoneType, AnyType)
 
 # Operations table key for when the Y value is None
-Y_None_Op = (type(Any), type(None))
+Y_None_Op = (AnyType, NoneType)
+
+# Operations table key for when Y value is a collection
+Y_Coll_Op = (AnyType, list)
 
 # See matching_default()
 _DEFAULTS_BY_TYPE = {
@@ -35,7 +41,7 @@ def str_to_number(s: str) -> Number:
     s = s.strip().lower()
     if s == "none": return None
     try:
-        x: float = float(s.strip())
+        x: float = float(s)
         return int(x) if x.is_integer() else x
     except ValueError as e:
         raise ValueError(f'Cannot convert {repr(s)} to a number') from e
@@ -59,6 +65,22 @@ def str_to_bool(x: str) -> bool:
     except ValueError:
         # we return True just because a non-None is "truthy"
         return True
+
+def int_arg(arg: Any, name: str) -> int:
+    if isinstance(arg, str): arg = str_to_number(arg)
+    if arg is None: arg = 0
+    if not isinstance(arg, (int, float)):
+        raise ValueError(f'{name} argument must be a number, found {repr(type(arg).__name__)}')
+    return int(arg)
+
+def str_arg(arg: Any, name: str) -> str:
+    if arg is None:
+        raise ValueError(f'{name} argument cannot be None')
+    if isinstance(arg, str):
+        if len(arg) == 0:
+            raise ValueError(f'{name} argument cannot be blank')
+        return arg
+    raise ValueError(f'{name} argument must be a string, found {repr(type(arg).__name__)}')
 
 def dist_x_list(op: Callable[[Any, Any], Any], x: list, y: Any) -> list:
     """

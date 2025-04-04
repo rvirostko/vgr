@@ -1,168 +1,363 @@
-from functools import reduce
-from typing import Any, Callable, Type, Iterable
+"""
+Various string manipulation functions using either the string class or regular expressions
+"""
 
-from .common import str_to_number
+from functools import reduce
+from typing import Any, Callable
+import re
+
+from .common import X_None_Op, NoneType, Y_Coll_Op, str_arg, int_arg
 from .general import poly_isempty
+from .reg_ex import poly_regex_replace, poly_vregex_replace
+
+TNone = type(None)
+# No-args string method that returns a string, e.q. "x.upper()"
+# This is transformational on string items, but idempotent on others
+# ["bob", 27, True].upper() -> ["BOB", 27, True]
+string_operations = {
+    TNone: lambda _, __, ___: None,
+    bool:  lambda _, x, __: x,
+    int:   lambda _, x, __: x,
+    float: lambda _, x, __: x,
+    str:   lambda _, x, sm: sm(x),
+    list:  lambda op, x, _: [op(x1) for x1 in x ],
+    tuple: lambda op, x, _: tuple(op(x1) for x1 in x),
+    dict:  lambda op, x, _: {key: op(value) for key, value in x.items()}
+}
+
+# No-args string method that returns a bool, e.q. "x.isupper()"
+# This is a conversion to bool on string items, but returning None for others
+# ["BOB", 27, True].upper() -> [True, None, None]
+bool_operations = {
+    TNone: lambda _, __, ___: None,
+    bool:  lambda _, x, __: None,
+    int:   lambda _, x, __: None,
+    float: lambda _, x, __: None,
+    str:   lambda _, x, sm: sm(x),
+    list:  lambda op, x, _: [op(x1) for x1 in x ],
+    tuple: lambda op, x, _: tuple(op(x1) for x1 in x),
+    dict:  lambda op, x, _: {key: op(value) for key, value in x.items() if isinstance(value, (str, list, tuple, dict))}
+}
+
+def exec_x_op(x: Any, name: str, op: Callable[[Any], Any], string_op, op_table) -> Any:
+    """General purpose string operation execution for no-args methods on str"""
+    operation = op_table.get(type(x))
+    if operation is None: raise ValueError(f'{name}() on {repr(type(x).__name__)} not possible')
+    return operation(op, x, string_op)
+
+def exec_str_op(x: Any, name: str, op: Callable[[Any], Any], string_op) -> Any:
+    return exec_x_op(x, name, op, string_op, string_operations)
+
+def exec_bool_op(x: Any, name: str, op: Callable[[Any], Any], string_op) -> Any:
+    return exec_x_op(x, name, op, string_op, bool_operations)
 
 def poly_capitalize(x: Any) -> Any:
-    return x.capitalize() if isinstance(x, str) else _apply(poly_capitalize, x)
+    return exec_str_op(x, 'Capitalize', poly_capitalize, str.capitalize)
 
 def poly_casefold(x: Any) -> Any:
-    return x.casefold() if isinstance(x, str) else _apply(poly_casefold, x)
-
-def poly_isalnum(x: Any) -> bool:
-    return _apply_bool(poly_isalnum, str.isalnum, str, x)
-
-def poly_isalpha(x: Any) -> bool:
-    return _apply_bool(poly_isalpha, str.isalpha, str, x)
-
-def poly_isascii(x: Any) -> bool:
-    return _apply_bool(poly_isascii, str.isascii, str, x)
-
-def poly_isdecimal(x: Any) -> bool:
-    return _apply_bool(poly_isdecimal, str.isdecimal, str, x)
-
-def poly_isdigit(x: Any) -> bool:
-    return _apply_bool(poly_isdigit, str.isdigit, str, x)
-
-def poly_isidentifier(x: Any) -> bool:
-    return _apply_bool(poly_isidentifier, str.isidentifier, str, x)
-
-def poly_islower(x: Any) -> bool:
-    return _apply_bool(poly_islower, str.islower, str, x)
-
-def poly_isnumeric(x: Any) -> bool:
-    return _apply_bool(poly_isnumeric, str.isnumeric, str, x)
-
-def poly_isprintable(x: Any) -> bool:
-    return _apply_bool(poly_isprintable, str.isprintable, str, x)
-
-def poly_isspace(x: Any) -> bool:
-    return _apply_bool(poly_isspace, str.isspace, str, x)
-
-def poly_istitle(x: Any) -> bool:
-    return _apply_bool(poly_istitle, str.istitle, str, x)
-
-def poly_isupper(x: Any) -> bool:
-    return _apply_bool(poly_isupper, str.isupper, str, x)
+    return exec_str_op(x, 'Casefold', poly_casefold, str.casefold)
 
 def poly_lower(x: Any) -> Any:
-    return x.lower() if isinstance(x, str) else _apply(poly_lower, x)
-
-def poly_lstrip(x: Any, chars: Any=None) -> Any:
-    return _apply_arg(poly_lstrip, str.lstrip, str, x, str, chars)
+    return exec_str_op(x, 'Lower', poly_lower, str.lower)
 
 def poly_swapcase(x: Any) -> Any:
-    return x.swapcase() if isinstance(x, str) else _apply(poly_swapcase, x)
+    return exec_str_op(x, 'SwapCase', poly_swapcase, str.swapcase)
 
 def poly_title(x: Any) -> Any:
-    return x.title() if isinstance(x, str) else _apply(poly_title, x)
+    return exec_str_op(x, 'Title', poly_title, str.title)
 
 def poly_upper(x: Any) -> Any:
-    return x.upper() if isinstance(x, str) else _apply(poly_upper, x)
+    return exec_str_op(x, 'Upper', poly_upper, str.upper)
 
-def poly_endswith(x: Any, suffix: Any) -> bool:
-    return _all_true(_apply_arg(poly_endswith, _endswith, str, x, str, suffix))
+def poly_isalnum(x: Any) -> Any:
+    return exec_bool_op(x, 'IsAlnum', poly_isalnum, str.isalnum)
 
-def poly_expandtabs(x: Any, tabsize: Any=None) -> Any:
-    return _apply_arg(poly_expandtabs, _expandtabs, str, x, int, tabsize)
+def poly_isalpha(x: Any) -> Any:
+    return exec_bool_op(x, 'IsAlpha', poly_isalpha, str.isalpha)
 
-def poly_removeprefix(x: Any, prefix: Any) -> Any:
-    return _apply_arg(poly_removeprefix, _removeprefix, str, x, str, prefix)
+def poly_isascii(x: Any) -> Any:
+    return exec_bool_op(x, 'IsAscii', poly_isascii, str.isascii)
 
-def poly_removesuffix(x: Any, suffix: Any) -> Any:
-    return _apply_arg(poly_removesuffix, _removesuffix, str, x, str, suffix)
+def poly_isdecimal(x: Any) -> Any:
+    return exec_bool_op(x, 'IsDecimal', poly_isdecimal, str.isdecimal)
 
-def poly_rstrip(x: Any, chars: Any=None) -> Any:
-    return _apply_arg(poly_rstrip, str.rstrip, str, x, str, chars)
+def poly_isdigit(x: Any) -> Any:
+    return exec_bool_op(x, 'IsDigit', poly_isdigit, str.isdigit)
 
-def poly_startswith(x: Any, prefix: Any) -> bool:
-    return _all_true(_apply_arg(poly_startswith, _startswith, str, x, str, prefix))
+def poly_isidentifier(x: Any) -> Any:
+    return exec_bool_op(x, 'IsIdentifier', poly_isidentifier, str.isidentifier)
+
+def poly_islower(x: Any) -> Any:
+    return exec_bool_op(x, 'IsLower', poly_islower, str.islower)
+
+def poly_isnumeric(x: Any) -> Any:
+    return exec_bool_op(x, 'IsNumeric', poly_isnumeric, str.isnumeric)
+
+def poly_isprintable(x: Any) -> Any:
+    return exec_bool_op(x, 'IsPrintable', poly_isprintable, str.isprintable)
+
+def poly_isspace(x: Any) -> Any:
+    return exec_bool_op(x, 'IsSpace', poly_isspace, str.isspace)
+
+def poly_istitle(x: Any) -> Any:
+    return exec_bool_op(x, 'IsTitle', poly_istitle, str.istitle)
+
+def poly_isupper(x: Any) -> Any:
+    return exec_bool_op(x, 'IsUpper', poly_isupper, str.isupper)
+
+####
+
+# For two arg functions : e.g. x.strip(y)/(None)
+# [" xFoo ", None, 27, True].strip() -> ["xFoo", None, 27, True]
+# ["xFoo", None, 27, True].strip("x") -> ["Foo", None, 27, True]
+# [" xFoo ", None, 27, True].strip([None, "x"]) -> ["Foo", None, 27, True]
+string_string_operations = {
+    X_None_Op    : lambda _, __, ___, ____: None,
+    Y_Coll_Op    : lambda op, x, y, _: reduce(op, y, x),
+    (str, str)   : lambda _, x, y, sm: sm(x, y),
+    (list, str)  : lambda op, x, y, _: [op(x1, y) for x1 in x],
+    (tuple, str) : lambda op, x, y, _: tuple(op(x1, y) for x1 in x),
+    (dict, str)  : lambda op, x, y, _: {key: op(value, y) for key, value in x.items()},
+}
+
+def exec_x_y_op(x: Any, y: Any, name: str, op: Callable[[Any, Any], Any], string_op, op_table) -> Any:
+    """General purpose string operation execution for methods on str that take a single str arg"""
+    operation = None
+    if x is None:
+        operation = op_table.get(X_None_Op)
+    else:
+        if isinstance(y, (list, tuple)):
+            operation = op_table.get(Y_Coll_Op)
+        else:
+            # May ops will accept a None for their arg and take default action
+            # So we use the same as if it was a string
+            operation = op_table.get((type(x), str if y is None else type(y)))
+    if operation is None: raise ValueError(f'{name}() between {repr(type(x).__name__)} and {repr(type(y).__name__)} not possible')
+    return operation(op, x, y, string_op)
+
+def exec_str_str_op(x: Any, y: Any, name: str, op: Callable[[Any, Any], Any], string_op) -> Any:
+    # For these types, the operation is idempotent
+    if isinstance(x, (NoneType, bool, int, float)): return x
+    return exec_x_y_op(x, y, name, op, string_op, string_string_operations)
+
+####
+# str/str transformational
+
+def poly_vstrip(x: Any, *args) -> Any:
+    if isinstance(x, (NoneType, bool, int, float)): return x
+    if not args: return poly_strip(x)
+    return reduce(poly_strip, args, x)
 
 def poly_strip(x: Any, chars: Any=None) -> Any:
-    return _apply_arg(poly_strip, str.strip, str, x, str, chars)
+    return exec_str_str_op(x, chars, 'Strip', poly_strip, str.strip)
+
+def poly_vlstrip(x: Any, *args) -> Any:
+    if isinstance(x, (NoneType, bool, int, float)): return x
+    if not args: return poly_lstrip(x)
+    return reduce(poly_lstrip, args, x)
+
+def poly_lstrip(x: Any, chars: Any=None) -> Any:
+    return exec_str_str_op(x, chars, 'LeftStrip', poly_lstrip, str.lstrip)
+
+def poly_vrstrip(x: Any, *args) -> Any:
+    if isinstance(x, (NoneType, bool, int, float)): return x
+    if not args: return poly_rstrip(x)
+    return reduce(poly_rstrip, args, x)
+
+def poly_rstrip(x: Any, chars: Any=None) -> Any:
+    return exec_str_str_op(x, chars, 'RightStrip', poly_rstrip, str.rstrip)
+
+def poly_vremoveprefix(x: Any, *args) -> Any:
+    if not args or isinstance(x, (NoneType, bool, int, float)): return x
+    return reduce(poly_removeprefix, args, x)
+
+def poly_removeprefix(x: Any, prefix: Any) -> Any:
+    if prefix is None: return x
+    return exec_str_str_op(x, prefix, 'RemovePrefix', poly_removeprefix, str.removeprefix)
+
+def poly_vremovesuffix(x: Any, *args) -> Any:
+    if not args or isinstance(x, (NoneType, bool, int, float)): return x
+    return reduce(poly_removesuffix, args, x)
+
+def poly_removesuffix(x: Any, suffix: Any) -> Any:
+    if suffix is None: return x
+    return exec_str_str_op(x, suffix, 'RemoveSuffix', poly_removesuffix, str.removesuffix)
+
+# [" xFoo ", None, 27, True].startswith("x") -> [False, None, None, None]
+# ["xFoo", None, 27, True].startwith("x") -> [True, None, None, None]
+bool_string_operations = {
+    (str, str)   : lambda _, x, y, sm: sm(x, y),
+    (list, str)  : lambda op, x, y, _: [op(x1, y) for x1 in x],
+    (tuple, str) : lambda op, x, y, _: tuple(op(x1, y) for x1 in x),
+    (dict, str)  : lambda op, x, y, _: {key: op(value, y) for key, value in x.items() if isinstance(value, (str, list, tuple, dict))},
+}
+
+def exec_bool_str_op(x: Any, y: Any, name: str, op: Callable[[Any, Any], Any], string_op) -> Any:
+    # For these types, the operation is indeterminent
+    if isinstance(x, (NoneType, bool, int, float)): return None
+    return exec_x_y_op(x, y, name, op, string_op, bool_string_operations)
+
+####
+# str/str that return bools
+
+def poly_startswith(x: Any, prefix: Any) -> Any:
+    if prefix is None: return x is None
+    return exec_bool_str_op(x, prefix, "StartsWith", poly_startswith, str.startswith)
+
+def poly_endswith(x: Any, suffix: Any) -> bool:
+    if suffix is None: return x is None
+    return exec_bool_str_op(x, suffix, "EndsWith", poly_endswith, str.endswith)
+
+# "abc".leftstr(2) -> "ab"
+# 2.leftstr(2).leftstr(2) -> 2
+# ["abc", 2].leftstr(2) -> ["ab", 2]
+string_int_operations = {
+    (str, int)   : lambda _, x, y, sm: sm(x, y),
+    (list, int)  : lambda op, x, y, _: [op(x1, y) for x1 in x],
+    (tuple, int) : lambda op, x, y, _: tuple(op(x1, y) for x1 in x),
+    (dict, int)  : lambda op, x, y, _: {key: op(value, y) for key, value in x.items()},
+}
+
+def exec_str_int_op(x: Any, y: Any, name: str, op: Callable[[Any, Any], Any], string_op) -> Any:
+    # For these types, the operation is idempotent
+    if isinstance(x, (NoneType, bool, int, float)): return x
+    return exec_x_y_op(x, y, name, op, string_op, string_int_operations)
+
+def poly_expandtabs(x: Any, tabsize: Any=None) -> Any:
+    return exec_str_int_op(x, min(max(1, int_arg(tabsize, 'Tabsize')), 16), "ExpandTabs", poly_expandtabs, str.expandtabs)
 
 def poly_leftstr(x: Any, length: Any) -> Any:
-    return _apply_arg(poly_leftstr, _leftstr, str, x, int, length)
+    return exec_str_int_op(x, max(0, int_arg(length, 'Length')), "LeftStr", poly_leftstr, lambda x, length: x[:length])
 
 def poly_rightstr(x: Any, length: Any) -> Any:
-    return _apply_arg(poly_rightstr, _rightstr, str, x, int, length)
+    return exec_str_int_op(x, max(0, int_arg(length, 'Length')), "RightStr", poly_rightstr, lambda x, length: x[-length:])
+
+####
 
 def poly_substr(x: Any, start: Any, length: Any=1) -> Any:
-    if x is None: return None
-    start = _cast_arg(int, start)
-    length = _cast_arg(int, length)
-    if isinstance(start, int) and isinstance(length, int):
-        if isinstance(x, str): return _leftstr(_rightstr(x, len(x) - start), length)
-        if isinstance(x, list): return [poly_substr(x1, start, len) for x1 in x]
-        if isinstance(x, tuple): return tuple(poly_substr(x1, start, len) for x1 in x)
-    return x
+    # For these types, the operation is idempotent
+    if isinstance(x, (NoneType, bool, int, float)): return x
+    start = max(0, int_arg(start, 'Start'))
+    length = 1 if length is None else max(0, int_arg(length, 'Length'))
+    if isinstance(x, str): return x[start:start + length]
+    if isinstance(x, (list, tuple)): return type(x)(poly_substr(x1, start, length) for x1 in x)
+    if isinstance(x, dict): return {key: poly_substr(value, start, length) for key, value in x.items()}
+    raise ValueError(f'SubStr() on {repr(type(x).__name__)} not possible')
 
-# TODO count/index/rindex dont work well when sub is a collection
-# It should act like other distributed ops and return an collection of lengths/pos
-# The reason is that the return type (generally) doesn't match the input type
-# Needs a diff wrapper than _apply_arg()
+string_loc_operations = {
+    (str, str)   : lambda _, x, y, sm: sm(x, y),
+    (list, str)  : lambda op, x, y, _: [op(x1, y) for x1 in x],
+    (tuple, str) : lambda op, x, y, _: tuple(op(x1, y) for x1 in x),
+    (dict, str)  : lambda op, x, y, _: {key: op(value, y) for key, value in x.items() if isinstance(value, (str, list, tuple, dict))},
+}
 
 def poly_count(x: Any, sub: Any=None) -> Any:
-    return _apply_arg(poly_count, _count, str, x, str, sub)
+    # For these types, the operation is indeterminant
+    if isinstance(x, (NoneType, bool, int, float)): return None
+    return exec_x_y_op(x, str_arg(sub, 'Sub'), 'Count', poly_count, str.count, string_loc_operations)
+
+# TODO replace "indexof" which suxs
+#	5.	find(sub, start=0, end=len(string))
+#	13.	rfind(sub, start=0, end=len(string))
+
 
 def poly_index(x: Any, sub: Any=None) -> Any:
-    return _apply_arg(poly_index, _index, str, x, str, sub)
+    # For these types, the operation is indeterminant
+    if isinstance(x, (NoneType, bool, int, float)): return None
+    sub = str_arg(sub, 'Sub')
+    try:
+        return exec_x_y_op(x, sub, 'Index', poly_index, str.index, string_loc_operations)
+    except ValueError:
+        return None
 
 def poly_rindex(x: Any, sub: Any=None) -> Any:
-    return _apply_arg(poly_rindex, _rindex, str, x, str, sub)
+    # For these types, the operation is indeterminant
+    if isinstance(x, (NoneType, bool, int, float)): return None
+    sub = str_arg(sub, 'Sub')
+    try:
+        return exec_x_y_op(x, sub, 'RIndex', poly_rindex, str.rindex, string_loc_operations)
+    except ValueError:
+        return None
+
+###
 
 def poly_vappend(x: Any, *args) -> Any:
     return reduce(poly_append, args, x)
 
 def poly_append(x: Any, y: Any) -> Any:
-    if x is None: return None if y is None else poly_append('', y)
-    if y is None: return poly_append(x, '')
-    # NB: non-string like behavior
-    if isinstance(x, (list, tuple)) and isinstance(y, (list, tuple)): return type(x)(x + y)
-    if isinstance(x, str) and isinstance(y, str): return x + y
-    if isinstance(x, (int, float)): return poly_append(str(x), y)
-    if isinstance(y, (int, float)): return poly_append(x, str(y))
+    # For these types, the operation is idempotent
+    if isinstance(x, (NoneType, bool, int, float)) or y is None: return x
     if isinstance(x, list): return [poly_append(x1, y) for x1 in x]
     if isinstance(x, tuple): return (poly_append(x1, y) for x1 in x)
-    if isinstance(y, (list, tuple)): return reduce(poly_append, y, x)
+    if isinstance(x, dict): return  {key: poly_append(value, y) for key, value in x.items()}
+    if isinstance(x, str):
+        if isinstance(y, (list, tuple)): return reduce(poly_append, y, x)
+        if isinstance(y, (bool, int, float)): return x + str(y)
+        if isinstance(y, str): return x + y
     raise TypeError(f'Concatenation between {type(x).__name__} and {type(y).__name__} not supported')
 
 def poly_vprepend(x: Any, *args) -> Any:
     return reduce(poly_prepend, args, x)
 
 def poly_prepend(x: Any, y: Any) -> Any:
-    if x is None: return None if y is None else poly_prepend('', y)
-    if y is None: return poly_prepend(x, '')
-    # NB: non-string like behavior
-    if isinstance(x, (list, tuple)) and isinstance(y, (list, tuple)): return type(x)(y + x)
-    if isinstance(x, str) and isinstance(y, str): return y + x
-    if isinstance(x, (int, float)): return poly_prepend(str(x), y)
-    if isinstance(y, (int, float)): return poly_prepend(x, str(y))
+    # For these types, the operation is idempotent
+    if isinstance(x, (NoneType, bool, int, float)) or y is None: return x
     if isinstance(x, list): return [poly_prepend(x1, y) for x1 in x]
     if isinstance(x, tuple): return (poly_prepend(x1, y) for x1 in x)
-    if isinstance(y, (list, tuple)): return reduce(poly_prepend, y, x)
+    if isinstance(x, dict): return  {key: poly_prepend(value, y) for key, value in x.items()}
+    if isinstance(x, str):
+        if isinstance(y, (list, tuple)): return reduce(poly_prepend, y, x)
+        if isinstance(y, (bool, int, float)): return str(y) + x
+        if isinstance(y, str): return y + x
     raise TypeError(f'Concatenation between {type(x).__name__} and {type(y).__name__} not supported')
 
+def poly_vreplace(x: Any, *args) -> Any:
+    if not args: return x
+    if isinstance(args[0], re.Pattern): return poly_vregex_replace(x, args)
+    if len(args) == 1: return poly_replace(x, args[0]) # old, default new
+    if len(args) == 2: return poly_replace(x, args[0], args[1]) # old and new
+    return poly_replace(x, args[:-1], args[-1]) # old is a list, single new
+
 def poly_replace(x: Any, old: Any, new: Any=None) -> Any:
-    if x is not None and old is not None:
-        if isinstance(x, str):
-            if isinstance(old, (int, float)): return poly_replace(x, str(old), new)
-            if isinstance(old, str):
-                if new is None: new = ''
-                if isinstance(new, (int, float)): new = str(new)
-                if isinstance(new, str): return x.replace(old, new)
-                if isinstance(new, (list, tuple)): return poly_replace(x, (old,), new)
-            if isinstance(old, (list, tuple)):
-                if new is None: new = ''
-                if isinstance(new, (int, float)): new = str(new)
-                if isinstance(new, (str, list, tuple)):
-                    return reduce(lambda t, args: t.replace(args[0], args[1]), zip(old, _create_new_list(len(old), new)), x)
-        else:
-            if isinstance(x, (int, float)): return poly_replace(str(x), old, new)
-            if isinstance(x, list): return [poly_replace(x1, old, new) for x1 in x]
-            if isinstance(x, tuple): return (poly_replace(x1, old, new) for x1 in x)
-    return x
+    """
+    The operation is skipped if x is None or a non-string scalar.
+    The operation is skipped in old in None, otherwise it must be a non-empty string, a list, or a tuple.
+    If old is a list/tuple, it specifies multiple values to be replaced, but always with
+    the same new value.
+    Simple stringification is performed on scalars used for old and new.
+    """
+    # For these types, the operation is idempotent
+    if isinstance(x, (NoneType, bool, int, float)): return x
+    if isinstance(x, re.Pattern): return poly_regex_replace(x, old, new)
+    if old is None: return x
+    if new is None: new = ''
+    new = str(new) if isinstance(new, (bool, int, float, str)) else str_arg(old, 'New')
+    if isinstance(old, (list, tuple)): return reduce(lambda x, old1: poly_replace(x, old1, new), old, x)
+    old = str(old) if isinstance(old, (bool, int, float)) else str_arg(old, 'Old')
+    if isinstance(x, str): return x.replace(old, new)
+    if isinstance(x, (list, tuple)): return type(x)(poly_replace(x1, old, new) for x1 in x)
+    if isinstance(x, dict): return {key: poly_replace(value, old, new) for key, value in x.items()}
+    raise TypeError(f'Replacement of {type(x).__name__} not supported')
+
+def poly_split(x: Any, sep=None, maxsplit=-1) -> Any:
+    # For these types, the operation is idempotent
+    if isinstance(x, (NoneType, bool, int, float)): return x
+    sep = None if sep is None else str_arg(sep, 'Sep')
+    maxsplit = -1 if maxsplit is None else max(-1, int_arg(maxsplit, 'Maxsplit'))
+    if isinstance(x, str): return x.split(sep, maxsplit)
+    if isinstance(x, (list, tuple)): return type(x)(poly_split(x1, sep, maxsplit) for x1 in x)
+    if isinstance(x, dict): return {key: poly_split(value, sep, maxsplit) for key, value in x.items()}
+    raise TypeError(f'Split of {type(x).__name__} not supported')
+
+def poly_rsplit(x: Any, sep=None, maxsplit=-1) -> Any:
+    # For these types, the operation is idempotent
+    if isinstance(x, (NoneType, bool, int, float)): return x
+    sep = None if sep is None else str_arg(sep, 'Sep')
+    maxsplit = -1 if maxsplit is None else max(-1, int_arg(maxsplit, 'Maxsplit'))
+    if isinstance(x, str): return x.rsplit(sep, maxsplit)
+    if isinstance(x, (list, tuple)): return type(x)(poly_rsplit(x1, sep, maxsplit) for x1 in x)
+    if isinstance(x, dict): return {key: poly_rsplit(value, sep, maxsplit) for key, value in x.items()}
+    raise TypeError(f'Split of {type(x).__name__} not supported')
 
 def poly_format(format_string: Any, *args) -> str:
     """
@@ -190,108 +385,16 @@ def poly_translate(x: Any, from_str: Any, to_str: Any=None) -> Any:
             if isinstance(x, tuple): return (poly_translate(x1, from_str, to_str) for x1 in x)
     return x
 
-# Shim methods to deal with "None" and mismatched arguments
-
-def _expandtabs(x: str, tabsize: int) -> str:
-    return x.expandtabs() if tabsize is None else x.expandtabs(tabsize)
-
-def _removeprefix(x: str, prefix: str) -> str:
-    return x if prefix is None else x.removeprefix(prefix)
-
-def _removesuffix(x: str, suffix: str) -> str:
-    return x if suffix is None else x.removesuffix(suffix)
-
-def _startswith(x: str, prefix: str) -> bool:
-    return False if prefix is None else x.startswith(prefix)
-
-def _endswith(x: str, suffix: str) -> bool:
-    return False if suffix is None else x.endswith(suffix)
-
-def _count(x: str, sub: str) -> int:
-    return 0 if not sub else x.count(sub)
-
-def _index(x: str, sub: str) -> int:
-    try:
-        return -1 if not sub else x.index(sub)
-    except ValueError:
-        return -1
-
-def _rindex(x: str, sub: str) -> int:
-    try:
-        return -1 if not sub else x.rindex(sub)
-    except ValueError:
-        return -1
+####
 
 def _maketrans(from_str: str, to_str: str=''):
     return str.maketrans({from_str[i]: to_str[i] if i < len(to_str) else None for i in range(len(from_str))})
-
-def _leftstr(x: str, length: int) -> str:
-    return x if not x or length is None else '' if length <= 0 else x[:max(0, min(length, len(x)))]
-
-def _rightstr(x: str, length: int) -> str:
-    return x if not x or length is None else '' if length <= 0 else x[-min(length, len(x)):]
-
-def _create_new_list(length: int, new: Any):
-    if isinstance(new, str): return (new,) * length
-    # Either chop to length or pad with empty entries
-    if isinstance(new, (list, tuple)): return tuple(new[:length]) + ('',) * max(0, length - len(new))
-    raise TypeError(f'Type {type(new).__name__} not supported for string replace')
-
-def _cast_arg(y_type: Type, y: Any) -> Any:
-    if y is None: return None
-    if y_type == str: return str(y)
-    if y_type == float:
-        if isinstance(y, (float, int)): return float(y)
-        if isinstance(y, str):
-            n = str_to_number(y)
-            return None if n is None else float(n)
-    if y_type == int:
-        if isinstance(y, (float, int)): return int(y)
-        if isinstance(y, str):
-            n = str_to_number(y)
-            return None if n is None else int(n)
-    return y
-
-def _apply(op: Callable[[Any], Any], x: Any) -> Any:
-    if x is None: return None
-    # Distribute the operation over the collection
-    if isinstance(x, list): return [op(x1) for x1 in x]
-    if isinstance(x, tuple): return tuple(op(x) for x1 in x)
-    return x
-
-def _apply_arg(op: Callable[[Any, Any], Any], x_method: Callable[[str, str], str], x_type: Type, x: Any, y_type: Type, y: Any) -> Any:
-    if x is None: return None
-    y = _cast_arg(y_type, y)
-    if isinstance(x, x_type):
-        return x_method(x, y) if y is None or isinstance(y, y_type) else _iterate_arg(op, x, y)
-    if isinstance(x, list): return [op(x1, y) for x1 in x]
-    if isinstance(x, tuple): return tuple(op(x1, y) for x1 in x)
-    return x
-
-def _iterate_arg(op: Callable[[Any, Any], Any], x: Any, y: Any) -> Any:
-    # if the second operand is a collection, repeatedly apply it to the first operand
-    if isinstance(y, (list, tuple)):
-        for y1 in y: x = op(x, y1)
-    return x
-
-def _all_true(x: Any) -> bool:
-    if isinstance(x, bool): return x
-    if isinstance(x, Iterable) and not isinstance(x, (str, bytes)): return all(_all_true(item) for item in x)
-    return False
-
-def _apply_bool(op: Callable[[Any, Any], Any], x_method: Callable[[str], bool], x_type: list[Type], x: Any) -> bool:
-    return _all_true(x_method(x) if isinstance(x, x_type) else _apply(op, x))
 
 # TODO candidate funcs
 #   1.	center(width, fillchar=' ')
 #	7.	ljust(width, fillchar=' ')
 #	15.	rjust(width, fillchar=' ')
+# zfill()
 
-#	5.	find(sub, start=0, end=len(string))
-#	13.	rfind(sub, start=0, end=len(string))
-
-#	9.	partition(sep)
-#	16.	rpartition(sep)
-
-#	18.	split(sep=None, maxsplit=-1)
 #	19.	splitlines(keepends=False)
+# join
