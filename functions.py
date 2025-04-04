@@ -18,17 +18,17 @@ from mathpak import poly_isdecimal, poly_isdigit, poly_isempty, poly_isfloat
 from mathpak import poly_isidentifier, poly_isint, poly_islower, poly_islist, poly_isnumber
 from mathpak import poly_isprintable, poly_isnumeric, poly_isspace
 from mathpak import poly_isstr, poly_istitle, poly_isupper, poly_getitem, poly_le
-from mathpak import poly_lastitem, poly_shl, poly_leftstr, poly_lstrip, poly_len, poly_list
+from mathpak import poly_lastitem, poly_shl, poly_leftstr, poly_vlstrip, poly_len, poly_list
 from mathpak import poly_lookup, poly_lower, poly_match, poly_mod, poly_vmul, poly_number
-from mathpak import poly_pow, poly_vprepend, poly_removeprefix, poly_removesuffix
-from mathpak import poly_replace, poly_repr, poly_shr, poly_rightstr, poly_rstrip, poly_round
+from mathpak import poly_pow, poly_vprepend, poly_vremoveprefix, poly_vremovesuffix
+from mathpak import poly_vreplace, poly_repr, poly_shr, poly_rightstr, poly_vrstrip, poly_round
 from mathpak import poly_rindex, poly_sizeof, poly_rsort, poly_sort, poly_startswith
-from mathpak import poly_str, poly_strip, poly_vsub, poly_substr, poly_swapcase, poly_title
+from mathpak import poly_str, poly_vstrip, poly_vsub, poly_substr, poly_swapcase, poly_title
 from mathpak import poly_translate, poly_div, poly_trunc, poly_type, poly_unique, poly_upper
-from mathpak import duration_to_ms, ms_to_duration, parse_url
+from mathpak import duration_to_ms, ms_to_duration, parse_url, compile_pattern
 from mathpak import md_blockquote, md_bold, md_code, md_code_block, md_heading, md_italics, md_strikethrough
 from mathpak import md_link, md_ordered_list, md_unordered_list
-from mathpak import poly_format
+from mathpak import poly_format, poly_vregex_replace, poly_split, poly_rsplit
 
 def _default_to(value: Any, default: Any) -> Any:
     """Returns a default value if the argument is None.
@@ -41,7 +41,7 @@ def _default_to(value: Any, default: Any) -> Any:
 # Binds a (pretty) name to the function to be executed
 # Additionally, we should use functions here rather than lambdas
 # so we can grab the __DOC__ for help functions.
- #"Attr": ???,                       # TODO see attrgetter, better name?
+#"Attr": ???,                       # TODO see attrgetter, better name?
 _FUNC_OPS = {
   "Abs": poly_abs,
   "Add": poly_vadd,
@@ -55,6 +55,7 @@ _FUNC_OPS = {
   "CaseFold": poly_casefold,
   "Ceil": poly_ceil,
   "Class": poly_class,
+  "CompilePattern": compile_pattern,
   "Contains": poly_contains,
   "CountOf": poly_count,
   "DefaultTo": _default_to,
@@ -97,7 +98,7 @@ _FUNC_OPS = {
   "LE": poly_le,
   "LeftShift": poly_shl,
   "LeftStr": poly_leftstr,
-  "LeftStrip": poly_lstrip,
+  "LeftStrip": poly_vlstrip,
   "Len": poly_len,
   "Length": poly_len,
   "List": poly_list,
@@ -121,21 +122,24 @@ _FUNC_OPS = {
   "ParseUrl": parse_url,
   "Pow": poly_pow,
   "Prepend": poly_vprepend,
-  "RemovePrefix": poly_removeprefix,
-  "RemoveSuffix": poly_removesuffix,
-  "ReplaceStr": poly_replace,
+  "RemovePrefix": poly_vremoveprefix,
+  "RemoveSuffix": poly_vremovesuffix,
+  "ReplaceStr": poly_vreplace,
+  "RegexReplace": poly_vregex_replace,
   "Repr": poly_repr,
   "RightShift": poly_shr,
   "RightStr": poly_rightstr,
-  "RightStrip": poly_rstrip,
+  "RightStrip": poly_vrstrip,
   "RIndexOf": poly_rindex,
   "Round": poly_round,
+  "RSplit": poly_rsplit,
   "RSort": poly_rsort,
   "SizeOf": poly_sizeof,
   "Sort": poly_sort,
+  "Split": poly_split,
   "StartsWith": poly_startswith,
   "Str": poly_str,
-  "Strip": poly_strip,
+  "Strip": poly_vstrip,
   "Sub": poly_vsub,
   "SubStr": poly_substr,
   "SwapCase": poly_swapcase,
