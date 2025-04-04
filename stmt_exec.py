@@ -8,7 +8,7 @@ from lark import Lark, Tree, Token, Transformer, v_args
 
 from app_exceptions import remember_terminals
 from data_dict import DataDictionary
-from dd_config import dd_set_statement
+from dd_config import dd_set_statement, dd_clear_scratch
 from evaluate import bind_operations
 from redir import print_stderr, execute_open, execute_close
 from src_mgr import SSM
@@ -116,4 +116,7 @@ def execute_statements(parser: Lark, dd: DataDictionary, statement_text: str, so
             if not handler: raise NotImplementedError(f'No handler established for {statement.data}')
         if dd.debug: print_tree(statement)
         if dd.echo: print_stderr(text)
-        handler(dd, statement)
+        try:
+            handler(dd, statement)
+        finally:
+            dd_clear_scratch(dd)
