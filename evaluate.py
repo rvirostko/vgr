@@ -5,6 +5,7 @@ Functions to:
 """
 
 from abc import ABC, abstractmethod
+import copy
 from typing import Any
 
 from lark import v_args, Tree, Token, Transformer
@@ -57,6 +58,21 @@ class VarRef(Operation):
 
     def op_name(self) -> str:
         return 'var_ref'
+
+class StashOperation(Operation):
+    """
+    Evaluate an expression, storing its value in a variable
+    before returning it
+    """
+    def execute(self, dd: DataDictionary, args: list) -> Any:
+        # <expr>.Stash(<var_name>)
+        value = eval_expr(dd, args[0])
+        v2 = copy.deepcopy(value) if isinstance(value, (list, dict)) else value
+        dd.set_var_user(v2, *tuple(arg.value for arg in args[1].children))
+        return value
+
+    def op_name(self) -> str:
+        return 'stash'
 
 class AndOperation(Operation):
     """A short-circuiting And"""
@@ -176,6 +192,7 @@ class OperationBinder(Transformer):
     def deref(self, tree): return SimpleOperation(tree, deref_var)
     def function(self, tree): return SimpleOperation(tree, get_function_op(tree.children.pop(0).value))
     def var_ref(self, tree): return VarRef(tree)
+    def stash(self, tree): return StashOperation(tree)
     def function_call(self, tree):
         # The expression becomes the first argument to the function,
         # and it takes the place of the wrapper from parsing
