@@ -10,7 +10,7 @@ from lark import Lark, exceptions
 
 from app_exceptions import ExitingException, format_generic_exception, format_unexpected_input
 from data_dict import DataDictionary
-from dd_config import dd_init, dd_parse_user_args, dd_set_grammar, DEFAULT_FROM_TYPE_PATH
+from dd_config import dd_init, dd_parse_user_args, dd_set_grammar, DEFAULT_FOR_TYPE_PATH
 from functions import get_function_defs
 from interactive import CmdLine
 from mathpak import poly_bool
@@ -44,7 +44,7 @@ class VGRCmdLine(CmdLine):
 
     def run(self):
         # If this has not been set (command line?) we use our interactive default
-        self._dd.set_var_user((self._dd.get_var_user(*DEFAULT_FROM_TYPE_PATH) or 'template-batch').lower(), *DEFAULT_FROM_TYPE_PATH)
+        self._dd.set_var_user((self._dd.get_var_user(*DEFAULT_FOR_TYPE_PATH) or 'template-batch').lower(), *DEFAULT_FOR_TYPE_PATH)
         print("Type 'exit' to exit")
         return super().run()
 
