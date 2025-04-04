@@ -35,7 +35,11 @@ def poly_regex_replace(x: Any, pattern: Any, replacement: Any=None) -> Any:
     """
     # For these types, the operation is idempotent
     if isinstance(x, (NoneType, bool, int, float)) or pattern is None: return x
-    replacement = '' if replacement is None else str_arg(replacement, 'RegEx Replacement')
+    if replacement is None:
+        replacement = ''
+    else:
+        if not isinstance(replacement, str):
+            raise ValueError(f'RegEx Replacement argument must be a string, found {repr(type(replacement).__name__)}')
     if isinstance(pattern, (list, tuple)): return reduce(lambda x, pattern1: poly_regex_replace(x, pattern1, replacement), pattern, x)
     # in case we are going to loop, pre-compile the pattern
     if not isinstance(pattern, re.Pattern):
