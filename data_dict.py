@@ -9,6 +9,7 @@ import math
 import os
 import re
 import string
+import getpass
 
 from mathpak import coerce_value
 
@@ -57,6 +58,8 @@ class DataDictionary():
     def add_protected_prefix(self, prefix: str) -> None:
         """Protected prefixes means you can change any part of them, but not at the top-level"""
         self._protected_prefixes += (prefix, )
+
+    # TODO need corresponding remove for above
 
     def keys(self): return self._dd.keys()
 
@@ -184,7 +187,7 @@ class DataDictionary():
         rc = { key: value for key, value in cls._get_consts(os).items() if key in cls._OS_CONSTS }
         rc['uid'] = os.getuid()
         rc['gid'] = os.getgid()
-        rc['login'] = os.getenv('USER') or os.getlogin()
+        rc['login'] = getpass.getuser() or 'unknown'
         return rc
 
     @classmethod
