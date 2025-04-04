@@ -9,11 +9,14 @@ _VGR_PREFIX = '_vgr'
 _GRAMMAR_PATH = (_VGR_PREFIX, 'grammar')
 _STATEMENT_PATH = (_VGR_PREFIX, 'statement')
 
+_SCRATCH_PREFIX = '_'
+
 _ARG_PREFIX = 'arg'
 OFS_PATH = (_ARG_PREFIX, 'ofs')
 ORS_PATH = (_ARG_PREFIX, 'ors')
 
-DEFAULT_FROM_TYPE_PATH = (_ARG_PREFIX, 'default_from_type')
+# If no "For" is given with a Select, this is assumed
+DEFAULT_FOR_TYPE_PATH = (_ARG_PREFIX, 'default_for_type')
 
 _OS_PREFIX = 'os'
 LINESEP_PATH = (_OS_PREFIX, 'linesep')
@@ -22,6 +25,8 @@ def dd_init() -> DataDictionary:
     dd = DataDictionary()
     dd.add_protected_prefix(_ARG_PREFIX)
     dd.add_immutable_prefix(_VGR_PREFIX)
+    dd.set_var({}, _SCRATCH_PREFIX)
+    dd.add_protected_prefix(_SCRATCH_PREFIX)
     # Pick up the defaults AWK would use
     # Since we don't allow the env space to be changed,
     # we have to keep our own copies for the user to change with
@@ -47,3 +52,6 @@ def dd_set_statement(dd: DataDictionary, statement_text: str) -> str:
 
 def dd_set_grammar(dd: DataDictionary, grammar: str) -> str:
     dd.set_var(grammar, *_GRAMMAR_PATH)
+
+def dd_clear_scratch(dd: DataDictionary) -> None:
+    dd.get_var(_SCRATCH_PREFIX).clear()
