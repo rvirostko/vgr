@@ -15,7 +15,7 @@ from evaluate import bind_operations, eval_expr, eval_to_bool, eval_to_int, eval
 from mathpak import poly_bool
 from output import CSVRecordWriter, JSONRecordWriter, MarkdownRecordWriter, TemplateRecordWriter, TextRecordWriter
 from output import RecordWriter, RecordLimiter, RecordCartesianProduct
-from redir import stdout, stderr, print_debug, print_verbose
+from redir import stdout, stderr, print_stderr
 from stmt_set import load_data_type, load_file_as
 from xtract_memory import InMemoryExtractor
 from xtract_vault import VAULT_TARGETS, VaultDataExtractor
@@ -487,10 +487,10 @@ class QueryRunner(QueryFilter, InfoOutput):
         self._dd.unset_var_user(key)
 
     def print_debug(self, *args, **kwargs):
-        print_debug(self._dd, *args, **kwargs)
+        if self._dd.debug: print_stderr(*args, **kwargs)
 
     def print_verbose(self, /, *args, **kwargs):
-        print_verbose(self._dd, *args, **kwargs)
+        if self._dd.verbose: print_stderr(*args, **kwargs)
 
 def create_extractor(dd: DataDictionary, opts: dict) -> DataExtractor:
     """

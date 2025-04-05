@@ -11,7 +11,7 @@ from lark import Tree
 
 from data_dict import DataDictionary
 from evaluate import eval_filename_expr, eval_to_str, eval_to_list_str
-from redir import print_verbose
+from redir import print_stderr
 from output import prepare_path, verify_relative_path
 
 def execute_zip(dd: DataDictionary, statement: Tree):
@@ -60,7 +60,7 @@ _Password is not currently implemented but may be specified_
     added_files = {
         f for f in added_files if not any(fnmatch.fnmatch(f, pattern) for pattern in exclude_patterns)
     }
-    print_verbose(dd, 'Creating', zip_name)
+    if dd.verbose: print_stderr('Creating', zip_name)
     with zipfile.ZipFile(prepare_path(zip_name), 'w', zipfile.ZIP_DEFLATED) as zf:
         # TODO this is only used for reading, so we need to switch libraries
         if password: zf.setpassword(password.encode())
@@ -68,7 +68,7 @@ _Password is not currently implemented but may be specified_
         if added_files:
             for file in sorted(added_files):
                 relpath = os.path.relpath(file)
-                print_verbose(dd, 'Adding', relpath)
+                if dd.verbose: print_stderr(dd, 'Adding', relpath)
                 zf.write(file, relpath)
         else:
-            print_verbose(dd, 'Created an empty archive')
+            if dd.verbose: print_stderr(dd, 'Created an empty archive')

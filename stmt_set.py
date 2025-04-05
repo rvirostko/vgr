@@ -13,7 +13,7 @@ from lark import Tree, Token
 from data_dict import DataDictionary
 from evaluate import eval_expr, eval_filename_expr
 from mathpak import poly_add, poly_sub, poly_number
-from redir import print_verbose, shorten
+from redir import print_stderr, shorten
 
 def execute_set(dd: DataDictionary, statement: Tree) -> None:
     """Assign a value to a variable.
@@ -42,7 +42,7 @@ def execute_unset(dd: DataDictionary, statement: Tree) -> None:
     for item in statement.children:
         path = _dd_path(item)
         old_value = dd.unset_var_user(*path)
-        print_verbose(dd, 'Removed', shorten(repr(old_value)), 'From', '.'.join(path))
+        if dd.verbose: print_stderr(dd, 'Removed', shorten(repr(old_value)), 'From', '.'.join(path))
 
 def execute_inc(dd: DataDictionary, statement: Tree) -> None:
     """Increment a counter by an amount

@@ -6,7 +6,7 @@ from lark import Tree
 
 from data_dict import DataDictionary
 from evaluate import eval_to_bool
-from redir import print_verbose
+from redir import print_stderr
 
 def execute_echo(dd: DataDictionary, statement: Tree) -> None:
     """Turn echo mode on or off
@@ -17,7 +17,7 @@ def execute_echo(dd: DataDictionary, statement: Tree) -> None:
 When on, statements are echoed before execution
 """
     dd.echo = _flag_value(dd, statement, 'Echo')
-    print_verbose(dd, 'Echo =', dd.echo)
+    if dd.verbose: print_stderr('Echo =', dd.echo)
 
 def execute_debug(dd: DataDictionary, statement: Tree) -> None:
     """Turn debug mode on or off
@@ -28,7 +28,7 @@ def execute_debug(dd: DataDictionary, statement: Tree) -> None:
 When on, additional technical output is generated.
 """
     dd.debug = _flag_value(dd, statement, 'Debug')
-    print_verbose(dd, 'Debug =', dd.debug)
+    if dd.verbose: print_stderr('Debug =', dd.debug)
 
 def execute_verbose(dd: DataDictionary, statement: Tree) -> None:
     """Turn verbose mode on or off

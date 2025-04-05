@@ -1,4 +1,4 @@
-#! /usr/bin/env python3
+#! /usr/bin/env PYTHONIOENCODING=utf8 python3
 
 from typing import Any
 import argparse
@@ -10,12 +10,13 @@ from lark import Lark, exceptions
 
 from app_exceptions import ExitingException, format_generic_exception, format_unexpected_input
 from data_dict import DataDictionary
-from dd_config import dd_init, dd_parse_user_args, dd_set_grammar, DEFAULT_FOR_TYPE_PATH
+from dd_config import dd_init, dd_parse_user_args
+from dd_config import DEFAULT_FOR_TYPE_PATH, SHELL_HISTORY_PATH, SHELL_HISTORY_SIZE_PATH, SHELL_PROMPT_PATH
 from functions import get_function_defs
 from interactive import CmdLine
 from mathpak import poly_bool
 from output import expand_filename
-from redir import print_debug, print_verbose, print_stderr
+from redir import print_stderr
 from src_mgr import SSM
 from stmt_exec import execute_statements
 from xtract_vault import VAULT_TARGETS
@@ -25,11 +26,6 @@ def print_app_exiting(dd: DataDictionary, e: ExitingException) -> None:
     if e.message: print_stderr(e.message)
 
 class VGRCmdLine(CmdLine):
-    _VGR_ENV_PREFIX = 'VGR_'
-    _VGR_PREFIX = '_vgr' # TODO DUP
-    _PROMPT_PATH = (_VGR_PREFIX, 'prompt')
-    _HISTORY_PATH = (_VGR_PREFIX, 'history')
-    _HISTORY_SIZE_PATH = (_VGR_PREFIX, 'history_size')
     _DEFAULT_HISTORY_SIZE = 100
     _DEFAULT_HISTORY = '~/.vgr_history'
     _DEFAULT_PROMPT = 'vgr> '
@@ -37,9 +33,9 @@ class VGRCmdLine(CmdLine):
     def __init__(self, parser: Lark, dd: DataDictionary):
         self._parser = parser
         self._dd = dd
-        self.prompt = self._get_vgr_default(self._PROMPT_PATH[1], self._DEFAULT_PROMPT)
-        self.history_filename = self._get_vgr_default(self._HISTORY_PATH[1], self._DEFAULT_HISTORY)
-        self.max_history_entries = self._get_vgr_default_int(self._HISTORY_SIZE_PATH[1], self._DEFAULT_HISTORY_SIZE)
+        self.prompt = self._get_vgr_default(SHELL_PROMPT_PATH[1], self._DEFAULT_PROMPT)
+        self.history_filename = self._get_vgr_default(SHELL_HISTORY_PATH[1], self._DEFAULT_HISTORY)
+        self.max_history_entries = self._get_vgr_default_int(SHELL_HISTORY_SIZE_PATH[1], self._DEFAULT_HISTORY_SIZE)
         super().__init__()
 
     def run(self):
@@ -84,34 +80,34 @@ class VGRCmdLine(CmdLine):
 
     @property
     def prompt(self) -> str:
-        return str(self._dd.get_var(*self._PROMPT_PATH) or self._DEFAULT_PROMPT)
+        return str(self._dd.get_var(*SHELL_PROMPT_PATH) or self._DEFAULT_PROMPT)
 
     @prompt.setter
     def prompt(self, value: str):
-        self._dd.set_var(value or self._DEFAULT_PROMPT, *self._PROMPT_PATH)
+        self._dd.set_var(value or self._DEFAULT_PROMPT, *SHELL_PROMPT_PATH)
 
     @property
     def history_filename(self) -> str:
-        return expand_filename(str(self._dd.get_var(*self._HISTORY_PATH) or self._DEFAULT_HISTORY))
+        return expand_filename(str(self._dd.get_var(*SHELL_HISTORY_PATH) or self._DEFAULT_HISTORY))
 
     @history_filename.setter
     def history_filename(self, value: str) -> None:
-        self._dd.set_var(expand_filename(value or self._DEFAULT_HISTORY), *self._HISTORY_PATH)
+        self._dd.set_var(expand_filename(value or self._DEFAULT_HISTORY), *SHELL_HISTORY_PATH)
 
     @property
     def max_history_entries(self) -> int:
         try:
-            return int(self._dd.get_var(*self._HISTORY_SIZE_PATH) or self._DEFAULT_HISTORY_SIZE)
+            return int(self._dd.get_var(*SHELL_HISTORY_SIZE_PATH) or self._DEFAULT_HISTORY_SIZE)
         except ValueError:
             return self._DEFAULT_HISTORY_SIZE
 
     @max_history_entries.setter
     def max_history_entries(self, value: int) -> None:
-        self._dd.set_var(value or self._DEFAULT_HISTORY_SIZE, *self._HISTORY_SIZE_PATH)
+        self._dd.set_var(value or self._DEFAULT_HISTORY_SIZE, *SHELL_HISTORY_SIZE_PATH)
 
     def _get_vgr_default(self, env_var: str, default: Any) -> str:
         """Look for a matching environment variable (uppercase) and return it or the default value"""
-        return os.getenv(self._VGR_ENV_PREFIX + env_var.upper(), default)
+        return os.getenv('VGR_' + env_var.upper(), default)
 
     def _get_vgr_default_int(self, env_var: str, default: Any) -> str:
         """Look for a matching environment variable (uppercase) and try to convert to an int"""
@@ -132,7 +128,6 @@ def create_parser(dd: DataDictionary, grammar_file: str) -> Lark:
         ))
         print_debug(dd, 'Generated grammar =', generated)
         grammar = grammar.format(GENERATED_CODE=generated)
-        dd_set_grammar(dd, grammar)
         return Lark(grammar, start='statements', parser='lalr', debug=True, propagate_positions=True)
 
 class SaveOrderedSources(argparse.Action):
@@ -142,6 +137,14 @@ class SaveOrderedSources(argparse.Action):
         if not hasattr(namespace, "ordered"):
             namespace.ordered = []
         namespace.ordered.append((option.lstrip('-')[0].lower(), values))
+
+def print_debug(dd: DataDictionary, /, *args, **kwargs) -> None:
+    """If debug is on print to stderr"""
+    if dd.debug: print_stderr(*args, **kwargs)
+
+def print_verbose(dd: DataDictionary, /, *args, **kwargs) -> None:
+    """If verbose is on print to stderr"""
+    if dd.verbose: print_stderr(*args, **kwargs)
 
 def main():
     clp = argparse.ArgumentParser(

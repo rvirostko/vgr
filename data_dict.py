@@ -5,29 +5,11 @@ are immutable.
 """
 
 from typing import Any
-import math
-import os
-import re
-import string
-import getpass
-
-from mathpak import coerce_value
 
 class DataDictionary():
     """
-    The following portions are immutable:
-
-    * env - the imported environment
-    * math - math constants
-    * string - string constant
-    * os - operating system specific constants
-
-    arg is mutable, but protected, meaning it cannot be unset or overwritten at
-    the top-level. Individual components within it can be changed, though.
+    A hierachical data store
     """
-    _ENV_EXCLUDE = tuple(re.compile(pattern, re.IGNORECASE) for pattern in ('^VSCODE', '^_$', '^(OLD)?PWD$'))
-    _OS_CONSTS = ( 'defpath',  'devnull', 'extsep', 'linesep', 'name', 'pardir', 'pathsep', 'sep' )
-
     _ARG_PREFIX = 'arg'
     _DEBUG_PATH = (_ARG_PREFIX, 'debug')
     _VERBOSE_PATH = (_ARG_PREFIX, 'verbose')
@@ -43,23 +25,30 @@ class DataDictionary():
         self._verbose = False
         self._immutable_prefixes = tuple()
         self._protected_prefixes = tuple()
-        for mod in (math, string):
-            name = mod.__name__
-            self.set_var(self._get_consts(mod), name)
-            self.add_immutable_prefix(name)
-        for func, name in ((self._get_os_consts, 'os'), (self._get_environment, 'env')):
-            self.set_var(func(), name)
-            self.add_immutable_prefix(name)
+        self.add_protected_prefix(self._ARG_PREFIX)
 
     def add_immutable_prefix(self, prefix: str) -> None:
         """Immutable prefixes means you cant change any part of them"""
+        self._assert_valid_prefix(prefix)
         self._immutable_prefixes += (prefix, )
+
+    def remove_immutable_prefix(self, prefix: str) -> None:
+        """Removes immutability on part of the dictionary"""
+        self._assert_valid_prefix(prefix)
+        self._immutable_prefixes = tuple(x for x in self._immutable_prefixes if x != prefix)
 
     def add_protected_prefix(self, prefix: str) -> None:
         """Protected prefixes means you can change any part of them, but not at the top-level"""
+        self._assert_valid_prefix(prefix)
         self._protected_prefixes += (prefix, )
 
-    # TODO need corresponding remove for above
+    def remove_protected_prefix(self, prefix: str) -> None:
+        """Removes protection on part of the dictionary"""
+        self._assert_valid_prefix(prefix)
+        self._protected_prefixes = tuple(x for x in self._protected_prefixes if x != prefix)
+
+    def _assert_valid_prefix(self, prefix: str) -> None:
+        assert prefix and '.' not in prefix and prefix not in self._RESERVED_WORDS, "Invalid prefix"
 
     def keys(self): return self._dd.keys()
 
@@ -181,26 +170,3 @@ class DataDictionary():
         if prefix in self._immutable_prefixes:
             raise ValueError(f'Cannot alter {".".join(path)} - {prefix} is immutable')
         return path
-
-    @classmethod
-    def _get_os_consts(cls) -> dict:
-        rc = { key: value for key, value in cls._get_consts(os).items() if key in cls._OS_CONSTS }
-        rc['login'] = getpass.getuser() or 'unknown'
-        return rc
-
-    @classmethod
-    def _get_environment(cls) -> dict:
-        rc = {
-                name: coerce_value(value) for name, value in os.environ.items()
-                    if not any(pattern.search(name) for pattern in cls._ENV_EXCLUDE)
-             }
-        for name, value in rc.items():
-            if isinstance(value, str) and re.search(r'(_)?PATH$', name, re.IGNORECASE):
-                rc[name] = tuple(value.split(os.pathsep))
-        return rc
-
-    @classmethod
-    def _get_consts(cls, source_mod) -> dict:
-        return { key: value for key, value in vars(source_mod).items()
-                    if isinstance(value, (int, float, str, dict, list, tuple)) and not key.startswith("__")
-               }

@@ -1,27 +1,37 @@
 
+"""
+Utility routines for working with the global Data Dictionary
+"""
+
+import getpass
+import math
 import os
 import re
+import string
 
 from data_dict import DataDictionary
 from mathpak import coerce_value
 
-_VGR_PREFIX = '_vgr'
-_GRAMMAR_PATH = (_VGR_PREFIX, 'grammar')
+_VGR_PREFIX = 'vgr'
 _STATEMENT_PATH = (_VGR_PREFIX, 'statement')
+SHELL_PROMPT_PATH = (_VGR_PREFIX, 'prompt')
+SHELL_HISTORY_PATH = (_VGR_PREFIX, 'history')
+SHELL_HISTORY_SIZE_PATH = (_VGR_PREFIX, 'history_size')
 
 _SCRATCH_PREFIX = '_'
+ROWID_PATH = (_SCRATCH_PREFIX, 'rowid')
 
 _ARG_PREFIX = 'arg'
 OFS_PATH = (_ARG_PREFIX, 'ofs')
 ORS_PATH = (_ARG_PREFIX, 'ors')
-
 # If no "For" is given with a Select, this is assumed
 DEFAULT_FOR_TYPE_PATH = (_ARG_PREFIX, 'default_for_type')
 
-ROWID_PATH = (_SCRATCH_PREFIX, 'rowid')
-
 _OS_PREFIX = 'os'
 LINESEP_PATH = (_OS_PREFIX, 'linesep')
+
+_ENV_EXCLUDE = tuple(re.compile(pattern, re.IGNORECASE) for pattern in ('^VSCODE', '^_$', '^(OLD)?PWD$'))
+_OS_CONSTS = ( 'defpath',  'devnull', 'extsep', 'linesep', 'name', 'pardir', 'pathsep', 'sep' )
 
 def dd_init() -> DataDictionary:
     dd = DataDictionary()
@@ -29,6 +39,17 @@ def dd_init() -> DataDictionary:
     dd.add_immutable_prefix(_VGR_PREFIX)
     dd.set_var({}, _SCRATCH_PREFIX)
     dd.add_protected_prefix(_SCRATCH_PREFIX)
+
+
+    for mod in (math, string):
+        name = mod.__name__
+        dd.set_var(_get_consts(mod), name)
+        dd.add_immutable_prefix(name)
+    for func, name in ((_get_os_consts, 'os'), (_get_environment, 'env')):
+        dd.set_var(func(), name)
+        dd.add_immutable_prefix(name)
+
+
     # Pick up the defaults AWK would use
     # Since we don't allow the env space to be changed,
     # we have to keep our own copies for the user to change with
@@ -52,8 +73,25 @@ def dd_parse_user_args(dd: DataDictionary, user_args: list) -> None:
 def dd_set_statement(dd: DataDictionary, statement_text: str) -> str:
     dd.set_var(statement_text, *_STATEMENT_PATH)
 
-def dd_set_grammar(dd: DataDictionary, grammar: str) -> str:
-    dd.set_var(grammar, *_GRAMMAR_PATH)
-
 def dd_clear_scratch(dd: DataDictionary) -> None:
     dd.get_var(_SCRATCH_PREFIX).clear()
+
+def _get_os_consts() -> dict:
+    rc = { key: value for key, value in _get_consts(os).items() if key in _OS_CONSTS }
+    rc['login'] = getpass.getuser() or 'unknown'
+    return rc
+
+def _get_environment() -> dict:
+    rc = {
+            name: coerce_value(value) for name, value in os.environ.items()
+                if not any(pattern.search(name) for pattern in _ENV_EXCLUDE)
+            }
+    for name, value in rc.items():
+        if isinstance(value, str) and re.search(r'(_)?PATH$', name, re.IGNORECASE):
+            rc[name] = tuple(value.split(os.pathsep))
+    return rc
+
+def _get_consts(source_mod) -> dict:
+    return { key: value for key, value in vars(source_mod).items()
+                if isinstance(value, (int, float, str, dict, list, tuple)) and not key.startswith("__")
+            }
