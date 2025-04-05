@@ -248,17 +248,19 @@ class SelectAnalyzer(Visitor):
         self._parse_output_ops(node)
 
     def for_template(self, node: Tree):
-        """... For [Record|Batch]? Template <template_file> <opts>* ..."""
+        """... For [Record|Batch]? Template <template_filename> <opts>* ..."""
         node = bind_operations(node)
         self.output_opts['type'] = 'template'
-        i: int = 0
-        if isinstance(node.children[i], Token) and node.children[i].type == 'TEMPLATE_TYPE':
-            self.output_opts['template_type'] = node.children[i].value.lower()
-            i += 1
-        self.output_opts['template_file'] = eval_filename_expr(self._dd, node.children[i])
-        i += 1
-        # remainder are options...
-        self._parse_output_ops(node, i)
+        for i, child in enumerate(node.children):
+            if self.is_token(child, 'TEMPLATE_TYPE'):
+                self.output_opts['template_type'] = child.value.lower()
+                continue
+            if self.is_tree(child, 'template_filename'):
+                self.output_opts['template_filename'] = eval_filename_expr(self._dd, child.children[0])
+                continue
+            # remainder are options...
+            self._parse_output_ops(node, i)
+            break
 
     def _display_name(self, name: str) -> str:
         """Util to print nice looking error msgs"""
@@ -298,6 +300,14 @@ class SelectAnalyzer(Visitor):
 
     def _str_arg(self, node:Tree, name: str, default: str=None) -> str:
         return eval_to_str(self._dd, node.children[0], name, True) if node.children else default
+
+    @staticmethod
+    def is_token(child, token_type: str) -> bool:
+        return isinstance(child, Token) and child.type == token_type
+
+    @staticmethod
+    def is_tree(child, tree_data: str) -> bool:
+        return isinstance(child, Tree) and child.data == tree_data
 
 @v_args(tree=True)
 class ImplicitContextAdder(Transformer):

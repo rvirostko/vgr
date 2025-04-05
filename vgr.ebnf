@@ -165,8 +165,9 @@ for_markdown: "MarkDown"i (_COMMA? markdown_option (_COMMA markdown_option)*)?
     | "Include"i "Headers"i (("=" | ":=") expr)? -> include_headers
     | ("No"i | "Omit"i) "Headers"i (("=" | ":=") expr)? -> omit_headers
 
-for_template: TEMPLATE_TYPE? ("Template"i | "Jinja"i | "Jinja2"i) "File"i? expr (_COMMA? template_option (_COMMA template_option)*)?
+for_template: TEMPLATE_TYPE? ("Template"i | "Jinja"i | "Jinja2"i) (template_filename | "Default"i)? (_COMMA? template_option (_COMMA template_option)*)?
 TEMPLATE_TYPE: "Record"i | "Batch"i
+template_filename: "File"i? expr
 ?template_option: "Encode"i? "Ascii"i (("=" | ":=") expr)? -> encode_ascii
     | "Encode"i? ("Unicode"i | "UTF8"i | "UTF-8"i) (("=" | ":=") expr)? -> encode_unicode
     | "Auto"i "Escape"i (("=" | ":=") expr)? -> auto_escape
