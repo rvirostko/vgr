@@ -370,9 +370,9 @@ def execute_select(dd: DataDictionary, statement: Tree):
     # If the type was not set, we use the default, and if not there, use CSV
     output_opts['type'] = output_opts.get('type', (dd.get_var_user(*DEFAULT_FOR_TYPE_PATH) or 'csv').lower())
     writer = create_writer(output_opts, select.output_controls)
-    print_debug(dd, repr(writer))
+    if dd.debug: print_stderr(repr(writer))
     extractor = create_extractor(dd, select.from_opts)
-    print_debug(dd, repr(extractor))
+    if dd.debug: print_stderr(repr(extractor))
     QueryRunner(dd, select, writer).run_extraction(extractor)
 
 class QueryRunner(QueryFilter, InfoOutput):
@@ -452,8 +452,8 @@ class QueryRunner(QueryFilter, InfoOutput):
             record = [ eval_expr(self._dd, expr) for expr in outputs ]
         else:
             # Result of a "Select From ..." so your output is
-            # the entirity of the target data
-            # TODO how does this work with JSON output?
+            # the entirity of the target data.
+            # NB: The JSON writer has special handling for this
             record = [ data ]
         try:
             if  not self._writer.write(record):
@@ -511,7 +511,7 @@ def create_extractor(dd: DataDictionary, opts: dict) -> DataExtractor:
                 data, _ = load_file_as(f, opts['dtype'])
             if not isinstance(data, list):
                 data = [data] if isinstance(data, dict) else [{'value' : data}]
-            print_verbose(dd, 'Read', len(data), 'Records ' if len(data) != 1 else 'Record', 'From', filename)
+            if dd.verbose: print_stderr(dd, 'Read', len(data), 'Records ' if len(data) != 1 else 'Record', 'From', filename)
             return InMemoryExtractor(data, target)
     raise NotImplementedError(f'Extractor type {repr(xtype)}')
 

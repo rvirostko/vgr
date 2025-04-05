@@ -39,7 +39,7 @@ def execute_verbose(dd: DataDictionary, statement: Tree) -> None:
 When on, additional operational output is generated.
 """
     dd.verbose = _flag_value(dd, statement, 'Verbose')
-    print_verbose(dd, 'Verbose =', dd.verbose) # Yeah... can only print true
+    if dd.verbose: print_stderr('Verbose =', dd.verbose) # Yeah... can only print true
 
 def _flag_value(dd: DataDictionary, statement: Tree, name: str) -> bool:
     # default behavior for a flag is a request to turn on
