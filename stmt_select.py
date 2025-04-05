@@ -165,17 +165,16 @@ class SelectAnalyzer(Visitor):
         counter = {}
         rc = []
         for i, name in enumerate(col_names):
-            if name == '':
-                # Assign unamed cols their index
-                rc.append(f'col_{i + 1}')
-            elif name in counter:
-                # If name exists append the count to the name
+            # Assign unamed cols their index
+            if name == '': name = f'col_{i + 1}'
+            # If name exists append the count to the name
+            if name in counter:
                 v = counter[name] + 1
                 counter[name] = v
-                rc.append(f'{name}_{v}')
+                name = f'{name}_{v}'
             else:
                 counter[name] = 1
-                rc.append(name)
+            rc.append(name)
         return rc
 
     def output_as(self, node: Tree):
