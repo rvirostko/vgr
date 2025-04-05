@@ -508,7 +508,7 @@ def create_extractor(dd: DataDictionary, opts: dict) -> DataExtractor:
         filename = opts.get('file', None)
         if filename:
             with open(filename, 'r', encoding='utf-8') as f:
-                data = load_file_as(f, opts['dtype'])
+                data, _ = load_file_as(f, opts['dtype'])
             if not isinstance(data, list):
                 data = [data] if isinstance(data, dict) else [{'value' : data}]
             print_verbose(dd, 'Read', len(data), 'Records ' if len(data) != 1 else 'Record', 'From', filename)

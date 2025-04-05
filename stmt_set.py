@@ -42,7 +42,7 @@ def execute_unset(dd: DataDictionary, statement: Tree) -> None:
     for item in statement.children:
         path = _dd_path(item)
         old_value = dd.unset_var_user(*path)
-        print_verbose(dd, "Removed", shorten(repr(old_value)), 'From', '.'.join(path))
+        print_verbose(dd, 'Removed', shorten(repr(old_value)), 'From', '.'.join(path))
 
 def execute_inc(dd: DataDictionary, statement: Tree) -> None:
     """Increment a counter by an amount
@@ -126,15 +126,16 @@ name with TEXT as the default.
     path = _dd_path(statement.children[0])
     filename = eval_filename_expr(dd, statement.children[1])
     dtype = load_data_type(filename, statement.children[2] if len(statement.children) > 2 else None)
-    new_value = None
     with open(filename, 'r', encoding='utf-8') as f:
-        new_value = dd.set_var_user(load_file_as(f, dtype), *path)
+        data, fieldnames = load_file_as(f, dtype)
+        dd.set_var_user(data, *path)
     if dd.verbose:
-        if isinstance(new_value, list):
-            length = len(new_value)
-            print_verbose(dd, "Loaded", '.'.join(path), 'With', length, 'Records' if length != 1 else 'Record')
+        if isinstance(data, list):
+            length = len(data)
+            print_verbose(dd, 'Loaded', '.'.join(path), 'With', length, 'Records' if length != 1 else 'Record')
         else:
-            print_verbose(dd, "Loaded", '.'.join(path), 'With', shorten(repr(new_value)))
+            print_verbose(dd, 'Loaded', '.'.join(path), 'With', shorten(repr(data)))
+        if fieldnames: print_verbose(dd, 'Fieldnames :', '', ''.join(repr(f) for f in fieldnames))
 
 def _dd_path(var_ref: Tree) -> tuple[str]:
     return tuple(name.value for name in var_ref.children)
@@ -150,12 +151,16 @@ def load_data_type(filename: str, token: Token) -> str:
     ext = os.path.splitext(filename)[1].lower()
     return 'csv_file' if ext == '.csv' else 'json_object' if ext == '.json' else 'text_file'
 
-def load_file_as(file, dtype: str) -> Any:
+def load_file_as(file, dtype: str) -> tuple:
     """Read the file in according to the type, which comes for load_file_type()"""
-    if dtype == 'text_file': return file.read()
-    if dtype == 'json_object': return json.load(file)
-    if dtype == 'json_objects': return [json.loads(line) for line in file if line.strip()]
-    if dtype == 'csv_file': return list(csv.DictReader(file))
+    if dtype == 'text_file':
+        return (file.read(), [])
+    if dtype == 'json_object':
+        return _info_from_json(json.load(file))
+    if dtype == 'json_objects':
+        return _info_from_json([json.loads(line) for line in file if line.strip()])
+    if dtype == 'csv_file':
+        return _info_from_csv(csv.DictReader(file))
     raise ValueError(f'Unknown file content type {repr(dtype)}') # SNO
 
 def do_set(dd: DataDictionary, value: Any, *path) -> None:
@@ -164,4 +169,11 @@ def do_set(dd: DataDictionary, value: Any, *path) -> None:
     Generates verbose output.
     """
     new_value = dd.set_var_user(value, *path)
-    print_verbose(dd, "Set", '.'.join(path), 'To', shorten(repr(new_value)))
+    print_verbose(dd, 'Set', '.'.join(path), 'To', shorten(repr(new_value)))
+
+def _info_from_csv(reader: csv.DictReader) -> tuple:
+    return (list(reader), reader.fieldnames or [])
+
+def _info_from_json(data: Any) -> tuple:
+    sample = data[0] if isinstance(data, list) and data else data
+    return (data, list(sample.keys()) if isinstance(sample, dict) else [])
