@@ -184,19 +184,6 @@ class FileRecordWriter(RecordWriter):
     def flush(self) -> None:
         if self._file: self._file.flush()
 
-    def objectify(self, record: list[any], include_nulls: bool=True) -> dict:
-        """
-        If the record is a dictionary, include all its attributes.
-        Non dictionaries are turned into ones using the headers.
-        Attributes that are None are optionally removed from both.
-        """
-        obj: dict = None
-        if len(record) == 1 and isinstance(record[0], dict):
-            obj = {k: v for k, v in record[0].items() if include_nulls or v is not None}
-        else:
-            obj = {k: v for k, v in zip(self._headers, record) if include_nulls or v is not None}
-        return obj
-
     def _to_ascii(self, text: str) -> str:
         """
         If the underlying formatter cannot enforce ASCII on its own, call

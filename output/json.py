@@ -84,7 +84,20 @@ class JSONRecordWriter(FileRecordWriter):
         return True
 
     def write(self, record: list[any]) -> bool:
-        self._formater.write(self.objectify(record, self._include_nulls))
+        obj: dict = None
+        # Special case for "Select From..." or "Select x From x..."
+        # where the entire source record is being written as an object
+        if len(record) == 1 and isinstance(record[0], dict):
+            # Try to keep checks and rewrite logic down to a minimum...
+            if self._include_nulls:
+                obj = record[0]
+            else:
+                obj = {k: v for k, v in record[0].items() if v is not None}
+        elif self._include_nulls:
+            obj = dict(zip(self._headers, record))
+        else:
+            obj = {k: v for k, v in zip(self._headers, record) if v is not None}
+        self._formater.write(obj)
         return True
 
     def finish(self) -> None:
