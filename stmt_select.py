@@ -128,12 +128,7 @@ class SelectAnalyzer(Visitor):
         # name is the name for the columns
         if not self.output_statements:
             self._headers.append(self.from_opts['target'])
-        else:
-            # Go throught the unnamed columns and assign them one
-            for i, h in enumerate(self._headers):
-                if not h:
-                    self._headers[i] = f'col_{i + 1}'
-        self.output_opts['headers'] = self._headers
+        self.output_opts['headers'] = self.make_cols_names_unique(self._headers)
         from_type = self.from_opts['type']
         target = self.from_opts['target']
         self._output_statements = [bind_operations(add_implicit(self._dd, from_type, target, o))
@@ -150,16 +145,38 @@ class SelectAnalyzer(Visitor):
         # NB: do not bind
         expr = node.children[0]
         self.output_statements.append(expr)
-        if isinstance(expr, Tree) and expr.data == 'var_ref':
+        self._headers.append(self.get_default_col_name(expr))
+
+    @classmethod
+    def get_default_col_name(cls, node: Tree) -> str:
+        # If they have some type of constant, we'll use it
+        if isinstance(node, Token): return str(node.value).strip()
+        if isinstance(node, Tree):
             # For variable names, we just make that into a string
-            self._headers.append('.'.join(name.value for name in expr.children))
-        else:
-            # If they have some type of constant, we'll use it
-            if isinstance(expr, Token) and len(node.children) == 1:
-                self._headers.append(str(expr.value).strip())
+            if node.data == 'var_ref': return '.'.join(name.value for name in node.children)
+            # We'll inherit the name for <name>.func(), but not other ops
+            if node.data == 'function_call': return cls.get_default_col_name(node.children[0])
+        # We'll figure out the default later
+        return ''
+
+    @classmethod
+    def make_cols_names_unique(cls, col_names: list[str]) -> list[str]:
+        # Dictionary tracks number of uses of each name
+        counter = {}
+        rc = []
+        for i, name in enumerate(col_names):
+            if name == '':
+                # Assign unamed cols their index
+                rc.append(f'col_{i + 1}')
+            elif name in counter:
+                # If name exists append the count to the name
+                v = counter[name] + 1
+                counter[name] = v
+                rc.append(f'{name}_{v}')
             else:
-                # We'll figure out the default later
-                self._headers.append('')
+                counter[name] = 1
+                rc.append(name)
+        return rc
 
     def output_as(self, node: Tree):
         """
