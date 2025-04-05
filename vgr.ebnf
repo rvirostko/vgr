@@ -127,8 +127,8 @@ output: expr
     | expr "As"i (NAME | ESCAPED_STRING) -> output_as
 
 ?from_clause: "From"i (from_var | from_file | from_vault)
-from_var: ("Variable"i | "Var"i) var_name "As"i NAME
-from_file: "File"i expr load_source_type? "As"i NAME
+from_var: ("Variable"i | "Var"i) var_name ("As"i NAME)?
+from_file: "File"i expr load_source_type? ("As"i NAME)?
 from_vault: "Vault"i? VAULT_TARGET
 
 where_clause: "Where"i expr (_COMMA expr)*

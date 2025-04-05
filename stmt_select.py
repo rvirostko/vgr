@@ -22,6 +22,8 @@ from xtract_vault import VAULT_TARGETS, VaultDataExtractor
 
 class SelectAnalyzer(Visitor):
 
+    _DEFAUL_TARGET_NAME = '_record'
+
     _BOOL_OPTS = (
         'array_wrapper',
         'auto_escape',
@@ -173,20 +175,31 @@ class SelectAnalyzer(Visitor):
         self._headers.append(node.children[1].value.strip())
 
     def from_var(self, node: Tree):
-        """... From Var <name> As <target> ..."""
+        """... From Var <name> [As <target>] ..."""
         node = bind_operations(node)
         self.from_opts['type'] = 'memory'
         self.from_opts['var'] = tuple(name.value for name in node.children[0].children)
-        self.from_opts['target'] = node.children[1].value
+        self.from_opts['target'] = node.children[1].value if len(node.children) > 1 else self._DEFAUL_TARGET_NAME
 
     def from_file(self, node: Tree):
-        """... From File <filename> <opt>? As <target> ..."""
+        """... From File <filename> <opt>? [As <target>] ..."""
         node = bind_operations(node)
         self.from_opts['type'] = 'memory'
         filename = eval_filename_expr(self._dd, bind_operations(node.children[0]))
         self.from_opts['file'] = filename
-        self.from_opts['dtype'] = load_data_type(filename, node.children[1] if len(node.children) > 2 else None)
-        self.from_opts['target'] = node.children[-1].value
+        target_node = None
+        opt_node = None
+        c = len(node.children)
+        if c == 2:
+            if isinstance(node.children[1], Token):
+                target_node = node.children[1]
+            else:
+               opt_node = node.children[1]
+        elif c == 3:
+            opt_node = node.children[1]
+            target_node = node.children[2]
+        self.from_opts['dtype'] = load_data_type(filename, opt_node)
+        self.from_opts['target'] = target_node.value if target_node else self._DEFAUL_TARGET_NAME
 
     def from_vault(self, node: Tree):
         """... From [Vault] <vault-target> ..."""
