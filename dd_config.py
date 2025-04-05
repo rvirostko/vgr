@@ -18,6 +18,8 @@ ORS_PATH = (_ARG_PREFIX, 'ors')
 # If no "For" is given with a Select, this is assumed
 DEFAULT_FOR_TYPE_PATH = (_ARG_PREFIX, 'default_for_type')
 
+ROWID_PATH = (_SCRATCH_PREFIX, 'rowid')
+
 _OS_PREFIX = 'os'
 LINESEP_PATH = (_OS_PREFIX, 'linesep')
 

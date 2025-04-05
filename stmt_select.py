@@ -10,7 +10,7 @@ from lark import Tree, Token, Transformer, Visitor, v_args
 from data_dict import DataDictionary
 from data_xtract import QueryFilter, InfoOutput, DataExtractor, EndExtractException
 from dbg import print_tree
-from dd_config import DEFAULT_FOR_TYPE_PATH, dd_clear_scratch
+from dd_config import DEFAULT_FOR_TYPE_PATH, ROWID_PATH, dd_clear_scratch
 from evaluate import bind_operations, eval_expr, eval_to_bool, eval_to_int, eval_to_str, eval_filename_expr
 from mathpak import poly_bool
 from output import CSVRecordWriter, JSONRecordWriter, MarkdownRecordWriter, TemplateRecordWriter, TextRecordWriter
@@ -354,21 +354,6 @@ class ImplicitContextAdder(Transformer):
             tree.children.insert(0, Token("NAME", self._target))
         return tree
 
-#def get_from_info(statement: Tree) -> tuple[str, str]:
-#    """
-#    A Q&D check to look at the "from" to determine info
-#    May not be needed
-#    """
-#    for child in statement.children:
-#        if isinstance(child, Tree) and child.data in { 'from_var', 'from_file', 'from_vault' }:
-#            if not child.children:
-#                raise TypeError('Select From missing target info') # SNO
-#            last_child = child.children[-1]
-#            if not isinstance(last_child, Token):
-#                raise TypeError('Select From not in expected sequence')
-#            return child.data, last_child.value
-#    raise TypeError('Select statement did not have a from clause')
-
 def add_implicit(dd, from_type, target, tree) -> Tree:
     """should only be applied to the outputs and predicates after analysis!"""
     valid_contexts = [*dd.keys()]
@@ -381,18 +366,6 @@ def execute_select(dd: DataDictionary, statement: Tree):
     # (notably in the outputs and the predicates) and
     # that is by design, so don't panic
     if dd.debug: print_tree(statement)
-    #from_opts = select.from_opts
-    #print(repr(from_opts)) # TODO
-    #predicates = select.predicates
-    #print('Predicates :') # TODO
-    #for i, p in enumerate(predicates):
-    #    print(f'\t{i + 1}')
-    #    print_tree(p)
-    #outputs = select.output_statements
-    #print('Outputs    :') # TODO
-    #for i, o in enumerate(outputs):
-    #    print(f'\t{i + 1}')
-    #    print_tree(o)
     output_opts = select.output_opts
     # If the type was not set, we use the default, and if not there, use CSV
     output_opts['type'] = output_opts.get('type', (dd.get_var_user(*DEFAULT_FOR_TYPE_PATH) or 'csv').lower())
@@ -407,6 +380,19 @@ class QueryRunner(QueryFilter, InfoOutput):
         self._dd = dd
         self._select = select
         self._writer = writer
+        self._rowid = 0
+
+    @property
+    def rowid(self) -> int:
+        return self._rowid
+
+    @rowid.setter
+    def rowid(self, value: int) -> int:
+        self._rowid = int(value)
+        self._dd.set_var_user(self._rowid, *ROWID_PATH)
+
+    def inc_rowid(self):
+        self.rowid += 1
 
     def run_extraction(self, extractor: DataExtractor) -> None:
         """
@@ -416,6 +402,7 @@ class QueryRunner(QueryFilter, InfoOutput):
         a DataLimitExceededException: this is the only place where
         this should be caught.
         """
+        self.rowid = 0
         extractor.start(self)
         if self._writer.start():
             try:
@@ -448,6 +435,9 @@ class QueryRunner(QueryFilter, InfoOutput):
         return True
 
     def filter_target(self, data: Any) -> bool:
+        # Always incremented, even if the row ends up
+        # not being selected for output
+        self.inc_rowid()
         # We return true or false, which the extractor can check,
         # but it is not prescriptive: False does not mean stop...
         # Evaluate all predicates: first failure causes the
