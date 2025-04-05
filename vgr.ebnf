@@ -121,7 +121,7 @@ display_on: "Display"i (expr (_COMMA? expr)*)? (("Upon"i | "On"i) io_type)? _SEM
 
 select: "Select"i outputs? from_clause where_clause? product_clause? limit_clause? for_clause? _SEMICOLON?
 
-?outputs: output (_COMMA output)*
+?outputs: output (_COMMA output)* _COMMA?
 
 output: expr
     | expr "As"i (NAME | ESCAPED_STRING) -> output_as
