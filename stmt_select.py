@@ -341,7 +341,8 @@ class ImplicitContextAdder(Transformer):
     def add_contexts(self, tree, target: str, valid_contexts):
         try:
             self._target = target
-            self._valid_contexts = valid_contexts
+            self._valid_contexts = list(valid_contexts)
+            self._valid_contexts.append(target)
             return super().transform(deepcopy(tree)) # TODO speculative
         finally:
             self._target = None
@@ -358,7 +359,7 @@ def add_implicit(dd, from_type, target, tree) -> Tree:
     """should only be applied to the outputs and predicates after analysis!"""
     valid_contexts = [*dd.keys()]
     if from_type == 'from_vault': valid_contexts += VAULT_TARGETS
-    return ImplicitContextAdder().add_contexts(tree, target,  valid_contexts )
+    return ImplicitContextAdder().add_contexts(tree, target, valid_contexts)
 
 def execute_select(dd: DataDictionary, statement: Tree):
     select = SelectAnalyzer(dd).analyze(statement)
