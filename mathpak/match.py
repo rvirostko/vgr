@@ -1,13 +1,58 @@
+"""
+TODO
+"""
+
 from typing import Any
+import re
 
-def poly_match(x: Any, y: Any) -> Any:
-    raise NotImplementedError() # TODO
+from .common import NoneType, bool_arg
 
-def poly_not_match(x: Any, y: Any) -> Any:
-    raise NotImplementedError() # TODO
+def poly_vmatches(x: Any, *args) -> Any:
+    if not args: return x
+    if len(args) == 1: return poly_matches(x, args[0])
+    return poly_matches(x, [*args])
 
-def poly_imatch(x: Any, y: Any) -> Any:
-    raise NotImplementedError() # TODO
+def poly_matches(x: Any, y: Any, ci: bool=False) -> Any:
+    return _do_match(x, y, ci, False)
 
-def poly_not_imatch(x: Any, y: Any) -> Any:
-    raise NotImplementedError() # TODO
+def poly_vmatches_all(x: Any, *args) -> Any:
+    if not args: return x
+    if len(args) == 1: return poly_matches_all(x, args[0])
+    return poly_matches_all(x, [*args])
+
+def poly_matches_all(x: Any, y: Any, ci: bool=False) -> Any:
+    return _do_match(x, y, ci, True)
+
+def poly_not_matches(x: Any, y: Any, ci: bool=False) -> Any:
+    return not poly_matches(x, y, ci)
+
+def poly_imatches(x: Any, y: Any) -> Any:
+    return poly_matches(x, y, True)
+
+def poly_not_imatches(x: Any, y: Any) -> Any:
+    return not poly_matches(x, y, True)
+
+def _do_match(x: Any, y: Any, ci: bool, do_all: bool) -> Any:
+    ci = bool_arg(ci, "Case Independent")
+    # ["aaa", "bb"] Matches "^(a|b)+$" -> True
+    if isinstance(x, (list, tuple)):
+        return all(_do_match(x1, y, ci, do_all) for x1 in x)
+    # 27 Matches 27.0 -> True
+    if isinstance(x, (NoneType, bool, int, float)):
+        if isinstance(y, (NoneType, bool, int, float)): return x == y
+    # a_dictionary Matches "abc" -> Exception
+    if not isinstance(x, str):
+        raise TypeError(f'Cannot perform Match on {repr(type(x).__name__)}')
+    if isinstance(y, str):
+        try:
+            y = re.compile(y, re.IGNORECASE if ci else 0)
+        except Exception as e:
+            raise ValueError(f'Match Pattern error: {repr(y)}') from e
+    # "Ziggy" Matches "^Z" -> True
+    if isinstance(y, re.Pattern):
+        return re.search(y, x) is not None
+    # "Bobby" Matches ["Rob", "Bob"] -> True
+    if isinstance(y, (list, tuple)):
+        if do_all: return all(_do_match(x, y1, ci, do_all) for y1 in y)
+        return any(_do_match(x, y1, ci, do_all) for y1 in y)
+    raise TypeError(f'Cannot use {repr(type(y).__name__)} as a Pattern with Match')

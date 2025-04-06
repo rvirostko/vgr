@@ -241,10 +241,11 @@ ternary: expr "?" expr ":" expr -> c_ternary
     | expr2 "Is"i? "Not"i "In"i expr2 -> not_in_op
     | expr2 "Contains"i "Any"i? expr2 -> contains_op
     | expr2 "Contains"i "All"i expr2 -> contains_all_op
-    | expr2 ("~" | "Match"i | "Matches"i) expr2 -> match_op
-    | expr2 ("IMatch"i | "IMatches"i) expr2 -> imatch_op
-    | expr2 ("!~" | ("Doesnt"i | "Does"i? "Not"i) "Match"i) expr2 -> not_match_op
-    | expr2 (("Doesnt"i | "Does"i? "Not"i) "IMatch"i) expr2 -> not_imatch_op
+    | expr2 ("~" | "Matches"i "Any"i?) expr2 -> matches_op
+    | expr2 "Matches"i "All"i expr2 -> matches_all_op
+    | expr2 "~*" expr2 -> imatches_op
+    | expr2 "!~" expr2 -> not_matches_op
+    | expr2 "!~*" expr2 -> not_imatches_op
     // These are more fundemental objects
     | _OSB (expr (_COMMA expr)*)? _CSB -> array         // may become CARRAY at runtime
     | TRUE | FALSE

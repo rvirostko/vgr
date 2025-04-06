@@ -12,19 +12,19 @@ from mathpak import poly_abs, poly_vadd, poly_vappend, poly_vbit_and, poly_vbit_
 from mathpak import poly_bit_not, poly_bool, poly_capitalize, poly_casefold
 from mathpak import poly_ceil, poly_class, poly_count, poly_vdiv
 from mathpak import poly_endswith, poly_expandtabs, poly_firstitem, poly_float, poly_vfdiv
-from mathpak import poly_floor, poly_ge, poly_hash, poly_imatch, poly_in, poly_index
+from mathpak import poly_floor, poly_hash, poly_in, poly_index
 from mathpak import poly_int, poly_isalnum, poly_isalpha, poly_isascii, poly_isbool
 from mathpak import poly_isdecimal, poly_isdigit, poly_isempty, poly_isfloat
 from mathpak import poly_isidentifier, poly_isint, poly_islower, poly_islist, poly_isnumber
 from mathpak import poly_isprintable, poly_isnumeric, poly_isspace
-from mathpak import poly_isstr, poly_istitle, poly_isupper, poly_getitem, poly_le
+from mathpak import poly_isstr, poly_istitle, poly_isupper, poly_getitem
 from mathpak import poly_lastitem, poly_shl, poly_leftstr, poly_vlstrip, poly_len, poly_list
-from mathpak import poly_lookup, poly_lower, poly_match, poly_mod, poly_vmul, poly_number
+from mathpak import poly_lookup, poly_lower, poly_vmatches, poly_vmatches_all, poly_mod, poly_vmul, poly_number
 from mathpak import poly_pow, poly_vprepend, poly_vremoveprefix, poly_vremovesuffix
 from mathpak import poly_vreplace, poly_repr, poly_shr, poly_rightstr, poly_vrstrip, poly_round
 from mathpak import poly_rindex, poly_sizeof, poly_rsort, poly_sort, poly_startswith
 from mathpak import poly_str, poly_vstrip, poly_vsub, poly_substr, poly_swapcase, poly_title
-from mathpak import poly_translate, poly_div, poly_trunc, poly_type, poly_unique, poly_upper
+from mathpak import poly_translate, poly_trunc, poly_type, poly_unique, poly_upper
 from mathpak import duration_to_ms, ms_to_duration, parse_url, compile_pattern
 from mathpak import md_blockquote, md_bold, md_code, md_code_block, md_heading, md_italics, md_strikethrough
 from mathpak import md_link, md_ordered_list, md_unordered_list
@@ -58,6 +58,7 @@ _FUNC_OPS = {
   "Class": poly_class,
   "CompilePattern": compile_pattern,
   "Contains": poly_contains_any,
+  "ContainsAny": poly_contains_any,
   "ContainsAll": poly_contains_all,
   "CountOf": poly_count,
   "DefaultTo": _default_to,
@@ -70,9 +71,7 @@ _FUNC_OPS = {
   "Floor": poly_floor,
   "FloorDiv": poly_vfdiv,
   "Format": poly_format,
-  "GE": poly_ge,
   "Hash": poly_hash,
-  "IMatch": poly_imatch,
   "In": poly_in,
   "IndexOf": poly_index,
   "Int": poly_int,
@@ -97,7 +96,6 @@ _FUNC_OPS = {
   "IsUpper": poly_isupper,
   "Item": poly_getitem,
   "LastItem": poly_lastitem,
-  "LE": poly_le,
   "LeftShift": poly_shl,
   "LeftStr": poly_leftstr,
   "LeftStrip": poly_vlstrip,
@@ -106,7 +104,9 @@ _FUNC_OPS = {
   "List": poly_list,
   "Lookup": poly_lookup,
   "Lower": poly_lower,
-  "Match": poly_match,
+  "Matches": poly_vmatches,
+  "MatchesAny": poly_vmatches,
+  "MatchesAll": poly_vmatches_all,
   "MdBlockQuote": md_blockquote,
   "MdBold": md_bold,
   "MdCode": md_code,
@@ -147,7 +147,6 @@ _FUNC_OPS = {
   "SwapCase": poly_swapcase,
   "TitleCase": poly_title,
   "Translate": poly_translate,
-  "TrueDiv": poly_div,
   "Trunc": poly_trunc,
   "Type": poly_type,
   "Unique": poly_unique,

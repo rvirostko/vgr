@@ -14,10 +14,10 @@ from data_dict import DataDictionary
 from functions import get_function_op
 from mathpak import poly_vadd, poly_vbit_and, poly_vbit_xor, poly_vdiv
 from mathpak import poly_bool, poly_int, poly_vbit_or
-from mathpak import poly_eq, poly_vpow, poly_vfdiv, poly_ge, poly_imatch, poly_gt
-from mathpak import poly_in, poly_le, poly_lt, poly_match, poly_vmod, poly_vmul
-from mathpak import poly_ne, poly_not_imatch, poly_not_in
-from mathpak import poly_not_match, poly_vshl, poly_vshr, poly_vsub, poly_not
+from mathpak import poly_eq, poly_vpow, poly_vfdiv, poly_ge, poly_imatches, poly_gt
+from mathpak import poly_in, poly_le, poly_lt, poly_matches, poly_vmod, poly_vmul
+from mathpak import poly_ne, poly_not_imatches, poly_not_in
+from mathpak import poly_not_matches, poly_matches_all, poly_vshl, poly_vshr, poly_vsub, poly_not
 from mathpak import poly_contains_all, poly_contains_any
 from output import verify_relative_path
 
@@ -160,15 +160,16 @@ class OperationBinder(Transformer):
     def eq_op(self, tree): return SimpleOperation(tree, poly_eq)
     def ge_op(self, tree): return SimpleOperation(tree, poly_ge)
     def gt_op(self, tree): return SimpleOperation(tree, poly_gt)
-    def imatch_op(self, tree): return SimpleOperation(tree, poly_imatch)
+    def imatches_op(self, tree): return SimpleOperation(tree, poly_imatches)
     def in_op(self, tree): return SimpleOperation(tree, poly_in)
     def le_op(self, tree): return SimpleOperation(tree, poly_le)
     def lt_op(self, tree): return SimpleOperation(tree, poly_lt)
-    def match_op(self, tree): return SimpleOperation(tree, poly_match)
+    def matches_op(self, tree): return SimpleOperation(tree, poly_matches)
+    def matches_all_op(self, tree): return SimpleOperation(tree, poly_matches_all)
     def neq_op(self, tree): return SimpleOperation(tree, poly_ne)
-    def not_imatch_op(self, tree): return SimpleOperation(tree, poly_not_imatch)
+    def not_imatches_op(self, tree): return SimpleOperation(tree, poly_not_imatches)
     def not_in_op(self, tree): return SimpleOperation(tree, poly_not_in)
-    def not_match_op(self, tree): return SimpleOperation(tree, poly_not_match)
+    def not_matches_op(self, tree): return SimpleOperation(tree, poly_not_matches)
 
     # Polymorphic operations with two or more operands
     def add_op(self, tree): return SimpleOperation(tree, poly_vadd)
