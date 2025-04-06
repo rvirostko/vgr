@@ -66,6 +66,13 @@ def str_to_bool(x: str) -> bool:
         # we return True just because a non-None is "truthy"
         return True
 
+def bool_arg(arg: Any, name: str) -> bool:
+    if arg is None: return False
+    if isinstance(arg, bool): return arg
+    if isinstance(arg, str): return str_to_bool(arg)
+    if isinstance(arg, (int, float)): return arg != 0
+    raise ValueError(f'{name} argument must be a boolean, found {repr(type(arg).__name__)}')
+
 def int_arg(arg: Any, name: str) -> int:
     if isinstance(arg, str): arg = str_to_number(arg)
     if arg is None: arg = 0
