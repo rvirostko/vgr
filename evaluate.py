@@ -215,9 +215,9 @@ def eval_expr(dd: DataDictionary, expr: Any) -> Any:
     if isinstance(expr, Tree):
         if isinstance(expr, Operation):
             return expr.execute(dd, expr.children)
-        raise NotImplementedError(f'Unhandled type {repr(expr.data)}')
+        raise NotImplementedError(f'Unhandled type {repr(expr.data)}') #SNO
     if isinstance(expr, Token): return expr.value
-    raise NotImplementedError(f'Unknown type {type_str(expr)}')
+    raise NotImplementedError(f'Unknown type {type_str(expr)}') #SNO
 
 def eval_to_str(dd: DataDictionary, expr: Tree, name: str, allow_none: bool=False) -> str:
     """Helper that makes sure you got a string back from an expression"""

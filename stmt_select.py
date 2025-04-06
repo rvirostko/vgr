@@ -306,7 +306,7 @@ class SelectAnalyzer(Visitor):
             if name == 'quoting':
                 self.output_opts[name] = c.children[0].value.lower()
                 continue
-            raise NotImplementedError(f'Output option {repr(name)} of type {self.output_opts["type"]}')
+            raise NotImplementedError(f'Output option {repr(name)} of type {self.output_opts["type"]}') #SNO
 
     def _bool_arg(self, node:Tree, name: str) -> bool:
         return eval_to_bool(self._dd, node.children[0], name, True) if node.children else True
@@ -514,7 +514,7 @@ def create_extractor(dd: DataDictionary, opts: dict) -> DataExtractor:
                 data = [data] if isinstance(data, dict) else [{'value' : data}]
             if dd.verbose: print_stderr(dd, 'Read', len(data), 'Records ' if len(data) != 1 else 'Record', 'From', filename)
             return InMemoryExtractor(data, target)
-    raise NotImplementedError(f'Extractor type {repr(xtype)}')
+    raise NotImplementedError(f'Extractor type {repr(xtype)}') #SNO
 
 def create_writer(opts: dict, controls: dict) -> RecordWriter:
     """
