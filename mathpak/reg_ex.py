@@ -6,16 +6,18 @@ from functools import reduce
 from typing import Any
 import re
 
-from .common import NoneType, str_arg
+from .common import NoneType
 
-def compile_pattern(x: Any, flags: int=0) -> re.Pattern:
+def compile_pattern(x: Any, flags: int=0) -> Any:
     if isinstance(x, (NoneType, re.Pattern)): return x
     if isinstance(x, str):
         try:
             return re.compile(x, flags)
         except Exception as e:
-            raise ValueError() from e
-    raise ValueError(f'Expected string for Pattern, found {type(x).__name__}')
+            raise ValueError(f'Pattern error: {repr(x)}') from e
+    if isinstance(x, (list, tuple)):
+        return type(x)(compile_pattern(x1, flags) for x1 in x)
+    raise ValueError(f'Cannot Compile {repr(type(x).__name__)} to a Pattern')
 
 def poly_vregex_replace(x: Any, *args) -> Any:
     if not args: return x
