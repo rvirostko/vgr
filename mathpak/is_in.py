@@ -32,7 +32,6 @@ def poly_contains_all(x: Any, y: Any) -> Any:
     return _is_in(y, x, True)
 
 def _is_in(x: Any, y: Any, do_all: bool) -> Any:
-    print(f'_is_in({repr(x)}, {repr(y)})') # TODO
     if isinstance(x, (list, tuple)):
         if do_all: return all(_is_in(x1, y, do_all) for x1 in x)
         return any(_is_in(x1, y, do_all) for x1 in x)
