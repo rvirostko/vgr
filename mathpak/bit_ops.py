@@ -109,6 +109,7 @@ TypeError raised on all other combinations
         mask = (1 << rounded_bits) - 1
     return x ^ mask
 
+# pylint: disable=arguments-out-of-order
 bit_operations = {
     X_None_Op: lambda op, _, y: None if y is None else op(0, y),
     Y_None_Op: lambda op, x, _: op(x, 0),
@@ -133,6 +134,7 @@ bit_operations = {
     (tuple, float): dist_x_tuple,
     (tuple, str): dist_x_tuple,
 }
+# pylint: enable=arguments-out-of-order
 
 # Collection-to-collection "or" combines contents
 bit_or_operations = {

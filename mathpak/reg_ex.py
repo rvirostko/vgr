@@ -42,7 +42,8 @@ def poly_regex_replace(x: Any, pattern: Any, replacement: Any=None) -> Any:
     else:
         if not isinstance(replacement, str):
             raise ValueError(f'RegEx Replacement argument must be a string, found {repr(type(replacement).__name__)}')
-    if isinstance(pattern, (list, tuple)): return reduce(lambda x, pattern1: poly_regex_replace(x, pattern1, replacement), pattern, x)
+    if isinstance(pattern, (list, tuple)):
+        return reduce(lambda x, pattern1: poly_regex_replace(x, pattern1, replacement), pattern, x)
     # in case we are going to loop, pre-compile the pattern
     if not isinstance(pattern, re.Pattern):
         if not isinstance(pattern, str):
