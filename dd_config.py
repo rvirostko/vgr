@@ -24,7 +24,7 @@ ROWID_PATH = (_SCRATCH_PREFIX, 'rowid')
 _ARG_PREFIX = 'arg'
 OFS_PATH = (_ARG_PREFIX, 'ofs')
 ORS_PATH = (_ARG_PREFIX, 'ors')
-# If no "For" is given with a Select, this is assumed
+# If no "For" is given with a Select, this is the type used as default
 DEFAULT_FOR_TYPE_PATH = (_ARG_PREFIX, 'default_for_type')
 
 _OS_PREFIX = 'os'
@@ -33,14 +33,18 @@ LINESEP_PATH = (_OS_PREFIX, 'linesep')
 _ENV_EXCLUDE = tuple(re.compile(pattern, re.IGNORECASE) for pattern in ('^VSCODE', '^_$', '^(OLD)?PWD$'))
 _OS_CONSTS = ( 'defpath',  'devnull', 'extsep', 'linesep', 'name', 'pardir', 'pathsep', 'sep' )
 
+_RE_PREFIX = 're'
+_RE_FLAGS = ('ASCII', 'IGNORECASE', 'LOCALE', 'MULTILINE', 'DOTALL', 'UNICODE', 'VERBOSE')
+
 def dd_init() -> DataDictionary:
     dd = DataDictionary()
     dd.add_protected_prefix(_ARG_PREFIX)
     dd.add_immutable_prefix(_VGR_PREFIX)
     dd.set_var({}, _SCRATCH_PREFIX)
     dd.add_protected_prefix(_SCRATCH_PREFIX)
-
-
+    for flag in _RE_FLAGS:
+        dd.set_var(getattr(re, flag), _RE_PREFIX, flag)
+    dd.add_immutable_prefix(_RE_PREFIX)
     for mod in (math, string):
         name = mod.__name__
         dd.set_var(_get_consts(mod), name)
@@ -48,8 +52,6 @@ def dd_init() -> DataDictionary:
     for func, name in ((_get_os_consts, 'os'), (_get_environment, 'env')):
         dd.set_var(func(), name)
         dd.add_immutable_prefix(name)
-
-
     # Pick up the defaults AWK would use
     # Since we don't allow the env space to be changed,
     # we have to keep our own copies for the user to change with
