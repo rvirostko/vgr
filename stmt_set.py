@@ -132,10 +132,10 @@ name with TEXT as the default.
     if dd.verbose:
         if isinstance(data, list):
             length = len(data)
-            print_verbose(dd, 'Loaded', '.'.join(path), 'With', length, 'Records' if length != 1 else 'Record')
+            print_stderr(dd, 'Loaded', '.'.join(path), 'With', length, 'Records' if length != 1 else 'Record')
         else:
-            print_verbose(dd, 'Loaded', '.'.join(path), 'With', shorten(repr(data)))
-        if fieldnames: print_verbose(dd, 'Fieldnames :', '', ''.join(repr(f) for f in fieldnames))
+            print_stderr(dd, 'Loaded', '.'.join(path), 'With', shorten(repr(data)))
+        if fieldnames: print_stderr(dd, 'Fieldnames :', '', ''.join(repr(f) for f in fieldnames))
 
 def _dd_path(var_ref: Tree) -> tuple[str]:
     return tuple(name.value for name in var_ref.children)
@@ -169,7 +169,7 @@ def do_set(dd: DataDictionary, value: Any, *path) -> None:
     Generates verbose output.
     """
     new_value = dd.set_var_user(value, *path)
-    print_verbose(dd, 'Set', '.'.join(path), 'To', shorten(repr(new_value)))
+    if dd.verbose: print_stderr(dd, 'Set', '.'.join(path), 'To', shorten(repr(new_value)))
 
 def _info_from_csv(reader: csv.DictReader) -> tuple:
     return (list(reader), reader.fieldnames or [])
