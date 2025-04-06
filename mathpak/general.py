@@ -2,16 +2,13 @@ from collections.abc import Iterable
 from typing import Any, Callable
 import sys
 
-from .common import str_to_number
+from .common import str_to_number, type_str
 
 def poly_hash(x: Any) -> int:
     return hash(x)
 
 def poly_repr(x: Any) -> str:
     return repr(x)
-
-def poly_class(x: Any) -> str:
-    return None if x is None else x.__class__.__name__
 
 def poly_type(x: Any) -> str:
     return type(x).__name__
@@ -46,7 +43,7 @@ def poly_getitem(x:Any, index: Any) -> Any:
     if isinstance(x, dict):
         # TODO look up by keys?
         return None
-    raise TypeError(f'Unsupported type: {type(x).__name__}')
+    raise TypeError(f'Unsupported type: {type_str(x)}')
 
 def poly_firstitem(x: Any) -> Any:
     return poly_getitem(x, 0)
@@ -55,7 +52,7 @@ def poly_lastitem(x: Any) -> Any:
     if x is None or isinstance(x, (int, float, str)): return x
     if isinstance(x, (list, tuple)): return x[-1] if len(x) > 0 else None
     if isinstance(x, dict): return None
-    raise TypeError(f'Unsupported type: {type(x).__name__}')
+    raise TypeError(f'Unsupported type: {type_str(x)}')
 
 def poly_unique(x: Any) -> Any:
     if isinstance(x, str): return poly_unique(x.encode()).decode()

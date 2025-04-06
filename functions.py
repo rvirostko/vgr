@@ -10,7 +10,7 @@ from typing import Any
 
 from mathpak import poly_abs, poly_vadd, poly_vappend, poly_vbit_and, poly_vbit_or, poly_vbit_xor
 from mathpak import poly_bit_not, poly_bool, poly_capitalize, poly_casefold
-from mathpak import poly_ceil, poly_class, poly_count, poly_vdiv
+from mathpak import poly_ceil, poly_count, poly_vdiv
 from mathpak import poly_endswith, poly_expandtabs, poly_firstitem, poly_float, poly_vfdiv
 from mathpak import poly_floor, poly_hash, poly_in, poly_index
 from mathpak import poly_int, poly_isalnum, poly_isalpha, poly_isascii, poly_isbool
@@ -55,7 +55,6 @@ _FUNC_OPS = {
   "Capitalize": poly_capitalize,
   "CaseFold": poly_casefold,
   "Ceil": poly_ceil,
-  "Class": poly_class,
   "CompilePattern": compile_pattern,
   "Contains": poly_contains_any,
   "ContainsAny": poly_contains_any,

@@ -2,7 +2,7 @@ from functools import reduce
 from typing import Any
 import itertools
 
-from .common import dist_x_list, dist_x_tuple, dist_y_list, dist_y_tuple, X_None_Op, Y_None_Op, get_operation
+from .common import dist_x, dist_y, X_None_Op, Y_None_Op, get_operation
 
 def poly_vmul(x: Any, *args):
     """Varargs version of poly_mul"""
@@ -58,16 +58,16 @@ mul_operations = {
     (float, tuple): lambda _, x, y: int(x) * y,
     (str, float): lambda _, x, y: x * int(y),
     (str, str): lambda _, x, y: x + y, # TODO rethink? This could become very complex...
-    (str, list): dist_y_list,
-    (str, tuple): dist_y_tuple,
-    (list, int): dist_x_list,
-    (list, float): dist_x_list,
-    (list, str): dist_x_list,
+    (str, list): dist_y,
+    (str, tuple): dist_y,
+    (list, int): dist_x,
+    (list, float): dist_x,
+    (list, str): dist_x,
     (list, list): product_list,
     (list, tuple): product_list,
-    (tuple, int): dist_x_tuple,
-    (tuple, float): dist_x_tuple,
-    (tuple, str): dist_x_tuple,
+    (tuple, int): dist_x,
+    (tuple, float): dist_x,
+    (tuple, str): dist_x,
     (tuple, list): product_tuple,
     (tuple, tuple): product_tuple,
 }

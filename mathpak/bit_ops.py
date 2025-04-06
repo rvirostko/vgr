@@ -1,7 +1,7 @@
 from functools import reduce
 from typing import Any, Callable
 
-from .common import dist_x_list, dist_x_tuple, dist_y_list, dist_y_tuple, str_to_number, X_None_Op, Y_None_Op, get_operation
+from .common import dist_x, dist_y, str_to_number, X_None_Op, Y_None_Op, get_operation
 
 def _str_num_op(op: Callable[[Any, Any], Any], x: str, y: Any) -> Any:
     """See if the string can be converted to a number before applying the operation"""
@@ -115,8 +115,8 @@ bit_operations = {
     Y_None_Op: lambda op, x, _: op(x, 0),
     (int, float): lambda op, x, y: op(x, int(y)),
     (int, str): lambda op, x, y: _str_num_op(op, y, x),
-    (int, list): dist_y_list,
-    (int, tuple): dist_y_tuple,
+    (int, list): dist_y,
+    (int, tuple): dist_y,
     (float, int): lambda op, x, y: op(int(x), y),
     (float, float): lambda op, x, y: op(int(x), int(y)),
     (float, str): lambda op, x, y: _str_num_op(op, y, x),
@@ -125,14 +125,14 @@ bit_operations = {
     (str, int): _str_num_op,
     (str, float): _str_num_op,
     (str, str): _str_str_op,
-    (str, list): dist_y_list,
-    (str, tuple): dist_y_tuple,
-    (list, int): dist_x_list,
-    (list, float): dist_x_list,
-    (list, str): dist_x_list,
-    (tuple, int): dist_x_tuple,
-    (tuple, float): dist_x_tuple,
-    (tuple, str): dist_x_tuple,
+    (str, list): dist_y,
+    (str, tuple): dist_y,
+    (list, int): dist_x,
+    (list, float): dist_x,
+    (list, str): dist_x,
+    (tuple, int): dist_x,
+    (tuple, float): dist_x,
+    (tuple, str): dist_x,
 }
 # pylint: enable=arguments-out-of-order
 

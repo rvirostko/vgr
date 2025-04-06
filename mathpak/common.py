@@ -31,6 +31,11 @@ _DEFAULTS_BY_TYPE = {
 _TRUE_STRS = ('true', 't', 'yes', 'y', 'on')
 _FALSE_STRS = ('false', 'f', 'no', 'n', 'off')
 
+
+def type_str(o: Any) -> str:
+    """Use repr so we get a nice string for use in error messages"""
+    return repr(type(o).__name__)
+
 def str_to_number(s: str) -> Number:
     """
     Attempts to convert a string to a number value.
@@ -71,13 +76,13 @@ def bool_arg(arg: Any, name: str) -> bool:
     if isinstance(arg, bool): return arg
     if isinstance(arg, str): return str_to_bool(arg)
     if isinstance(arg, (int, float)): return arg != 0
-    raise ValueError(f'{name} argument must be a boolean, found {repr(type(arg).__name__)}')
+    raise ValueError(f'{name} argument must be a boolean, found {type_str(arg)}')
 
 def int_arg(arg: Any, name: str) -> int:
     if isinstance(arg, str): arg = str_to_number(arg)
     if arg is None: arg = 0
     if not isinstance(arg, (int, float)):
-        raise ValueError(f'{name} argument must be a number, found {repr(type(arg).__name__)}')
+        raise ValueError(f'{name} argument must be a number, found {type_str(arg)}')
     return int(arg)
 
 def str_arg(arg: Any, name: str) -> str:
@@ -87,44 +92,28 @@ def str_arg(arg: Any, name: str) -> str:
         if len(arg) == 0:
             raise ValueError(f'{name} argument cannot be blank')
         return arg
-    raise ValueError(f'{name} argument must be a string, found {repr(type(arg).__name__)}')
+    raise ValueError(f'{name} argument must be a string, found {type_str(arg)}')
 
-def dist_x_list(op: Callable[[Any, Any], Any], x: list, y: Any) -> list:
+def dist_x(op: Callable[[Any, Any], Any], x: list, y: Any) -> Any:
     """
-    Distribute op over the list: [op(<list>, y)]
-    See dist_y_list()
+    Distribute op over the colleciton: op(<list>, y)
+    See dist_y()
     """
-    return [op(x1, y) for x1 in x]
+    return type(x)(op(x1, y) for x1 in x)
 
-def dist_x_tuple(op: Callable[[Any, Any], Any], x: tuple, y: Any) -> tuple:
+def dist_y(op: Callable[[Any, Any], Any], x: Any, y: list) -> Any:
     """
-    Distribute op over the tuple: (op(<list>, y))
-    See dist_y_tuple()
-    """
-    return tuple(op(x1, y) for x1 in x)
-
-def dist_y_list(op: Callable[[Any, Any], Any], x: Any, y: list) -> list:
-    """
-    Distribute op over the list: [op(x, <list>)]
+    Distribute op over the collection: op(x, <list>)
     Used by commutative operations with a scalar x and list y
-    See dist_x_list()
+    See dist_x()
     """
-    return [op(x, y1) for y1 in y]
-
-def dist_y_tuple(op: Callable[[Any, Any], Any], x: tuple, y: Any) -> tuple:
-    """
-    Distribute op over the list: (op(x, <list>))
-    Used by commutative operations with a scalar x and list y
-    See dist_x_tuple()
-    """
-    return tuple(op(x, y1) for y1 in y)
+    return type(y)(op(x, y1) for y1 in y)
 
 def matching_default(x: Any) -> Any:
     """Given an object, return a _default_ value that matches its type"""
-    xtype = type(x)
-    default = _DEFAULTS_BY_TYPE.get(xtype)
+    default = _DEFAULTS_BY_TYPE.get(type(x))
     if default is not None: return default
-    raise TypeError(f'No default value for {xtype.__name__}') # SNO
+    raise TypeError(f'No default value for {type_str(x)}') # SNO
 
 def op_key(x: Any, y: Any) -> tuple:
     """The key used to look up behavior by operand type"""
@@ -152,10 +141,10 @@ numeric_operations = {
     (str, int): lambda op, x, y: op(str_to_number(x), y),
     (str, float): lambda op, x, y: op(str_to_number(x), y),
     (str, str): lambda op, x, y: op(str_to_number(x), str_to_number(y)),
-    (list, int): dist_x_list,
-    (list, float): dist_x_list,
-    (list, str): dist_x_list,
-    (tuple, int): dist_x_tuple,
-    (tuple, float): dist_x_tuple,
-    (tuple, str): dist_x_tuple,
+    (list, int): dist_x,
+    (list, float): dist_x,
+    (list, str): dist_x,
+    (tuple, int): dist_x,
+    (tuple, float): dist_x,
+    (tuple, str): dist_x,
 }

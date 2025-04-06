@@ -3,6 +3,7 @@ A DataExtractor that iterates over items store in a list
 """
 
 from data_xtract import DataExtractor, InfoOutput, QueryFilter
+from mathpak import type_str
 
 class InMemoryExtractor(DataExtractor):
     """
@@ -15,7 +16,7 @@ class InMemoryExtractor(DataExtractor):
             data = []
         else:
             if not isinstance(data, list):
-                raise ValueError(f'Data for query must be stored in a list, found {type(data).__name__}')
+                raise ValueError(f'Data for query must be stored in a list, found {type_str(data)}')
         self._data = data
         self._target = target
 

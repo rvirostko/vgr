@@ -5,7 +5,7 @@ Bitwise shift left and right.
 from functools import reduce
 from typing import Any
 
-from .common import dist_x_list, dist_x_tuple, str_to_int, X_None_Op, Y_None_Op, get_operation, matching_default
+from .common import dist_x, str_to_int, X_None_Op, Y_None_Op, get_operation, matching_default
 
 def poly_vshl(x: Any, *args):
     """Varargs version of poly_shl"""
@@ -78,10 +78,10 @@ shift_operations = {
     (str, int): lambda op, x, y: op(str_to_int(x), y),
     (str, float): lambda op, x, y: op(str_to_int(x), int(y)),
     (str, str): lambda op, x, y: op(str_to_int(x), str_to_int(y)),
-    (list, int): dist_x_list,
-    (list, float): lambda op, x, y: dist_x_list(op, x, int(y)),
-    (list, str): lambda op, x, y: dist_x_list(op, x, str_to_int(y)),
-    (tuple, int): dist_x_tuple,
-    (tuple, float): lambda op, x, y: dist_x_tuple(op, x, int(y)),
-    (tuple, str): lambda op, x, y: dist_x_tuple(op, x, str_to_int(y)),
+    (list, int): dist_x,
+    (list, float): lambda op, x, y: dist_x(op, x, int(y)),
+    (list, str): lambda op, x, y: dist_x(op, x, str_to_int(y)),
+    (tuple, int): dist_x,
+    (tuple, float): lambda op, x, y: dist_x(op, x, int(y)),
+    (tuple, str): lambda op, x, y: dist_x(op, x, str_to_int(y)),
 }

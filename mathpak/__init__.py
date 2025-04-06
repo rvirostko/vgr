@@ -2,7 +2,7 @@ from .add import poly_add, poly_vadd
 from .bit_ops import poly_bit_and, poly_bit_or, poly_bit_xor, poly_bit_not, poly_vbit_and, poly_vbit_or, poly_vbit_xor
 from .div import poly_div, poly_fdiv, poly_vdiv, poly_vfdiv
 from .pow import poly_pow, poly_vpow
-from .general import poly_hash, poly_class, poly_sizeof, poly_repr, poly_isempty, poly_len, poly_firstitem, poly_lastitem
+from .general import poly_hash, poly_sizeof, poly_repr, poly_isempty, poly_len, poly_firstitem, poly_lastitem
 from .general import poly_getitem, poly_rsort, poly_sort, poly_unique, poly_type
 from .inequ import poly_eq, poly_ge, poly_gt, poly_le, poly_lt, poly_ne
 from .is_in import poly_in, poly_not_in, poly_contains_all, poly_contains_any
@@ -29,5 +29,6 @@ from .vault import duration_to_ms, ms_to_duration
 from .web import parse_url
 from .markdown import md_blockquote, md_bold, md_code, md_code_block, md_heading, md_italics, md_link
 from .markdown import  md_ordered_list, md_strikethrough, md_unordered_list
+from .common import type_str
 
 __all__ = [ ]

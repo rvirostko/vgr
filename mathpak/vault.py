@@ -5,6 +5,7 @@ Functions applicable to Vault data types.
 from typing import Any
 import re
 
+from .common import type_str
 from .misc_math import poly_floor
 
 # Used in str -> ms
@@ -38,7 +39,7 @@ def duration_to_ms(duration: Any) -> int:
     if isinstance(duration, (int, float)):
         return int(duration * 1_000)
     if not isinstance(duration, str):
-        raise ValueError(f'Unsupported duration type {repr(type(duration).__name__)}')
+        raise ValueError(f'Unsupported duration type {type_str(duration)}')
     total_milliseconds = 0
     position = 0
     while position < len(duration):
@@ -62,7 +63,7 @@ def ms_to_duration(ms: Any) -> str:
     if ms is None:
         return None
     if not isinstance(ms, (int, float)):
-        raise ValueError(f'Unsupported duration type {repr(type(ms).__name__)}')
+        raise ValueError(f'Unsupported duration type {type_str(ms)}')
     if ms == 0:
         return "0"
     result = []

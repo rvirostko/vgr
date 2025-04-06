@@ -5,7 +5,7 @@ TODO
 from typing import Any
 import re
 
-from .common import NoneType, bool_arg
+from .common import NoneType, bool_arg, type_str
 
 def poly_vmatches(x: Any, *args) -> Any:
     if not args: return x
@@ -42,7 +42,7 @@ def _do_match(x: Any, y: Any, ci: bool, do_all: bool) -> Any:
         if isinstance(y, (NoneType, bool, int, float)): return x == y
     # a_dictionary Matches "abc" -> Exception
     if not isinstance(x, str):
-        raise TypeError(f'Cannot perform Match on {repr(type(x).__name__)}')
+        raise TypeError(f'Cannot perform Match on {type_str(x)}')
     if isinstance(y, str):
         try:
             y = re.compile(y, re.IGNORECASE if ci else 0)
@@ -55,4 +55,4 @@ def _do_match(x: Any, y: Any, ci: bool, do_all: bool) -> Any:
     if isinstance(y, (list, tuple)):
         if do_all: return all(_do_match(x, y1, ci, do_all) for y1 in y)
         return any(_do_match(x, y1, ci, do_all) for y1 in y)
-    raise TypeError(f'Cannot use {repr(type(y).__name__)} as a Pattern with Match')
+    raise TypeError(f'Cannot use {type_str(y)} as a Pattern with Match')

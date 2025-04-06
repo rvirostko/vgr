@@ -6,7 +6,7 @@ from typing import Any
 from urllib.parse import urlparse
 from urllib.error import URLError
 
-from .common import dist_x_list, dist_x_tuple
+from .common import dist_x
 from .types import poly_bool
 
 def parse_url(url: Any, remove_nulls: bool=True) -> Any:
@@ -18,8 +18,7 @@ def parse_url(url: Any, remove_nulls: bool=True) -> Any:
     """
     if url is None: return None
     remove_nulls = poly_bool(remove_nulls)
-    if isinstance(url, list): return dist_x_list(parse_url, url, remove_nulls)
-    if isinstance(url, tuple): return dist_x_tuple(parse_url, url, remove_nulls)
+    if isinstance(url, (list, tuple)): return dist_x(parse_url, url, remove_nulls)
     if not isinstance(url, str): return None
     url = url.strip()
     if len(url) == 0: return None

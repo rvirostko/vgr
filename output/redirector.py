@@ -3,6 +3,8 @@ import sys
 from io import IOBase
 from io import UnsupportedOperation
 
+from mathpak import type_str
+
 class Redirection():
     """Redirection for a standard stream (stdin, stdout, stderr)"""
     def __init__(self, name: str):
@@ -25,8 +27,11 @@ class Redirection():
             return self._redirect_to_file(first_arg, True)
         # Redirect to an output we own
         if isinstance(first_arg, str):
-            return self._redirect_to_file(open(first_arg, mode=kwargs.get('mode', 'w'), encoding=kwargs.get('encoding', 'utf-8')))
-        raise TypeError(f'Unsupported argument type: {type(first_arg).__name__}')
+            return self._redirect_to_file(
+                open(first_arg,
+                     mode=kwargs.get('mode', 'w'),
+                    encoding=kwargs.get('encoding', 'utf-8')))
+        raise TypeError(f'Unsupported argument type: {type_str(first_arg)}')
 
     def _redirect_to_file(self, destination: IOBase, shared: bool=False):
         self.end_redirect()

@@ -1,7 +1,7 @@
 from functools import reduce
 from typing import Any
 
-from .common import get_operation, numeric_operations, dist_x_list, dist_x_tuple, dist_y_list, dist_y_tuple
+from .common import get_operation, numeric_operations, dist_x, dist_y
 
 def poly_vadd(x: Any, *args):
     """Varargs version of poly_add"""
@@ -45,17 +45,17 @@ TypeError raised on all other combinations
     return operation(poly_add, x, y) if operation else x + y
 
 add_operations = {
-    (int, list): dist_y_list,
-    (int, tuple): dist_y_tuple,
-    (float, list): dist_y_list,
-    (float, tuple): dist_y_tuple,
+    (int, list): dist_y,
+    (int, tuple): dist_y,
+    (float, list): dist_y,
+    (float, tuple): dist_y,
     (str, str): lambda _, x, y: x + y,
-    (str, list): dist_y_list,
-    (str, tuple): dist_y_tuple,
-    (list, int): dist_x_list,
-    (list, float): dist_x_list,
-    (tuple, int): dist_x_tuple,
-    (tuple, float): dist_x_tuple,
+    (str, list): dist_y,
+    (str, tuple): dist_y,
+    (list, int): dist_x,
+    (list, float): dist_x,
+    (tuple, int): dist_x,
+    (tuple, float): dist_x,
     (list, tuple): lambda _, x, y: x + list(y),
     (tuple, list): lambda _, x, y: x + tuple(y),
     (dict, dict): lambda _, x, y: {**x, **y}

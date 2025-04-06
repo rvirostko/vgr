@@ -1,11 +1,12 @@
 from itertools import chain
 from typing import Any
 
+from .common import type_str
 from .inequ import poly_eq
 
 def poly_lookup(x: Any, attr: Any, *args) -> Any:
     if not isinstance(x, (list, tuple)): return None
-    if not isinstance(attr, str): raise TypeError(f'String required for lookup attribute; found {type(attr).__name__}')
+    if not isinstance(attr, str): raise TypeError(f'String required for lookup attribute; found {type_str(attr)}')
     attr = attr.strip()
     if not attr: return None
     if len(args) == 0: return []

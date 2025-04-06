@@ -2,7 +2,7 @@ from functools import reduce
 from typing import Any, Callable
 import math
 
-from .common import str_to_number
+from .common import str_to_number, type_str, dist_x
 
 def poly_abs(x: Any) -> Any:
     if x is None: return None
@@ -30,7 +30,7 @@ def poly_floor(x: Any, precision: float=0) -> Any:
     elif isinstance(precision, str):
         precision = str_to_number(precision)
     else:
-        raise TypeError(f'Unsupported precision type: {repr(type(precision).__name__)}')
+        raise TypeError(f'Unsupported precision type: {type_str(precision)}')
     if not 0 < precision < 1:
         precision = 0
     if isinstance(x, (int, float)):
@@ -44,10 +44,8 @@ def poly_floor(x: Any, precision: float=0) -> Any:
             return int_part
         return int_part + (fractional_part // precision) * precision
     if isinstance(x, str): return poly_floor(str_to_number(x), precision)
-    # Distribute the operation over the collection
-    if isinstance(x, list): return [poly_floor(x1, precision) for x1 in x]
-    if isinstance(x, tuple): return tuple(poly_floor(x1, precision) for x1 in x)
-    raise TypeError(f'Unsupported type for floor: {repr(type(x).__name__)}')
+    if isinstance(x, (list, tuple)): return dist_x(poly_floor, x, precision)
+    raise TypeError(f'Unsupported type for floor: {type_str(x)}')
 
 def poly_round(x: Any, ndigits: int=0) -> Any:
     if isinstance(x, str):
@@ -58,16 +56,12 @@ def poly_round(x: Any, ndigits: int=0) -> Any:
     else:
         if isinstance(ndigits, str): return poly_round(str_to_number(ndigits))
         if isinstance(ndigits, (list, tuple)): return reduce(poly_round, ndigits, x)
-        raise TypeError(f'Unsupported type: {type(ndigits).__name__}')
+        raise TypeError(f'Unsupported type: {type_str(ndigits)}')
     if hasattr(x, '__round__'): return round(x, ndigits)
-    # Distribute the operation over the collection
-    if isinstance(x, list): return [poly_round(x1, ndigits) for x1 in x]
-    if isinstance(x, tuple): return tuple(poly_round(x1, ndigits) for x1 in x)
+    if isinstance(x, (list, tuple)): return dist_x(poly_round,  x, ndigits)
     return x
 
 def _dist(op: Callable[[Any], Any], x: Any) -> Any:
     if x is None: return None
     # Distribute the operation over the collection
-    if isinstance(x, list): return [op(x1) for x1 in x]
-    if isinstance(x, tuple): return tuple(op(x1) for x1 in x)
-    return x
+    return type(x)(op(x1) for x1 in x) if isinstance(x, (list, tuple)) else x

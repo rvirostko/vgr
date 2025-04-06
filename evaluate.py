@@ -18,7 +18,7 @@ from mathpak import poly_eq, poly_vpow, poly_vfdiv, poly_ge, poly_imatches, poly
 from mathpak import poly_in, poly_le, poly_lt, poly_matches, poly_vmod, poly_vmul
 from mathpak import poly_ne, poly_not_imatches, poly_not_in
 from mathpak import poly_not_matches, poly_matches_all, poly_vshl, poly_vshr, poly_vsub, poly_not
-from mathpak import poly_contains_all, poly_contains_any
+from mathpak import poly_contains_all, poly_contains_any, type_str
 from output import verify_relative_path
 
 class Operation(Tree, ABC):
@@ -229,18 +229,15 @@ def eval_to_str(dd: DataDictionary, expr: Tree, name: str, allow_none: bool=Fals
 def eval_to_int(dd: DataDictionary, expr: Tree, name: str, allow_none: bool=False) -> int:
     rc = eval_expr(dd, expr)
     if rc is None and allow_none: return None
-    if not isinstance(rc, (int, float, str)): raise TypeError(f'{name} must be an integer; found {type_str(rc)}')
-    ## TODO do we need to recheck for None
-    # does "inf" -> inf?
-    # does "5.1" -> 5?
+    if not isinstance(rc, (int, float, str)):
+        raise TypeError(f'{name} must be an integer; found {type_str(rc)}')
     return poly_int(rc)
 
 def eval_to_bool(dd: DataDictionary, expr: Tree, name: str, allow_none: bool=False) -> bool:
     rc = eval_expr(dd, expr)
     if rc is None and allow_none: return None
-    if not isinstance(rc, (int, float, bool, str)): raise TypeError(f'{name} must be an boolean; found {type_str(rc)}')
-    ## TODO do we need to recheck for None
-    # does "none" -> none or true?
+    if not isinstance(rc, (int, float, bool, str)):
+        raise TypeError(f'{name} must be an boolean; found {type_str(rc)}')
     return poly_bool(rc)
 
 def eval_filename_expr(dd: DataDictionary, expr: Tree, allow_none: bool=False) -> str:
@@ -250,9 +247,3 @@ def eval_filename_expr(dd: DataDictionary, expr: Tree, allow_none: bool=False) -
 def eval_to_list_str(dd: DataDictionary, clause: Tree, name: str) -> list[str]:
     """Helper that returns a list of strings. No 'None's are allowed."""
     return [eval_to_str(dd, expr, name) for expr in clause.children]
-
-def type_str(o: Any) -> str:
-    # Use repr so we get a nice string for use in error messages
-    # TODO special for None?
-    # TODO this should probably move
-    return repr(type(o).__name__)
