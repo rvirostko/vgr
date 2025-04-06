@@ -12,12 +12,13 @@ from lark import v_args, Tree, Token, Transformer
 
 from data_dict import DataDictionary
 from functions import get_function_op
-from mathpak import poly_vadd, poly_vbit_and, poly_vbit_xor, poly_vdiv, poly_contains
+from mathpak import poly_vadd, poly_vbit_and, poly_vbit_xor, poly_vdiv
 from mathpak import poly_bool, poly_int, poly_vbit_or
 from mathpak import poly_eq, poly_vpow, poly_vfdiv, poly_ge, poly_imatch, poly_gt
 from mathpak import poly_in, poly_le, poly_lt, poly_match, poly_vmod, poly_vmul
-from mathpak import poly_ne, poly_not_contains, poly_not_imatch, poly_not_in
+from mathpak import poly_ne, poly_not_imatch, poly_not_in
 from mathpak import poly_not_match, poly_vshl, poly_vshr, poly_vsub, poly_not
+from mathpak import poly_contains_all, poly_contains_any
 from output import verify_relative_path
 
 class Operation(Tree, ABC):
@@ -154,7 +155,8 @@ class OperationBinder(Transformer):
     def unary_not(self, tree): return SimpleOperation(tree, poly_not)
 
     # Comparisons of some type with two operands that return booleans
-    def contains_op(self, tree): return SimpleOperation(tree, poly_contains)
+    def contains_op(self, tree): return SimpleOperation(tree, poly_contains_any)
+    def contains_all_op(self, tree): return SimpleOperation(tree, poly_contains_all)
     def eq_op(self, tree): return SimpleOperation(tree, poly_eq)
     def ge_op(self, tree): return SimpleOperation(tree, poly_ge)
     def gt_op(self, tree): return SimpleOperation(tree, poly_gt)
@@ -164,7 +166,6 @@ class OperationBinder(Transformer):
     def lt_op(self, tree): return SimpleOperation(tree, poly_lt)
     def match_op(self, tree): return SimpleOperation(tree, poly_match)
     def neq_op(self, tree): return SimpleOperation(tree, poly_ne)
-    def not_contains_op(self, tree): return SimpleOperation(tree, poly_not_contains)
     def not_imatch_op(self, tree): return SimpleOperation(tree, poly_not_imatch)
     def not_in_op(self, tree): return SimpleOperation(tree, poly_not_in)
     def not_match_op(self, tree): return SimpleOperation(tree, poly_not_match)

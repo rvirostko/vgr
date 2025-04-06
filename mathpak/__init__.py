@@ -5,7 +5,7 @@ from .pow import poly_pow, poly_vpow
 from .general import poly_hash, poly_class, poly_sizeof, poly_repr, poly_isempty, poly_len, poly_firstitem, poly_lastitem
 from .general import poly_getitem, poly_rsort, poly_sort, poly_unique, poly_type
 from .inequ import poly_eq, poly_ge, poly_gt, poly_le, poly_lt, poly_ne
-from .is_in import poly_in, poly_not_in, poly_contains, poly_not_contains
+from .is_in import poly_in, poly_not_in, poly_contains_all, poly_contains_any
 from .logic import poly_and, poly_not, poly_or
 from .match import poly_imatch, poly_match, poly_not_imatch, poly_not_match
 from .misc_math import poly_abs, poly_ceil, poly_floor, poly_round, poly_trunc
@@ -43,7 +43,6 @@ __all__ = [
     "poly_casefold",
     "poly_ceil",
     "poly_class",
-    "poly_contains",
     "poly_count",
     "poly_div",
     "poly_endswith",
@@ -93,7 +92,6 @@ __all__ = [
     "poly_mod",
     "poly_mul",
     "poly_ne",
-    "poly_not_contains",
     "poly_not_imatch",
     "poly_not_in",
     "poly_not_match",

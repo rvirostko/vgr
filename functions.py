@@ -10,7 +10,7 @@ from typing import Any
 
 from mathpak import poly_abs, poly_vadd, poly_vappend, poly_vbit_and, poly_vbit_or, poly_vbit_xor
 from mathpak import poly_bit_not, poly_bool, poly_capitalize, poly_casefold
-from mathpak import poly_ceil, poly_class, poly_contains, poly_count, poly_vdiv
+from mathpak import poly_ceil, poly_class, poly_count, poly_vdiv
 from mathpak import poly_endswith, poly_expandtabs, poly_firstitem, poly_float, poly_vfdiv
 from mathpak import poly_floor, poly_ge, poly_hash, poly_imatch, poly_in, poly_index
 from mathpak import poly_int, poly_isalnum, poly_isalpha, poly_isascii, poly_isbool
@@ -29,6 +29,7 @@ from mathpak import duration_to_ms, ms_to_duration, parse_url, compile_pattern
 from mathpak import md_blockquote, md_bold, md_code, md_code_block, md_heading, md_italics, md_strikethrough
 from mathpak import md_link, md_ordered_list, md_unordered_list
 from mathpak import poly_format, poly_vregex_replace, poly_split, poly_rsplit
+from mathpak import poly_contains_any, poly_contains_all
 
 def _default_to(value: Any, default: Any) -> Any:
     """Returns a default value if the argument is None.
@@ -56,7 +57,8 @@ _FUNC_OPS = {
   "Ceil": poly_ceil,
   "Class": poly_class,
   "CompilePattern": compile_pattern,
-  "Contains": poly_contains,
+  "Contains": poly_contains_any,
+  "ContainsAll": poly_contains_all,
   "CountOf": poly_count,
   "DefaultTo": _default_to,
   "Div": poly_vdiv,
