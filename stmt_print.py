@@ -24,8 +24,10 @@ The results of the expressions are separated by the string defined in _arg.ofs_.
 Lines are ended by with the _arg.ors_ string. The defaults are space and new line and
 are used if the values are set to _None_.
 """
-    sep = str(dd.get_var_user(*OFS_PATH)) or ' '
-    end = str(dd.get_var_user(*ORS_PATH) or dd.get_var_user(*LINESEP_PATH)) or '\n'
+    sep = str(dd.get_var_user(*OFS_PATH))
+    sep = ' ' if sep is None else sep
+    end = str(dd.get_var_user(*ORS_PATH))
+    end = dd.get_var_user(*LINESEP_PATH) if end is None else end
     print_stdout(*[eval_expr(dd, expr) for expr in statement.children], sep=sep, end=end)
 
 def execute_printf(dd: DataDictionary, statement: Tree) -> None:
@@ -84,7 +86,6 @@ see control characters.
 def execute_display_on(dd: DataDictionary, statement: Tree) -> None:
     """Print values to either the output (stdout) or error (stderr) streams.
 
-* DISPLAY [;]
 * DISPLAY _expression_... [;]
 * DISPLAY _expression_... ON OUTPUT [;]
 * DISPLAY _expression_... ON ERROR [;]
@@ -102,9 +103,8 @@ separating values with a space and ending with a newline.
             args = tuple(eval_expr(dd, expr) for expr in statement.children[:-1])
         else:
             args = tuple(eval_expr(dd, expr) for expr in statement.children)
-    sep = ' '
     end = str(dd.get_var_user(*LINESEP_PATH)) or '\n'
     if dest_stdout:
-        print_stdout(*args, sep=sep, end=end)
+        print_stdout(*args, sep='', end=end)
     else:
-        print_stderr(*args, sep=sep, end=end)
+        print_stderr(*args, sep='', end=end)
