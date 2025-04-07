@@ -35,9 +35,15 @@ FLOAT_NUMBER: /[+-]/? (_SPECIAL_DEC _EXP_PART | _DECIMAL _EXP_PART?)
 NAME: /[A-Za-z_]([A-Za-z0-9_]|-+[A-Za-z])*/
 
 statements: statement+
-?statement: add
+?statement: simple_statement
+    | select
+    | control_structure
+
+?simple_statement: add
     | assert
+    | break
     | close
+    | continue
     | debug
     | display_on
     | divide
@@ -48,14 +54,34 @@ statements: statement+
     | move_to
     | mul_by
     | open
+    | pass
     | print
     | printf
-    | select
     | set_var
     | subtract
     | unset
     | verbose
     | zip
+
+?control_structure: if_statement
+    | unless_statement
+    | while_statement
+    | until_statement
+    | foreach_statement
+    | repeat_statement
+
+if_statement: "If"i expr ("Then"i | "Do"i | ":") statement+ else_clause? "End"i _SEMICOLON? -> if
+    | "If"i expr statement+ else_clause? "End-If"i _SEMICOLON? -> if
+unless_statement: "Unless"i expr ("Do"i | ":") statement+ "End"i _SEMICOLON? -> unless
+while_statement: "While"i expr ("Do"i | ":") statement+ "End"i _SEMICOLON? -> while
+    | "Do"i "While"i expr statement+ "Loop"i _SEMICOLON? -> while
+until_statement: "Until"i expr ("Do"i | ":") statement+ "End"i _SEMICOLON? -> until
+    | "Perform"i "Until"i expr statement+ "End-Perform"i _SEMICOLON? -> until
+repeat_statement: "Repeat"i ("Do"i | ":")? statement+ "Until"i expr _SEMICOLON? -> repeat
+foreach_statement: ("ForEach"i | "For"i "Each"i) var_name "In"i expr ("Do"i | ":") statement+ "End"i _SEMICOLON? -> foreach
+else_clause: "Else"i ("Do"i | ":")? statement+ -> else
+break: "Break"i _SEMICOLON?
+continue: "Continue"i _SEMICOLON?
 
 // simple boolean on/off, true/false
 // these are "proper statements" as they control the behavior of other statements
@@ -63,12 +89,17 @@ debug: "Debug"i (("=" | ":=" | "Is"i)? expr)? _SEMICOLON?
 echo: "Echo"i (("=" | ":=" | "Is"i)? expr)? _SEMICOLON?
 verbose: "Verbose"i (("=" | ":=" | "Is"i)? expr)? _SEMICOLON?
 
-?set_var: "Set"i (set | inc | dec) _SEMICOLON?
-    | "Let"i var_name ("=" | ":=") expr _SEMICOLON? -> set
-    | "Compute"i var_name ("=" | "Equals"i) expr _SEMICOLON? -> set
-set: var_name ("=" | ":=" | "To"i) expr
-inc: var_name "Up"i "By"i expr
-dec: var_name "Down"i "By"i expr
+pass: "Pass"i | "Nop"i
+
+// Breaking set out this way stores the entire statement
+// in the tree rather than just the inner portion
+?set_var: (set | inc | dec | let | assign | compute)
+set: "Set"i var_name ("=" | ":=" | "To"i) expr _SEMICOLON?
+inc: "Set"i var_name "Up"i "By"i expr _SEMICOLON?
+dec: "Set"i var_name "Down"i "By"i expr _SEMICOLON?
+let: "Let"i var_name ("=" | ":=") expr _SEMICOLON? -> set
+assign: var_name "=" expr _SEMICOLON? -> set
+compute: "Compute"i var_name ("=" | "Equals"i) expr _SEMICOLON? -> set
 
 unset: "Unset"i (var_name (_COMMA? var_name)*)? _SEMICOLON?
 
@@ -80,11 +111,10 @@ load_source_type: "JSON"i "Object"i? -> json_object
 
 assert: "Assert"i (expr (":" expr (_COMMA expr)*)?)? _SEMICOLON?
 
-printf: "Printf"i (expr (_COMMA expr)*)? _SEMICOLON?
-
 print: "Print"i (expr (_COMMA expr)*)? _SEMICOLON?
-
-exhibit: "Exhibit"i (var_name (_COMMA var_name)*)? _SEMICOLON?
+printf: "Printf"i (expr (_COMMA expr)*)? _SEMICOLON?
+exhibit: "Exhibit"i var_name (_COMMA var_name)* _SEMICOLON?
+display_on: "Display"i expr (_COMMA expr)* (("Upon"i | "On"i) io_type)? _SEMICOLON?
 
 open: "Open"i io_type "File"i? expr open_ext? _SEMICOLON?
 close: "Close"i io_type "File"i? _SEMICOLON? -> close
@@ -101,6 +131,7 @@ zip: "Create"i "Zip"i "File"i? expr (_COMMA? zip_option (_COMMA zip_option)*)? _
     | "Exclude"i ("=" | ":=")? expr+ -> exclude
 
 exit: "Exit"i expr? _SEMICOLON?
+    | "Stop"i "Run"i _SEMICOLON?
 
 ?add: "Add"i expr (_COMMA expr)* "To"i var_name _SEMICOLON? -> add_to
     | "Add"i expr (_COMMA expr)* "To"i expr "Giving"i var_name _SEMICOLON? -> add_giving
@@ -116,8 +147,6 @@ div_by: expr "By"i expr "Giving"i var_name
 
 move_to: "Move"i CORR? expr "To"i var_name _SEMICOLON?
 CORR.80: ("Corresponding"i | "Corr"i)
-
-display_on: "Display"i (expr (_COMMA? expr)*)? (("Upon"i | "On"i) io_type)? _SEMICOLON?
 
 select: "Select"i outputs? from_clause where_clause? product_clause? limit_clause? for_clause? _SEMICOLON?
 
@@ -200,7 +229,8 @@ product_cols: "All"i -> all
 ?expr: ternary | and_expr
 
 ternary: expr "?" expr ":" expr -> c_ternary
-    | expr "If"i expr "Else"i expr -> py_ternary
+//    | expr "if"i expr "else"i expr -> py_ternary // TODO collision with "real" If statement, but only when capitalized?
+// When LC, it works, but if (true if 5<7 else false)  print "a" else print "b" end doesn't parse
 
 ?and_expr: or_expr
     | or_expr (("&&" | "And"i) or_expr)+ -> and_op
