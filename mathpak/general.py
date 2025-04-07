@@ -73,4 +73,4 @@ def _is_iterable(x: Any) -> bool:
 
 def _sorted(x:Any, reverse: bool) -> Any:
     if isinstance(x, str): return _sorted(x.encode(), reverse).decode()
-    return type(x)(sorted(x, reverse=reverse)) if _is_iterable(x) else x
+    return type(x)(sorted(x, key=lambda x: (x is None, x), reverse=reverse)) if _is_iterable(x) else x
