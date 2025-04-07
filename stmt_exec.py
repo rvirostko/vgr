@@ -21,6 +21,7 @@ from stmt_math import execute_sub_from, execute_sub_giving, execute_div_into, ex
 from stmt_print import execute_exhibit, execute_print, execute_printf, execute_display_on
 from stmt_select import execute_select
 from stmt_set import execute_load_from, execute_set, execute_unset, execute_inc, execute_dec, execute_move_to, do_set, do_unset
+from stmt_sort import execute_sort
 from stmt_zip import execute_zip
 
 def execute_break(_: DataDictionary, __: Tree) -> None:
@@ -212,6 +213,7 @@ SIMPLE_STATEMENT_HANDLERS = {
     'print': execute_print,
     'printf': execute_printf,
     'set': execute_set,
+    'sort': execute_sort,
     'sub_from': execute_sub_from,
     'sub_giving': execute_sub_giving,
     'unset': execute_unset,
