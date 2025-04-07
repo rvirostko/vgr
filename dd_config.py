@@ -29,9 +29,6 @@ ORS_PATH = (_ARG_PREFIX, 'ors')
 # If no "For" is given with a Select, this is the type used as default
 DEFAULT_FOR_TYPE_PATH = (_ARG_PREFIX, 'default_for_type')
 
-_OS_PREFIX = 'os'
-LINESEP_PATH = (_OS_PREFIX, 'linesep')
-
 _ENV_EXCLUDE = tuple(re.compile(pattern, re.IGNORECASE) for pattern in ('^VSCODE', '^_$', '^(OLD)?PWD$'))
 _OS_CONSTS = ( 'defpath',  'devnull', 'extsep', 'linesep', 'name', 'pardir', 'pathsep', 'sep' )
 
