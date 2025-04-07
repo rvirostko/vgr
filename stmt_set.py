@@ -11,6 +11,7 @@ import os
 from lark import Tree, Token
 
 from data_dict import DataDictionary
+from dd_config import dd_path
 from evaluate import eval_expr, eval_filename_expr
 from mathpak import poly_add, poly_sub, poly_number
 from redir import print_stderr, shorten
@@ -20,7 +21,7 @@ def execute_set(dd: DataDictionary, statement: Tree) -> None:
 
 * SET _variable_ [= | := | TO) _expression_ [;]
 """
-    path = _dd_path(statement.children[0])
+    path = dd_path(statement.children[0])
     expr = statement.children[1]
     do_assignment(dd, expr, eval_expr(dd, expr), path)
 
@@ -40,7 +41,7 @@ def execute_unset(dd: DataDictionary, statement: Tree) -> None:
 * UNSET _variable_ [, _variable_]... [;]
 """
     for item in statement.children:
-        path = _dd_path(item)
+        path = dd_path(item)
         old_value = dd.unset_var_user(*path)
         if dd.verbose: print_stderr(dd, 'Removed', shorten(repr(old_value)), 'From', '.'.join(path))
 
@@ -52,7 +53,7 @@ def execute_inc(dd: DataDictionary, statement: Tree) -> None:
 If the variable does not exist, it is created and initialized to zero.
 This is fundamentally an arithmetic, scalar opertion.
 """
-    path = _dd_path(statement.children[0])
+    path = dd_path(statement.children[0])
     x = poly_number(dd.get_var_user(*path)) or 0
     y = poly_number(eval_expr(dd, statement.children[1])) or 0
     do_set(dd, poly_add(x, y), *path)
@@ -65,7 +66,7 @@ def execute_dec(dd: DataDictionary, statement: Tree) -> None:
 If the variable does not exist, it is created and initialized to zero.
 This is fundamentally an arithmetic, scalar opertion.
 """
-    path = _dd_path(statement.children[0])
+    path = dd_path(statement.children[0])
     x = poly_number(dd.get_var_user(*path)) or 0
     y = poly_number(eval_expr(dd, statement.children[1])) or 0
     do_set(dd, poly_sub(x, y), *path)
@@ -86,13 +87,11 @@ request is ignored and a regular move is performed.
     corresponding = False
     start = 0
     fc = statement.children[0]
-    if isinstance(fc, Token):
-        # NB: the only thing defined in the grammar is the
-        # corresponding token, but just in case...
-        corresponding = fc.value == 'corr'
+    if isinstance(fc, Token) and fc.value == 'corr':
+        corresponding = True
         start = 1
     expr = statement.children[start]
-    path = _dd_path(statement.children[start + 1])
+    path = dd_path(statement.children[start + 1])
     src = eval_expr(dd, expr)
     dest = dd.get_var_user(*path) if corresponding else None
     if isinstance(src, dict) and isinstance(dest, dict):
@@ -123,7 +122,7 @@ The _expression_ is resolved to string as file to be loaded
 If no type is included, the type is inferred from the extension of the file
 name with TEXT as the default.
 """
-    path = _dd_path(statement.children[0])
+    path = dd_path(statement.children[0])
     filename = eval_filename_expr(dd, statement.children[1])
     dtype = load_data_type(filename, statement.children[2] if len(statement.children) > 2 else None)
     with open(filename, 'r', encoding='utf-8') as f:
@@ -136,9 +135,6 @@ name with TEXT as the default.
         else:
             print_stderr(dd, 'Loaded', '.'.join(path), 'With', shorten(repr(data)))
         if fieldnames: print_stderr(dd, 'Fieldnames :', '', ''.join(repr(f) for f in fieldnames))
-
-def _dd_path(var_ref: Tree) -> tuple[str]:
-    return tuple(name.value for name in var_ref.children)
 
 def load_data_type(filename: str, token: Token) -> str:
     """Returns one of:

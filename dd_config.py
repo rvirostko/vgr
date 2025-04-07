@@ -9,6 +9,8 @@ import os
 import re
 import string
 
+from lark import Tree
+
 from data_dict import DataDictionary
 from mathpak import coerce_value
 
@@ -77,6 +79,9 @@ def dd_set_statement(dd: DataDictionary, statement_text: str) -> str:
 
 def dd_clear_scratch(dd: DataDictionary) -> None:
     dd.get_var(_SCRATCH_PREFIX).clear()
+
+def dd_path(var_ref: Tree) -> tuple[str]:
+    return tuple(name.value for name in var_ref.children)
 
 def _get_os_consts() -> dict:
     rc = { key: value for key, value in _get_consts(os).items() if key in _OS_CONSTS }
