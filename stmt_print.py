@@ -3,11 +3,12 @@ Implementations of PRINT, PRINTF, EXHIBIT, and DISPLAY
 """
 
 from typing import Any
+import os
 
 from lark import Tree
 
 from data_dict import DataDictionary
-from dd_config import OFS_PATH, ORS_PATH, LINESEP_PATH
+from dd_config import OFS_PATH, ORS_PATH
 from redir import print_stdout, print_stderr
 from evaluate import eval_expr, eval_to_str
 from mathpak import poly_format
@@ -24,10 +25,10 @@ The results of the expressions are separated by the string defined in _arg.ofs_.
 Lines are ended by with the _arg.ors_ string. The defaults are space and new line and
 are used if the values are set to _None_.
 """
-    sep = str(dd.get_var_user(*OFS_PATH))
-    sep = ' ' if sep is None else sep
-    end = str(dd.get_var_user(*ORS_PATH))
-    end = dd.get_var_user(*LINESEP_PATH) if end is None else end
+    sep = dd.get_var_user(*OFS_PATH)
+    sep = ' ' if sep is None else str(sep)
+    end = dd.get_var_user(*ORS_PATH)
+    end = os.linesep if end is None else str(end)
     print_stdout(*[eval_expr(dd, expr) for expr in statement.children], sep=sep, end=end)
 
 def execute_printf(dd: DataDictionary, statement: Tree) -> None:
@@ -103,8 +104,7 @@ separating values with a space and ending with a newline.
             args = tuple(eval_expr(dd, expr) for expr in statement.children[:-1])
         else:
             args = tuple(eval_expr(dd, expr) for expr in statement.children)
-    end = str(dd.get_var_user(*LINESEP_PATH)) or '\n'
     if dest_stdout:
-        print_stdout(*args, sep='', end=end)
+        print_stdout(*args, sep='')
     else:
-        print_stderr(*args, sep='', end=end)
+        print_stderr(*args, sep='')
