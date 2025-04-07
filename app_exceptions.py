@@ -17,6 +17,16 @@ class ExitingException(Exception):
         self.exit_code = exit_code
         self.statement = statement
 
+class StatementBreak(Exception):
+    """Thrown on a "break" to unwind the control block"""
+    def __init__(self, *args):
+        super().__init__(*args)
+
+class StatementConinue(Exception):
+    """Thrown on a "continue" to unwind the control block"""
+    def __init__(self, *args):
+        super().__init__(*args)
+
 
 # List of tokens that we don't try to translate in exceptions
 _TOKEN_PASS = ('NAME',)
