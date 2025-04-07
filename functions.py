@@ -46,7 +46,7 @@ def _default_to(value: Any, default: Any) -> Any:
 _FUNC_OPS = {
   "Abs": poly_abs,
   "Add": poly_vadd,
-  "Append": poly_vappend,
+  "AppendStr": poly_vappend,
   "BitAnd": poly_vbit_and,
   "BitNot": poly_bit_not,
   "BitOr": poly_vbit_or,
@@ -122,7 +122,7 @@ _FUNC_OPS = {
   "Number": poly_number,
   "ParseUrl": parse_url,
   "Pow": poly_pow,
-  "Prepend": poly_vprepend,
+  "PrependStr": poly_vprepend,
   "RemovePrefix": poly_vremoveprefix,
   "RemoveSuffix": poly_vremovesuffix,
   "ReplaceStr": poly_vreplace,
