@@ -86,8 +86,7 @@ def poly_islist(x: Any) -> bool:
     """Is the item a collection?"""
     return isinstance(x, (list, tuple))
 
-def poly_list(x: Any) -> list:
-    if x is None: return None
+def poly_list(x: Any) -> Any:
     if poly_islist(x): return x
     if isinstance(x, dict): return [(key, x[key]) for key in sorted(x)]
-    return [x]
+    return None if x is None else [x]
