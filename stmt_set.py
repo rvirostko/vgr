@@ -42,8 +42,7 @@ def execute_unset(dd: DataDictionary, statement: Tree) -> None:
 """
     for item in statement.children:
         path = dd_path(item)
-        old_value = dd.unset_var_user(*path)
-        if dd.verbose: print_stderr(dd, 'Removed', shorten(repr(old_value)), 'From', '.'.join(path))
+        do_unset(dd, *path)
 
 def execute_inc(dd: DataDictionary, statement: Tree) -> None:
     """Increment a counter by an amount
@@ -165,7 +164,17 @@ def do_set(dd: DataDictionary, value: Any, *path) -> None:
     Generates verbose output.
     """
     new_value = dd.set_var_user(value, *path)
-    if dd.verbose: print_stderr(dd, 'Set', '.'.join(path), 'To', shorten(repr(new_value)))
+    if dd.verbose:
+        print_stderr(dd, 'Set', '.'.join(path), 'To', shorten(repr(new_value)))
+
+def do_unset(dd: DataDictionary, *path) -> None:
+    """
+    Use this to unset a value.
+    Generates verbose output.
+    """
+    old_value = dd.unset_var_user(*path)
+    if dd.verbose:
+        print_stderr(dd, 'Removed', shorten(repr(old_value)), 'From', '.'.join(path))
 
 def _info_from_csv(reader: csv.DictReader) -> tuple:
     return (list(reader), reader.fieldnames or [])
