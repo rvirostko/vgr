@@ -287,8 +287,7 @@ def poly_vappend(x: Any, *args) -> Any:
 def poly_append(x: Any, y: Any) -> Any:
     # For these types, the operation is idempotent
     if isinstance(x, (NoneType, bool, int, float)) or y is None: return x
-    if isinstance(x, list): return [poly_append(x1, y) for x1 in x]
-    if isinstance(x, tuple): return (poly_append(x1, y) for x1 in x)
+    if isinstance(x, (list, tuple)): return type(x)(poly_append(x1, y) for x1 in x)
     if isinstance(x, dict): return  {key: poly_append(value, y) for key, value in x.items()}
     if isinstance(x, str):
         if isinstance(y, (list, tuple)): return reduce(poly_append, y, x)
@@ -302,8 +301,7 @@ def poly_vprepend(x: Any, *args) -> Any:
 def poly_prepend(x: Any, y: Any) -> Any:
     # For these types, the operation is idempotent
     if isinstance(x, (NoneType, bool, int, float)) or y is None: return x
-    if isinstance(x, list): return [poly_prepend(x1, y) for x1 in x]
-    if isinstance(x, tuple): return (poly_prepend(x1, y) for x1 in x)
+    if isinstance(x, (list, tuple)): return type(x)(poly_prepend(x1, y) for x1 in x)
     if isinstance(x, dict): return  {key: poly_prepend(value, y) for key, value in x.items()}
     if isinstance(x, str):
         if isinstance(y, (list, tuple)): return reduce(poly_prepend, y, x)
