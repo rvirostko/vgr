@@ -3,6 +3,8 @@ import sys
 from io import FileIO, StringIO
 from .base import FileRecordWriter
 
+NoneType = type(None)
+
 class CSVRecordWriter(FileRecordWriter):
 
     __QUOTING = {
@@ -103,7 +105,7 @@ class CSVRecordWriter(FileRecordWriter):
 
     def write(self, record: list[any]) -> bool:
         # We don't want to change numbers to strings
-        self._writer.writerow([item if isinstance(item, (int, float)) else self.stringify(item) for item in record])
+        self._writer.writerow([item if isinstance(item, (NoneType, int, float)) else self.stringify(item) for item in record])
         self._flush_str()
         return True
 
