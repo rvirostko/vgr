@@ -3,7 +3,7 @@ from .bit_ops import poly_bit_and, poly_bit_or, poly_bit_xor, poly_bit_not, poly
 from .div import poly_div, poly_fdiv, poly_vdiv, poly_vfdiv
 from .pow import poly_pow, poly_vpow
 from .general import poly_hash, poly_sizeof, poly_repr, poly_isempty, poly_len, poly_firstitem, poly_lastitem
-from .general import poly_getitem, poly_rsort, poly_sort, poly_unique, poly_type
+from .general import poly_getitem, poly_sort, poly_unique, poly_type, dsort
 from .inequ import poly_eq, poly_ge, poly_gt, poly_le, poly_lt, poly_ne
 from .is_in import poly_in, poly_not_in, poly_contains_all, poly_contains_any
 from .logic import poly_and, poly_not, poly_or

@@ -71,18 +71,20 @@ statements: statement+
     | foreach_statement
     | repeat_statement
 
-if_statement: "If"i expr ("Then"i | "Do"i | ":") statement+ else_clause? "End"i _SEMICOLON? -> if
-    | "If"i expr statement+ else_clause? "End-If"i _SEMICOLON? -> if
+if_statement: "If"i expr ("Then"i | "Do"i | ":")? statement+ else_clause? ("End"i | "End-If"i) _SEMICOLON? -> if
 unless_statement: "Unless"i expr ("Do"i | ":") statement+ "End"i _SEMICOLON? -> unless
 while_statement: "While"i expr ("Do"i | ":") statement+ "End"i _SEMICOLON? -> while
-    | "Do"i "While"i expr statement+ "Loop"i _SEMICOLON? -> while
+    | "Do"i "While"i expr statement+ "Loop"i _SEMICOLON? -> while // VB style
 until_statement: "Until"i expr ("Do"i | ":") statement+ "End"i _SEMICOLON? -> until
+    | "Do"i "Until"i expr statement+ "Loop"i _SEMICOLON? -> until // VB style
     | "Perform"i "Until"i expr statement+ "End-Perform"i _SEMICOLON? -> until
 repeat_statement: "Repeat"i ("Do"i | ":")? statement+ "Until"i expr _SEMICOLON? -> repeat
 foreach_statement: ("ForEach"i | "For"i "Each"i) var_name "In"i expr ("Do"i | ":") statement+ "End"i _SEMICOLON? -> foreach
 else_clause: "Else"i ("Do"i | ":")? statement+ -> else
 break: "Break"i _SEMICOLON?
-continue: "Continue"i _SEMICOLON?
+    | "Exit"i ("If"i | "Do"i | "For"i)
+continue: "Continue"i ("If"i "Do"i | "For"i) _SEMICOLON?
+// NB: VB variants might require additional subtypes to perform the correct action
 
 // simple boolean on/off, true/false
 // these are "proper statements" as they control the behavior of other statements
@@ -96,8 +98,8 @@ pass: "Pass"i | "Nop"i
 // in the tree rather than just the inner portion
 ?set_var: (set | inc | dec | let | assign | compute)
 set: "Set"i var_name ("=" | ":=" | "To"i) expr _SEMICOLON?
-inc: "Set"i var_name "Up"i "By"i expr _SEMICOLON?
-dec: "Set"i var_name "Down"i "By"i expr _SEMICOLON?
+inc: "Set"i? var_name (("Up"i "By"i) | "+=") expr _SEMICOLON?
+dec: "Set"i? var_name (("Down"i "By"i) | "-=") expr _SEMICOLON?
 let: "Let"i var_name ("=" | ":=") expr _SEMICOLON? -> set
 assign: var_name "=" expr _SEMICOLON? -> set
 compute: "Compute"i var_name ("=" | "Equals"i) expr _SEMICOLON? -> set
@@ -142,9 +144,9 @@ exit: "Exit"i expr? _SEMICOLON?
 
 mul_by: "Multiply"i expr "By"i (expr "Giving"i)? var_name _SEMICOLON?
 
-?divide: "Divide"i (div_into | div_by) _SEMICOLON?
-div_into: expr "Into"i (expr "Giving"i)? var_name
-div_by: expr "By"i expr "Giving"i var_name
+?divide: div_into | div_by
+div_into: "Divide"i expr "Into"i (expr "Giving"i)? var_name _SEMICOLON?
+div_by: "Divide"i expr "By"i expr "Giving"i var_name _SEMICOLON?
 
 move_to: "Move"i CORR? expr "To"i var_name _SEMICOLON?
 CORR.80: ("Corresponding"i | "Corr"i)
@@ -156,11 +158,11 @@ sort_target: ("Into"i | "Giving"i) sort_obj -> target
 sort_file: "File"i? expr ("As"i? load_source_type)? -> file
 sort_var: ("Variable"i | "Var"i) var_name -> var
 sort_keys: ("On"i | "By"i) sort_key (_COMMA sort_key)* -> keys
-sort_key: sort_dir? "Key"i? var_name -> key
+sort_key: sort_dir? "Key"i? NAME -> key
 ?sort_dir: sort_asc | sort_des
 sort_asc: "Ascending"i | "Asc"i -> asc
 sort_des: "Descending"i | "Des"i -> des
-unique_clause: "Unique"i ("On"i var_name (_COMMA var_name)*)? -> unique
+unique_clause: "Unique"i ("On"i NAME (_COMMA NAME)*)? -> unique
 
 select: "Select"i outputs? from_clause where_clause? product_clause? limit_clause? for_clause? _SEMICOLON?
 
@@ -224,6 +226,13 @@ template_filename: "File"i? expr
 for_text: "Text"i (_COMMA? for_text_option (_COMMA for_text_option)*)?
 ?for_text_option: "Encode"i? "Ascii"i (("=" | ":=") expr)? -> encode_ascii
     | "Encode"i? ("Unicode"i | "UTF8"i | "UTF-8"i) (("=" | ":=") expr)? -> encode_unicode
+    | "Include"i "Headers"i (("=" | ":=") expr)? -> include_headers
+    | ("No"i | "Omit"i) "Headers"i (("=" | ":=") expr)? -> omit_headers
+    | "Exclude"i ("Nulls"i | "Null"i "Values"i) (("=" | ":=") expr)? -> exclude_nulls
+    | "Include"i ("Nulls"i | "Null"i "Values"i) (("=" | ":=") expr)? -> include_nulls
+    | "Field"i "Seperator"i ("=" | ":=") expr -> field_sep
+    | "Header"i "Seperator"i ("=" | ":=") expr -> header_sep
+    | "Record"i "Seperator"i ("=" | ":=") expr -> record_sep
 
 // Either LIMIT <number> (OFFSET <number>)?
 // or FETCH FIRST <number> ROWS ONLY
