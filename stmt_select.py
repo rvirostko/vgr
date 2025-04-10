@@ -49,8 +49,11 @@ class SelectAnalyzer(Visitor):
     _STR_OPTS = (
         'delimiter',
         'escapechar',
+        'field_sep',
+        'header_sep',
         'lineterminator',
         'quotechar',
+        'record_sep',
     )
 
     _OPT_DISPLAY_NAME = {
@@ -62,6 +65,8 @@ class SelectAnalyzer(Visitor):
         'encode_unicode'   : 'Encode Unicode',
         'escapechar'       : 'Escape Character',
         'exclude_nulls'    : 'Exclude Nulls',
+        'field_sep'        : 'Field Separator',
+        'header_sep'       : 'Header Separator',
         'include_headers'  : 'Include Headers',
         'include_nulls'    : 'Include Nulls',
         'keep_last_newline': 'Keep Last Newline',
@@ -70,6 +75,7 @@ class SelectAnalyzer(Visitor):
         'no_array_wrapper' : 'No Array Wrapper',
         'omit_headers'     : 'Omit Headers',
         'quotechar'        : 'Quote Character',
+        'record_sep'       : 'Record Separator',
         'sort_keys'        : 'Sort Keys',
         'trim_blocks'      : 'Trim Blocks',
     }
