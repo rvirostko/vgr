@@ -149,7 +149,7 @@ def load_data_type(filename: str, token: Token) -> str:
 def load_file_as(file, dtype: str) -> tuple:
     """Read the file in according to the type, which comes for load_file_type()"""
     if dtype == 'text_file':
-        return (file.read(), [])
+        return (file.read().splitlines(), ['line'])
     if dtype == 'json_object':
         return _info_from_json(json.load(file))
     if dtype == 'json_objects':
