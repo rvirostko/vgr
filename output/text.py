@@ -69,18 +69,18 @@ class TextRecordWriter(FileRecordWriter):
             for header, item in zip(self.headers, record):
                 if self.include_nulls or item is not None:
                     if first:
-                        self._print(header, self._header_sep, item)
+                        self._print(header, self._header_sep, self.stringify(item))
                         first = False
                     else:
-                        self._print(self._field_sep, header, self._header_sep, item)
+                        self._print(self._field_sep, header, self._header_sep, self.stringify(item))
         else:
             for item in record:
                 if self.include_nulls or item is not None:
                     if first:
-                        self._print(item)
+                        self._print(self.stringify(item))
                         first = False
                     else:
-                        self._print(self._field_sep, item)
+                        self._print(self._field_sep, self.stringify(item))
         # Only print a record sep if we printed anything
         if not first: self._print(self.record_sep)
         return True
