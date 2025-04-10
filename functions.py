@@ -22,7 +22,7 @@ from mathpak import poly_lastitem, poly_shl, poly_leftstr, poly_vlstrip, poly_le
 from mathpak import poly_lookup, poly_lower, poly_vmatches, poly_vmatches_all, poly_mod, poly_vmul, poly_number
 from mathpak import poly_pow, poly_vprepend, poly_vremoveprefix, poly_vremovesuffix
 from mathpak import poly_vreplace, poly_repr, poly_shr, poly_rightstr, poly_vrstrip, poly_round
-from mathpak import poly_rindex, poly_sizeof, poly_rsort, poly_sort, poly_startswith
+from mathpak import poly_rindex, poly_sizeof, poly_sort, poly_startswith
 from mathpak import poly_str, poly_vstrip, poly_vsub, poly_substr, poly_swapcase, poly_title
 from mathpak import poly_translate, poly_trunc, poly_type, poly_unique, poly_upper
 from mathpak import duration_to_ms, ms_to_duration, parse_url, compile_pattern
@@ -134,7 +134,6 @@ _FUNC_OPS = {
   "RIndexOf": poly_rindex,
   "Round": poly_round,
   "RSplit": poly_rsplit,
-  "RSort": poly_rsort,
   "SizeOf": poly_sizeof,
   "Sort": poly_sort,
   "Split": poly_split,
