@@ -21,7 +21,7 @@ def poly_sort(x: Any, unique: bool=False, reverse: bool=False) -> Any:
     """
     Sort with unique and reverse
     """
-    unique = False if unique is None else bool_arg(reverse, 'Unique')
+    unique = False if unique is None else bool_arg(unique, 'Unique')
     reverse = False if reverse is None else bool_arg(reverse, 'Reverse')
     if isinstance(x, str): return poly_sort(x.encode(), unique, reverse).decode()
     if isinstance(x, (list, tuple)):
