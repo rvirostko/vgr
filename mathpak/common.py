@@ -31,7 +31,6 @@ _DEFAULTS_BY_TYPE = {
 _TRUE_STRS = ('true', 't', 'yes', 'y', 'on')
 _FALSE_STRS = ('false', 'f', 'no', 'n', 'off')
 
-
 def type_str(o: Any) -> str:
     """Use repr so we get a nice string for use in error messages"""
     return repr(type(o).__name__)
