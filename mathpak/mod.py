@@ -36,4 +36,7 @@ def poly_mod(x: Any, y: Any) -> Any:
 TypeError raised on all other combinations
 """
     operation = get_operation(x, y, numeric_operations)
-    return operation(poly_mod, x, y) if operation else x % y
+    try:
+        return operation(poly_mod, x, y) if operation else x % y
+    except ZeroDivisionError as e:
+        raise ValueError('Modulo by Zero') from e

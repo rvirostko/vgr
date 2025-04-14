@@ -283,7 +283,7 @@ def poly_rindex(x: Any, sub: Any=None) -> Any:
 ###
 
 def _layout_opt(x: Any, width: int, fillchar: str, op, str_op) -> Any:
-    width = 0 if width is None else min(max(0, int_arg(x, "Width")), 256)
+    width = 0 if width is None else min(max(0, int_arg(width, "Width")), 256)
     fillchar = '' if fillchar is None else str_arg(fillchar, "Fillchar")[0]
     if x is None: return fillchar * width
     if isinstance(x, (list, tuple)): return type(x)(op(x1, width, fillchar) for x1 in x)

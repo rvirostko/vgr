@@ -31,7 +31,10 @@ def poly_div(x: Any, y: Any) -> Any:
 TypeError raised on all other combinations
 """
     operation = get_operation(x, y, numeric_operations)
-    return operation(poly_div, x, y) if operation else x / y
+    try:
+        return operation(poly_div, x, y) if operation else x / y
+    except ZeroDivisionError as e:
+        raise ValueError('Division by Zero') from e
 
 def poly_vfdiv(x: Any, *args):
     """Varargs version of poly_fdiv"""
@@ -61,4 +64,7 @@ def poly_fdiv(x: Any, y: Any) -> Any:
 TypeError raised on all other combinations
 """
     operation = get_operation(x, y, numeric_operations)
-    return operation(poly_fdiv, x, y) if operation else x // y
+    try:
+        return operation(poly_fdiv, x, y) if operation else x // y
+    except ZeroDivisionError as e:
+        raise ValueError('Division by Zero') from e
