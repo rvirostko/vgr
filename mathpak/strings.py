@@ -9,6 +9,7 @@ import re
 from .common import X_None_Op, NoneType, Y_Coll_Op, str_arg, int_arg, type_str
 from .general import poly_isempty
 from .reg_ex import poly_regex_replace, poly_vregex_replace
+from .types import poly_str
 
 TNone = type(None)
 # No-args string method that returns a string, e.q. "x.upper()"
@@ -278,6 +279,28 @@ def poly_rindex(x: Any, sub: Any=None) -> Any:
         return exec_x_y_op(x, sub, 'RIndex', poly_rindex, str.rindex, string_loc_operations)
     except ValueError:
         return None
+
+###
+
+def _layout_opt(x: Any, width: int, fillchar: str, op, str_op) -> Any:
+    width = 0 if width is None else min(max(0, int_arg(x, "Width")), 256)
+    fillchar = '' if fillchar is None else str_arg(fillchar, "Fillchar")[0]
+    if x is None: return fillchar * width
+    if isinstance(x, (list, tuple)): return type(x)(op(x1, width, fillchar) for x1 in x)
+    if isinstance(x, (bool, int, float, dict)): x = poly_str(x)
+    return str_op(x, width, fillchar)
+
+def poly_center(x: Any, width: int, fillchar: str=' ') -> Any:
+    return _layout_opt(x, width, fillchar, poly_center, str.center)
+
+def poly_ljust(x: Any, width: int, fillchar: str=' ') -> Any:
+    return _layout_opt(x, width, fillchar, poly_ljust, str.ljust)
+
+def poly_rjust(x: Any, width: int, fillchar: str=' ') -> Any:
+    return _layout_opt(x, width, fillchar, poly_rjust, str.rjust)
+
+def poly_zfill(x: Any, width: int) -> Any:
+    return poly_rjust(x, width, '0')
 
 ###
 

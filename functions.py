@@ -30,6 +30,7 @@ from mathpak import md_blockquote, md_bold, md_code, md_code_block, md_heading, 
 from mathpak import md_link, md_ordered_list, md_unordered_list
 from mathpak import poly_format, poly_vregex_replace, poly_split, poly_rsplit
 from mathpak import poly_contains_any, poly_contains_all
+from mathpak import poly_center, poly_ljust, poly_rjust, poly_zfill
 
 def _default_to(value: Any, default: Any) -> Any:
     """Returns a default value if the argument is None.
@@ -55,10 +56,11 @@ _FUNC_OPS = {
   "Capitalize": poly_capitalize,
   "CaseFold": poly_casefold,
   "Ceil": poly_ceil,
+  "Center": poly_center,
   "CompilePattern": compile_pattern,
   "Contains": poly_contains_any,
-  "ContainsAny": poly_contains_any,
   "ContainsAll": poly_contains_all,
+  "ContainsAny": poly_contains_any,
   "CountOf": poly_count,
   "DefaultTo": _default_to,
   "Div": poly_vdiv,
@@ -95,6 +97,7 @@ _FUNC_OPS = {
   "IsUpper": poly_isupper,
   "Item": poly_getitem,
   "LastItem": poly_lastitem,
+  "LeftJustify": poly_ljust,
   "LeftShift": poly_shl,
   "LeftStr": poly_leftstr,
   "LeftStrip": poly_vlstrip,
@@ -104,8 +107,8 @@ _FUNC_OPS = {
   "Lookup": poly_lookup,
   "Lower": poly_lower,
   "Matches": poly_vmatches,
-  "MatchesAny": poly_vmatches,
   "MatchesAll": poly_vmatches_all,
+  "MatchesAny": poly_vmatches,
   "MdBlockQuote": md_blockquote,
   "MdBold": md_bold,
   "MdCode": md_code,
@@ -123,11 +126,12 @@ _FUNC_OPS = {
   "ParseUrl": parse_url,
   "Pow": poly_pow,
   "PrependStr": poly_vprepend,
+  "RegexReplace": poly_vregex_replace,
   "RemovePrefix": poly_vremoveprefix,
   "RemoveSuffix": poly_vremovesuffix,
   "ReplaceStr": poly_vreplace,
-  "RegexReplace": poly_vregex_replace,
   "Repr": poly_repr,
+  "RightJustify": poly_rjust,
   "RightShift": poly_shr,
   "RightStr": poly_rightstr,
   "RightStrip": poly_vrstrip,
@@ -149,6 +153,7 @@ _FUNC_OPS = {
   "Type": poly_type,
   "Unique": poly_unique,
   "Upper": poly_upper,
+  "ZeroFill": poly_zfill,
 }
 
 # This index provides a way to find functions independent of case.
