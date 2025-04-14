@@ -70,6 +70,7 @@ def poly_str(x: Any) -> Any:
     None is left as None, not converted to 'None'.
     """
     if x is None: return None
+    if isinstance(x, bytes): return x.decode('utf-8')
     if isinstance(x, str): return x
     if isinstance(x, (list, tuple)): return type(x)(poly_str(x1) for x1 in x)
     if isinstance(x, dict): return json.dumps(x)
