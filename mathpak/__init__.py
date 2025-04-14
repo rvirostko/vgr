@@ -21,7 +21,7 @@ from .strings import poly_swapcase, poly_title, poly_upper, poly_count, poly_ind
 from .strings import poly_substr, poly_append, poly_prepend, poly_isdecimal, poly_isidentifier, poly_replace, poly_translate
 from .strings import poly_vappend, poly_vprepend, poly_format, poly_vreplace, poly_vstrip, poly_vrstrip
 from .strings import poly_vlstrip, poly_vremoveprefix, poly_vremovesuffix, poly_split, poly_rsplit
-from .strings import poly_center, poly_ljust, poly_rjust, poly_zfill
+from .strings import poly_center, poly_ljust, poly_rjust, poly_zfill, poly_splitlines, poly_join
 from .sub import poly_sub, poly_vsub
 from .types import coerce_value, poly_bool, poly_float, poly_int, poly_isbool, poly_isfloat, poly_isint, poly_isnumber
 from .types import poly_isstr, poly_number, poly_str, poly_islist, poly_list
@@ -31,5 +31,8 @@ from .web import parse_url
 from .markdown import md_blockquote, md_bold, md_code, md_code_block, md_heading, md_italics, md_link
 from .markdown import  md_ordered_list, md_strikethrough, md_unordered_list
 from .common import type_str
+from .bases import poly_bin, poly_oct, poly_hex, poly_base64_encode, poly_base64_decode
+from .bases import poly_parse_int, poly_parse_bin, poly_parse_oct, poly_parse_hex
+from .attrs import poly_dig, poly_vdig
 
 __all__ = [ ]

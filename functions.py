@@ -31,6 +31,9 @@ from mathpak import md_link, md_ordered_list, md_unordered_list
 from mathpak import poly_format, poly_vregex_replace, poly_split, poly_rsplit
 from mathpak import poly_contains_any, poly_contains_all
 from mathpak import poly_center, poly_ljust, poly_rjust, poly_zfill, poly_splitlines, poly_join
+from mathpak import poly_bin, poly_oct, poly_hex, poly_parse_int, poly_parse_bin, poly_parse_oct, poly_parse_hex
+from mathpak import poly_base64_encode, poly_base64_decode
+from mathpak import poly_vdig
 
 def _default_to(value: Any, default: Any) -> Any:
     """Returns a default value if the argument is None.
@@ -43,11 +46,12 @@ def _default_to(value: Any, default: Any) -> Any:
 # Binds a (pretty) name to the function to be executed
 # Additionally, we should use functions here rather than lambdas
 # so we can grab the __DOC__ for help functions.
-#"Attr": ???,                       # TODO see attrgetter, better name?
 _FUNC_OPS = {
   "Abs": poly_abs,
   "Add": poly_vadd,
   "AppendStr": poly_vappend,
+  "Base64Decode": poly_base64_decode,
+  "Base64Encode": poly_base64_encode,
   "BitAnd": poly_vbit_and,
   "BitNot": poly_bit_not,
   "BitOr": poly_vbit_or,
@@ -63,6 +67,7 @@ _FUNC_OPS = {
   "ContainsAny": poly_contains_any,
   "CountOf": poly_count,
   "DefaultTo": _default_to,
+  "Dig": poly_vdig,
   "Div": poly_vdiv,
   "DurationToMs": duration_to_ms, # Vault specific
   "EndsWith": poly_endswith,
@@ -96,6 +101,7 @@ _FUNC_OPS = {
   "IsTitle": poly_istitle,
   "IsUpper": poly_isupper,
   "Item": poly_getitem,
+  "Join": poly_join,
   "LastItem": poly_lastitem,
   "LeftJustify": poly_ljust,
   "LeftShift": poly_shl,
@@ -123,6 +129,10 @@ _FUNC_OPS = {
   "MsToDuration": ms_to_duration, # Vault specific
   "Mul": poly_vmul,
   "Number": poly_number,
+  "ParseBinary": poly_parse_bin,
+  "ParseHex": poly_parse_hex,
+  "ParseInt": poly_parse_int,
+  "ParseOctal": poly_parse_oct,
   "ParseUrl": parse_url,
   "Pow": poly_pow,
   "PrependStr": poly_vprepend,
@@ -141,6 +151,7 @@ _FUNC_OPS = {
   "SizeOf": poly_sizeof,
   "Sort": poly_sort,
   "Split": poly_split,
+  "SplitLines": poly_splitlines,
   "StartsWith": poly_startswith,
   "Str": poly_str,
   "Strip": poly_vstrip,
@@ -148,14 +159,20 @@ _FUNC_OPS = {
   "SubStr": poly_substr,
   "SwapCase": poly_swapcase,
   "TitleCase": poly_title,
+  "ToBinary": poly_bin,
+  "ToBool": poly_bool,
+  "ToFloat": poly_float,
+  "ToHex": poly_hex,
+  "ToInt": poly_int,
+  "ToNumber": poly_number,
+  "ToOctal": poly_oct,
+  "ToString": poly_str,
   "Translate": poly_translate,
   "Trunc": poly_trunc,
   "Type": poly_type,
   "Unique": poly_unique,
   "Upper": poly_upper,
   "ZeroFill": poly_zfill,
-  "SplitLines": poly_splitlines,
-  "Join": poly_join,
 }
 
 # This index provides a way to find functions independent of case.
