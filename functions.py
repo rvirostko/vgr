@@ -30,7 +30,7 @@ from mathpak import md_blockquote, md_bold, md_code, md_code_block, md_heading, 
 from mathpak import md_link, md_ordered_list, md_unordered_list
 from mathpak import poly_format, poly_vregex_replace, poly_split, poly_rsplit
 from mathpak import poly_contains_any, poly_contains_all
-from mathpak import poly_center, poly_ljust, poly_rjust, poly_zfill
+from mathpak import poly_center, poly_ljust, poly_rjust, poly_zfill, poly_splitlines, poly_join
 
 def _default_to(value: Any, default: Any) -> Any:
     """Returns a default value if the argument is None.
@@ -154,6 +154,8 @@ _FUNC_OPS = {
   "Unique": poly_unique,
   "Upper": poly_upper,
   "ZeroFill": poly_zfill,
+  "SplitLines": poly_splitlines,
+  "Join": poly_join,
 }
 
 # This index provides a way to find functions independent of case.

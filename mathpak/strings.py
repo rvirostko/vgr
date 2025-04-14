@@ -6,7 +6,7 @@ from functools import reduce
 from typing import Any, Callable
 import re
 
-from .common import X_None_Op, NoneType, Y_Coll_Op, str_arg, int_arg, type_str
+from .common import X_None_Op, NoneType, Y_Coll_Op, str_arg, int_arg, type_str, bool_arg
 from .general import poly_isempty
 from .reg_ex import poly_regex_replace, poly_vregex_replace
 from .types import poly_str
@@ -360,7 +360,7 @@ def poly_replace(x: Any, old: Any, new: Any=None) -> Any:
     if isinstance(x, dict): return {key: poly_replace(value, old, new) for key, value in x.items()}
     raise TypeError(f'Replacement of {type_str(x)} not supported')
 
-def poly_split(x: Any, sep=None, maxsplit=-1) -> Any:
+def poly_split(x: Any, sep:str =None, maxsplit: int=-1) -> Any:
     # For these types, the operation is idempotent
     if isinstance(x, (NoneType, bool, int, float)): return x
     sep = None if sep is None else str_arg(sep, 'Sep')
@@ -370,7 +370,7 @@ def poly_split(x: Any, sep=None, maxsplit=-1) -> Any:
     if isinstance(x, dict): return {key: poly_split(value, sep, maxsplit) for key, value in x.items()}
     raise TypeError(f'Split of {type_str(x)} not supported')
 
-def poly_rsplit(x: Any, sep=None, maxsplit=-1) -> Any:
+def poly_rsplit(x: Any, sep:str =None, maxsplit: int=-1) -> Any:
     # For these types, the operation is idempotent
     if isinstance(x, (NoneType, bool, int, float)): return x
     sep = None if sep is None else str_arg(sep, 'Sep')
@@ -379,6 +379,19 @@ def poly_rsplit(x: Any, sep=None, maxsplit=-1) -> Any:
     if isinstance(x, (list, tuple)): return type(x)(poly_rsplit(x1, sep, maxsplit) for x1 in x)
     if isinstance(x, dict): return {key: poly_rsplit(value, sep, maxsplit) for key, value in x.items()}
     raise TypeError(f'Split of {type_str(x)} not supported')
+
+def poly_splitlines(x: Any, keepends: bool=False) -> Any:
+    if isinstance(x, (NoneType, bool, int, float)): return x
+    keepends = bool_arg(keepends, "KeepEnds")
+    if isinstance(x, str): return x.splitlines(keepends)
+    if isinstance(x, (list, tuple)): return type(x)(poly_splitlines(x1, keepends) for x1 in x)
+    raise TypeError(f'Splitlines with {type_str(x)} not supported')
+
+def poly_join(x: Any, sep: str=None) -> Any:
+    if isinstance(x, (NoneType, bool, int, float, str)): return x
+    sep = '' if sep is None else str_arg(sep, 'Sep')
+    if isinstance(x, (list, tuple)): return sep.join(poly_str(x))
+    raise TypeError(f'Join of {type_str(x)} not supported')
 
 def poly_format(format_string: Any, *args) -> str:
     """
@@ -410,12 +423,3 @@ def poly_translate(x: Any, from_str: Any, to_str: Any=None) -> Any:
 
 def _maketrans(from_str: str, to_str: str=''):
     return str.maketrans({from_str[i]: to_str[i] if i < len(to_str) else None for i in range(len(from_str))})
-
-# TODO candidate funcs
-#   1.	center(width, fillchar=' ')
-#	7.	ljust(width, fillchar=' ')
-#	15.	rjust(width, fillchar=' ')
-# zfill()
-
-#	19.	splitlines(keepends=False)
-# join
