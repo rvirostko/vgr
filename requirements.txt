@@ -1,3 +1,4 @@
+hvac
 jinja2
 lark
 prompt_toolkit

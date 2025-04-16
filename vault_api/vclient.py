@@ -8,13 +8,25 @@ from urllib.error import HTTPError
 from urllib.parse import urlparse
 import http.client
 import json
-import re
-import urllib
 
 _MIME_JSON: str = 'application/json'
 _UTF_8: str = 'utf-8'
 
-#self._conn: http.client.HTTPSConnection = None
+class VaultStatusException(http.client.HTTPException):
+    def __init__(self, status, reason, url=None, response_body=None):
+        super().__init__(f"{status} {reason}")
+        self.status = status
+        self.reason = reason
+        self.url = url
+        self.response_body = response_body
+
+    def __str__(self):
+        msg = f'{self.status} {self.reason}'
+        if self.url:
+            msg += f' {self.url}'
+        if self.response_body:
+            msg += f' - {self.response_body}'
+        return msg
 
 class VaultClient():
 
@@ -65,7 +77,8 @@ class VaultClient():
         """Call a Vault REST API and return the results"""
         if not url: raise ValueError('Missing Vault operation URL')
         self.open()
-        self._info(method, self._addr, url, '(X-Vault-Namespace=', namespace, ')')
+        namespace = self._ns(namespace)
+        self._info(' ', method, ' ', self._addr, url, ' (X-Vault-Namespace=\'', namespace, '\')', sep='')
         headers = {
             'X-Vault-Token': self._token,
             'X-Vault-Namespace': namespace,
@@ -77,25 +90,27 @@ class VaultClient():
             data_bytes = json.dumps(data).encode(_UTF_8)
         try:
             self._conn.request(url=url, method=method, headers=headers, body=data_bytes)
-            text_response = self._conn.getresponse().read().decode(_UTF_8)
+            response = self._conn.getresponse()
+            text_response = response.read().decode(_UTF_8)
             if text_response:
                 rc = json.loads(text_response)
             else:
+                text_response = ''
                 # Some operations return no text
                 rc = {}
+            retcode = response.status
+            if not 200 <= retcode < 300:
+                text_response = text_response.strip()
+                # TODO look at old code to hunt down the first error if present
+                if retcode == HTTPStatus.NOT_FOUND:
+                    self._debug(retcode, 'on', self._addr + url, ':', text_response)
+                else:
+                    self._warn(retcode, 'on', self._addr + url, ':', text_response)
+                    raise VaultStatusException(retcode, response.reason, url=self._addr + url, response_body=text_response)
             return rc
         except HTTPError as e:
-            self._debug(e.code, 'on', url)
-            # TODO - Should this only be true for LIST and/or GET?
-            # 404s are passed directly to the caller as they are the way
-            # Vault says a collection does not exist
-            if e.code == HTTPStatus.NOT_FOUND: raise
-            # See if Vault has a decent description of the problem besides just the HTTP error code
-            err = json.loads(e.read().decode(_UTF_8))
-            if not 'errors' in err: raise # Errors not present
-            errors = err['errors']
-            if not errors: raise # Empty errors
-            raise HTTPError(url=url, code=e.code, msg=f'{e.code} - {errors[0]}', hdrs=e.headers, fp=e.fp) from e
+            self._debug(e.code, 'on', self._addr + '/' + url)
+            raise
 
     def open(self):
         if self._conn is None:
@@ -121,25 +136,58 @@ class VaultClient():
             finally:
                 self._conn = None
 
+
+    def create_namespace(self, new_namespace: str, namespace: str=None) -> Dict[str, Any]:
+        return self.do_post(f'/v1/sys/namespaces/{new_namespace}', namespace)
+
+    # TODO read_namespace
+    # TODO update_namespace
+    # TODO delete_namespace
+
+    def list_namespace(self, namespace: str) -> Dict[str, Any]:
+        return self.do_list('/v1/sys/namespaces', namespace)
+
+    # TODO lock_namespace
+    # TODO unlock_namespace
+
+    def create_mount(self, mount_point: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
+        return self.do_post(f'/v1/sys/mounts/{mount_point}', config, namespace)
+        # See https://github.com/hashicorp/terraform-provider-vault/issues/677#issuecomment-609116328
+
+    def read_mount(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
+        return self.do_get(f'/v1/sys/mounts/{mount_point}', namespace)
+
+    # TODO update_mount
+    # TODO delete_mount
+
+    def list_mounts(self, namespace :str) ->  Dict[str, Any]:
+        return self.do_get('/v1/sys/mounts', namespace)
+
+    def load_kv2_secret(self, mount_point: str, path: str, data: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
+        return self.do_post(f'/v1/{mount_point}/data/{path}', data, namespace)
+
+    def load_kv2_metadata(self, mount_point: str, path: str, meta_data: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
+        return self.do_post(f'/v1/{mount_point}/metadata/{path}', meta_data, namespace)
+
     def __enter__(self):
         return self.open()
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
 
-    @staticmethod
-    def _info(*args) -> None:
-        pass
+    def _ns(self, ns: str) -> str:
+        # Go thought the options: what the user provided on the call,
+        # in the constructor, or default to "root"
+        return ns if ns else self._default_ns if self._default_ns else ''
 
     @staticmethod
-    def _debug(*args) -> None:
-        pass
+    def _warn(*args, **kwargs) -> None:
+        print("WARN  ", *args, **kwargs) # TODO
 
-# Utility methods
+    @staticmethod
+    def _info(*args, **kwargs) -> None:
+        print("INFO  ", *args, **kwargs) # TODO
 
-def normalize_path(path: str) -> str:
-    """Strips, removes trailing slash and doubled slashes"""
-    return re.sub(r'/+', '/', path.strip().strip('/'))
-
-def encode_url(s: str) -> str:
-    return urllib.parse.quote(s)
+    @staticmethod
+    def _debug(*args, **kwargs) -> None:
+        print("DEBUG ", *args, **kwargs) # TODO
