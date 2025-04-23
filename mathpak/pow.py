@@ -10,6 +10,8 @@ def poly_vpow(x: Any, *args):
     """Varargs version of poly_pow"""
     return reduce(poly_pow, args, x)
 
+# TODO pow(x, y, modulus)
+
 def poly_pow(x: Any, y: Any) -> Any:
     """Polymorphic raising to a power function.
 
