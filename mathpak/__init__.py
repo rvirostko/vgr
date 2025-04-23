@@ -1,6 +1,6 @@
 from .add import poly_add, poly_vadd
 from .bit_ops import poly_bit_and, poly_bit_or, poly_bit_xor, poly_bit_not, poly_vbit_and, poly_vbit_or, poly_vbit_xor
-from .div import poly_div, poly_fdiv, poly_vdiv, poly_vfdiv
+from .div import poly_div, poly_fdiv, poly_vdiv, poly_vfdiv, poly_divmod
 from .pow import poly_pow, poly_vpow
 from .general import poly_hash, poly_sizeof, poly_repr, poly_isempty, poly_len, poly_firstitem, poly_lastitem
 from .general import poly_getitem, poly_sort, poly_unique, poly_type, dsort

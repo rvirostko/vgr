@@ -68,3 +68,33 @@ TypeError raised on all other combinations
         return operation(poly_fdiv, x, y) if operation else x // y
     except ZeroDivisionError as e:
         raise ValueError('Division by Zero') from e
+
+def poly_divmod(x: Any, y: Any) -> Any:
+    """Polymorphic division/modulo function.
+Returns a tuple of (x // y, x % y)
+
+| x     | y     | returns | operation                 |
+|-------|-------|---------|---------------------------|
+| int   | int   | float   | divmod(x, y)              |
+| int   | float | float   | divmod(x, y)              |
+| int   | str   | float   | divmod(x, float(y))       |
+| float | int   | float   | divmod(x, y)              |
+| float | float | float   | divmod(x, y)              |
+| float | str   | float   | divmod(x, float(y))       |
+| str   | int   | float   | divmod(float(x), y        |
+| str   | float | float   | divmod(float(x), y        |
+| str   | str   | float   | divmod(float(x), float(y) |
+| list  | int   | list    | distributive              |
+| list  | float | list    | distributive              |
+| list  | str   | list    | distributive              |
+| tuple | int   | tuple   | distributive              |
+| tuple | float | tuple   | distributive              |
+| tuple | str   | tuple   | distributive              |
+
+TypeError raised on all other combinations
+"""
+    operation = get_operation(x, y, numeric_operations)
+    try:
+        return operation(poly_divmod, x, y) if operation else divmod(x, y)
+    except ZeroDivisionError as e:
+        raise ValueError('Division by Zero') from e
