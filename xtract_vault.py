@@ -4,6 +4,8 @@ Vault DataExtractor
 
 from data_xtract import DataExtractor, InfoOutput, QueryFilter
 
+
+# TODO needs to move
 VAULT_TARGETS = ('ns', 'mount', 'aws', 'kv', 'ldap', 'db', 'db_role')
 
 class VaultDataExtractor(DataExtractor):

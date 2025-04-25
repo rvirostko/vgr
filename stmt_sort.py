@@ -8,12 +8,12 @@ from lark import Tree, Visitor
 #import pandas as pd
 
 from data_dict import DataDictionary
+from dd_config import do_set
 from evaluate import eval_filename_expr, bind_operations
 from mathpak import poly_sort, dsort
 from output import CSVRecordWriter, JSONRecordWriter, TextRecordWriter
 from redir import print_stderr
-from stmt_set import do_set, load_file_as
-from stmt_set import load_data_type
+from stmt_set import load_file_as, load_data_type
 
 _TYPE = 'type'
 _VAR = 'var'
@@ -185,7 +185,7 @@ def _write_data(dd: DataDictionary, data: list, target: dict) -> None:
             rw.finish()
             return
         if dtype in ('json_object', 'json_objects'):
-            rw = JSONRecordWriter(f, headers=headers, array_wrapper=(dtype=='json_object'))
+            rw = JSONRecordWriter(f, headers=headers, array_wrapper=dtype=='json_object')
             rw.start()
             for row in data:
                 rw.write([row])

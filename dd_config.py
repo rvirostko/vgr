@@ -3,6 +3,8 @@
 Utility routines for working with the global Data Dictionary
 """
 
+from copy import deepcopy
+from typing import Any
 import getpass
 import math
 import os
@@ -13,6 +15,7 @@ from lark import Tree
 
 from data_dict import DataDictionary
 from mathpak import coerce_value
+from redir import shorten, print_stderr
 
 _VGR_PREFIX = 'vgr'
 _STATEMENT_PATH = (_VGR_PREFIX, 'statement')
@@ -79,6 +82,34 @@ def dd_clear_scratch(dd: DataDictionary) -> None:
 
 def dd_path(var_ref: Tree) -> tuple[str]:
     return tuple(name.value for name in var_ref.children)
+
+def do_assignment(dd: DataDictionary, expr: Tree, value: Any, path: tuple[str]) -> None:
+    """
+    Use when you are doing an assignment (set) where you cannot be sure
+    that the result is a reference to another mutable variable such as a list or dict.
+    When it is, we need to make a copy before setting the value in the DD.
+    """
+    if isinstance(expr, Tree) and expr.data == 'var_ref' and isinstance(value, (list, dict)):
+        value = deepcopy(value)
+    do_set(dd, value, *path)
+
+def do_set(dd: DataDictionary, value: Any, *path) -> None:
+    """
+    After calculations are done, use this to set a value.
+    Generates verbose output.
+    """
+    new_value = dd.set_var_user(value, *path)
+    if dd.verbose:
+        print_stderr(dd, 'Set', '.'.join(path), 'To', shorten(repr(new_value)))
+
+def do_unset(dd: DataDictionary, *path) -> None:
+    """
+    Use this to unset a value.
+    Generates verbose output.
+    """
+    old_value = dd.unset_var_user(*path)
+    if dd.verbose:
+        print_stderr(dd, 'Removed', shorten(repr(old_value)), 'From', '.'.join(path))
 
 def _get_os_consts() -> dict:
     rc = { key: value for key, value in _get_consts(os).items() if key in _OS_CONSTS }

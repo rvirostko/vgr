@@ -6,23 +6,22 @@ import math
 
 from lark import Lark, Tree, Token, Transformer, v_args
 
-from app_exceptions import remember_terminals, StatementBreak, StatementConinue
+from app_exceptions import remember_terminals, StatementBreak, StatementContinue
 from data_dict import DataDictionary
 from dbg import print_tree
-from dd_config import dd_set_statement, dd_clear_scratch, dd_path
+from dd_config import dd_set_statement, dd_clear_scratch, dd_path, do_set, do_unset
 from evaluate import bind_operations, eval_expr
-from mathpak import poly_bool, poly_list
+from mathpak import poly_bool, poly_list, poly_int
 from redir import execute_open, execute_close, print_stderr
 from src_mgr import SSM
 from stmt_cflags import execute_debug, execute_echo, execute_verbose
 from stmt_exit import execute_assert, execute_exit
-from stmt_math import execute_add_to, execute_add_giving, execute_mul_by
-from stmt_math import execute_sub_from, execute_sub_giving, execute_div_into, execute_div_by
-from stmt_print import execute_exhibit, execute_print, execute_printf, execute_display_on
+from stmt_print import execute_print, execute_printf
 from stmt_select import execute_select
-from stmt_set import execute_load_from, execute_set, execute_unset, execute_inc, execute_dec, execute_move_to, do_set, do_unset
+from stmt_set import execute_load_from, execute_set, execute_unset
 from stmt_sort import execute_sort
 from stmt_zip import execute_zip
+from tags import control_statement
 
 def execute_break(_: DataDictionary, __: Tree) -> None:
     """Exits the current block of statements.
@@ -39,7 +38,7 @@ def execute_continue(_: DataDictionary, __: Tree) -> None:
 * Continue [;]
 
 """
-    raise StatementConinue()
+    raise StatementContinue()
 
 def execute_pass(_: DataDictionary, __: Tree) -> None:
     """A placeholder for a statement.
@@ -49,7 +48,7 @@ def execute_pass(_: DataDictionary, __: Tree) -> None:
 A placeholder for a statement, such as during iterative development
 which takes no action and has no side effects."""
 
-def _exec_if_else(dd: DataDictionary, statement: Tree, desired_value: bool) -> None:
+def exec_if_else(dd: DataDictionary, statement: Tree, desired_value: bool) -> None:
     if dd.echo:
         print_stderr(SSM.source_for(statement, statement.children[1]))
     if poly_bool(eval_expr(dd, bind_operations(statement.children[0]))) == desired_value:
@@ -62,17 +61,25 @@ def _exec_if_else(dd: DataDictionary, statement: Tree, desired_value: bool) -> N
             for s in last.children:
                 dispatch_statement(dd, s)
 
+@control_statement
 def execute_if(dd: DataDictionary, statement: Tree) -> None:
     """Conditionally execute a block of statements.
 
-* If _expression_ [Then | :] _statement_... End [;]
-* If _expression_ [Then | :] _statement_... Else [Do | :] _statement_... End [;]
+* If _expression_ [Then | Do | :]
+    _statement_...
+  End [;]
+* If _expression_ [Then | Do | :]
+    _statement_...
+  Else [Do | :]
+    _statement_...
+  End [;]
 
 If the expression evaluates to True the first block of statements is executed.
 If it evaluates to False, the second block of statements, if provided, is executed.
 """
-    _exec_if_else(dd, statement, True)
+    exec_if_else(dd, statement, True)
 
+@control_statement
 def execute_unless(dd: DataDictionary, statement: Tree) -> None:
     """Conditionally execute a block of statements.
 
@@ -80,9 +87,9 @@ def execute_unless(dd: DataDictionary, statement: Tree) -> None:
 
 If the expression evaluates to False the block of statements is executed.
 """
-    _exec_if_else(dd, statement, False)
+    exec_if_else(dd, statement, False)
 
-def _exec_loop(dd: DataDictionary, statement: Tree, desired_value: bool) -> None:
+def exec_loop(dd: DataDictionary, statement: Tree, desired_value: bool) -> None:
     if dd.echo:
         print_stderr(SSM.source_for(statement, statement.children[1]))
     predicate = bind_operations(statement.children[0])
@@ -92,38 +99,80 @@ def _exec_loop(dd: DataDictionary, statement: Tree, desired_value: bool) -> None
             for s in statement.children[1:]: dispatch_statement(dd, s)
         except StatementBreak:
             return
-        except StatementConinue:
+        except StatementContinue:
             continue
 
+def exec_repeat(dd: DataDictionary, statement: Tree) -> None:
+    if dd.echo:
+        print_stderr(SSM.source_for(statement, statement.children[1]))
+    expr = bind_operations(statement.children[0])
+    counter = poly_int(eval_expr(dd, expr))
+    if isinstance(counter, (int, float)):
+        counter = math.floor(counter)
+        while counter > 0:
+            try:
+                for s in statement.children[1:]: dispatch_statement(dd, s)
+            except StatementBreak:
+                return
+            except StatementContinue:
+                pass
+            counter -= 1
+
+@control_statement
 def execute_while(dd: DataDictionary, statement: Tree) -> None:
     """Repeatedly execute a block of statements while a condition exists.
 
-* While _expression_ [Do | :] _statement_... End [;]
+* While _expression_ [Do | :]
+    _statement_...
+  End [;]
 
 As long as the expression evaluates to True, the block of statements is
 repeatedly executed.
 If a Break statement is encountered, looping ends regardless of the
 expression's value. If a Continue statement is encountered, statements
 following it are skipped, and the expression is checked again.
-    """
-    _exec_loop(dd, statement, True)
+"""
+    exec_loop(dd, statement, True)
 
+@control_statement
 def execute_until(dd: DataDictionary, statement: Tree) -> None:
     """Repeatedly execute a block of statements until a condition is reached.
 
-* Until _expression_ [Do | :] _statement_... End [;]
+* Until _expression_ [Do | :]
+    _statement_...
+  End [;]
 
 The block of statements is executed until the expression evaluates to True.
 If a Break statement is encountered, looping ends regardless of the
 expression's value. If a Continue statement is encountered, statements
 following it are skipped, and the expression is checked again.
 """
-    _exec_loop(dd, statement, False)
+    exec_loop(dd, statement, False)
 
+@control_statement
+def execute_repeat(dd: DataDictionary, statement: Tree) -> None:
+    """Execute a block of statements a fixed number of times.
+
+* Repeat _expression_ [Do | :]
+    _statement_...
+  End [;]
+
+The block of statements is executed the given number of times.
+The expression is evaluated an converted to an integer, rounding down.
+For any statements to execute, the value must be greater than or equal to one.
+If a Break statement is encountered, looping ends regardless of the
+expression's value. If a Continue statement is encountered, statements
+following it are skipped, and looping continues.
+"""
+    exec_repeat(dd, statement)
+
+@control_statement
 def execute_foreach(dd: DataDictionary, statement: Tree) -> None:
     """Iterate over a set of values.
 
-* ForEach _variable_ In _expression_ [Do | :] _statement_.. End [;]
+* ForEach _variable_ In _expression_ [Do | :]
+    _statement_...
+  End [;]
 
 If expression is a single value, non-_None_ value, the statements are executed
 exactly once. If a list, the statements are executed once for each item,
@@ -146,7 +195,7 @@ following it are skipped, and the loop continues with the next item.
                     for s in statement.children[2:]: dispatch_statement(dd, s)
                 except StatementBreak:
                     return
-                except StatementConinue:
+                except StatementContinue:
                     continue
         finally:
             do_unset(dd, *path)
@@ -189,45 +238,33 @@ class VarRefOptimizer(Transformer):
                     tree = c1
         return tree
 
-SIMPLE_STATEMENT_HANDLERS = {
-    'add_giving': execute_add_giving,
-    'add_to': execute_add_to,
+# NB: Extension may add items to this list,
+#     but they can't replace existing ones
+STATEMENT_HANDLERS = {
     'assert': execute_assert,
     'break': execute_break,
     'close': execute_close,
     'continue': execute_continue,
     'debug': execute_debug,
-    'dec': execute_dec,
-    'display_on': execute_display_on,
-    'div_by': execute_div_by,
-    'div_into': execute_div_into,
     'echo': execute_echo,
-    'exhibit': execute_exhibit,
     'exit': execute_exit,
-    'inc': execute_inc,
+    'foreach': execute_foreach,
+    'if': execute_if,
     'load_from': execute_load_from,
-    'move_to': execute_move_to,
-    'mul_by': execute_mul_by,
     'open': execute_open,
     'pass': execute_pass,
     'print': execute_print,
     'printf': execute_printf,
+    'repeat': execute_repeat,
+    'select': execute_select,
     'set': execute_set,
     'sort': execute_sort,
-    'sub_from': execute_sub_from,
-    'sub_giving': execute_sub_giving,
-    'unset': execute_unset,
-    'verbose': execute_verbose,
-    'zip': execute_zip,
-}
-
-X_STATEMENT_HANDLERS = {
-    'foreach': execute_foreach,
-    'if': execute_if,
-    'select': execute_select,
     'unless': execute_unless,
+    'unset': execute_unset,
     'until': execute_until,
+    'verbose': execute_verbose,
     'while': execute_while,
+    'zip': execute_zip,
 }
 
 def remove_comments(input_text: str) -> str:
@@ -246,7 +283,7 @@ def execute_statements(parser: Lark, dd: DataDictionary, statement_text: str, so
             dispatch_statement(dd, statement)
         except StatementBreak:
             if dd.verbose: print_stderr('Break used outside control statement; ignored')
-        except StatementConinue:
+        except StatementContinue:
             if dd.verbose: print_stderr('Continue used outside control statement; ignored')
 
 def dispatch_statement(dd: DataDictionary, statement: Tree) -> None:
@@ -254,17 +291,19 @@ def dispatch_statement(dd: DataDictionary, statement: Tree) -> None:
     dd_set_statement(dd, text)
     statement = ConstantsNormalizer().transform(statement)
     statement = VarRefOptimizer().transform(statement)
-    handler = SIMPLE_STATEMENT_HANDLERS.get(statement.data)
-    if handler:
-        statement = bind_operations(statement)
-        if dd.echo: print_stderr(text)
-    else:
-        handler = X_STATEMENT_HANDLERS.get(statement.data)
-        # NB: these statements need to do their own bind
-        #     and decide what to do for "echo"
     if dd.debug: print_tree(statement)
-    try:
-        if handler: handler(dd, statement)
-        else: raise NotImplementedError(f'No handler established for {statement.data}') #SNO
-    finally:
-        dd_clear_scratch(dd)
+    handler = STATEMENT_HANDLERS.get(statement.data)
+    if handler:
+        if not getattr(handler, "_is_control_statement", False):
+            # Simple statements: those that don't have nested
+            # statements, ones that don't interate, or have complex requirements
+            # Other statements need to handle binding
+            # and decide what to do for echo
+            statement = bind_operations(statement)
+            if dd.echo: print_stderr(text)
+        try:
+            handler(dd, statement)
+        finally:
+            dd_clear_scratch(dd)
+    else:
+        raise NotImplementedError(f'No handler established for {statement.data}') #SNO

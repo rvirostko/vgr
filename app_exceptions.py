@@ -22,7 +22,7 @@ class StatementBreak(Exception):
     def __init__(self, *args):
         super().__init__(*args)
 
-class StatementConinue(Exception):
+class StatementContinue(Exception):
     """Thrown on a "continue" to unwind the control block"""
     def __init__(self, *args):
         super().__init__(*args)

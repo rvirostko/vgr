@@ -11,3 +11,6 @@ def vault_normalize_path(path: str) -> str:
 
 def encode_url(s: str) -> str:
     return urllib.parse.quote(s)
+
+def fix_dn(dn: str) -> str:
+    return None if dn is None else dn.replace(', ', ',')

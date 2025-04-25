@@ -11,8 +11,8 @@ from redir import print_stderr
 def execute_echo(dd: DataDictionary, statement: Tree) -> None:
     """Turn echo mode on or off
 
-* ECHO [;]
-* ECHO _expression_ [;]
+* Echo [;]
+* Echo _expression_ [;]
 
 When on, statements are echoed before execution
 """
@@ -22,8 +22,8 @@ When on, statements are echoed before execution
 def execute_debug(dd: DataDictionary, statement: Tree) -> None:
     """Turn debug mode on or off
 
-* DEBUG [;]
-* DEBUG _expression_ [;]
+* Debug [;]
+* Debug _expression_ [;]
 
 When on, additional technical output is generated.
 """
@@ -33,8 +33,8 @@ When on, additional technical output is generated.
 def execute_verbose(dd: DataDictionary, statement: Tree) -> None:
     """Turn verbose mode on or off
 
-* VERBOSE [;]
-* VERBOSE _expression_ [;]
+* Verbose [;]
+* Verbose _expression_ [;]
 
 When on, additional operational output is generated.
 """

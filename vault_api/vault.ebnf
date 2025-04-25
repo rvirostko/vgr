@@ -1,4 +1,4 @@
-vault_command: vault_default_ns
+?vault_statements: vault_default_ns
     | vault_create_ns
     | vault_read_ns
     | vault_update_ns
@@ -38,7 +38,7 @@ vault_list_ns   : "Vault"i "ListNamespaces"i expr? vault_args _SEMICOLON?
 vault_lock_ns   : "Vault"i "LockNamespace"i expr vault_args _SEMICOLON?
 vault_unlock_ns : "Vault"i "UnlockNamespace"i expr vault_args _SEMICOLON?
 
-// Secrete Engine Mount Points
+// Secret Engine Mount Points
 vault_create_mount : "Vault"i "CreateMount"i expr vault_args _SEMICOLON?
 vault_read_mount   : "Vault"i "ReadMount"i expr vault_args _SEMICOLON?
 vault_update_mount : "Vault"i "UpdateMount"i expr vault_args _SEMICOLON?
@@ -68,12 +68,11 @@ vault_list_ldap_secrets  : "Vault"i "ListLdapSecrets"i expr vault_args _SEMICOLO
 vault_rotate_ldap_secret : "Vault"i "RotateLdapSecret"i expr vault_args _SEMICOLON?
 
 ?vault_args: (_COMMA? vault_option (_COMMA vault_option)*)?
-vault_option: "Floop_opt" // TODO Placeholder
-    | "Config"i ("=" | ":=") var_name
-    | "Data"i ("=" | ":=") var_name
-    | "Description"i ("=" | ":=") expr
-    | "Key"i ("=" | ":=") expr
-    | "Meta"i ("=" | ":=") var_name
-    | "Namespace"i ("=" | ":=") expr
-    | "Result"i ("=" | ":=") var_name
-    | "Type"i ("=" | ":=") expr
+vault_option: "Config"i ("=" | ":=") var_name -> vopt_config
+    | "Data"i ("=" | ":=") var_name -> vopt_data
+    | "Description"i ("=" | ":=") expr -> vopt_description
+    | "Key"i ("=" | ":=") expr -> vopt_key
+    | "Meta"i ("=" | ":=") var_name -> vopt_meta
+    | "Namespace"i ("=" | ":=") expr -> vopt_namespace
+    | "Result"i ("=" | ":=") var_name -> vopt_result
+    | "Type"i ("=" | ":=") expr -> vopt_type

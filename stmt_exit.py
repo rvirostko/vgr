@@ -14,8 +14,8 @@ from src_mgr import SSM
 def execute_exit(dd: DataDictionary, statement: Tree) -> None:
     """Terminate execution
 
-* EXIT [;]
-* EXIT _expression_ [;]
+* Exit [;]
+* Exit _expression_ [;]
 
 The _expression_ is a numeric the code returned to the shell.
 The default return code is zero.
@@ -34,8 +34,8 @@ Note that in this specific case "True" returns zero and "False" returns one.
 def execute_assert(dd: DataDictionary, statement: Tree) -> None:
     """Assert that a condition is met, terminating execution if it is not
 
-* ASSERT _expression_ [;]
-* ASSERT _expression_ : _expression_ [, _expression]... [;]
+* Assert _expression_ [;]
+* Assert _expression_ : _expression_ [, _expression]... [;]
 
 The first expression is evaluated as a boolean value which must be true for execution to continue.
 

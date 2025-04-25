@@ -17,6 +17,7 @@ from output import CSVRecordWriter, JSONRecordWriter, MarkdownRecordWriter, Temp
 from output import RecordWriter, RecordLimiter, RecordCartesianProduct
 from redir import stdout, stderr, print_stderr
 from stmt_set import load_data_type, load_file_as
+from tags import control_statement
 from xtract_memory import InMemoryExtractor
 from xtract_vault import VAULT_TARGETS, VaultDataExtractor
 
@@ -367,6 +368,7 @@ def add_implicit(dd, from_type, target, tree) -> Tree:
     if from_type == 'from_vault': valid_contexts += VAULT_TARGETS
     return ImplicitContextAdder().add_contexts(tree, target, valid_contexts)
 
+@control_statement
 def execute_select(dd: DataDictionary, statement: Tree):
     select = SelectAnalyzer(dd).analyze(statement)
     # NB: at this point not all operations will show as bound

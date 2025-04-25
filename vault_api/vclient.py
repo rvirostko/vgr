@@ -9,6 +9,8 @@ from urllib.parse import urlparse
 import http.client
 import json
 
+from .util import encode_url
+
 _MIME_JSON: str = 'application/json'
 _UTF_8: str = 'utf-8'
 
@@ -138,7 +140,7 @@ class VaultClient():
 
 
     def create_namespace(self, new_namespace: str, namespace: str=None) -> Dict[str, Any]:
-        return self.do_post(f'/v1/sys/namespaces/{new_namespace}', namespace)
+        return self.do_post(encode_url(f'/v1/sys/namespaces/{new_namespace}'), namespace)
 
     # TODO read_namespace
     # TODO update_namespace
@@ -151,11 +153,11 @@ class VaultClient():
     # TODO unlock_namespace
 
     def create_mount(self, mount_point: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
-        return self.do_post(f'/v1/sys/mounts/{mount_point}', config, namespace)
+        return self.do_post(encode_url(f'/v1/sys/mounts/{mount_point}'), config, namespace)
         # See https://github.com/hashicorp/terraform-provider-vault/issues/677#issuecomment-609116328
 
     def read_mount(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
-        return self.do_get(f'/v1/sys/mounts/{mount_point}', namespace)
+        return self.do_get(encode_url(f'/v1/sys/mounts/{mount_point}'), namespace)
 
     # TODO update_mount
     # TODO delete_mount
@@ -163,17 +165,38 @@ class VaultClient():
     def list_mounts(self, namespace :str) ->  Dict[str, Any]:
         return self.do_get('/v1/sys/mounts', namespace)
 
-    def load_kv2_secret(self, mount_point: str, path: str, data: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
-        return self.do_post(f'/v1/{mount_point}/data/{path}', data, namespace)
+    def _fix_kv_path(self, path: str) -> str:
+        return path if path.startswith('/') else path + '/'
 
-    def load_kv2_metadata(self, mount_point: str, path: str, meta_data: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
-        return self.do_post(f'/v1/{mount_point}/metadata/{path}', meta_data, namespace)
+    def update_kv2_secret(self, mount_point: str, path: str, data: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
+        path = self._fix_kv_path(path)
+        return self.do_post(encode_url(f'/v1/{mount_point}/data{path}'), data, namespace)
+
+    def read_kv2_metadata(self, namespace: str, mount_point: str, path: str) -> dict:
+        path = self._fix_kv_path(path)
+        return self.do_get(encode_url(f'/v1/{mount_point}/metadata{path}'), namespace).get('data', {})
+
+    def update_kv2_metadata(self, mount_point: str, path: str, meta_data: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
+        path = self._fix_kv_path(path)
+        return self.do_post(encode_url(f'/v1/{mount_point}/metadata{path}'), meta_data, namespace)
+
+    def get_kv2_subkeys(self, namespace: str, mount_point: str, path: str) -> list:
+        path = self._fix_kv_path(path)
+        subkeys = self.do_get(encode_url(f'/v1/{mount_point}/subkeys{path}') + '?depth=1', namespace).get('data', {}).get('subkeys', {})
+        return [subkeys.keys()] if subkeys else []
+
+    def list_kv2_subpaths(self, namespace: str, mount_point: str, path: str='') -> list:
+        path = self._fix_kv_path(path)
+        paths = self.do_list(encode_url(f'/v1/{mount_point}/metadata{path}'), namespace).get('data', {}).get('keys', [])
+        return sorted(list(set([f"{path.rstrip('/')}" for path in paths])))
 
     def __enter__(self):
         return self.open()
 
+    #pylint: disable=unused-argument
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.close()
+    #pylint: enable=unused-argument
 
     def _ns(self, ns: str) -> str:
         # Go thought the options: what the user provided on the call,

@@ -93,8 +93,8 @@ class CmdLine:
     }
 
     def __init__(self):
-        self._print_debug("Loading history from ", self.history_filename)
-        self._print_debug("Max history entries is ", self.max_history_entries)
+        self._print_debug("Loading history from", self.history_filename)
+        self._print_debug("Max history entries is", self.max_history_entries)
         self._history = LimitedFileHistory(self.history_filename, self.max_history_entries)
         self.multiline = False
         self._dispatch = {

@@ -1,0 +1,48 @@
+?cobol_statements: cobol_add_giving
+    | cobol_add_to
+    | cobol_compute
+    | cobol_dec
+    | cobol_display_on
+    | cobol_div_by
+    | cobol_div_into
+    | cobol_exhibit
+    | cobol_exit
+    | cobol_if
+    | cobol_inc
+    | cobol_move_to
+    | cobol_mul_by
+    | cobol_next_sentence
+    | cobol_perform_times
+    | cobol_perform_until
+    | cobol_perform_varying
+    | cobol_sub_from
+    | cobol_sub_giving
+
+cobol_compute: "Compute"i var_name "=" expr "End-Compute"i? _SEMICOLON?
+cobol_inc: "Set"i var_name "Up"i "By"i expr "End-Compute"i? _SEMICOLON?
+cobol_dec: "Set"i var_name "Down"i "By"i expr _SEMICOLON?
+cobol_exit: "Stop"i "Run"i _SEMICOLON?
+cobol_perform_times: "Perform"i expr "Times"i statement+ "End-Perform"i _SEMICOLON?
+cobol_perform_until: "Perform"i "Until"i expr statement+ "End-Perform"i _SEMICOLON?
+cobol_perform_varying: "Perform"i varying_test_type? "Varying"i var_name "From"i expr "By"i expr "Until"i expr statement+ "End-Perform"i _SEMICOLON?
+?varying_test_type: "With"i? "Test"i "Before"i -> test_before
+    | "With"i? "Test"i "After"i -> test_after
+cobol_if: "If"i expr statement+ cobol_else_clause? "End-If"i _SEMICOLON?
+cobol_else_clause: "Else"i statement+ -> else
+cobol_next_sentence: "Next"i "Sentence"i _SEMICOLON?
+
+cobol_exhibit: "Exhibit"i var_name (_COMMA var_name)* _SEMICOLON?
+cobol_display_on: "Display"i expr (_COMMA expr)* (("Upon"i | "On"i) io_type)? _SEMICOLON?
+
+cobol_add_to: "Add"i expr (_COMMA expr)* "To"i var_name "End-Add"i? _SEMICOLON?
+cobol_add_giving: "Add"i expr (_COMMA expr)* "To"i expr "Giving"i var_name "End-Add"i? _SEMICOLON?
+
+cobol_sub_from: "Subtract"i expr (_COMMA expr)* "From"i var_name "End-Subtract"i? _SEMICOLON?
+cobol_sub_giving: "Subtract"i expr (_COMMA expr)* "From"i expr "Giving"i var_name "End-Subtract"i? _SEMICOLON?
+cobol_mul_by: "Multiply"i expr "By"i (expr "Giving"i)? var_name "End-Multiply"i? _SEMICOLON?
+
+cobol_div_into: "Divide"i expr "Into"i (expr "Giving"i)? var_name "End-Divide"i? _SEMICOLON?
+cobol_div_by: "Divide"i expr "By"i expr "Giving"i var_name "End-Divide"i? _SEMICOLON?
+
+cobol_move_to: "Move"i CORR? expr "To"i var_name _SEMICOLON?
+CORR.80: ("Corresponding"i | "Corr"i)
