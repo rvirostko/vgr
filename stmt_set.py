@@ -12,6 +12,8 @@ from lark import Tree, Token
 from data_dict import DataDictionary
 from dd_config import dd_path, do_assignment, do_unset
 from evaluate import eval_expr, eval_filename_expr
+from mathpak import poly_add, poly_sub, poly_mul, poly_div, poly_fdiv, poly_mod, poly_pow
+from mathpak import poly_bit_and, poly_bit_or, poly_bit_xor, poly_shl, poly_shr
 from redir import print_stderr, shorten
 
 def execute_set(dd: DataDictionary, statement: Tree) -> None:
@@ -31,6 +33,42 @@ def execute_unset(dd: DataDictionary, statement: Tree) -> None:
     for item in statement.children:
         path = dd_path(item)
         do_unset(dd, *path)
+
+_IN_PLACE_OP = {
+    "+=":  poly_add,
+    "-=":  poly_sub,
+    "*=":  poly_mul,
+    "/=":  poly_div,
+    "//=": poly_fdiv,
+    "%=":  poly_mod,
+    "**=": poly_pow,
+    "&=":  poly_bit_and,
+    "|=":  poly_bit_or,
+    "^=":  poly_bit_xor,
+    "<<=": poly_shl,
+    ">>=": poly_shr,
+}
+def execute_set_in_place(dd: DataDictionary, statement: Tree) -> None:
+    """Modify an variables existing value.
+
+* Set _variable_ += _expression_ [;] -- Addition
+* Set _variable_ -= _expression_ [;] -- Subtraction
+* Set _variable_ *= _expression_ [;] -- Multiplication
+* Set _variable_ /= _expression_ [;] -- Division
+* Set _variable_ //= _expression_ [;] -- Floor Division
+* Set _variable_ %= _expression_ [;] -- Modulo
+* Set _variable_ **= _expression_ [;] -- Power
+* Set _variable_ &= _expression_ [;] -- Bit And
+* Set _variable_ |= _expression_ [;] -- Bit Or
+* Set _variable_ ^= _expression_ [;] -- Bit Xor
+* Set _variable_ <<= _expression_ [;] -- Bit Shift Left
+* Set _variable_ >>= _expression_ [;] -- Bit Shift Right
+
+"""
+    path = dd_path(statement.children[0])
+    op = _IN_PLACE_OP[statement.children[1].value]
+    expr = statement.children[2]
+    do_assignment(dd, expr, op(dd.get_var_user(*path), eval_expr(dd, expr)), path)
 
 def execute_load_from(dd: DataDictionary, statement: Tree) -> None:
     """Assign a value to a variable from a file.

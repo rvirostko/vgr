@@ -18,7 +18,7 @@ from stmt_cflags import execute_debug, execute_echo, execute_verbose
 from stmt_exit import execute_assert, execute_exit
 from stmt_print import execute_print, execute_printf
 from stmt_select import execute_select
-from stmt_set import execute_load_from, execute_set, execute_unset
+from stmt_set import execute_load_from, execute_set, execute_unset, execute_set_in_place
 from stmt_sort import execute_sort
 from stmt_zip import execute_zip
 from stmt_misc import execute_sleep
@@ -242,31 +242,32 @@ class VarRefOptimizer(Transformer):
 # NB: Extension may add items to this list,
 #     but they can't replace existing ones
 STATEMENT_HANDLERS = {
-    'assert':    execute_assert,
-    'break':     execute_break,
-    'close':     execute_close,
-    'continue':  execute_continue,
-    'debug':     execute_debug,
-    'echo':      execute_echo,
-    'exit':      execute_exit,
-    'foreach':   execute_foreach,
-    'if':        execute_if,
-    'load_from': execute_load_from,
-    'open':      execute_open,
-    'pass':      execute_pass,
-    'print':     execute_print,
-    'printf':    execute_printf,
-    'repeat':    execute_repeat,
-    'select':    execute_select,
-    'set':       execute_set,
-    'sleep':     execute_sleep,
-    'sort':      execute_sort,
-    'unless':    execute_unless,
-    'unset':     execute_unset,
-    'until':     execute_until,
-    'verbose':   execute_verbose,
-    'while':     execute_while,
-    'zip':       execute_zip,
+    'assert':       execute_assert,
+    'break':        execute_break,
+    'close':        execute_close,
+    'continue':     execute_continue,
+    'debug':        execute_debug,
+    'echo':         execute_echo,
+    'exit':         execute_exit,
+    'foreach':      execute_foreach,
+    'if':           execute_if,
+    'load_from':    execute_load_from,
+    'open':         execute_open,
+    'pass':         execute_pass,
+    'print':        execute_print,
+    'printf':       execute_printf,
+    'repeat':       execute_repeat,
+    'select':       execute_select,
+    'set':          execute_set,
+    'set_in_place': execute_set_in_place,
+    'sleep':        execute_sleep,
+    'sort':         execute_sort,
+    'unless':       execute_unless,
+    'unset':        execute_unset,
+    'until':        execute_until,
+    'verbose':      execute_verbose,
+    'while':        execute_while,
+    'zip':          execute_zip,
 }
 
 def remove_comments(input_text: str) -> str:

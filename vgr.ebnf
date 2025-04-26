@@ -47,7 +47,6 @@ statements: statement+
     | debug
     | echo
     | exit
-    | in_place_op
     | load_from
     | open
     | pass
@@ -89,8 +88,7 @@ sleep: "Sleep"i "For"i? expr ("Seconds"i | "Second"i)? _SEMICOLON?
 
 set: "Set"i var_name ("=" | ":=" | "To"i) expr _SEMICOLON?
     | "Var"i? var_name "=" expr _SEMICOLON?
-
-in_place_op: var_name IN_PLACE_OP expr _SEMICOLON?
+    | ("Set"i | "Var"i)? var_name IN_PLACE_OP expr _SEMICOLON? -> set_in_place
 IN_PLACE_OP: ("+=" | "-=" | "*=" | "/=" | "//=" | "%=" | "**=" | "&=" | "|=" | "^=" | "<<=" | ">>=" )
 
 unset: "Unset"i (var_name (_COMMA? var_name)*)? _SEMICOLON?
