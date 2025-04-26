@@ -1,4 +1,5 @@
-?cobol_statements: cobol_add_giving
+?cobol_statements: cobol_accept
+    | cobol_add_giving
     | cobol_add_to
     | cobol_compute
     | cobol_dec
@@ -18,7 +19,14 @@
     | cobol_sub_from
     | cobol_sub_giving
 
-cobol_compute: "Compute"i var_name "=" expr "End-Compute"i? _SEMICOLON?
+cobol_accept: "Accept"i var_name "From"i "Date"i _SEMICOLON? -> cobol_accept_date
+    | "Accept"i var_name "From"i "Date"i "YYYYMMDD"i _SEMICOLON? -> cobol_accept_yyyymmdd
+    | "Accept"i var_name "From"i "Day"i _SEMICOLON? -> cobol_accept_day
+    | "Accept"i var_name "From"i "Day"i "YYYYDDD"i _SEMICOLON? -> cobol_accept_yyyyddd
+    | "Accept"i var_name "From"i "Day-Of-Week"i _SEMICOLON? -> cobol_accept_dow
+    | "Accept"i var_name "From"i "Time"i _SEMICOLON? -> cobol_accept_time
+    | "Accept"i var_name "From"i ("Unix"i? "Epoch"i | "Timestamp"i) _SEMICOLON? -> cobol_accept_epoch
+cobol_compute: "Compute"i var_name ("=" | "Equals"i) expr "End-Compute"i? _SEMICOLON?
 cobol_inc: "Set"i var_name "Up"i "By"i expr "End-Compute"i? _SEMICOLON?
 cobol_dec: "Set"i var_name "Down"i "By"i expr _SEMICOLON?
 cobol_exit: "Stop"i "Run"i _SEMICOLON?

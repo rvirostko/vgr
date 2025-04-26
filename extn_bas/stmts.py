@@ -12,8 +12,6 @@ from stmt_set import execute_set
 from tags import control_statement
 from src_mgr import SSM
 from dd_config import dd_path, do_set, do_unset
-from evaluate import eval_expr
-from mathpak import poly_number
 
 @control_statement
 def execute_do_while(dd: DataDictionary, statement: Tree) -> None:

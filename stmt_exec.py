@@ -21,6 +21,7 @@ from stmt_select import execute_select
 from stmt_set import execute_load_from, execute_set, execute_unset
 from stmt_sort import execute_sort
 from stmt_zip import execute_zip
+from stmt_misc import execute_sleep
 from tags import control_statement
 
 def execute_break(_: DataDictionary, __: Tree) -> None:
@@ -241,30 +242,31 @@ class VarRefOptimizer(Transformer):
 # NB: Extension may add items to this list,
 #     but they can't replace existing ones
 STATEMENT_HANDLERS = {
-    'assert': execute_assert,
-    'break': execute_break,
-    'close': execute_close,
-    'continue': execute_continue,
-    'debug': execute_debug,
-    'echo': execute_echo,
-    'exit': execute_exit,
-    'foreach': execute_foreach,
-    'if': execute_if,
+    'assert':    execute_assert,
+    'break':     execute_break,
+    'close':     execute_close,
+    'continue':  execute_continue,
+    'debug':     execute_debug,
+    'echo':      execute_echo,
+    'exit':      execute_exit,
+    'foreach':   execute_foreach,
+    'if':        execute_if,
     'load_from': execute_load_from,
-    'open': execute_open,
-    'pass': execute_pass,
-    'print': execute_print,
-    'printf': execute_printf,
-    'repeat': execute_repeat,
-    'select': execute_select,
-    'set': execute_set,
-    'sort': execute_sort,
-    'unless': execute_unless,
-    'unset': execute_unset,
-    'until': execute_until,
-    'verbose': execute_verbose,
-    'while': execute_while,
-    'zip': execute_zip,
+    'open':      execute_open,
+    'pass':      execute_pass,
+    'print':     execute_print,
+    'printf':    execute_printf,
+    'repeat':    execute_repeat,
+    'select':    execute_select,
+    'set':       execute_set,
+    'sleep':     execute_sleep,
+    'sort':      execute_sort,
+    'unless':    execute_unless,
+    'unset':     execute_unset,
+    'until':     execute_until,
+    'verbose':   execute_verbose,
+    'while':     execute_while,
+    'zip':       execute_zip,
 }
 
 def remove_comments(input_text: str) -> str:

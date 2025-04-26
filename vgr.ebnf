@@ -54,6 +54,7 @@ statements: statement+
     | print
     | printf
     | set
+    | sleep
     | sort
     | unset
     | verbose
@@ -82,7 +83,9 @@ debug: "Debug"i (("=" | ":=" | "Is"i)? expr)? _SEMICOLON?
 echo: "Echo"i (("=" | ":=" | "Is"i)? expr)? _SEMICOLON?
 verbose: "Verbose"i (("=" | ":=" | "Is"i)? expr)? _SEMICOLON?
 
-pass: "Pass"i | "Nop"i
+pass: ("Pass"i | "Nop"i) _SEMICOLON?
+
+sleep: "Sleep"i "For"i? expr ("Seconds"i | "Second"i)? _SEMICOLON?
 
 set: "Set"i var_name ("=" | ":=" | "To"i) expr _SEMICOLON?
     | "Var"i? var_name "=" expr _SEMICOLON?

@@ -2,6 +2,7 @@
 COBOL statements
 """
 
+from datetime import datetime
 from typing import Any
 
 from lark import Tree, Token
@@ -9,13 +10,35 @@ from lark import Tree, Token
 from app_exceptions import ExitingException, StatementBreak, StatementContinue
 from data_dict import DataDictionary
 from dd_config import dd_path, do_set, do_assignment, do_unset
-from evaluate import eval_expr, bind_operations
+from evaluate import eval_expr, bind_operations, eval_to_number
 from mathpak import poly_add, poly_bool, poly_sub, poly_number, poly_vadd, poly_vsub, poly_mul, poly_div
 from redir import print_stderr, print_stdout
 from src_mgr import SSM
 from stmt_exec import exec_if_else, exec_loop, exec_repeat, dispatch_statement
 from stmt_set import execute_set
 from tags import control_statement
+
+def execute_accept_date(dd: DataDictionary, statement: Tree) -> None:
+    do_set(dd, datetime.now().strftime('%y%m%d'), *dd_path(statement.children[0]))
+
+def execute_accept_yyyymmdd(dd: DataDictionary, statement: Tree) -> None:
+    do_set(dd, datetime.now().strftime('%Y%m%d'), *dd_path(statement.children[0]))
+
+def execute_accept_day(dd: DataDictionary, statement: Tree) -> None:
+    do_set(dd, datetime.now().strftime('%y%j'), *dd_path(statement.children[0]))
+
+def execute_accept_yyyyddd(dd: DataDictionary, statement: Tree) -> None:
+    do_set(dd, datetime.now().strftime('%Y%j'), *dd_path(statement.children[0]))
+
+def execute_accept_dow(dd: DataDictionary, statement: Tree) -> None:
+    do_set(dd, datetime.now().weekday() + 1, *dd_path(statement.children[0]))
+
+def execute_accept_time(dd: DataDictionary, statement: Tree) -> None:
+    now = datetime.now()
+    do_set(dd, now.strftime('%H%M%S') + f'{now.microsecond // 10000:02d}', *dd_path(statement.children[0]))
+
+def execute_accept_epoch(dd: DataDictionary, statement: Tree) -> None:
+    do_set(dd, int(datetime.now().timestamp()), *dd_path(statement.children[0]))
 
 def execute_exit(_: DataDictionary, statement: Tree) -> None:
     """Terminate execution
@@ -89,10 +112,10 @@ If not specified, the test expression is performed before the block of statement
         cindex += 1
     path = dd_path(statement.children[cindex])
     cindex += 1
-    value = poly_number(eval_expr(dd, bind_operations(statement.children[cindex])))
+    value = eval_to_number(dd, bind_operations(statement.children[cindex]), 'Perform Varying start value')
     cindex += 1
-    inc = poly_number(eval_expr(dd, bind_operations(statement.children[cindex])))
-    if inc is None or inc == 0: raise ValueError('Perform Varying requires a non-zero increment')
+    inc = eval_to_number(dd, bind_operations(statement.children[cindex]), 'Perform Varying increment')
+    if inc == 0: raise ValueError('Perform Varying requires a non-zero increment')
     cindex += 1
     predicate = bind_operations(statement.children[cindex])
     cindex += 1
