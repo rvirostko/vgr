@@ -13,7 +13,7 @@ from data_dict import DataDictionary
 from dd_config import dd_init, dd_parse_user_args
 from dd_config import DEFAULT_FOR_TYPE_PATH, SHELL_HISTORY_PATH, SHELL_HISTORY_SIZE_PATH, SHELL_PROMPT_PATH
 from extn import VgrExtensionRegistry, VER
-from functions import get_function_defs
+from functions import get_function_defs, add_builtin_functions, add_function
 from interactive import CmdLine
 from mathpak import poly_bool
 from output import expand_filename
@@ -132,12 +132,18 @@ def load_extensions(dd: DataDictionary, extn_file: str) -> VgrExtensionRegistry:
         extn_file = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'extensions.ini')
     print_debug(dd, 'Extension file is', extn_file)
     VER.load(dd, extn_file)
+    extns=[]
     for extn_name, extn in VER:
+        extns.append((extn_name, f'{extn.__class__.__module__}.{extn.__class__.__qualname__}',extn.adds_statements(), extn.extends_select(), ))
         if extn.adds_statements():
             for name, handler in extn.statement_handlers().items():
                 if name in STATEMENT_HANDLERS:
                     raise ValueError(f'Extension {repr(extn_name)} tried to redefine {repr(name)}')
                 STATEMENT_HANDLERS[name] = handler
+        for func_name, func in extn.functions().items():
+            add_function(extn_name, func_name, func)
+
+    dd.set_var(extns, *('vgr', 'extensions'))
     return VER
 
 def create_parser(dd: DataDictionary, grammar_file: str, extn_registry: VgrExtensionRegistry) -> Lark:
@@ -154,7 +160,6 @@ def create_parser(dd: DataDictionary, grammar_file: str, extn_registry: VgrExten
         if instance.adds_statements(): extn_statements += f'| {name}_statements'
         extn_grammar += instance.grammar()
         if not extn_grammar.endswith('/n'): extn_grammar += '\n'
-        # TODO need to extend functions
     if dd.debug:
         print_debug(dd, f'EXTN_STATMENTS={extn_statements}')
         print_debug(dd, f'EXTN_FROM={extn_from}')
@@ -219,12 +224,13 @@ Environment variables:
     clp.add_argument('--grammar',  metavar="FILE", type=str,
                     default=None, help='Grammar definition: developement option only')
     clp.add_argument('--extensions',  metavar="FILE", type=str,
-                    default=None, help='Extensions file: developement option only')
+                    default=None, help='Extensions file')
     clp.add_argument('user_args', nargs='*', metavar='NAME=VALUE',
                     default=[], help='Additional arguments. Values maybe booleans, numbers, or strings')
     args = clp.parse_args()
 
     dd = create_dd(args)
+    add_builtin_functions()
     extensions = load_extensions(dd, args.extensions)
     parser = create_parser(dd, args.grammar, extensions)
     if args.user_args:

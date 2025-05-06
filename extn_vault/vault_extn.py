@@ -11,6 +11,8 @@ from extn import VgrExtension
 from data_dict import DataDictionary
 from evaluate import eval_to_str
 
+from .functions import duration_to_ms, ms_to_duration
+
 def execute_default_ns(dd: DataDictionary, statement: Tree) -> None:
     ns: str = eval_to_str(dd, statement.children[0], 'Default Namespace', True)
     dd.set_var('' if ns is None or ns.isspace() else ns.strip(), *_DEFAULT_NS_PATH)
@@ -56,6 +58,11 @@ _TARGETS = ('ns', 'mount', 'aws', 'kv', 'ldap', 'db', 'db_role')
 _VAULT_PREFIX = 'vault'
 _DEFAULT_NS_PATH = (_VAULT_PREFIX, 'default_ns')
 
+_FUNCTIONS = {
+  "DurationToMs": duration_to_ms,
+  "MsToDuration": ms_to_duration,
+}
+
 class VaultExtension(VgrExtension):
 
     def initialize(self, dd: DataDictionary) -> None:
@@ -75,9 +82,8 @@ class VaultExtension(VgrExtension):
         g += 'vault_from: "Vault"i? VAULT_TARGET\n'
         return g + 'VAULT_TARGET: ' + ' | '.join(tuple(f'"{t}"i' for t in _TARGETS))
 
-# TODO move things out of mathpak?
-#    def functions(self) -> Dict[str, Callable]:
-#        return super().functions()
+    def functions(self) -> Dict[str, Callable]:
+        return _FUNCTIONS
 
     def statement_handlers(self) -> Dict[str, Callable]:
         return STATEMENT_HANDLERS

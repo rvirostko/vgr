@@ -6,7 +6,7 @@ It also generates the grammar fragments used to identify the functions.
 import re
 from collections import defaultdict
 import inspect
-from typing import Any
+from typing import Any, Callable
 
 from mathpak import poly_abs, poly_vadd, poly_vappend, poly_vbit_and, poly_vbit_or, poly_vbit_xor
 from mathpak import poly_bit_not, poly_bool, poly_capitalize, poly_casefold
@@ -25,7 +25,7 @@ from mathpak import poly_vreplace, poly_repr, poly_shr, poly_rightstr, poly_vrst
 from mathpak import poly_rindex, poly_sizeof, poly_sort, poly_startswith
 from mathpak import poly_str, poly_vstrip, poly_vsub, poly_substr, poly_swapcase, poly_title
 from mathpak import poly_translate, poly_trunc, poly_type, poly_unique, poly_upper
-from mathpak import duration_to_ms, ms_to_duration, parse_url, compile_pattern
+from mathpak import parse_url, compile_pattern
 from mathpak import md_blockquote, md_bold, md_code, md_code_block, md_heading, md_italics, md_strikethrough
 from mathpak import md_link, md_ordered_list, md_unordered_list
 from mathpak import poly_format, poly_vregex_replace, poly_split, poly_rsplit
@@ -43,10 +43,7 @@ def _default_to(value: Any, default: Any) -> Any:
 """
     return default if value is None else value
 
-# Binds a (pretty) name to the function to be executed
-# Additionally, we should use functions here rather than lambdas
-# so we can grab the __DOC__ for help functions.
-_FUNC_OPS = {
+_BUILT_IN_FUNCS = {
   "Abs": poly_abs,
   "Add": poly_vadd,
   "AppendStr": poly_vappend,
@@ -70,7 +67,6 @@ _FUNC_OPS = {
   "Dig": poly_vdig,
   "Div": poly_vdiv,
   "DivMod": poly_divmod,
-  "DurationToMs": duration_to_ms, # Vault specific
   "EndsWith": poly_endswith,
   "ExpandTabs": poly_expandtabs,
   "FirstItem": poly_firstitem,
@@ -127,7 +123,6 @@ _FUNC_OPS = {
   "MdStrikeThrough": md_strikethrough,
   "MdUnorderedList": md_unordered_list,
   "Mod": poly_mod,
-  "MsToDuration": ms_to_duration, # Vault specific
   "Mul": poly_vmul,
   "Number": poly_number,
   "ParseBinary": poly_parse_bin,
@@ -176,10 +171,31 @@ _FUNC_OPS = {
   "ZeroFill": poly_zfill,
 }
 
+# Binds a (pretty) name to the function to be executed
+# Additionally, we should use functions here rather than lambdas
+# so we can grab the __DOC__ for help functions.
+_FUNC_OPS = {}
+
 # This index provides a way to find functions independent of case.
 # Use get_function_op() to find entries.
 # It's also used to generate the big regex to identify function names
-_FUNC_INDEX = {k.lower(): k for k in _FUNC_OPS} | { re.sub(r'([a-z])([A-Z])', r'\1_\2', k).lower(): k for k in _FUNC_OPS  }
+_FUNC_INDEX = {}
+
+def _to_snake_case(s: str) -> str:
+    s = re.sub(r'(?<=[a-z0-9])([A-Z])', r'_\1', s)  # insert _ before A-Z if preceded by lowercase or digit
+    s = re.sub(r'(?<=[A-Z])([A-Z][a-z])', r'_\1', s)  # handle acronym boundary: XMLParser -> XML_Parser
+    return s.lower()
+
+def add_builtin_functions() -> None:
+    for name, function in _BUILT_IN_FUNCS.items(): add_function('built-in', name, function)
+
+def add_function(extn_name: str, name: str, function: Callable) -> None:
+    lc = name.lower()
+    if lc in _FUNC_INDEX:
+        raise ValueError(f'Extension {repr(extn_name)} tried to redefine {repr(name)}')
+    _FUNC_OPS[name] = function
+    _FUNC_INDEX[lc] = name
+    _FUNC_INDEX[_to_snake_case(name)] = name
 
 # The max value of an arg range when we have variable arguments
 _IS_VARARGS = float('inf')
