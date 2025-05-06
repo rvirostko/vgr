@@ -1,11 +1,10 @@
 """
-The Sort statement, based on Cobol with uniqueness extension, implemented in Panda.
+The Sort statement, based on Cobol with uniqueness extension.
 """
 
 import copy
 
 from lark import Tree, Visitor
-#import pandas as pd
 
 from data_dict import DataDictionary
 from dd_config import do_set
