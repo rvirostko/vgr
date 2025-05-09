@@ -30,8 +30,7 @@ def poly_sort(x: Any, unique: bool=False, reverse: bool=False) -> Any:
     return x
 
 def poly_isempty(x: Any) -> bool:
-    if isinstance(x, str): return x is None or len(x) == 0 or x.isspace()
-    return x is None or not x
+    return not x or (isinstance(x, str) and x.isspace())
 
 def poly_sizeof(x: Any) -> int:
     """Recursively calculates the size of an object and all its contents"""
@@ -41,24 +40,23 @@ def poly_sizeof(x: Any) -> int:
     return base
 
 def poly_getitem(x:Any, index: Any) -> Any:
-    if x is None or isinstance(x, (int, float, str)): return x
-    if isinstance(x, (list, tuple)):
-        if isinstance(index, (list, tuple)): return dist_x(poly_getitem, x, index)
-        i: int = int(index) if isinstance(index, (int, float)) else str_to_number(index) if isinstance(index, str) else None
-        return x[i] if i is not None and i >= 0 and i < len(x) else None
-    if isinstance(x, dict):
-        # TODO look up by keys?
-        return None
-    raise TypeError(f'Unsupported type: {type_str(x)}')
+    """
+    Return the N-th item.
+    None is returned if the index is invalid or None.
+    If x is an ordinal, it is returned unchanged.
+    """
+    if not isinstance(x, (list, tuple)): return x
+    if isinstance(index, (list, tuple)): return dist_x(poly_getitem, x, index)
+    i: int = int(index) if isinstance(index, (int, float)) else str_to_number(index) if isinstance(index, str) else None
+    return x[i] if i is not None and 0 <= i < len(x) else None
 
 def poly_firstitem(x: Any) -> Any:
+    """Return the first item from a list."""
     return poly_getitem(x, 0)
 
 def poly_lastitem(x: Any) -> Any:
-    if x is None or isinstance(x, (int, float, str)): return x
-    if isinstance(x, (list, tuple)): return x[-1] if len(x) > 0 else None
-    if isinstance(x, dict): return None
-    raise TypeError(f'Unsupported type: {type_str(x)}')
+    if not isinstance(x, (list, tuple)): return x
+    return x[-1] if len(x) > 0 else None
 
 def poly_unique(x: Any) -> Any:
     """A unique that can work with unsorted items"""

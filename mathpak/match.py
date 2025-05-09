@@ -1,5 +1,6 @@
 """
-TODO
+Operators that match part or all of a regular expression.
+Includes case independent variations.
 """
 
 from typing import Any
