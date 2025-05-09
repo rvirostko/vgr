@@ -3,11 +3,17 @@ COBOL statements
 """
 
 from datetime import datetime
+from pathlib import Path
 from typing import Any
+import sys
 
 from lark import Tree, Token
 
-from app_exceptions import ExitingException, StatementBreak, StatementContinue
+# HACK: Add parent directory to sys.path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
+
+# pylint: disable=wrong-import-position
+from app_exceptions import ExitingException, StatementBreak, StatementContinue # pylint: disable=
 from data_dict import DataDictionary
 from dd_config import dd_path, do_set, do_assignment, do_unset
 from evaluate import eval_expr, bind_operations, eval_to_number
@@ -17,6 +23,7 @@ from src_mgr import SSM
 from stmt_exec import exec_if_else, exec_loop, exec_repeat, dispatch_statement
 from stmt_set import execute_set
 from tags import control_statement
+# pylint: enable=wrong-import-position
 
 def execute_accept_date(dd: DataDictionary, statement: Tree) -> None:
     do_set(dd, datetime.now().strftime('%y%m%d'), *dd_path(statement.children[0]))
@@ -339,7 +346,6 @@ This is fundamentally an arithmetic, scalar opertion.
 def execute_exhibit(dd: DataDictionary, statement: Tree) -> None:
     """Display the name and values of variables
 
-* Exhibit [;]
 * Exhibit _variable_ [, _variable_]... [;]
 
 The values are displayed on individual lines. If a variable has sub variables, each
@@ -361,16 +367,14 @@ see control characters.
         else:
             print_stdout(name, '=', repr(value))
     children = statement.children
-    if children:
-        for var_name in children:
-            ## TODO this needs to be a bit smarter: it needs to
-            # diferentiate between getting a value that is None
-            # and nothing being there
-            path = tuple(name.value for name in var_name.children)
-            exhibit_value('.'.join(path), dd.get_var_user(*path))
-    else:
-        for key in sorted(dd.keys()):
-            exhibit_value(key, dd.get_var(key))
+    for var_name in children:
+        path = tuple(name.value for name in var_name.children)
+        name = '.'.join(path)
+        exists, value = dd.exists(*path)
+        if exists:
+            exhibit_value(name, value)
+        else:
+            print_stdout(name, '= -not set-')
 
 def execute_display_on(dd: DataDictionary, statement: Tree) -> None:
     """Print values to either the output (stdout) or error (stderr) streams.

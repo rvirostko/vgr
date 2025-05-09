@@ -151,6 +151,18 @@ class DataDictionary():
             data = data[key]
         return data
 
+    def exists(self, *path: str) -> tuple[bool, Any]:
+        """
+        Returns a tuple that says if the value exists and,
+        if it does, what that value is.
+        """
+        if not path: return (False, None)
+        data = self._dd
+        for key in path:
+            if not isinstance(data, dict) or key not in data: return (False, None)
+            data = data[key]
+        return (True, data)
+
     def _validate_user_path(self, *path: str) -> tuple:
         if not path: raise ValueError('Empty/Missing path')
         # Check for anything that is None, isn't a string, or strings that are "empty"
