@@ -350,7 +350,7 @@ class ImplicitContextAdder(Transformer):
             self._target = target
             self._valid_contexts = list(valid_contexts)
             self._valid_contexts.append(target)
-            return super().transform(deepcopy(tree)) # TODO speculative
+            return super().transform(deepcopy(tree))
         finally:
             self._target = None
             self._valid_contexts = None
