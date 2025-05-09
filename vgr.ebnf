@@ -113,8 +113,7 @@ close: "Close"i io_type "File"i? _SEMICOLON? -> close
     | ("No"i "Overwrite"i | "x"i) -> x
 
 zip: "Create"i "Zip"i "File"i? expr (_COMMA? zip_option (_COMMA zip_option)*)? _SEMICOLON?
-?zip_option: "Password"i expr -> password
-    | "Comment"i ("=" | ":=")? expr -> comment
+?zip_option: "Comment"i ("=" | ":=")? expr -> comment
     | "Include"i ("=" | ":=")? expr+ -> include
     | "Exclude"i ("=" | ":=")? expr+ -> exclude
 
