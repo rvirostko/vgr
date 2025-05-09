@@ -2,7 +2,7 @@ from functools import reduce
 from typing import Any
 import itertools
 
-from .common import dist_x, dist_y, X_None_Op, Y_None_Op, get_operation
+from .common import dist_x, dist_y, X_None_Op, Y_None_Op, get_operation, str_to_int
 
 def poly_vmul(x: Any, *args):
     """Varargs version of poly_mul"""
@@ -25,7 +25,7 @@ def poly_mul(x: Any, y: Any) -> Any:
 | float | tuple | tuple   | distributive        |
 | str   | int   | str     | string repetition   |
 | str   | float | str     | string repetition   |
-| str   | str   | str     | concatenation       |
+| str   | str   | str     | string repetition   |
 | str   | list  | list    | distributive        |
 | str   | tuple | tuple   | distributive        |
 | list  | int   | list    | distributive        |
@@ -54,10 +54,10 @@ mul_operations = {
     X_None_Op: lambda _, x, y: None,
     Y_None_Op: lambda _, x, y: None,
     (float, str): lambda _, x, y: int(x) * y,
-    (float, list): lambda _, x, y: int(x) * y,
-    (float, tuple): lambda _, x, y: int(x) * y,
+    (float, list): dist_y,
+    (float, tuple): dist_y,
     (str, float): lambda _, x, y: x * int(y),
-    (str, str): lambda _, x, y: x + y, # TODO rethink? This could become very complex...
+    (str, str): lambda _, x, y:  x * str_to_int(y),
     (str, list): dist_y,
     (str, tuple): dist_y,
     (list, int): dist_x,
