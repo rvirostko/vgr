@@ -257,28 +257,29 @@ def poly_count(x: Any, sub: Any=None) -> Any:
     if isinstance(x, (NoneType, bool, int, float)): return None
     return exec_x_y_op(x, str_arg(sub, 'Sub'), 'Count', poly_count, str.count, string_loc_operations)
 
-# TODO replace "indexof" which suxs
-#	5.	find(sub, start=0, end=len(string))
-#	13.	rfind(sub, start=0, end=len(string))
-
-
 def poly_index(x: Any, sub: Any=None) -> Any:
     # For these types, the operation is indeterminant
     if isinstance(x, (NoneType, bool, int, float)): return None
     sub = str_arg(sub, 'Sub')
-    try:
-        return exec_x_y_op(x, sub, 'Index', poly_index, str.index, string_loc_operations)
-    except ValueError:
-        return None
+    return exec_x_y_op(x, sub, 'Index', poly_index, str.index, string_loc_operations)
 
 def poly_rindex(x: Any, sub: Any=None) -> Any:
     # For these types, the operation is indeterminant
     if isinstance(x, (NoneType, bool, int, float)): return None
     sub = str_arg(sub, 'Sub')
-    try:
-        return exec_x_y_op(x, sub, 'RIndex', poly_rindex, str.rindex, string_loc_operations)
-    except ValueError:
-        return None
+    return exec_x_y_op(x, sub, 'RIndex', poly_rindex, str.rindex, string_loc_operations)
+
+def poly_find(x: Any, sub: Any=None) -> Any:
+    # For these types, the operation is indeterminant
+    if isinstance(x, (NoneType, bool, int, float)): return None
+    sub = str_arg(sub, 'Sub')
+    return exec_x_y_op(x, sub, 'Find', poly_find, str.find, string_loc_operations)
+
+def poly_rfind(x: Any, sub: Any=None) -> Any:
+    # For these types, the operation is indeterminant
+    if isinstance(x, (NoneType, bool, int, float)): return None
+    sub = str_arg(sub, 'Sub')
+    return exec_x_y_op(x, sub, 'RFind', poly_rfind, str.rfind, string_loc_operations)
 
 ###
 

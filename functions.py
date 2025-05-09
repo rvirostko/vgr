@@ -33,7 +33,7 @@ from mathpak import poly_contains_any, poly_contains_all
 from mathpak import poly_center, poly_ljust, poly_rjust, poly_zfill, poly_splitlines, poly_join
 from mathpak import poly_bin, poly_oct, poly_hex, poly_parse_int, poly_parse_bin, poly_parse_oct, poly_parse_hex
 from mathpak import poly_base64_encode, poly_base64_decode
-from mathpak import poly_vdig
+from mathpak import poly_vdig, poly_find, poly_rfind
 
 def _default_to(value: Any, default: Any) -> Any:
     """Returns a default value if the argument is None.
@@ -70,6 +70,7 @@ _BUILT_IN_FUNCS = {
   "EndsWith": poly_endswith,
   "ExpandTabs": poly_expandtabs,
   "FirstItem": poly_firstitem,
+  "FindStr": poly_find,
   "Float": poly_float,
   "Floor": poly_floor,
   "FloorDiv": poly_vfdiv,
@@ -137,6 +138,7 @@ _BUILT_IN_FUNCS = {
   "RemoveSuffix": poly_vremovesuffix,
   "ReplaceStr": poly_vreplace,
   "Repr": poly_repr,
+  "RFindStr": poly_rfind,
   "RightJustify": poly_rjust,
   "RightShift": poly_shr,
   "RightStr": poly_rightstr,
