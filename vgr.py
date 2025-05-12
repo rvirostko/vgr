@@ -259,7 +259,7 @@ Environment variables:
                 for filename in svalue:
                     # NB: we don't "sandbox" these files like we do with others
                     filepath = expand_filename(filename)
-                    print_verbose(dd, f'Executing statements from {repr(filepath)}...')
+                    print_verbose(dd, 'Executing statements from ', repr(filepath), '...')
                     statements = None
                     with open(filepath, 'r', encoding='utf-8') as f:
                         statements = f.read()
@@ -292,7 +292,7 @@ Environment variables:
     except (ValueError, TypeError, OSError) as e:
         if dd.debug:
             traceback.print_exc(file=sys.stderr)
-        print_stderr(format_generic_exception(e)) # TODO statment mgr
+        print_stderr(format_generic_exception(e)) # TODO use statment mgr for context
         print_debug(dd, e)
         exit_code = ExitingException.EXIT_FAILED
     print_verbose(dd, f'Exit code is {exit_code}')
