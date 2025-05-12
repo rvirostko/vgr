@@ -53,7 +53,7 @@ class VaultMountVisitor:
             config = self.client.do_list(encode_url(f'/v1/{mount_point}/config'), namespace).get('data', {})
             self.visit_database_mount(namespace, mount_point, config)
         elif mtype == 'kv':
-            config = self.client.do_get(encode_url(f'/v1/{mount_point}/config'), namespace).get('data', {})
+            config = self.client.read_kv2_config(mount_point, namespace).get('data', {})
             self.visit_kv_mount(namespace, mount_point, config)
         elif mtype == 'ldap':
             config = self.client.do_get(encode_url(f'/v1/{mount_point}/config'), namespace).get('data', {})
