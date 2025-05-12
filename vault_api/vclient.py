@@ -8,11 +8,19 @@ from urllib.error import HTTPError
 from urllib.parse import urlparse
 import http.client
 import json
+import logging
 
 from .util import encode_url
 
 _MIME_JSON: str = 'application/json'
 _UTF_8: str = 'utf-8'
+
+_CM_KEY = 'custom_metadata'
+_CM_KEY_MAX_LEN = 128
+_CM_VALUE_MAX_LEN = 150
+_UNLOCK_KEY = 'unlock_key'
+
+_LOG = logging.getLogger(__name__)
 
 class VaultStatusException(http.client.HTTPException):
     def __init__(self, status, reason, url=None, response_body=None):
@@ -72,8 +80,14 @@ class VaultClient():
     def do_list(self, url: str, namespace: str=None) -> Dict[str, Any]:
         return self.make_request(url, 'LIST', None, namespace)
 
+    def do_delete(self, url: str, namespace: str=None) -> Dict[str, Any]:
+        return self.make_request(url, 'DELETE', None, namespace)
+
     def do_post(self, url: str, data: Dict[str, Any]=None, namespace: str=None) -> Dict[str, Any]:
         return self.make_request(url, 'POST', data, namespace)
+
+    def do_patch(self, url: str, data: Dict[str, Any]=None, namespace: str=None) -> Dict[str, Any]:
+        return self.make_request(url, 'PATCH', data, namespace)
 
     def make_request(self, url: str, method: str, data: Dict[str, Any], namespace: str) -> Dict[str, Any]:
         """Call a Vault REST API and return the results"""
@@ -138,19 +152,27 @@ class VaultClient():
             finally:
                 self._conn = None
 
+    def create_namespace(self, new_namespace: str, metadata: Dict[str, Any]=None, parent_namespace: str=None) -> Dict[str, Any]:
+        return self.do_post(encode_url(f'/v1/sys/namespaces/{new_namespace}'), _create_metadata(metadata), parent_namespace)
 
-    def create_namespace(self, new_namespace: str, namespace: str=None) -> Dict[str, Any]:
-        return self.do_post(encode_url(f'/v1/sys/namespaces/{new_namespace}'), namespace)
+    def read_namespace(self, namespace: str=None) -> Dict[str, Any]:
+        # Vault doesn't support GET, so this uses LIST
+        return self.list_namespace(namespace)
 
-    # TODO read_namespace
-    # TODO update_namespace
-    # TODO delete_namespace
+    def update_namespace(self, namespace: str, metadata: Dict[str, Any]=None, parent_namespace: str=None) -> Dict[str, Any]:
+        return self.do_patch(encode_url(f'/v1/sys/namespaces/{namespace}'), _create_metadata(metadata), parent_namespace)
 
-    def list_namespace(self, namespace: str) -> Dict[str, Any]:
+    def delete_namespace(self, namespace: str, parent_namespace: str=None) -> Dict[str, Any]:
+        return self.do_delete(f'/v1/sys/namespaces/{namespace}', parent_namespace)
+
+    def list_namespace(self, namespace: str=None) -> Dict[str, Any]:
         return self.do_list('/v1/sys/namespaces', namespace)
 
-    # TODO lock_namespace
-    # TODO unlock_namespace
+    def lock_namespace(self, namespace: str) -> Dict[str, Any]:
+        return self.do_post(encode_url('/v1/sys/namespaces/api-lock/lock'), namespace)
+
+    def unlock_namespace(self, unlock_key: Any, namespace: str) -> Dict[str, Any]:
+        return self.do_post(encode_url('/v1/sys/namespaces/api-lock/unlock'), _create_unlock(unlock_key), namespace)
 
     def create_mount(self, mount_point: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         return self.do_post(encode_url(f'/v1/sys/mounts/{mount_point}'), config, namespace)
@@ -159,36 +181,61 @@ class VaultClient():
     def read_mount(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
         return self.do_get(encode_url(f'/v1/sys/mounts/{mount_point}'), namespace)
 
-    # TODO update_mount
-    # TODO delete_mount
+    def update_mount(self, mount_point: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
+        return self.do_post(encode_url(f'/v1/sys/mounts/{mount_point}/tune'), config, namespace)
+
+    def delete_mount(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
+        return self.do_delete(encode_url(f'/v1/sys/mounts/{mount_point}'), namespace)
 
     def list_mounts(self, namespace :str) ->  Dict[str, Any]:
         return self.do_get('/v1/sys/mounts', namespace)
 
     def _fix_kv_path(self, path: str) -> str:
-        return path if path.startswith('/') else path + '/'
+        return path if path.startswith('/') else '/' + path
+
+    def _fix_mount_point(self, mount_point: str) -> str:
+        return mount_point if mount_point.endswith('/') else mount_point + '/'
+
+    def read_kv2_config(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
+        mount_point = self._fix_mount_point(mount_point)
+        return self.do_get(encode_url(f'/v1/{mount_point}config'), namespace)
+
+    def update_kv2_config(self, mount_point: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
+        mount_point = self._fix_mount_point(mount_point)
+        return self.do_post(encode_url(f'/v1/{mount_point}config'), config, namespace)
 
     def update_kv2_secret(self, mount_point: str, path: str, data: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
+        mount_point = self._fix_mount_point(mount_point)
         path = self._fix_kv_path(path)
-        return self.do_post(encode_url(f'/v1/{mount_point}/data{path}'), data, namespace)
+        return self.do_post(encode_url(f'/v1/{mount_point}data{path}'), data, namespace)
 
     def read_kv2_metadata(self, namespace: str, mount_point: str, path: str) -> dict:
+        mount_point = self._fix_mount_point(mount_point)
         path = self._fix_kv_path(path)
-        return self.do_get(encode_url(f'/v1/{mount_point}/metadata{path}'), namespace).get('data', {})
+        return self.do_get(encode_url(f'/v1/{mount_point}metadata{path}'), namespace).get('data', {})
 
     def update_kv2_metadata(self, mount_point: str, path: str, meta_data: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
+        mount_point = self._fix_mount_point(mount_point)
         path = self._fix_kv_path(path)
-        return self.do_post(encode_url(f'/v1/{mount_point}/metadata{path}'), meta_data, namespace)
+        return self.do_post(encode_url(f'/v1/{mount_point}metadata{path}'), meta_data, namespace)
 
     def get_kv2_subkeys(self, namespace: str, mount_point: str, path: str) -> list:
+        mount_point = self._fix_mount_point(mount_point)
         path = self._fix_kv_path(path)
-        subkeys = self.do_get(encode_url(f'/v1/{mount_point}/subkeys{path}') + '?depth=1', namespace).get('data', {}).get('subkeys', {})
+        subkeys = self.do_get(encode_url(f'/v1/{mount_point}subkeys{path}') + '?depth=1', namespace).get('data', {}).get('subkeys', {})
         return [subkeys.keys()] if subkeys else []
 
     def list_kv2_subpaths(self, namespace: str, mount_point: str, path: str='') -> list:
+        mount_point = self._fix_mount_point(mount_point)
         path = self._fix_kv_path(path)
-        paths = self.do_list(encode_url(f'/v1/{mount_point}/metadata{path}'), namespace).get('data', {}).get('keys', [])
+        paths = self.do_list(encode_url(f'/v1/{mount_point}metadata{path}'), namespace).get('data', {}).get('keys', [])
         return sorted(list(set([f"{path.rstrip('/')}" for path in paths])))
+
+    # TODO AWS
+
+    # TODO database
+
+    # TODO LDAP
 
     def __enter__(self):
         return self.open()
@@ -205,12 +252,50 @@ class VaultClient():
 
     @staticmethod
     def _warn(*args, **kwargs) -> None:
-        print("WARN  ", *args, **kwargs) # TODO
+        if _LOG.isEnabledFor(logging.WARNING):
+            _LOG.warning(''.join(str(arg) for arg in args))
 
     @staticmethod
     def _info(*args, **kwargs) -> None:
-        print("INFO  ", *args, **kwargs) # TODO
+        if _LOG.isEnabledFor(logging.INFO):
+            _LOG.info(''.join(str(arg) for arg in args))
 
     @staticmethod
     def _debug(*args, **kwargs) -> None:
-        print("DEBUG ", *args, **kwargs) # TODO
+        if _LOG.isEnabledFor(logging.DEBUG):
+            _LOG.debug(''.join(str(arg) for arg in args))
+
+def _create_metadata(metadata: Any) -> Dict[str, Any]:
+    """Create a custom_metadata dictionary that conforms to Vault's limits."""
+    if not metadata:
+        return {_CM_KEY: {}}
+    if isinstance(metadata, dict):
+        return {_CM_KEY: _validate_metadata(metadata.get(_CM_KEY, metadata))}
+    raise ValueError(f'Unexpected type {repr(type(metadata).__name__)}')
+
+def _validate_metadata(metadata: Dict[str, Any]) -> Dict[str, str]:
+    """Validate and format metadata keys and values."""
+    validated_metadata = {}
+    for key, value in metadata.items():
+        # Ensure the key is a string and no longer than MAX_KEY_LENGTH bytes
+        key = str(key) if not isinstance(key, str) else key
+        if len(key.encode('utf-8')) > _CM_KEY_MAX_LEN:
+            raise ValueError(f"{_CM_KEY} key {repr(key)} exceeds {_CM_KEY_MAX_LEN} bytes")
+        # Ensure the value is a string and no longer than MAX_VALUE_LENGTH bytes
+        value = str(value) if not isinstance(value, str) else value
+        if len(value.encode('utf-8')) > _CM_VALUE_MAX_LEN:
+            raise ValueError(f"{_CM_KEY} value for {repr(key)} exceeds {_CM_VALUE_MAX_LEN} bytes")
+        # Vault can't store blank entries
+        if value: validated_metadata[key] = value
+    return validated_metadata
+
+def _create_unlock(data: Any) -> Dict[str, Any]:
+    if data is None:
+        return {}
+    if isinstance(data, str):
+        return {_UNLOCK_KEY: data}
+    if isinstance(data, dict):
+        if _UNLOCK_KEY in data:
+            return {_UNLOCK_KEY: data[_UNLOCK_KEY]}
+        return {}
+    raise ValueError(f'Unexpected type {repr(type(data).__name__)}')
