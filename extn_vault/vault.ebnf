@@ -38,43 +38,43 @@ vault_conn_arg: "To"i "Host"i? expr -> conn_addr
     | "As"i expr -> conn_name
 
 // Namespaces
-vault_default_ns : "Vault"i "DefaultNamespace"i expr _SEMICOLON?
-vault_create_ns : "Vault"i "CreateNamespace"i expr _vault_args _SEMICOLON?
-vault_read_ns   : "Vault"i "ReadNamespace"i expr _vault_args _SEMICOLON?
-vault_update_ns : "Vault"i "UpdateNamespace"i expr _vault_args _SEMICOLON?
-vault_delete_ns : "Vault"i "DeleteNamespace"i expr _vault_args _SEMICOLON?
-vault_list_ns   : "Vault"i "ListNamespaces"i expr _vault_args _SEMICOLON?
-vault_lock_ns   : "Vault"i "LockNamespace"i expr _vault_args _SEMICOLON?
-vault_unlock_ns : "Vault"i "UnlockNamespace"i expr _vault_args _SEMICOLON?
+vault_default_ns : "Vault"i ("DefaultNamespace"i | "default_namespace"i) expr _SEMICOLON?
+vault_create_ns : "Vault"i ("CreateNamespace"i | "create_namespace"i) expr _vault_args _SEMICOLON?
+vault_read_ns   : "Vault"i ("ReadNamespace"i | "read_namespace"i) expr _vault_args _SEMICOLON?
+vault_update_ns : "Vault"i ("UpdateNamespace"i | "update_namespace"i) expr _vault_args _SEMICOLON?
+vault_delete_ns : "Vault"i ("DeleteNamespace"i | "delete_namespace"i) expr _vault_args _SEMICOLON?
+vault_list_ns   : "Vault"i ("ListNamespaces"i | "list_namespaces"i) expr _vault_args _SEMICOLON?
+vault_lock_ns   : "Vault"i ("LockNamespace"i | "lock_namespace"i) expr _vault_args _SEMICOLON?
+vault_unlock_ns : "Vault"i ("UnlockNamespace"i | "unlock_namespace"i) expr _vault_args _SEMICOLON?
 
 // Secret Engine Mount Points
-vault_create_mount : "Vault"i "CreateMount"i expr _vault_args _SEMICOLON?
-vault_read_mount   : "Vault"i "ReadMount"i expr _vault_args _SEMICOLON?
-vault_update_mount : "Vault"i "UpdateMount"i expr _vault_args _SEMICOLON?
-vault_delete_mount : "Vault"i "DeleteMount"i expr _vault_args _SEMICOLON?
-vault_list_mounts  : "Vault"i "ListMounts"i expr _vault_args _SEMICOLON?
+vault_create_mount : "Vault"i ("CreateMount"i | "create_mount"i) expr _vault_args _SEMICOLON?
+vault_read_mount   : "Vault"i ("ReadMount"i | "read_mount"i) expr _vault_args _SEMICOLON?
+vault_update_mount : "Vault"i ("UpdateMount"i | "update_mount"i) expr _vault_args _SEMICOLON?
+vault_delete_mount : "Vault"i ("DeleteMount"i | "delete_mount"i) expr _vault_args _SEMICOLON?
+vault_list_mounts  : "Vault"i ("ListMounts"i | "list_mounts"i) expr _vault_args _SEMICOLON?
 
 // KV2 Secrets
-vault_create_kv : "Vault"i "CreateKvSecret"i expr _vault_args _SEMICOLON?
-vault_read_kv   : "Vault"i "ReadKvSecret"i expr _vault_args _SEMICOLON?
-vault_update_kv : "Vault"i "UpdateKvSecret"i expr _vault_args _SEMICOLON?
-vault_delete_kv : "Vault"i "DeleteKvSecret"i expr _vault_args _SEMICOLON?
-vault_list_kvs  : "Vault"i "ListKvSecrets"i expr _vault_args _SEMICOLON?
+vault_create_kv : "Vault"i ("CreateKvSecret"i | "create_kv_secret"i) expr _vault_args _SEMICOLON?
+vault_read_kv   : "Vault"i ("ReadKvSecret"i | "read_kv_secret"i) expr _vault_args _SEMICOLON?
+vault_update_kv : "Vault"i ("UpdateKvSecret"i | "update_kv_secret"i) expr _vault_args _SEMICOLON?
+vault_delete_kv : "Vault"i ("DeleteKvSecret"i | "delete_kv_secret"i) expr _vault_args _SEMICOLON?
+vault_list_kvs  : "Vault"i ("ListKvSecrets"i | "list_kv_secrets"i) expr _vault_args _SEMICOLON?
 
 // LDAP Libraries Secrets
-vault_create_ldap_lib : "Vault"i "CreateLdapLibrary"i expr _vault_args _SEMICOLON?
-vault_read_ldap_lib   : "Vault"i "ReadLdapLibrary"i expr _vault_args _SEMICOLON?
-vault_update_ldap_lib : "Vault"i "UpdateLdapLibrary"i expr _vault_args _SEMICOLON?
-vault_delete_ldap_lib : "Vault"i "DeleteLdapLibrary"i expr _vault_args _SEMICOLON?
-vault_list_ldap_libs  : "Vault"i "ListLdapLibraries"i expr _vault_args _SEMICOLON?
+vault_create_ldap_lib : "Vault"i ("CreateLdapLibrary"i | "create_ldap_library"i) expr _vault_args _SEMICOLON?
+vault_read_ldap_lib   : "Vault"i ("ReadLdapLibrary"i | "read_ldap_library"i) expr _vault_args _SEMICOLON?
+vault_update_ldap_lib : "Vault"i ("UpdateLdapLibrary"i | "update_ldap_library"i) expr _vault_args _SEMICOLON?
+vault_delete_ldap_lib : "Vault"i ("DeleteLdapLibrary"i | "delete_ldap_library"i) expr _vault_args _SEMICOLON?
+vault_list_ldap_libs  : "Vault"i ("ListLdapLibraries"i | "list_ldap_libraries"i) expr _vault_args _SEMICOLON?
 
 // LDAP Static Secrets
-vault_create_ldap_secret : "Vault"i "CreateLdapSecret"i expr _vault_args _SEMICOLON?
-vault_read_ldap_secret   : "Vault"i "ReadLdapSecret"i expr _vault_args _SEMICOLON?
-vault_update_ldap_secret : "Vault"i "UpdateLdapSecret"i expr _vault_args _SEMICOLON?
-vault_delete_ldap_secret : "Vault"i "DeleteLdapSecret"i expr _vault_args _SEMICOLON?
-vault_list_ldap_secrets  : "Vault"i "ListLdapSecrets"i expr _vault_args _SEMICOLON?
-vault_rotate_ldap_secret : "Vault"i "RotateLdapSecret"i expr _vault_args _SEMICOLON?
+vault_create_ldap_secret : "Vault"i ("CreateLdapSecret"i | "create_ldap_secret"i) expr _vault_args _SEMICOLON?
+vault_read_ldap_secret   : "Vault"i ("ReadLdapSecret"i | "read_ldap_secret"i) expr _vault_args _SEMICOLON?
+vault_update_ldap_secret : "Vault"i ("UpdateLdapSecret"i | "update_ldap_secret"i) expr _vault_args _SEMICOLON?
+vault_delete_ldap_secret : "Vault"i ("DeleteLdapSecret"i | "delete_ldap_secret"i) expr _vault_args _SEMICOLON?
+vault_list_ldap_secrets  : "Vault"i ("ListLdapSecrets"i | "list_ldap_secrets"i) expr _vault_args _SEMICOLON?
+vault_rotate_ldap_secret : "Vault"i ("RotateLdapSecret"i | "rotate_ldap_secret"i) expr _vault_args _SEMICOLON?
 
 _vault_args: (_COMMA? vault_option (_COMMA vault_option)*)?
 vault_option: "Config"i ("=" | ":=")? expr -> vopt_config
