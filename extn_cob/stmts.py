@@ -367,14 +367,19 @@ see control characters.
         else:
             print_stdout(name, '=', repr(value))
     children = statement.children
-    for var_name in children:
-        path = tuple(name.value for name in var_name.children)
-        name = '.'.join(path)
-        exists, value = dd.exists(*path)
-        if exists:
-            exhibit_value(name, value)
-        else:
-            print_stdout(name, '= -not set-')
+    if children:
+        for var_name in children:
+            path = tuple(name.value for name in var_name.children)
+            name = '.'.join(path)
+            exists, value = dd.exists(*path)
+            if exists:
+                exhibit_value(name, value)
+            else:
+                print_stdout(name, '= -not set-')
+    else:
+        # No arguments dumps the entire dictionary
+        for key in sorted(dd.keys()):
+            exhibit_value(key, dd.get_var(key))
 
 def execute_display_on(dd: DataDictionary, statement: Tree) -> None:
     """Print values to either the output (stdout) or error (stderr) streams.

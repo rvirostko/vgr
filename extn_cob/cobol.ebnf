@@ -39,7 +39,7 @@ cobol_if: "If"i expr statement+ cobol_else_clause? "End-If"i _SEMICOLON?
 cobol_else_clause: "Else"i statement+ -> else
 cobol_next_sentence: "Next"i "Sentence"i _SEMICOLON?
 
-cobol_exhibit: "Exhibit"i var_name (_COMMA var_name)* _SEMICOLON?
+cobol_exhibit: "Exhibit"i (var_name (_COMMA var_name)*)? _SEMICOLON?
 cobol_display_on: "Display"i expr (_COMMA expr)* (("Upon"i | "On"i) io_type)? _SEMICOLON?
 
 cobol_add_to: "Add"i expr (_COMMA expr)* "To"i var_name "End-Add"i? _SEMICOLON?
