@@ -15,6 +15,7 @@ from dd_config import DEFAULT_FOR_TYPE_PATH, SHELL_HISTORY_PATH, SHELL_HISTORY_S
 from extn import VgrExtensionRegistry, VER
 from functions import get_function_defs, add_builtin_functions, add_function
 from interactive import CmdLine
+from log_config import init_logging, set_logging_level
 from mathpak import poly_bool
 from output import expand_filename
 from redir import print_stderr
@@ -222,6 +223,10 @@ Environment variables:
                     help='Enable/disable statement echo')
     clp.add_argument('--shell', nargs='?', const=True, metavar='BOOL', type=poly_bool,
                     help='Request/prohibit the shell. Shell starts if --execute/--file are not used')
+    clp.add_argument('--logfile', type=str, default=None,
+                    help='Path to the log file')
+    clp.add_argument('--loglevel', type=str, default='info',
+                    help='Logging level (debug, info, warning, error, critical)')
     clp.add_argument('--grammar',  metavar="FILE", type=str,
                     default=None, help='Grammar definition: developement option only')
     clp.add_argument('--extensions',  metavar="FILE", type=str,
@@ -229,6 +234,9 @@ Environment variables:
     clp.add_argument('user_args', nargs='*', metavar='NAME=VALUE',
                     default=[], help='Additional arguments. Values maybe booleans, numbers, or strings')
     args = clp.parse_args()
+
+    init_logging(args.logfile)
+    set_logging_level(args.loglevel)
 
     dd = create_dd(args)
     add_builtin_functions()
