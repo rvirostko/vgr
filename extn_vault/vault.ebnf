@@ -81,7 +81,7 @@ vault_option: "Config"i ("=" | ":=")? expr -> vopt_config
     | "Data"i ("=" | ":=")? expr -> vopt_data
     | "Description"i ("=" | ":=")? expr -> vopt_description
     | "Key"i ("=" | ":=")? expr -> vopt_key
-    | "Meta"i ("=" | ":=")? expr -> vopt_meta
+    | ("Meta"i | "Metadata"i) ("=" | ":=")? expr -> vopt_meta
     | "Namespace"i ("=" | ":=")? expr -> vopt_namespace
     | "Result"i ("=" | ":=")? var_name -> vopt_result
     | "Type"i ("=" | ":=")? expr -> vopt_type
