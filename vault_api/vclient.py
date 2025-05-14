@@ -13,7 +13,14 @@ import logging
 from .util import encode_url
 
 _MIME_JSON: str = 'application/json'
+_MIME_JSON_PATCH: str = 'application/merge-patch+json'
 _UTF_8: str = 'utf-8'
+
+_M_GET = 'GET'
+_M_LIST = 'LIST'
+_M_DELETE = 'DELETE'
+_M_POST = 'POST'
+_M_PATCH = 'PATCH'
 
 _CM_KEY = 'custom_metadata'
 _CM_KEY_MAX_LEN = 128
@@ -75,19 +82,19 @@ class VaultClient():
         self._blocksize = int(value)
 
     def do_get(self, url: str, namespace: str=None) -> Dict[str, Any]:
-        return self.make_request(url, 'GET', None, namespace)
+        return self.make_request(url, _M_GET, None, namespace)
 
     def do_list(self, url: str, namespace: str=None) -> Dict[str, Any]:
-        return self.make_request(url, 'LIST', None, namespace)
+        return self.make_request(url, _M_LIST, None, namespace)
 
     def do_delete(self, url: str, namespace: str=None) -> Dict[str, Any]:
-        return self.make_request(url, 'DELETE', None, namespace)
+        return self.make_request(url, _M_DELETE, None, namespace)
 
     def do_post(self, url: str, data: Dict[str, Any]=None, namespace: str=None) -> Dict[str, Any]:
-        return self.make_request(url, 'POST', data, namespace)
+        return self.make_request(url, _M_POST, data, namespace)
 
     def do_patch(self, url: str, data: Dict[str, Any]=None, namespace: str=None) -> Dict[str, Any]:
-        return self.make_request(url, 'PATCH', data, namespace)
+        return self.make_request(url, _M_PATCH, data, namespace)
 
     def make_request(self, url: str, method: str, data: Dict[str, Any], namespace: str) -> Dict[str, Any]:
         """Call a Vault REST API and return the results"""
@@ -102,7 +109,8 @@ class VaultClient():
         }
         data_bytes = None
         if data is not None:
-            headers['Content-Type'] = f'{_MIME_JSON}; charset={_UTF_8}'
+            mime_type = _MIME_JSON_PATCH if method == _M_PATCH else _MIME_JSON
+            headers['Content-Type'] = f'{mime_type}; charset={_UTF_8}'
             data_bytes = json.dumps(data).encode(_UTF_8)
         try:
             self._conn.request(url=url, method=method, headers=headers, body=data_bytes)
