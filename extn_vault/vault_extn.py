@@ -1,73 +1,102 @@
 """
-Test
+Vault extension to the grammar
 """
 
 from typing import Dict, Callable
 from pathlib import Path
 
-from lark import Tree
-
 from extn import VgrExtension
 from data_dict import DataDictionary
-from evaluate import eval_to_str
 
+from .dd_consts import (
+    VAULT_PREFIX,
+    DEFAULT_NS_PATH,
+    DEFAULT_RESULT_PATH,
+    DEFAULT_CONN_PATH,
+)
 from .functions import duration_to_ms, ms_to_duration
-
-def execute_default_ns(dd: DataDictionary, statement: Tree) -> None:
-    ns: str = eval_to_str(dd, statement.children[0], 'Default Namespace', True)
-    dd.set_var('' if ns is None or ns.isspace() else ns.strip(), *_DEFAULT_NS_PATH)
+from .stmts import (
+    execute_connect,
+    execute_disconnect,
+    execute_default_ns,
+    execute_create_ns,
+    execute_read_ns,
+    execute_update_ns,
+    execute_delete_ns,
+    execute_list_ns,
+    execute_lock_ns,
+    execute_unlock_ns,
+    execute_create_mount,
+    execute_read_mount,
+    execute_update_mount,
+    execute_delete_mount,
+    execute_list_mounts,
+    execute_create_kv,
+    execute_read_kv,
+    execute_update_kv,
+    execute_delete_kv,
+    execute_list_kvs,
+    execute_create_ldap_lib,
+    execute_read_ldap_lib,
+    execute_update_ldap_lib,
+    execute_delete_ldap_lib,
+    execute_list_ldap_libs,
+    execute_create_ldap_secret,
+    execute_read_ldap_secret,
+    execute_update_ldap_secret,
+    execute_delete_ldap_secret,
+    execute_list_ldap_secrets,
+    execute_rotate_ldap_secret,
+)
 
 STATEMENT_HANDLERS = {
-    'vault_default_ns' : execute_default_ns,
-#    'vault_create_ns' : execute_create_ns,
-#    'vault_read_ns'   : execute_read_ns,
-#    'vault_update_ns' : execute_update_ns,
-#    'vault_delete_ns' : execute_delete_ns,
-#    'vault_list_ns'   : execute_list_ns,
-#    'vault_lock_ns'   : execute_lock_ns,
-#    'vault_unlock_ns' : execute_unlock_ns,
+    'vault_connect'            : execute_connect,
+    'vault_disconnect'         : execute_disconnect,
+    'vault_default_ns'         : execute_default_ns,
+    'vault_create_ns'          : execute_create_ns,
+    'vault_read_ns'            : execute_read_ns,
+    'vault_update_ns'          : execute_update_ns,
+    'vault_delete_ns'          : execute_delete_ns,
+    'vault_list_ns'            : execute_list_ns,
+    'vault_lock_ns'            : execute_lock_ns,
+    'vault_unlock_ns'          : execute_unlock_ns,
+    'vault_create_mount'       : execute_create_mount,
+    'vault_read_mount'         : execute_read_mount,
+    'vault_update_mount'       : execute_update_mount,
+    'vault_delete_mount'       : execute_delete_mount,
+    'vault_list_mounts'        : execute_list_mounts,
+    'vault_create_kv'          : execute_create_kv,
+    'vault_read_kv'            : execute_read_kv,
+    'vault_update_kv'          : execute_update_kv,
+    'vault_delete_kv'          : execute_delete_kv,
+    'vault_list_kvs'           : execute_list_kvs,
+    'vault_create_ldap_lib'    : execute_create_ldap_lib,
+    'vault_read_ldap_lib'      : execute_read_ldap_lib,
+    'vault_update_ldap_lib'    : execute_update_ldap_lib,
+    'vault_delete_ldap_lib'    : execute_delete_ldap_lib,
+    'vault_list_ldap_libs'     : execute_list_ldap_libs,
+    'vault_create_ldap_secret' : execute_create_ldap_secret,
+    'vault_read_ldap_secret'   : execute_read_ldap_secret,
+    'vault_update_ldap_secret' : execute_update_ldap_secret,
+    'vault_delete_ldap_secret' : execute_delete_ldap_secret,
+    'vault_list_ldap_secrets'  : execute_list_ldap_secrets,
+    'vault_rotate_ldap_secret' : execute_rotate_ldap_secret,
 }
-
-# 'vault_create_mount' : execute_
-# 'vault_read_mount'   : execute_
-# 'vault_update_mount' : execute_
-# 'vault_delete_mount' : execute_
-# 'vault_list_mounts'  : execute_
-
-# 'vault_create_kv' : execute_
-# 'vault_read_kv'   : execute_
-# 'vault_update_kv' : execute_
-# 'vault_delete_kv' : execute_
-# 'vault_list_kvs'  : execute_
-
-# 'vault_create_ldap_lib' : execute_
-# 'vault_read_ldap_lib'   : execute_
-# 'vault_update_ldap_lib' : execute_
-# 'vault_delete_ldap_lib' : execute_
-# 'vault_list_ldap_libs'  : execute_
-
-# 'vault_create_ldap_secret' : execute_
-# 'vault_read_ldap_secret'   : execute_
-# 'vault_update_ldap_secret' : execute_
-# 'vault_delete_ldap_secret' : execute_
-# 'vault_list_ldap_secrets'  : execute_
-# 'vault_rotate_ldap_secret' : execute_
 
 _TARGETS = ('ns', 'mount', 'aws', 'kv', 'ldap', 'db', 'db_role')
 
-_VAULT_PREFIX = 'vault'
-_DEFAULT_NS_PATH = (_VAULT_PREFIX, 'default_ns')
-
 _FUNCTIONS = {
-  "DurationToMs": duration_to_ms,
-  "MsToDuration": ms_to_duration,
+    "DurationToMs": duration_to_ms,
+    "MsToDuration": ms_to_duration,
 }
 
 class VaultExtension(VgrExtension):
 
     def initialize(self, dd: DataDictionary) -> None:
-        dd.add_immutable_prefix('vault')
-        dd.set_var('', *_DEFAULT_NS_PATH)
+        dd.add_immutable_prefix(VAULT_PREFIX)
+        dd.set_var('', *DEFAULT_NS_PATH)
+        dd.set_var(None, *DEFAULT_RESULT_PATH)
+        dd.set_var(None, *DEFAULT_CONN_PATH)
 
     def extends_select(self):
         return True

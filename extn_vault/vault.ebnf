@@ -1,4 +1,6 @@
-?vault_statements: vault_default_ns
+?vault_statements: vault_connect
+    | vault_disconnect
+    | vault_default_ns
     | vault_create_ns
     | vault_read_ns
     | vault_update_ns
@@ -28,51 +30,59 @@
     | vault_list_ldap_secrets
     | vault_rotate_ldap_secret
 
+// Connections
+vault_connect   : "Vault"i "Connect"i (_COMMA? vault_conn_arg)* _SEMICOLON?
+vault_disconnect: "Vault"i "Disconnect"i ("From"i? expr)? _SEMICOLON?
+vault_conn_arg: "To"i "Host"i? expr -> conn_addr
+    | ("With"i "Token"i? | "Token"i ("=" | ":=")) expr -> conn_token
+    | "As"i expr -> conn_name
+
 // Namespaces
 vault_default_ns : "Vault"i "DefaultNamespace"i expr _SEMICOLON?
-vault_create_ns : "Vault"i "CreateNamespace"i expr vault_args _SEMICOLON?
-vault_read_ns   : "Vault"i "ReadNamespace"i expr vault_args _SEMICOLON?
-vault_update_ns : "Vault"i "UpdateNamespace"i expr vault_args _SEMICOLON?
-vault_delete_ns : "Vault"i "DeleteNamespace"i expr vault_args _SEMICOLON?
-vault_list_ns   : "Vault"i "ListNamespaces"i expr? vault_args _SEMICOLON?
-vault_lock_ns   : "Vault"i "LockNamespace"i expr vault_args _SEMICOLON?
-vault_unlock_ns : "Vault"i "UnlockNamespace"i expr vault_args _SEMICOLON?
+vault_create_ns : "Vault"i "CreateNamespace"i expr _vault_args _SEMICOLON?
+vault_read_ns   : "Vault"i "ReadNamespace"i expr _vault_args _SEMICOLON?
+vault_update_ns : "Vault"i "UpdateNamespace"i expr _vault_args _SEMICOLON?
+vault_delete_ns : "Vault"i "DeleteNamespace"i expr _vault_args _SEMICOLON?
+vault_list_ns   : "Vault"i "ListNamespaces"i expr _vault_args _SEMICOLON?
+vault_lock_ns   : "Vault"i "LockNamespace"i expr _vault_args _SEMICOLON?
+vault_unlock_ns : "Vault"i "UnlockNamespace"i expr _vault_args _SEMICOLON?
 
 // Secret Engine Mount Points
-vault_create_mount : "Vault"i "CreateMount"i expr vault_args _SEMICOLON?
-vault_read_mount   : "Vault"i "ReadMount"i expr vault_args _SEMICOLON?
-vault_update_mount : "Vault"i "UpdateMount"i expr vault_args _SEMICOLON?
-vault_delete_mount : "Vault"i "DeleteMount"i expr vault_args _SEMICOLON?
-vault_list_mounts  : "Vault"i "ListMounts"i expr vault_args _SEMICOLON?
+vault_create_mount : "Vault"i "CreateMount"i expr _vault_args _SEMICOLON?
+vault_read_mount   : "Vault"i "ReadMount"i expr _vault_args _SEMICOLON?
+vault_update_mount : "Vault"i "UpdateMount"i expr _vault_args _SEMICOLON?
+vault_delete_mount : "Vault"i "DeleteMount"i expr _vault_args _SEMICOLON?
+vault_list_mounts  : "Vault"i "ListMounts"i expr _vault_args _SEMICOLON?
 
 // KV2 Secrets
-vault_create_kv : "Vault"i "CreateKvSecret"i expr vault_args _SEMICOLON?
-vault_read_kv   : "Vault"i "ReadKvSecret"i expr vault_args _SEMICOLON?
-vault_update_kv : "Vault"i "UpdateKvSecret"i expr vault_args _SEMICOLON?
-vault_delete_kv : "Vault"i "DeleteKvSecret"i expr vault_args _SEMICOLON?
-vault_list_kvs  : "Vault"i "ListKvSecrets"i expr vault_args _SEMICOLON?
+vault_create_kv : "Vault"i "CreateKvSecret"i expr _vault_args _SEMICOLON?
+vault_read_kv   : "Vault"i "ReadKvSecret"i expr _vault_args _SEMICOLON?
+vault_update_kv : "Vault"i "UpdateKvSecret"i expr _vault_args _SEMICOLON?
+vault_delete_kv : "Vault"i "DeleteKvSecret"i expr _vault_args _SEMICOLON?
+vault_list_kvs  : "Vault"i "ListKvSecrets"i expr _vault_args _SEMICOLON?
 
 // LDAP Libraries Secrets
-vault_create_ldap_lib : "Vault"i "CreateLdapLibrary"i expr vault_args _SEMICOLON?
-vault_read_ldap_lib   : "Vault"i "ReadLdapLibrary"i expr vault_args _SEMICOLON?
-vault_update_ldap_lib : "Vault"i "UpdateLdapLibrary"i expr vault_args _SEMICOLON?
-vault_delete_ldap_lib : "Vault"i "DeleteLdapLibrary"i expr vault_args _SEMICOLON?
-vault_list_ldap_libs  : "Vault"i "ListLdapLibraries"i expr vault_args _SEMICOLON?
+vault_create_ldap_lib : "Vault"i "CreateLdapLibrary"i expr _vault_args _SEMICOLON?
+vault_read_ldap_lib   : "Vault"i "ReadLdapLibrary"i expr _vault_args _SEMICOLON?
+vault_update_ldap_lib : "Vault"i "UpdateLdapLibrary"i expr _vault_args _SEMICOLON?
+vault_delete_ldap_lib : "Vault"i "DeleteLdapLibrary"i expr _vault_args _SEMICOLON?
+vault_list_ldap_libs  : "Vault"i "ListLdapLibraries"i expr _vault_args _SEMICOLON?
 
 // LDAP Static Secrets
-vault_create_ldap_secret : "Vault"i "CreateLdapSecret"i expr vault_args _SEMICOLON?
-vault_read_ldap_secret   : "Vault"i "ReadLdapSecret"i expr vault_args _SEMICOLON?
-vault_update_ldap_secret : "Vault"i "UpdateLdapSecret"i expr vault_args _SEMICOLON?
-vault_delete_ldap_secret : "Vault"i "DeleteLdapSecret"i expr vault_args _SEMICOLON?
-vault_list_ldap_secrets  : "Vault"i "ListLdapSecrets"i expr vault_args _SEMICOLON?
-vault_rotate_ldap_secret : "Vault"i "RotateLdapSecret"i expr vault_args _SEMICOLON?
+vault_create_ldap_secret : "Vault"i "CreateLdapSecret"i expr _vault_args _SEMICOLON?
+vault_read_ldap_secret   : "Vault"i "ReadLdapSecret"i expr _vault_args _SEMICOLON?
+vault_update_ldap_secret : "Vault"i "UpdateLdapSecret"i expr _vault_args _SEMICOLON?
+vault_delete_ldap_secret : "Vault"i "DeleteLdapSecret"i expr _vault_args _SEMICOLON?
+vault_list_ldap_secrets  : "Vault"i "ListLdapSecrets"i expr _vault_args _SEMICOLON?
+vault_rotate_ldap_secret : "Vault"i "RotateLdapSecret"i expr _vault_args _SEMICOLON?
 
-?vault_args: (_COMMA? vault_option (_COMMA vault_option)*)?
-vault_option: "Config"i ("=" | ":=") var_name -> vopt_config
-    | "Data"i ("=" | ":=") var_name -> vopt_data
-    | "Description"i ("=" | ":=") expr -> vopt_description
-    | "Key"i ("=" | ":=") expr -> vopt_key
-    | "Meta"i ("=" | ":=") var_name -> vopt_meta
-    | "Namespace"i ("=" | ":=") expr -> vopt_namespace
-    | "Result"i ("=" | ":=") var_name -> vopt_result
-    | "Type"i ("=" | ":=") expr -> vopt_type
+_vault_args: (_COMMA? vault_option (_COMMA vault_option)*)?
+vault_option: "Config"i ("=" | ":=")? expr -> vopt_config
+    | "Data"i ("=" | ":=")? expr -> vopt_data
+    | "Description"i ("=" | ":=")? expr -> vopt_description
+    | "Key"i ("=" | ":=")? expr -> vopt_key
+    | "Meta"i ("=" | ":=")? expr -> vopt_meta
+    | "Namespace"i ("=" | ":=")? expr -> vopt_namespace
+    | "Result"i ("=" | ":=")? var_name -> vopt_result
+    | "Type"i ("=" | ":=")? expr -> vopt_type
+    | "Using"i ("=" | ":=")? expr -> vopt_using

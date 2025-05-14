@@ -13,7 +13,7 @@ from lark import Tree, Token
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 # pylint: disable=wrong-import-position
-from app_exceptions import ExitingException, StatementBreak, StatementContinue # pylint: disable=
+from app_exceptions import ExitingException, StatementBreak, StatementContinue
 from data_dict import DataDictionary
 from dd_config import dd_path, do_set, do_assignment, do_unset
 from evaluate import eval_expr, bind_operations, eval_to_number

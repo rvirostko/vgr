@@ -94,7 +94,7 @@ class VaultClient():
         if not url: raise ValueError('Missing Vault operation URL')
         self.open()
         namespace = self._ns(namespace)
-        self._info(' ', method, ' ', self._addr, url, ' (X-Vault-Namespace=\'', namespace, '\')', sep='')
+        self._info(' ', method, ' ', self._addr, url, ' (X-Vault-Namespace=\'', namespace, '\')')
         headers = {
             'X-Vault-Token': self._token,
             'X-Vault-Namespace': namespace,
@@ -155,9 +155,8 @@ class VaultClient():
     def create_namespace(self, new_namespace: str, metadata: Dict[str, Any]=None, parent_namespace: str=None) -> Dict[str, Any]:
         return self.do_post(encode_url(f'/v1/sys/namespaces/{new_namespace}'), _create_metadata(metadata), parent_namespace)
 
-    def read_namespace(self, namespace: str=None) -> Dict[str, Any]:
-        # Vault doesn't support GET, so this uses LIST
-        return self.list_namespace(namespace)
+    def read_namespace(self, namespace: str, parent_namespace: str=None) -> Dict[str, Any]:
+        return self.do_get(encode_url(f'/v1/sys/namespaces/{namespace}'), parent_namespace)
 
     def update_namespace(self, namespace: str, metadata: Dict[str, Any]=None, parent_namespace: str=None) -> Dict[str, Any]:
         return self.do_patch(encode_url(f'/v1/sys/namespaces/{namespace}'), _create_metadata(metadata), parent_namespace)
@@ -171,7 +170,7 @@ class VaultClient():
     def lock_namespace(self, namespace: str) -> Dict[str, Any]:
         return self.do_post(encode_url('/v1/sys/namespaces/api-lock/lock'), namespace)
 
-    def unlock_namespace(self, unlock_key: Any, namespace: str) -> Dict[str, Any]:
+    def unlock_namespace(self, namespace: str, unlock_key: Any) -> Dict[str, Any]:
         return self.do_post(encode_url('/v1/sys/namespaces/api-lock/unlock'), _create_unlock(unlock_key), namespace)
 
     def create_mount(self, mount_point: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
@@ -251,17 +250,17 @@ class VaultClient():
         return ns if ns else self._default_ns if self._default_ns else ''
 
     @staticmethod
-    def _warn(*args, **kwargs) -> None:
+    def _warn(*args) -> None:
         if _LOG.isEnabledFor(logging.WARNING):
             _LOG.warning(''.join(str(arg) for arg in args))
 
     @staticmethod
-    def _info(*args, **kwargs) -> None:
+    def _info(*args) -> None:
         if _LOG.isEnabledFor(logging.INFO):
             _LOG.info(''.join(str(arg) for arg in args))
 
     @staticmethod
-    def _debug(*args, **kwargs) -> None:
+    def _debug(*args) -> None:
         if _LOG.isEnabledFor(logging.DEBUG):
             _LOG.debug(''.join(str(arg) for arg in args))
 
