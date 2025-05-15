@@ -3,9 +3,8 @@ Logging related config
 """
 
 import logging
-import datetime
-
-_DEFAULT_LOG_FILE = 'vgr_log.txt'
+import os
+from datetime import datetime
 
 _LEVEL_MAP = {
     'debug': logging.DEBUG,
@@ -17,11 +16,26 @@ _LEVEL_MAP = {
 
 class MillisecondFormatter(logging.Formatter):
     def formatTime(self, record, _=None): # datefmt ignored
-        t = datetime.datetime.fromtimestamp(record.created)
+        t = datetime.fromtimestamp(record.created)
         return t.strftime('%Y-%m-%dT%H:%M:%S.') + f'{int(record.msecs):03d}'
 
-def init_logging(logfile: str):
-    handler = logging.FileHandler(logfile or _DEFAULT_LOG_FILE)
+def init_logging(logfile: str, append: bool=True):
+    if logfile is None:
+        logfile = f'{datetime.now().strftime("%Y-%m-%d")} - vgr_log.txt'
+    # Resolve to absolute path
+    logfile_path = os.path.abspath(logfile)
+    sandbox_root = os.path.abspath(os.getcwd())
+    if not logfile_path.startswith(sandbox_root + os.sep):
+        raise ValueError(f'Log file path escapes CWD: {logfile_path}')
+    # Ensure parent directory exists
+    log_dir = os.path.dirname(logfile_path)
+    if log_dir and not os.path.exists(log_dir):
+        os.makedirs(log_dir, exist_ok=True)
+    handler = logging.FileHandler(
+                logfile,
+                mode='a' if append else 'w',
+                encoding='utf-8'
+                )
     handler.setLevel(logging.NOTSET) # No filtering by the handler, only loggers
     handler.setFormatter(MillisecondFormatter('%(asctime)s %(levelname)-5s %(message)s'))
     logging.getLogger().handlers.clear()

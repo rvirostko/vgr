@@ -229,6 +229,8 @@ Environment variables:
                     help='Path to the log file')
     clp.add_argument('--loglevel', type=str, default='info',
                     help='Logging level (debug, info, warning, error, critical)')
+    clp.add_argument('--logoverwrite', action='store_true',
+                    help='Overwrite log file instead of appending')
     clp.add_argument('--grammar',  metavar="FILE", type=str,
                     default=None, help='Grammar definition: developement option only')
     clp.add_argument('--extensions',  metavar="FILE", type=str,
@@ -237,7 +239,7 @@ Environment variables:
                     default=[], help='Additional arguments. Values maybe booleans, numbers, or strings')
     args = clp.parse_args()
 
-    init_logging(args.logfile)
+    init_logging(args.logfile, args.logoverwrite)
     set_logging_level(args.loglevel)
 
     dd = create_dd(args)
