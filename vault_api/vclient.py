@@ -238,11 +238,232 @@ class VaultClient():
         paths = self.do_list(encode_url(f'/v1/{mount_point}metadata{path}'), namespace).get('data', {}).get('keys', [])
         return sorted(list(set([f"{path.rstrip('/')}" for path in paths])))
 
-    # TODO AWS
+    def read_aws_config(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
+        """
+        Read the AWS secrets engine configuration for the given mount point.
+        """
+        mount_point = self._fix_mount_point(mount_point)
+        return self.do_get(encode_url(f'/v1/{mount_point}config'), namespace)
 
-    # TODO database
+    def update_aws_config(self, mount_point: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
+        """
+        Update the AWS secrets engine configuration for the given mount point.
+        """
+        mount_point = self._fix_mount_point(mount_point)
+        return self.do_post(encode_url(f'/v1/{mount_point}config'), config, namespace)
 
-    # TODO LDAP
+    def delete_aws_config(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
+        """
+        Delete the AWS secrets engine configuration for the given mount point.
+        """
+        mount_point = self._fix_mount_point(mount_point)
+        return self.do_delete(encode_url(f'/v1/{mount_point}config'), namespace)
+
+    def create_aws_role(self, mount_point: str, role_name: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
+        """
+        Create or update an AWS role at the given mount point.
+        """
+        mount_point = self._fix_mount_point(mount_point)
+        return self.do_post(encode_url(f'/v1/{mount_point}roles/{role_name}'), config, namespace)
+
+    def read_aws_role(self, mount_point: str, role_name: str, namespace: str=None) -> Dict[str, Any]:
+        """
+        Read an AWS role definition from the given mount point.
+        """
+        mount_point = self._fix_mount_point(mount_point)
+        return self.do_get(encode_url(f'/v1/{mount_point}roles/{role_name}'), namespace)
+
+    def update_aws_role(self, mount_point: str, role_name: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
+        """
+        Update an AWS role definition (alias for create_aws_role).
+        """
+        return self.create_aws_role(mount_point, role_name, config, namespace)
+
+    def delete_aws_role(self, mount_point: str, role_name: str, namespace: str=None) -> Dict[str, Any]:
+        """
+        Delete an AWS role from the given mount point.
+        """
+        mount_point = self._fix_mount_point(mount_point)
+        return self.do_delete(encode_url(f'/v1/{mount_point}roles/{role_name}'), namespace)
+
+    def list_aws_roles(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
+        """
+        List AWS roles at the given mount point.
+        """
+        mount_point = self._fix_mount_point(mount_point)
+        return self.do_list(encode_url(f'/v1/{mount_point}roles'), namespace)
+
+    def generate_aws_credentials(self, mount_point: str, role_name: str, namespace: str=None) -> Dict[str, Any]:
+        """
+        Generate AWS credentials for the given role at the mount point.
+        """
+        mount_point = self._fix_mount_point(mount_point)
+        return self.do_get(encode_url(f'/v1/{mount_point}creds/{role_name}'), namespace)
+
+    def read_ldap_config(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
+        """
+        Read the LDAP secrets engine configuration for the given mount point.
+        """
+        mount_point = self._fix_mount_point(mount_point)
+        return self.do_get(encode_url(f'/v1/{mount_point}config'), namespace)
+
+    def update_ldap_config(self, mount_point: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
+        """
+        Update the LDAP secrets engine configuration for the given mount point.
+        """
+        mount_point = self._fix_mount_point(mount_point)
+        return self.do_post(encode_url(f'/v1/{mount_point}config'), config, namespace)
+
+    def delete_ldap_config(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
+        """
+        Delete the LDAP secrets engine configuration for the given mount point.
+        """
+        mount_point = self._fix_mount_point(mount_point)
+        return self.do_delete(encode_url(f'/v1/{mount_point}config'), namespace)
+
+    def create_ldap_library(self, mount_point: str, name: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
+        """
+        Create or update an LDAP library.
+        """
+        mount_point = self._fix_mount_point(mount_point)
+        return self.do_post(encode_url(f'/v1/{mount_point}library/{name}'), config, namespace)
+
+    def read_ldap_library(self, mount_point: str, name: str, namespace: str=None) -> Dict[str, Any]:
+        """
+        Read an LDAP library definition.
+        """
+        mount_point = self._fix_mount_point(mount_point)
+        return self.do_get(encode_url(f'/v1/{mount_point}library/{name}'), namespace)
+
+    def update_ldap_library(self, mount_point: str, name: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
+        """
+        Update an LDAP library (alias for create_ldap_library).
+        """
+        return self.create_ldap_library(mount_point, name, config, namespace)
+
+    def delete_ldap_library(self, mount_point: str, name: str, namespace: str=None) -> Dict[str, Any]:
+        """
+        Delete an LDAP library.
+        """
+        mount_point = self._fix_mount_point(mount_point)
+        return self.do_delete(encode_url(f'/v1/{mount_point}library/{name}'), namespace)
+
+    def list_ldap_libraries(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
+        """
+        List LDAP libraries at the given mount point.
+        """
+        mount_point = self._fix_mount_point(mount_point)
+        return self.do_list(encode_url(f'/v1/{mount_point}library'), namespace)
+
+    def create_ldap_secret(self, mount_point: str, name: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
+        """
+        Create or update an LDAP static role (secret).
+        """
+        mount_point = self._fix_mount_point(mount_point)
+        return self.do_post(encode_url(f'/v1/{mount_point}static-cred/{name}'), config, namespace)
+
+    def read_ldap_secret(self, mount_point: str, name: str, namespace: str=None) -> Dict[str, Any]:
+        """
+        Read an LDAP static role (secret).
+        """
+        mount_point = self._fix_mount_point(mount_point)
+        return self.do_get(encode_url(f'/v1/{mount_point}static-cred/{name}'), namespace)
+
+    def update_ldap_secret(self, mount_point: str, name: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
+        """
+        Update an LDAP static role (secret) (alias for create_ldap_secret).
+        """
+        return self.create_ldap_secret(mount_point, name, config, namespace)
+
+    def delete_ldap_secret(self, mount_point: str, name: str, namespace: str=None) -> Dict[str, Any]:
+        """
+        Delete an LDAP static role (secret).
+        """
+        mount_point = self._fix_mount_point(mount_point)
+        return self.do_delete(encode_url(f'/v1/{mount_point}static-cred/{name}'), namespace)
+
+    def list_ldap_secrets(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
+        """
+        List LDAP static roles (secrets) at the given mount point.
+        """
+        mount_point = self._fix_mount_point(mount_point)
+        return self.do_list(encode_url(f'/v1/{mount_point}static-cred'), namespace)
+
+    def rotate_ldap_secret(self, mount_point: str, name: str, namespace: str=None) -> Dict[str, Any]:
+        """
+        Rotate credentials for an LDAP static role (secret).
+        """
+        mount_point = self._fix_mount_point(mount_point)
+        return self.do_post(encode_url(f'/v1/{mount_point}static-cred/{name}/rotate'), namespace=namespace)
+
+    def read_database_config(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
+        """
+        Read the database secrets engine configuration for the given mount point.
+        """
+        mount_point = self._fix_mount_point(mount_point)
+        return self.do_get(encode_url(f'/v1/{mount_point}config'), namespace)
+
+    def update_database_config(self, mount_point: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
+        """
+        Update the database secrets engine configuration for the given mount point.
+        """
+        mount_point = self._fix_mount_point(mount_point)
+        return self.do_post(encode_url(f'/v1/{mount_point}config'), config, namespace)
+
+    def delete_database_config(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
+        """
+        Delete the database secrets engine configuration for the given mount point.
+        """
+        mount_point = self._fix_mount_point(mount_point)
+        return self.do_delete(encode_url(f'/v1/{mount_point}config'), namespace)
+
+    def create_database_role(self, mount_point: str, role_name: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
+        """
+        Create or update a database role.
+        """
+        mount_point = self._fix_mount_point(mount_point)
+        return self.do_post(encode_url(f'/v1/{mount_point}roles/{role_name}'), config, namespace)
+
+    def read_database_role(self, mount_point: str, role_name: str, namespace: str=None) -> Dict[str, Any]:
+        """
+        Read a database role definition.
+        """
+        mount_point = self._fix_mount_point(mount_point)
+        return self.do_get(encode_url(f'/v1/{mount_point}roles/{role_name}'), namespace)
+
+    def update_database_role(self, mount_point: str, role_name: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
+        """
+        Update a database role (alias for create_database_role).
+        """
+        return self.create_database_role(mount_point, role_name, config, namespace)
+
+    def delete_database_role(self, mount_point: str, role_name: str, namespace: str=None) -> Dict[str, Any]:
+        """
+        Delete a database role.
+        """
+        mount_point = self._fix_mount_point(mount_point)
+        return self.do_delete(encode_url(f'/v1/{mount_point}roles/{role_name}'), namespace)
+
+    def list_database_roles(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
+        """
+        List database roles at the given mount point.
+        """
+        mount_point = self._fix_mount_point(mount_point)
+        return self.do_list(encode_url(f'/v1/{mount_point}roles'), namespace)
+
+    def generate_database_credentials(self, mount_point: str, role_name: str, namespace: str=None) -> Dict[str, Any]:
+        """
+        Generate credentials for the given database role.
+        """
+        mount_point = self._fix_mount_point(mount_point)
+        return self.do_get(encode_url(f'/v1/{mount_point}creds/{role_name}'), namespace)
+
+    def rotate_database_credentials(self, mount_point: str, role_name: str, namespace: str=None) -> Dict[str, Any]:
+        """
+        Rotate credentials for a static database role.
+        """
+        mount_point = self._fix_mount_point(mount_point)
+        return self.do_post(encode_url(f'/v1/{mount_point}rotate-role/{role_name}'), namespace=namespace)
 
     def __enter__(self):
         return self.open()
