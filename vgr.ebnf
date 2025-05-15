@@ -268,6 +268,7 @@ ternary: expr "?" expr ":" expr -> c_ternary
     | expr2 "!~*" expr2 -> not_imatches_op
     // These are more fundemental objects
     | _OSB (expr (_COMMA expr)*)? _CSB -> array         // may become CARRAY at runtime
+    | "{" (expr ":" expr (_COMMA expr ":" expr)*)? "}" -> dict
     | TRUE | FALSE
     | NONE
     | INF | NAN                                         // becomes FLOAT at runtime

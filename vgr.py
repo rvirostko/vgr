@@ -168,11 +168,13 @@ def create_parser(dd: DataDictionary, grammar_file: str, extn_registry: VgrExten
     print_debug(dd, 'Grammar file is', grammar_file)
     with open(grammar_file, "r", encoding="utf-8") as file:
         grammar = file.read()
-    grammar = grammar.format(
-        EXTN_STATEMENTS=extn_statements,
-        EXTN_FROM=extn_from,
-        EXTN_GRAMMAR=extn_grammar,
-        FUNCTIONS=get_function_defs())
+    # NB: we can't just use str.format() because the grammar
+    #     contains "{" and "}"
+    for tag, value in (('{EXTN_STATEMENTS}', extn_statements),
+                       ('{EXTN_FROM}', extn_from),
+                       ('{EXTN_GRAMMAR}', extn_grammar),
+                       ('{FUNCTIONS}', get_function_defs())):
+        grammar = grammar.replace(tag, value)
     return Lark(grammar,
                 start='statements',
                 lexer='contextual',

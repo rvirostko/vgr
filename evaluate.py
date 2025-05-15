@@ -133,6 +133,12 @@ def build_array(*values: Any) -> list[Any]:
     """Builds an array from the collected values"""
     return None if values is None else list(values)
 
+def build_dict(*values: Any) -> dict:
+    # Values is alternating pairs of key/values
+    # so we use a "stride" of two to form two groups
+    # and recombine into pairs using zip()
+    return None if values is None else dict(zip(values[::2], values[1::2]))
+
 def deref_var(data: Any, /, *path: str) -> Any:
     """
     This is the lookup of a path relative to data.
@@ -191,6 +197,7 @@ class OperationBinder(Transformer):
 
     # Other operations
     def array(self, tree): return SimpleOperation(tree, build_array)
+    def dict(self, tree): return SimpleOperation(tree, build_dict)
     def deref(self, tree): return SimpleOperation(tree, deref_var)
     def function(self, tree): return SimpleOperation(tree, get_function_op(tree.children.pop(0).value))
     def var_ref(self, tree): return VarRef(tree)
