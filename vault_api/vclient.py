@@ -101,7 +101,7 @@ class VaultClient():
         if not url: raise ValueError('Missing Vault operation URL')
         self.open()
         namespace = self._ns(namespace)
-        self._info(' ', method, ' ', self._addr, url, ' (X-Vault-Namespace=\'', namespace, '\')')
+        self._info(method, ' ', self._addr, url, ' (X-Vault-Namespace=\'', namespace, '\')')
         headers = {
             'X-Vault-Token': self._token,
             'X-Vault-Namespace': namespace,
@@ -126,7 +126,7 @@ class VaultClient():
             if not 200 <= retcode < 300:
                 text_response = text_response.strip()
                 # TODO look at old code to hunt down the first error if present
-                if retcode == HTTPStatus.NOT_FOUND:
+                if retcode in (HTTPStatus.NOT_FOUND, HTTPStatus.BAD_REQUEST, HTTPStatus.FORBIDDEN):
                     self._debug(retcode, 'on', self._addr + url, ':', text_response)
                 else:
                     self._warn(retcode, 'on', self._addr + url, ':', text_response)
@@ -481,6 +481,8 @@ class VaultClient():
     def _ns(self, ns: str) -> str:
         # Go thought the options: what the user provided on the call,
         # in the constructor, or default to "root"
+        print(f'ns = {ns}')
+        print(f'self._default_ns = {self._default_ns}')
         return ns if ns else self._default_ns if self._default_ns else ''
 
     @staticmethod
