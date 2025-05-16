@@ -32,10 +32,14 @@ from .dd_consts import DEFAULT_NS_PATH, DEFAULT_RESULT_PATH, DEFAULT_CONN_PATH
 _NS_ARG = 'namespace'
 _RESULT_ARG = 'result'
 _USING_ARG = 'using'
-_META_ARG = 'meta'
+_META_ARG = 'metadata'
 _KEY_ARG = 'key'
+_CONFIG_ARG = 'config'
+_DATA_ARG = 'data'
+_TYPE_ARG = 'type'
+_DESC_ARG = 'description'
 _ARG_VAR_NAME = (_RESULT_ARG,)
-_ARG_EXPR = ('description', _KEY_ARG, _NS_ARG, 'type', 'config', 'data', _META_ARG, _USING_ARG)
+_ARG_EXPR = (_DESC_ARG, _KEY_ARG, _NS_ARG, _TYPE_ARG, _CONFIG_ARG, _DATA_ARG, _META_ARG, _USING_ARG)
 
 _DEFAULT_CONN_NAME = 'DefaultConnection'
 
@@ -172,14 +176,16 @@ def execute_delete_ns(dd: DataDictionary, statement: Tree) -> None:
 
 # NB: for testing, need to be able to list the root as well
 #     a top-level NS, and a child NS
-#     Vault ListNamespace ""
-#     Vault ListNamespace "D111382"
-#     Vault ListNamespace "D111382", Namspace=""
-#     Vault ListNamespace "One", Namspace="D111382"
-#     Vault ListNamespace "SubOne", Namspace="D111382/One"
-#     Vault ListNamespace "D111382/One/SubOne" -- allowed?
+#     Vault ListNamespaces
+#     Vault ListNamespaces ""
+#     Vault ListNamespaces "D111382"
+#     Vault ListNamespaces Namespace="D111382"
+#     Vault ListNamespaces "D111382", Namspace=""
+#     Vault ListNamespaces "One", Namspace="D111382"
+#     Vault ListNamespaces "SubOne", Namspace="D111382/One"
+#     Vault ListNamespaces "D111382/One/SubOne" -- allowed?
 def execute_list_ns(dd: DataDictionary, statement: Tree) -> None:
-    namespace: str = eval_to_str(dd, statement.children[0], 'Namespace', True)
+    namespace: str = eval_to_str(dd, statement.children[0], 'Namespace', True) if len(statement.children) > 1 else ""
     args: dict = _extract_args(dd, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     parent_namespace: str = _get_default_ns(dd, args)
@@ -215,24 +221,65 @@ def execute_unlock_ns(dd: DataDictionary, statement: Tree) -> None:
     )
 
 def execute_create_mount(dd: DataDictionary, statement: Tree) -> None:
-    value = eval_expr(dd, statement.children[0])
-    print(value)
+    mount_point = eval_to_str(dd, statement.children[0], 'Mount Point')
+    args = _extract_args(dd, statement)
+    _allowed_args(args, _DESC_ARG, _TYPE_ARG, _CONFIG_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    namespace: str = eval_to_str(dd, statement.children[0], 'Namespace')
+    data = {}
+    mtype: str = _get_arg(args, _TYPE_ARG, str).lower()
+    if mtype.startswith('kv'):
+        data['options'] = { 'version': 1 if mtype == 'kv1' else 2 }
+        data['type'] = 'kv'
+    else:
+        data['type'] = mtype
+    desc = _get_arg(args, _DESC_ARG, str, True)
+    if desc: data['description'] = desc
+    config = _get_arg(args, _CONFIG_ARG, dict, True)
+    if config: data['config'] = config
+    using = _set_default_conn(dd, _get_default_conn(dd, args))
+    _set_result(dd,
+                args,
+                _CONNECTIONS.get_connection(using).create_mount(mount_point, data, namespace))
 
 def execute_read_mount(dd: DataDictionary, statement: Tree) -> None:
-    value = eval_expr(dd, statement.children[0])
-    print(value)
+    mount_point = eval_to_str(dd, statement.children[0], 'Mount Point')
+    args = _extract_args(dd, statement)
+    _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    namespace: str = eval_to_str(dd, statement.children[0], 'Namespace')
+    using = _set_default_conn(dd, _get_default_conn(dd, args))
+    _set_result(dd,
+                args,
+                _CONNECTIONS.get_connection(using).read_mount(mount_point, namespace))
 
 def execute_update_mount(dd: DataDictionary, statement: Tree) -> None:
-    value = eval_expr(dd, statement.children[0])
-    print(value)
+    mount_point = eval_to_str(dd, statement.children[0], 'Mount Point')
+    args = _extract_args(dd, statement)
+    _allowed_args(args, _CONFIG_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    namespace: str = eval_to_str(dd, statement.children[0], 'Namespace')
+    config = args.get(_CONFIG_ARG) or {}
+    using = _set_default_conn(dd, _get_default_conn(dd, args))
+    _set_result(dd,
+                args,
+                _CONNECTIONS.get_connection(using).update_mount(mount_point, config, namespace))
 
 def execute_delete_mount(dd: DataDictionary, statement: Tree) -> None:
-    value = eval_expr(dd, statement.children[0])
-    print(value)
+    mount_point = eval_to_str(dd, statement.children[0], 'Mount Point')
+    args = _extract_args(dd, statement)
+    _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    namespace: str = eval_to_str(dd, statement.children[0], 'Namespace')
+    using = _set_default_conn(dd, _get_default_conn(dd, args))
+    _set_result(dd,
+                args,
+                _CONNECTIONS.get_connection(using).delete_mount(mount_point, namespace))
 
 def execute_list_mounts(dd: DataDictionary, statement: Tree) -> None:
-    value = eval_expr(dd, statement.children[0])
-    print(value)
+    args = _extract_args(dd, statement)
+    _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    namespace: str = eval_to_str(dd, statement.children[0], 'Namespace')
+    using = _set_default_conn(dd, _get_default_conn(dd, args))
+    _set_result(dd,
+                args,
+                _CONNECTIONS.get_connection(using).list_mounts(namespace))
 
 def execute_create_kv(dd: DataDictionary, statement: Tree) -> None:
     value = eval_expr(dd, statement.children[0])
@@ -310,7 +357,7 @@ def _combine_ns(parent: str, child: str) -> str:
 
 def _extract_args(dd: DataDictionary, statement: Tree) -> dict:
     args = {}
-    for child in statement.children[1:]:
+    for child in statement.children[-1].children:
         if isinstance(child, Tree) and child.data.startswith('vopt_'):
             arg_name = child.data[5:]
             arg_node = child.children[0]
