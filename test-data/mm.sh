@@ -28,22 +28,31 @@ Assert !arg.subj.IsEmpty() : "You need to pass in the email subject"
 
 -- Load can guess the type based on the extension
 -- but no harm in explicitly defining the type
+Printf "Loading template..."
 Load mail_template
     With "form.txt"
     As Text
-
-Print "Template loaded"
+Print " done."
 
 -- The file is actually an array of JSON objects, which is itself an object.
 -- To use with Select, it has to be an array.
+Printf "Loading data..."
 Load People
     With "people.json"
     As Json Object
-
+Print " done."
 Printf "{} total records\n", People.Length()
 
--- Use the passed in date (because we don't have date functions yet...)
--- for out output file. The overwrite option is the default.
+Printf "Sorting..."
+Sort Var People
+    By Asc Key last_name, Asc Key first_name
+    Unique
+Print " done."
+
+Printf "First: {0}\n", People.FirstItem().ToJsonStr()
+Printf "Last : {0}\n", People.LastItem().ToJsonStr()
+
+-- Use the passed in date for out output file. The overwrite option is the default.
 Open Output File arg.today + " - mail-output.txt" Overwrite
 -- Use the template as a "printf" per person
 -- Positionally args are first name, email, and the email subject.
@@ -56,7 +65,7 @@ Select mail_template.Format(first_name, email, "Hello Again!")
 Close Output
 
 Open Output File arg.today + " - skipped.csv" Overwrite
-Select first_name As "FNAME", last_name As "LNAME", email as "EMAIL"
+Select _.rowid as "ROW", first_name As "FNAME", last_name As "LNAME", email as "EMAIL"
     From Var People as person
     Where first_name Is Null
             Or email Is Null
