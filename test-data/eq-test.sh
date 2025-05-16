@@ -16,79 +16,84 @@
     set t.array2 = [t.three_str, t.three_int, t.three_float]
 
 -- Load the data into testing slots
-    Set c1 = t.three_int
-    Set c2 = t.three_float
-    Set c3 = t.three_str
-    Set c4 = t.three_pad_str
+    set c1 = t.three_int
+    set c2 = t.three_float
+    set c3 = t.three_str
+    set c4 = t.three_pad_str
     -- This is for output "columns"
-    Set fmt = "\t{1} {0} {2} -> {3}"
-    Set vals = ["2", "3"]
-    Set fmt4 = fmt.append(
-        fmt.ReplaceStr(vals, ["4", "5"]),
-        fmt.ReplaceStr(vals, ["6", "7"]),
-        fmt.ReplaceStr(vals, ["8", "9"]),
+    set fmt = "\t{1} {0} {2} -> {3}"
+    set fmt4 = fmt.append_str(
+        fmt.replace_str("2", "4").replace_str("3", "5"),
+        fmt.replace_str("2", "6").replace_str("3", "7"),
+        fmt.replace_str("2", "8").replace_str("3", "9"),
         "\n")
-    Set fmt = fmt + "\n"
-    Set rfmt = "\t{2} {0} {1} -> {3}"
-    Set rfmt4 = rfmt.append(
-        rfmt.ReplaceStr(vals, ["4", "5"]),
-        rfmt.ReplaceStr(vals, ["6", "7"]),
-        rfmt.ReplaceStr(vals, ["8", "9"]),
+    set rfmt = "\t{2} {0} {1} -> {3}"
+    set rfmt4 = rfmt.append_str(
+        fmt.replace_str("2", "4").replace_str("3", "5"),
+        fmt.replace_str("2", "6").replace_str("3", "7"),
+        fmt.replace_str("2", "8").replace_str("3", "9"),
         "\n")
 
 -- Int to other values
-    Set v = t.three_int
-    Printf "\"{}\" tests-\n", v.class()
-    Printf fmt4, "==", v.repr(), c1.repr(), v == c1, c2.repr(), v == c2, c3.repr(), v == c3, c4.repr(), v == c4
-    Printf rfmt4, "==", v.repr(), c1.repr(), c1 == v, c2.repr(), c2 == v, c3.repr(), c3 == v, c4.repr(), c4 == v
-    Printf fmt4, "<", v.repr(), c1.repr(), v < c1, c2.repr(), v < c2, c3.repr(), v < c3, c4.repr(), v < c4
-    Printf fmt4, ">", v.repr(), c1.repr(), v > c1, c2.repr(), v > c2, c3.repr(), v > c3, c4.repr(), v > c4
-    Printf fmt4, "<=", v.repr(), c1.repr(), v <= c1, c2.repr(), v <= c2, c3.repr(), v <= c3, c4.repr(), v <= c4
-    Printf fmt4, ">=", v.repr(), c1.repr(), v >= c1, c2.repr(), v >= c2, c3.repr(), v >= c3, c4.repr(), v >= c4
-    Print
+    set v = t.three_int
+    printf "\"{}\" tests-\n", v.type()
+    printf fmt4, "==", v.repr(), c1.repr(), v == c1, c2.repr(), v == c2, c3.repr(), v == c3, c4.repr(), v == c4
+    printf rfmt4, "==", v.repr(), c1.repr(), c1 == v, c2.repr(), c2 == v, c3.repr(), c3 == v, c4.repr(), c4 == v
+    printf fmt4, "<", v.repr(), c1.repr(), v < c1, c2.repr(), v < c2, c3.repr(), v < c3, c4.repr(), v < c4
+    printf fmt4, ">", v.repr(), c1.repr(), v > c1, c2.repr(), v > c2, c3.repr(), v > c3, c4.repr(), v > c4
+    printf fmt4, "<=", v.repr(), c1.repr(), v <= c1, c2.repr(), v <= c2, c3.repr(), v <= c3, c4.repr(), v <= c4
+    printf fmt4, ">=", v.repr(), c1.repr(), v >= c1, c2.repr(), v >= c2, c3.repr(), v >= c3, c4.repr(), v >= c4
+    print;
 
 -- Float to other values
-    Set v = t.three_float
-    Printf "\"{}\" tests-\n", v.class()
-    Printf fmt4, "==", v.repr(), c1.repr(), v == c1, c2.repr(), v == c2, c3.repr(), v == c3, c4.repr(), v == c4
-    Printf rfmt4, "==", v.repr(), c1.repr(), c1 == v, c2.repr(), c2 == v, c3.repr(), c3 == v, c4.repr(), c4 == v
-    Printf fmt4, "<", v.repr(), c1.repr(), v < c1, c2.repr(), v < c2, c3.repr(), v < c3, c4.repr(), v < c4
-    Printf fmt4, ">", v.repr(), c1.repr(), v > c1, c2.repr(), v > c2, c3.repr(), v > c3, c4.repr(), v > c4
-    Printf fmt4, "<=", v.repr(), c1.repr(), v <= c1, c2.repr(), v <= c2, c3.repr(), v <= c3, c4.repr(), v <= c4
-    Printf fmt4, ">=", v.repr(), c1.repr(), v >= c1, c2.repr(), v >= c2, c3.repr(), v >= c3, c4.repr(), v >= c4
-    Print
+    set v = t.three_float
+    printf "\"{}\" tests-\n", v.type()
+    printf fmt4, "==", v.repr(), c1.repr(), v == c1, c2.repr(), v == c2, c3.repr(), v == c3, c4.repr(), v == c4
+    printf rfmt4, "==", v.repr(), c1.repr(), c1 == v, c2.repr(), c2 == v, c3.repr(), c3 == v, c4.repr(), c4 == v
+    printf fmt4, "<", v.repr(), c1.repr(), v < c1, c2.repr(), v < c2, c3.repr(), v < c3, c4.repr(), v < c4
+    printf fmt4, ">", v.repr(), c1.repr(), v > c1, c2.repr(), v > c2, c3.repr(), v > c3, c4.repr(), v > c4
+    printf fmt4, "<=", v.repr(), c1.repr(), v <= c1, c2.repr(), v <= c2, c3.repr(), v <= c3, c4.repr(), v <= c4
+    printf fmt4, ">=", v.repr(), c1.repr(), v >= c1, c2.repr(), v >= c2, c3.repr(), v >= c3, c4.repr(), v >= c4
+    print;
 
 -- In this case the str/pad_str will mismatch
-    Set v = t.three_str
-    Printf "\"{}\" tests-\n", v.class()
-    Printf fmt4, "==", v.repr(), c1.repr(), v == c1, c2.repr(), v == c2, c3.repr(), v == c3, c4.repr(), v == c4
-    Printf rfmt4, "==", v.repr(), c1.repr(), c1 == v, c2.repr(), c2 == v, c3.repr(), c3 == v, c4.repr(), c4 == v
-    Printf fmt4, "<", v.repr(), c1.repr(), v < c1, c2.repr(), v < c2, c3.repr(), v < c3, c4.repr(), v < c4
-    Printf fmt4, ">", v.repr(), c1.repr(), v > c1, c2.repr(), v > c2, c3.repr(), v > c3, c4.repr(), v > c4
-    Printf fmt4, "<=", v.repr(), c1.repr(), v <= c1, c2.repr(), v <= c2, c3.repr(), v <= c3, c4.repr(), v <= c4
-    Printf fmt4, ">=", v.repr(), c1.repr(), v >= c1, c2.repr(), v >= c2, c3.repr(), v >= c3, c4.repr(), v >= c4
-    Set v = t.three_pad_str
-    Printf fmt4, "==", v.repr(), c1.repr(), v == c1, c2.repr(), v == c2, c3.repr(), v == c3, c4.repr(), v == c4
-    Printf rfmt4, "==", v.repr(), c1.repr(), c1 == v, c2.repr(), c2 == v, c3.repr(), c3 == v, c4.repr(), c4 == v
-    Printf fmt4, "<", v.repr(), c1.repr(), v < c1, c2.repr(), v < c2, c3.repr(), v < c3, c4.repr(), v < c4
-    Printf fmt4, ">", v.repr(), c1.repr(), v > c1, c2.repr(), v > c2, c3.repr(), v > c3, c4.repr(), v > c4
-    Printf fmt4, "<=", v.repr(), c1.repr(), v <= c1, c2.repr(), v <= c2, c3.repr(), v <= c3, c4.repr(), v <= c4
-    Printf fmt4, ">=", v.repr(), c1.repr(), v >= c1, c2.repr(), v >= c2, c3.repr(), v >= c3, c4.repr(), v >= c4
-    Print
+    set v = t.three_str
+    printf "\"{}\" tests-\n", v.type()
+    printf fmt4, "==", v.repr(), c1.repr(), v == c1, c2.repr(), v == c2, c3.repr(), v == c3, c4.repr(), v == c4
+    printf rfmt4, "==", v.repr(), c1.repr(), c1 == v, c2.repr(), c2 == v, c3.repr(), c3 == v, c4.repr(), c4 == v
+    printf fmt4, "<", v.repr(), c1.repr(), v < c1, c2.repr(), v < c2, c3.repr(), v < c3, c4.repr(), v < c4
+    printf fmt4, ">", v.repr(), c1.repr(), v > c1, c2.repr(), v > c2, c3.repr(), v > c3, c4.repr(), v > c4
+    printf fmt4, "<=", v.repr(), c1.repr(), v <= c1, c2.repr(), v <= c2, c3.repr(), v <= c3, c4.repr(), v <= c4
+    printf fmt4, ">=", v.repr(), c1.repr(), v >= c1, c2.repr(), v >= c2, c3.repr(), v >= c3, c4.repr(), v >= c4
+    set v = t.three_pad_str
+    printf fmt4, "==", v.repr(), c1.repr(), v == c1, c2.repr(), v == c2, c3.repr(), v == c3, c4.repr(), v == c4
+    printf rfmt4, "==", v.repr(), c1.repr(), c1 == v, c2.repr(), c2 == v, c3.repr(), c3 == v, c4.repr(), c4 == v
+    printf fmt4, "<", v.repr(), c1.repr(), v < c1, c2.repr(), v < c2, c3.repr(), v < c3, c4.repr(), v < c4
+    printf fmt4, ">", v.repr(), c1.repr(), v > c1, c2.repr(), v > c2, c3.repr(), v > c3, c4.repr(), v > c4
+    printf fmt4, "<=", v.repr(), c1.repr(), v <= c1, c2.repr(), v <= c2, c3.repr(), v <= c3, c4.repr(), v <= c4
+    printf fmt4, ">=", v.repr(), c1.repr(), v >= c1, c2.repr(), v >= c2, c3.repr(), v >= c3, c4.repr(), v >= c4
+    print;
 
 -- Make sure we have symetry with array
-    Set v = t.array1; Set w = t.array2
-    Printf "\"{}\"/\"{}\" tests-\n", v.type(), w.type()
-    Printf fmt, "==", v.repr(), w.repr(), v == w
-    Printf fmt, "==", w.repr(), v.repr(), w == v
+    set v = t.array1; set w = t.array2
+    printf "\"{}\"/\"{}\" tests-\n", v.type(), w.type()
+    set fmt += "\n"
+    printf fmt, "==", v.repr(), w.repr(), v == w
+    printf fmt, "==", w.repr(), v.repr(), w == v
+    printf fmt, "!=", v.repr(), w.repr(), v != w
+    printf fmt, "!=", w.repr(), v.repr(), w != v
+    printf fmt, "<", v.repr(), w.repr(), v < w
     printf fmt, "<", w.repr(), v.repr(), w < v
+    printf fmt, ">", v.repr(), w.repr(), v > w
     printf fmt, ">", w.repr(), v.repr(), w > v
+    printf fmt, "<=", v.repr(), w.repr(), v <= w
     printf fmt, "<=", w.repr(), v.repr(), w <= v
-    printf fmt, "<=", w.repr(), v.repr(), w >= v
-    Print
+    printf fmt, ">=", v.repr(), w.repr(), v >= w
+    printf fmt, ">=", w.repr(), v.repr(), w >= v
+    print;
 
 -- Use asserts to check these
-    Assert (v == t.three_int) == False : "Invalid array distribution for equals"
-    Assert (t.three_float == v) == False : "Invaid array distribution for equals"
+    assert (v == t.three_int) == False : "Invalid array distribution for equals"
+    assert (t.three_float == v) == False : "Invaid array distribution for equals"
 
 EOF
