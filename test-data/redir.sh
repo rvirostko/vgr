@@ -55,9 +55,9 @@ rm -rf "$temp_file"
 ls -lR "$temp_file"
 
 rm -rf "$temp_file"
-
 mkdir "$temp_file"
 touch "$temp_file/sub1"
+ls -lR "$temp_file"
 
 # Test file blocking dir creation
 ../vgr.py "temp.file=${temp_file}" \

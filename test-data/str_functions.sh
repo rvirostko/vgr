@@ -55,36 +55,40 @@ Printf fmt, "SubStr(1,2)", a, a.SubStr(1,2), b, b.SubStr(1,2), c, c.SubStr(1,2),
 
 Printf fmt, "CountOf(\"l\")", a, a.CountOf("l"), b, b.CountOf("l"), c, c.CountOf("l"), d, d.CountOf("l")
 Printf fmt, "IndexOf(\"l\")", a, a.IndexOf("l"), b, b.IndexOf("l"), c, c.IndexOf("l"), d, d.IndexOf("l")
-Printf fmt, "IndexOf(\"z\")", a, a.IndexOf("z"), b, b.IndexOf("z"), c, c.IndexOf("z"), d, d.IndexOf("z")
 Printf fmt, "RIndexOf(\"l\")", a, a.RIndexOf("l"), b, b.RIndexOf("l"), c, c.RIndexOf("l"), d, d.RIndexOf("l")
-Printf fmt, "RIndexOf(\"z\")", a, a.RIndexOf("z"), b, b.RIndexOf("z"), c, c.RIndexOf("z"), d, d.RIndexOf("z")
+// NB: IndexOf() and RIndexOf() raise an exception if the string is not found
+//     FindStr() and RFindStr() return -1 if the string is not found
+Printf fmt, "FindStr(\"l\")", a, a.FindStr("l"), b, b.FindStr("l"), c, c.FindStr("l"), d, d.FindStr("l")
+Printf fmt, "RFindStr(\"l\")", a, a.RFindStr("l"), b, b.RFindStr("l"), c, c.RFindStr("l"), d, d.RFindStr("l")
+Printf fmt, "FindStr(\"z\")", a, a.FindStr("z"), b, b.FindStr("z"), c, c.FindStr("z"), d, d.FindStr("z")
+Printf fmt, "RFindStr(\"z\")", a, a.RFindStr("z"), b, b.RFindStr("z"), c, c.RFindStr("z"), d, d.RFindStr("z")
 
 Set s2 = ["1", "2", "3"]
 Set s3 = [1, 2, 3]
 Set s4 = [1, [2]]
 Set s5 = [3, True, None]
 
-Set label = "Append(\"1\", \"2\", \"3\")"
-Printf fmt, label, a, a.Append("1", "2", "3"), b, b.Append("1", "2", "3"), c, c.Append("1", "2", "3"), d, d.Append("1", "2", "3")
-Set label = "Append(" + s2.Repr() + ")"
-Printf fmt, label, a, a.Append(s2), b, b.Append(s2), c, c.Append(s2), d, d.Append(s2)
-Set label = "Append(" + s3.Repr() + ")"
-Printf fmt, label, a, a.Append(s3), b, b.Append(s3), c, c.Append(s3), d, d.Append(s3)
-Set label = "Append(" + s4.Repr() + ", 3)"
-Printf fmt, label, a, a.Append(s4, 3), b, b.Append(s4, 3), b, b.Append(s4, 3), b, b.Append(s4, 3)
-Set label = "Append(" + s4.Repr() + ", " + s5.Repr() + ")"
-Printf fmt, label, a, a.Append(s4, s5), b, b.Append(s4, s5), c, c.Append(s4, s5), d, d.Append(s4, s5)
+Set label = "AppendStr(\"1\", \"2\", \"3\")"
+Printf fmt, label, a, a.AppendStr("1", "2", "3"), b, b.AppendStr("1", "2", "3"), c, c.AppendStr("1", "2", "3"), d, d.AppendStr("1", "2", "3")
+Set label = "AppendStr(" + s2.Repr() + ")"
+Printf fmt, label, a, a.AppendStr(s2), b, b.AppendStr(s2), c, c.AppendStr(s2), d, d.AppendStr(s2)
+Set label = "AppendStr(" + s3.Repr() + ")"
+Printf fmt, label, a, a.AppendStr(s3), b, b.AppendStr(s3), c, c.AppendStr(s3), d, d.AppendStr(s3)
+Set label = "AppendStr(" + s4.Repr() + ", 3)"
+Printf fmt, label, a, a.AppendStr(s4, 3), b, b.AppendStr(s4, 3), b, b.AppendStr(s4, 3), b, b.AppendStr(s4, 3)
+Set label = "AppendStr(" + s4.Repr() + ", " + s5.Repr() + ")"
+Printf fmt, label, a, a.AppendStr(s4, s5), b, b.AppendStr(s4, s5), c, c.AppendStr(s4, s5), d, d.AppendStr(s4, s5)
 
-Set label = "Prepend(\"1\", \"2\", \"3\")"
-Printf fmt, label, a, a.Prepend("1", "2", "3"), b, b.Prepend("1", "2", "3"), c, c.Prepend("1", "2", "3"), d, d.Prepend("1", "2", "3")
-Set label = "Prepend(" + s2.Repr() + ")"
-Printf fmt, label, a, a.Prepend(s2), b, b.Prepend(s2), c, c.Prepend(s2), d, d.Prepend(s2)
-Set label = "Prepend(" + s3.Repr() + ")"
-Printf fmt, label, a, a.Prepend(s3), b, b.Prepend(s3), c, c.Prepend(s3), d, d.Prepend(s3)
-Set label = "Prepend(" + s4.Repr() + ", 3)"
-Printf fmt, label, a, a.Prepend(s4, 3), b, b.Prepend(s4, 3), b, b.Prepend(s4, 3), b, b.Prepend(s4, 3)
-Set label = "Prepend(" + s4.Repr() + ", " + s5.Repr() + ")"
-Printf fmt, label, a, a.Prepend(s4, s5), b, b.Prepend(s4, s5), c, c.Prepend(s4, s5), d, d.Prepend(s4, s5)
+Set label = "PrependStr(\"1\", \"2\", \"3\")"
+Printf fmt, label, a, a.PrependStr("1", "2", "3"), b, b.PrependStr("1", "2", "3"), c, c.PrependStr("1", "2", "3"), d, d.PrependStr("1", "2", "3")
+Set label = "PrependStr(" + s2.Repr() + ")"
+Printf fmt, label, a, a.PrependStr(s2), b, b.PrependStr(s2), c, c.PrependStr(s2), d, d.PrependStr(s2)
+Set label = "PrependStr(" + s3.Repr() + ")"
+Printf fmt, label, a, a.PrependStr(s3), b, b.PrependStr(s3), c, c.PrependStr(s3), d, d.PrependStr(s3)
+Set label = "PrependStr(" + s4.Repr() + ", 3)"
+Printf fmt, label, a, a.PrependStr(s4, 3), b, b.PrependStr(s4, 3), b, b.PrependStr(s4, 3), b, b.PrependStr(s4, 3)
+Set label = "PrependStr(" + s4.Repr() + ", " + s5.Repr() + ")"
+Printf fmt, label, a, a.PrependStr(s4, s5), b, b.PrependStr(s4, s5), c, c.PrependStr(s4, s5), d, d.PrependStr(s4, s5)
 
 # Split()
 # RSplit()
