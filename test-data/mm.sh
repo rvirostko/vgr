@@ -12,6 +12,10 @@ Just wanted to say hello.
 today=`date +"%Y-%m-%d"`
 subj="Hello Again!"
 
+# NOTE!
+# If you use one of the flags (--debug et al) without an arg following it
+# make sure you do so AFTER any user arguments. Otherwise it will eat the
+# argument folliwing it.
 ../vgr.py \
     "today=${today}" \
     "subj=${subj}" \
