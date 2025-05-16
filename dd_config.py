@@ -100,7 +100,7 @@ def do_set(dd: DataDictionary, value: Any, *path) -> None:
     """
     new_value = dd.set_var_user(value, *path)
     if dd.verbose:
-        print_stderr(dd, 'Set', '.'.join(path), 'To', shorten(repr(new_value)))
+        print_stderr('Set', '.'.join(path), 'To', shorten(repr(new_value)))
 
 def do_unset(dd: DataDictionary, *path) -> None:
     """
@@ -109,7 +109,7 @@ def do_unset(dd: DataDictionary, *path) -> None:
     """
     old_value = dd.unset_var_user(*path)
     if dd.verbose:
-        print_stderr(dd, 'Removed', shorten(repr(old_value)), 'From', '.'.join(path))
+        print_stderr('Removed', shorten(repr(old_value)), 'From', '.'.join(path))
 
 def _get_os_consts() -> dict:
     rc = { key: value for key, value in _get_consts(os).items() if key in _OS_CONSTS }

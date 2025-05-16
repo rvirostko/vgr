@@ -60,7 +60,7 @@ be relative to the current directory.
         if added_files:
             for file in sorted(added_files):
                 relpath = os.path.relpath(file)
-                if dd.verbose: print_stderr(dd, 'Adding', relpath)
+                if dd.verbose: print_stderr('Adding', relpath)
                 zf.write(file, relpath)
         else:
-            if dd.verbose: print_stderr(dd, 'Created an empty archive')
+            if dd.verbose: print_stderr('Created an empty archive')
