@@ -52,7 +52,7 @@ vault_create_mount : "Vault"i ("CreateMount"i | "create_mount"i) expr vault_args
 vault_read_mount   : "Vault"i ("ReadMount"i | "read_mount"i) expr vault_args _SEMICOLON?
 vault_update_mount : "Vault"i ("UpdateMount"i | "update_mount"i) expr vault_args _SEMICOLON?
 vault_delete_mount : "Vault"i ("DeleteMount"i | "delete_mount"i) expr vault_args _SEMICOLON?
-vault_list_mounts  : "Vault"i ("ListMounts"i | "list_mounts"i) expr vault_args _SEMICOLON?
+vault_list_mounts  : "Vault"i ("ListMounts"i | "list_mounts"i) expr? vault_args _SEMICOLON?
 
 // KV2 Secrets
 vault_create_kv : "Vault"i ("CreateKvSecret"i | "create_kv_secret"i) expr vault_args _SEMICOLON?
