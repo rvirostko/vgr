@@ -7,7 +7,6 @@ from typing import Any, Callable
 import re
 
 from .common import X_None_Op, NoneType, Y_Coll_Op, str_arg, int_arg, type_str, bool_arg
-from .general import poly_isempty
 from .reg_ex import poly_regex_replace, poly_vregex_replace
 from .types import poly_str
 
@@ -400,7 +399,7 @@ def poly_format(format_string: Any, *args) -> str:
     """
     if format_string is None: return None
     format_string = str(format_string)
-    return format_string.format(*args) if not poly_isempty(format_string) else None
+    return format_string.format(*args)
 
 def poly_translate(x: Any, from_str: Any, to_str: Any=None) -> Any:
     if x is not None and from_str is not None:
