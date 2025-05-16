@@ -181,17 +181,21 @@ class VaultClient():
     def unlock_namespace(self, namespace: str, unlock_key: Any) -> Dict[str, Any]:
         return self.do_post(encode_url('/v1/sys/namespaces/api-lock/unlock'), _create_unlock(unlock_key), namespace)
 
-    def create_mount(self, mount_point: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
-        return self.do_post(encode_url(f'/v1/sys/mounts/{mount_point}'), config, namespace)
+    def create_mount(self, mount_point: str, data: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
+        mount_point = self._fix_mount_point(mount_point).removesuffix('/')
+        return self.do_post(encode_url(f'/v1/sys/mounts/{mount_point}'), data, namespace)
         # See https://github.com/hashicorp/terraform-provider-vault/issues/677#issuecomment-609116328
 
     def read_mount(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
-        return self.do_get(encode_url(f'/v1/sys/mounts/{mount_point}'), namespace)
+        mount_point = self._fix_mount_point(mount_point)
+        return self.do_get(encode_url(f'/v1/sys/mounts/{mount_point}tune'), namespace)
 
     def update_mount(self, mount_point: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
-        return self.do_post(encode_url(f'/v1/sys/mounts/{mount_point}/tune'), config, namespace)
+        mount_point = self._fix_mount_point(mount_point)
+        return self.do_post(encode_url(f'/v1/sys/mounts/{mount_point}tune'), config, namespace)
 
     def delete_mount(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
+        mount_point = self._fix_mount_point(mount_point)
         return self.do_delete(encode_url(f'/v1/sys/mounts/{mount_point}'), namespace)
 
     def list_mounts(self, namespace :str) ->  Dict[str, Any]:
@@ -201,6 +205,7 @@ class VaultClient():
         return path if path.startswith('/') else '/' + path
 
     def _fix_mount_point(self, mount_point: str) -> str:
+        mount_point = mount_point[1:] if mount_point.startswith('/') else mount_point
         return mount_point if mount_point.endswith('/') else mount_point + '/'
 
     def read_kv2_config(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
