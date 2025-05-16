@@ -11,9 +11,10 @@ from redir import print_stderr
 def execute_echo(dd: DataDictionary, statement: Tree) -> None:
     """Turn echo mode on or off
 
-* Echo [;]
+* Echo;
 * Echo _expression_ [;]
 
+Without arguments, echo is turned on.
 When on, statements are echoed before execution
 """
     dd.echo = _flag_value(dd, statement, 'Echo')
@@ -22,9 +23,10 @@ When on, statements are echoed before execution
 def execute_debug(dd: DataDictionary, statement: Tree) -> None:
     """Turn debug mode on or off
 
-* Debug [;]
+* Debug;
 * Debug _expression_ [;]
 
+Without arguments, debug is turned on.
 When on, additional technical output is generated.
 """
     dd.debug = _flag_value(dd, statement, 'Debug')
@@ -33,9 +35,10 @@ When on, additional technical output is generated.
 def execute_verbose(dd: DataDictionary, statement: Tree) -> None:
     """Turn verbose mode on or off
 
-* Verbose [;]
+* Verbose;
 * Verbose _expression_ [;]
 
+Without arguments, verbose is turned on.
 When on, additional operational output is generated.
 """
     dd.verbose = _flag_value(dd, statement, 'Verbose')

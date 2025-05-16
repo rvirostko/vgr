@@ -78,20 +78,23 @@ continue: "Continue"i _SEMICOLON?
 
 // simple boolean on/off, true/false
 // these are "proper statements" as they control the behavior of other statements
-debug: "Debug"i (("=" | ":=" | "Is"i)? expr)? _SEMICOLON?
-echo: "Echo"i (("=" | ":=" | "Is"i)? expr)? _SEMICOLON?
-verbose: "Verbose"i (("=" | ":=" | "Is"i)? expr)? _SEMICOLON?
+debug: "Debug"i _SEMICOLON
+    | "Debug"i ("=" | "Is"i)? expr _SEMICOLON?
+echo: "Echo"i  _SEMICOLON
+    | "Echo"i ("=" | "Is"i)? expr _SEMICOLON?
+verbose: "Verbose"i _SEMICOLON
+    | "Verbose"i ("=" | "Is"i)? expr _SEMICOLON?
 
 pass: ("Pass"i | "Nop"i) _SEMICOLON?
 
 sleep: "Sleep"i "For"i? expr ("Seconds"i | "Second"i)? _SEMICOLON?
 
-set: "Set"i var_name ("=" | ":=" | "To"i) expr _SEMICOLON?
-    | "Var"i? var_name "=" expr _SEMICOLON?
+set: "Set"i var_name ("=" | "To"i) expr _SEMICOLON?
+    | "Var"i? var_name ("=" | "Is"i) expr _SEMICOLON?
     | ("Set"i | "Var"i)? var_name IN_PLACE_OP expr _SEMICOLON? -> set_in_place
 IN_PLACE_OP: ("+=" | "-=" | "*=" | "/=" | "//=" | "%=" | "**=" | "&=" | "|=" | "^=" | "<<=" | ">>=" )
 
-unset: "Unset"i (var_name (_COMMA? var_name)*)? _SEMICOLON?
+unset: "Unset"i var_name (_COMMA? var_name)* _SEMICOLON?
 
 load_from: "Load"i var_name ("From"i | "With"i) "File"i? expr ("As"i? load_source_type)? _SEMICOLON?
 load_source_type: "JSON"i "Object"i? -> json_object
@@ -99,10 +102,14 @@ load_source_type: "JSON"i "Object"i? -> json_object
     | "CSV"i -> csv_file
     | "TEXT"i -> text_file
 
-assert: "Assert"i (expr (":" expr (_COMMA expr)*)?)? _SEMICOLON?
+assert: "Assert"i _SEMICOLON
+    | "Assert"i expr (":" expr (_COMMA expr)*)? _SEMICOLON?
 
-print: "Print"i (expr (_COMMA expr)*)? _SEMICOLON?
-printf: "Printf"i (expr (_COMMA expr)*)? _SEMICOLON?
+print: "Print"i _SEMICOLON
+    | "Print"i expr (_COMMA expr)* _SEMICOLON?
+
+printf: "Printf"i _SEMICOLON
+    | "Printf"i expr (_COMMA expr)* _SEMICOLON?
 
 open: "Open"i io_type "File"i? expr open_ext? _SEMICOLON?
 close: "Close"i io_type "File"i? _SEMICOLON? -> close
@@ -113,9 +120,9 @@ close: "Close"i io_type "File"i? _SEMICOLON? -> close
     | ("No"i "Overwrite"i | "x"i) -> x
 
 zip: "Create"i "Zip"i "File"i? expr (_COMMA? zip_option (_COMMA zip_option)*)? _SEMICOLON?
-?zip_option: "Comment"i ("=" | ":=")? expr -> comment
-    | "Include"i ("=" | ":=")? expr+ -> include
-    | "Exclude"i ("=" | ":=")? expr+ -> exclude
+?zip_option: "Comment"i ("=" | "Is"i)? expr -> comment
+    | "Include"i ("=" | "Is"i)? expr+ -> include
+    | "Exclude"i ("=" | "Is"i)? expr+ -> exclude
 
 exit: "Exit"i expr? _SEMICOLON?
 
@@ -148,63 +155,63 @@ where_clause: "Where"i expr (_COMMA expr)*
 ?for_clause: "For"i (for_json | for_csv | for_markdown | for_text | for_template)
 
 for_json: "JSON"i (_COMMA? json_option (_COMMA json_option)*)?
-?json_option: "Encode"i? "Ascii"i (("=" | ":=") expr)? -> encode_ascii
-    | "Encode"i? ("Unicode"i | "UTF8"i | "UTF-8"i) (("=" | ":=") expr)? -> encode_unicode
-    | "Root"i (("=" | ":=") expr)? -> root
-    | "Indent"i (("=" | ":=") expr)? -> indent
-    | "Compact"i (("=" | ":=") expr)? -> compact
-    | "Exclude"i ("Nulls"i | "Null"i "Values"i) (("=" | ":=") expr)? -> exclude_nulls
-    | "Include"i ("Nulls"i | "Null"i "Values"i) (("=" | ":=") expr)? -> include_nulls
-    | "With"i? "Array"i "Wrapper"i (("=" | ":=") expr)? -> array_wrapper
-    | ("Without"i | "No"i) "Array"i "Wrapper"i (("=" | ":=") expr)? -> no_array_wrapper
-    | ("Sort"i "Keys"i? | "Sorted"i) (("=" | ":=") expr)? -> sort_keys
+?json_option: "Encode"i? "Ascii"i (("=" | "Is"i) expr)? -> encode_ascii
+    | "Encode"i? ("Unicode"i | "UTF8"i | "UTF-8"i) (("=" | "Is"i) expr)? -> encode_unicode
+    | "Root"i (("=" | "Is"i) expr)? -> root
+    | "Indent"i (("=" | "Is"i) expr)? -> indent
+    | "Compact"i (("=" | "Is"i) expr)? -> compact
+    | "Exclude"i ("Nulls"i | "Null"i "Values"i) (("=" | "Is"i) expr)? -> exclude_nulls
+    | "Include"i ("Nulls"i | "Null"i "Values"i) (("=" | "Is"i) expr)? -> include_nulls
+    | "With"i? "Array"i "Wrapper"i (("=" | "Is"i) expr)? -> array_wrapper
+    | ("Without"i | "No"i) "Array"i "Wrapper"i (("=" | "Is"i) expr)? -> no_array_wrapper
+    | ("Sort"i "Keys"i? | "Sorted"i) (("=" | "Is"i) expr)? -> sort_keys
 
 for_csv: "CSV"i (_COMMA? csv_option (_COMMA csv_option)*)?
-?csv_option: "Encode"i? "Ascii"i (("=" | ":=") expr)? -> encode_ascii
-    | "Encode"i? ("Unicode"i | "UTF8"i | "UTF-8"i) (("=" | ":=") expr)? -> encode_unicode
-    | "Delimiter"i ("=" | ":=") expr -> delimiter
-    | "Quote"i ("Char"i | "Character"i) ("=" | ":=") expr -> quotechar
-    | "Escape"i ("Char"i | "Character"i) ("=" | ":=") expr -> escapechar
-    | "Line"i ("Ender"i | "Terminator"i) ("=" | ":=") expr -> lineterminator
-    | "Quote"i ("=" | ":=") CSV_QUOTE_TYPE -> quoting
-    | "Include"i "Headers"i (("=" | ":=") expr)? -> include_headers
-    | ("No"i | "Omit"i) "Headers"i (("=" | ":=") expr)? -> omit_headers
+?csv_option: "Encode"i? "Ascii"i (("=" | "Is"i) expr)? -> encode_ascii
+    | "Encode"i? ("Unicode"i | "UTF8"i | "UTF-8"i) (("=" | "Is"i) expr)? -> encode_unicode
+    | "Delimiter"i ("=" | "Is"i) expr -> delimiter
+    | "Quote"i ("Char"i | "Character"i) ("=" | "Is"i) expr -> quotechar
+    | "Escape"i ("Char"i | "Character"i) ("=" | "Is"i) expr -> escapechar
+    | "Line"i ("Ender"i | "Terminator"i) ("=" | "Is"i) expr -> lineterminator
+    | "Quote"i ("=" | "Is"i) CSV_QUOTE_TYPE -> quoting
+    | "Include"i "Headers"i (("=" | "Is"i) expr)? -> include_headers
+    | ("No"i | "Omit"i) "Headers"i (("=" | "Is"i) expr)? -> omit_headers
 CSV_QUOTE_TYPE: "Minimal"i | "All"i | "Nonnumeric"i | "None"i
 
 for_markdown: "MarkDown"i (_COMMA? markdown_option (_COMMA markdown_option)*)?
-?markdown_option: "Encode"i? "Ascii"i (("=" | ":=") expr)? -> encode_ascii
-    | "Encode"i? ("Unicode"i | "UTF8"i | "UTF-8"i) (("=" | ":=") expr)? -> encode_unicode
-    | "Include"i "Headers"i (("=" | ":=") expr)? -> include_headers
-    | ("No"i | "Omit"i) "Headers"i (("=" | ":=") expr)? -> omit_headers
+?markdown_option: "Encode"i? "Ascii"i (("=" | "Is"i) expr)? -> encode_ascii
+    | "Encode"i? ("Unicode"i | "UTF8"i | "UTF-8"i) (("=" | "Is"i) expr)? -> encode_unicode
+    | "Include"i "Headers"i (("=" | "Is"i) expr)? -> include_headers
+    | ("No"i | "Omit"i) "Headers"i (("=" | "Is"i) expr)? -> omit_headers
 
 for_template: TEMPLATE_TYPE? ("Template"i | "Jinja"i | "Jinja2"i) (template_filename | "Default"i)? (_COMMA? template_option (_COMMA template_option)*)?
 TEMPLATE_TYPE: "Record"i | "Batch"i
 template_filename: "File"i? expr
-?template_option: "Encode"i? "Ascii"i (("=" | ":=") expr)? -> encode_ascii
-    | "Encode"i? ("Unicode"i | "UTF8"i | "UTF-8"i) (("=" | ":=") expr)? -> encode_unicode
-    | "Auto"i "Escape"i (("=" | ":=") expr)? -> auto_escape
-    | "Trim"i "Blocks"i? (("=" | ":=") expr)? -> trim_blocks
-    | "Left"i "Strip"i "Blocks"i? (("=" | ":=") expr)? -> lstrip_blocks
-    | "Keep"i "Last"i "Newline"i (("=" | ":=") expr)? -> keep_last_newline
-    | "Chain"i "Undefined"i "Variables"i? (("=" | ":=") expr)? -> chain_undefined
-    | "Include"i "Headers"i (("=" | ":=") expr)? -> include_headers
-    | ("No"i | "Omit"i) "Headers"i (("=" | ":=") expr)? -> omit_headers
+?template_option: "Encode"i? "Ascii"i (("=" | "Is"i) expr)? -> encode_ascii
+    | "Encode"i? ("Unicode"i | "UTF8"i | "UTF-8"i) (("=" | "Is"i) expr)? -> encode_unicode
+    | "Auto"i "Escape"i (("=" | "Is"i) expr)? -> auto_escape
+    | "Trim"i "Blocks"i? (("=" | "Is"i) expr)? -> trim_blocks
+    | "Left"i "Strip"i "Blocks"i? (("=" | "Is"i) expr)? -> lstrip_blocks
+    | "Keep"i "Last"i "Newline"i (("=" | "Is"i) expr)? -> keep_last_newline
+    | "Chain"i "Undefined"i "Variables"i? (("=" | "Is"i) expr)? -> chain_undefined
+    | "Include"i "Headers"i (("=" | "Is"i) expr)? -> include_headers
+    | ("No"i | "Omit"i) "Headers"i (("=" | "Is"i) expr)? -> omit_headers
 
 for_text: "Text"i (_COMMA? for_text_option (_COMMA for_text_option)*)?
-?for_text_option: "Encode"i? "Ascii"i (("=" | ":=") expr)? -> encode_ascii
-    | "Encode"i? ("Unicode"i | "UTF8"i | "UTF-8"i) (("=" | ":=") expr)? -> encode_unicode
-    | "Include"i "Headers"i (("=" | ":=") expr)? -> include_headers
-    | ("No"i | "Omit"i) "Headers"i (("=" | ":=") expr)? -> omit_headers
-    | "Exclude"i ("Nulls"i | "Null"i "Values"i) (("=" | ":=") expr)? -> exclude_nulls
-    | "Include"i ("Nulls"i | "Null"i "Values"i) (("=" | ":=") expr)? -> include_nulls
-    | "Field"i "Seperator"i ("=" | ":=") expr -> field_sep
-    | "Header"i "Seperator"i ("=" | ":=") expr -> header_sep
-    | "Record"i "Seperator"i ("=" | ":=") expr -> record_sep
+?for_text_option: "Encode"i? "Ascii"i (("=" | "Is"i) expr)? -> encode_ascii
+    | "Encode"i? ("Unicode"i | "UTF8"i | "UTF-8"i) (("=" | "Is"i) expr)? -> encode_unicode
+    | "Include"i "Headers"i (("=" | "Is"i) expr)? -> include_headers
+    | ("No"i | "Omit"i) "Headers"i (("=" | "Is"i) expr)? -> omit_headers
+    | "Exclude"i ("Nulls"i | "Null"i "Values"i) (("=" | "Is"i) expr)? -> exclude_nulls
+    | "Include"i ("Nulls"i | "Null"i "Values"i) (("=" | "Is"i) expr)? -> include_nulls
+    | "Field"i "Seperator"i ("=" | "Is"i) expr -> field_sep
+    | "Header"i "Seperator"i ("=" | "Is"i) expr -> header_sep
+    | "Record"i "Seperator"i ("=" | "Is"i) expr -> record_sep
 
 // Either LIMIT <number> (OFFSET <number>)?
 // or FETCH FIRST <number> ROWS ONLY
 limit_clause: _limit_offset | _fetch_first
-_limit_offset: "Limit"i ("=" | ":=")? expr (_COMMA? "Offset"i ("=" | ":=")? expr)?
+_limit_offset: "Limit"i ("=" | "Is"i)? expr (_COMMA? "Offset"i ("=" | "Is"i)? expr)?
 _fetch_first: "Fetch"i "First"i expr "Rows"i "Only"i
 
 product_clause: "Cartesian"i? "Product"i product_cols
