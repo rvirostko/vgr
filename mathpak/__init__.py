@@ -34,5 +34,6 @@ from .common import type_str
 from .bases import poly_bin, poly_oct, poly_hex, poly_base64_encode, poly_base64_decode
 from .bases import poly_parse_int, poly_parse_bin, poly_parse_oct, poly_parse_hex
 from .attrs import poly_dig, poly_vdig
+from .json_funcs import format_json, parse_json, strip_nulls, to_json, to_json_string
 
 __all__ = [ ]

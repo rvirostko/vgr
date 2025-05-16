@@ -34,6 +34,7 @@ from mathpak import poly_center, poly_ljust, poly_rjust, poly_zfill, poly_splitl
 from mathpak import poly_bin, poly_oct, poly_hex, poly_parse_int, poly_parse_bin, poly_parse_oct, poly_parse_hex
 from mathpak import poly_base64_encode, poly_base64_decode
 from mathpak import poly_vdig, poly_find, poly_rfind
+from mathpak import format_json, parse_json, strip_nulls, to_json, to_json_string
 
 def _default_to(value: Any, default: Any) -> Any:
     """Returns a default value if the argument is None.
@@ -69,12 +70,13 @@ _BUILT_IN_FUNCS = {
   "DivMod": poly_divmod,
   "EndsWith": poly_endswith,
   "ExpandTabs": poly_expandtabs,
-  "FirstItem": poly_firstitem,
   "FindStr": poly_find,
+  "FirstItem": poly_firstitem,
   "Float": poly_float,
   "Floor": poly_floor,
   "FloorDiv": poly_vfdiv,
   "Format": poly_format,
+  "FormatJSON": format_json,
   "Hash": poly_hash,
   "In": poly_in,
   "IndexOf": poly_index,
@@ -129,6 +131,7 @@ _BUILT_IN_FUNCS = {
   "ParseBinary": poly_parse_bin,
   "ParseHex": poly_parse_hex,
   "ParseInt": poly_parse_int,
+  "ParseJSON": parse_json,
   "ParseOctal": poly_parse_oct,
   "ParseUrl": parse_url,
   "Pow": poly_pow,
@@ -153,6 +156,7 @@ _BUILT_IN_FUNCS = {
   "StartsWith": poly_startswith,
   "Str": poly_str,
   "Strip": poly_vstrip,
+  "StripNulls": strip_nulls,
   "Sub": poly_vsub,
   "SubStr": poly_substr,
   "SwapCase": poly_swapcase,
@@ -162,6 +166,8 @@ _BUILT_IN_FUNCS = {
   "ToFloat": poly_float,
   "ToHex": poly_hex,
   "ToInt": poly_int,
+  "ToJSON": to_json,
+  "ToJSONStr": to_json_string,
   "ToNumber": poly_number,
   "ToOctal": poly_oct,
   "ToString": poly_str,
