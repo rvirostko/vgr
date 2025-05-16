@@ -48,7 +48,7 @@ _CONNECTIONS = VaultClientManager()
 def _do_set(dd: DataDictionary, value: Any, *path) -> str:
     new_value = dd.set_var(value, *path)
     if dd.verbose:
-        print_stderr(dd, 'Set', '.'.join(path), 'To', shorten(repr(new_value)))
+        print_stderr('Set', '.'.join(path), 'To', shorten(repr(new_value)))
     return new_value
 
 def _get_default_ns(dd: DataDictionary, args: dict) -> str:
@@ -57,7 +57,7 @@ def _get_default_ns(dd: DataDictionary, args: dict) -> str:
 
 def _set_result(dd: DataDictionary, args: dict, data: Any) -> dict:
     if _RESULT_ARG in args:
-        raise NotImplementedError()
+        raise NotImplementedError() # TODO!!!!
         # convert to a path
         # make sure it isn't protected
         # set the value
@@ -67,7 +67,10 @@ def _set_result(dd: DataDictionary, args: dict, data: Any) -> dict:
     return data
 
 def _set_default_conn(dd: DataDictionary, conn: str) -> str:
-    _do_set(dd, conn, *DEFAULT_CONN_PATH)
+    # Only change the DD value if we have to,
+    # so as to skip a message when verbose is on
+    curr = dd.get_var(*DEFAULT_CONN_PATH)
+    if curr != conn: _do_set(dd, conn, *DEFAULT_CONN_PATH)
     return conn
 
 def _get_default_conn(dd: DataDictionary, args: dict) -> str:
@@ -223,19 +226,27 @@ def execute_unlock_ns(dd: DataDictionary, statement: Tree) -> None:
 def execute_create_mount(dd: DataDictionary, statement: Tree) -> None:
     mount_point = eval_to_str(dd, statement.children[0], 'Mount Point')
     args = _extract_args(dd, statement)
-    _allowed_args(args, _DESC_ARG, _TYPE_ARG, _CONFIG_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
-    namespace: str = eval_to_str(dd, statement.children[0], 'Namespace')
     data = {}
-    mtype: str = _get_arg(args, _TYPE_ARG, str).lower()
-    if mtype.startswith('kv'):
-        data['options'] = { 'version': 1 if mtype == 'kv1' else 2 }
-        data['type'] = 'kv'
+    # If Data=... specified, it means it contains all the config info
+    # and piecemeal construction is not permitted
+    if _DATA_ARG in args:
+        _allowed_args(args, _DATA_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
+        data = _get_arg(args, _DATA_ARG, dict)
     else:
-        data['type'] = mtype
-    desc = _get_arg(args, _DESC_ARG, str, True)
-    if desc: data['description'] = desc
-    config = _get_arg(args, _CONFIG_ARG, dict, True)
-    if config: data['config'] = config
+        # If no data, then at least Type=... must be provided
+        # Description and Config are optional
+        _allowed_args(args, _DESC_ARG, _TYPE_ARG, _CONFIG_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
+        mtype: str = _get_arg(args, _TYPE_ARG, str).lower()
+        if mtype.startswith('kv'):
+            data['options'] = { 'version': 1 if mtype == 'kv1' else 2 }
+            data['type'] = 'kv'
+        else:
+            data['type'] = mtype
+        desc = _get_arg(args, _DESC_ARG, str, True)
+        if desc: data['description'] = desc
+        config = _get_arg(args, _CONFIG_ARG, dict, True)
+        if config: data['config'] = config
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
     using = _set_default_conn(dd, _get_default_conn(dd, args))
     _set_result(dd,
                 args,
@@ -245,7 +256,7 @@ def execute_read_mount(dd: DataDictionary, statement: Tree) -> None:
     mount_point = eval_to_str(dd, statement.children[0], 'Mount Point')
     args = _extract_args(dd, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
-    namespace: str = eval_to_str(dd, statement.children[0], 'Namespace')
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
     using = _set_default_conn(dd, _get_default_conn(dd, args))
     _set_result(dd,
                 args,
@@ -254,19 +265,25 @@ def execute_read_mount(dd: DataDictionary, statement: Tree) -> None:
 def execute_update_mount(dd: DataDictionary, statement: Tree) -> None:
     mount_point = eval_to_str(dd, statement.children[0], 'Mount Point')
     args = _extract_args(dd, statement)
-    _allowed_args(args, _CONFIG_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
-    namespace: str = eval_to_str(dd, statement.children[0], 'Namespace')
-    config = args.get(_CONFIG_ARG) or {}
+    data = {}
+    # Config and Data are synonymous, but you can't have both
+    if _DATA_ARG in args:
+        _allowed_args(args, _DATA_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
+        data = _get_arg(args, _DATA_ARG, dict)
+    else:
+        _allowed_args(args, _CONFIG_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
+        data = _get_arg(args, _CONFIG_ARG, dict)
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
     using = _set_default_conn(dd, _get_default_conn(dd, args))
     _set_result(dd,
                 args,
-                _CONNECTIONS.get_connection(using).update_mount(mount_point, config, namespace))
+                _CONNECTIONS.get_connection(using).update_mount(mount_point, data, namespace))
 
 def execute_delete_mount(dd: DataDictionary, statement: Tree) -> None:
     mount_point = eval_to_str(dd, statement.children[0], 'Mount Point')
     args = _extract_args(dd, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
-    namespace: str = eval_to_str(dd, statement.children[0], 'Namespace')
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
     using = _set_default_conn(dd, _get_default_conn(dd, args))
     _set_result(dd,
                 args,
@@ -275,13 +292,14 @@ def execute_delete_mount(dd: DataDictionary, statement: Tree) -> None:
 def execute_list_mounts(dd: DataDictionary, statement: Tree) -> None:
     args = _extract_args(dd, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
-    namespace: str = eval_to_str(dd, statement.children[0], 'Namespace')
+    namespace: str = eval_to_str(dd, statement.children[0], 'Namespace', True) if len(statement.children) > 1 else ""
     using = _set_default_conn(dd, _get_default_conn(dd, args))
     _set_result(dd,
                 args,
                 _CONNECTIONS.get_connection(using).list_mounts(namespace))
 
 def execute_create_kv(dd: DataDictionary, statement: Tree) -> None:
+    # TODO redundant?
     value = eval_expr(dd, statement.children[0])
     print(value)
 
