@@ -100,7 +100,8 @@ load_from: "Load"i var_name ("From"i | "With"i) "File"i? expr ("As"i? load_sourc
 load_source_type: "JSON"i "Object"i? -> json_object
     | "JSON"i "Object"i? "Per"i "Line"i -> json_objects
     | "CSV"i -> csv_file
-    | "TEXT"i -> text_file
+    | "Text"i ("Lines"i | "Line"i) -> text_lines
+    | "Text"i -> text_file
 
 assert: "Assert"i _SEMICOLON
     | "Assert"i expr (":" expr (_COMMA expr)*)? _SEMICOLON?

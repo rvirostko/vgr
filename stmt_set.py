@@ -78,6 +78,7 @@ def execute_load_from(dd: DataDictionary, statement: Tree) -> None:
 * Load _variable_ From [File] _expression_ JSON [Object] Per Line [;]
 * Load _variable_ From [File] _expression_ CSV [;]
 * Load _variable_ From [File] _expression_ Text [;]
+* Load _variable_ From [File] _expression_ Text Lines [;]
 
 The _expression_ is resolved to string as file to be loaded
 
@@ -96,11 +97,12 @@ name with Text as the default.
             if dd.verbose: print_stderr('Loaded', '.'.join(path), 'With', length, 'Records' if length != 1 else 'Record')
         else:
             if dd.verbose: print_stderr('Loaded', '.'.join(path), 'With', shorten(repr(data)))
-        if fieldnames and dd.verbose: print_stderr('Fieldnames :', '', ''.join(repr(f) for f in fieldnames))
+        if fieldnames and dd.verbose: print_stderr('Fieldnames :', '', ', '.join(repr(f) for f in fieldnames))
 
 def load_data_type(filename: str, token: Token) -> str:
     """Returns one of:
     * text_file
+    * text_lines
     * json_object
     * json_objects
     * csv_file
@@ -112,6 +114,8 @@ def load_data_type(filename: str, token: Token) -> str:
 def load_file_as(file, dtype: str) -> tuple:
     """Read the file in according to the type, which comes for load_file_type()"""
     if dtype == 'text_file':
+        return (file.read(), [])
+    if dtype == 'text_lines':
         return (file.read().splitlines(), ['line'])
     if dtype == 'json_object':
         return _info_from_json(json.load(file))
