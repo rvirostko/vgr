@@ -197,14 +197,14 @@ class SelectAnalyzer(Visitor):
         # NB: if blank, it will get a default later
         self._headers.append(node.children[1].value.strip())
 
-    def from_var(self, node: Tree):
+    def var_from(self, node: Tree):
         """... From Var <name> [As <target>] ..."""
         node = bind_operations(node)
         self.from_opts['type'] = 'memory'
         self.from_opts['var'] = tuple(name.value for name in node.children[0].children)
         self.from_opts['target'] = node.children[1].value if len(node.children) > 1 else self._DEFAUL_TARGET_NAME
 
-    def from_file(self, node: Tree):
+    def file_from(self, node: Tree):
         """... From File <filename> <opt>? [As <target>] ..."""
         node = bind_operations(node)
         self.from_opts['type'] = 'memory'
