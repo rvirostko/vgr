@@ -12,20 +12,20 @@ set c = 15
 
 # Generates nothing
 Print "---Nothing between these lines---"
-Printf
+Printf;
 Printf ""
 Printf "", a
 Printf "", a, b
 Print "---Nothing between these lines---"
 
-Print
+Print;
 
 Print "---Two blank lines---"
 Printf "\n"
 Printf "{}", "\n"
 Print "---Two blank lines---"
 
-Print
+Print;
 
 Print "---Two identical lines---"
 Printf "{} > {}", a, b
