@@ -10,23 +10,30 @@ Debug False
     // C-style comments
     -- SQL style comments
 
+# Test end of line comments
+pass;   # "Modern"
+pass;   // C-style
+pass;   -- SQL style
+
 set bar = "//" + ("-" * 77)
 
 # This file contains a single JSON object
 # The Select For JSON Root <root> can be used to produce a file like this
 Print bar
 Load test.json.obj From "in.json"
+Assert test.json.obj.type() == "dict"
 Exhibit test.json.obj
 Print bar
-Print
+Print;
 
 # This file has a JSON array, suitable for use with Lookup()
 # The Select For JSON produces this by default
 Print bar
 Load test.json.arr From "array.json"
 Exhibit test.json.arr
+Assert test.json.arr.type() == "list"
 Print bar
-Print
+Print;
 
 # This file has a JSON object per row.
 # The Select For JSON No Array Wrapper produces this
@@ -34,28 +41,39 @@ Print
 Print bar
 Load test.json.objs From "objs.txt" JSON Object Per Line
 Exhibit test.json.objs
+Assert test.json.objs.type() == "list"
 Print bar
-Print
+Print;
 
 # CSV is CSV...
 # The lib used to load these files don't like extra spaces between
 # columns and add those space (and quotes!) to the column data
 # This also uses some syntactic sugar and using expressions
 Print bar
-Set csv_file_name:="objs"
+Set csv_file_name="objs"
 Load test.csv.arr From File csv_file_name + ".csv" CSV
 Exhibit test.csv.arr
+Assert test.csv.arr.type() == "list"
 Print bar
-Print
+Print;
 
-# Text allows you to read in as just text for
-# use in templates or whatever
+# Text allows you to read in text as a string
 # Text is the default when the extension is not .csv or .json
 Print bar
 Load test.text From "objs.txt" Text
-Exhibit test.txt
+Exhibit test.text
+Assert test.text.type() == "str"
 Print bar
-Print
+Print;
+
+# Text allows you to read lines of text into an array
+Print bar
+Load test.text From "objs.txt" Text Lines
+Exhibit test.text
+Assert test.text.type() == "list"
+Assert test.text.first_item().type() == "str"
+Print bar
+Print;
 
 # Lookup values are somewhat flexible...
 # Internally they use poly_eq() with the value from the
@@ -72,7 +90,7 @@ Printf fmt, key, value, "csv", test.csv.arr.Lookup(key, value), "json", test.jso
 Set key="fname"; Set value="Justin";
 Printf fmt, key, value, "csv", test.csv.arr.Lookup(key, value), "json", test.json.arr.Lookup(key, value)
 Print bar
-Print
+Print;
 
 # Order depends upon what you ask for, but unless you have a datatype error
 # You will always get back an array, even if empty
@@ -85,7 +103,7 @@ Printf fmt2, key, value2, value1, test.csv.arr.Lookup(key, value1, value2)
 Set value = [ value2, value1 ]
 Printf "test.csv.arr.Lookup({!r}, {!r}) -> {!r}\n", key, value, test.csv.arr.Lookup(key, value)
 Print bar
-Print
+Print;
 
 Print bar
 Set jsmith = test.csv.arr.Lookup("lname", "Smith").Lookup("fname", "Justin").FirstItem()
