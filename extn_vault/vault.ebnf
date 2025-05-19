@@ -76,6 +76,8 @@ vault_delete_ldap_secret : "Vault"i ("DeleteLdapSecret"i | "delete_ldap_secret"i
 vault_list_ldap_secrets  : "Vault"i ("ListLdapSecrets"i | "list_ldap_secrets"i) expr vault_args _SEMICOLON?
 vault_rotate_ldap_secret : "Vault"i ("RotateLdapSecret"i | "rotate_ldap_secret"i) expr vault_args _SEMICOLON?
 
+# NB: Expression are treated like tokens iff they are a single name component
+#     and are undefined in the data dictionary
 vault_args: (_COMMA? vault_option (_COMMA? vault_option)*)?
 vault_option: "Config"i ("=" | "Is"i)? expr -> vopt_config
     | "Data"i ("=" | "Is"i)? expr -> vopt_data
@@ -83,6 +85,6 @@ vault_option: "Config"i ("=" | "Is"i)? expr -> vopt_config
     | "Key"i ("=" | "Is"i)? expr -> vopt_key
     | ("Meta"i | "Metadata"i) ("=" | "Is"i)? expr -> vopt_metadata
     | "Namespace"i ("=" | "Is"i)? expr -> vopt_namespace
-    | "Result"i ("=" | "Is"i)? var_name -> vopt_result
+    | ("Result"i | "Results"i) ("=" | "Is"i | "Into"i)? var_name -> vopt_result
     | "Type"i ("=" | "Is"i)? expr -> vopt_type
     | "Using"i "Connection"i? expr -> vopt_using
