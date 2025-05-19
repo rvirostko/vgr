@@ -8,22 +8,14 @@ import sys
 
 from lark import Tree, Token
 
-from evaluate import eval_to_str
+from evaluate import eval_expr
 
 # HACK: Add parent directory to sys.path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 # pylint: disable=wrong-import-position
-from app_exceptions import ExitingException, StatementBreak, StatementContinue
 from data_dict import DataDictionary
-from dd_config import dd_path, do_set, do_assignment, do_unset
-from evaluate import eval_expr, bind_operations, eval_to_number
-from mathpak import poly_add, poly_bool, poly_sub, poly_number, poly_vadd, poly_vsub, poly_mul, poly_div
-from redir import print_stderr, print_stdout, shorten
-from src_mgr import SSM
-from stmt_exec import exec_if_else, exec_loop, exec_repeat, dispatch_statement
-from stmt_set import execute_set
-from tags import control_statement
+from redir import print_stderr, shorten
 from vault_api.client_mgr import VaultClientManager
 # pylint: enable=wrong-import-position
 
@@ -45,7 +37,7 @@ _DEFAULT_CONN_NAME = 'DefaultConnection'
 
 _CONNECTIONS = VaultClientManager()
 
-def _do_set(dd: DataDictionary, value: Any, *path) -> str:
+def _do_set(dd: DataDictionary, value: Any, *path) -> Any:
     new_value = dd.set_var(value, *path)
     if dd.verbose:
         print_stderr('Set', '.'.join(path), 'To', shorten(repr(new_value)))
@@ -56,15 +48,15 @@ def _get_default_ns(dd: DataDictionary, args: dict) -> str:
     return _get_arg(args, _NS_ARG, str, True) or dd.get_var(*DEFAULT_NS_PATH)
 
 def _set_result(dd: DataDictionary, args: dict, data: Any) -> dict:
+    """Sees if the user wants to put the results in a custom location or store in the default location"""
+    path = DEFAULT_RESULT_PATH
     if _RESULT_ARG in args:
-        raise NotImplementedError() # TODO!!!!
-        # convert to a path
-        # make sure it isn't protected
-        # set the value
-    else:
-        # set the result using default location
-        _do_set(dd, data, *DEFAULT_RESULT_PATH)
-    return data
+        path = args[_RESULT_ARG]
+        # They can always restate the default
+        # and if they do, we dont check immutability/protection
+        if path != DEFAULT_RESULT_PATH:
+            dd.validate_user_set_path(*dd.validate_user_path(*path))
+    return _do_set(dd, data, *path)
 
 def _set_default_conn(dd: DataDictionary, conn: str) -> str:
     # Only change the DD value if we have to,
@@ -88,11 +80,11 @@ def execute_connect(dd: DataDictionary, statement: Tree) -> None:
         if isinstance(child, Tree):
             name: str = child.data
             if name == 'conn_addr':
-                addr = eval_to_str(dd, child.children[0], 'Vault Address')
+                addr = _resolve_str_arg(dd, child.children[0], 'Vault Address')
             elif name == 'conn_token':
-                token = eval_to_str(dd, child.children[0], 'Vault Token')
+                token = _resolve_str_arg(dd, child.children[0], 'Vault Token')
             elif name == 'conn_name':
-                conn_name = eval_to_str(dd, child.children[0], 'Vault Connection Name')
+                conn_name = _resolve_str_arg(dd, child.children[0], 'Vault Connection Name')
             else:
                 raise NotImplementedError(f'Argument f{repr(name)} not handled') # SNO
         else:
@@ -106,7 +98,7 @@ def execute_connect(dd: DataDictionary, statement: Tree) -> None:
 # Vault Disconnect "Source"
 def execute_disconnect(dd: DataDictionary, statement: Tree) -> None:
     if statement.children:
-        name = eval_to_str(dd, statement.children[0], 'Vault Connection Name')
+        name = _resolve_str_arg(dd, statement.children[0], 'Vault Connection Name')
     else:
         name = _get_default_conn(dd, {})
     _CONNECTIONS.disconnect(name)
@@ -119,7 +111,7 @@ def execute_disconnect(dd: DataDictionary, statement: Tree) -> None:
 def execute_default_ns(dd: DataDictionary, statement: Tree) -> None:
     args: dict = _extract_args(dd, statement)
     _allowed_args(args, _RESULT_ARG)
-    ns: str = eval_to_str(dd, statement.children[0], 'Default Namespace', True)
+    ns: str = _resolve_str_arg(dd, statement.children[0], 'Default Namespace', True)
     _do_set(dd, '' if ns is None or ns.isspace() else ns.strip(), *DEFAULT_NS_PATH)
     _set_result(dd, args, None)
 
@@ -131,7 +123,7 @@ def execute_default_ns(dd: DataDictionary, statement: Tree) -> None:
 def execute_create_ns(dd: DataDictionary, statement: Tree) -> None:
     args: dict = _extract_args(dd, statement)
     _allowed_args(args, _NS_ARG, _META_ARG, _RESULT_ARG, _USING_ARG)
-    new_namespace: str = eval_to_str(dd, statement.children[0], 'New Namespace')
+    new_namespace: str = _resolve_str_arg(dd, statement.children[0], 'New Namespace')
     parent_namespace: str = _get_default_ns(dd, args)
     metadata = args.get(_META_ARG)
     using = _set_default_conn(dd, _get_default_conn(dd, args))
@@ -144,7 +136,7 @@ def execute_create_ns(dd: DataDictionary, statement: Tree) -> None:
 def execute_read_ns(dd: DataDictionary, statement: Tree) -> None:
     args: dict = _extract_args(dd, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
-    ns: str = eval_to_str(dd, statement.children[0], 'Namespace')
+    ns: str = _resolve_str_arg(dd, statement.children[0], 'Namespace')
     parent_namespace: str = _get_default_ns(dd, args)
     using = _set_default_conn(dd, _get_default_conn(dd, args))
     _set_result(dd,
@@ -156,7 +148,7 @@ def execute_read_ns(dd: DataDictionary, statement: Tree) -> None:
 def execute_update_ns(dd: DataDictionary, statement: Tree) -> None:
     args: dict = _extract_args(dd, statement)
     _allowed_args(args, _NS_ARG, _META_ARG, _RESULT_ARG, _USING_ARG)
-    ns: str = eval_to_str(dd, statement.children[0], 'Namespace')
+    ns: str = _resolve_str_arg(dd, statement.children[0], 'Namespace')
     parent_namespace: str = _get_default_ns(dd, args)
     metadata = args.get(_META_ARG)
     using = _set_default_conn(dd, _get_default_conn(dd, args))
@@ -169,7 +161,7 @@ def execute_update_ns(dd: DataDictionary, statement: Tree) -> None:
 def execute_delete_ns(dd: DataDictionary, statement: Tree) -> None:
     args: dict = _extract_args(dd, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
-    ns: str = eval_to_str(dd, statement.children[0], 'Namespace')
+    ns: str = _resolve_str_arg(dd, statement.children[0], 'Namespace')
     parent_namespace: str = _get_default_ns(dd, args)
     using = _set_default_conn(dd, _get_default_conn(dd, args))
     _set_result(dd,
@@ -188,7 +180,7 @@ def execute_delete_ns(dd: DataDictionary, statement: Tree) -> None:
 #     Vault ListNamespaces "SubOne", Namspace="D111382/One"
 #     Vault ListNamespaces "D111382/One/SubOne" -- allowed?
 def execute_list_ns(dd: DataDictionary, statement: Tree) -> None:
-    namespace: str = eval_to_str(dd, statement.children[0], 'Namespace', True) if len(statement.children) > 1 else ""
+    namespace: str = _resolve_str_arg(dd, statement.children[0], 'Namespace', True) if len(statement.children) > 1 else ""
     args: dict = _extract_args(dd, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     parent_namespace: str = _get_default_ns(dd, args)
@@ -202,7 +194,7 @@ def execute_list_ns(dd: DataDictionary, statement: Tree) -> None:
 def execute_lock_ns(dd: DataDictionary, statement: Tree) -> None:
     args: dict = _extract_args(dd, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
-    namespace: str = eval_to_str(dd, statement.children[0], 'Namespace')
+    namespace: str = _resolve_str_arg(dd, statement.children[0], 'Namespace')
     parent_namespace: str = _get_default_ns(dd, args)
     using = _set_default_conn(dd, _get_default_conn(dd, args))
     _set_result(
@@ -214,7 +206,7 @@ def execute_lock_ns(dd: DataDictionary, statement: Tree) -> None:
 def execute_unlock_ns(dd: DataDictionary, statement: Tree) -> None:
     args: dict = _extract_args(dd, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG, _KEY_ARG)
-    namespace: str = eval_to_str(dd, statement.children[0], 'Namespace')
+    namespace: str = _resolve_str_arg(dd, statement.children[0], 'Namespace')
     parent_namespace: str = _get_default_ns(dd, args)
     using = _set_default_conn(dd, _get_default_conn(dd, args))
     _set_result(
@@ -224,7 +216,7 @@ def execute_unlock_ns(dd: DataDictionary, statement: Tree) -> None:
     )
 
 def execute_create_mount(dd: DataDictionary, statement: Tree) -> None:
-    mount_point = eval_to_str(dd, statement.children[0], 'Mount Point')
+    mount_point = _resolve_str_arg(dd, statement.children[0], 'Mount Point')
     args = _extract_args(dd, statement)
     data = {}
     # If Data=... specified, it means it contains all the config info
@@ -253,7 +245,7 @@ def execute_create_mount(dd: DataDictionary, statement: Tree) -> None:
                 _CONNECTIONS.get_connection(using).create_mount(mount_point, data, namespace))
 
 def execute_read_mount(dd: DataDictionary, statement: Tree) -> None:
-    mount_point = eval_to_str(dd, statement.children[0], 'Mount Point')
+    mount_point = _resolve_str_arg(dd, statement.children[0], 'Mount Point')
     args = _extract_args(dd, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
@@ -263,7 +255,7 @@ def execute_read_mount(dd: DataDictionary, statement: Tree) -> None:
                 _CONNECTIONS.get_connection(using).read_mount(mount_point, namespace))
 
 def execute_update_mount(dd: DataDictionary, statement: Tree) -> None:
-    mount_point = eval_to_str(dd, statement.children[0], 'Mount Point')
+    mount_point = _resolve_str_arg(dd, statement.children[0], 'Mount Point')
     args = _extract_args(dd, statement)
     data = {}
     # Config and Data are synonymous, but you can't have both
@@ -280,7 +272,7 @@ def execute_update_mount(dd: DataDictionary, statement: Tree) -> None:
                 _CONNECTIONS.get_connection(using).update_mount(mount_point, data, namespace))
 
 def execute_delete_mount(dd: DataDictionary, statement: Tree) -> None:
-    mount_point = eval_to_str(dd, statement.children[0], 'Mount Point')
+    mount_point = _resolve_str_arg(dd, statement.children[0], 'Mount Point')
     args = _extract_args(dd, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
@@ -292,7 +284,7 @@ def execute_delete_mount(dd: DataDictionary, statement: Tree) -> None:
 def execute_list_mounts(dd: DataDictionary, statement: Tree) -> None:
     args = _extract_args(dd, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
-    namespace: str = eval_to_str(dd, statement.children[0], 'Namespace', True) if len(statement.children) > 1 else ""
+    namespace: str = _resolve_str_arg(dd, statement.children[0], 'Namespace', True) if len(statement.children) > 1 else ""
     using = _set_default_conn(dd, _get_default_conn(dd, args))
     _set_result(dd,
                 args,
@@ -382,12 +374,34 @@ def _extract_args(dd: DataDictionary, statement: Tree) -> dict:
             if arg_name in _ARG_VAR_NAME:
                 args[arg_name] = tuple(name.value for name in arg_node.children)
             elif arg_name in _ARG_EXPR:
-                args[arg_name] = eval_expr(dd, arg_node)
+                args[arg_name] = _resolve_arg_value(dd, arg_node)
             else:
                 raise NotImplementedError(f'Vault argument {repr(arg_name)} not implemented') # SNO
         else:
             raise ValueError(f'Unexpected Vault argument {repr(child.data)}:{type(child)}') # SNO
     return args
+
+def _resolve_str_arg(dd: DataDictionary, expr: Tree, name: str, allow_none: bool=False) -> str:
+    rc = _resolve_arg_value(dd, expr)
+    if rc is None and allow_none: return None
+    if not isinstance(rc, str): raise TypeError(f'{name} must be a string; found {repr(type(rc).__name__)}')
+    return rc
+
+def _resolve_arg_value(dd: DataDictionary, node):
+    """
+    This lets values be unquoted as arguments.
+    For example it allows
+        Vault CreateMount secrets Type is KV2
+    to be interchangabe with
+        Vault CreateMount "secrets" Type is "KV2"
+    _if_ secrets and KV2 are not defined in the data dictionary
+    """
+    if isinstance(node, Tree) and node.data == "var_ref":
+        if len(node.children) == 1 and isinstance(node.children[0], Token) and node.children[0].type == "NAME":
+            name = node.children[0].value
+            exists, value = dd.exists(name)
+            return value if exists else name
+    return eval_expr(dd, node)
 
 def _allowed_args(args: dict, *allowed_keys) -> None:
     """Raise an error if any key in args is not in allowed_keys."""
