@@ -481,8 +481,6 @@ class VaultClient():
     def _ns(self, ns: str) -> str:
         # Go thought the options: what the user provided on the call,
         # in the constructor, or default to "root"
-        print(f'ns = {ns}')
-        print(f'self._default_ns = {self._default_ns}')
         return ns if ns else self._default_ns if self._default_ns else ''
 
     @staticmethod
