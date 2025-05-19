@@ -82,7 +82,7 @@ class DataDictionary():
         This is a method to call with user input.
         Returns the value passed in.
         """
-        return self.set_var(value, *self._validate_user_set_path(*self._validate_user_path(*path)))
+        return self.set_var(value, *self.validate_user_set_path(*self.validate_user_path(*path)))
 
     def get_var_user(self, /, *path: str) -> Any:
         """
@@ -92,7 +92,7 @@ class DataDictionary():
         path does not lead to a dictionary.
         Note that "None" is not a definitive "not found" statement.
         """
-        return self.get_var(*self._validate_user_path(*path))
+        return self.get_var(*self.validate_user_path(*path))
 
     def unset_var_user(self, *path: str) -> Any:
         """
@@ -101,7 +101,7 @@ class DataDictionary():
         Returns the value removed.
         Note that "None" is not a definitive "not found" statement.
         """
-        return self.unset_var(*self._validate_user_set_path(*self._validate_user_path(*path)))
+        return self.unset_var(*self.validate_user_set_path(*self.validate_user_path(*path)))
 
     def set_var(self, data: Any, /, *path: str) -> Any:
         """
@@ -163,7 +163,7 @@ class DataDictionary():
             data = data[key]
         return (True, data)
 
-    def _validate_user_path(self, *path: str) -> tuple:
+    def validate_user_path(self, *path: str) -> tuple:
         if not path: raise ValueError('Empty/Missing path')
         # Check for anything that is None, isn't a string, or strings that are "empty"
         if any(step is None or not isinstance(step, str) or all(sc.isspace() for sc in step) for step in path) :
@@ -172,7 +172,7 @@ class DataDictionary():
             raise ValueError(f'Invalid path: {".".join(path)} contains reserved values')
         return path
 
-    def _validate_user_set_path(self, *path: str) -> tuple:
+    def validate_user_set_path(self, *path: str) -> tuple:
         prefix: str = path[0]
         # protected means you can't change at the top level, but
         # you can change its properties
