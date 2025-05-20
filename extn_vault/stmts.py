@@ -20,6 +20,7 @@ from vault_api.client_mgr import VaultClientManager
 # pylint: enable=wrong-import-position
 
 from .dd_consts import DEFAULT_NS_PATH, DEFAULT_RESULT_PATH, DEFAULT_CONN_PATH
+from .functions import extract_kv_data, extract_kv_metadata
 
 _NS_ARG = 'namespace'
 _RESULT_ARG = 'result'
@@ -105,6 +106,64 @@ def execute_disconnect(dd: DataDictionary, statement: Tree) -> None:
         name = _get_default_conn(dd, {})
     _CONNECTIONS.disconnect(name)
     _set_result(dd, {}, None)
+
+
+def execute_api_delete(dd: DataDictionary, statement: Tree) -> None:
+    args: dict = _extract_args(dd, statement)
+    _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    url: str = _resolve_str_arg(dd, statement.children[0], 'URL')
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    using = _set_default_conn(dd, _get_default_conn(dd, args))
+    _set_result(dd,
+                args,
+                _CONNECTIONS.get_connection(using).do_delete(url, namespace)
+               )
+
+def execute_api_get(dd: DataDictionary, statement: Tree) -> None:
+    args: dict = _extract_args(dd, statement)
+    _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    url: str = _resolve_str_arg(dd, statement.children[0], 'URL')
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    using = _set_default_conn(dd, _get_default_conn(dd, args))
+    _set_result(dd,
+                args,
+                _CONNECTIONS.get_connection(using).do_get(url, namespace)
+               )
+
+def execute_api_list(dd: DataDictionary, statement: Tree) -> None:
+    args: dict = _extract_args(dd, statement)
+    _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    url: str = _resolve_str_arg(dd, statement.children[0], 'URL')
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    using = _set_default_conn(dd, _get_default_conn(dd, args))
+    _set_result(dd,
+                args,
+                _CONNECTIONS.get_connection(using).do_list(url, namespace)
+               )
+
+def execute_api_patch(dd: DataDictionary, statement: Tree) -> None:
+    args: dict = _extract_args(dd, statement)
+    _allowed_args(args, _DATA_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    url: str = _resolve_str_arg(dd, statement.children[0], 'URL')
+    data = _get_arg(args, _DATA_ARG, str, True)
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    using = _set_default_conn(dd, _get_default_conn(dd, args))
+    _set_result(dd,
+                args,
+                _CONNECTIONS.get_connection(using).do_patch(url, data, namespace)
+               )
+
+def execute_api_post(dd: DataDictionary, statement: Tree) -> None:
+    args: dict = _extract_args(dd, statement)
+    _allowed_args(args, _DATA_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    url: str = _resolve_str_arg(dd, statement.children[0], 'URL')
+    data = _get_arg(args, _DATA_ARG, str, True)
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    using = _set_default_conn(dd, _get_default_conn(dd, args))
+    _set_result(dd,
+                args,
+                _CONNECTIONS.get_connection(using).do_post(url, data, namespace)
+               )
 
 # Vault DefaultNamespace ""
 # Vault DefaultNamespace "D111382"
@@ -299,16 +358,16 @@ def execute_create_kv_secret(dd: DataDictionary, statement: Tree) -> None:
     _allowed_args(args, _DATA_ARG, _META_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
     using = _set_default_conn(dd, _get_default_conn(dd, args))
-    data = _get_arg(args, _DATA_ARG, dict) if _DATA_ARG in args else {}
+    data = extract_kv_data(_get_arg(args, _DATA_ARG, dict)) if _DATA_ARG in args else {}
     _set_result(dd,
                 args,
                 _CONNECTIONS.get_connection(using).create_kv2_secret(mount_point, path, data, namespace))
     # TODO return on error
     if _META_ARG in args:
-        metadata = _get_arg(args, _META_ARG, dict)
+        metadata = extract_kv_metadata(_get_arg(args, _META_ARG, dict))
         _set_result(dd,
                     args,
-                    _CONNECTIONS.get_connection(using).create_kv_metadata(mount_point, path, metadata, namespace))
+                    _CONNECTIONS.get_connection(using).create_kv2_metadata(mount_point, path, metadata, namespace))
 
 def execute_read_kv_secret(dd: DataDictionary, statement: Tree) -> None:
     mount_point, path = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Path'))
@@ -340,13 +399,13 @@ def execute_update_kv_secret(dd: DataDictionary, statement: Tree) -> None:
     using = _set_default_conn(dd, _get_default_conn(dd, args))
     _set_result(dd, args, None) # in case neither data or metada is provides
     if _DATA_ARG in args:
-        data = _get_arg(args, _DATA_ARG, dict)
+        data = extract_kv_data(_get_arg(args, _DATA_ARG, dict))
         _set_result(dd,
                     args,
                     _CONNECTIONS.get_connection(using).update_kv2_secret(mount_point, path, data, namespace))
         # TODO return on error
     if _META_ARG in args:
-        metadata = _get_arg(args, _META_ARG, dict)
+        metadata = extract_kv_metadata(_get_arg(args, _META_ARG, dict))
         _set_result(dd,
                     args,
                     _CONNECTIONS.get_connection(using).update_kv2_metadata(mount_point, path, metadata, namespace))
@@ -360,13 +419,13 @@ def execute_patch_kv_secret(dd: DataDictionary, statement: Tree) -> None:
     using = _set_default_conn(dd, _get_default_conn(dd, args))
     _set_result(dd, args, None) # in case neither data or metada is provides
     if _DATA_ARG in args:
-        data = _get_arg(args, _DATA_ARG, dict)
+        data = extract_kv_data(_get_arg(args, _DATA_ARG, dict))
         _set_result(dd,
                     args,
                     _CONNECTIONS.get_connection(using).patch_kv2_secret(mount_point, path, data, namespace))
         # TODO return on error
     if _META_ARG in args:
-        metadata = _get_arg(args, _META_ARG, dict)
+        metadata = extract_kv_metadata(_get_arg(args, _META_ARG, dict))
         _set_result(dd,
                     args,
                     _CONNECTIONS.get_connection(using).patch_kv2_metadata(mount_point, path, metadata, namespace))

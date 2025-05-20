@@ -31,6 +31,11 @@
     | vault_delete_ldap_secret
     | vault_list_ldap_secrets
     | vault_rotate_ldap_secret
+    | vault_api_get
+    | vault_api_list
+    | vault_api_delete
+    | vault_api_post
+    | vault_api_patch
 
 // Connections
 vault_connect   : "Vault"i "Connect"i (_COMMA? vault_conn_arg)* _SEMICOLON?
@@ -39,15 +44,24 @@ vault_conn_arg: "To"i "Host"i? expr -> conn_addr
     | ("With"i "Token"i? | "Token"i ("=" | "Is"i)) expr -> conn_token
     | "As"i expr -> conn_name
 
+// Generic Vault API interactions
+// The expr is the URL. Note that it may have to be URL encoded
+// It should include everything except the host name and port
+vault_api_get    : "Vault"i "APIGet"i expr vault_args _SEMICOLON?
+vault_api_list   : "Vault"i "APIList"i expr vault_args _SEMICOLON?
+vault_api_delete : "Vault"i "APIDelete"i expr vault_args _SEMICOLON?
+vault_api_post   : "Vault"i "APIPost"i expr vault_args _SEMICOLON?
+vault_api_patch  : "Vault"i "APIPatch"i expr vault_args _SEMICOLON?
+
 // Namespaces
 vault_default_ns : "Vault"i ("DefaultNamespace"i | "default_namespace"i) expr _SEMICOLON?
-vault_create_ns : "Vault"i ("CreateNamespace"i | "create_namespace"i) expr vault_args _SEMICOLON?
-vault_read_ns   : "Vault"i ("ReadNamespace"i | "read_namespace"i) expr vault_args _SEMICOLON?
-vault_update_ns : "Vault"i ("UpdateNamespace"i | "update_namespace"i) expr vault_args _SEMICOLON?
-vault_delete_ns : "Vault"i ("DeleteNamespace"i | "delete_namespace"i) expr vault_args _SEMICOLON?
-vault_list_ns   : "Vault"i ("ListNamespaces"i | "list_namespaces"i) expr? vault_args _SEMICOLON?
-vault_lock_ns   : "Vault"i ("LockNamespace"i | "lock_namespace"i) expr vault_args _SEMICOLON?
-vault_unlock_ns : "Vault"i ("UnlockNamespace"i | "unlock_namespace"i) expr vault_args _SEMICOLON?
+vault_create_ns  : "Vault"i ("CreateNamespace"i | "create_namespace"i) expr vault_args _SEMICOLON?
+vault_read_ns    : "Vault"i ("ReadNamespace"i | "read_namespace"i) expr vault_args _SEMICOLON?
+vault_update_ns  : "Vault"i ("UpdateNamespace"i | "update_namespace"i) expr vault_args _SEMICOLON?
+vault_delete_ns  : "Vault"i ("DeleteNamespace"i | "delete_namespace"i) expr vault_args _SEMICOLON?
+vault_list_ns    : "Vault"i ("ListNamespaces"i | "list_namespaces"i) expr? vault_args _SEMICOLON?
+vault_lock_ns    : "Vault"i ("LockNamespace"i | "lock_namespace"i) expr vault_args _SEMICOLON?
+vault_unlock_ns  : "Vault"i ("UnlockNamespace"i | "unlock_namespace"i) expr vault_args _SEMICOLON?
 
 // Secret Engine Mount Points
 vault_create_mount : "Vault"i ("CreateMount"i | "create_mount"i) expr vault_args _SEMICOLON?
