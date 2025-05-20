@@ -25,6 +25,7 @@ _M_PATCH = 'PATCH'
 _CM_KEY = 'custom_metadata'
 _CM_KEY_MAX_LEN = 128
 _CM_VALUE_MAX_LEN = 150
+_DATA_KEY = 'data'
 _UNLOCK_KEY = 'unlock_key'
 
 _LOG = logging.getLogger(__name__)
@@ -127,13 +128,13 @@ class VaultClient():
                 text_response = text_response.strip()
                 # TODO look at old code to hunt down the first error if present
                 if retcode in (HTTPStatus.NOT_FOUND, HTTPStatus.BAD_REQUEST, HTTPStatus.FORBIDDEN):
-                    self._debug(retcode, 'on', self._addr + url, ':', text_response)
+                    self._debug(retcode, ' on ', self._addr + url, ' : ', text_response)
                 else:
-                    self._warn(retcode, 'on', self._addr + url, ':', text_response)
+                    self._warn(retcode, ' on ', self._addr + url, ' : ', text_response)
                     raise VaultStatusException(retcode, response.reason, url=self._addr + url, response_body=text_response)
             return rc
         except HTTPError as e:
-            self._debug(e.code, 'on', self._addr + '/' + url)
+            self._debug(e.code, ' on ', self._addr + url)
             raise
 
     def open(self):
@@ -155,7 +156,7 @@ class VaultClient():
     def close(self):
         if self._conn is not None:
             try:
-                self._info('Closing connection to', self._addr)
+                self._info('Closing connection to ', self._addr)
                 self._conn.close()
             finally:
                 self._conn = None
@@ -216,20 +217,41 @@ class VaultClient():
         mount_point = self._fix_mount_point(mount_point)
         return self.do_post(encode_url(f'/v1/{mount_point}config'), config, namespace)
 
+    def create_kv2_secret(self, mount_point: str, path: str, data: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
+        mount_point = self._fix_mount_point(mount_point)
+        path = self._fix_kv_path(path)
+        return self.do_post(encode_url(f'/v1/{mount_point}data{path}'), _create_kv_data(data), namespace)
+
+    def read_kv2_secret(self, mount_point: str, path: str, version: int=None, namespace: str=None) -> Dict[str, Any]:
+        mount_point = self._fix_mount_point(mount_point)
+        path = self._fix_kv_path(path)
+        return self.do_get(encode_url(f'/v1/{mount_point}data{path}') + (f'?version={version}' if version else ''), namespace).get('data', {})
+
     def update_kv2_secret(self, mount_point: str, path: str, data: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
-        mount_point = self._fix_mount_point(mount_point)
-        path = self._fix_kv_path(path)
-        return self.do_post(encode_url(f'/v1/{mount_point}data{path}'), data, namespace)
+        return self.create_kv2_secret(mount_point, path, data, namespace)
 
-    def read_kv2_metadata(self, namespace: str, mount_point: str, path: str) -> dict:
+    def patch_kv2_secret(self, mount_point: str, path: str, data: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         mount_point = self._fix_mount_point(mount_point)
         path = self._fix_kv_path(path)
-        return self.do_get(encode_url(f'/v1/{mount_point}metadata{path}'), namespace).get('data', {})
+        return self.do_patch(encode_url(f'/v1/{mount_point}data{path}'), _create_kv_data(data), namespace)
 
-    def update_kv2_metadata(self, mount_point: str, path: str, meta_data: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
+    def create_kv2_metadata(self, mount_point: str, path: str, metadata: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         mount_point = self._fix_mount_point(mount_point)
         path = self._fix_kv_path(path)
-        return self.do_post(encode_url(f'/v1/{mount_point}metadata{path}'), meta_data, namespace)
+        return self.do_post(encode_url(f'/v1/{mount_point}metadata{path}'), _create_metadata(metadata), namespace)
+
+    def read_kv2_metadata(self, mount_point: str, path: str, namespace: str=None) -> Dict[str, Any]:
+        mount_point = self._fix_mount_point(mount_point)
+        path = self._fix_kv_path(path)
+        return self.do_get(encode_url(f'/v1/{mount_point}metadata{path}'), namespace)
+
+    def update_kv2_metadata(self, mount_point: str, path: str, metadata: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
+        return self.create_kv2_metadata(mount_point, path, metadata, namespace)
+
+    def patch_kv2_metadata(self, mount_point: str, path: str, metadata: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
+        mount_point = self._fix_mount_point(mount_point)
+        path = self._fix_kv_path(path)
+        return self.do_patch(encode_url(f'/v1/{mount_point}metadata{path}'), _create_metadata(metadata), namespace)
 
     def get_kv2_subkeys(self, namespace: str, mount_point: str, path: str) -> list:
         mount_point = self._fix_mount_point(mount_point)
@@ -498,13 +520,25 @@ class VaultClient():
         if _LOG.isEnabledFor(logging.DEBUG):
             _LOG.debug(''.join(str(arg) for arg in args))
 
+def _create_kv_data(data: Any) -> Dict[str, Any]:
+    """Create a data dictionary for kv data."""
+    if not data:
+        return {_DATA_KEY: {}}
+    if isinstance(data, dict):
+        # User has passed in something that might be round tripped...
+        if _DATA_KEY in data:
+            return data
+        # We assume that the dictionary we got is the data itself
+        return {_DATA_KEY: data}
+    raise ValueError(f'Unexpected type {repr(type(data).__name__)} for data')
+
 def _create_metadata(metadata: Any) -> Dict[str, Any]:
     """Create a custom_metadata dictionary that conforms to Vault's limits."""
     if not metadata:
         return {_CM_KEY: {}}
     if isinstance(metadata, dict):
         return {_CM_KEY: _validate_metadata(metadata.get(_CM_KEY, metadata))}
-    raise ValueError(f'Unexpected type {repr(type(metadata).__name__)}')
+    raise ValueError(f'Unexpected type {repr(type(metadata).__name__)} for metadata')
 
 def _validate_metadata(metadata: Dict[str, Any]) -> Dict[str, str]:
     """Validate and format metadata keys and values."""
@@ -514,12 +548,13 @@ def _validate_metadata(metadata: Dict[str, Any]) -> Dict[str, str]:
         key = str(key) if not isinstance(key, str) else key
         if len(key.encode('utf-8')) > _CM_KEY_MAX_LEN:
             raise ValueError(f"{_CM_KEY} key {repr(key)} exceeds {_CM_KEY_MAX_LEN} bytes")
-        # Ensure the value is a string and no longer than MAX_VALUE_LENGTH bytes
-        value = str(value) if not isinstance(value, str) else value
-        if len(value.encode('utf-8')) > _CM_VALUE_MAX_LEN:
-            raise ValueError(f"{_CM_KEY} value for {repr(key)} exceeds {_CM_VALUE_MAX_LEN} bytes")
-        # Vault can't store blank entries
-        if value: validated_metadata[key] = value
+        if value is not None:
+            # Ensure the value is a string and no longer than MAX_VALUE_LENGTH bytes
+            value = str(value) if not isinstance(value, str) else value
+            if len(value.encode('utf-8')) > _CM_VALUE_MAX_LEN:
+                raise ValueError(f"{_CM_KEY} value for {repr(key)} exceeds {_CM_VALUE_MAX_LEN} bytes")
+            # Vault can't store empty entries, so skip them
+            if value: validated_metadata[key] = value
     return validated_metadata
 
 def _create_unlock(data: Any) -> Dict[str, Any]:

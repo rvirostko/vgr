@@ -13,11 +13,13 @@
     | vault_update_mount
     | vault_delete_mount
     | vault_list_mounts
-    | vault_create_kv
-    | vault_read_kv
-    | vault_update_kv
-    | vault_delete_kv
-    | vault_list_kvs
+    | vault_create_kv_secret
+    | vault_read_kv_secret
+    | vault_read_kv_metadata
+    | vault_update_kv_secret
+    | vault_delete_kv_secret
+    | vault_list_kv_secrets
+    | vault_patch_kv_secret
     | vault_create_ldap_lib
     | vault_read_ldap_lib
     | vault_update_ldap_lib
@@ -55,11 +57,13 @@ vault_delete_mount : "Vault"i ("DeleteMount"i | "delete_mount"i) expr vault_args
 vault_list_mounts  : "Vault"i ("ListMounts"i | "list_mounts"i) expr? vault_args _SEMICOLON?
 
 // KV2 Secrets
-vault_create_kv : "Vault"i ("CreateKvSecret"i | "create_kv_secret"i) expr vault_args _SEMICOLON?
-vault_read_kv   : "Vault"i ("ReadKvSecret"i | "read_kv_secret"i) expr vault_args _SEMICOLON?
-vault_update_kv : "Vault"i ("UpdateKvSecret"i | "update_kv_secret"i) expr vault_args _SEMICOLON?
-vault_delete_kv : "Vault"i ("DeleteKvSecret"i | "delete_kv_secret"i) expr vault_args _SEMICOLON?
-vault_list_kvs  : "Vault"i ("ListKvSecrets"i | "list_kv_secrets"i) expr vault_args _SEMICOLON?
+vault_create_kv_secret : "Vault"i ("CreateKvSecret"i | "create_kv_secret"i) expr vault_args _SEMICOLON?
+vault_read_kv_secret   : "Vault"i ("ReadKvSecret"i | "read_kv_secret"i) expr vault_args _SEMICOLON?
+vault_read_kv_metadata : "Vault"i ("ReadKvMetadata"i | "read_kv_metadata"i) expr vault_args _SEMICOLON?
+vault_update_kv_secret : "Vault"i ("UpdateKvSecret"i | "update_kv_secret"i) expr vault_args _SEMICOLON?
+vault_delete_kv_secret : "Vault"i ("DeleteKvSecret"i | "delete_kv_secret"i) expr vault_args _SEMICOLON?
+vault_list_kv_secrets  : "Vault"i ("ListKvSecrets"i | "list_kv_secrets"i) expr vault_args _SEMICOLON?
+vault_patch_kv_secret  : "Vault"i ("PatchKvSecret"i | "patch_kv_secret"i) expr vault_args _SEMICOLON?
 
 // LDAP Libraries Secrets
 vault_create_ldap_lib : "Vault"i ("CreateLdapLibrary"i | "create_ldap_library"i) expr vault_args _SEMICOLON?
@@ -80,11 +84,23 @@ vault_rotate_ldap_secret : "Vault"i ("RotateLdapSecret"i | "rotate_ldap_secret"i
 #     and are undefined in the data dictionary
 vault_args: (_COMMA? vault_option (_COMMA? vault_option)*)?
 vault_option: "Config"i ("=" | "Is"i)? expr -> vopt_config
+    | "Config"i "From"i var_name -> vopt_config
     | "Data"i ("=" | "Is"i)? expr -> vopt_data
+    | "Data"i "From"i var_name -> vopt_data
     | "Description"i ("=" | "Is"i)? expr -> vopt_description
+    | "Description"i "From"i var_name -> vopt_description
     | "Key"i ("=" | "Is"i)? expr -> vopt_key
+    | "Key"i "From" var_name -> vopt_key
     | ("Meta"i | "Metadata"i) ("=" | "Is"i)? expr -> vopt_metadata
+    | ("Meta"i | "Metadata"i) "From"i var_name -> vopt_metadata
     | "Namespace"i ("=" | "Is"i)? expr -> vopt_namespace
-    | ("Result"i | "Results"i) ("=" | "Is"i | "Into"i)? var_name -> vopt_result
+    | "Namespace"i "From"i var_name -> vopt_namespace
+    | ("Result"i | "Results"i) ("=" | "Is"i | "In"i)? var_name -> vopt_result
+    | "Into"i var_name -> vopt_result
+    | ("Secrets"i | "Secret"i) ("=" | "Is"i | "Are"i)? expr -> vopt_data # Alias for data
+    | ("Secrets"i | "Secret"i) "From"i var_name -> vopt_data             # Alias for data
     | "Type"i ("=" | "Is"i)? expr -> vopt_type
+    | "Type"i "From"i var_name -> vopt_type
     | "Using"i "Connection"i? expr -> vopt_using
+    | ("Version"i | "Ver"i) ("=" | "Is"i)? expr -> vopt_version
+    | ("Version"i | "Ver"i) "From"i var_name -> vopt_version

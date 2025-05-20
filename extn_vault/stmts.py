@@ -30,7 +30,9 @@ _CONFIG_ARG = 'config'
 _DATA_ARG = 'data'
 _TYPE_ARG = 'type'
 _DESC_ARG = 'description'
+_VERSION_ARG = 'version'
 _ARG_VAR_NAME = (_RESULT_ARG,)
+_ARG_INT_EXPR = (_VERSION_ARG,)
 _ARG_EXPR = (_DESC_ARG, _KEY_ARG, _NS_ARG, _TYPE_ARG, _CONFIG_ARG, _DATA_ARG, _META_ARG, _USING_ARG)
 
 _DEFAULT_CONN_NAME = 'DefaultConnection'
@@ -290,24 +292,90 @@ def execute_list_mounts(dd: DataDictionary, statement: Tree) -> None:
                 args,
                 _CONNECTIONS.get_connection(using).list_mounts(namespace))
 
-def execute_create_kv(dd: DataDictionary, statement: Tree) -> None:
-    # TODO redundant?
+def execute_create_kv_secret(dd: DataDictionary, statement: Tree) -> None:
+    """For create, Data is required but Metadata is optional"""
+    mount_point, path = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Path'))
+    args = _extract_args(dd, statement)
+    _allowed_args(args, _DATA_ARG, _META_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    using = _set_default_conn(dd, _get_default_conn(dd, args))
+    data = _get_arg(args, _DATA_ARG, dict) if _DATA_ARG in args else {}
+    _set_result(dd,
+                args,
+                _CONNECTIONS.get_connection(using).create_kv2_secret(mount_point, path, data, namespace))
+    # TODO return on error
+    if _META_ARG in args:
+        metadata = _get_arg(args, _META_ARG, dict)
+        _set_result(dd,
+                    args,
+                    _CONNECTIONS.get_connection(using).create_kv_metadata(mount_point, path, metadata, namespace))
+
+def execute_read_kv_secret(dd: DataDictionary, statement: Tree) -> None:
+    mount_point, path = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Path'))
+    args = _extract_args(dd, statement)
+    _allowed_args(args, _VERSION_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    version: int = _get_arg(args, _VERSION_ARG, int, True)
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    using = _set_default_conn(dd, _get_default_conn(dd, args))
+    _set_result(dd,
+                args,
+                _CONNECTIONS.get_connection(using).read_kv2_secret(mount_point, path, version, namespace))
+
+def execute_read_kv_metadata(dd: DataDictionary, statement: Tree) -> None:
+    mount_point, path = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Path'))
+    args = _extract_args(dd, statement)
+    _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    using = _set_default_conn(dd, _get_default_conn(dd, args))
+    _set_result(dd,
+                args,
+                _CONNECTIONS.get_connection(using).read_kv2_metadata(mount_point, path, namespace))
+
+def execute_update_kv_secret(dd: DataDictionary, statement: Tree) -> None:
+    """Data and Metadata are optional"""
+    mount_point, path = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Path'))
+    args = _extract_args(dd, statement)
+    _allowed_args(args, _DATA_ARG, _META_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    using = _set_default_conn(dd, _get_default_conn(dd, args))
+    _set_result(dd, args, None) # in case neither data or metada is provides
+    if _DATA_ARG in args:
+        data = _get_arg(args, _DATA_ARG, dict)
+        _set_result(dd,
+                    args,
+                    _CONNECTIONS.get_connection(using).update_kv2_secret(mount_point, path, data, namespace))
+        # TODO return on error
+    if _META_ARG in args:
+        metadata = _get_arg(args, _META_ARG, dict)
+        _set_result(dd,
+                    args,
+                    _CONNECTIONS.get_connection(using).update_kv2_metadata(mount_point, path, metadata, namespace))
+
+def execute_patch_kv_secret(dd: DataDictionary, statement: Tree) -> None:
+    """Data and Metadata are optional"""
+    mount_point, path = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Path'))
+    args = _extract_args(dd, statement)
+    _allowed_args(args, _DATA_ARG, _META_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    using = _set_default_conn(dd, _get_default_conn(dd, args))
+    _set_result(dd, args, None) # in case neither data or metada is provides
+    if _DATA_ARG in args:
+        data = _get_arg(args, _DATA_ARG, dict)
+        _set_result(dd,
+                    args,
+                    _CONNECTIONS.get_connection(using).patch_kv2_secret(mount_point, path, data, namespace))
+        # TODO return on error
+    if _META_ARG in args:
+        metadata = _get_arg(args, _META_ARG, dict)
+        _set_result(dd,
+                    args,
+                    _CONNECTIONS.get_connection(using).patch_kv2_metadata(mount_point, path, metadata, namespace))
+
+def execute_delete_kv_secret(dd: DataDictionary, statement: Tree) -> None:
     value = eval_expr(dd, statement.children[0])
     print(value)
 
-def execute_read_kv(dd: DataDictionary, statement: Tree) -> None:
-    value = eval_expr(dd, statement.children[0])
-    print(value)
-
-def execute_update_kv(dd: DataDictionary, statement: Tree) -> None:
-    value = eval_expr(dd, statement.children[0])
-    print(value)
-
-def execute_delete_kv(dd: DataDictionary, statement: Tree) -> None:
-    value = eval_expr(dd, statement.children[0])
-    print(value)
-
-def execute_list_kvs(dd: DataDictionary, statement: Tree) -> None:
+def execute_list_kv_secrets(dd: DataDictionary, statement: Tree) -> None:
     value = eval_expr(dd, statement.children[0])
     print(value)
 
@@ -365,6 +433,13 @@ def _combine_ns(parent: str, child: str) -> str:
     if not child: return parent
     return f'{parent}/{child}'
 
+def _split_mount_path(s: str) -> tuple:
+    s = '/'.join(filter(None, s.split('/')))
+    parts = s.split('/', 1)
+    if len(parts) != 2:
+        raise ValueError(f'Missing Path in {s}')
+    return parts
+
 def _extract_args(dd: DataDictionary, statement: Tree) -> dict:
     args = {}
     for child in statement.children[-1].children:
@@ -373,6 +448,11 @@ def _extract_args(dd: DataDictionary, statement: Tree) -> dict:
             arg_node = child.children[0]
             if arg_name in _ARG_VAR_NAME:
                 args[arg_name] = tuple(name.value for name in arg_node.children)
+            elif arg_name in _ARG_INT_EXPR:
+                v = _resolve_arg_value(dd, arg_node)
+                if v:
+                    if not isinstance(v, (int, float)): raise TypeError(f'{arg_name.title()} must be a int; found {repr(type(v).__name__)}')
+                    args[arg_name] = int(v)
             elif arg_name in _ARG_EXPR:
                 args[arg_name] = _resolve_arg_value(dd, arg_node)
             else:
