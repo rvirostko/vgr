@@ -225,7 +225,7 @@ class VaultClient():
     def read_kv2_secret(self, mount_point: str, path: str, version: int=None, namespace: str=None) -> Dict[str, Any]:
         mount_point = self._fix_mount_point(mount_point)
         path = self._fix_kv_path(path)
-        return self.do_get(encode_url(f'/v1/{mount_point}data{path}') + (f'?version={version}' if version else ''), namespace).get('data', {})
+        return self.do_get(encode_url(f'/v1/{mount_point}data{path}') + (f'?version={version}' if version else ''), namespace)
 
     def update_kv2_secret(self, mount_point: str, path: str, data: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         return self.create_kv2_secret(mount_point, path, data, namespace)
@@ -256,13 +256,13 @@ class VaultClient():
     def get_kv2_subkeys(self, namespace: str, mount_point: str, path: str) -> list:
         mount_point = self._fix_mount_point(mount_point)
         path = self._fix_kv_path(path)
-        subkeys = self.do_get(encode_url(f'/v1/{mount_point}subkeys{path}') + '?depth=1', namespace).get('data', {}).get('subkeys', {})
+        subkeys = self.do_get(encode_url(f'/v1/{mount_point}subkeys{path}') + '?depth=1', namespace)
         return [subkeys.keys()] if subkeys else []
 
     def list_kv2_subpaths(self, namespace: str, mount_point: str, path: str='') -> list:
         mount_point = self._fix_mount_point(mount_point)
         path = self._fix_kv_path(path)
-        paths = self.do_list(encode_url(f'/v1/{mount_point}metadata{path}'), namespace).get('data', {}).get('keys', [])
+        paths = self.do_list(encode_url(f'/v1/{mount_point}metadata{path}'), namespace)
         return sorted(list(set([f"{path.rstrip('/')}" for path in paths])))
 
     def read_aws_config(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
