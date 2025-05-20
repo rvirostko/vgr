@@ -83,3 +83,30 @@ def ms_to_duration(ms: Any) -> str:
             remaining_ms -= value * factor
             if remaining_ms <= 0: break
     return ''.join(result)
+
+def _get_path_dict(obj, path):
+    for key in path:
+        if not isinstance(obj, dict) or key not in obj:
+            return None
+        obj = obj[key]
+    return obj if isinstance(obj, dict) else None
+
+def _is_flat_dict(obj):
+    return isinstance(obj, dict) and all(
+        not isinstance(v, (dict, list, tuple)) for v in obj.values()
+    )
+
+def _find_flat_data(obj, *full_path):
+    for i in range(len(full_path)):
+        candidate = _get_path_dict(obj, full_path[i:])
+        if candidate is not None and _is_flat_dict(candidate):
+            return candidate
+    if _is_flat_dict(obj):
+        return obj
+    return {}
+
+def extract_kv_data(obj):
+    return _find_flat_data(obj, "data", "data")
+
+def extract_kv_metadata(obj):
+    return _find_flat_data(obj, "data", "data", "metadata", "custom_metadata")
