@@ -3,7 +3,7 @@ Functions applicable to Web data.
 """
 from typing import Any
 
-from urllib.parse import urlparse
+from urllib.parse import urlparse, quote
 from urllib.error import URLError
 
 from .common import dist_x
@@ -46,9 +46,15 @@ def parse_url(url: Any, remove_nulls: bool=True) -> Any:
             "error_msg": str(e),
         }
 
+def encode_url(url: str) -> str:
+    if url is None: return None
+    if isinstance(url, (list, tuple)): return type(url)(encode_url(x1) for x1 in url)
+    return quote(url, errors='strict', encoding='utf-8') if isinstance(url, str) else None
+
 def _empty_to_none(s:str) -> str:
     return None if s is None or len(s) == 0 else s
 
+# TODO candidate for a "real function"
 def _obscure(s: str) -> str:
     if s is None: return None
     if len(s) <= 2: return '\u2026'

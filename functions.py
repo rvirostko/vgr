@@ -8,33 +8,132 @@ from collections import defaultdict
 import inspect
 from typing import Any, Callable
 
-from mathpak import poly_abs, poly_vadd, poly_vappend, poly_vbit_and, poly_vbit_or, poly_vbit_xor
-from mathpak import poly_bit_not, poly_bool, poly_capitalize, poly_casefold
-from mathpak import poly_ceil, poly_count, poly_vdiv, poly_divmod
-from mathpak import poly_endswith, poly_expandtabs, poly_firstitem, poly_float, poly_vfdiv
-from mathpak import poly_floor, poly_hash, poly_in, poly_index
-from mathpak import poly_int, poly_isalnum, poly_isalpha, poly_isascii, poly_isbool
-from mathpak import poly_isdecimal, poly_isdigit, poly_isempty, poly_isfloat
-from mathpak import poly_isidentifier, poly_isint, poly_islower, poly_islist, poly_isnumber
-from mathpak import poly_isprintable, poly_isnumeric, poly_isspace
-from mathpak import poly_isstr, poly_istitle, poly_isupper, poly_getitem
-from mathpak import poly_lastitem, poly_shl, poly_leftstr, poly_vlstrip, poly_len, poly_list
-from mathpak import poly_lookup, poly_lower, poly_vmatches, poly_vmatches_all, poly_mod, poly_vmul, poly_number
-from mathpak import poly_pow, poly_vprepend, poly_vremoveprefix, poly_vremovesuffix
-from mathpak import poly_vreplace, poly_repr, poly_shr, poly_rightstr, poly_vrstrip, poly_round
-from mathpak import poly_rindex, poly_sizeof, poly_sort, poly_startswith
-from mathpak import poly_str, poly_vstrip, poly_vsub, poly_substr, poly_swapcase, poly_title
-from mathpak import poly_translate, poly_trunc, poly_type, poly_unique, poly_upper
-from mathpak import parse_url, compile_pattern
-from mathpak import md_blockquote, md_bold, md_code, md_code_block, md_heading, md_italics, md_strikethrough
-from mathpak import md_link, md_ordered_list, md_unordered_list
-from mathpak import poly_format, poly_vregex_replace, poly_split, poly_rsplit
-from mathpak import poly_contains_any, poly_contains_all
-from mathpak import poly_center, poly_ljust, poly_rjust, poly_zfill, poly_splitlines, poly_join
-from mathpak import poly_bin, poly_oct, poly_hex, poly_parse_int, poly_parse_bin, poly_parse_oct, poly_parse_hex
-from mathpak import poly_base64_encode, poly_base64_decode
-from mathpak import poly_vdig, poly_find, poly_rfind
-from mathpak import format_json, parse_json, strip_nulls, to_json, to_json_string
+from mathpak import (
+    compile_pattern,
+    encode_url,
+    format_json,
+    md_blockquote,
+    md_bold,
+    md_code_block,
+    md_code,
+    md_heading,
+    md_italics,
+    md_link,
+    md_ordered_list,
+    md_strikethrough,
+    md_unordered_list,
+    parse_json,
+    parse_url,
+    poly_abs,
+    poly_base64_decode,
+    poly_base64_encode,
+    poly_bin,
+    poly_bit_not,
+    poly_bool,
+    poly_capitalize,
+    poly_casefold,
+    poly_ceil,
+    poly_center,
+    poly_contains_all,
+    poly_contains_any,
+    poly_count,
+    poly_divmod,
+    poly_endswith,
+    poly_expandtabs,
+    poly_find,
+    poly_firstitem,
+    poly_float,
+    poly_floor,
+    poly_format,
+    poly_getitem,
+    poly_hash,
+    poly_hex,
+    poly_in,
+    poly_index,
+    poly_int,
+    poly_isalnum,
+    poly_isalpha,
+    poly_isascii,
+    poly_isbool,
+    poly_isdecimal,
+    poly_isdigit,
+    poly_isempty,
+    poly_isfloat,
+    poly_isidentifier,
+    poly_isint,
+    poly_islist,
+    poly_islower,
+    poly_isnumber,
+    poly_isnumeric,
+    poly_isprintable,
+    poly_isspace,
+    poly_isstr,
+    poly_istitle,
+    poly_isupper,
+    poly_join,
+    poly_lastitem,
+    poly_leftstr,
+    poly_len,
+    poly_list,
+    poly_ljust,
+    poly_lookup,
+    poly_lower,
+    poly_mod,
+    poly_number,
+    poly_oct,
+    poly_parse_bin,
+    poly_parse_hex,
+    poly_parse_int,
+    poly_parse_oct,
+    poly_pow,
+    poly_repr,
+    poly_rfind,
+    poly_rightstr,
+    poly_rindex,
+    poly_rjust,
+    poly_round,
+    poly_rsplit,
+    poly_shl,
+    poly_shr,
+    poly_sizeof,
+    poly_sort,
+    poly_split,
+    poly_splitlines,
+    poly_startswith,
+    poly_str,
+    poly_substr,
+    poly_swapcase,
+    poly_title,
+    poly_translate,
+    poly_trunc,
+    poly_type,
+    poly_unique,
+    poly_upper,
+    poly_vadd,
+    poly_vappend,
+    poly_vbit_and,
+    poly_vbit_or,
+    poly_vbit_xor,
+    poly_vdig,
+    poly_vdiv,
+    poly_vfdiv,
+    poly_vlstrip,
+    poly_vmatches_all,
+    poly_vmatches,
+    poly_vmul,
+    poly_vprepend,
+    poly_vregex_replace,
+    poly_vremoveprefix,
+    poly_vremovesuffix,
+    poly_vreplace,
+    poly_vrstrip,
+    poly_vstrip,
+    poly_vsub,
+    poly_zfill,
+    strip_nulls,
+    to_json_string,
+    to_json,
+)
 
 def _default_to(value: Any, default: Any) -> Any:
     """Returns a default value if the argument is None.
@@ -68,6 +167,7 @@ _BUILT_IN_FUNCS = {
   "Dig": poly_vdig,
   "Div": poly_vdiv,
   "DivMod": poly_divmod,
+  "EncodeURL": encode_url,
   "EndsWith": poly_endswith,
   "ExpandTabs": poly_expandtabs,
   "FindStr": poly_find,
