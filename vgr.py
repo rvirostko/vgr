@@ -1,5 +1,6 @@
 #! /usr/bin/env python3
 
+from pathlib import Path
 from typing import Any
 import argparse
 import os
@@ -14,7 +15,7 @@ from dd_config import dd_init, dd_parse_user_args
 from dd_config import DEFAULT_FOR_TYPE_PATH, SHELL_HISTORY_PATH, SHELL_HISTORY_SIZE_PATH, SHELL_PROMPT_PATH
 from extn import VgrExtensionRegistry, VER
 from functions import get_function_defs, add_builtin_functions, add_function
-from interactive import CmdLine
+from interactive import CmdLine, ArgumentParser, ParserBuilder
 from log_config import init_logging, set_logging_level
 from mathpak import poly_bool
 from output import expand_filename
@@ -31,6 +32,10 @@ class VGRCmdLine(CmdLine):
     _DEFAULT_HISTORY = '~/.vgr_history'
     _DEFAULT_PROMPT = 'vgr> '
 
+    _SOURCE_PARSER: ArgumentParser = (ParserBuilder()
+                    .argument('file', type=str)
+                    .parser())
+
     def __init__(self, parser: Lark, dd: DataDictionary):
         self._parser = parser
         self._dd = dd
@@ -38,6 +43,7 @@ class VGRCmdLine(CmdLine):
         self.history_filename = self._get_vgr_default(SHELL_HISTORY_PATH[1], self._DEFAULT_HISTORY)
         self.max_history_entries = self._get_vgr_default_int(SHELL_HISTORY_SIZE_PATH[1], self._DEFAULT_HISTORY_SIZE)
         super().__init__()
+        self.add_cmd("source", self._exec_source)
 
     def run(self):
         # If this has not been set (command line?) we use our interactive default
@@ -67,6 +73,36 @@ class VGRCmdLine(CmdLine):
                 traceback.print_exc(file=sys.stderr)
             else:
                 print(format_generic_exception(e))
+
+    def _exec_source(self, *args) -> None:
+        """
+Source Help -
+
+* source file : execute statements stored in a file
+
+"""
+        # NB: this has problems with spaces in the file name
+        values = self._parse(self._SOURCE_PARSER, self._exec_source, *args)
+        if values is not None:
+            path = Path(values.file)
+            if not path.exists():
+                print(path, 'not found')
+            elif not path.is_file():
+                print(path, 'is not a file')
+            elif not os.access(path, os.R_OK):
+                print(path, 'not reabable')
+            else:
+                statements = None
+                try:
+                    with open(path, 'r', encoding='utf-8') as f:
+                        statements = f.read()
+                except (OSError, IOError) as e:
+                    if self.debug:
+                        traceback.print_exc(file=sys.stderr)
+                    else:
+                        print(format_generic_exception(e))
+                if statements:
+                    self.execute_statements(statements)
 
     @property
     def debug(self) -> bool:

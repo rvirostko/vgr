@@ -63,13 +63,6 @@ class CmdLine:
                     .argument('--clear', action="store_const", const=True, default=None)
                     .argument('--max', type=int)
                     .parser())
-    _LS_PARSER: ArgumentParser = (ParserBuilder()
-                    .argument("-a", action='store_true')
-                    .argument('-h', action='store_true')
-                    .argument('-l', action='store_true')
-                    .argument("-R", action='store_true')
-                    .argument('path', nargs=OPTIONAL, type=str, default='.')
-                    .parser())
     _MULTILINE_PARSER: ArgumentParser = (ParserBuilder()
                     .argument('multiline', nargs=OPTIONAL, type=poly_bool)
                     .parser())
@@ -97,14 +90,16 @@ class CmdLine:
         self._print_debug("Max history entries is", self.max_history_entries)
         self._history = LimitedFileHistory(self.history_filename, self.max_history_entries)
         self.multiline = False
-        self._dispatch = {
-            "cd": self._exec_cd,
-            "help": self._exec_help,
-            "history": self._exec_history,
-            "multiline": self._exec_multiline,
-            "prompt": self._exec_prompt,
-            "pwd": self._exec_pwd,
-        }
+        self._dispatch = {}
+        self.add_cmd("cd", self._exec_cd)
+        self.add_cmd("help", self._exec_help)
+        self.add_cmd("history", self._exec_history)
+        self.add_cmd("multiline", self._exec_multiline)
+        self.add_cmd("prompt", self._exec_prompt)
+        self.add_cmd("pwd", self._exec_pwd)
+
+    def add_cmd(self, cmd: str, func) -> None:
+        self._dispatch[cmd] = func
 
     def _exec_cd(self, *args) -> None:
         """
@@ -213,6 +208,7 @@ Shell Help-
 * history : display or control command line history
 * multiline [True | False] : turn on multiline editing mode
 * prompt [prompt] : define the input input prompt
+* source file : execute the statements stored in a file
 
 Run any of these command with _help_ for more information
 """
@@ -224,6 +220,7 @@ Run any of these command with _help_ for more information
         # help functions
         # help strip|
         # help operators
+        # help source
         print(self._exec_help.__doc__)
 
     def _parse_command(self, line: str):
