@@ -1,4 +1,4 @@
-#! /usr/bin/env PYTHONIOENCODING=utf8 python3
+#! /usr/bin/env python3
 
 from typing import Any
 import argparse
