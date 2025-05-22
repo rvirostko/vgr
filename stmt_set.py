@@ -94,9 +94,9 @@ name with Text as the default.
     if dd.verbose:
         if isinstance(data, list):
             length = len(data)
-            if dd.verbose: print_stderr('Loaded', '.'.join(path), 'With', length, 'Records' if length != 1 else 'Record')
+            print_stderr('Loaded', '.'.join(path), 'With', length, 'Records' if length != 1 else 'Record')
         else:
-            if dd.verbose: print_stderr('Loaded', '.'.join(path), 'With', shorten(repr(data)))
+            print_stderr('Loaded', '.'.join(path), 'With', shorten(repr(data)))
         if fieldnames and dd.verbose: print_stderr('Fieldnames :', '', ', '.join(repr(f) for f in fieldnames))
 
 def load_data_type(filename: str, token: Token) -> str:
