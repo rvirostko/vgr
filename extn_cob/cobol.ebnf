@@ -19,6 +19,7 @@
     | cobol_sub_from
     | cobol_sub_giving
 
+// DATE and TIME should accept either a keyword -or- a pattern
 cobol_accept: "Accept"i var_name "From"i "Date"i _SEMICOLON? -> cobol_accept_date
     | "Accept"i var_name "From"i "Date"i "YYYYMMDD"i _SEMICOLON? -> cobol_accept_yyyymmdd
     | "Accept"i var_name "From"i "Day"i _SEMICOLON? -> cobol_accept_day
