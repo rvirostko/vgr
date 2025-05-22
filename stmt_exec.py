@@ -16,12 +16,13 @@ from redir import execute_open, execute_close, print_stderr
 from src_mgr import SSM
 from stmt_cflags import execute_debug, execute_echo, execute_verbose
 from stmt_exit import execute_assert, execute_exit
+from stmt_log import execute_log, execute_log_setlevel
+from stmt_misc import execute_sleep
 from stmt_print import execute_print, execute_printf
 from stmt_select import execute_select
 from stmt_set import execute_load_from, execute_set, execute_unset, execute_set_in_place
 from stmt_sort import execute_sort
 from stmt_zip import execute_zip
-from stmt_misc import execute_sleep
 from tags import control_statement
 
 def execute_break(_: DataDictionary, __: Tree) -> None:
@@ -268,6 +269,8 @@ STATEMENT_HANDLERS = {
     'verbose':      execute_verbose,
     'while':        execute_while,
     'zip':          execute_zip,
+    'log':          execute_log,
+    'log_setlevel': execute_log_setlevel,
 }
 
 def remove_comments(input_text: str) -> str:

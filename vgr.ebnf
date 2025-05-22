@@ -48,6 +48,7 @@ statements: statement+
     | echo
     | exit
     | load_from
+    | log
     | open
     | pass
     | print
@@ -111,6 +112,11 @@ print: "Print"i _SEMICOLON
 
 printf: "Printf"i _SEMICOLON
     | "Printf"i expr (_COMMA expr)* _SEMICOLON?
+
+log: "Log"i LOG_LEVEL _SEMICOLON
+   | "Log"i LOG_LEVEL _COMMA? expr (_COMMA expr)* _SEMICOLON?
+   | "Log"i "Level"i LOG_LEVEL _SEMICOLON? -> log_setlevel
+LOG_LEVEL: "Debug"i | "Info"i | "Warn"i | "Error"i
 
 open: "Open"i io_type "File"i? expr open_ext? _SEMICOLON?
 close: "Close"i io_type "File"i? _SEMICOLON? -> close
