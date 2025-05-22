@@ -270,6 +270,7 @@ _BUILT_IN_FUNCS = {
   "ToJSONStr": to_json_string,
   "ToNumber": poly_number,
   "ToOctal": poly_oct,
+  "ToStr": poly_str,
   "ToString": poly_str,
   "Translate": poly_translate,
   "Trunc": poly_trunc,
