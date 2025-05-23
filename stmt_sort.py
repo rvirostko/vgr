@@ -158,7 +158,10 @@ def _read_data(dd: DataDictionary, source: dict) -> list:
         else:
             source[_FIELDS] = sorted(data[0].keys())
     else:
-        data, fields = load_file_as(source[_FILE], source[_DTYPE])
+        # TODO encoding
+        # defaults to utf-8-sig
+        with open(source[_FILE], 'r', encoding='utf-8-sig') as f:
+            data, fields = load_file_as(f, source[_DTYPE])
         source[_FIELDS] = fields
         data = data if isinstance(data, (list, tuple)) else [] if data is None else [data]
     # The "on" keys must all be known in our fields

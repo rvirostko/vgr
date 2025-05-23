@@ -2,6 +2,7 @@
 Includes the implemenation for SET/UNSET, MOVE, and LOAD FROM.
 """
 
+from io import TextIOWrapper
 from typing import Any
 import csv
 import json
@@ -113,7 +114,7 @@ def load_data_type(filename: str, token: Token) -> str:
     ext = os.path.splitext(filename)[1].lower()
     return 'csv_file' if ext == '.csv' else 'json_object' if ext == '.json' else 'text_file'
 
-def load_file_as(file, dtype: str) -> tuple:
+def load_file_as(file: TextIOWrapper, dtype: str) -> tuple:
     """Read the file in according to the type, which comes for load_file_type()"""
     if dtype == 'text_file':
         return (file.read(), [])
