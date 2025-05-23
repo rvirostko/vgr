@@ -23,7 +23,9 @@ Other types will be treated as strings
     if isinstance(x, (NoneType, bool, int, float, str, tuple, list)): return x
     if isinstance(x, dict):
         if isinstance(path, str):
-            path = [step.strip() for step in path.split('.') if not step.isspace()]
+            # DO NOT STRIP!
+            # Crap headers in CSVs frequently have trailing spaces
+            path = [step for step in path.split('.') if not step.isspace()]
         elif isinstance(path, (bool, int, float)):
             path = [path]
         elif not isinstance(path, (tuple, list)):
