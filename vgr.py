@@ -202,7 +202,7 @@ def create_parser(dd: DataDictionary, grammar_file: str, extn_registry: VgrExten
         print_debug(dd, f'EXTN_FROM={extn_from}')
         print_debug(dd, f'EXTN_GRAMMAR={extn_grammar}')
     print_debug(dd, 'Grammar file is', grammar_file)
-    with open(grammar_file, "r", encoding="utf-8") as file:
+    with open(grammar_file, 'r', encoding='utf-8') as file:
         grammar = file.read()
     # NB: we can't just use str.format() because the grammar
     #     contains "{" and "}"

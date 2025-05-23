@@ -172,7 +172,8 @@ def _write_data(dd: DataDictionary, data: list, target: dict) -> None:
         # Very simple, just store it
         do_set(dd, data, *target[_VAR])
         return
-    with open(target[_FILE], 'w', encoding="utf-8") as f:
+    # TODO encoding option
+    with open(target[_FILE], 'w', encoding='utf-8-sig') as f:
         # build a writer and send the data to it
         dtype = target[_DTYPE]
         headers = target[_FIELDS]

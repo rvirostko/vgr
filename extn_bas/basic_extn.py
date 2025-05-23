@@ -28,7 +28,7 @@ class BasicExtension(VgrExtension):
 
     def grammar(self) -> str:
         extn_grammar = Path(__file__).parent / 'basic.ebnf'
-        with extn_grammar.open("r", encoding="utf-8") as f:
+        with extn_grammar.open('r', encoding='utf-8') as f:
             return f.read()
 
     def statement_handlers(self) -> Dict[str, Callable]:

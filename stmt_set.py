@@ -88,7 +88,9 @@ name with Text as the default.
     path = dd_path(statement.children[0])
     filename = eval_filename_expr(dd, statement.children[1])
     dtype = load_data_type(filename, statement.children[2] if len(statement.children) > 2 else None)
-    with open(filename, 'r', encoding='utf-8') as f:
+    # TODO need to have an encoding param
+    # defaults to utf-8-sig
+    with open(filename, 'r', encoding='utf-8-sig') as f:
         data, fieldnames = load_file_as(f, dtype)
         dd.set_var_user(data, *path)
     if dd.verbose:

@@ -516,7 +516,8 @@ def create_extractor(dd: DataDictionary, opts: dict) -> DataExtractor:
             return InMemoryExtractor(dd.get_var_user(*path), target)
         filename = opts.get('file', None)
         if filename:
-            with open(filename, 'r', encoding='utf-8') as f:
+            # TODO need input encoding opt, default to usf-8-sig
+            with open(filename, 'r', encoding='utf-8-sig') as f:
                 data, _ = load_file_as(f, opts['dtype'])
             if not isinstance(data, list):
                 data = [data] if isinstance(data, dict) else [{'value' : data}]
