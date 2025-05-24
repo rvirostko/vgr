@@ -7,6 +7,15 @@ from typing import Any
 from .common import type_str, NoneType
 
 def poly_vdig(x: Any, *args) -> Any:
+    """Traverse a path in a dictionary object.
+
+* _dict_.Dig(_path_ [, _path_]) [;]
+
+Path parts can be:
+* A string with periods intoducing subpath components
+* Bool, int, float are converted to single step paths
+* A list composed of path components
+"""
     data = x
     for arg in args:
         data = poly_dig(data, arg)
@@ -14,12 +23,6 @@ def poly_vdig(x: Any, *args) -> Any:
     return data
 
 def poly_dig(x: Any, path: Any) -> Any:
-    """
-Path can be:
-* a list to be traversed
-* a dotted string path (or just a single item)
-Other types will be treated as strings
-"""
     if isinstance(x, (NoneType, bool, int, float, str, tuple, list)): return x
     if isinstance(x, dict):
         if isinstance(path, str):
