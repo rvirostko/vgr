@@ -130,7 +130,7 @@ class VaultExtension(VgrExtension):
         extn_grammar = Path(__file__).parent / 'vault.ebnf'
         with extn_grammar.open('r', encoding='utf-8') as f:
             g = f.read()
-        g += 'vault_from: "Vault"i? VAULT_TARGET\n'
+        g += 'vault_from: "Vault"i VAULT_TARGET\n'
         return g + 'VAULT_TARGET: ' + ' | '.join(tuple(f'"{t}"i' for t in _TARGETS))
 
     def functions(self) -> Dict[str, Callable]:
