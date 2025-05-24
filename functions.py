@@ -3,10 +3,11 @@ Functions is responsible for converting a requested function name to an implemen
 It also generates the grammar fragments used to identify the functions.
 """
 
-import re
 from collections import defaultdict
-import inspect
+from functools import lru_cache
 from typing import Any, Callable
+import inspect
+import re
 
 from mathpak import (
     compile_pattern,
@@ -295,6 +296,16 @@ def _to_snake_case(s: str) -> str:
     s = re.sub(r'(?<=[A-Z])([A-Z][a-z])', r'_\1', s)  # handle acronym boundary: XMLParser -> XML_Parser
     return s.lower()
 
+@lru_cache
+def get_function_entries():
+    return {
+        name: (name.lower().replace('_', ''), (func.__doc__ or '').lower()) for name, func in _FUNC_OPS.items()
+    }
+
+@lru_cache
+def get_function_names():
+    return sorted(_FUNC_OPS.keys())
+
 def add_builtin_functions() -> None:
     for name, function in _BUILT_IN_FUNCS.items(): add_function('built-in', name, function)
 
@@ -309,11 +320,17 @@ def add_function(extn_name: str, name: str, function: Callable) -> None:
 # The max value of an arg range when we have variable arguments
 _IS_VARARGS = float('inf')
 
+def get_function(name: str) -> tuple:
+    """Get the entry for the named function: (canonical_name, function)"""
+    canonical_name = _FUNC_INDEX.get(name.lower(), None)
+    if canonical_name: return (canonical_name, _FUNC_OPS.get(canonical_name))
+    return None
+
 def get_function_op(name: str):
     """Given a function name get the function that implements it"""
-    rc = _FUNC_OPS.get(_FUNC_INDEX.get(name.lower()), None)
-    if rc: return rc
-    raise NotImplementedError(f'Function {name} not implemented') # SNO
+    function = get_function(name)
+    if function: return function[1]
+    raise NotImplementedError(f'Function {repr(name)} not implemented') # SNO
 
 def get_function_defs(w: int=99) -> str:
     """Dynamically generate the LARK patterns for functions based on our dictionary"""
