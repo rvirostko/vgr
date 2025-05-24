@@ -414,7 +414,7 @@ Echo 0;
 > Verbose = True
 > ```
 >
-> Just remember that variable names are case sensitive, so you'll need to be consistent in you usage.
+> Just remember that variable names are case sensitive, so you'll need to be consistent in your usage.
 
 ### Exit and Assert
 
