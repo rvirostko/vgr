@@ -13,6 +13,7 @@ from app_exceptions import ExitingException, format_generic_exception, format_un
 from data_dict import DataDictionary
 from dd_config import dd_init, dd_parse_user_args
 from dd_config import DEFAULT_FOR_TYPE_PATH, SHELL_HISTORY_PATH, SHELL_HISTORY_SIZE_PATH, SHELL_PROMPT_PATH
+from doc_help import print_md, search_functions, is_probably, print_doc
 from extn import VgrExtensionRegistry, VER
 from functions import get_function_defs, add_builtin_functions, add_function
 from interactive import CmdLine, ArgumentParser, ParserBuilder
@@ -49,7 +50,7 @@ class VGRCmdLine(CmdLine):
         # If this has not been set (command line?) we use our interactive default
         self._dd.set_var_user((self._dd.get_var_user(*DEFAULT_FOR_TYPE_PATH) or 'template-batch').lower(),
                               *DEFAULT_FOR_TYPE_PATH)
-        print("Type 'exit' to exit")
+        print_md('_Type `exit` to exit_')
         return super().run()
 
     def execute_statements(self, text: str) -> None:
@@ -76,13 +77,13 @@ class VGRCmdLine(CmdLine):
 
     def _exec_source(self, *args) -> None:
         """
-Source Help -
+**Source Statements from a file**
 
-* source file : execute statements stored in a file
+* `source` _file_ : execute statements stored in a file
 
 """
         # NB: this has problems with spaces in the file name
-        values = self._parse(self._SOURCE_PARSER, self._exec_source, *args)
+        values = self._parse(self._SOURCE_PARSER, *args)
         if values is not None:
             path = Path(values.file)
             if not path.exists():
@@ -153,6 +154,74 @@ Source Help -
             return int(self._get_vgr_default(env_var, default))
         except ValueError:
             return default
+
+    def _exec_help(self, *args) -> None:
+        """
+**Help Topics**
+
+* `cd` : Change the current working directory
+* `function` : Help for functions
+* `history` : Display or control command line history
+* `multiline` : Turn on multiline editing mode
+* `operator` : Help for operators
+* `prompt` : Define the input input prompt
+* `pwd` : Print the current working directory
+* `source` : Execute statements stored in a file
+* `statement` : Help for statements
+
+Run any of these with _help_ for more information
+"""
+        if len(args) < 1:
+            print_doc(self._exec_help)
+        else:
+            topic = args[0]
+            targs = args[1:]
+            if is_probably("cd", topic): print_doc(self._exec_cd)
+            elif is_probably("pwd", topic): print_doc(self._exec_pwd)
+            elif is_probably("history", topic): print_doc(self._exec_history)
+            elif is_probably("multiline", topic): print_doc(self._exec_multiline)
+            elif is_probably("prompt", topic): print_doc(self._exec_prompt)
+            elif is_probably("source", topic): print_doc(self._exec_source)
+            elif is_probably("function", topic): self._function_help(*targs)
+            elif is_probably("operator", topic): self._operator_help(*targs)
+            elif is_probably("statement", topic): self._statement_help(*targs)
+            else: print_doc(self._exec_help)
+
+    def _function_help(self, *args) -> None:
+        q = args[0] if args else ''
+        functions = search_functions(q)
+        if len(functions) == 0:
+            # We could not find anything
+            print()
+            print_md(f'_No function like {args[0]}_')
+            print()
+        elif len(functions) == 1:
+            # We got an exact match
+            # Show the function specific help
+            print_doc(functions[0][1])
+        else:
+            # Multiple results
+            # Show as a list with a summary
+            lines = []
+            lines.append(f'**{"Search Results" if q else "Functions"}-**')
+            for name, func in functions:
+                doc = (func.__doc__ or "").strip()
+                if doc:
+                    # Display first non-blank line, stripped of bolding (the convention) and no sentence
+                    lines.append(f'* `{name}()` - {doc.splitlines()[0].strip().strip("*").rstrip(".")}')
+                else:
+                    lines.append(f'* `{name}()`')
+            print()
+            print_md('\n'.join(lines))
+            print()
+
+    def _operator_help(self, *args) -> None:
+        # TODO
+        print(args)
+
+    def _statement_help(self, *args) -> None:
+        # TODO
+        print(args)
 
 def create_dd(args) -> DataDictionary:
     # Since it's startup, and everything else relies on the DD...

@@ -103,15 +103,15 @@ class CmdLine:
 
     def _exec_cd(self, *args) -> None:
         """
-Cd Help -
+**Change the current working directory**
 
-* cd : changes to the user's home directory
-* cd dir : changes to the given directory
+* `cd` : changes to the user's home directory
+* `cd` _dir_ : changes to the given directory
 
 Execution of statements are sandboxed to the current directory, so if you
 need to change location after starting a session you can use this command.
 """
-        values = self._parse(self._CD_PARSER, self._exec_cd, *args)
+        values = self._parse(self._CD_PARSER, *args)
         if values is not None:
             path = os.path.abspath(os.path.expanduser(values.path))
             try:
@@ -124,22 +124,22 @@ need to change location after starting a session you can use this command.
 
     def _exec_pwd(self, *args) -> None:
         """
-Pwd Help -
+**Print the current working directory**
 
-* pwd : prints the name of the current directory
+* `pwd` : prints the name of the current directory
 """
-        values = self._parse(self._NO_ARGS_PARSER, self._exec_pwd, *args)
+        values = self._parse(self._NO_ARGS_PARSER, *args)
         if values is not None: print(os.getcwd())
 
     def _exec_history(self, *args):
         """
-Command History Help -
+**Command History**
 
-* history : display recent history
-* history --clear : clear history
-* history --max <n> : set the maximum commands saved
+* `history` : display recent history
+* `history --clear` : clear history
+* `history --max ` _n_ : set the maximum commands saved
 """
-        values = self._parse(self._HISTORY_PARSER, self._exec_history, *args)
+        values = self._parse(self._HISTORY_PARSER, *args)
         if values is not None:
             if all(value is None for value in vars(values).values()):
                 for i, line in enumerate(self._history.get_strings(), start=1): print(f"{i}: {line}")
@@ -153,16 +153,16 @@ Command History Help -
 
     def _exec_multiline(self, *args):
         """
-Multiline Editing Mode Help -
+**Multiline Editing Mode**
 
-* multiline : display the current setting
-* multiline [True | False] : set multiline editing mode
+* `multiline` : display the current setting
+* `multiline [True | False]` : set multiline editing mode
 
 When multiline editing mode is on, you can create multiple line statements to be executed;
 Return starts a new line rather than executing the command.
-To execute commands in multiline editing mode, use META-Return instead.
+To execute commands in multiline editing mode, use `META-Return` instead.
 """
-        values = self._parse(self._MULTILINE_PARSER, self._exec_multiline, *args)
+        values = self._parse(self._MULTILINE_PARSER, *args)
         if values is not None:
             if values.multiline is not None: self.multiline = values.multiline
             self._print_verbose('Multiline mode is', self.multiline)
@@ -170,28 +170,28 @@ To execute commands in multiline editing mode, use META-Return instead.
 
     def _exec_prompt(self, *args):
         r"""
-Prompt Help -
+**Change the Shell's Prompt**
 
-* prompt : print the template used to generate the interactive prompt
-* prompt template : set the prompt template
+* `prompt` : print the template used to generate the interactive prompt
+* `prompt` _template_ : set the prompt to the template
 
-The prompt template supports a limited set of values that are defined by the
+The template supports a limited set of values that are defined by the
 Bash Shell:
 
-* \d - the date
-* \e - the escape character
-* \h - host name, short
-* \H - host name, full
-* \n - a new line
-* \t - the time
-* \u - user name
-* \w - current directory
-* \W - current directory, name only
+* `\d` - the date
+* `\e` - the escape character
+* `\h` - host name, short
+* `\H` - host name, full
+* `\n` - a new line
+* `\t` - the time
+* `\u` - user name
+* `\w` - current directory
+* `\W` - current directory, name only
 
-On start up, the prompt template comes from VGR_PROMPT in the environment.
+On start up, the prompt template comes from `VGR_PROMPT` in the environment.
 Changes made at runtime are not persistent.
 """
-        values = self._parse(self._PROMPT_PARSER, self._exec_prompt, *args)
+        values = self._parse(self._PROMPT_PARSER, *args)
         if values is not None:
             if values.template is None:
                 print(f'prompt is {repr(self.prompt)}')
@@ -200,28 +200,10 @@ Changes made at runtime are not persistent.
                 self._print_verbose('Prompt changed to', repr(self.prompt))
 
     def _exec_help(self, *args) -> None:
-        """
-Shell Help-
+        pass
 
-* help : print this information
-* help topics : show a list of help topics
-* history : display or control command line history
-* multiline [True | False] : turn on multiline editing mode
-* prompt [prompt] : define the input input prompt
-* source file : execute the statements stored in a file
-
-Run any of these command with _help_ for more information
-"""
-        # TODO need a concept of "topics", when we can dynamically gen
-        # help shell
-        # help cd|history|...
-        # help statements
-        # help select|set|...
-        # help functions
-        # help strip|
-        # help operators
-        # help source
-        print(self._exec_help.__doc__)
+    def _print_doc(self, func) -> None:
+        pass
 
     def _parse_command(self, line: str):
         """Q&D parsing of a command line so we can check for shell commands"""
@@ -238,14 +220,7 @@ Run any of these command with _help_ for more information
                     lambda match : self._PROMPT_ESCAPES.get(match.group(1), lambda : match.group(1))(),
                     self.prompt)
 
-    def _parse(self, parser: ArgumentParser, func, *args) -> Namespace:
-        """Executes the parsing, checking for help args, which are
-        implemented by getting the doc for the function.
-        Additionally it handles parsing errors, returning None to the
-        caller, meaning they should ignore the request."""
-        if any(arg.lower() in ['help', '--help', '-h', '-help', '/h', '/?'] for arg in args):
-            print(func.__doc__ if func.__doc__ else 'No help available')
-            return None
+    def _parse(self, parser: ArgumentParser, *args) -> Namespace:
         try:
             return parser.parse_args(args)
         except (ArgumentError, ArgumentTypeError, TypeError, ValueError) as e:
