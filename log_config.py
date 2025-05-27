@@ -15,6 +15,11 @@ _LEVEL_MAP = {
 }
 
 class MillisecondFormatter(logging.Formatter):
+    def format(self, record):
+        if record.levelname == "WARNING":
+            record.levelname = "WARN"
+        return super().format(record)
+
     def formatTime(self, record, _=None): # datefmt ignored
         t = datetime.fromtimestamp(record.created)
         return t.strftime('%Y-%m-%dT%H:%M:%S.') + f'{int(record.msecs):03d}'
