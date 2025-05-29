@@ -2,6 +2,8 @@
 Contains the implementation for the EXIT statement
 """
 
+import logging
+
 from lark import Tree
 
 from app_exceptions import ExitingException
@@ -11,8 +13,11 @@ from mathpak import poly_bool, poly_int
 from redir import print_stderr
 from src_mgr import SSM
 
+_LOG = logging.getLogger(__name__)
+
 def execute_exit(dd: DataDictionary, statement: Tree) -> None:
-    """Terminate execution
+    """
+**Terminate execution**
 
 * Exit [;]
 * Exit _expression_ [;]
@@ -29,10 +34,12 @@ Note that in this specific case "True" returns zero and "False" returns one.
                 rc = poly_int(x)
             except ValueError:
                 rc = ExitingException.EXIT_SUCCESS if poly_bool(x) else ExitingException.EXIT_FAILED
+    _LOG.info('Exiting with rc = %d', rc)
     raise ExitingException(rc, statement, '')
 
 def execute_assert(dd: DataDictionary, statement: Tree) -> None:
-    """Assert that a condition is met, terminating execution if it is not
+    """
+**Assert that a condition is met, terminating execution if it is not**
 
 * Assert _expression_ [;]
 * Assert _expression_ : _expression_ [, _expression]... [;]
@@ -58,5 +65,6 @@ Execution ends with an exit code of 1 indicating failure
             except (ValueError, TypeError) as e:
                 print_stderr(f'While evaluating {SSM.source_for(statement)} on line {statement.meta.line}: ', e)
                 msg = None
-        raise ExitingException(ExitingException.EXIT_FAILED, statement,
-                               str(msg) if msg is not None else f'{SSM.source_for(statement)} failed')
+        msg = str(msg) if msg is not None else f'{SSM.source_for(statement)} failed'
+        _LOG.warning('%s', msg)
+        raise ExitingException(ExitingException.EXIT_FAILED, statement, msg)
