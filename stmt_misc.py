@@ -1,5 +1,5 @@
 """
-Other statements
+Other statements: SLEEP
 """
 
 import time
