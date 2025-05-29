@@ -1,7 +1,7 @@
 """
-Handles the stdout/stderr redirection used by statements.
 Contains the implementation of OPEN and CLOSE and utility
 methods for output.
+Handles the stdout/stderr redirection used by statements.
 """
 
 from io import IOBase
@@ -38,23 +38,24 @@ def shorten(s: str, width: int=64) -> str:
     return textwrap.shorten(s, width=width, placeholder="\u2026")
 
 def execute_open(dd: DataDictionary, statement: Tree) -> None:
-    """Send command output or error output to a file
+    """
+**Send output to a file**
 
-* OPEN [OUTPUT | ERROR] [FILE] _expression_ [OVERWRITE] [;]
-* OPEN [OUTPUT | ERROR] [FILE] _expression_ NO OVERWRITE [;]
-* OPEN [OUTPUT | ERROR] [FILE] _expression_ [EXTEND | APPEND] [;]
+* Open [Output | Error] [File] _expression_ [Overwrite] [;]
+* Open [Output | Error] [File] _expression_ No Overwrite [;]
+* Open [Output | Error] [File] _expression_ [Extend | Append] [;]
 
-The _expression_ is resolved to a string as the file to be opened
+The _expression_ is resolved to a string as the file to be opened.
 
-If output is being sent to another file, it is closed first.
+If output is already being sent to another file, it is closed first.
 
-When EXTEND or APPEND is used, output is added to the end of an existing file.
-When NO OVERWRITE is used, the command will fail if the file already exists.
-Otherwise, if OVERWRITE is used of no mode is given and the file already exists, its contents are truncated.
+When *Extend* or *Append* is used, output is added to the end of an existing file.
+When *No Overwrite* is used, the command will fail if the file already exists.
+Otherwise, if *Overwrite* is used or no mode is given the contents of existing files are truncated.
 
 All redirection is closed at program termination.
 
-See CLOSE
+See *Close*
 """
     stream = _eval_stream_name(statement.children[0])
     filename = eval_filename_expr(dd, statement.children[1])
@@ -68,14 +69,17 @@ See CLOSE
         raise ExitingException(ExitingException.EXIT_FAILED, statement, str(e)) from e
 
 def execute_close(dd: DataDictionary, statement: Tree) -> None:
-    """Close the output or error file
+    """
+**Close output to a file**
 
-* CLOSE OUTPUT [FILE] [;]
-* CLOSE ERROR [FILE] [;]
+* Close Output [File] [;]
+* Close Error [File] [;]
 
 Once closed, command output and errors resumes their default destinations.
 
 All redirection is closed at program termination.
+
+See *Open*
 """
     stream = _eval_stream_name(statement.children[0])
     getattr(_REDIRECTOR, stream)(None)
