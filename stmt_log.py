@@ -42,7 +42,7 @@ The logging level must be one of _Debug_, _Info_, _Warn_, or _Error_
         print_stderr('Log Level set to', log_level)
 
 def execute_log(dd: DataDictionary, statement: Tree) -> None:
-    """Send a message to a log
+    """Send a message to the log
 
 * Log _level_ [;]
 * Log _level_ _expression_ [, _expression_]... [;]
