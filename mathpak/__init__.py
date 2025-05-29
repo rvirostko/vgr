@@ -35,5 +35,6 @@ from .bases import poly_bin, poly_oct, poly_hex, poly_base64_encode, poly_base64
 from .bases import poly_parse_int, poly_parse_bin, poly_parse_oct, poly_parse_hex
 from .attrs import poly_dig, poly_vdig
 from .json_funcs import format_json, parse_json, strip_nulls, to_json, to_json_string
+from .time_funcs import format_duration, format_timestamp
 
 __all__ = [ ]
