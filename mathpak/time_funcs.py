@@ -18,11 +18,11 @@ def format_duration(x: Any, y: Any=0) -> Any:
 Returns a string in the form of _n**d** _n**h** n**m** n**s**_ using the shortest
 possible representation.
 """
-    if x is None: return None
-    if y is None: return x
+    if x is None: x = 0
+    if y is None: y = 0
+    y = int(y.timestamp()) if isinstance(y, datetime) else int_arg(y, "End Time")
     if isinstance(x, (int, float, str)):
         x = int(x.timestamp()) if isinstance(x, datetime) else int_arg(x, "Start Time")
-        y = int(y.timestamp()) if isinstance(y, datetime) else int_arg(y, "End Time")
         delta = abs(x - y)
         d, rem = divmod(delta, 86400)
         h, rem = divmod(rem, 3600)
