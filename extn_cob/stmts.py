@@ -3,16 +3,11 @@ COBOL statements
 """
 
 from datetime import datetime
-from pathlib import Path
 from typing import Any
 import sys
 
 from lark import Tree, Token
 
-# HACK: Add parent directory to sys.path
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-# pylint: disable=wrong-import-position
 from app_exceptions import ExitingException, StatementBreak, StatementContinue
 from data_dict import DataDictionary
 from dd_config import dd_path, do_set, do_assignment, do_unset
@@ -23,7 +18,6 @@ from src_mgr import SSM
 from stmt_exec import exec_if_else, exec_loop, exec_repeat, dispatch_statement
 from stmt_set import execute_set
 from tags import control_statement
-# pylint: enable=wrong-import-position
 
 def execute_accept_date(dd: DataDictionary, statement: Tree) -> None:
     do_set(dd, datetime.now().strftime('%y%m%d'), *dd_path(statement.children[0]))
@@ -46,6 +40,22 @@ def execute_accept_time(dd: DataDictionary, statement: Tree) -> None:
 
 def execute_accept_epoch(dd: DataDictionary, statement: Tree) -> None:
     do_set(dd, int(datetime.now().timestamp()), *dd_path(statement.children[0]))
+
+def execute_accept_input(dd: DataDictionary, statement: Tree) -> None:
+    """
+**Accept user input**
+
+* Accept _variable_ From [Console | Stdin | Sysin | Sysinp] [;]
+
+At end-of-file (when stdin is not interactive) of if the user hits return
+without entering any information, the contents of _variable_ remain
+unchanged.
+
+There is no limit on the length of input, but input is read per-line.
+"""
+    line = sys.stdin.readline()
+    if line: line = line.rstrip('\n')
+    if line: do_set(dd, line, *dd_path(statement.children[0]))
 
 def execute_exit(_: DataDictionary, statement: Tree) -> None:
     """Terminate execution

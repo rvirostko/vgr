@@ -6,21 +6,45 @@ from typing import Dict, Callable
 from pathlib import Path
 
 from extn import VgrExtension
-from .stmts import execute_add_giving, execute_add_to, execute_dec, execute_display_on, execute_div_by
-from .stmts import execute_div_into, execute_exhibit, execute_inc, execute_move_to, execute_mul_by
-from .stmts import execute_sub_from, execute_sub_giving, execute_perform_times, execute_perform_varying
-from .stmts import execute_compute, execute_exit, execute_next_sentence, execute_if, execute_perform_until
-from .stmts import execute_accept_date, execute_accept_day, execute_accept_dow, execute_accept_time
-from .stmts import execute_accept_yyyyddd, execute_accept_yyyymmdd, execute_accept_epoch
+from .stmts import (
+    execute_accept_date,
+    execute_accept_day,
+    execute_accept_dow,
+    execute_accept_epoch,
+    execute_accept_input,
+    execute_accept_time,
+    execute_accept_yyyyddd,
+    execute_accept_yyyymmdd,
+    execute_add_giving,
+    execute_add_to,
+    execute_compute,
+    execute_dec,
+    execute_display_on,
+    execute_div_by,
+    execute_div_into,
+    execute_exhibit,
+    execute_exit,
+    execute_if,
+    execute_inc,
+    execute_move_to,
+    execute_mul_by,
+    execute_next_sentence,
+    execute_perform_times,
+    execute_perform_until,
+    execute_perform_varying,
+    execute_sub_from,
+    execute_sub_giving,
+)
 
 _HANDLERS = {
     'cobol_accept_date':     execute_accept_date,
-    'cobol_accept_yyyymmdd': execute_accept_yyyymmdd,
     'cobol_accept_day':      execute_accept_day,
-    'cobol_accept_yyyyddd':  execute_accept_yyyyddd,
     'cobol_accept_dow':      execute_accept_dow,
-    'cobol_accept_time':     execute_accept_time,
     'cobol_accept_epoch':    execute_accept_epoch,
+    'cobol_accept_input':    execute_accept_input,
+    'cobol_accept_time':     execute_accept_time,
+    'cobol_accept_yyyyddd':  execute_accept_yyyyddd,
+    'cobol_accept_yyyymmdd': execute_accept_yyyymmdd,
     'cobol_add_giving':      execute_add_giving,
     'cobol_add_to':          execute_add_to,
     'cobol_compute':         execute_compute,
