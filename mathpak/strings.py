@@ -284,22 +284,75 @@ def poly_rfind(x: Any, sub: Any=None) -> Any:
 
 def _layout_opt(x: Any, width: int, fillchar: str, op, str_op) -> Any:
     width = 0 if width is None else min(max(0, int_arg(width, "Width")), 256)
-    fillchar = '' if fillchar is None else str_arg(fillchar, "Fillchar")[0]
+    fillchar = ' ' if fillchar is None else str_arg(fillchar, "Fillchar")[0]
     if x is None: return fillchar * width
     if isinstance(x, (list, tuple)): return type(x)(op(x1, width, fillchar) for x1 in x)
     if isinstance(x, (bool, int, float, dict)): x = poly_str(x)
     return str_op(x, width, fillchar)
 
 def poly_center(x: Any, width: int, fillchar: str=' ') -> Any:
+    """
+**Create a centered string of the given width**
+
+* _value_.Center(_width_)
+* _value_.Center(_width_, _pad_)
+
+If the _value_ to be centered is _None_, it is treated as an empty string.
+If the _value_ is longer than the requested _width_ it is truncated.
+The _width_ argument is interpreted as a numeric value. If _None_, zero is assumed.
+The _pad_ argument, if provided, is interpreted as a string value. Only the first character is used.
+If not provided, the default is a space.
+
+Also see JustifyLeft() and JustifyRight()
+"""
     return _layout_opt(x, width, fillchar, poly_center, str.center)
 
 def poly_ljust(x: Any, width: int, fillchar: str=' ') -> Any:
+    """
+**Create a string of the given width with contents left aligned**
+
+* _value_.LeftJustify(_width_)
+* _value_.LeftJustify(_width_, _pad_)
+
+If the _value_ to be centered is _None_, it is treated as an empty string.
+If the _value_ is longer than the requested _width_ it is truncated.
+The _width_ argument is interpreted as a numeric value. If _None_, zero is assumed.
+The _pad_ argument, if provided, is interpreted as a string value. Only the first character is used.
+If not provided, the default is a space.
+
+Also see Center() and JustifyRight()
+"""
     return _layout_opt(x, width, fillchar, poly_ljust, str.ljust)
 
 def poly_rjust(x: Any, width: int, fillchar: str=' ') -> Any:
+    """
+**Create a string of the given width with contents right aligned**
+
+* _value_.RightJustify(_width_)
+* _value_.RightJustify(_width_, _pad_)
+
+If the _value_ to be centered is _None_, it is treated as an empty string.
+If the _value_ is longer than the requested _width_ it is truncated.
+The _width_ argument is interpreted as a numeric value. If _None_, zero is assumed.
+The _pad_ argument, if provided, is interpreted as a string value. Only the first character is used.
+If not provided, the default is a space.
+
+Also see Center() and JustifyLeft()
+"""
     return _layout_opt(x, width, fillchar, poly_rjust, str.rjust)
 
 def poly_zfill(x: Any, width: int) -> Any:
+    """
+**Create a string of the given width with contents right aligned, padded with zeroes**
+
+* _value_.ZeroFill(_width_)
+
+If the _value_ to be centered is _None_, it is treated as an empty string.
+If the _value_ is longer than the requested _width_ it is truncated.
+The _width_ argument is interpreted as a numeric value. If _None_, zero is assumed.
+
+Also see JustifyRight()
+"""
     return poly_rjust(x, width, '0')
 
 ###
