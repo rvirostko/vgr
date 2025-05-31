@@ -2,9 +2,10 @@
 Logging related config
 """
 
+from datetime import datetime
 import logging
 import os
-from datetime import datetime
+import re
 
 _LEVEL_MAP = {
     'debug': logging.DEBUG,
@@ -14,10 +15,16 @@ _LEVEL_MAP = {
     'critical': logging.CRITICAL,
 }
 
-class MillisecondFormatter(logging.Formatter):
+# remove leading/trailing carriage control characters
+_CTRL_STRIP = re.compile(r'^[\r\n\x0b\x0c\x1c-\x1f]+|[\r\n\x0b\x0c\x1c-\x1f]+$')
+
+class VgrFormatter(logging.Formatter):
+
     def format(self, record):
-        if record.levelname == "WARNING":
-            record.levelname = "WARN"
+        if record.levelname == 'WARNING':
+            record.levelname = 'WARN'
+        if isinstance(record.msg, str):
+            record.msg = _CTRL_STRIP.sub('', record.msg)
         return super().format(record)
 
     def formatTime(self, record, _=None): # datefmt ignored
@@ -42,7 +49,7 @@ def init_logging(logfile: str, append: bool=True):
                 encoding='utf-8'
                 )
     handler.setLevel(logging.NOTSET) # No filtering by the handler, only loggers
-    handler.setFormatter(MillisecondFormatter('%(asctime)s %(levelname)-5s %(message)s'))
+    handler.setFormatter(VgrFormatter('%(asctime)s %(levelname)-5s %(message)s'))
     logging.getLogger().handlers.clear()
     logging.getLogger().addHandler(handler)
     logging.getLogger().setLevel(logging.INFO)
