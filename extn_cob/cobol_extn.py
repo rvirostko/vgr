@@ -1,5 +1,5 @@
 """
-Define the COBOL extension
+Defines the COBOL extension
 """
 
 from typing import Dict, Callable
