@@ -1,6 +1,7 @@
 ?basic_statements: basic_continue
     | basic_do_until
     | basic_do_while
+    | basic_for_next_by
     | basic_for_next
     | basic_exit
     | basic_let
@@ -8,9 +9,13 @@
     | basic_tron
 
 
-basic_do_while: "Do"i "While"i expr statement+ "Loop"i _SEMICOLON?
-basic_do_until: "Do"i "Until"i expr statement+ "Loop"i _SEMICOLON?
-basic_for_next: "For"i var_name "=" expr "To"i expr ("By"i expr)? statement+ "Next"i _SEMICOLON?
+// Note the "addition" of the optional colon following the control statements
+// While not part of the BASIC syntax, VGR common syntax uses it, so it is
+// optional here to prevent excessive syntax errors.
+basic_do_while: "Do"i "While"i expr ":"? statement+ "Loop"i _SEMICOLON?
+basic_do_until: "Do"i "Until"i expr ":"? statement+ "Loop"i _SEMICOLON?
+basic_for_next_by: "For"i var_name "=" expr "To"i expr "By"i expr ":"? statement+ "Next"i _SEMICOLON?
+basic_for_next: "For"i var_name "=" expr "To"i expr ":"? statement+ "Next"i _SEMICOLON?
 basic_exit: "Exit"i ("Do"i | "For"i | "While"i) _SEMICOLON?
 basic_continue: "Continue"i ("Do"i | "For"i | "While"i) _SEMICOLON?
 basic_let: "Let"i var_name "=" expr _SEMICOLON?
