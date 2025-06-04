@@ -535,6 +535,7 @@ def _resolve_arg_value(dd: DataDictionary, node):
         Vault CreateMount "secrets" Type is "KV2"
     _if_ secrets and KV2 are not defined in the data dictionary
     """
+    # TODO fix - "unhandled type RULE var_name" when using "From X"
     if isinstance(node, Tree) and node.data == "var_ref":
         if len(node.children) == 1 and isinstance(node.children[0], Token) and node.children[0].type == "NAME":
             name = node.children[0].value
