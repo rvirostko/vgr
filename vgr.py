@@ -69,7 +69,7 @@ class VGRCmdLine(CmdLine):
             print_app_exiting(self._dd, e)
             if self.debug:
                 traceback.print_exc(file=sys.stderr)
-        except (ValueError, TypeError, OSError) as e:
+        except (KeyboardInterrupt, ValueError, TypeError, OSError) as e:
             if self.debug:
                 traceback.print_exc(file=sys.stderr)
             else:
@@ -407,7 +407,7 @@ Environment variables:
         print_stderr(format_unexpected_input(e))
         print_debug(dd, e)
         exit_code = ExitingException.EXIT_FAILED
-    except (ValueError, TypeError, OSError) as e:
+    except (KeyboardInterrupt, ValueError, TypeError, OSError) as e:
         if dd.debug:
             traceback.print_exc(file=sys.stderr)
         print_stderr(format_generic_exception(e)) # TODO use statment mgr for context
