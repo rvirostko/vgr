@@ -298,7 +298,6 @@ def poly_center(x: Any, width: int, fillchar: str=' ') -> Any:
 * _value_.Center(_width_, _pad_)
 
 If the _value_ to be centered is _None_, it is treated as an empty string.
-If the _value_ is longer than the requested _width_ it is truncated.
 The _width_ argument is interpreted as a numeric value. If _None_, zero is assumed.
 The _pad_ argument, if provided, is interpreted as a string value. Only the first character is used.
 If not provided, the default is a space.
@@ -315,7 +314,6 @@ def poly_ljust(x: Any, width: int, fillchar: str=' ') -> Any:
 * _value_.LeftJustify(_width_, _pad_)
 
 If the _value_ to be centered is _None_, it is treated as an empty string.
-If the _value_ is longer than the requested _width_ it is truncated.
 The _width_ argument is interpreted as a numeric value. If _None_, zero is assumed.
 The _pad_ argument, if provided, is interpreted as a string value. Only the first character is used.
 If not provided, the default is a space.
@@ -332,7 +330,6 @@ def poly_rjust(x: Any, width: int, fillchar: str=' ') -> Any:
 * _value_.RightJustify(_width_, _pad_)
 
 If the _value_ to be centered is _None_, it is treated as an empty string.
-If the _value_ is longer than the requested _width_ it is truncated.
 The _width_ argument is interpreted as a numeric value. If _None_, zero is assumed.
 The _pad_ argument, if provided, is interpreted as a string value. Only the first character is used.
 If not provided, the default is a space.
@@ -348,12 +345,41 @@ def poly_zfill(x: Any, width: int) -> Any:
 * _value_.ZeroFill(_width_)
 
 If the _value_ to be centered is _None_, it is treated as an empty string.
-If the _value_ is longer than the requested _width_ it is truncated.
 The _width_ argument is interpreted as a numeric value. If _None_, zero is assumed.
 
 Also see JustifyRight()
 """
     return poly_rjust(x, width, '0')
+
+
+###
+
+def poly_shorten(x: str, length: int, placeholder: str="\u2026") -> str:
+    """
+**Shorten a string's length, optionally adding a placeholder**
+
+* _value_.ShortenStr(_length_)
+* _value_.ShortenStr(_length_, _placeholder_)
+
+If the _value_ is _None_, it is treated as an empty string.
+The _length_ argument is interpreted as a numeric value. If _None_, zero is assumed.
+The default _placeholder_ is an ellipses, and is added when the string's length
+is truncated. A value of _None_ omits the placeholder.
+"""
+    length = 0 if length is None else max(0, int_arg(length, "Length"))
+    placeholder = '' if placeholder is None else str_arg(placeholder, "Placeholder")
+    if x is None: return ''
+    if isinstance(x, (list, tuple)): return type(x)(poly_shorten(x1, length, placeholder) for x1 in x)
+    if isinstance(x, (bool, int, float, dict)): x = poly_str(x)
+    # No adjustment required
+    if len(x) <= length: return x
+    # No placeholder, so simple truncation
+    if not placeholder:  return x[:length]
+    pl_len = len(placeholder)
+    # If the placeholder overflows the length...
+    if pl_len >= length: return placeholder[:length]
+    # Truncate to length, adjusting for the addition of the placeholder
+    return x[:length - pl_len] + placeholder
 
 ###
 
