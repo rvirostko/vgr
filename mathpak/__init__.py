@@ -22,7 +22,7 @@ from .strings import poly_substr, poly_append, poly_prepend, poly_isdecimal, pol
 from .strings import poly_vappend, poly_vprepend, poly_format, poly_vreplace, poly_vstrip, poly_vrstrip
 from .strings import poly_vlstrip, poly_vremoveprefix, poly_vremovesuffix, poly_split, poly_rsplit
 from .strings import poly_center, poly_ljust, poly_rjust, poly_zfill, poly_splitlines, poly_join
-from .strings import poly_find, poly_rfind
+from .strings import poly_find, poly_rfind, poly_shorten
 from .sub import poly_sub, poly_vsub
 from .types import coerce_value, poly_bool, poly_float, poly_int, poly_isbool, poly_isfloat, poly_isint, poly_isnumber
 from .types import poly_isstr, poly_number, poly_str, poly_islist, poly_list
