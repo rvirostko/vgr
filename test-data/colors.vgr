@@ -1,0 +1,70 @@
+Let iter = 16
+Let sleep_time = 5
+# TODO we need a Max() and Min()!
+# Let max_len = term.color_names.Length().Max()
+Let max_len = 14
+
+Let named_colors = term.color_names
+For i = 1 to 24
+    Set named_colors += ["Gray{}".Format(i)]
+Next
+
+Term CursorHide
+Perform iter Times
+
+    Set label = "Boxes and Lines"
+    Term Reset, ClearScreen,
+        HighTop, Print label, CR, LF,
+        HighBot, Print label, CR, LF;
+    Term FG="bright white", BG="bright red"
+    For i = 1 To 7
+        Term Pos 2+i,0, Box 1,(i*10)
+    Next
+    For i = 2 To 7
+        Term Pos 3,(i*10), Box i,1
+    Next
+    For i = 2 To 8
+        Term Pos 10,(i - 2)*10, Box i,i
+        If i < 5:
+            Term CUF i - 1
+        End
+        Term Bold, Print "{0}x{0}".Format(i), Bold=False
+    Next
+    Set col = 1
+    Term FG="bright white", BG="bright green"
+    ForEach bstyle In term.bstyles:
+        Term Pos 19,col, DrawBox bstyle, 3,14, Print bstyle
+        Set col += 14
+    End
+    Sleep sleep_time Seconds
+
+    Set label = "Named Colors"
+    Term Reset, ClearScreen,
+        HighTop, Print label, CR, LF,
+        HighBot, Print label, CR, LF;
+    For i = 0 to named_colors.Length() - 1
+        Let color_name = named_colors.Item(i)
+        Term BG=color_name, Print " ", Print color_name.ShortenStr(max_len).LeftJustify(max_len), Print " "
+        If !((i + 1) % 4)
+            # Need resume default background in case we scroll
+            Term BG, CR, LF
+        End-If
+    Next
+    Sleep sleep_time Seconds
+
+    Set label = "Numbered Colors"
+    Term Reset, ClearScreen,
+        HighTop, Print label, CR, LF,
+        HighBot, Print label, CR, LF;
+    For color = 0 to 255
+        Term BG=color, Print color.RightJustify(4), Print " "
+        If !((color + 1) % 16):
+            # Need resume default background in case we scroll
+            Term BG, CR, LF
+        End
+    Next
+    Sleep sleep_time Seconds
+
+End-Perform
+
+Term ClearScreen, Reset, CursorShow
