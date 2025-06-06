@@ -47,6 +47,7 @@ term_opts_cmd: "S7C1"i ("=" expr)? -> s7c1t
         | ("InsertMode"i | "irm"i) ("=" expr)? -> irm
 
 term_misc_cmd: ("Print"i | "p"i) expr -> print
+        | ("DHPrint"i | "dhp"i) expr -> dh_print
         | ("SoftReset"i | "decstr"i) -> decstr
         | ("HardReset"i | "ris"i) -> ris
         | ("AlignmentTest"i | "decaln"i) -> decaln

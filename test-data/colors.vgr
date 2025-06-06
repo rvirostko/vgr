@@ -11,11 +11,7 @@ Next
 
 Term CursorHide
 Perform iter Times
-
-    Set label = "Boxes and Lines"
-    Term Reset, ClearScreen,
-        HighTop, Print label, CR, LF,
-        HighBot, Print label, CR, LF;
+    Term Reset, ClearScreen, DHPrint "Boxes and Lines"
     Term FG="bright white", BG="bright red"
     For i = 1 To 7
         Term Pos 2+i,0, Box 1,(i*10)
@@ -38,10 +34,8 @@ Perform iter Times
     End
     Sleep sleep_time Seconds
 
-    Set label = "Named Colors"
-    Term Reset, ClearScreen,
-        HighTop, Print label, CR, LF,
-        HighBot, Print label, CR, LF;
+    Term Reset, ClearScreen, DHPrint "Named Colors"
+    Term Pos 3,1
     For i = 0 to named_colors.Length() - 1
         Let color_name = named_colors.Item(i)
         Term BG=color_name, Print " ", Print color_name.ShortenStr(max_len).LeftJustify(max_len), Print " "
@@ -52,10 +46,8 @@ Perform iter Times
     Next
     Sleep sleep_time Seconds
 
-    Set label = "Numbered Colors"
-    Term Reset, ClearScreen,
-        HighTop, Print label, CR, LF,
-        HighBot, Print label, CR, LF;
+    Term Reset, ClearScreen, DHPrint "Numbered Colors"
+    Term Pos 3,1
     For color = 0 to 255
         Term BG=color, Print color.RightJustify(4), Print " "
         If !((color + 1) % 16):

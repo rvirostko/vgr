@@ -308,6 +308,7 @@ def _resolve_box_style(val: Any) -> int:
 def _canonical_color_name(val: str) -> str:
     return re.sub(r'[^a-z0-9]', '', val.casefold())
 
+_CUU_1 = TermConsts.CUU.format('')
 _CUD_1 = TermConsts.CUD.format('')
 _CUF_1 = TermConsts.CUF.format('')
 _CUB_1 = TermConsts.CUB.format('')
@@ -390,6 +391,13 @@ def _term_draw_box(dd: DataDictionary, cmd: Tree) -> None:
            TermConsts.CUU.format(lines - 2),
            _CUF_1)
 
+def _term_dh_print(dd: DataDictionary, cmd: Tree) -> None:
+    s = eval_expr(dd, cmd.children[0])
+    if s is not None:
+        _print(TermConsts.DECDHL_TOP, _CUD_1, TermConsts.DECDHL_BOT, _CUU_1)
+        for c in str(s):
+            _print(c, _CUB_1, _CUD_1, c, _CUU_1)
+
 def _term_scroll_region(dd: DataDictionary, cmd: Tree) -> None:
     top = int(eval_expr(dd, cmd.children[0]))
     bottom = int(eval_expr(dd, cmd.children[1]))
@@ -424,12 +432,7 @@ def _term_with_count(dd: DataDictionary, cmd: Tree, control_seq: str) -> None:
     _print(control_seq.format(count))
 
 _CMD_DISPATCH = {
-    "sgr_bg":         lambda d, c: _term_color(d, c, TermConsts.SGR_RESET_BG, TermConsts.SGR_BG),
-    "sgr_blink":      lambda d, c: _term_toggle(d, c, TermConsts.SGR_BLINK_ON, TermConsts.SGR_BLINK_OFF),
-    "sgr_bold":       lambda d, c: _term_toggle(d, c, TermConsts.SGR_BOLD_ON, TermConsts.SGR_BOLD_OFF),
     "box":            _term_draw_box,
-    "hline":          _term_draw_hline,
-    "vline":          _term_draw_vline,
     "clear_eol":      lambda _d, _c: _print(TermConsts.EL_EOL),
     "clear_eos":      lambda _d, _c: _print(TermConsts.CLEAR_EOS),
     "clear":          lambda _d, _c: _print(TermConsts.CLEAR_SCREEN, TermConsts.CUP_HOME),
@@ -468,6 +471,8 @@ _CMD_DISPATCH = {
     "cub":            lambda d, c: _term_with_count(d, c, TermConsts.CUB),
     "cud":            lambda d, c: _term_with_count(d, c, TermConsts.CUD),
     "cuf":            lambda d, c: _term_with_count(d, c, TermConsts.CUF),
+    "cup_home":       lambda _d, _c: _print(TermConsts.CUP_HOME),
+    "cup":            _term_cursor_moveto,
     "cuu":            lambda d, c: _term_with_count(d, c, TermConsts.CUU),
     "dch":            lambda d, c: _term_with_count(d, c, TermConsts.DCH),
     "decaln":         lambda _d, _c: _print(TermConsts.DECALN),
@@ -484,41 +489,45 @@ _CMD_DISPATCH = {
     "dectcem_reset":  lambda _d, _c: _print(TermConsts.DECTCEM_RESET),
     "dectcem_set":    lambda _d, _c: _print(TermConsts.DECTCEM_SET),
     "dectcem":        lambda d, c: _term_toggle(d, c, TermConsts.DECTCEM_SET, TermConsts.DECTCEM_RESET),
-    "sgr_dim":        lambda d, c: _term_toggle(d, c, TermConsts.SGR_DIM_ON, TermConsts.SGR_DIM_OFF),
+    "deiconify":      lambda _d, _c: _print(TermConsts.DEICONIFY),
+    "dh_print":       _term_dh_print,
     "dl":             lambda d, c: _term_with_count(d, c, TermConsts.DL),
     "ech":            lambda d, c: _term_with_count(d, c, TermConsts.ECH),
     "el_all":         lambda _d, _c: _print(TermConsts.EL_ALL),
     "el_bol":         lambda _d, _c: _print(TermConsts.EL_BOL),
     "el":             lambda _d, _c: _print(TermConsts.EL_EOL),
-    "sgr_fg":         lambda d, c: _term_color(d, c, TermConsts.SGR_RESET_FG, TermConsts.SGR_FG),
-    "sgr_hidden":     lambda d, c: _term_toggle(d, c, TermConsts.SGR_HIDDEN_ON, TermConsts.SGR_HIDDEN_OFF),
-    "cup_home":       lambda _d, _c: _print(TermConsts.CUP_HOME),
+    "hline":          _term_draw_hline,
+    "hpa":            lambda d, c: _term_with_count(d, c, TermConsts.HPA),
     "hts":            lambda _d, _c: _print(TermConsts.HTS),
     "ich":            lambda d, c: _term_with_count(d, c, TermConsts.ICH),
+    "icon_name":      _term_icon_name,
     "il":             lambda d, c: _term_with_count(d, c, TermConsts.IL),
     "ind":            lambda _d, _c: _print(TermConsts.IND),
     "irm":            lambda d, c: _term_toggle(d, c, TermConsts.IRM_SET, TermConsts.IRM_RESET),
-    "sgr_italic":     lambda d, c: _term_toggle(d, c, TermConsts.SGR_ITALIC_ON, TermConsts.SGR_ITALIC_OFF),
-    "cup":            _term_cursor_moveto,
     "print":          lambda d, c: (val := eval_expr(d, c.children[0])) is not None and _print(str(val)),
-    "sgr_reset":      lambda _d, _c: _print(TermConsts.SGR_RESET),
+    "raise_window":   lambda _d, _c: _print(TermConsts.RAISE_WINDOW),
+    "rep":            lambda d, c: _term_with_count(d, c, TermConsts.REP),
     "reverse_video":  lambda d, c: _term_toggle(d, c, TermConsts.DECSCNM_SET, TermConsts.DECSCNM_RESET),
-    "sgr_reverse":    lambda d, c: _term_toggle(d, c, TermConsts.SGR_REVERSE_ON, TermConsts.SGR_REVERSE_OFF),
     "ri":             lambda _d, _c: _print(TermConsts.RI),
     "ris":            lambda _d, _c: _print(TermConsts.RIS),
     "s7c1t":          lambda d, c: _term_toggle(d, c, TermConsts.S7C1T, TermConsts.S8C1T),
     "s8c1t":          lambda d, c: _term_toggle(d, c, TermConsts.S8C1T, TermConsts.S7C1T),
     "secstbm":        _term_scroll_region,
+    "sgr_bg":         lambda d, c: _term_color(d, c, TermConsts.SGR_RESET_BG, TermConsts.SGR_BG),
+    "sgr_blink":      lambda d, c: _term_toggle(d, c, TermConsts.SGR_BLINK_ON, TermConsts.SGR_BLINK_OFF),
+    "sgr_bold":       lambda d, c: _term_toggle(d, c, TermConsts.SGR_BOLD_ON, TermConsts.SGR_BOLD_OFF),
+    "sgr_dim":        lambda d, c: _term_toggle(d, c, TermConsts.SGR_DIM_ON, TermConsts.SGR_DIM_OFF),
+    "sgr_fg":         lambda d, c: _term_color(d, c, TermConsts.SGR_RESET_FG, TermConsts.SGR_FG),
+    "sgr_hidden":     lambda d, c: _term_toggle(d, c, TermConsts.SGR_HIDDEN_ON, TermConsts.SGR_HIDDEN_OFF),
+    "sgr_italic":     lambda d, c: _term_toggle(d, c, TermConsts.SGR_ITALIC_ON, TermConsts.SGR_ITALIC_OFF),
+    "sgr_reset":      lambda _d, _c: _print(TermConsts.SGR_RESET),
+    "sgr_reverse":    lambda d, c: _term_toggle(d, c, TermConsts.SGR_REVERSE_ON, TermConsts.SGR_REVERSE_OFF),
+    "sgr_underline":  lambda d, c: _term_toggle(d, c, TermConsts.SGR_UNDERLINE_ON, TermConsts.SGR_UNDERLINE_OFF),
     "strikethru":     lambda d, c: _term_toggle(d, c, TermConsts.SGR_STRIKETHRU_ON, TermConsts.SGR_STRIKETHRU_OFF),
     "tbc_all":        lambda _d, _c: _print(TermConsts.TBC_ALL),
     "tbc":            lambda _d, _c: _print(TermConsts.TBC),
-    "sgr_underline":  lambda d, c: _term_toggle(d, c, TermConsts.SGR_UNDERLINE_ON, TermConsts.SGR_UNDERLINE_OFF),
-    "rep":            lambda d, c: _term_with_count(d, c, TermConsts.REP),
-    "hpa":            lambda d, c: _term_with_count(d, c, TermConsts.HPA),
+    "vline":          _term_draw_vline,
     "vpa":            lambda d, c: _term_with_count(d, c, TermConsts.VPA),
-    "deiconify":      lambda _d, _c: _print(TermConsts.DEICONIFY),
-    "raise_window":   lambda _d, _c: _print(TermConsts.RAISE_WINDOW),
-    "icon_name":      _term_icon_name,
     "window_title":   _term_window_title,
 
     #    "report":         _nop,
