@@ -91,12 +91,22 @@ def _get_path_dict(obj, path):
         obj = obj[key]
     return obj if isinstance(obj, dict) else None
 
-def _is_flat_dict(obj):
+def _is_flat_dict(obj) -> bool:
+    """
+    Is the object a dictionary, and if so, are all its items
+    ordinal objects.
+    """
     return isinstance(obj, dict) and all(
         not isinstance(v, (dict, list, tuple)) for v in obj.values()
     )
 
-def _find_flat_data(obj, *full_path):
+def _find_flat_data(obj, *full_path) -> dict:
+    """
+    Looks through the path of keys in a dictionary to find
+    the best match for a "flat" data object.
+    Used to ferret out likely candidate data from Vault return structures
+    or "squishy" user extracted/modified/created dictionaries.
+    """
     for i in range(len(full_path)):
         candidate = _get_path_dict(obj, full_path[i:])
         if candidate is not None and _is_flat_dict(candidate):
@@ -105,8 +115,28 @@ def _find_flat_data(obj, *full_path):
         return obj
     return {}
 
-def extract_kv_data(obj):
+def extract_kv_data(obj) -> dict:
+    """
+    Try to find a _data_ entry in the object
+    for use with a Vault call.
+    """
     return _find_flat_data(obj, "data", "data")
 
-def extract_kv_metadata(obj):
+def extract_kv_metadata(obj) -> dict:
+    """
+    Try to find a _metadata_ or _custom_metadata_ entry in the
+    object for use with a Vault call.
+    """
     return _find_flat_data(obj, "data", "data", "metadata", "custom_metadata")
+
+def add_kv_cas(obj: dict, cas: int) -> dict:
+    """
+    If cas is set, add the correct options to the object:
+        **"options": { "cas": _value_ }**
+    """
+    if cas is not None:
+        opts = obj.get('options', {})
+        opts = {} if not isinstance(opts, dict) else opts
+        opts['cas'] = int(cas)
+        obj['options'] = opts
+    return obj

@@ -97,7 +97,9 @@ vault_rotate_ldap_secret : "Vault"i ("RotateLdapSecret"i | "rotate_ldap_secret"i
 # NB: Expression are treated like tokens iff they are a single name component
 #     and are undefined in the data dictionary
 vault_args: (_COMMA? vault_option (_COMMA? vault_option)*)?
-vault_option: "Config"i ("=" | "Is"i)? expr -> vopt_config
+vault_option: "CAS"i ("=" | "Is"i)? expr -> vopt_cas
+    | "CAS"i "From"i var_name -> vopt_cas
+    | "Config"i ("=" | "Is"i)? expr -> vopt_config
     | "Config"i "From"i var_name -> vopt_config
     | "Data"i ("=" | "Is"i)? expr -> vopt_data
     | "Data"i "From"i var_name -> vopt_data

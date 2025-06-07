@@ -20,20 +20,29 @@ from vault_api.client_mgr import VaultClientManager
 # pylint: enable=wrong-import-position
 
 from .dd_consts import DEFAULT_NS_PATH, DEFAULT_RESULT_PATH, DEFAULT_CONN_PATH
-from .functions import extract_kv_data, extract_kv_metadata
+from .functions import extract_kv_data, extract_kv_metadata, add_kv_cas
 
-_NS_ARG = 'namespace'
-_RESULT_ARG = 'result'
-_USING_ARG = 'using'
-_META_ARG = 'metadata'
-_KEY_ARG = 'key'
+_CAS_ARG = 'cas'
 _CONFIG_ARG = 'config'
 _DATA_ARG = 'data'
-_TYPE_ARG = 'type'
 _DESC_ARG = 'description'
+_KEY_ARG = 'key'
+_META_ARG = 'metadata'
+_NS_ARG = 'namespace'
+_RESULT_ARG = 'result'
+_TYPE_ARG = 'type'
+_USING_ARG = 'using'
 _VERSION_ARG = 'version'
+
+# These arguments result in a variable name
 _ARG_VAR_NAME = (_RESULT_ARG,)
-_ARG_INT_EXPR = (_VERSION_ARG,)
+
+# These arguments result in an integer value
+_ARG_INT_EXPR = (_VERSION_ARG, _CAS_ARG)
+
+# These arguments are expressions -OR- they may be unquoted constants
+# treated as strings. This is similar to the way "... AS <name>" is
+# defined for Select statements.
 _ARG_EXPR = (_DESC_ARG, _KEY_ARG, _NS_ARG, _TYPE_ARG, _CONFIG_ARG, _DATA_ARG, _META_ARG, _USING_ARG)
 
 _DEFAULT_CONN_NAME = 'DefaultConnection'
@@ -355,10 +364,13 @@ def execute_create_kv_secret(dd: DataDictionary, statement: Tree) -> None:
     """For create, Data is required but Metadata is optional"""
     mount_point, path = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Path'))
     args = _extract_args(dd, statement)
-    _allowed_args(args, _DATA_ARG, _META_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    _allowed_args(args, _DATA_ARG, _META_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG, _CAS_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
+    cas: int = _get_arg(args, _CAS_ARG, int, True)
     using = _set_default_conn(dd, _get_default_conn(dd, args))
-    data = extract_kv_data(_get_arg(args, _DATA_ARG, dict)) if _DATA_ARG in args else {}
+    # TODO doesn't CAS always need to be zero here?
+    # TODO can you really create it w/o Any secrets?
+    data = add_kv_cas(extract_kv_data(_get_arg(args, _DATA_ARG, dict)) if _DATA_ARG in args else {}, cas)
     _set_result(dd,
                 args,
                 _CONNECTIONS.get_connection(using).create_kv2_secret(mount_point, path, data, namespace))
@@ -394,12 +406,13 @@ def execute_update_kv_secret(dd: DataDictionary, statement: Tree) -> None:
     """Data and Metadata are optional"""
     mount_point, path = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Path'))
     args = _extract_args(dd, statement)
-    _allowed_args(args, _DATA_ARG, _META_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    _allowed_args(args, _DATA_ARG, _META_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG, _CAS_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
+    cas: int = _get_arg(args, _CAS_ARG, int, True)
     using = _set_default_conn(dd, _get_default_conn(dd, args))
     _set_result(dd, args, None) # in case neither data or metada is provides
     if _DATA_ARG in args:
-        data = extract_kv_data(_get_arg(args, _DATA_ARG, dict))
+        data = add_kv_cas(extract_kv_data(_get_arg(args, _DATA_ARG, dict)), cas)
         _set_result(dd,
                     args,
                     _CONNECTIONS.get_connection(using).update_kv2_secret(mount_point, path, data, namespace))
@@ -414,12 +427,13 @@ def execute_patch_kv_secret(dd: DataDictionary, statement: Tree) -> None:
     """Data and Metadata are optional"""
     mount_point, path = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Path'))
     args = _extract_args(dd, statement)
-    _allowed_args(args, _DATA_ARG, _META_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    _allowed_args(args, _DATA_ARG, _META_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG, _CAS_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
+    cas: int = _get_arg(args, _CAS_ARG, int, True)
     using = _set_default_conn(dd, _get_default_conn(dd, args))
     _set_result(dd, args, None) # in case neither data or metada is provides
     if _DATA_ARG in args:
-        data = extract_kv_data(_get_arg(args, _DATA_ARG, dict))
+        data = add_kv_cas(extract_kv_data(_get_arg(args, _DATA_ARG, dict)), cas)
         _set_result(dd,
                     args,
                     _CONNECTIONS.get_connection(using).patch_kv2_secret(mount_point, path, data, namespace))
@@ -432,55 +446,55 @@ def execute_patch_kv_secret(dd: DataDictionary, statement: Tree) -> None:
 
 def execute_delete_kv_secret(dd: DataDictionary, statement: Tree) -> None:
     value = eval_expr(dd, statement.children[0])
-    print(value)
+    print(value) # TODO
 
 def execute_list_kv_secrets(dd: DataDictionary, statement: Tree) -> None:
     value = eval_expr(dd, statement.children[0])
-    print(value)
+    print(value) # TODO
 
 def execute_create_ldap_lib(dd: DataDictionary, statement: Tree) -> None:
     value = eval_expr(dd, statement.children[0])
-    print(value)
+    print(value) # TODO
 
 def execute_read_ldap_lib(dd: DataDictionary, statement: Tree) -> None:
     value = eval_expr(dd, statement.children[0])
-    print(value)
+    print(value) # TODO
 
 def execute_update_ldap_lib(dd: DataDictionary, statement: Tree) -> None:
     value = eval_expr(dd, statement.children[0])
-    print(value)
+    print(value) # TODO
 
 def execute_delete_ldap_lib(dd: DataDictionary, statement: Tree) -> None:
     value = eval_expr(dd, statement.children[0])
-    print(value)
+    print(value) # TODO
 
 def execute_list_ldap_libs(dd: DataDictionary, statement: Tree) -> None:
     value = eval_expr(dd, statement.children[0])
-    print(value)
+    print(value) # TODO
 
 def execute_create_ldap_secret(dd: DataDictionary, statement: Tree) -> None:
     value = eval_expr(dd, statement.children[0])
-    print(value)
+    print(value) # TODO
 
 def execute_read_ldap_secret(dd: DataDictionary, statement: Tree) -> None:
     value = eval_expr(dd, statement.children[0])
-    print(value)
+    print(value) # TODO
 
 def execute_update_ldap_secret(dd: DataDictionary, statement: Tree) -> None:
     value = eval_expr(dd, statement.children[0])
-    print(value)
+    print(value) # TODO
 
 def execute_delete_ldap_secret(dd: DataDictionary, statement: Tree) -> None:
     value = eval_expr(dd, statement.children[0])
-    print(value)
+    print(value) # TODO
 
 def execute_list_ldap_secrets(dd: DataDictionary, statement: Tree) -> None:
     value = eval_expr(dd, statement.children[0])
-    print(value)
+    print(value) # TODO
 
 def execute_rotate_ldap_secret(dd: DataDictionary, statement: Tree) -> None:
     value = eval_expr(dd, statement.children[0])
-    print(value)
+    print(value) # TODO
 
 # TODO may need to clean up duped slashes etc
 def _combine_ns(parent: str, child: str) -> str:
