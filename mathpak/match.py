@@ -35,6 +35,10 @@ def poly_not_imatches(x: Any, y: Any) -> Any:
 
 def _do_match(x: Any, y: Any, ci: bool, do_all: bool) -> Any:
     ci = bool_arg(ci, "Case Independent")
+    # None Matches <Any> and None Matches None
+    if x is None: return y is None
+    # <Any> Matches None
+    if y is None: return False
     # ["aaa", "bb"] Matches "^(a|b)+$" -> True
     if isinstance(x, (list, tuple)):
         return all(_do_match(x1, y, ci, do_all) for x1 in x)
