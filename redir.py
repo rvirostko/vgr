@@ -12,7 +12,7 @@ from lark import Tree
 from evaluate import eval_filename_expr
 from output import IORedirector, prepare_path
 from data_dict import DataDictionary
-from app_exceptions import ExitingException
+from app_exceptions import VgrExitingException
 
 _REDIRECTOR = IORedirector()
 
@@ -66,7 +66,7 @@ See *Close*
         getattr(_REDIRECTOR, stream)(prepare_path(filename), mode=mode)
         if dd.verbose: print_stderr(stream, "redirected to", filename)
     except Exception as e:
-        raise ExitingException(ExitingException.EXIT_FAILED, statement, str(e)) from e
+        raise VgrExitingException(VgrExitingException.EXIT_FAILED, statement, str(e)) from e
 
 def execute_close(dd: DataDictionary, statement: Tree) -> None:
     """
@@ -84,6 +84,9 @@ See *Open*
     stream = _eval_stream_name(statement.children[0])
     getattr(_REDIRECTOR, stream)(None)
     if dd.verbose: print_stderr(stream, "closed")
+
+def close_all_redirects() -> None:
+    _REDIRECTOR.end_redirects()
 
 def _eval_stream_name(node: Tree) -> str:
     """The node's data (name) is the stream name"""

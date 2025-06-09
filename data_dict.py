@@ -20,9 +20,6 @@ class DataDictionary():
 
     def __init__(self):
         self._dd = {}
-        self._debug = False
-        self._echo = False
-        self._verbose = False
         self._immutable_prefixes = tuple()
         self._protected_prefixes = tuple()
         self.add_protected_prefix(self._ARG_PREFIX)
@@ -51,6 +48,17 @@ class DataDictionary():
         assert prefix and '.' not in prefix and prefix not in self._RESERVED_WORDS, "Invalid prefix"
 
     def keys(self): return self._dd.keys()
+
+    def reset(self) -> None:
+        for key in list(self._dd):  # list() to avoid dict size change during iteration
+            if key in self._protected_prefixes:
+                self._dd[key] = {}
+            else:
+                if key not in self._immutable_prefixes:
+                    del self._dd[key]
+        self.debug = False
+        self.verbose = False
+        self.echo = False
 
     @property
     def debug(self) -> bool:

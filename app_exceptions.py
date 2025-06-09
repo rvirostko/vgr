@@ -1,32 +1,72 @@
 import sys
 import traceback
 
-from lark import Lark, Tree, exceptions
+from lark import Lark, Tree, Token, exceptions
+from lark.exceptions import VisitError
 
 from src_mgr import SSM
 
-class ExitingException(Exception):
+class VgrException(VisitError):
+    def __init__(self, node, orig_exc, source_text):
+        if isinstance(node, Tree):
+            rule = getattr(node, 'data', '<unknown>')
+            meta = node.meta
+        elif isinstance(node, Token):
+            rule = f'token:{node.type}'
+            meta = node
+        else:
+            raise TypeError(f"Expected Tree or Token, got {type(node)}")
+        super().__init__(rule, node, orig_exc)
+        self.line = getattr(meta, 'line', None)
+        self.column = getattr(meta, 'column', None)
+        self._source_text = source_text
+
+    def get_context(self, span=40):
+        if not self._source_text or self.line is None or self.column is None:
+            return ""
+        lines = self._source_text.splitlines()
+        if not (0 < self.line <= len(lines)):
+            return ""
+        line_str = lines[self.line - 1]
+        pointer_line = ' ' * (self.column - 1) + '^'
+        return f"{line_str}\n{pointer_line}"
+
+    def __str__(self):
+        context = self.get_context()
+        location = f"{self.orig_exc} at line {self.line}, column {self.column}."
+        return f"{context}\n{location}" if context else location
+
+class VgrRuntimeError(VgrException):
+    def __init__(self, tree, orig_exc):
+        super().__init__(tree, orig_exc, SSM.statement_text())
+
+class VgrExitingException(VgrException):
     """Raised when a statement has decided the application needs to exit"""
 
     EXIT_SUCCESS = 0
     EXIT_FAILED = 1
 
     def __init__(self, exit_code: int, statement: Tree, message: str=''):
-        super().__init__(message)
+        super().__init__(statement, Exception(message), SSM.statement_text())
         self.message = message.strip()
         self.exit_code = exit_code
         self.statement = statement
 
-class StatementBreak(Exception):
-    """Thrown on a "break" to unwind the control block"""
-    def __init__(self, *args):
-        super().__init__(*args)
+class VgrStatementBreak(VgrException):
+    """
+    Thrown on a "break" to unwind the control block
+    NB: root exception is for when it is used inappropriately
+    """
+    def __init__(self, statement: Tree):
+        super().__init__(statement, Exception('Break used outside control statement'), SSM.statement_text())
 
-class StatementContinue(Exception):
-    """Thrown on a "continue" to unwind the control block"""
-    def __init__(self, *args):
-        super().__init__(*args)
-
+class VgrStatementContinue(VgrException):
+    """
+    Thrown on a "continue" to unwind the control block
+    NB: root exception is for when it is used inappropriately
+    """
+    def __init__(self, statement: Tree):
+        super().__init__(statement, Exception('Continue used outside control statement'), SSM.statement_text())
 
 # List of tokens that we don't try to translate in exceptions
 _TOKEN_PASS = ('NAME',)

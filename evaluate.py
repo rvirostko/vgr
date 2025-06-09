@@ -5,8 +5,9 @@ Functions to:
 """
 
 from abc import ABC, abstractmethod
-import copy
+from copy import deepcopy
 from typing import Any
+import copy
 
 from lark import v_args, Tree, Token, Transformer
 
@@ -21,10 +22,26 @@ from mathpak import poly_not_matches, poly_matches_all, poly_vshl, poly_vshr, po
 from mathpak import poly_contains_all, poly_contains_any, type_str, poly_number
 from output import verify_relative_path
 
+def assert_has_meta(tree: Tree):
+    """Correct error handling relies on the metadata, so we need to check correctness"""
+    assert hasattr(tree, 'meta'), f"Tree node {tree.data} is missing .meta"
+    meta = tree.meta
+    missing = []
+    for attr in ('start_pos', 'end_pos', 'line', 'column', 'end_line', 'end_column'):
+        if not hasattr(meta, attr) or getattr(meta, attr) is None:
+            missing.append(attr)
+    assert not missing, (f"Tree node {tree.data} has incomplete meta: missing {', '.join(missing)}")
+
 class Operation(Tree, ABC):
+    """A replacement Tree node that adds a slot for execution"""
 
     def __init__(self, base: Tree):
-        super().__init__(base.data, base.children or [])
+        assert_has_meta(base)
+        # Shallow copy of the children array
+        super().__init__(base.data, base.children[:] or [])
+        # Deep copy out of paranoia
+        self._meta = deepcopy(base.meta)
+        assert_has_meta(self)
 
     @abstractmethod
     def execute(self, dd: DataDictionary, args: list) -> Any:
@@ -210,6 +227,8 @@ class OperationBinder(Transformer):
         return func
 # pylint: enable=too-many-public-methods
 
+from app_exceptions import VgrRuntimeError
+
 def bind_operations(statement: Tree) -> Tree:
     """
     Transforms an expression and binds operations to nodes for
@@ -221,23 +240,29 @@ def eval_expr(dd: DataDictionary, expr: Any) -> Any:
     """Evalutates an expression"""
     if isinstance(expr, Tree):
         if isinstance(expr, Operation):
-            return expr.execute(dd, expr.children)
-        raise NotImplementedError(f'Unhandled type {repr(expr.data)}') #SNO
+            try:
+                return expr.execute(dd, expr.children)
+            except VgrRuntimeError as e:
+                raise e
+            except Exception as e:
+                raise VgrRuntimeError(expr, e) from e
+        raise VgrRuntimeError(expr, NotImplementedError(f'Unhandled type {repr(expr.data)}')) #SNO
     if isinstance(expr, Token): return expr.value
-    raise NotImplementedError(f'Unknown type {type_str(expr)}') #SNO
+    raise VgrRuntimeError(expr, NotImplementedError(f'Unknown type {type_str(expr)}')) #SNO
 
 def eval_to_str(dd: DataDictionary, expr: Tree, name: str, allow_none: bool=False) -> str:
     """Helper that makes sure you got a string back from an expression"""
     rc = eval_expr(dd, expr)
     if rc is None and allow_none: return None
-    if not isinstance(rc, str): raise TypeError(f'{name} must be a string; found {type_str(rc)}')
+    if not isinstance(rc, str):
+        raise TypeError(f'{name} must be a string; found {type_str(rc)}') # TODO
     return rc
 
 def eval_to_int(dd: DataDictionary, expr: Tree, name: str, allow_none: bool=False) -> int:
     rc = eval_expr(dd, expr)
     if rc is None and allow_none: return None
     if not isinstance(rc, (bool, int, float, str)):
-        raise TypeError(f'{name} must be an integer; found {type_str(rc)}')
+        raise TypeError(f'{name} must be an integer; found {type_str(rc)}') # TODO
     return poly_int(rc)
 
 def eval_to_number(dd: DataDictionary, expr: Tree, name: str, allow_none: bool=False):
@@ -246,18 +271,19 @@ def eval_to_number(dd: DataDictionary, expr: Tree, name: str, allow_none: bool=F
     if isinstance(rc, bool): return int(rc)
     if isinstance(rc, (int, float)): return rc
     if isinstance(rc, str): return poly_number(rc)
-    raise TypeError(f'{name} must be an integer; found {type_str(rc)}')
+    raise TypeError(f'{name} must be an integer; found {type_str(rc)}') # TODO
 
 def eval_to_bool(dd: DataDictionary, expr: Tree, name: str, allow_none: bool=False) -> bool:
     rc = eval_expr(dd, expr)
     if rc is None and allow_none: return None
     if not isinstance(rc, (bool, int, float, str)):
-        raise TypeError(f'{name} must be an boolean; found {type_str(rc)}')
+        raise TypeError(f'{name} must be an boolean; found {type_str(rc)}') # TODO
     return poly_bool(rc)
 
 def eval_filename_expr(dd: DataDictionary, expr: Tree, allow_none: bool=False) -> str:
     """Helper that gets a string that should be a relative filename"""
     return verify_relative_path(eval_to_str(dd, expr, 'File name', allow_none))
+    # TODO and add context
 
 def eval_to_list_str(dd: DataDictionary, clause: Tree, name: str) -> list[str]:
     """Helper that returns a list of strings. No 'None's are allowed."""

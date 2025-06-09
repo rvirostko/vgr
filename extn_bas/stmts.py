@@ -4,7 +4,7 @@ BASIC extension statements
 
 from lark import Tree
 
-from app_exceptions import StatementBreak, StatementContinue
+from app_exceptions import VgrStatementBreak, VgrStatementContinue
 from data_dict import DataDictionary
 from redir import print_stderr
 from stmt_exec import bind_operations, dispatch_statement, exec_loop
@@ -89,15 +89,15 @@ following it are skipped and looping proceeds.
             do_set(dd, value, *path)
             try:
                 for s in statement.children[cindex:]: dispatch_statement(dd, s)
-            except StatementBreak:
+            except VgrStatementBreak:
                 return
-            except StatementContinue:
+            except VgrStatementContinue:
                 pass
             value += inc
     finally:
         do_unset(dd, *path)
 
-def execute_exit(_: DataDictionary, __: Tree) -> None:
+def execute_exit(_: DataDictionary, statement: Tree) -> None:
     """
 **Exits the current block of statements**
 
@@ -109,9 +109,9 @@ BASIC variants of _Break_.
 Note that the scope portion of the command not respected; the _current_
 block is exited without regards to type.
 """
-    raise StatementBreak()
+    raise VgrStatementBreak(statement)
 
-def execute_continue(_: DataDictionary, __: Tree) -> None:
+def execute_continue(_: DataDictionary, statement: Tree) -> None:
     """
 **Causes the current loop to to start again**
 
@@ -123,7 +123,7 @@ BASIC variants of _Continue_.
 Note that the scope portion of the command not respected; the _current_
 block is restarted without regards to type.
 """
-    raise StatementContinue()
+    raise VgrStatementContinue(statement)
 
 def execute_let(dd: DataDictionary, statement: Tree) -> None:
     """

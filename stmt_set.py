@@ -11,29 +11,65 @@ import os
 from lark import Tree, Token
 
 from data_dict import DataDictionary
-from dd_config import dd_path, do_assignment, do_unset
+from dd_config import dd_path, do_assignment, do_unset, _ARG_PREFIX, dd_set_awk_params
 from evaluate import eval_expr, eval_filename_expr
 from mathpak import poly_add, poly_sub, poly_mul, poly_div, poly_fdiv, poly_mod, poly_pow
 from mathpak import poly_bit_and, poly_bit_or, poly_bit_xor, poly_shl, poly_shr
-from redir import print_stderr, shorten
+from redir import print_stderr, shorten, close_all_redirects
 
 def execute_set(dd: DataDictionary, statement: Tree) -> None:
-    """Assign a value to a variable.
+    """
+**Assign a value to a variable**
 
-* Set _variable_ [= | := | TO) _expression_ [;]
+* Set _variable_ [= | To] _expression_ [;]
 """
     path = dd_path(statement.children[0])
     expr = statement.children[1]
     do_assignment(dd, expr, eval_expr(dd, expr), path)
 
 def execute_unset(dd: DataDictionary, statement: Tree) -> None:
-    """Remove a variable.
+    """
+**Remove a variable**
 
 * Unset _variable_ [, _variable_]... [;]
 """
     for item in statement.children:
         path = dd_path(item)
         do_unset(dd, *path)
+
+def execute_reset(dd: DataDictionary, statement: Tree) -> None:
+    """
+**Reset global state to initial conditions
+
+* Reset _option_ [, _option_]... [;]
+
+Where _option_ is-
+* Data - Resets all user set data except for user arguments
+  and the settings for Debug, Verbose, and Echo
+* Args - Resets user arguments and the settings
+  for Debug, Verbose, and Echo
+* Output - Resets all output redirection
+* All - Resets all of the above
+
+"""
+    o_verbose = dd.verbose
+    for opt in statement.children:
+        s = str(opt.value).casefold()
+        if s in ('all', 'output'):
+            if o_verbose: print_stderr('Resetting Output/Error redirection')
+            close_all_redirects()
+        if s in ('all', 'data'):
+            if o_verbose: print_stderr('Resetting all user data')
+            t_args = dd.get_var(_ARG_PREFIX)
+            dd.reset()
+            dd.set_var(t_args, _ARG_PREFIX)
+        if s in ('all', 'args'):
+            if o_verbose: print_stderr(f'Reseting {repr(_ARG_PREFIX)} settings')
+            dd.unset_var(_ARG_PREFIX)
+            dd.debug = False
+            dd.verbose = False
+            dd.echo = False
+            dd_set_awk_params(dd)
 
 _IN_PLACE_OP = {
     "+=":  poly_add,
@@ -50,7 +86,8 @@ _IN_PLACE_OP = {
     ">>=": poly_shr,
 }
 def execute_set_in_place(dd: DataDictionary, statement: Tree) -> None:
-    """Modify an variables existing value.
+    """
+**Modify a variable's existing value**
 
 * Set _variable_ += _expression_ [;] -- Addition
 * Set _variable_ -= _expression_ [;] -- Subtraction
@@ -72,7 +109,8 @@ def execute_set_in_place(dd: DataDictionary, statement: Tree) -> None:
     do_assignment(dd, expr, op(dd.get_var_user(*path), eval_expr(dd, expr)), path)
 
 def execute_load_from(dd: DataDictionary, statement: Tree) -> None:
-    """Assign a value to a variable from a file.
+    """
+**Assign a value to a variable from a file**
 
 * Load _variable_ From [File] _expression_ [;]
 * Load _variable_ From [File] _expression_ JSON [Object] [;]

@@ -8,7 +8,7 @@ import sys
 
 from lark import Tree, Token
 
-from app_exceptions import ExitingException, StatementBreak, StatementContinue
+from app_exceptions import VgrExitingException, VgrStatementBreak, VgrStatementContinue
 from data_dict import DataDictionary
 from dd_config import dd_path, do_set, do_assignment, do_unset
 from evaluate import eval_expr, bind_operations, eval_to_number
@@ -64,7 +64,7 @@ def execute_exit(_: DataDictionary, statement: Tree) -> None:
 
 Ends the program with an exit code of zero.
 """
-    raise ExitingException(ExitingException.EXIT_SUCCESS, statement, '')
+    raise VgrExitingException(VgrExitingException.EXIT_SUCCESS, statement, '')
 
 @control_statement
 def execute_perform_until(dd: DataDictionary, statement: Tree) -> None:
@@ -142,9 +142,9 @@ If not specified, the test expression is performed before the block of statement
             if test_before and poly_bool(eval_expr(dd, predicate)): return
             try:
                 for s in statement.children[cindex:]: dispatch_statement(dd, s)
-            except StatementBreak:
+            except VgrStatementBreak:
                 return
-            except StatementContinue:
+            except VgrStatementContinue:
                 pass
             value += inc
             if not test_before and poly_bool(eval_expr(dd, predicate)): return
@@ -158,14 +158,14 @@ def execute_compute(dd: DataDictionary, statement: Tree) -> None:
 """
     execute_set(dd, statement)
 
-def execute_next_sentence(dd: DataDictionary, statement: Tree) -> None:
+def execute_next_sentence(_: DataDictionary, statement: Tree) -> None:
     """Exits the current block of statements.
 
 * Next Sentence [;]
 
 Can be used with conditional and looping statements
 """
-    raise StatementBreak()
+    raise VgrStatementBreak(statement)
 
 @control_statement
 def execute_if(dd: DataDictionary, statement: Tree) -> None:

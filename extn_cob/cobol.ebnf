@@ -1,3 +1,6 @@
+// TODO
+// COPY copybook-name [[REPLACING "source-string" BY "target-string"]...]
+
 ?cobol_statements: cobol_accept
     | cobol_add_giving
     | cobol_add_to

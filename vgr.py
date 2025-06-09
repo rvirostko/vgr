@@ -1,6 +1,5 @@
 #! /usr/bin/env python3
 
-from pathlib import Path
 from typing import Any
 import argparse
 import os
@@ -9,7 +8,7 @@ import traceback
 
 from lark import Lark, exceptions
 
-from app_exceptions import ExitingException, format_generic_exception, format_unexpected_input
+from app_exceptions import VgrExitingException, format_generic_exception, format_unexpected_input, VgrRuntimeError, VgrException
 from data_dict import DataDictionary
 from dd_config import dd_init, dd_parse_user_args
 from dd_config import DEFAULT_FOR_TYPE_PATH, SHELL_HISTORY_PATH, SHELL_HISTORY_SIZE_PATH, SHELL_PROMPT_PATH
@@ -21,12 +20,7 @@ from log_config import init_logging, set_logging_level
 from mathpak import poly_bool
 from output import expand_filename
 from redir import print_stderr
-from src_mgr import SSM
 from stmt_exec import STATEMENT_HANDLERS, execute_statements
-
-def print_app_exiting(dd: DataDictionary, e: ExitingException) -> None:
-    print_debug(dd, SSM.source_for(e.statement))
-    if e.message: print_stderr(e.message)
 
 class VGRCmdLine(CmdLine):
     _DEFAULT_HISTORY_SIZE = 100
@@ -44,7 +38,6 @@ class VGRCmdLine(CmdLine):
         self.history_filename = self._get_vgr_default(SHELL_HISTORY_PATH[1], self._DEFAULT_HISTORY)
         self.max_history_entries = self._get_vgr_default_int(SHELL_HISTORY_SIZE_PATH[1], self._DEFAULT_HISTORY_SIZE)
         super().__init__()
-        self.add_cmd("source", self._exec_source)
 
     def run(self):
         # If this has not been set (command line?) we use our interactive default
@@ -61,49 +54,22 @@ class VGRCmdLine(CmdLine):
                 traceback.print_exc(file=sys.stderr)
             else:
                 print(format_unexpected_input(e))
-        except ExitingException as e:
+        except VgrException as e:
             # The only exit interactive mode "honors" is the actual exit request
             # With assertions, fatal errors, et al, we just continue
-            if e.statement.data == 'exit':
-                raise e
-            print_app_exiting(self._dd, e)
+            if isinstance(e, VgrExitingException):
+                t: VgrExitingException = e
+                if t.statement.data == 'exit':
+                    raise e
             if self.debug:
                 traceback.print_exc(file=sys.stderr)
-        except (KeyboardInterrupt, ValueError, TypeError, OSError) as e:
+            else:
+                print(str(e))
+        except Exception as e:
             if self.debug:
                 traceback.print_exc(file=sys.stderr)
             else:
                 print(format_generic_exception(e))
-
-    def _exec_source(self, *args) -> None:
-        """
-**Source Statements from a file**
-
-* `source` _file_ : execute statements stored in a file
-
-"""
-        # NB: this has problems with spaces in the file name
-        values = self._parse(self._SOURCE_PARSER, *args)
-        if values is not None:
-            path = Path(values.file)
-            if not path.exists():
-                print(path, 'not found')
-            elif not path.is_file():
-                print(path, 'is not a file')
-            elif not os.access(path, os.R_OK):
-                print(path, 'not reabable')
-            else:
-                statements = None
-                try:
-                    with open(path, 'r', encoding='utf-8') as f:
-                        statements = f.read()
-                except (OSError, IOError) as e:
-                    if self.debug:
-                        traceback.print_exc(file=sys.stderr)
-                    else:
-                        print(format_generic_exception(e))
-                if statements:
-                    self.execute_statements(statements)
 
     @property
     def debug(self) -> bool:
@@ -166,7 +132,6 @@ class VGRCmdLine(CmdLine):
 * `operator` : Help for operators
 * `prompt` : Define the input input prompt
 * `pwd` : Print the current working directory
-* `source` : Execute statements stored in a file
 * `statement` : Help for statements
 
 Run any of these with _help_ for more information
@@ -181,7 +146,6 @@ Run any of these with _help_ for more information
             elif is_probably("history", topic): print_doc(self._exec_history)
             elif is_probably("multiline", topic): print_doc(self._exec_multiline)
             elif is_probably("prompt", topic): print_doc(self._exec_prompt)
-            elif is_probably("source", topic): print_doc(self._exec_source)
             elif is_probably("function", topic): self._function_help(*targs)
             elif is_probably("operator", topic): self._operator_help(*targs)
             elif is_probably("statement", topic): self._statement_help(*targs)
@@ -271,7 +235,7 @@ def create_parser(dd: DataDictionary, grammar_file: str, extn_registry: VgrExten
         print_debug(dd, f'EXTN_FROM={extn_from}')
         print_debug(dd, f'EXTN_GRAMMAR={extn_grammar}')
     print_debug(dd, 'Grammar file is', grammar_file)
-    with open(grammar_file, 'r', encoding='utf-8') as file:
+    with open(grammar_file, 'r', encoding='utf-8-sig') as file:
         grammar = file.read()
     # NB: we can't just use str.format() because the grammar
     #     contains "{" and "}"
@@ -379,7 +343,7 @@ Environment variables:
                     filepath = expand_filename(filename)
                     print_verbose(dd, 'Executing statements from ', repr(filepath), '...')
                     statements = None
-                    with open(filepath, 'r', encoding='utf-8') as f:
+                    with open(filepath, 'r', encoding='utf-8-sig') as f:
                         statements = f.read()
                     execute_statements(parser, dd, statements, filename)
                 continue
@@ -397,22 +361,31 @@ Environment variables:
             # but can be from a pipe or just a "<"
             print_verbose(dd, 'Executing statements from stdin...')
             execute_statements(parser, dd, sys.stdin.read(), '<stdin>')
-        exit_code = ExitingException.EXIT_SUCCESS
-    except ExitingException as e:
-        print_app_exiting(dd, e)
+        exit_code = VgrExitingException.EXIT_SUCCESS
+    except VgrExitingException as e:
+        print(str(e))
         exit_code = e.exit_code
+    except VgrException as e:
+        # TODO log it
+        if dd.debug:
+            traceback.print_exc(file=sys.stderr)
+        print_stderr(str(e))
+        print_debug(dd, e)
+        exit_code = VgrExitingException.EXIT_FAILED
     except exceptions.UnexpectedInput as e:
+        # TODO log it
         if dd.debug:
             traceback.print_exc(file=sys.stderr)
         print_stderr(format_unexpected_input(e))
         print_debug(dd, e)
-        exit_code = ExitingException.EXIT_FAILED
-    except (KeyboardInterrupt, ValueError, TypeError, OSError) as e:
+        exit_code = VgrExitingException.EXIT_FAILED
+    except Exception as e:
+        # TODO log it
         if dd.debug:
             traceback.print_exc(file=sys.stderr)
-        print_stderr(format_generic_exception(e)) # TODO use statment mgr for context
+        print_stderr(format_generic_exception(e))
         print_debug(dd, e)
-        exit_code = ExitingException.EXIT_FAILED
+        exit_code = VgrExitingException.EXIT_FAILED
     print_verbose(dd, f'Exit code is {exit_code}')
     sys.exit(exit_code)
 

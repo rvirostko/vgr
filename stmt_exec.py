@@ -1,16 +1,19 @@
 
+from contextvars import ContextVar
+from pathlib import Path
 from typing import Any
 import ast
-import re
 import math
+import os
+import re
 
 from lark import Lark, Tree, Token, Transformer, v_args
 
-from app_exceptions import remember_terminals, StatementBreak, StatementContinue
+from app_exceptions import remember_terminals, VgrStatementBreak, VgrStatementContinue, VgrRuntimeError, VgrException
 from data_dict import DataDictionary
 from dbg import print_tree
 from dd_config import dd_set_statement, dd_clear_scratch, dd_path, do_set, do_unset
-from evaluate import bind_operations, eval_expr
+from evaluate import bind_operations, eval_expr, eval_filename_expr
 from mathpak import poly_bool, poly_list, poly_int
 from redir import execute_open, execute_close, print_stderr
 from src_mgr import SSM
@@ -20,27 +23,52 @@ from stmt_log import execute_log, execute_log_setlevel
 from stmt_misc import execute_sleep
 from stmt_print import execute_print, execute_printf
 from stmt_select import execute_select
-from stmt_set import execute_load_from, execute_set, execute_unset, execute_set_in_place
+from stmt_set import execute_load_from, execute_set, execute_unset, execute_reset, execute_set_in_place
 from stmt_sort import execute_sort
 from stmt_zip import execute_zip
 from tags import control_statement
 
-def execute_break(_: DataDictionary, __: Tree) -> None:
+def execute_source(dd: DataDictionary, statement: Tree) -> None:
+    """
+**Source Statements from a file**
+
+* Source _expression_ [, _expression_]... [;]
+
+"""
+    for child in statement.children:
+        file = eval_filename_expr(dd, child, True)
+        if file is None or len(file) == 0: continue
+        path = Path(file)
+        if not path.exists():
+            raise VgrRuntimeError(child, Exception(f'File {repr(file)} not found'))
+        if not path.is_file():
+            raise VgrRuntimeError(child, Exception(f'{repr(file)} does not reference a file'))
+        if not os.access(path, os.R_OK):
+            raise VgrRuntimeError(child, Exception(f'File {repr(file)} not readable'))
+        try:
+            statements = None
+            with open(path, 'r', encoding='utf-8-sig') as f:
+                statements = f.read()
+            execute_statements(None, dd, statements, file)
+        except (OSError, IOError) as e:
+            raise VgrRuntimeError(child, e) from e
+
+def execute_break(_: DataDictionary, statement: Tree) -> None:
     """Exits the current block of statements.
 
 * Break [;]
 
 Can be used with If, Unless, While, Until, and ForEach statements
 """
-    raise StatementBreak()
+    raise VgrStatementBreak(statement)
 
-def execute_continue(_: DataDictionary, __: Tree) -> None:
+def execute_continue(_: DataDictionary, statement: Tree) -> None:
     """Causes the current loop to to start again.
 
 * Continue [;]
 
 """
-    raise StatementContinue()
+    raise VgrStatementContinue(statement)
 
 def execute_pass(_: DataDictionary, __: Tree) -> None:
     """A placeholder for a statement.
@@ -99,9 +127,9 @@ def exec_loop(dd: DataDictionary, statement: Tree, desired_value: bool) -> None:
         if poly_bool(eval_expr(dd, predicate)) != desired_value: return
         try:
             for s in statement.children[1:]: dispatch_statement(dd, s)
-        except StatementBreak:
+        except VgrStatementBreak:
             return
-        except StatementContinue:
+        except VgrStatementContinue:
             continue
 
 def exec_repeat(dd: DataDictionary, statement: Tree) -> None:
@@ -114,9 +142,9 @@ def exec_repeat(dd: DataDictionary, statement: Tree) -> None:
         while counter > 0:
             try:
                 for s in statement.children[1:]: dispatch_statement(dd, s)
-            except StatementBreak:
+            except VgrStatementBreak:
                 return
-            except StatementContinue:
+            except VgrStatementContinue:
                 pass
             counter -= 1
 
@@ -195,9 +223,9 @@ following it are skipped, and the loop continues with the next item.
                 do_set(dd, value, *path)
                 try:
                     for s in statement.children[2:]: dispatch_statement(dd, s)
-                except StatementBreak:
+                except VgrStatementBreak:
                     return
-                except StatementContinue:
+                except VgrStatementContinue:
                     continue
         finally:
             do_unset(dd, *path)
@@ -259,10 +287,12 @@ STATEMENT_HANDLERS = {
     'printf':       execute_printf,
     'repeat':       execute_repeat,
     'select':       execute_select,
+    'reset':        execute_reset,
     'set':          execute_set,
     'set_in_place': execute_set_in_place,
     'sleep':        execute_sleep,
     'sort':         execute_sort,
+    'source':       execute_source,
     'unless':       execute_unless,
     'unset':        execute_unset,
     'until':        execute_until,
@@ -278,19 +308,21 @@ def remove_comments(input_text: str) -> str:
     # We do Hash, C-style, and SQL style
     return re.sub(r'(^|;)[ \t]*(#|//|--).*$', r'\1\n', input_text, flags=re.MULTILINE)
 
+_parser_context: ContextVar = ContextVar('vgr_parser_context', default=None)
+
 def execute_statements(parser: Lark, dd: DataDictionary, statement_text: str, source: str=None) -> None:
     statement_text = remove_comments(statement_text)
     if not statement_text or statement_text.isspace(): return
-    remember_terminals(parser)
+    _parser = _parser_context.get() if parser is None else parser
+    remember_terminals(_parser)
     SSM.set_statement(statement_text, source)
-    statements: Tree = parser.parse(statement_text)
+    statements: Tree = _parser.parse(statement_text)
     for statement in statements.children:
         try:
+            if parser is not None: _parser_context.set(parser)
             dispatch_statement(dd, statement)
-        except StatementBreak:
-            if dd.verbose: print_stderr('Break used outside control statement; ignored')
-        except StatementContinue:
-            if dd.verbose: print_stderr('Continue used outside control statement; ignored')
+        finally:
+            if parser is not None: _parser_context.set(None)
 
 def dispatch_statement(dd: DataDictionary, statement: Tree) -> None:
     text = SSM.source_for(statement)
@@ -309,7 +341,11 @@ def dispatch_statement(dd: DataDictionary, statement: Tree) -> None:
             if dd.echo: print_stderr(text)
         try:
             handler(dd, statement)
+        except VgrException as e:
+            raise e
+        except Exception as e:
+            raise VgrRuntimeError(statement, e) from e
         finally:
             dd_clear_scratch(dd)
     else:
-        raise NotImplementedError(f'No handler established for {statement.data}') #SNO
+        raise VgrRuntimeError(statement, NotImplementedError(f'No handler established for {statement.data}')) #SNO

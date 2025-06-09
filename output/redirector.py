@@ -29,7 +29,7 @@ class Redirection():
         if isinstance(first_arg, str):
             return self._redirect_to_file(
                 open(first_arg,
-                     mode=kwargs.get('mode', 'w'),
+                    mode=kwargs.get('mode', 'w'),
                     encoding=kwargs.get('encoding', 'utf-8')))
         raise TypeError(f'Unsupported argument type: {type_str(first_arg)}')
 

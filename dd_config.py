@@ -19,6 +19,7 @@ from redir import shorten, print_stderr
 
 _VGR_PREFIX = 'vgr'
 _STATEMENT_PATH = (_VGR_PREFIX, 'statement')
+LOG_LEVEL_PATH = (_VGR_PREFIX, 'log_level')
 SHELL_PROMPT_PATH = (_VGR_PREFIX, 'prompt')
 SHELL_HISTORY_PATH = (_VGR_PREFIX, 'history')
 SHELL_HISTORY_SIZE_PATH = (_VGR_PREFIX, 'history_size')
@@ -54,13 +55,16 @@ def dd_init() -> DataDictionary:
     for func, name in ((_get_os_consts, 'os'), (_get_environment, 'env')):
         dd.set_var(func(), name)
         dd.add_immutable_prefix(name)
+    dd_set_awk_params(dd)
+    return dd
+
+def dd_set_awk_params(dd: DataDictionary) -> None:
     # Pick up the defaults AWK would use
     # Since we don't allow the env space to be changed,
     # we have to keep our own copies for the user to change with
     # either Set or with command line arguments
     dd.set_var(os.getenv('OFS', ' '), *OFS_PATH)
     dd.set_var(os.getenv('ORS', '\n'), *ORS_PATH)
-    return dd
 
 def dd_parse_user_args(dd: DataDictionary, user_args: list) -> None:
     # NB: User args can override debug/echo/verbose...

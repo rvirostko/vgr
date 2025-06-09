@@ -6,7 +6,7 @@ import logging
 
 from lark import Tree
 
-from app_exceptions import ExitingException
+from app_exceptions import VgrExitingException
 from data_dict import DataDictionary
 from evaluate import eval_expr, eval_to_str
 from mathpak import poly_bool, poly_int
@@ -26,16 +26,16 @@ The _expression_ is a numeric the code returned to the shell.
 The default return code is zero.
 Note that in this specific case "True" returns zero and "False" returns one.
 """
-    rc = ExitingException.EXIT_SUCCESS
+    rc = VgrExitingException.EXIT_SUCCESS
     if statement.children:
         x = eval_expr(dd, statement.children[0])
         if x is not None:
             try:
                 rc = poly_int(x)
             except ValueError:
-                rc = ExitingException.EXIT_SUCCESS if poly_bool(x) else ExitingException.EXIT_FAILED
+                rc = VgrExitingException.EXIT_SUCCESS if poly_bool(x) else VgrExitingException.EXIT_FAILED
     _LOG.info('Exiting with rc = %d', rc)
-    raise ExitingException(rc, statement, '')
+    raise VgrExitingException(rc, statement, '')
 
 def execute_assert(dd: DataDictionary, statement: Tree) -> None:
     """
@@ -67,4 +67,4 @@ Execution ends with an exit code of 1 indicating failure
                 msg = None
         msg = str(msg) if msg is not None else f'{SSM.source_for(statement)} failed'
         _LOG.warning('%s', msg)
-        raise ExitingException(ExitingException.EXIT_FAILED, statement, msg)
+        raise VgrExitingException(VgrExitingException.EXIT_FAILED, statement, msg)

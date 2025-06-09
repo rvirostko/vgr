@@ -6,24 +6,28 @@ import logging
 from lark import Tree
 
 from data_dict import DataDictionary
+from dd_config import LOG_LEVEL_PATH
 from evaluate import eval_expr, eval_to_str
 from mathpak import poly_format
 from redir import print_stderr
 
 _USER_LOGGER = logging.getLogger('vgr_user')
+# TODO need to get level, then convert to a string to set in DD
 
 _LOG_FUNCTION = {
-    "Debug": _USER_LOGGER.debug,
-    "Info":  _USER_LOGGER.info,
-    "Warn":  _USER_LOGGER.warning,
-    "Error": _USER_LOGGER.error,
+    "Debug":   _USER_LOGGER.debug,
+    "Info":    _USER_LOGGER.info,
+    "Warn":    _USER_LOGGER.warning,
+    "Warning": _USER_LOGGER.warning,
+    "Error":   _USER_LOGGER.error,
 }
 
 _LEVEL_MAP = {
-    "Debug": logging.DEBUG,
-    "Info":  logging.INFO,
-    "Warn":  logging.WARNING,
-    "Error": logging.ERROR,
+    "Debug":   logging.DEBUG,
+    "Info":    logging.INFO,
+    "Warn":    logging.WARNING,
+    "Warning": logging.WARNING,
+    "Error":   logging.ERROR,
 }
 
 def execute_log_setlevel(dd: DataDictionary, statement: Tree) -> None:
@@ -38,6 +42,7 @@ The logging level must be one of _Debug_, _Info_, _Warn_, or _Error_
     if level is None:
         raise ValueError(f'Unsupported log level {repr(log_level)}')
     _USER_LOGGER.setLevel(level)
+    dd.set_var(log_level, *LOG_LEVEL_PATH)
     if dd.verbose:
         print_stderr('Log Level set to', log_level)
 
