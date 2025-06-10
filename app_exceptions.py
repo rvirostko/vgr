@@ -28,8 +28,16 @@ class VgrException(VisitError):
         if not (0 < self.line <= len(lines)):
             return ""
         line_str = lines[self.line - 1]
-        pointer_line = ' ' * (self.column - 1) + '^'
-        return f"{line_str}\n{pointer_line}"
+        # Strip leading whitespace and adjust column
+        leading_ws = len(line_str) - len(line_str.lstrip())
+        trimmed_line = line_str.lstrip()
+        adjusted_column = max(self.column - leading_ws, 1)
+        # Compute start and end positions for span truncation
+        start = max(0, adjusted_column - 1 - span)
+        end = adjusted_column - 1 + span
+        snippet = trimmed_line[start:end]
+        pointer_line = ' ' * (adjusted_column - 1 - start) + '^'
+        return f"{snippet}\n{pointer_line}"
 
     def __str__(self):
         context = self.get_context()
