@@ -306,7 +306,7 @@ STATEMENT_HANDLERS = {
 def remove_comments(input_text: str) -> str:
     """Removes comments but preserves lines for Lark metadata accuracy."""
     # We do Hash, C-style, and SQL style
-    return re.sub(r'(^|;)[ \t]*(#|//|--).*$', r'\1\n', input_text, flags=re.MULTILINE)
+    return re.sub(r'(^|;)[ \t]*(#|//|--).*$', r'\1', input_text, flags=re.MULTILINE)
 
 _parser_context: ContextVar = ContextVar('vgr_parser_context', default=None)
 
@@ -343,7 +343,7 @@ def dispatch_statement(dd: DataDictionary, statement: Tree) -> None:
             handler(dd, statement)
         except VgrException as e:
             raise e
-        except Exception as e:
+        except (Exception, KeyboardInterrupt) as e:
             raise VgrRuntimeError(statement, e) from e
         finally:
             dd_clear_scratch(dd)
