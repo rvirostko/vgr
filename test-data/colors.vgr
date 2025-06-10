@@ -11,6 +11,7 @@ Next
 
 Term CursorHide
 Perform iter Times
+    #-------------------------------------------------------------------------
     Term Reset, ClearScreen, DHPrint "Boxes and Lines"
     Term FG="bright white", BG="bright red"
     For i = 1 To 7
@@ -26,14 +27,48 @@ Perform iter Times
         End
         Term Bold, Print "{0}x{0}".Format(i), Bold=False
     Next
+    Set line = 19
     Set col = 1
+    Set bwidth = 14
+    Set bheight = 3
     Term FG="bright white", BG="bright green"
     ForEach bstyle In term.bstyles:
-        Term Pos 19,col, DrawBox bstyle, 3,14, Print bstyle
-        Set col += 14
+        Term Pos line,col, DrawBox bstyle,bheight,bwidth, Print bstyle
+        Add bwidth To col
+        If col >= (80 - bwidth):
+            Add bheight To line
+            Set col To 1
+        End
     End
     Sleep sleep_time Seconds
+    #-------------------------------------------------------------------------
 
+    #-------------------------------------------------------------------------
+    Term Reset, ClearScreen, DHPrint "Font Styles"
+    Term Pos 3,1
+    Set styles = [
+        ["normal",        "Normal Text"],
+        ["bold",          "Bold Text"],
+        ["dim",           "Dim Text"],
+        ["blink",         "Blinking Text"],
+        ["italic",        "Italic Text"],
+        ["underline",     "Underlined Text"],
+        ["reverse",       "Reverse Text"],
+        ["strikethrough", "Strike-out Text"],
+        ["bold blue rev", "Combined Settings"]
+    ]
+    ForEach style In styles:
+        Term Style=style.FirstItem(),
+            Print style.LastItem().Center(20),
+            Style="Normal", FG=None, BG=None,
+            Print " {}\n".Format(style.FirstItem())
+    End
+    Term Print "\n", Style="Reset wide", Print "Double Width Text\n"
+    Term Reset
+    Sleep sleep_time Seconds
+    #-------------------------------------------------------------------------
+
+    #-------------------------------------------------------------------------
     Term Reset, ClearScreen, DHPrint "Named Colors"
     Term Pos 3,1
     For i = 0 to named_colors.Length() - 1
@@ -45,7 +80,9 @@ Perform iter Times
         End-If
     Next
     Sleep sleep_time Seconds
+    #-------------------------------------------------------------------------
 
+    #-------------------------------------------------------------------------
     Term Reset, ClearScreen, DHPrint "Numbered Colors"
     Term Pos 3,1
     For color = 0 to 255
@@ -56,6 +93,7 @@ Perform iter Times
         End
     Next
     Sleep sleep_time Seconds
+    #-------------------------------------------------------------------------
 
 End-Perform
 

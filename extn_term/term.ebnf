@@ -15,6 +15,7 @@ term_clear_cmd: ("ClearScreen"i | "Clear"i | "CLS"i) -> clear
         | "ClearEOS"i          -> clear_eos
 
 term_cursor_cmd: ("CursorPos"i | "Pos"i | "cup"i) expr "," expr -> cup
+        | ("GetCursorPos"i | "GetPos"i | "dsr_cursor"i) -> dsr_cursor
         | ("Line"i | "vpa"i) expr? -> vpa
         | ("Col"i | "hpa"i) expr? -> hpa
         | ("CursorHome"i | "Home"i) -> cup_home
@@ -47,7 +48,8 @@ term_opts_cmd: "S7C1"i ("=" expr)? -> s7c1t
         | ("InsertMode"i | "irm"i) ("=" expr)? -> irm
 
 term_misc_cmd: ("Print"i | "p"i) expr -> print
-        | ("DHPrint"i | "dhp"i) expr -> dh_print
+        | ("DHPrint"i | "dhp"i) expr -> dh_print // double high printing
+        | "SetClipboard"i expr -> term_set_clipboard
         | ("SoftReset"i | "decstr"i) -> decstr
         | ("HardReset"i | "ris"i) -> ris
         | ("AlignmentTest"i | "decaln"i) -> decaln
@@ -59,6 +61,7 @@ term_misc_cmd: ("Print"i | "p"i) expr -> print
         | "RaiseWindow"i -> raise_window
         | "IconName"i expr -> icon_name
         | "WindowTitle"i expr -> window_title
+        | ("GetWindowSize"i | "GetTerminalSize"i | "GetTermSize"i ) -> term_size
         | "NUL"i -> ctrl_nul
         | "SOH"i -> ctrl_soh
         | "STX"i -> ctrl_stx
@@ -93,6 +96,7 @@ term_misc_cmd: ("Print"i | "p"i) expr -> print
         | "US"i  -> ctrl_us
 
 term_set_attr: "Reset"i -> sgr_reset
+        | "Style"i "=" expr -> sgr_style
         | "Bold"i ("=" expr)? -> sgr_bold
         | "Dim"i ("=" expr)? -> sgr_dim
         | "Blink"i ("=" expr)? -> sgr_blink
@@ -103,7 +107,7 @@ term_set_attr: "Reset"i -> sgr_reset
         | ("Reverse"i | "Rev"i) ("=" expr)? -> sgr_reverse
         | ("Hidden"i | "Hide"i) ("=" expr)? -> sgr_hidden
         | ("Strikethrough"i | "Strikethru"i | "Strikeout"i ) ("=" expr)?  -> sgr_strikethru
-        | ("Double"i | "decdwl"i) ("=" expr)? -> decdwl
+        | ("Double"i | "Wide"i | "decdwl"i) ("=" expr)? -> decdwl
         | ("Single"i | "decswl"i) ("=" expr)? -> decswl
         | ("HighTop"i | "decdhl_top"i) ("=" expr)? -> decdhl_top
         | ("HighBottom"i | "HighBot"i | "decdhl_bot"i) ("=" expr)? -> decdhl_bot

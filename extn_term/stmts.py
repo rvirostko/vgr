@@ -2,31 +2,40 @@
 Term(inal) Statements
 """
 
+from typing import Any
+import base64
 import os
 import re
-from typing import Any
+import shutil
+import sys
+import termios
+import tty
 
 from lark import Tree
 
+from app_exceptions import VgrRuntimeError
 from evaluate import eval_expr
 from data_dict import DataDictionary
 from redir import stdout
 
-
-# https://vt100.net/docs/vt220-rm/contents.html
-# https://www.xfree86.org/current/ctlseqs.html
-# https://invisible-island.net/xterm/ctlseqs/ctlseqs.html
-
 class TermConsts:
+    """
+    Reference material:
+        https://vt100.net/docs/vt220-rm/contents.html
+        https://www.xfree86.org/current/ctlseqs.html
+        https://invisible-island.net/xterm/ctlseqs/ctlseqs.html
+    """
 
-    BSTYLES = ("ASCII", "Single", "Double", "SingleDouble", "DoubleSingle")
+    BSTYLES = ("Empty", "ASCII", "Single", "Double", "SingleDouble", "DoubleSingle", "Brackets")
 
     # Box style constants
-    BSTYLE_ASCII = 0
-    BSTYLE_SINGLE = 1
-    BSTYLE_DOUBLE = 2
-    BSTYLE_SINGLEDOUBLE = 3
-    BSTYLE_DOUBLESINGLE = 4
+    BSTYLE_BLANK = 0
+    BSTYLE_ASCII = 1
+    BSTYLE_SINGLE = 2
+    BSTYLE_DOUBLE = 3
+    BSTYLE_SINGLEDOUBLE = 4
+    BSTYLE_DOUBLESINGLE = 5
+    BSTYLE_BRACKETS = 6
 
     # Box parts
     I_HBAR = 0
@@ -41,6 +50,8 @@ class TermConsts:
     I_BT   = 9  # Bottom tee
     I_CC   = 10  # Center cross
 
+    SP     = ' '
+
     # Graphics names:
     #  TL     HBAR    TT    HBAR     TR
     #  VBAR          VBAR          VBAR
@@ -53,6 +64,7 @@ class TermConsts:
     # D_ : double line
     # SD_ : single horz, double vert
     # DS_ : double horz, single vert
+    # BR_ : brackets
 
     # Single line graphics
     HBAR = '─'
@@ -106,13 +118,15 @@ class TermConsts:
     DS_BT   = '╧'
     DS_CC   = '╪'
 
+    BOX_BLANK = (SP, SP, SP, SP, SP, SP, SP, SP, SP, SP, SP)
     BOX_ASCII = ('-', '|', '+', '+', '+', '+', '+', '+', '+', '+', '+')
     BOX_SINGLE = (HBAR, VBAR, TL, TR, BL, BR, LT, RT, TT, BT, CC)
     BOX_DOUBLE = (D_HBAR, D_VBAR, D_TL, D_TR, D_BL, D_BR, D_LT, D_RT, D_TT, D_BT, D_CC)
     BOX_SINGLEDOUBLE = (SD_HBAR, SD_VBAR, SD_TL, SD_TR, SD_BL, SD_BR, SD_LT, SD_RT, SD_TT, SD_BT, SD_CC)
     BOX_DOUBLESINGLE = (DS_HBAR, DS_VBAR, DS_TL, DS_TR, DS_BL, DS_BR, DS_LT, DS_RT, DS_TT, DS_BT, DS_CC)
+    BOX_BRACKETS = (SP, '⎜', '⎛', '⎞', '⎝', '⎠', SP, SP, SP, SP, SP)
 
-    BOXES = (BOX_ASCII, BOX_SINGLE, BOX_DOUBLE, BOX_SINGLEDOUBLE, BOX_DOUBLESINGLE)
+    BOXES = (BOX_BLANK, BOX_ASCII, BOX_SINGLE, BOX_DOUBLE, BOX_SINGLEDOUBLE, BOX_DOUBLESINGLE, BOX_BRACKETS)
 
     SOS = "\x1bX" # Start of String (SOS  is 0x98)
     CSI = "\x1b[" # Control Sequence Introducer (CSI  is 0x9b)
@@ -290,9 +304,11 @@ def _resolve_ansi_color(val: Any) -> int:
 def _resolve_box_style(val: Any) -> int:
     if val is None: return TermConsts.BSTYLE_ASCII
     if isinstance(val, (int, float)):
-        return max(TermConsts.BSTYLE_ASCII, min(TermConsts.BSTYLE_DOUBLESINGLE, int(val)))
+        return max(0, min(len(TermConsts.BSTYLES) - 1, int(val)))
     if isinstance(val, str):
         s = re.sub(r'[^a-z0-9]', '', val.casefold()).removeprefix('bstyle')
+        if s in ('empty', 'none', 'blank', str(TermConsts.BSTYLE_BLANK)):
+            return TermConsts.BSTYLE_BLANK
         if s in ('a', 'ascii', str(TermConsts.BSTYLE_ASCII)):
             return TermConsts.BSTYLE_ASCII
         if s in ('', 's', 'single', str(TermConsts.BSTYLE_SINGLE)):
@@ -303,14 +319,92 @@ def _resolve_box_style(val: Any) -> int:
             return TermConsts.BSTYLE_SINGLEDOUBLE
         if s in ('ds', 'doublesingle', str(TermConsts.BSTYLE_DOUBLESINGLE)):
             return TermConsts.BSTYLE_DOUBLESINGLE
-    return TermConsts.BSTYLE_SINGLE
+        if s in ('br', 'brackets', str(TermConsts.BSTYLE_BRACKETS)):
+            return TermConsts.BSTYLE_BRACKETS
+    return TermConsts.BSTYLE_BLANK
 
 def _canonical_color_name(val: str) -> str:
     return re.sub(r'[^a-z0-9]', '', val.casefold())
 
+# Everything except colors
+_SGR_ALL_OFF = (
+    TermConsts.SGR_BOLD_OFF, TermConsts.SGR_DIM_OFF, TermConsts.SGR_BLINK_OFF,
+    TermConsts.SGR_ITALIC_OFF, TermConsts.SGR_UNDERLINE_OFF, TermConsts.SGR_REVERSE_OFF,
+    TermConsts.SGR_HIDDEN_OFF, TermConsts.SGR_STRIKETHRU_OFF
+)
+
+def _term_sgr_style(dd: DataDictionary, cmd: Tree) -> None:
+    reqs = str(eval_expr(dd, cmd.children[0])).strip() if len(cmd.children) > 0 else ''
+    if not reqs: return
+    _print(*_SGR_ALL_OFF)
+    for s in re.split(r'[^a-z0-9_+-]', reqs.casefold()):
+        if s.isdigit():
+            c = _resolve_ansi_color(s)
+            if c and not _NO_COLOR: _print(TermConsts.SGR_FG.format(c))
+            continue
+        if s in ("reset",):
+            # This resets FG color and "wide"...
+            _print(TermConsts.SGR_RESET_FG, TermConsts.DECSWL)
+            # INTENTIONAL FALL-THRU
+        if s in ("reset", "normal", "default"):
+            # This resets everything else...
+            _print(*_SGR_ALL_OFF)
+            continue
+        # prefix of '+' means on, but that's the default of using the world
+        s = s.removeprefix('+')
+        # prefix of '-' means off
+        # If you combine them your command is likely to be ignored
+        negate = s[0] == '-'
+        s = s.removeprefix('-')
+        if s in ("bold", ):
+            _print(TermConsts.SGR_BOLD_OFF if negate else TermConsts.SGR_BOLD_ON)
+            continue
+        if s in ("dim",):
+            _print(TermConsts.SGR_DIM_OFF if negate else TermConsts.SGR_DIM_ON)
+            continue
+        if s in ("blink",):
+            _print(TermConsts.SGR_BLINK_OFF if negate else TermConsts.SGR_BLINK_ON)
+            continue
+        if s in ("italic", "italics"):
+            _print(TermConsts.SGR_ITALIC_OFF if negate else TermConsts.SGR_ITALIC_ON)
+            continue
+        if s in ("underline", "ul"):
+            _print(TermConsts.SGR_UNDERLINE_OFF if negate else TermConsts.SGR_UNDERLINE_ON)
+            continue
+        if s in ("reverse", "rev"):
+            _print(TermConsts.SGR_REVERSE_OFF if negate else TermConsts.SGR_REVERSE_ON)
+            continue
+        if s in ("hidden", "hide"):
+            _print(TermConsts.SGR_HIDDEN_OFF if negate else TermConsts.SGR_HIDDEN_ON)
+            continue
+        if s in ("strikethrough", "strikethru", "strikeout"):
+            _print(TermConsts.SGR_STRIKETHRU_OFF if negate else TermConsts.SGR_STRIKETHRU_ON)
+            continue
+        if s in ("double", "wide"):
+            _print(TermConsts.DECSWL if negate else TermConsts.DECDWL)
+            continue
+        if s in ("single",):
+            _print(TermConsts.DECDWL if negate else TermConsts.DECSWL)
+            continue
+        # Failed all the keyword tests; see if it is a named
+        # color for the foreground
+        c = _resolve_ansi_color(s)
+        if c and not _NO_COLOR: _print(TermConsts.SGR_FG.format(c))
+        # errors ignored
+
+def _term_set_clipboard(dd: DataDictionary, cmd: Tree) -> None:
+    text = str(eval_expr(dd, cmd.children[0])).strip() if len(cmd.children) > 0 else ''
+    try:
+        import pyperclip
+        pyperclip.copy(text)
+    except ImportError:
+        # Does not work with many terminals
+        _print('\x1b]52;c;',
+            base64.b64encode(text.encode('utf-8')).decode('ascii') if text else '',
+            '\a')
+
 _CUU_1 = TermConsts.CUU.format('')
 _CUD_1 = TermConsts.CUD.format('')
-_CUF_1 = TermConsts.CUF.format('')
 _CUB_1 = TermConsts.CUB.format('')
 
 def _term_draw_hline(dd: DataDictionary, cmd: Tree) -> None:
@@ -344,52 +438,68 @@ def _eval_all(dd: DataDictionary, cmd: Tree) -> list:
     return [eval_expr(dd, child) for child in cmd.children]
 
 def _term_draw_box(dd: DataDictionary, cmd: Tree) -> None:
+    if _DUMB_TERM: return
     style = TermConsts.BSTYLE_SINGLE
     arg_ind = 0
     args = _eval_all(dd, cmd)
     if len(args) > 2:
-        style = _resolve_box_style(args[0])
-        arg_ind = 1
-    lines = max(1, int(args[arg_ind]))
-    cols = max(1, int(args[arg_ind + 1]))
+        style = _resolve_box_style(args[arg_ind])
+        arg_ind += 1
+    height = int(args[arg_ind])
+    width = int(args[arg_ind + 1])
+    cursor_row, cursor_col = _get_cursor_pos()
+    row = cursor_row
+    col = cursor_col
+    screen_cols, screen_rows = shutil.get_terminal_size()
+    # Vertical adjustment
+    if height >= 0:
+        height = min(height, screen_rows - cursor_row + 1)
+    else:
+        height = min(-height, cursor_row)
+        row = cursor_row - height + 1
+    # Horizontal adjustment
+    if width >= 0:
+        width = min(width, screen_cols - cursor_col + 1)
+    else:
+        width = min(-width, cursor_col)
+        col = cursor_col - width + 1
+    if height == 0 or width == 0: return
     # Horizontal line
-    if lines == 1:
-        _draw_hline(style, cols)
+    if height == 1:
+        _draw_hline(style, width)
         return
     # Vertical line
-    if cols == 1:
-        _draw_vline(style, lines)
+    if width == 1:
+        _draw_vline(style, height)
         return
     # Box is at least 2x2
-    inner_width = cols - 2
+    inner_width = width - 2
     hbar = TermConsts.BOXES[style][TermConsts.I_HBAR] * inner_width if inner_width else ''
-    bck = TermConsts.CUB.format(cols)
     # Box top
-    _print(TermConsts.BOXES[style][TermConsts.I_TL],
+    _print(TermConsts.CUP.format(row, col),
+           TermConsts.BOXES[style][TermConsts.I_TL],
            hbar,
-           TermConsts.BOXES[style][TermConsts.I_TR],
-           bck,
-           _CUD_1)
+           TermConsts.BOXES[style][TermConsts.I_TR])
     # Left and right sides
-    if lines > 2:
+    row += 1
+    if height > 2:
         inside = ''
         if inner_width:
             inside = ' '
             if inner_width > 1: inside += TermConsts.REP.format(inner_width - 1)
-        for _ in range(lines - 2):
-            _print(TermConsts.BOXES[style][TermConsts.I_VBAR],
-                   inside,
+        for _ in range(height - 2):
+            _print(TermConsts.CUP.format(row, col),
                    TermConsts.BOXES[style][TermConsts.I_VBAR],
-                   bck,
-                   _CUD_1)
+                   inside,
+                   TermConsts.BOXES[style][TermConsts.I_VBAR])
+            row += 1
     # And the bottom
-    _print(TermConsts.BOXES[style][TermConsts.I_BL],
+    _print(TermConsts.CUP.format(row, col),
+           TermConsts.BOXES[style][TermConsts.I_BL],
            hbar,
            TermConsts.BOXES[style][TermConsts.I_BR])
     # and move to within the box
-    _print(bck,
-           TermConsts.CUU.format(lines - 2),
-           _CUF_1)
+    _print(TermConsts.CUP.format(row - height + 2, col + 1))
 
 def _term_dh_print(dd: DataDictionary, cmd: Tree) -> None:
     s = eval_expr(dd, cmd.children[0])
@@ -430,6 +540,71 @@ def _term_toggle(dd: DataDictionary, cmd: Tree, on_seq: str, off_seq: str) -> No
 def _term_with_count(dd: DataDictionary, cmd: Tree, control_seq: str) -> None:
     count = 1 if len(cmd.children) == 0 else int(eval_expr(dd, cmd.children[0]))
     _print(control_seq.format(count))
+
+def _term_get_terminal_size(dd: DataDictionary, _: Tree) -> None:
+    if not _DUMB_TERM:
+        try:
+            response =  shutil.get_terminal_size()
+            if response is not None and len(response) >= 2:
+                dd.set_var(response[0], 'term', 'size', 'cols')
+                dd.set_var(response[1], 'term', 'size', 'rows')
+                return
+        except (OSError, ValueError):
+            pass
+    dd.set_var(None, 'term', 'size')
+
+def _get_cursor_pos():
+    return _parse_dsr_response(TermConsts.DSR_CURSOR, 'R')
+
+def _term_get_cursor_pos(dd: DataDictionary, _: Tree) -> None:
+    if not _DUMB_TERM:
+        response = _get_cursor_pos()
+        if response is None or len(response) < 2:
+            dd.set_var(None, 'term', 'cursor')
+        else:
+            dd.set_var(response[0], 'term', 'cursor', 'row')
+            dd.set_var(response[1], 'term', 'cursor', 'col')
+
+def _parse_dsr_response(seq: str, terminator: str) -> list[int]:
+    if _DUMB_TERM: return None
+    ascii_zero = ord('0')
+    ascii_nine = ord('9')
+    fd = sys.stdin.fileno()
+    old_settings = termios.tcgetattr(fd)
+    try:
+        tty.setcbreak(fd)
+        _print(seq)
+        state = 'ESCAPE'
+        acc = 0
+        response = []
+        while True:
+            ch = sys.stdin.read(1)
+            if state == 'ESCAPE':
+                if ch == '\x1b':
+                    state = 'BRACKET'
+                elif ch == 0x9b:
+                    state = 'NUM'
+                else:
+                    break
+            elif state == 'BRACKET':
+                if ch != '[': break
+                state = 'NUM'
+            elif state == 'NUM':
+                c = ord(ch)
+                if ascii_zero <= c <= ascii_nine:
+                    acc = acc * 10 + (c - ascii_zero)
+                elif ch == ';':
+                    response.append(acc)
+                    acc = 0
+                else:
+                    if ch != terminator: break
+                    response.append(acc)
+                    return response
+            else:
+                raise ValueError()
+        return None
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 
 _CMD_DISPATCH = {
     "box":            _term_draw_box,
@@ -492,6 +667,7 @@ _CMD_DISPATCH = {
     "deiconify":      lambda _d, _c: _print(TermConsts.DEICONIFY),
     "dh_print":       _term_dh_print,
     "dl":             lambda d, c: _term_with_count(d, c, TermConsts.DL),
+    "dsr_cursor":     _term_get_cursor_pos,
     "ech":            lambda d, c: _term_with_count(d, c, TermConsts.ECH),
     "el_all":         lambda _d, _c: _print(TermConsts.EL_ALL),
     "el_bol":         lambda _d, _c: _print(TermConsts.EL_BOL),
@@ -522,21 +698,23 @@ _CMD_DISPATCH = {
     "sgr_italic":     lambda d, c: _term_toggle(d, c, TermConsts.SGR_ITALIC_ON, TermConsts.SGR_ITALIC_OFF),
     "sgr_reset":      lambda _d, _c: _print(TermConsts.SGR_RESET),
     "sgr_reverse":    lambda d, c: _term_toggle(d, c, TermConsts.SGR_REVERSE_ON, TermConsts.SGR_REVERSE_OFF),
+    "sgr_strikethru": lambda d, c: _term_toggle(d, c, TermConsts.SGR_STRIKETHRU_ON, TermConsts.SGR_STRIKETHRU_OFF),
+    "sgr_style":       _term_sgr_style,
     "sgr_underline":  lambda d, c: _term_toggle(d, c, TermConsts.SGR_UNDERLINE_ON, TermConsts.SGR_UNDERLINE_OFF),
-    "strikethru":     lambda d, c: _term_toggle(d, c, TermConsts.SGR_STRIKETHRU_ON, TermConsts.SGR_STRIKETHRU_OFF),
     "tbc_all":        lambda _d, _c: _print(TermConsts.TBC_ALL),
     "tbc":            lambda _d, _c: _print(TermConsts.TBC),
+    "term_size":      _term_get_terminal_size,
     "vline":          _term_draw_vline,
     "vpa":            lambda d, c: _term_with_count(d, c, TermConsts.VPA),
     "window_title":   _term_window_title,
-
-    #    "report":         _nop,
-    #    "set_height":   _nop,
-    #    "set_width":    _nop,
+    "term_set_clipboard": _term_set_clipboard,
 }
 
 def execute_term_statement(dd: DataDictionary, statement: Tree) -> None:
     for cmd in statement.children:
-        handler = _CMD_DISPATCH.get(cmd.data)
-        if handler is None: raise ValueError(f"Unhandled term command: {cmd.data}")
-        handler(dd, cmd)
+        try:
+            handler = _CMD_DISPATCH.get(cmd.data)
+            if handler is None: raise ValueError(f"Unhandled term command: {cmd.data}")
+            handler(dd, cmd)
+        except (Exception, KeyboardInterrupt) as e:
+            raise VgrRuntimeError(cmd, e) from e
