@@ -1,5 +1,5 @@
-Let iter = 16
-Let sleep_time = 5
+Set iter To 16
+Set sleep_time To 5
 # TODO we need a Max() and Min()!
 # Let max_len = term.color_names.Length().Max()
 Let max_len = 14
@@ -9,10 +9,41 @@ For i = 1 to 24
     Set named_colors += ["Gray{}".Format(i)]
 Next
 
+Load sse from "test-data/NCC-1701A.txt" As Text Lines
+Set lengths To []
+ForEach l in sse: lengths += [l.Length()]; End
+Set sse_max To lengths.Sort().LastItem()
+
+# TODO New Syntax
+#Set sse_max To sse.StringLen().Max()
+Set sse To sse.LeftJustify(sse_max)
+
 Term CursorHide
 Perform iter Times
+
     #-------------------------------------------------------------------------
-    Term Reset, ClearScreen, DHPrint "Boxes and Lines"
+    Term GetTermSize, BG="black", FG="white", Clear
+    Set line To ((term.size.rows - sse.Length()) / 2).ToInt()
+    Term pos 1,1, Print "cols: {} rows: {}".Format(term.size.cols, term.size.rows)
+    For i = 1 To (sse.FirstItem().Length() + term.size.cols):
+        Term Pos 2,1, Print "i: {}".Format(i)
+        For j = 0 To sse.Length() - 1:
+            If i <= sse_max:
+                Term Pos line + j,1, Print sse.Item(j).RightStr(i)
+            Else:
+                Term Pos line + j,1, InsertChar 1
+            End
+        Next
+        Sleep 1 / 30 Second
+    Next
+    Term Pos 1,1, EraseEOL
+    Term Pos 2,term.size.cols, EraseBOL
+    Term BG=None, FG=None
+    #-------------------------------------------------------------------------
+    continue;
+
+    #-------------------------------------------------------------------------
+    Term Reset, Clear, DHPrint "Boxes and Lines"
     Term FG="bright white", BG="bright red"
     For i = 1 To 7
         Term Pos 2+i,0, Box 1,(i*10)
@@ -44,7 +75,7 @@ Perform iter Times
     #-------------------------------------------------------------------------
 
     #-------------------------------------------------------------------------
-    Term Reset, ClearScreen, DHPrint "Font Styles"
+    Term Reset, Clear, DHPrint "Font Styles"
     Term Pos 3,1
     Set styles = [
         ["normal",        "Normal Text"],
@@ -69,7 +100,7 @@ Perform iter Times
     #-------------------------------------------------------------------------
 
     #-------------------------------------------------------------------------
-    Term Reset, ClearScreen, DHPrint "Named Colors"
+    Term Reset, Clear, DHPrint "Named Colors"
     Term Pos 3,1
     For i = 0 to named_colors.Length() - 1
         Let color_name = named_colors.Item(i)
@@ -83,7 +114,7 @@ Perform iter Times
     #-------------------------------------------------------------------------
 
     #-------------------------------------------------------------------------
-    Term Reset, ClearScreen, DHPrint "Numbered Colors"
+    Term Reset, Clear, DHPrint "Numbered Colors"
     Term Pos 3,1
     For color = 0 to 255
         Term BG=color, Print color.RightJustify(4), Print " "
@@ -95,6 +126,7 @@ Perform iter Times
     Sleep sleep_time Seconds
     #-------------------------------------------------------------------------
 
+
 End-Perform
 
-Term ClearScreen, Reset, CursorShow
+Term Clear, Reset, CursorShow

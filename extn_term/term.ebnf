@@ -1,8 +1,7 @@
 ?term_statements: term_statement
 
 term_statement: ("Terminal"i | "Term"i) term_cmd (_COMMA? term_cmd)* _SEMICOLON?
-?term_cmd: term_clear_cmd
-        | term_cursor_cmd
+?term_cmd: term_cursor_cmd
         | term_opts_cmd
         | term_edit_cmd
         | term_misc_cmd
@@ -10,9 +9,6 @@ term_statement: ("Terminal"i | "Term"i) term_cmd (_COMMA? term_cmd)* _SEMICOLON?
         | term_set_attr
         | term_draw_box
 
-term_clear_cmd: ("ClearScreen"i | "Clear"i | "CLS"i) -> clear
-        | "ClearEOL"i          -> clear_eol
-        | "ClearEOS"i          -> clear_eos
 
 term_cursor_cmd: ("CursorPos"i | "Pos"i | "cup"i) expr "," expr -> cup
         | ("GetCursorPos"i | "GetPos"i | "dsr_cursor"i) -> dsr_cursor
@@ -30,10 +26,17 @@ term_cursor_cmd: ("CursorPos"i | "Pos"i | "cup"i) expr "," expr -> cup
         | ("CursorRight"i | "CursorForward"i | "cuf"i) expr? -> cuf
 
 term_edit_cmd: ("InsertLine"i | "InsertLines"i | "il"i) expr? -> il
-        | ("DeleteLine"i | "DeleteLines"i | "dl"i) expr? -> dl
-        | ("InsertChar"i | "InsertChars"i | "ich"i) expr? -> ich
-        | ("DeleteChar"i | "DeleteChars"i | "dch"i) expr? -> dch
-        | ("EraseChar"i | "EraseChars"i | "ech"i) expr? -> ech
+        | ("DeleteLine"i | "DeleteLines"i | "dl"i) expr?      -> dl
+        | ("InsertChar"i | "InsertChars"i | "ich"i) expr?     -> ich
+        | ("DeleteChar"i | "DeleteChars"i | "dch"i) expr?     -> dch
+        | ("EraseChar"i | "EraseChars"i | "ech"i) expr?       -> ech
+        | "EraseLine"i                                        -> el
+        | "EraseEOL"i                                         -> el_eol
+        | "EraseBOL"i                                         -> el_bol
+        | ("EraseDisplay"i | "EraseScreen"i)                  -> ed    // Erase w/o cursor moving
+        | "EraseEOS"i                                         -> ed_eos
+        | "EraseBOS"i                                         -> ed_bos
+        | ("Clear"i | "CLS"i)                                 -> clear // Erase + Home cursor
 
 term_scroll_cmd: ("ScrollUp"i | "ri"i) -> ri
         | ("ScrollDown"i | "ind"i) -> ind

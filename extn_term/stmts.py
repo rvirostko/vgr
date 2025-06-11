@@ -26,7 +26,7 @@ class TermConsts:
         https://invisible-island.net/xterm/ctlseqs/ctlseqs.html
     """
 
-    BSTYLES = ("Empty", "ASCII", "Single", "Double", "SingleDouble", "DoubleSingle", "Brackets")
+    BSTYLES = ("Empty", "ASCII", "Single", "Double", "SingleDouble", "DoubleSingle", "Brackets", "Parens")
 
     # Box style constants
     BSTYLE_BLANK = 0
@@ -36,21 +36,23 @@ class TermConsts:
     BSTYLE_SINGLEDOUBLE = 4
     BSTYLE_DOUBLESINGLE = 5
     BSTYLE_BRACKETS = 6
+    BSTYLE_PARENS = 7
 
     # Box parts
-    I_HBAR = 0
-    I_VBAR = 1
-    I_TL   = 2
-    I_TR   = 3
-    I_BL   = 4
-    I_BR   = 5
-    I_LT   = 6  # Left tee
-    I_RT   = 7  # Right tee
-    I_TT   = 8  # Top tee
-    I_BT   = 9  # Bottom tee
-    I_CC   = 10  # Center cross
+    I_HBAR  = 0
+    I_VBAR  = 1
+    I_TL    = 2
+    I_TR    = 3
+    I_BL    = 4
+    I_BR    = 5
+    I_LT    = 6  # Left tee
+    I_RT    = 7  # Right tee
+    I_TT    = 8  # Top tee
+    I_BT    = 9  # Bottom tee
+    I_CC    = 10  # Center cross
+    I_RVBAR = 11 # Alternate VBAR for righthand side
 
-    SP     = ' '
+    SP      = ' ' # Space char
 
     # Graphics names:
     #  TL     HBAR    TT    HBAR     TR
@@ -65,6 +67,7 @@ class TermConsts:
     # SD_ : single horz, double vert
     # DS_ : double horz, single vert
     # BR_ : brackets
+    # PR_ : parens
 
     # Single line graphics
     HBAR = '─'
@@ -118,15 +121,18 @@ class TermConsts:
     DS_BT   = '╧'
     DS_CC   = '╪'
 
-    BOX_BLANK = (SP, SP, SP, SP, SP, SP, SP, SP, SP, SP, SP)
-    BOX_ASCII = ('-', '|', '+', '+', '+', '+', '+', '+', '+', '+', '+')
-    BOX_SINGLE = (HBAR, VBAR, TL, TR, BL, BR, LT, RT, TT, BT, CC)
-    BOX_DOUBLE = (D_HBAR, D_VBAR, D_TL, D_TR, D_BL, D_BR, D_LT, D_RT, D_TT, D_BT, D_CC)
-    BOX_SINGLEDOUBLE = (SD_HBAR, SD_VBAR, SD_TL, SD_TR, SD_BL, SD_BR, SD_LT, SD_RT, SD_TT, SD_BT, SD_CC)
-    BOX_DOUBLESINGLE = (DS_HBAR, DS_VBAR, DS_TL, DS_TR, DS_BL, DS_BR, DS_LT, DS_RT, DS_TT, DS_BT, DS_CC)
-    BOX_BRACKETS = (SP, '⎜', '⎛', '⎞', '⎝', '⎠', SP, SP, SP, SP, SP)
 
-    BOXES = (BOX_BLANK, BOX_ASCII, BOX_SINGLE, BOX_DOUBLE, BOX_SINGLEDOUBLE, BOX_DOUBLESINGLE, BOX_BRACKETS)
+    BOX_BLANK = (SP, SP, SP, SP, SP, SP, SP, SP, SP, SP, SP, SP)
+    BOX_ASCII = ('-', '|', '+', '+', '+', '+', '+', '+', '+', '+', '+', '|')
+    BOX_SINGLE = (HBAR, VBAR, TL, TR, BL, BR, LT, RT, TT, BT, CC, VBAR)
+    BOX_DOUBLE = (D_HBAR, D_VBAR, D_TL, D_TR, D_BL, D_BR, D_LT, D_RT, D_TT, D_BT, D_CC, D_VBAR)
+    BOX_SINGLEDOUBLE = (SD_HBAR, SD_VBAR, SD_TL, SD_TR, SD_BL, SD_BR, SD_LT, SD_RT, SD_TT, SD_BT, SD_CC, SD_VBAR)
+    BOX_DOUBLESINGLE = (DS_HBAR, DS_VBAR, DS_TL, DS_TR, DS_BL, DS_BR, DS_LT, DS_RT, DS_TT, DS_BT, DS_CC, DS_VBAR)
+    BOX_BRACKETS = (SP, '⎢', '⎡', '⎤', '⎣', '⎦', SP, SP, SP, SP, SP, '⎥' ) #VBARS are (U+23A2) and (U+23A5)
+    BOX_PARENS = (SP, '⎜', '⎛', '⎞', '⎝', '⎠', SP, SP, SP, SP, SP, '⎟' ) # VBARs are (U+239C) and (U+239F)
+    # NB: See https://unicodeplus.com/category/Sm/4 for details on multi part characters
+
+    BOXES = (BOX_BLANK, BOX_ASCII, BOX_SINGLE, BOX_DOUBLE, BOX_SINGLEDOUBLE, BOX_DOUBLESINGLE, BOX_BRACKETS, BOX_PARENS)
 
     SOS = "\x1bX" # Start of String (SOS  is 0x98)
     CSI = "\x1b[" # Control Sequence Introducer (CSI  is 0x9b)
@@ -213,8 +219,9 @@ class TermConsts:
     EL_BOL =         "\x1b[1K" # To begining of line
     EL_ALL =         "\x1b[2K" # The entire line
 
-    CLEAR_EOS =      "\x1b[0J"
-    CLEAR_SCREEN =   "\x1b[2J"
+    ED_FWD =         "\x1b[0J" # Cursor to end of display
+    ED_BCK =         "\x1b[1J" # Start of display to cursor
+    ED_ALL =         "\x1b[2J" # Erase entire display
 
     # Scrolling margins
     SECSTBM =        "\x1b[{};{}r" # top and bottom lines
@@ -319,8 +326,10 @@ def _resolve_box_style(val: Any) -> int:
             return TermConsts.BSTYLE_SINGLEDOUBLE
         if s in ('ds', 'doublesingle', str(TermConsts.BSTYLE_DOUBLESINGLE)):
             return TermConsts.BSTYLE_DOUBLESINGLE
-        if s in ('br', 'brackets', str(TermConsts.BSTYLE_BRACKETS)):
+        if s in ('br', 'bracket', 'brackets', str(TermConsts.BSTYLE_BRACKETS)):
             return TermConsts.BSTYLE_BRACKETS
+        if s in ('pr', 'paren', 'parens', str(TermConsts.BSTYLE_PARENS)):
+            return TermConsts.BSTYLE_PARENS
     return TermConsts.BSTYLE_BLANK
 
 def _canonical_color_name(val: str) -> str:
@@ -491,7 +500,7 @@ def _term_draw_box(dd: DataDictionary, cmd: Tree) -> None:
             _print(TermConsts.CUP.format(row, col),
                    TermConsts.BOXES[style][TermConsts.I_VBAR],
                    inside,
-                   TermConsts.BOXES[style][TermConsts.I_VBAR])
+                   TermConsts.BOXES[style][TermConsts.I_RVBAR])
             row += 1
     # And the bottom
     _print(TermConsts.CUP.format(row, col),
@@ -608,9 +617,7 @@ def _parse_dsr_response(seq: str, terminator: str) -> list[int]:
 
 _CMD_DISPATCH = {
     "box":            _term_draw_box,
-    "clear_eol":      lambda _d, _c: _print(TermConsts.EL_EOL),
-    "clear_eos":      lambda _d, _c: _print(TermConsts.CLEAR_EOS),
-    "clear":          lambda _d, _c: _print(TermConsts.CLEAR_SCREEN, TermConsts.CUP_HOME),
+    "clear":          lambda _d, _c: _print(TermConsts.ED_ALL, TermConsts.CUP_HOME),
     "ctrl_ack":       lambda _d, _c: _print("\x06"),
     "ctrl_bel":       lambda _d, _c: _print("\a"),
     "ctrl_bs":        lambda _d, _c: _print("\b"),
@@ -669,9 +676,12 @@ _CMD_DISPATCH = {
     "dl":             lambda d, c: _term_with_count(d, c, TermConsts.DL),
     "dsr_cursor":     _term_get_cursor_pos,
     "ech":            lambda d, c: _term_with_count(d, c, TermConsts.ECH),
-    "el_all":         lambda _d, _c: _print(TermConsts.EL_ALL),
+    "ed_bos":         lambda _d, _c: _print(TermConsts.ED_BCK),
+    "ed_eos":         lambda _d, _c: _print(TermConsts.ED_FWD),
+    "ed":             lambda _d, _c: _print(TermConsts.ED_ALL),
     "el_bol":         lambda _d, _c: _print(TermConsts.EL_BOL),
-    "el":             lambda _d, _c: _print(TermConsts.EL_EOL),
+    "el_eol":         lambda _d, _c: _print(TermConsts.EL_EOL),
+    "el":             lambda _d, _c: _print(TermConsts.EL_ALL),
     "hline":          _term_draw_hline,
     "hpa":            lambda d, c: _term_with_count(d, c, TermConsts.HPA),
     "hts":            lambda _d, _c: _print(TermConsts.HTS),
