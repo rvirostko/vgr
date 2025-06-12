@@ -12,7 +12,7 @@ from lark import Lark, Tree, Token, Transformer, v_args
 from app_exceptions import remember_terminals, VgrStatementBreak, VgrStatementContinue, VgrRuntimeError, VgrException
 from data_dict import DataDictionary
 from dbg import print_tree
-from dd_config import dd_set_statement, dd_clear_scratch, dd_path, do_set, do_unset
+from dd_config import dd_set_statement, dd_clear_scratch, dd_path, do_set, do_unset, dd_push_source, dd_pop_source
 from evaluate import bind_operations, eval_expr, eval_filename_expr
 from mathpak import poly_bool, poly_list, poly_int
 from redir import execute_open, execute_close, print_stderr
@@ -310,19 +310,23 @@ def remove_comments(input_text: str) -> str:
 
 _parser_context: ContextVar = ContextVar('vgr_parser_context', default=None)
 
-def execute_statements(parser: Lark, dd: DataDictionary, statement_text: str, source: str=None) -> None:
-    statement_text = remove_comments(statement_text)
-    if not statement_text or statement_text.isspace(): return
-    _parser = _parser_context.get() if parser is None else parser
-    remember_terminals(_parser)
-    SSM.set_statement(statement_text, source)
-    statements: Tree = _parser.parse(statement_text)
-    for statement in statements.children:
-        try:
-            if parser is not None: _parser_context.set(parser)
-            dispatch_statement(dd, statement)
-        finally:
-            if parser is not None: _parser_context.set(None)
+def execute_statements(parser: Lark, dd: DataDictionary, statement_text: str, source: str) -> None:
+    try:
+        dd_push_source(dd, source)
+        statement_text = remove_comments(statement_text)
+        if not statement_text or statement_text.isspace(): return
+        _parser = _parser_context.get() if parser is None else parser
+        remember_terminals(_parser)
+        SSM.set_statement(statement_text, source)
+        statements: Tree = _parser.parse(statement_text)
+        for statement in statements.children:
+            try:
+                if parser is not None: _parser_context.set(parser)
+                dispatch_statement(dd, statement)
+            finally:
+                if parser is not None: _parser_context.set(None)
+    finally:
+        dd_pop_source(dd)
 
 def dispatch_statement(dd: DataDictionary, statement: Tree) -> None:
     text = SSM.source_for(statement)
