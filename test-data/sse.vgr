@@ -1,0 +1,47 @@
+# ASCII art file should be stored in the same dir as this script
+# so use the source name's directory to always find it
+Load sse from vgr.source.FirstItem().DirName() + "/NCC-1701A.txt" As Text Lines
+Set sse_max To sse.StringLen().Max()
+Set sse To sse.LeftJustify(sse_max)
+Set line To ((term.size.rows - sse.Length()) / 3).ToInt()
+Set fps To 30
+
+Term GetTermSize, BG="black", FG="white", Clear, CursorHide
+
+For scene = 0 To 32:
+    If scene > 0:
+        Sleep 1 / 5 Second
+        # Flip the art
+        Set sse To sse.StrRev().Translate("/\\'`", "\\/`'")
+        Set fps *= 1.5
+    End
+    If scene.Mod(2):
+        # Right-to-Left movement
+        For frame = 1 To (sse.FirstItem().Length() + term.size.cols):
+            For j = 0 To sse.Length() - 1:
+                Set l to (2 * line) + j
+                If frame <= sse_max:
+                    Term Pos l,(term.size.cols - frame), Print sse.Item(j).LeftStr(frame)
+                Else:
+                    Term Pos l,1, DeleteChar 1
+                End
+            Next
+            Sleep 1 / fps Second
+        Next
+    Else:
+        # Left-to-Right movement
+        For frame = 1 To (sse.FirstItem().Length() + term.size.cols):
+            For j = 0 To sse.Length() - 1:
+                Set l to line + j
+                If frame <= sse_max:
+                    Term Pos l,1, Print sse.Item(j).RightStr(frame)
+                Else:
+                    Term Pos l,1, InsertChar 1
+                End
+            Next
+            Sleep 1 / fps Second
+        Next
+    End
+Next
+
+Term BG=None, FG=None, Clear, Reset
