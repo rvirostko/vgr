@@ -16,7 +16,7 @@ class DataDictionary():
     _ECHO_PATH = (_ARG_PREFIX, 'echo')
 
     # These can't appear in a path name (to prevent confusion)
-    _RESERVED_WORDS = ('true', 'false', 'none', 'null', 'inf', 'nan')
+    _RESERVED_WORDS = ('true', 'false', 'none', 'null')
 
     def __init__(self):
         self._dd = {}
