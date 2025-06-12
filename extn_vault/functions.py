@@ -33,10 +33,11 @@ _TIME_UNITS_FACTOR = [
 
 def duration_to_ms(duration: Any) -> int:
     """
-    Convert a Vault duration value to milliseconds.
-    Numeric values are assumed to be in seconds.
-    String values are converted as per the Vault specification
-    for duration strings."""
+**Convert a Vault duration value to milliseconds**
+
+Numeric values are assumed to be in seconds.
+String values are converted as per the Vault specification for duration strings.
+"""
     if duration is None:
         return None
     # Numeric values are assumed to be in seconds
@@ -65,9 +66,8 @@ def duration_to_ms(duration: Any) -> int:
 
 def ms_to_duration(ms: Any) -> str:
     """
-    Converts a duration in milliseconds into a
-    Vault duration string.
-    """
+**Converts a duration in milliseconds into a Vault duration string**
+"""
     if ms is None:
         return None
     if not isinstance(ms, (int, float)):
