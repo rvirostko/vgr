@@ -8,7 +8,7 @@ import traceback
 
 from lark import Lark, exceptions
 
-from app_exceptions import VgrExitingException, format_generic_exception, format_unexpected_input, VgrRuntimeError, VgrException
+from app_exceptions import VgrExitingException, format_generic_exception, format_unexpected_input, VgrException
 from data_dict import DataDictionary
 from dd_config import dd_init, dd_parse_user_args
 from dd_config import DEFAULT_FOR_TYPE_PATH, SHELL_HISTORY_PATH, SHELL_HISTORY_SIZE_PATH, SHELL_PROMPT_PATH
@@ -48,7 +48,7 @@ class VGRCmdLine(CmdLine):
 
     def execute_statements(self, text: str) -> None:
         try:
-            execute_statements(self._parser, self._dd, text)
+            execute_statements(self._parser, self._dd, text, '<shell>')
         except exceptions.UnexpectedInput as e:
             if self.debug:
                 traceback.print_exc(file=sys.stderr)
@@ -212,7 +212,6 @@ def load_extensions(dd: DataDictionary, extn_file: str) -> VgrExtensionRegistry:
                 STATEMENT_HANDLERS[name] = handler
         for func_name, func in extn.functions().items():
             add_function(extn_name, func_name, func)
-
     dd.set_var(extns, *('vgr', 'extensions'))
     return VER
 
