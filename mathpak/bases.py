@@ -9,6 +9,11 @@ from .common import type_str, NoneType
 from .types import poly_int
 
 def poly_bin(x: Any) -> Any:
+    """
+**Convert an integer number to a binary string prefixed with “0b”**
+
+Distributed across all collections except dictionaries.
+"""
     if x is None: return None
     if isinstance(x, (bool, int, float)): return bin(int(x))
     if isinstance(x, str): return bin(poly_int(x))
@@ -16,6 +21,11 @@ def poly_bin(x: Any) -> Any:
     raise TypeError(f'Binary format with {type_str(x)} not supported')
 
 def poly_oct(x: Any) -> Any:
+    """
+**Convert an integer number to an octal string prefixed with “0o”**
+
+Distributed across all collections except dictionaries.
+"""
     if x is None: return None
     if isinstance(x, (bool, int, float)): return oct(int(x))
     if isinstance(x, str): return oct(poly_int(x))
@@ -23,6 +33,11 @@ def poly_oct(x: Any) -> Any:
     raise TypeError(f'Octal format with {type_str(x)} not supported')
 
 def poly_hex(x: Any) -> Any:
+    """
+**Convert an integer number to a hexadecimal string prefixed with “0x”**
+
+Distributed across all collections except dictionaries.
+"""
     if x is None: return None
     if isinstance(x, (bool, int, float)): return hex(int(x))
     if isinstance(x, str): return hex(poly_int(x))
