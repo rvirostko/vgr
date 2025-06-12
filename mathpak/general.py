@@ -5,16 +5,56 @@ import sys
 from .common import str_to_number, type_str, bool_arg, dist_x
 from .inequ import poly_lt, poly_gt, poly_eq, poly_ne
 
+def poly_reverse(x: Any) -> Any:
+    """
+**Reverses the contents an item**
+
+If the item is an ordinal rather than a list, it is returned unchanged.
+See the Python [reversed() function](https://docs.python.org/3/library/functions.html#reversed)
+"""
+    if isinstance(x, (list, tuple)):
+        return type(x)(reversed(x))
+    if isinstance(x, str):
+        return x[::-1]
+    return x
+
+def poly_ascii(x: Any) -> str:
+    """
+**Returns a printable ASCII string for an item**
+
+Similar to both Repr() and ToStr().
+See the Python [ascii() function](https://docs.python.org/3/library/functions.html#ascii)
+"""
+    return ascii(x)
+
 def poly_hash(x: Any) -> int:
     return hash(x)
 
 def poly_repr(x: Any) -> str:
+    """
+**Returns a string representation of an item
+
+Differs slightly from ToStr() as it quotes string values.
+See the Python [repr() function][https://docs.python.org/3/library/functions.html#repr]
+Also see Ascii()
+"""
     return repr(x)
 
 def poly_type(x: Any) -> str:
+    """
+**Return the Python type of an item**
+
+For _None_ the value _NoneType_ is returned.
+"""
     return type(x).__name__
 
 def poly_len(x: Any) -> bool:
+    """
+**Return the length of an an item**
+
+Returns the length of arrays, tuples, and strings.
+For all other items _None_ is returned.
+"""
     return len(x) if hasattr(x, '__len__') else None
 
 def poly_sort(x: Any, unique: bool=False, reverse: bool=False) -> Any:
@@ -33,7 +73,9 @@ def poly_isempty(x: Any) -> bool:
     return not x or (isinstance(x, str) and x.isspace())
 
 def poly_sizeof(x: Any) -> int:
-    """Recursively calculates the size of an object and all its contents"""
+    """
+**Recursively calculates the size of an item and all its contents**
+"""
     base: int = sys.getsizeof(x)
     if isinstance(x, (list, tuple, set, dict)): return base + sum(poly_sizeof(x1) for x1 in x)
     if isinstance(x, dict): return base + sum(poly_sizeof(key) + poly_sizeof(value) for key, value in x.items())
@@ -41,20 +83,32 @@ def poly_sizeof(x: Any) -> int:
 
 def poly_getitem(x:Any, index: Any) -> Any:
     """
-    Return the N-th item.
-    None is returned if the index is invalid or None.
-    If x is an ordinal, it is returned unchanged.
-    """
+**Return the N-th item for a lis**
+
+If the index is invalid or _None_ then _None_ is returned.
+If the item is an ordinal rather than a list, it is returned unchanged.
+"""
     if not isinstance(x, (list, tuple)): return x
     if isinstance(index, (list, tuple)): return dist_x(poly_getitem, x, index)
     i: int = int(index) if isinstance(index, (int, float)) else str_to_number(index) if isinstance(index, str) else None
     return x[i] if i is not None and 0 <= i < len(x) else None
 
 def poly_firstitem(x: Any) -> Any:
-    """Return the first item from a list."""
+    """
+**Return the first item from a list**
+
+If the list is empty then _None_ is returned.
+If the item is an ordinal rather than a list, it is returned unchanged.
+"""
     return poly_getitem(x, 0)
 
 def poly_lastitem(x: Any) -> Any:
+    """
+**Return the last item from a list**
+
+If the list is empty then _None_ is returned.
+If the item is an ordinal rather than a list, it is returned unchanged.
+"""
     if not isinstance(x, (list, tuple)): return x
     return x[-1] if len(x) > 0 else None
 
