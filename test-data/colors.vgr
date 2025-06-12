@@ -1,66 +1,33 @@
+Term GetWindowSize
+Assert term.size.cols ≥ 80 And term.size.rows ≥ 24 : "Window too small for demo"
+
 Set iter To 16
 Set sleep_time To 5
-# TODO we need a Max() and Min()!
-# Let max_len = term.color_names.Length().Max()
-Let max_len = 14
-
 Let named_colors = term.color_names
 For i = 1 to 24
     Set named_colors += ["Gray{}".Format(i)]
 Next
-
-Load sse from "test-data/NCC-1701A.txt" As Text Lines
-Set lengths To []
-ForEach l in sse: lengths += [l.Length()]; End
-Set sse_max To lengths.Sort().LastItem()
-
-# TODO New Syntax
-#Set sse_max To sse.StringLen().Max()
-Set sse To sse.LeftJustify(sse_max)
+Let max_len = named_colors.StrLen().Max()
 
 Term CursorHide
 Perform iter Times
 
     #-------------------------------------------------------------------------
-    Term GetTermSize, BG="black", FG="white", Clear
-    Set line To ((term.size.rows - sse.Length()) / 2).ToInt()
-    Term pos 1,1, Print "cols: {} rows: {}".Format(term.size.cols, term.size.rows)
-    For i = 1 To (sse.FirstItem().Length() + term.size.cols):
-        Term Pos 2,1, Print "i: {}".Format(i)
-        For j = 0 To sse.Length() - 1:
-            If i <= sse_max:
-                Term Pos line + j,1, Print sse.Item(j).RightStr(i)
-            Else:
-                Term Pos line + j,1, InsertChar 1
-            End
-        Next
-        Sleep 1 / 30 Second
-    Next
-    Term Pos 1,1, EraseEOL
-    Term Pos 2,term.size.cols, EraseBOL
-    Term BG=None, FG=None
-    #-------------------------------------------------------------------------
-    continue;
-
-    #-------------------------------------------------------------------------
     Term Reset, Clear, DHPrint "Boxes and Lines"
     Term FG="bright white", BG="bright red"
     For i = 1 To 7
-        Term Pos 2+i,0, Box 1,(i*10)
+        Term Pos 2+i,0, HLine i*10
     Next
     For i = 2 To 7
-        Term Pos 3,(i*10), Box i,1
+        Term Pos 3,(i*10), VLine i
     Next
     For i = 2 To 8
         Term Pos 10,(i - 2)*10, Box i,i
-        If i < 5:
-            Term CUF i - 1
-        End
         Term Bold, Print "{0}x{0}".Format(i), Bold=False
     Next
     Set line = 19
     Set col = 1
-    Set bwidth = 14
+    Set bwidth = term.bstyles.StrLen().Max() + 2
     Set bheight = 3
     Term FG="bright white", BG="bright green"
     ForEach bstyle In term.bstyles:
@@ -71,6 +38,7 @@ Perform iter Times
             Set col To 1
         End
     End
+    Term Reset
     Sleep sleep_time Seconds
     #-------------------------------------------------------------------------
 
@@ -86,6 +54,7 @@ Perform iter Times
         ["underline",     "Underlined Text"],
         ["reverse",       "Reverse Text"],
         ["strikethrough", "Strike-out Text"],
+        ["hidden",        "Hidden Text"],
         ["bold blue rev", "Combined Settings"]
     ]
     ForEach style In styles:
@@ -110,6 +79,7 @@ Perform iter Times
             Term BG, CR, LF
         End-If
     Next
+    Term Reset
     Sleep sleep_time Seconds
     #-------------------------------------------------------------------------
 
@@ -119,13 +89,12 @@ Perform iter Times
     For color = 0 to 255
         Term BG=color, Print color.RightJustify(4), Print " "
         If !((color + 1) % 16):
-            # Need resume default background in case we scroll
-            Term BG, CR, LF
+            Term CR, LF
         End
     Next
+    Term Reset
     Sleep sleep_time Seconds
     #-------------------------------------------------------------------------
-
 
 End-Perform
 
