@@ -51,6 +51,12 @@ def exec_str_op(x: Any, name: str, op: Callable[[Any], Any], string_op) -> Any:
 def exec_bool_op(x: Any, name: str, op: Callable[[Any], Any], string_op) -> Any:
     return exec_x_op(x, name, op, string_op, bool_operations)
 
+def poly_strlen(x: Any) -> Any:
+    return exec_str_op(x, 'StringLen', poly_strlen, str.__len__)
+
+def poly_strrev(x: Any) -> Any:
+    return exec_str_op(x, 'StringRev', poly_strrev, lambda s: s[::-1])
+
 def poly_capitalize(x: Any) -> Any:
     return exec_str_op(x, 'Capitalize', poly_capitalize, str.capitalize)
 
