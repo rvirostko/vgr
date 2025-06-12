@@ -44,9 +44,6 @@ def search_functions(query: str, limit: int = 10) -> list[tuple[str, Callable]]:
     q = (query or "").strip().replace('_', '').lower()
     # If no args, return all
     if not q: return [(name, get_function_op(name)) for name in get_function_names()]
-    # Return exact match immediately if found
-    entry = get_function(q)
-    if entry: return [entry]
     tokens = q.split()
     scores = {}
     # Canonical name, (Name normalized, documentation normalized)
@@ -58,9 +55,14 @@ def search_functions(query: str, limit: int = 10) -> list[tuple[str, Callable]]:
         # 3. Composite score: prioritize full match, reward partial token matches
         score = full_score * 1.5 + sum(token_scores)
         scores[name] = score
-    # Return top N by score
-    top_matches = sorted(scores.items(), key=lambda x: -x[1])[:limit]
-    return [(name, get_function_op(name)) for name, _ in top_matches]
+    if not scores: return []
+    threshold = max(scores.values()) * 0.70  # discard weak matches
+    # Only include matches above threshold, sorted by score descending
+    filtered_matches = [
+        (name, score) for name, score in scores.items() if score >= threshold
+    ]
+    filtered_matches.sort(key=lambda x: -x[1])
+    return [(name, get_function_op(name)) for name, _ in filtered_matches[:limit]]
 
 def print_doc(func) -> None:
     doc = (func.__doc__ or "").strip()
