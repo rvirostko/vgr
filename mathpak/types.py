@@ -33,6 +33,9 @@ def poly_bool(x: Any) -> Any:
     return True
 
 def poly_isbool(x: Any) -> bool:
+    """
+**Returns _True_ if the item a boolean**
+"""
     return isinstance(x, bool)
 
 def poly_float(x: Any) -> Any:
@@ -42,6 +45,9 @@ def poly_float(x: Any) -> Any:
     return None
 
 def poly_isfloat(x: Any) -> bool:
+    """
+**Returns _True_ if the item an float**
+"""
     return isinstance(x, float)
 
 def poly_int(x: Any) -> Any:
@@ -51,7 +57,9 @@ def poly_int(x: Any) -> Any:
     return None
 
 def poly_isint(x: Any) -> bool:
-    """Is the item an integer?"""
+    """
+**Returns _True_ if the item an integer**
+"""
     return isinstance(x, int)
 
 def poly_number(x: Any) -> Any:
@@ -61,13 +69,16 @@ def poly_number(x: Any) -> Any:
     return None
 
 def poly_isnumber(x: Any) -> bool:
-    """Is the item a number?"""
+    """
+**Returns _True_ if the item a number**
+"""
     return isinstance(x, (int, float))
 
 def poly_str(x: Any) -> Any:
     """
-    Convert the item to it's string representation.
-    None is left as None, not converted to 'None'.
+**Converts the item to its string representation**
+
+If the item is _None_ it is left as _None_, not converted to _'None'_.
     """
     if x is None: return None
     if isinstance(x, bytes): return x.decode('utf-8')
@@ -77,19 +88,24 @@ def poly_str(x: Any) -> Any:
     return str(x)
 
 def poly_isstr(x: Any) -> bool:
-    """Is the item a string?"""
+    """
+**Returns _True_ if the item a string**
+"""
     return isinstance(x, str)
 
 def poly_islist(x: Any) -> bool:
-    """Is the item a collection?"""
+    """
+**Returns _True_ if the item a collection**
+"""
     return isinstance(x, (list, tuple))
 
 def poly_list(x: Any) -> Any:
     """
-    Convert the item to a list.
-    Dictionaries are converted to a list of key/value tuples.
-    """
-    if x is None: return None
+**Converts the item to a list**
+
+Dictionaries are converted to a list of key/value pairs.
+"""
+    if x is None: return []
     if isinstance(x, (list, tuple)): return x
     if isinstance(x, dict): return [(key, x[key]) for key in sorted(x)]
     return [x]
