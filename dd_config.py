@@ -10,6 +10,7 @@ import math
 import os
 import re
 import string
+import sys
 
 from lark import Tree
 
@@ -23,6 +24,7 @@ LOG_LEVEL_PATH = (_VGR_PREFIX, 'log_level')
 SHELL_PROMPT_PATH = (_VGR_PREFIX, 'prompt')
 SHELL_HISTORY_PATH = (_VGR_PREFIX, 'history')
 SHELL_HISTORY_SIZE_PATH = (_VGR_PREFIX, 'history_size')
+SOURCE_STACK_PATH = (_VGR_PREFIX, 'source')
 
 _SCRATCH_PREFIX = '_'
 ROWID_PATH = (_SCRATCH_PREFIX, 'rowid')
@@ -43,6 +45,7 @@ def dd_init() -> DataDictionary:
     dd = DataDictionary()
     dd.add_protected_prefix(_ARG_PREFIX)
     dd.add_immutable_prefix(_VGR_PREFIX)
+    dd.set_var([], *SOURCE_STACK_PATH)
     dd.set_var({}, _SCRATCH_PREFIX)
     dd.add_protected_prefix(_SCRATCH_PREFIX)
     for flag in _RE_FLAGS:
@@ -52,6 +55,9 @@ def dd_init() -> DataDictionary:
         name = mod.__name__
         dd.set_var(_get_consts(mod), name)
         dd.add_immutable_prefix(name)
+    dd.set_var(-math.inf, 'math', 'neg_inf')
+    dd.set_var(sys.float_info.max, 'math', 'float', 'max')
+    dd.set_var(sys.float_info.min, 'math', 'float', 'min')
     for func, name in ((_get_os_consts, 'os'), (_get_environment, 'env')):
         dd.set_var(func(), name)
         dd.add_immutable_prefix(name)
@@ -80,6 +86,22 @@ def dd_parse_user_args(dd: DataDictionary, user_args: list) -> None:
 
 def dd_set_statement(dd: DataDictionary, statement_text: str) -> str:
     dd.set_var(statement_text, *_STATEMENT_PATH)
+
+def dd_pop_source(dd: DataDictionary) -> str:
+    source_stack: list = dd.get_var(*SOURCE_STACK_PATH)
+    rc = source_stack.pop() if source_stack else ''
+    dd.set_var(source_stack, *SOURCE_STACK_PATH)
+    return rc
+
+def dd_push_source(dd: DataDictionary, source: str) -> str:
+    # the <...> notation is used to indicate cmd line, stdin, etc
+    # which don't really have a file name.
+    # the source stack is strictly for file name context
+    if source.startswith('<') and source.endswith('>'): source = ''
+    source_stack: list = dd.get_var('vgr', 'source')
+    source_stack.insert(0, source)
+    dd.set_var(source_stack, 'vgr', 'source')
+    return source
 
 def dd_clear_scratch(dd: DataDictionary) -> None:
     dd.get_var(_SCRATCH_PREFIX).clear()
