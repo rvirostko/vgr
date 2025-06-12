@@ -46,7 +46,7 @@ class VGRCmdLine(CmdLine):
         print_md('_Type `exit` to exit_')
         return super().run()
 
-    def execute_statements(self, text: str) -> None:
+    def execute_statements(self, text: str) -> bool:
         try:
             execute_statements(self._parser, self._dd, text, '<shell>')
         except exceptions.UnexpectedInput as e:
@@ -60,7 +60,7 @@ class VGRCmdLine(CmdLine):
             if isinstance(e, VgrExitingException):
                 t: VgrExitingException = e
                 if t.statement.data == 'exit':
-                    raise e
+                    return False
             if self.debug:
                 traceback.print_exc(file=sys.stderr)
             else:
@@ -70,6 +70,7 @@ class VGRCmdLine(CmdLine):
                 traceback.print_exc(file=sys.stderr)
             else:
                 print(format_generic_exception(e))
+        return True
 
     @property
     def debug(self) -> bool:

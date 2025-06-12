@@ -239,7 +239,8 @@ Changes made at runtime are not persistent.
         if self.verbose: print(*args, **kwargs)
 
     @abstractmethod
-    def execute_statements(self, text: str) -> None: pass
+    def execute_statements(self, text: str) -> bool:
+        return True
 
     @property
     @abstractmethod
@@ -291,4 +292,5 @@ Changes made at runtime are not persistent.
                             self._dispatch[command](*options)
                             continue
                     # Didn't look like a shell command, so it must be a statement
-                    self.execute_statements(text)
+                    if not self.execute_statements(text):
+                        break

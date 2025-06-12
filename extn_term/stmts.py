@@ -726,5 +726,8 @@ def execute_term_statement(dd: DataDictionary, statement: Tree) -> None:
             handler = _CMD_DISPATCH.get(cmd.data)
             if handler is None: raise ValueError(f"Unhandled term command: {cmd.data}")
             handler(dd, cmd)
-        except (Exception, KeyboardInterrupt) as e:
+        except KeyboardInterrupt as e:
+            _print('\n')
+            raise VgrRuntimeError(cmd, e) from e
+        except Exception as e:
             raise VgrRuntimeError(cmd, e) from e

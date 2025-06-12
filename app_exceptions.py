@@ -41,8 +41,9 @@ class VgrException(VisitError):
 
     def __str__(self):
         context = self.get_context()
-        location = f"{self.orig_exc} at line {self.line}, column {self.column}."
-        return f"{context}\n{location}" if context else location
+        exc_txt = "Interrupted" if isinstance(self.orig_exc, KeyboardInterrupt) else str(self.orig_exc).strip()
+        location = f'{exc_txt}{" at" if exc_txt else "At"} line {self.line}, column {self.column}'
+        return f'{context}\n{location}' if context else location
 
 class VgrRuntimeError(VgrException):
     def __init__(self, tree, orig_exc):

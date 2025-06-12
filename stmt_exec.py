@@ -15,7 +15,7 @@ from dbg import print_tree
 from dd_config import dd_set_statement, dd_clear_scratch, dd_path, do_set, do_unset, dd_push_source, dd_pop_source
 from evaluate import bind_operations, eval_expr, eval_filename_expr
 from mathpak import poly_bool, poly_list, poly_int
-from redir import execute_open, execute_close, print_stderr
+from redir import execute_open, execute_close, print_stderr, print_stdout
 from src_mgr import SSM
 from stmt_cflags import execute_debug, execute_echo, execute_verbose
 from stmt_exit import execute_assert, execute_exit
@@ -347,7 +347,10 @@ def dispatch_statement(dd: DataDictionary, statement: Tree) -> None:
             handler(dd, statement)
         except VgrException as e:
             raise e
-        except (Exception, KeyboardInterrupt) as e:
+        except KeyboardInterrupt as e:
+            print_stdout('')
+            raise VgrRuntimeError(statement, e) from e
+        except Exception as e:
             raise VgrRuntimeError(statement, e) from e
         finally:
             dd_clear_scratch(dd)

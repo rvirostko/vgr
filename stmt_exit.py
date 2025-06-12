@@ -27,6 +27,7 @@ The default return code is zero.
 Note that in this specific case "True" returns zero and "False" returns one.
 """
     rc = VgrExitingException.EXIT_SUCCESS
+    msg = 'Exiting'
     if statement.children:
         x = eval_expr(dd, statement.children[0])
         if x is not None:
@@ -34,8 +35,9 @@ Note that in this specific case "True" returns zero and "False" returns one.
                 rc = poly_int(x)
             except ValueError:
                 rc = VgrExitingException.EXIT_SUCCESS if poly_bool(x) else VgrExitingException.EXIT_FAILED
-    _LOG.info('Exiting with rc = %d', rc)
-    raise VgrExitingException(rc, statement, '')
+            msg = f'Exiting with rc = {rc}'
+    _LOG.info('%s', msg)
+    raise VgrExitingException(rc, statement, msg)
 
 def execute_assert(dd: DataDictionary, statement: Tree) -> None:
     """
