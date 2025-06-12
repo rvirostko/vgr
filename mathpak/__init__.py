@@ -2,8 +2,9 @@ from .add import poly_add, poly_vadd
 from .bit_ops import poly_bit_and, poly_bit_or, poly_bit_xor, poly_bit_not, poly_vbit_and, poly_vbit_or, poly_vbit_xor
 from .div import poly_div, poly_fdiv, poly_vdiv, poly_vfdiv, poly_divmod
 from .pow import poly_pow, poly_vpow
-from .general import poly_hash, poly_sizeof, poly_repr, poly_isempty, poly_len, poly_firstitem, poly_lastitem
-from .general import poly_getitem, poly_sort, poly_unique, poly_type, dsort
+from .general import poly_hash, poly_sizeof, poly_repr, poly_isempty, poly_len, poly_firstitem, poly_lastitem, poly_ascii
+from .general import poly_getitem, poly_sort, poly_unique, poly_type, dsort, poly_reverse
+from .stats import poly_max, poly_min, poly_mean, poly_median, poly_mode, poly_multimode, poly_stdev, poly_variance, poly_pstdev, poly_pvariance
 from .inequ import poly_eq, poly_ge, poly_gt, poly_le, poly_lt, poly_ne
 from .is_in import poly_in, poly_not_in, poly_contains_all, poly_contains_any
 from .logic import poly_and, poly_not, poly_or
@@ -22,7 +23,7 @@ from .strings import poly_substr, poly_append, poly_prepend, poly_isdecimal, pol
 from .strings import poly_vappend, poly_vprepend, poly_format, poly_vreplace, poly_vstrip, poly_vrstrip
 from .strings import poly_vlstrip, poly_vremoveprefix, poly_vremovesuffix, poly_split, poly_rsplit
 from .strings import poly_center, poly_ljust, poly_rjust, poly_zfill, poly_splitlines, poly_join
-from .strings import poly_find, poly_rfind, poly_shorten
+from .strings import poly_find, poly_rfind, poly_shorten, poly_strlen, poly_strrev
 from .sub import poly_sub, poly_vsub
 from .types import coerce_value, poly_bool, poly_float, poly_int, poly_isbool, poly_isfloat, poly_isint, poly_isnumber
 from .types import poly_isstr, poly_number, poly_str, poly_islist, poly_list
