@@ -3,7 +3,7 @@ from typing import Any
 
 from .common import get_operation, numeric_operations, dist_x, dist_y, str_to_number
 
-def poly_vadd(x: Any, *args):
+def poly_add(x: Any, *args):
     """
 **Polymorphic addition**
 
@@ -42,11 +42,11 @@ def poly_vadd(x: Any, *args):
 
 TypeError raised on all other combinations
 """
-    return reduce(poly_add, args, x)
+    return reduce(_add, args, x)
 
-def poly_add(x: Any, y: Any) -> Any:
+def _add(x: Any, y: Any) -> Any:
     operation = get_operation(x, y, add_operations, numeric_operations)
-    return operation(poly_add, x, y) if operation else x + y
+    return operation(_add, x, y) if operation else x + y
 
 add_operations = {
     (int, list): dist_y,

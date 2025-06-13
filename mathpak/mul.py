@@ -4,12 +4,13 @@ import itertools
 
 from .common import dist_x, dist_y, X_None_Op, Y_None_Op, get_operation, str_to_int
 
-def poly_vmul(x: Any, *args):
-    """Varargs version of poly_mul"""
-    return reduce(poly_mul, args, x)
+def poly_mul(x: Any, *args):
+    """
+**Polymorphic multiplication**
 
-def poly_mul(x: Any, y: Any) -> Any:
-    """Polymorphic multiplication function.
+* _x_ * _y_
+* _x_ × _y_
+* _x_.Mul(_y..._)
 
 | x     | y     | returns | operation           |
 |-------|-------|---------|---------------------|
@@ -41,8 +42,11 @@ def poly_mul(x: Any, y: Any) -> Any:
 
 TypeError raised on all other combinations
 """
+    return reduce(_mul, args, x)
+
+def _mul(x: Any, y: Any) -> Any:
     operation = get_operation(x, y, mul_operations)
-    return operation(poly_mul, x, y) if operation else x * y
+    return operation(_mul, x, y) if operation else x * y
 
 def product_list(_, x: list, y: Any) -> list:
     return list(itertools.product(iter(x), iter(y)))

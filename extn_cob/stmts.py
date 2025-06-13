@@ -12,7 +12,7 @@ from app_exceptions import VgrExitingException, VgrStatementBreak, VgrStatementC
 from data_dict import DataDictionary
 from dd_config import dd_path, do_set, do_assignment, do_unset
 from evaluate import eval_expr, bind_operations, eval_to_number
-from mathpak import poly_add, poly_bool, poly_sub, poly_number, poly_vadd, poly_vsub, poly_mul, poly_div
+from mathpak import poly_add, poly_bool, poly_sub, poly_number, poly_mul, poly_div
 from redir import print_stderr, print_stdout
 from src_mgr import SSM
 from stmt_exec import exec_if_else, exec_loop, exec_repeat, dispatch_statement
@@ -260,7 +260,7 @@ This is fundamentally an arithmetic, scalar opertion.
     path = tuple(name.value for name in statement.children[-1].children)
     x = poly_number(dd.get_var_user(*path)) or 0
     args = tuple(poly_number(eval_expr(dd, expr)) or 0 for expr in statement.children[:-1])
-    do_set(dd, poly_vadd(x, *args), *path)
+    do_set(dd, poly_add(x, *args), *path)
 
 def execute_add_giving(dd: DataDictionary, statement: Tree) -> None:
     """ Add two or more values and assign to a variable
@@ -272,7 +272,7 @@ This is fundamentally an arithmetic, scalar opertion.
 """
     path = tuple(name.value for name in statement.children[-1].children)
     args = tuple(poly_number(eval_expr(dd, expr)) or 0 for expr in statement.children[:-1])
-    do_set(dd, poly_vadd(*args), *path)
+    do_set(dd, poly_add(*args), *path)
 
 def execute_sub_from(dd: DataDictionary, statement: Tree) -> None:
     """ Subtract one or more values from a variable
@@ -285,7 +285,7 @@ This is fundamentally an arithmetic, scalar opertion.
     path = tuple(name.value for name in statement.children[-1].children)
     x = poly_number(dd.get_var_user(*path)) or 0
     args = tuple(poly_number(eval_expr(dd, expr)) or 0 for expr in statement.children[:-1])
-    do_set(dd, poly_vsub(x, *args), *path)
+    do_set(dd, poly_sub(x, *args), *path)
 
 def execute_sub_giving(dd: DataDictionary, statement: Tree) -> None:
     """ Subtract two or more values and assign to a variable
@@ -297,7 +297,7 @@ This is fundamentally an arithmetic, scalar opertion.
 """
     path = tuple(name.value for name in statement.children[-1].children)
     args = tuple(poly_number(eval_expr(dd, expr)) or 0 for expr in statement.children[:-1])
-    do_set(dd, poly_vsub(args[-1], *args[:-1]), *path)
+    do_set(dd, poly_sub(args[-1], *args[:-1]), *path)
 
 def execute_mul_by(dd: DataDictionary, statement: Tree) -> None:
     """ Multiply one number by another

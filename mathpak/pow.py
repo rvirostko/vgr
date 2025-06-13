@@ -1,4 +1,5 @@
 """
+The pow() function
 """
 
 from functools import reduce
@@ -6,12 +7,13 @@ from typing import Any
 
 from .common import numeric_operations, get_operation
 
-def poly_vpow(x: Any, *args):
-    """Varargs version of poly_pow"""
-    return reduce(poly_pow, args, x)
+def poly_pow(x: Any, *args):
+    """
+**Raise a value to a power**
 
-def poly_pow(x: Any, y: Any) -> Any:
-    """Polymorphic raising to a power function.
+* _x_ ** _y_
+* _x_ Pow _y_
+* _x_.Pow(_y..._)
 
 | x     | y     | returns | operation                                      |
 |-------|-------|---------|------------------------------------------------|
@@ -33,5 +35,8 @@ def poly_pow(x: Any, y: Any) -> Any:
 
 TypeError raised on all other combinations
 """
+    return reduce(_pow, args, x)
+
+def _pow(x: Any, y: Any) -> Any:
     operation = get_operation(x, y, numeric_operations)
-    return operation(poly_pow, x, y) if operation else x ** y
+    return operation(_pow, x, y) if operation else x ** y

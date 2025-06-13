@@ -3,12 +3,12 @@ from typing import Any
 
 from .common import get_operation, numeric_operations
 
-def poly_vsub(x: Any, *args):
-    """Varargs version of poly_sub"""
-    return reduce(poly_sub, args, x)
+def poly_sub(x: Any, *args):
+    """
+**Polymorphic subtraction**
 
-def poly_sub(x: Any, y: Any) -> Any:
-    """Polymorphic subtraction function.
+* _x_ - _y_
+* _x_.Sub(_y..._)
 
 | x     | y     | returns | operation               |
 |-------|-------|---------|-------------------------|
@@ -27,15 +27,18 @@ def poly_sub(x: Any, y: Any) -> Any:
 | tuple | int   | tuple   | distributed             |
 | tuple | float | tuple   | distributed             |
 | tuple | str   | tuple   | distributed             |
-| dict  | str   | dict    | remove y from x         |
+| dict  | str   | dict    | remove key y from x     |
 | dict  | list  | dict    | remove keys in y from x |
 | dict  | tuple | dict    | remove keys in y from x |
 | dict  | dict  | dict    | remove keys in y from x |
 
 TypeError raised on all other combinations
 """
+    return reduce(_sub, args, x)
+
+def _sub(x: Any, y: Any) -> Any:
     operation = get_operation(x, y, sub_operations, numeric_operations)
-    return operation(poly_sub, x, y) if operation else x - y
+    return operation(_sub, x, y) if operation else x - y
 
 def remove_keys(x: dict, y: Any) -> dict:
     return {k:v for k, v in x.items() if k not in y}

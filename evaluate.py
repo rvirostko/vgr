@@ -17,11 +17,11 @@ from functions import get_function_op
 from mathpak import poly_bool, poly_int, poly_vbit_or
 from mathpak import poly_ceil, poly_floor
 from mathpak import poly_contains_all, poly_contains_any, type_str, poly_number
-from mathpak import poly_eq, poly_vpow, poly_vfdiv, poly_ge, poly_imatches, poly_gt
-from mathpak import poly_in, poly_le, poly_lt, poly_matches, poly_vmod, poly_vmul
+from mathpak import poly_eq, poly_pow, poly_fdiv, poly_ge, poly_imatches, poly_gt
+from mathpak import poly_in, poly_le, poly_lt, poly_matches, poly_mod, poly_mul
 from mathpak import poly_ne, poly_not_imatches, poly_not_in
-from mathpak import poly_not_matches, poly_matches_all, poly_vshl, poly_vshr, poly_vsub, poly_not
-from mathpak import poly_vadd, poly_vbit_and, poly_vbit_xor, poly_vdiv
+from mathpak import poly_not_matches, poly_matches_all, poly_vshl, poly_vshr, poly_sub, poly_not
+from mathpak import poly_add, poly_vbit_and, poly_vbit_xor, poly_div
 from output import verify_relative_path
 
 def assert_has_meta(tree: Tree):
@@ -197,18 +197,18 @@ class OperationBinder(Transformer):
     def not_matches_op(self, tree): return SimpleOperation(tree, poly_not_matches)
 
     # Polymorphic operations with two or more operands
-    def add_op(self, tree): return SimpleOperation(tree, poly_vadd)
+    def add_op(self, tree): return SimpleOperation(tree, poly_add)
     def bit_and_op(self, tree): return SimpleOperation(tree, poly_vbit_and)
     def bit_or_op(self, tree): return SimpleOperation(tree, poly_vbit_or)
     def bit_xor_op(self, tree): return SimpleOperation(tree, poly_vbit_xor)
-    def div_op(self, tree): return SimpleOperation(tree, poly_vdiv)
-    def fdiv_op(self, tree): return SimpleOperation(tree, poly_vfdiv)
-    def mod_op(self, tree): return SimpleOperation(tree, poly_vmod)
-    def mul_op(self, tree): return SimpleOperation(tree, poly_vmul)
-    def pow_op(self, tree): return SimpleOperation(tree, poly_vpow)
+    def div_op(self, tree): return SimpleOperation(tree, poly_div)
+    def fdiv_op(self, tree): return SimpleOperation(tree, poly_fdiv)
+    def mod_op(self, tree): return SimpleOperation(tree, poly_mod)
+    def mul_op(self, tree): return SimpleOperation(tree, poly_mul)
+    def pow_op(self, tree): return SimpleOperation(tree, poly_pow)
     def shl_op(self, tree): return SimpleOperation(tree, poly_vshl)
     def shr_op(self, tree): return SimpleOperation(tree, poly_vshr)
-    def sub_op(self, tree): return SimpleOperation(tree, poly_vsub)
+    def sub_op(self, tree): return SimpleOperation(tree, poly_sub)
 
     # Polymorphic operations with a single arg
     def ceil_op(self, tree): return SimpleOperation(tree, poly_ceil)

@@ -5,26 +5,30 @@ Functions to check or change types
 from typing import Any
 import json
 
-from .common import str_to_number, str_to_bool, str_to_int, _TRUE_STRS, _FALSE_STRS
-
-def coerce_value(value: Any) -> Any:
-    """
-    Coerce a string value to None, int, float, or bool.
-    Falls back to the original string.
-    This is for only the most naive of conversions.
-    """
-    if isinstance(value, str):
-        v = value.strip().lower()
-        if v.strip().lower() == 'none': return None
-        if v in _TRUE_STRS: return True
-        if v in _FALSE_STRS: return False
-        try:
-            return poly_number(value)
-        except ValueError:
-            pass
-    return value
+from .common import str_to_number, str_to_bool, str_to_int
 
 def poly_bool(x: Any) -> Any:
+    """
+**Converts the item to a boolean**
+
+* _x_.ToBool()
+* _x_.Bool()
+
+If the item is _None_ then _False_ is returned.
+Numbers that are zero return _False_ while all others return _True_.
+
+When converting strings to booleans, comparisons are made
+independent of case after leading and trailing
+whitespace is removed.
+
+* 'true', 't', 'yes', 'y', or 'on' return _True_
+* 'false', 'f', 'no', 'n' or 'off' return _False_
+* If none of the above, it is converted to a number, then a bool.
+  Strings that cannot be converted to a number result in a value error.
+
+If it is a non-convertable type then _True_ is returned, as any
+non-_None_ value is consider _True_.
+"""
     if x is None: return False
     if poly_isbool(x): return x
     if poly_isnumber(x): return bool(x)
@@ -34,11 +38,23 @@ def poly_bool(x: Any) -> Any:
 
 def poly_isbool(x: Any) -> bool:
     """
-**Returns _True_ if the item a boolean**
+**Returns _True_ if the item is a boolean**
+
+* _x_.IsBool()
+
 """
     return isinstance(x, bool)
 
 def poly_float(x: Any) -> Any:
+    """
+**Converts the item to a floating point number**
+
+* _x_.ToFloat()
+* _x_.Float()
+
+Strings that cannot be converted to an floating point number result in a value error.
+If the item is _None_ or is a non-convertable type then _None_ is returned.
+"""
     if poly_isnumber(x): return float(x)
     if poly_isstr(x): return str_to_number(x)
     if isinstance(x, (list, tuple)): return type(x)(poly_float(x1) for x1 in x)
@@ -46,11 +62,22 @@ def poly_float(x: Any) -> Any:
 
 def poly_isfloat(x: Any) -> bool:
     """
-**Returns _True_ if the item an float**
+**Returns _True_ if the item is a floating point number**
+
+* _x_.IsFloat()
 """
     return isinstance(x, float)
 
 def poly_int(x: Any) -> Any:
+    """
+**Converts the item to an integer**
+
+* _x_.ToInt()
+* _x_.Int()
+
+Strings that cannot be converted to an integer result in a value error.
+If the item is _None_ or is a non-convertable type then _None_ is returned.
+"""
     if poly_isnumber(x): return int(x)
     if poly_isstr(x): return str_to_int(x)
     if isinstance(x, (list, tuple)): return type(x)(poly_int(x1) for x1 in x)
@@ -58,11 +85,22 @@ def poly_int(x: Any) -> Any:
 
 def poly_isint(x: Any) -> bool:
     """
-**Returns _True_ if the item an integer**
+**Returns _True_ if the item is an integer**
+
+* _x_.IsInt()
 """
     return isinstance(x, int)
 
 def poly_number(x: Any) -> Any:
+    """
+**Converts the item to a number, which may be an integer or floating point number**
+
+* _x_.ToNumber()
+* _x_.Number()
+
+Strings that cannot be converted to numbers result in a value error.
+If the item is _None_ or is a non-convertable type then _None_ is returned.
+"""
     if poly_isnumber(x): return x
     if poly_isstr(x): return str_to_number(x)
     if isinstance(x, (list, tuple)): return type(x)(poly_number(x1) for x1 in x)
@@ -70,7 +108,11 @@ def poly_number(x: Any) -> Any:
 
 def poly_isnumber(x: Any) -> bool:
     """
-**Returns _True_ if the item a number**
+**Returns _True_ if the item is a number**
+
+* _x_.IsNumber()
+
+Only _float_ and _int_ items are considered numbers.
 """
     return isinstance(x, (int, float))
 
@@ -78,8 +120,11 @@ def poly_str(x: Any) -> Any:
     """
 **Converts the item to its string representation**
 
+* _x_.ToStr()
+* _x_.Str()
+
 If the item is _None_ it is left as _None_, not converted to _'None'_.
-    """
+"""
     if x is None: return None
     if isinstance(x, bytes): return x.decode('utf-8')
     if isinstance(x, str): return x
@@ -89,13 +134,19 @@ If the item is _None_ it is left as _None_, not converted to _'None'_.
 
 def poly_isstr(x: Any) -> bool:
     """
-**Returns _True_ if the item a string**
+**Returns _True_ if the item is a string**
+
+* _x_.IsStr()
+
 """
     return isinstance(x, str)
 
 def poly_islist(x: Any) -> bool:
     """
-**Returns _True_ if the item a collection**
+**Returns _True_ if the item is a list**
+
+The Python _tuple_ and _list_ types are both
+considered lists.
 """
     return isinstance(x, (list, tuple))
 
@@ -103,7 +154,11 @@ def poly_list(x: Any) -> Any:
     """
 **Converts the item to a list**
 
+* _x_.ToList()
+* _x_.List()
+
 Dictionaries are converted to a list of key/value pairs.
+If the item is _None_ an empty list is returned.
 """
     if x is None: return []
     if isinstance(x, (list, tuple)): return x

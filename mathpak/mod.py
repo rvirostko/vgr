@@ -7,7 +7,7 @@ from typing import Any
 
 from .common import numeric_operations, get_operation
 
-def poly_vmod(x: Any, *args):
+def poly_mod(x: Any, *args):
     """
 **Polymorphic modulo**
 
@@ -35,8 +35,8 @@ def poly_vmod(x: Any, *args):
 
 TypeError raised on all other combinations
 """
-    return reduce(poly_mod, args, x)
+    return reduce(_mod, args, x)
 
-def poly_mod(x: Any, y: Any) -> Any:
+def _mod(x: Any, y: Any) -> Any:
     operation = get_operation(x, y, numeric_operations)
-    return operation(poly_mod, x, y) if operation else x % y
+    return operation(_mod, x, y) if operation else x % y
