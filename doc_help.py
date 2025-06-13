@@ -9,7 +9,7 @@ from rapidfuzz.fuzz import ratio
 from rich.console import Console, Theme
 from rich.markdown import Markdown
 
-from functions import get_function_entries, get_function_op, get_function_names, get_function
+from functions import get_function_entries, get_function_op, get_function_names
 
 _THEME = Theme({
     "markdown.text": "",  # Default terminal style
@@ -62,6 +62,9 @@ def search_functions(query: str, limit: int = 10) -> list[tuple[str, Callable]]:
         (name, score) for name, score in scores.items() if score >= threshold
     ]
     filtered_matches.sort(key=lambda x: -x[1])
+    top_name = filtered_matches[0][0] if filtered_matches else None
+    if top_name and top_name.casefold() == q:
+        return [(top_name, get_function_op(top_name))]
     return [(name, get_function_op(name)) for name, _ in filtered_matches[:limit]]
 
 def print_doc(func) -> None:
