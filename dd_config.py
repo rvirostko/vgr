@@ -15,8 +15,8 @@ import sys
 from lark import Tree
 
 from data_dict import DataDictionary
-from mathpak import coerce_value
 from redir import shorten, print_stderr
+from mathpak import poly_number, poly_bool
 
 _VGR_PREFIX = 'vgr'
 _STATEMENT_PATH = (_VGR_PREFIX, 'statement')
@@ -82,7 +82,7 @@ def dd_parse_user_args(dd: DataDictionary, user_args: list) -> None:
                 # Strip off the quotes
                 match = re.fullmatch(r'\s*"([^"]*)"\s*', value)
                 path = (_ARG_PREFIX,) + path
-                dd.set_var(match.group(1) if match else coerce_value(value), *path)
+                dd.set_var(match.group(1) if match else _coerce_value(value), *path)
 
 def dd_set_statement(dd: DataDictionary, statement_text: str) -> str:
     dd.set_var(statement_text, *_STATEMENT_PATH)
@@ -144,7 +144,7 @@ def _get_os_consts() -> dict:
 
 def _get_environment() -> dict:
     rc = {
-            name: coerce_value(value) for name, value in os.environ.items()
+            name: _coerce_value(value) for name, value in os.environ.items()
                 if not any(pattern.search(name) for pattern in _ENV_EXCLUDE)
             }
     for name, value in rc.items():
@@ -156,3 +156,20 @@ def _get_consts(source_mod) -> dict:
     return { key: value for key, value in vars(source_mod).items()
                 if isinstance(value, (int, float, str, dict, list, tuple)) and not key.startswith("__")
             }
+
+def _coerce_value(value: Any) -> Any:
+    """
+    Coerce a string value to None, int, float, or bool.
+    Falls back to the original string.
+    This is for only the most naive of conversions.
+    """
+    if isinstance(value, str):
+        if value.strip().lower() == 'none': return None
+        try:
+            return poly_number(value)
+        except ValueError:
+            try:
+                return poly_bool(value)
+            except ValueError:
+                pass
+    return value
