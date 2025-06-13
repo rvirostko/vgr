@@ -11,15 +11,17 @@ import copy
 
 from lark import v_args, Tree, Token, Transformer
 
+from app_exceptions import VgrRuntimeError
 from data_dict import DataDictionary
 from functions import get_function_op
-from mathpak import poly_vadd, poly_vbit_and, poly_vbit_xor, poly_vdiv
 from mathpak import poly_bool, poly_int, poly_vbit_or
+from mathpak import poly_ceil, poly_floor
+from mathpak import poly_contains_all, poly_contains_any, type_str, poly_number
 from mathpak import poly_eq, poly_vpow, poly_vfdiv, poly_ge, poly_imatches, poly_gt
 from mathpak import poly_in, poly_le, poly_lt, poly_matches, poly_vmod, poly_vmul
 from mathpak import poly_ne, poly_not_imatches, poly_not_in
 from mathpak import poly_not_matches, poly_matches_all, poly_vshl, poly_vshr, poly_vsub, poly_not
-from mathpak import poly_contains_all, poly_contains_any, type_str, poly_number
+from mathpak import poly_vadd, poly_vbit_and, poly_vbit_xor, poly_vdiv
 from output import verify_relative_path
 
 def assert_has_meta(tree: Tree):
@@ -208,6 +210,10 @@ class OperationBinder(Transformer):
     def shr_op(self, tree): return SimpleOperation(tree, poly_vshr)
     def sub_op(self, tree): return SimpleOperation(tree, poly_vsub)
 
+    # Polymorphic operations with a single arg
+    def ceil_op(self, tree): return SimpleOperation(tree, poly_ceil)
+    def floor_op(self, tree): return SimpleOperation(tree, poly_floor)
+
     # Ternary operations: indicies are for predicate, true-sise, false-side
     def c_ternary(self, tree): return Ternary(tree, (0, 1, 2))
     def py_ternary(self, tree): return Ternary(tree, (1, 0, 2))
@@ -226,8 +232,6 @@ class OperationBinder(Transformer):
         func.children.insert(0, expr)
         return func
 # pylint: enable=too-many-public-methods
-
-from app_exceptions import VgrRuntimeError
 
 def bind_operations(statement: Tree) -> Tree:
     """
