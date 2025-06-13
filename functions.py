@@ -124,6 +124,7 @@ from mathpak import (
     poly_strlen,
     poly_strrev,
     poly_substr,
+    poly_sum,
     poly_swapcase,
     poly_title,
     poly_translate,
@@ -306,6 +307,7 @@ _BUILT_IN_FUNCS = {
     "StrRev":         poly_strrev, # a (MS) 'C'-like name
     "Sub":            poly_vsub,
     "SubStr":         poly_substr,
+    "Sum":            poly_sum,
     "SwapCase":       poly_swapcase,
     "TitleCase":      poly_title,
     "ToBinary":       poly_bin,
