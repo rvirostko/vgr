@@ -41,9 +41,13 @@ class VgrException(VisitError):
 
     def __str__(self):
         context = self.get_context()
-        exc_txt = "Interrupted" if isinstance(self.orig_exc, KeyboardInterrupt) else str(self.orig_exc).strip()
+        exc_txt = "Interrupted" if isinstance(self.orig_exc, KeyboardInterrupt) else _capitalize_first(str(self.orig_exc).strip())
         location = f'{exc_txt}{" at" if exc_txt else "At"} line {self.line}, column {self.column}'
         return f'{context}\n{location}' if context else location
+
+
+def _capitalize_first(s: str) -> str:
+    return s[:1].upper() + s[1:] if s else s
 
 class VgrRuntimeError(VgrException):
     def __init__(self, tree, orig_exc):
