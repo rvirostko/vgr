@@ -4,14 +4,12 @@ _COMMA: ","
 _LPAREN: "("
 _RPAREN: ")"
 _SEMICOLON: ";"
-_OSB: "["
-_CSB: "]"
 
 // Converted to their literal values after parsing
-TRUE.90: "true"i
-FALSE.90: "false"i
-NONE.90: "none"i | "null"i
-INF.90: "inf"i
+TRUE.90:  "True"i  | "\u22A4"           // Unicode ⊤ (top)
+FALSE.90: "False"i | "\u22A5"           // Unicode ⊥ (bottom)
+NONE.90:  "None"i  | "\u2205" | "Null"i // Unicode ∅ (Empty set)
+INF.90:   "Inf"i   | "\u221E"           // Unicode ∞ (infinity)
 NAN.90: "nan"i
 
 // Numeric values
@@ -246,38 +244,39 @@ ternary: expr "?" expr ":" expr -> c_ternary
 // When LC, it works, but if (true if 5<7 else false)  print "a" else print "b" end doesn't parse
 
 ?and_expr: or_expr
-    | or_expr (("&&" | "And"i) or_expr)+ -> and_op
+    | or_expr (("&&" | "\u2227" | "And"i) or_expr)+ -> and_op // Unicode ∧ (conjunction)
 
 ?or_expr: expr2
-    | expr2 (("||" | "Or"i) expr2)+ -> or_op
+    | expr2 (("||" | "\u2228" | "Or"i ) expr2)+ -> or_op // Unicode ∨ (disjunction)
 
 // Flattening operations out here allows the parse tree to hold
 // the operation type explicitly instead of a generic "OP" where
 // we need to deal with aliases
 ?expr2: _LPAREN expr _RPAREN
-    | "!" expr2 -> unary_not // must be expr2 not expr else it binds across and/or
+    // must be expr2 not expr else it binds across and/or
+    | ("!" | "\uFF01" | "\u00AC") expr2 -> unary_not // Unicode ！(fullwidth excl) and ¬ (logical not)
     | expr2 _DOT "Stash"i _LPAREN var_name _RPAREN -> stash
     | expr2 _DOT function -> function_call
     | expr2 _DOT NAME -> deref
     // Polymorphic operations than *could* be chained
-    | expr2 ("+" | "\uFF0B") expr2 -> add_op
-    | expr2 ("-" | "\u2212") expr2 -> sub_op
-    | expr2 ("*" | "\u00D7") expr2 -> mul_op
-    | expr2 ("/" | "\u00F7") expr2 -> div_op
+    | expr2 ("+" | "\uFF0B") expr2 -> add_op // Unicode ＋ (fullwidth plus)
+    | expr2 ("-" | "\u2212" | "\uFF0D") expr2 -> sub_op // Unicode − (minus sign) and － (fullwidth minus)
+    | expr2 ("*" | "\u00D7") expr2 -> mul_op // Unicode × (multiplication)
+    | expr2 ("/" | "\u00F7") expr2 -> div_op // Unicode ÷ (division)
     | expr2 "//" expr2 -> fdiv_op
     | expr2 ("%" | "Mod"i) expr2 -> mod_op
     | expr2 ("**" | "Pow"i) expr2 -> pow_op
     | expr2 "&" expr2 -> bit_and_op
     | expr2 "|" expr2 -> bit_or_op
-    | expr2 ("^" | "Xor"i) expr2 -> bit_xor_op
+    | expr2 ("^"  | "\u2295" | "Xor"i) expr2 -> bit_xor_op // Unicode ⊕ (xor)
     | expr2 ("<<" | "LShift"i) expr2 -> shl_op
     | expr2 (">>" | "RShift"i) expr2 -> shr_op
     // Return bools, typically not "chained"
     // TODO does this mean the rhs can be an expression?
     | expr2 ("==" | "Equals"i | "Is"i | "Is"i? "Equal"i "To"i) expr2 -> eq_op
-    | expr2 ("!=" | "<>" | "\u2260" | "Is"i "Not"i | "Is"i? "Not"i "Equal"i "To"i | (("Doesnt"i | "Does"i? "Not"i) "Equal"i)) expr2 -> neq_op
-    | expr2 ("<" | "Is"i? "Less"i "Than"i) expr2 -> lt_op
-    | expr2 (">" | "Is"i? "Greater"i "Than"i) expr2 -> gt_op
+    | expr2 ("!="| "\u2260" | "<>" | "Is"i "Not"i | "Is"i? "Not"i "Equal"i "To"i | (("Doesnt"i | "Does"i? "Not"i) "Equal"i)) expr2 -> neq_op // Unicode ≠ (not eq)
+    | expr2 ("<" | "\uFF1C" | "Is"i? "Less"i "Than"i) expr2 -> lt_op // Unicode ＜ (fullwidth <)
+    | expr2 (">" | "\uFF1E" | "Is"i? "Greater"i "Than"i) expr2 -> gt_op // Unicode ＞ (fullwidth >)
     | expr2 ("<=" | "\u2264" | "Is"? "Not"i "Greater"i "Than"i) expr2 -> le_op
     | expr2 (">=" | "\u2265" | "Is"i? "Not"i "Less"i "Than"i) expr2 -> ge_op
     | expr2 "Is"i? "In"i expr2 -> in_op
@@ -289,8 +288,11 @@ ternary: expr "?" expr ":" expr -> c_ternary
     | expr2 "~*" expr2 -> imatches_op
     | expr2 "!~" expr2 -> not_matches_op
     | expr2 "!~*" expr2 -> not_imatches_op
+    // Misc operations
+    | "\u2308" expr "\u2309" -> ceil_op  // Unicode ceiling ⌈ x ⌉
+    | "\u230A" expr "\u230B" -> floor_op // Unicode floor ⌊ x ⌋
     // These are more fundemental objects
-    | _OSB (expr (_COMMA expr)*)? _CSB -> array         // may become CARRAY at runtime
+    | "[" (expr (_COMMA expr)*)? "]" -> array           // may become CARRAY at runtime
     | "{" (expr ":" expr (_COMMA expr ":" expr)*)? "}" -> dict
     | TRUE | FALSE
     | NONE
