@@ -100,7 +100,7 @@ IN_PLACE_OP: ("+=" | "-=" | "*=" | "/=" | "//=" | "%=" | "**=" | "&=" | "|=" | "
 unset: "Unset"i var_name (_COMMA? var_name)* _SEMICOLON?
 
 reset: "Reset"i RESET_OPT (_COMMA? RESET_OPT)* _SEMICOLON?
-RESET_OPT: ("All"i | "Data"i | "Args" | "Output")
+RESET_OPT: ("All"i | "Data"i | "Args"i | "Output"i)
 
 source: "Source"i _SEMICOLON
     | "Source"i "From"i? ("File"i | "Files"i)? expr (_COMMA? expr)* _SEMICOLON?
