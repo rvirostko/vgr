@@ -1,20 +1,41 @@
+//-----------------------------------------------------------------------------
+// Tests program for
+//   * Reset
+//   * Source stack
+//   * Terminal functions including size retrieval
+//   * Terminal positioning
+//   * StrRev(), Translate(), Min()/Max()
+//-----------------------------------------------------------------------------
+
+Reset Data
+Assert vgr.source.FirstItem() is not None
 # ASCII art file should be stored in the same dir as this script
 # so use the source name's directory to always find it
 Load sse from vgr.source.FirstItem().DirName() + "/NCC-1701A.txt" As Text Lines
 Set sse_max To sse.StringLen().Max()
 Set sse To sse.LeftJustify(sse_max)
-Set line To ((term.size.rows - sse.Length()) / 3).ToInt()
-Set fps To 30
 
-Term GetTermSize, BG="black", FG="white", Clear, CursorHide
+# Command line controllable options
+# Apply default and contstrain range
+Set fps To arg.fps.DefaultTo(30).Max(1).Min(60)
+Set loops To arg.loops.DefaultTo(32).Max(1).Min(128)
 
-For scene = 0 To 32:
+# Clear the screen and start!
+Term BG="black", FG="white", Clear, CursorHide
+For scene = 0 To loops:
+    # We recalc line on every scene in case for when the window is resized
+    Term GetTermSize
+    Assert term.size is not None: "Can't determine screen size"
+    Set line To ((term.size.rows - sse.Length()) / 3).ToInt()
     If scene > 0:
-        Sleep 1 / 5 Second
         # Flip the art
         Set sse To sse.StrRev().Translate("/\\'`", "\\/`'")
-        Set fps *= 1.5
+        # Increase speed, but limit it
+        Set fps = (fps * (5/4)).Min(600).ToInt().Round(-1)
+        # Pause for six frames
+        Sleep 1 / (fps / 6) Second
     End
+    Term Home, Print "Delay: 1/{}s".Format(fps), EraseEOS
     If scene.Mod(2):
         # Right-to-Left movement
         For frame = 1 To (sse.FirstItem().Length() + term.size.cols):
@@ -44,4 +65,4 @@ For scene = 0 To 32:
     End
 Next
 
-Term BG=None, FG=None, Clear, Reset
+Term BG=None, FG=None, Clear
