@@ -15,7 +15,7 @@ def format_duration(x: Any, y: Any=0) -> Any:
 * _end_.FormatDuration(_start_)
 * _value_.FormatDuration()
 
-Returns a string in the form of _n**d** _n**h** n**m** n**s**_ using the shortest
+Returns a string in the form of _n_**d** _n_**h** _n_**m** _n_**s** using the shortest
 possible representation.
 """
     if x is None: x = 0
