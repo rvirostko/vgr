@@ -277,7 +277,7 @@ The basic arithmetic operations are:
 
 * Addition, Sutraction, Multiplication, and Division: Unsurprisingly these are `+`, `-`, `*`, and `/` respectively, although you can use fancy Unicode values like `÷` and `×` too.
 * _Floor Division_ : `//` returns an integer result of division
-* Modulus : you can specify either `%` or `Mod`
+* Modulo : you can specify either `%` or `Mod`
 * Raising to a power : you can specify `**` or `Pow`
 * [Bitwise AND](https://en.wikipedia.org/wiki/Bitwise_operation#AND), [Bitwise OR](https://en.wikipedia.org/wiki/Bitwise_operation#OR), and [Bitwise XOR](https://en.wikipedia.org/wiki/Bitwise_operation#XOR) : These use `&`, `|`, and `^` respectively. You can also use `Xor` for the latter.
 * [Bit Shifting](https://en.wikipedia.org/wiki/Bitwise_operation#Shift_operations) : use `<<` or `LShift` for left shift and `>>` or `RShift` for right shift.
