@@ -5,40 +5,40 @@ from .common import get_operation, numeric_operations, dist_x, dist_y, str_to_nu
 
 def poly_vadd(x: Any, *args):
     """
-**A variable argument, polymorphic addition function**
+**Polymorphic addition**
 
-* _x_.Add()
+* _x_ + _y_
+* _x_ ＋ _y_
 * _x_.Add(_y..._)
 
-
-| x       | y       | returns   | operation                |
-|---------|---------|-----------|--------------------------|
-| int     | int     | int       | addition                 |
-| int     | float   | float     | addition                 |
-| int     | str     | Any       | addition/concatenation   |
-| int     | list    | list      | distributive             |
-| int     | tuple   | tuple     | distributive             |
-| float   | int     | float     | addition                 |
-| float   | float   | float     | addition                 |
-| float   | str     | Any       | addition/concatenation   |
-| float   | list    | list      | distributive             |
-| float   | tuple   | tuple     | distributive             |
-| str     | int     | Any       | addition/concatenation   |
-| str     | float   | Any       | addition/concatenation   |
-| str     | str     | str       | concatenation            |
-| str     | list    | list      | distributive             |
-| str     | tuple   | tuple     | distributive             |
-| list    | int     | list      | distributive             |
-| list    | float   | list      | distributive             |
-| list    | str     | list      | distributive             |
-| list    | list    | list      | union                    |
-| list    | tuple   | list      | union                    |
-| tuple   | int     | tuple     | distributive             |
-| tuple   | float   | tuple     | distributive             |
-| tuple   | str     | tuple     | distributive             |
-| tuple   | list    | tuple     | union                    |
-| tuple   | tuple   | tuple     | union                    |
-| dict    | dict    | dict      | union                    |
+| x     | y     | returns | operation           |
+|-------|-------|---------|---------------------|
+| int   | int   | int     | x + y               |
+| int   | float | float   | float(x) + y        |
+| int   | str   | Any     | x + number(y)       |
+| int   | list  | list    | distributive        |
+| int   | tuple | tuple   | distributive        |
+| float | int   | float   | x + float(y)        |
+| float | float | float   | x + y               |
+| float | str   | Any     | x + number(y)       |
+| float | list  | list    | distributive        |
+| float | tuple | tuple   | distributive        |
+| str   | int   | Any     | concat x and str(y) |
+| str   | float | Any     | concat x and str(y) |
+| str   | str   | str     | concat x and y      |
+| str   | list  | list    | distributive        |
+| str   | tuple | tuple   | distributive        |
+| list  | int   | list    | distributive        |
+| list  | float | list    | distributive        |
+| list  | str   | list    | distributive        |
+| list  | list  | list    | union of lists      |
+| list  | tuple | list    | union of lists      |
+| tuple | int   | tuple   | distributive        |
+| tuple | float | tuple   | distributive        |
+| tuple | str   | tuple   | distributive        |
+| tuple | list  | tuple   | union of lists      |
+| tuple | tuple | tuple   | union of lists      |
+| dict  | dict  | dict    | union of dicts      |
 
 TypeError raised on all other combinations
 """
