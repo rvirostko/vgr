@@ -36,7 +36,7 @@ from .strings import poly_vappend, poly_vprepend, poly_format, poly_vreplace, po
 from .strings import poly_vlstrip, poly_vremoveprefix, poly_vremovesuffix, poly_split, poly_rsplit
 from .sub import poly_sub, poly_vsub
 from .time_funcs import format_duration, format_timestamp
-from .types import coerce_value, poly_bool, poly_float, poly_int, poly_isbool, poly_isfloat, poly_isint, poly_isnumber
+from .types import poly_bool, poly_float, poly_int, poly_isbool, poly_isfloat, poly_isint, poly_isnumber
 from .types import poly_isstr, poly_number, poly_str, poly_islist, poly_list
 from .web import parse_url, encode_url
 
