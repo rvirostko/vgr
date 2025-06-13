@@ -55,8 +55,15 @@ cobol_sub_from: "Subtract"i expr (_COMMA expr)* "From"i var_name "End-Subtract"i
 cobol_sub_giving: "Subtract"i expr (_COMMA expr)* "From"i expr "Giving"i var_name "End-Subtract"i? _SEMICOLON?
 cobol_mul_by: "Multiply"i expr "By"i (expr "Giving"i)? var_name "End-Multiply"i? _SEMICOLON?
 
-cobol_div_into: "Divide"i expr "Into"i (expr "Giving"i)? var_name "End-Divide"i? _SEMICOLON?
-cobol_div_by: "Divide"i expr "By"i expr "Giving"i var_name "End-Divide"i? _SEMICOLON?
+# Notes :
+#   * does not support multiple receivers
+#   * accepts but ignores "rounded"
+#   * does not support "remainder"
+#     could become divmod op, but inputs need to be ints
+#   * does not support "[not] on size error" (entirely N/A here)
+# See https://www.ibm.com/docs/en/cobol-zos/6.3.0?topic=statements-divide-statement
+cobol_div_into: "Divide"i expr "Into"i (expr "Giving"i)? var_name "Rounded"i? "End-Divide"i? _SEMICOLON?
+cobol_div_by: "Divide"i expr "By"i expr "Giving"i var_name "Rounded"i? "End-Divide"i? _SEMICOLON?
 
 cobol_move_to: "Move"i CORR? expr "To"i var_name _SEMICOLON?
 CORR.80: ("Corresponding"i | "Corr"i)
