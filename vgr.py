@@ -224,7 +224,7 @@ def create_parser(dd: DataDictionary, grammar_file: str, extn_registry: VgrExten
     extn_statements = ''
     extn_grammar = ''
     for name, instance in extn_registry:
-        # By convention, if an extension says it has statements or extens the From clause
+        # By convention, if an extension says it has statements or extends the From clause
         # it should have a like named rule in its grammar
         if instance.extends_select(): extn_from += f' | {name}_from'
         if instance.adds_statements(): extn_statements += f'| {name}_statements'
