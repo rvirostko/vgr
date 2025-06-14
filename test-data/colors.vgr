@@ -4,9 +4,6 @@ Assert term.size.cols ≥ 80 And term.size.rows ≥ 24 : "Window too small for d
 Set iter To 16
 Set sleep_time To 5
 Let named_colors = term.color_names
-For i = 1 to 24
-    Set named_colors += ["Gray{}".Format(i)]
-Next
 Let max_len = named_colors.StrLen().Max()
 
 Term CursorHide
