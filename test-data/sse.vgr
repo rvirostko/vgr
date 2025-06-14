@@ -21,7 +21,7 @@ Set fps To arg.fps.DefaultTo(30).Max(1).Min(60)
 Set loops To arg.loops.DefaultTo(32).Max(1).Min(128)
 
 # Clear the screen and start!
-Term BG="black", FG="white", Clear, CursorHide
+Term BG="Gray15", FG="Green3", Clear, CursorHide
 For scene = 0 To loops:
     # We recalc line on every scene in case for when the window is resized
     Term GetTermSize
@@ -65,4 +65,4 @@ For scene = 0 To loops:
     End
 Next
 
-Term BG=None, FG=None, Clear
+Term BG=None, FG=None, Clear, CursorShow
