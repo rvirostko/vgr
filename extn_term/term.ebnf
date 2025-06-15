@@ -80,6 +80,7 @@ term_misc_cmd: ("Print"i | "p"i) expr -> print
         | "FF"i  -> ctrl_ff
         | "CR"i  -> ctrl_cr
         | "SO"i  -> ctrl_so
+        | "SP"i  -> space
         | "SI"i  -> ctrl_si
         | "DLE"i -> ctrl_dle
         | "DC1"i -> ctrl_dc1

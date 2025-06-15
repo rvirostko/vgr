@@ -2,6 +2,8 @@
 Term(inal) Statements
 """
 
+from enum import IntEnum, auto
+from functools import lru_cache, cached_property
 from typing import Any
 import base64
 import os
@@ -17,6 +19,155 @@ from app_exceptions import VgrRuntimeError
 from evaluate import eval_expr
 from data_dict import DataDictionary
 from redir import stdout
+from .xterm_colors import TERM_COLORS, AUX_COLORS
+
+# pylint: disable=invalid-name
+class BoxPart(IntEnum):
+
+    hbar   = 0
+    vbar   = auto()
+    tl     = auto()
+    tr     = auto()
+    bl     = auto()
+    br     = auto()
+    lt     = auto()
+    rt     = auto()
+    tt     = auto()
+    bt     = auto()
+    cc     = auto()
+    rvbar  = auto()
+    lvmid  = auto()
+    rvmid  = auto()
+
+    @cached_property
+    def iname(self):
+        return self.name.casefold()
+
+    @classmethod
+    @lru_cache(maxsize=1)
+    def max_index(cls):
+        return max(member.value for member in cls)
+
+class BoxStyle(IntEnum):
+
+    Blank        = 0
+    ASCII        = auto()
+    Single       = auto()
+    Double       = auto()
+    SingleDouble = auto()
+    DoubleSingle = auto()
+    Brackets     = auto()
+    Parens       = auto()
+    Braces       = auto()
+    Light        = auto()
+    LightRounded = auto()
+    LightDash2   = auto()
+    LightDash3   = auto()
+    LightDash4   = auto()
+    Heavy        = auto()
+    HeavyDash2   = auto()
+    HeavyDash3   = auto()
+    HeavyDash4   = auto()
+    LightHeavy   = auto()
+    HeavyLight   = auto()
+
+    @cached_property
+    def iname(self):
+        return self.name.casefold()
+
+    @classmethod
+    @lru_cache(maxsize=1)
+    def max_index(cls):
+        return max(member.value for member in cls)
+
+    @classmethod
+    @lru_cache(maxsize=1)
+    def _abbrev_map(cls):
+        # include CSS-like names
+        return {
+            '':        cls.Single,
+            '()':      cls.Parens,
+            '[]':      cls.Brackets,
+            '{}':      cls.Braces,
+            'a':       cls.ASCII,
+            'b':       cls.Blank,
+            'bracket': cls.Brackets,
+            'd':       cls.Double,
+            'dashed':  cls.LightDash2,
+            'dotted':  cls.LightDash4,
+            'ds':      cls.DoubleSingle,
+            'e':       cls.Blank,
+            'empty':   cls.Blank,
+            'groove':  cls.Double,
+            'h':       cls.Heavy,
+            'hd':      cls.HeavyDash3,
+            'hd2':     cls.HeavyDash2,
+            'hd3':     cls.HeavyDash3,
+            'hd4':     cls.HeavyDash4,
+            'hl':      cls.HeavyLight,
+            'inset':   cls.Heavy,
+            'l':       cls.Light,
+            'ld':      cls.LightDash3,
+            'ld2':     cls.LightDash2,
+            'ld3':     cls.LightDash3,
+            'ld4':     cls.LightDash4,
+            'lh':      cls.LightHeavy,
+            'lr':      cls.LightRounded,
+            'none':    cls.Blank,
+            'outset':  cls.Heavy,
+            'p':       cls.Parens,
+            'paren':   cls.Parens,
+            'r':       cls.LightRounded,
+            'ridge':   cls.Heavy,
+            'rounded': cls.LightRounded,
+            's':       cls.Single,
+            'sd':      cls.SingleDouble,
+            'solid':   cls.Single,
+        }
+
+    @classmethod
+    def to_style(cls, val: Any):
+        if val is None: return BoxStyle.Single
+        if isinstance(val, (int, float)):
+            return max(0, min(BoxStyle.max_index(), int(val)))
+        if isinstance(val, str):
+            s = re.sub(r'[^a-z0-9\(\)\{\}\[\]]', '', val.strip().casefold())
+            for style in BoxStyle:
+                if style.iname == s: return style
+            return cls._abbrev_map().get(s, BoxStyle.Single)
+        return BoxStyle.Blank
+
+# pylint: enable=invalid-name
+
+# NB: See https://unicodeplus.com/category/Sm/4 for details on multi part characters
+BOXES = {
+    BoxStyle.Blank:        (' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', None, None),
+    BoxStyle.ASCII:        ('-', '|', '+', '+', '+', '+', '+', '+', '+', '+', '+', '|', None, None),
+    BoxStyle.Single:       ('─', '│', '┌', '┐', '└', '┘', '├', '┤', '┬', '┴', '┼', '│', None, None),
+    BoxStyle.Double:       ('═', '║', '╔', '╗', '╚', '╝', '╠', '╣', '╦', '╩', '╬', '║', None, None),
+    BoxStyle.SingleDouble: ('─', '║', '╓', '╖', '╙', '╜', '╟', '╢', '╥', '╨', '╫', '║', None, None),
+    BoxStyle.DoubleSingle: ('═', '│', '╒', '╕', '╘', '╛', '╞', '╡', '╤', '╧', '╪', '│', None, None),
+    BoxStyle.Brackets:     (' ', '⎢', '⎡', '⎤', '⎣', '⎦', ' ', ' ', ' ', ' ', ' ', '⎥', None, None),
+    BoxStyle.Parens:       (' ', '⎜', '⎛', '⎞', '⎝', '⎠', ' ', ' ', ' ', ' ', ' ', '⎟', None, None),
+    BoxStyle.Braces:       (' ', '⎪', '⎧', '⎫', '⎩', '⎭', ' ', ' ', ' ', ' ', ' ', '⎪',  '⎨',  '⎬'),
+    BoxStyle.Light:        ('─', '│', '┌', '┐', '└', '┘', '├', '┤', '┬', '┴', '┼', '│', None, None),
+    BoxStyle.LightRounded: ('─', '│', '╭', '╮', '╰', '╯', '├', '┤', '┬', '┴', '┼', '│', None, None),
+    BoxStyle.LightDash2:   ('╌', '╎', '┌', '┐', '└', '┘', '├', '┤', '┬', '┴', '┼', '╎', None, None),
+    BoxStyle.LightDash3:   ('┄', '┆', '┌', '┐', '└', '┘', '├', '┤', '┬', '┴', '┼', '┆', None, None),
+    BoxStyle.LightDash4:   ('┈', '┊', '┌', '┐', '└', '┘', '├', '┤', '┬', '┴', '┼', '┊', None, None),
+    BoxStyle.Heavy:        ('━', '┃', '┏', '┓', '┗', '┛', '┣', '┫', '┳', '┻', '╋', '┃', None, None),
+    BoxStyle.HeavyDash2:   ('╍', '╏', '┏', '┓', '┗', '┛', '┣', '┫', '┳', '┻', '╋', '╏', None, None),
+    BoxStyle.HeavyDash3:   ('┅', '┇', '┏', '┓', '┗', '┛', '┣', '┫', '┳', '┻', '╋', '┇', None, None),
+    BoxStyle.HeavyDash4:   ('┉', '┋', '┏', '┓', '┗', '┛', '┣', '┫', '┳', '┻', '╋', '┋', None, None),
+    BoxStyle.LightHeavy:   ('─', '┃', '┎', '┒', '┖', '┚', '┠', '┨', '┰', '┸', '╂', '┃', None, None),
+    BoxStyle.HeavyLight:   ('━', '│', '┍', '┑', '┕', '┙', '┝', '┥', '┯', '┷', '┿', '│', None, None),
+}
+
+def _boxes():
+    boxes = {}
+    for style, parts in BOXES.items():
+        boxes[style.iname] = {part.iname: parts[part.value] for part in BoxPart}
+    return boxes
 
 class TermConsts:
     """
@@ -26,118 +177,15 @@ class TermConsts:
         https://invisible-island.net/xterm/ctlseqs/ctlseqs.html
     """
 
-    BSTYLES = ("Empty", "ASCII", "Single", "Double", "SingleDouble", "DoubleSingle", "Brackets", "Parens")
+    # NB: These are for user reference.
+    #     Use the globals in the code.
+    BSTYLES = tuple(style.name for style in BoxStyle)
+    BOX = _boxes()
 
-    # Box style constants
-    BSTYLE_BLANK = 0
-    BSTYLE_ASCII = 1
-    BSTYLE_SINGLE = 2
-    BSTYLE_DOUBLE = 3
-    BSTYLE_SINGLEDOUBLE = 4
-    BSTYLE_DOUBLESINGLE = 5
-    BSTYLE_BRACKETS = 6
-    BSTYLE_PARENS = 7
-
-    # Box parts
-    I_HBAR  = 0
-    I_VBAR  = 1
-    I_TL    = 2
-    I_TR    = 3
-    I_BL    = 4
-    I_BR    = 5
-    I_LT    = 6  # Left tee
-    I_RT    = 7  # Right tee
-    I_TT    = 8  # Top tee
-    I_BT    = 9  # Bottom tee
-    I_CC    = 10  # Center cross
-    I_RVBAR = 11 # Alternate VBAR for righthand side
-
-    SP      = ' ' # Space char
-
-    # Graphics names:
-    #  TL     HBAR    TT    HBAR     TR
-    #  VBAR          VBAR          VBAR
-    #  LT     HBAR    CC    HBAR     RT
-    #  VBAR          VBAR          VBAR
-    #  BL     HBAR    BT    HBAR     BL
-    #
-    # Prefixes:
-    # <none> : single line
-    # D_ : double line
-    # SD_ : single horz, double vert
-    # DS_ : double horz, single vert
-    # BR_ : brackets
-    # PR_ : parens
-
-    # Single line graphics
-    HBAR = '─'
-    VBAR = '│'
-    TL   = '┌'
-    TR   = '┐'
-    BL   = '└'
-    BR   = '┘'
-    LT   = '├'  # Left tee
-    RT   = '┤'  # Right tee
-    TT   = '┬'  # Top tee
-    BT   = '┴'  # Bottom tee
-    CC   = '┼'  # Center cross
-
-    # Double line graphics
-    D_HBAR = '═'
-    D_VBAR = '║'
-    D_TL =   '╔'
-    D_TR =   '╗'
-    D_BL =   '╚'
-    D_BR =   '╝'
-    D_LT =   '╠'
-    D_RT =   '╣'
-    D_TT =   '╦'
-    D_BT =   '╩'
-    D_CC =   '╬'
-
-    # Single horz, double vert
-    SD_HBAR = '─'
-    SD_VBAR = '║'
-    SD_TL   = '╓'
-    SD_TR   = '╖'
-    SD_BL   = '╙'
-    SD_BR   = '╜'
-    SD_LT   = '╟'
-    SD_RT   = '╢'
-    SD_TT   = '╥'
-    SD_BT   = '╨'
-    SD_CC   = '╫'
-
-    # Double horz, single vert
-    DS_HBAR = '═'
-    DS_VBAR = '│'
-    DS_TL   = '╒'
-    DS_TR   = '╕'
-    DS_BL   = '╘'
-    DS_BR   = '╛'
-    DS_LT   = '╞'
-    DS_RT   = '╡'
-    DS_TT   = '╤'
-    DS_BT   = '╧'
-    DS_CC   = '╪'
-
-
-    BOX_BLANK = (SP, SP, SP, SP, SP, SP, SP, SP, SP, SP, SP, SP)
-    BOX_ASCII = ('-', '|', '+', '+', '+', '+', '+', '+', '+', '+', '+', '|')
-    BOX_SINGLE = (HBAR, VBAR, TL, TR, BL, BR, LT, RT, TT, BT, CC, VBAR)
-    BOX_DOUBLE = (D_HBAR, D_VBAR, D_TL, D_TR, D_BL, D_BR, D_LT, D_RT, D_TT, D_BT, D_CC, D_VBAR)
-    BOX_SINGLEDOUBLE = (SD_HBAR, SD_VBAR, SD_TL, SD_TR, SD_BL, SD_BR, SD_LT, SD_RT, SD_TT, SD_BT, SD_CC, SD_VBAR)
-    BOX_DOUBLESINGLE = (DS_HBAR, DS_VBAR, DS_TL, DS_TR, DS_BL, DS_BR, DS_LT, DS_RT, DS_TT, DS_BT, DS_CC, DS_VBAR)
-    BOX_BRACKETS = (SP, '⎢', '⎡', '⎤', '⎣', '⎦', SP, SP, SP, SP, SP, '⎥' ) #VBARS are (U+23A2) and (U+23A5)
-    BOX_PARENS = (SP, '⎜', '⎛', '⎞', '⎝', '⎠', SP, SP, SP, SP, SP, '⎟' ) # VBARs are (U+239C) and (U+239F)
-    # NB: See https://unicodeplus.com/category/Sm/4 for details on multi part characters
-
-    BOXES = (BOX_BLANK, BOX_ASCII, BOX_SINGLE, BOX_DOUBLE, BOX_SINGLEDOUBLE, BOX_DOUBLESINGLE, BOX_BRACKETS, BOX_PARENS)
-
-    SOS = "\x1bX" # Start of String (SOS  is 0x98)
-    CSI = "\x1b[" # Control Sequence Introducer (CSI  is 0x9b)
-    ST = "\x1b\\" # String Terminator (ST  is 0x9c)
-    OSC = "\x1b]" # Operating System Command (OSC  is 0x9d)
+    SOS = "\x1bX" # Start of String (SOS is 0x98)
+    CSI = "\x1b[" # Control Sequence Introducer (CSI is 0x9b)
+    ST = "\x1b\\" # String Terminator (ST is 0x9c)
+    OSC = "\x1b]" # Operating System Command (OSC is 0x9d)
 
     # "Select Graphic Rendition"
     SGR_RESET =          "\x1b[0m"
@@ -250,24 +298,7 @@ class TermConsts:
 
     # "Pretty" names for the colors
     # Index is the color number
-    COLOR_NAMES = [
-        "Black",
-        "Red",
-        "Green",
-        "Yellow",
-        "Blue",
-        "Magenta",
-        "Cyan",
-        "White",
-        "Gray",
-        "Bright Red",
-        "Bright Green",
-        "Bright Yellow",
-        "Bright Blue",
-        "Bright Magenta",
-        "Bright Cyan",
-        "Bright White"
-    ]
+    COLOR_NAMES = TERM_COLORS
 
 _COLOR_NAME_MAP = { }
 _DUMB_TERM = os.getenv("TERM", "").lower() == "dumb"
@@ -278,8 +309,8 @@ def add_dd_constants(dd: DataDictionary, prefix: str) -> None:
         if not name.startswith("__"): dd.set_var(value, prefix, name.lower())
     for val, name in enumerate(TermConsts.COLOR_NAMES):
         _COLOR_NAME_MAP[_canonical_color_name(name)] = val
-    # Add numbered grays: 232 to 255
-    for i in range(1, 25): _COLOR_NAME_MAP[f'gray{i}'] = 231 + i
+    for name, val in AUX_COLORS.items():
+        _COLOR_NAME_MAP[_canonical_color_name(name)] = val
     dd.set_var(_DUMB_TERM, prefix, 'dumb_term')
     dd.set_var(_NO_COLOR, prefix, 'no_color')
 
@@ -308,32 +339,9 @@ def _resolve_ansi_color(val: Any) -> int:
         pass
     return _COLOR_NAME_MAP.get(_canonical_color_name(val))
 
-def _resolve_box_style(val: Any) -> int:
-    if val is None: return TermConsts.BSTYLE_ASCII
-    if isinstance(val, (int, float)):
-        return max(0, min(len(TermConsts.BSTYLES) - 1, int(val)))
-    if isinstance(val, str):
-        s = re.sub(r'[^a-z0-9]', '', val.casefold()).removeprefix('bstyle')
-        if s in ('empty', 'none', 'blank', str(TermConsts.BSTYLE_BLANK)):
-            return TermConsts.BSTYLE_BLANK
-        if s in ('a', 'ascii', str(TermConsts.BSTYLE_ASCII)):
-            return TermConsts.BSTYLE_ASCII
-        if s in ('', 's', 'single', str(TermConsts.BSTYLE_SINGLE)):
-            return TermConsts.BSTYLE_SINGLE
-        if s in ('d', 'double', str(TermConsts.BSTYLE_DOUBLE)):
-            return TermConsts.BSTYLE_DOUBLE
-        if s in ('sd', 'singledouble', str(TermConsts.BSTYLE_DOUBLE)):
-            return TermConsts.BSTYLE_SINGLEDOUBLE
-        if s in ('ds', 'doublesingle', str(TermConsts.BSTYLE_DOUBLESINGLE)):
-            return TermConsts.BSTYLE_DOUBLESINGLE
-        if s in ('br', 'bracket', 'brackets', str(TermConsts.BSTYLE_BRACKETS)):
-            return TermConsts.BSTYLE_BRACKETS
-        if s in ('pr', 'paren', 'parens', str(TermConsts.BSTYLE_PARENS)):
-            return TermConsts.BSTYLE_PARENS
-    return TermConsts.BSTYLE_BLANK
-
 def _canonical_color_name(val: str) -> str:
-    return re.sub(r'[^a-z0-9]', '', val.casefold())
+    val = re.sub(r'[^a-z0-9]', '', val.casefold())
+    return val.replace('gray', 'grey')
 
 # Everything except colors
 _SGR_ALL_OFF = (
@@ -417,61 +425,62 @@ _CUD_1 = TermConsts.CUD.format('')
 _CUB_1 = TermConsts.CUB.format('')
 
 def _term_draw_hline(dd: DataDictionary, cmd: Tree) -> None:
-    style = TermConsts.BSTYLE_SINGLE
     arg_ind = 0
     args = _eval_all(dd, cmd)
     if len(args) > 1:
-        style = _resolve_box_style(args[0])
-        arg_ind = 1
+        style = BoxStyle.to_style(args[arg_ind])
+        arg_ind += 1
+    else:
+        style = BoxStyle.Single
     _draw_hline(style, max(0, int(args[arg_ind])))
 
-def _draw_hline(style: int, cols: int) -> None:
+def _draw_hline(style: BoxStyle, cols: int) -> None:
     if cols:
-        _print(TermConsts.BOXES[style][TermConsts.I_HBAR] * cols)
+        _print(BOXES[style][BoxPart.hbar] * cols)
 
 def _term_draw_vline(dd: DataDictionary, cmd: Tree) -> None:
-    style = TermConsts.BSTYLE_SINGLE
     arg_ind = 0
     args = _eval_all(dd, cmd)
     if len(args) > 1:
-        style = _resolve_box_style(args[0])
-        arg_ind = 1
+        style = BoxStyle.to_style(args[arg_ind])
+        arg_ind += 1
+    else:
+        style = BoxStyle.Single
     _draw_vline(style, max(0, int(args[arg_ind])))
 
-def _draw_vline(style: int, lines: int) -> None:
+def _draw_vline(style: BoxStyle, lines: int) -> None:
     if lines:
         for _ in range(lines):
-            _print(TermConsts.BOXES[style][TermConsts.I_VBAR], _CUB_1, _CUD_1)
+            _print(BOXES[style][BoxPart.vbar], _CUB_1, _CUD_1)
 
 def _eval_all(dd: DataDictionary, cmd: Tree) -> list:
     return [eval_expr(dd, child) for child in cmd.children]
 
 def _term_draw_box(dd: DataDictionary, cmd: Tree) -> None:
     if _DUMB_TERM: return
-    style = TermConsts.BSTYLE_SINGLE
     arg_ind = 0
     args = _eval_all(dd, cmd)
     if len(args) > 2:
-        style = _resolve_box_style(args[arg_ind])
+        style = BoxStyle.to_style(args[arg_ind])
         arg_ind += 1
+    else:
+        style = BoxStyle.Single
     height = int(args[arg_ind])
     width = int(args[arg_ind + 1])
-    cursor_row, cursor_col = _get_cursor_pos()
-    row = cursor_row
-    col = cursor_col
+    start_row, start_col = _get_cursor_pos()
     screen_cols, screen_rows = shutil.get_terminal_size()
     # Vertical adjustment
     if height >= 0:
-        height = min(height, screen_rows - cursor_row + 1)
+        height = min(height, screen_rows - start_row + 1)
     else:
-        height = min(-height, cursor_row)
-        row = cursor_row - height + 1
+        height = min(-height, start_row)
+        start_row = start_row - height + 1
     # Horizontal adjustment
     if width >= 0:
-        width = min(width, screen_cols - cursor_col + 1)
+        width = min(width, screen_cols - start_col + 1)
     else:
-        width = min(-width, cursor_col)
-        col = cursor_col - width + 1
+        width = min(-width, start_col)
+        start_col = start_col - width + 1
     if height == 0 or width == 0: return
     # Horizontal line
     if height == 1:
@@ -481,14 +490,14 @@ def _term_draw_box(dd: DataDictionary, cmd: Tree) -> None:
     if width == 1:
         _draw_vline(style, height)
         return
+    row = start_row
+    col = start_col
     # Box is at least 2x2
     inner_width = width - 2
-    hbar = TermConsts.BOXES[style][TermConsts.I_HBAR] * inner_width if inner_width else ''
+    box = BOXES[style]
+    hbar = box[BoxPart.hbar] * inner_width if inner_width else ''
     # Box top
-    _print(TermConsts.CUP.format(row, col),
-           TermConsts.BOXES[style][TermConsts.I_TL],
-           hbar,
-           TermConsts.BOXES[style][TermConsts.I_TR])
+    _print(TermConsts.CUP.format(row, col), box[BoxPart.tl], hbar, box[BoxPart.tr])
     # Left and right sides
     row += 1
     if height > 2:
@@ -497,23 +506,26 @@ def _term_draw_box(dd: DataDictionary, cmd: Tree) -> None:
             inside = ' '
             if inner_width > 1: inside += TermConsts.REP.format(inner_width - 1)
         for _ in range(height - 2):
-            _print(TermConsts.CUP.format(row, col),
-                   TermConsts.BOXES[style][TermConsts.I_VBAR],
-                   inside,
-                   TermConsts.BOXES[style][TermConsts.I_RVBAR])
+            _print(TermConsts.CUP.format(row, col), box[BoxPart.vbar], inside, box[BoxPart.rvbar])
             row += 1
+        # if the mid parts exist, paint them
+        lvmid = box[BoxPart.lvmid]
+        if lvmid is not None:
+            _print(TermConsts.CUP.format(start_row + (height // 2), start_col), lvmid)
+        rvmid = box[BoxPart.rvmid]
+        if rvmid is not None:
+            _print(TermConsts.CUP.format(start_row + (height // 2), start_col + width - 1), rvmid)
     # And the bottom
-    _print(TermConsts.CUP.format(row, col),
-           TermConsts.BOXES[style][TermConsts.I_BL],
-           hbar,
-           TermConsts.BOXES[style][TermConsts.I_BR])
-    # and move to within the box
-    _print(TermConsts.CUP.format(row - height + 2, col + 1))
+    _print(TermConsts.CUP.format(start_row + height - 1, start_col), box[BoxPart.bl], hbar, box[BoxPart.br])
+    # Move to within the box's boarder
+    _print(TermConsts.CUP.format(start_row + 1, start_col + 1))
 
 def _term_dh_print(dd: DataDictionary, cmd: Tree) -> None:
     s = eval_expr(dd, cmd.children[0])
     if s is not None:
+        # Turn the current and following lines into double high lines
         _print(TermConsts.DECDHL_TOP, _CUD_1, TermConsts.DECDHL_BOT, _CUU_1)
+        # Paint each char on both lines to form the full text
         for c in str(s):
             _print(c, _CUB_1, _CUD_1, c, _CUU_1)
 
@@ -711,6 +723,7 @@ _CMD_DISPATCH = {
     "sgr_strikethru": lambda d, c: _term_toggle(d, c, TermConsts.SGR_STRIKETHRU_ON, TermConsts.SGR_STRIKETHRU_OFF),
     "sgr_style":       _term_sgr_style,
     "sgr_underline":  lambda d, c: _term_toggle(d, c, TermConsts.SGR_UNDERLINE_ON, TermConsts.SGR_UNDERLINE_OFF),
+    "space":          lambda _d, _c: _print(" "),
     "tbc_all":        lambda _d, _c: _print(TermConsts.TBC_ALL),
     "tbc":            lambda _d, _c: _print(TermConsts.TBC),
     "term_size":      _term_get_terminal_size,
