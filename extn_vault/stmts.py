@@ -49,6 +49,11 @@ _DEFAULT_CONN_NAME = 'DefaultConnection'
 
 _CONNECTIONS = VaultClientManager()
 
+def _normalize_path(path: str) -> str:
+    if path.startswith("/v1/"): return path
+    if path.startswith("/"): return "/v1" + path
+    return "/v1/" + path
+
 def _do_set(dd: DataDictionary, value: Any, *path) -> Any:
     new_value = dd.set_var(value, *path)
     if dd.verbose:
@@ -81,11 +86,18 @@ def _get_default_conn(dd: DataDictionary, args: dict) -> str:
     """If the args doesn't contain the connection, use the default one"""
     return _get_arg(args, _USING_ARG, str, True) or dd.get_var(*DEFAULT_CONN_PATH) or _DEFAULT_CONN_NAME
 
+#-------------------------------------------------------------------------------
+# Connection management
+#
 # Vault Connect -- values from env, default name
 # Vault Connect To "http://127.0.0.1"
 # Vault Connect To "http://127.0.0.1" With "<token>"
 # Vault Connect To "http://127.0.0.1" With "<token>" As "Source"
 # Vault Connect As "Source" To "http://127.0.0.1", Token="<token>"
+# Vault Disconnect
+# Vault Disconnect "Source"
+#-------------------------------------------------------------------------------
+
 def execute_connect(dd: DataDictionary, statement: Tree) -> None:
     addr = token = conn_name = None
     for child in statement.children:
@@ -106,8 +118,6 @@ def execute_connect(dd: DataDictionary, statement: Tree) -> None:
     _set_default_conn(dd, conn_name)
     _set_result(dd, {}, None)
 
-# Vault Disconnect
-# Vault Disconnect "Source"
 def execute_disconnect(dd: DataDictionary, statement: Tree) -> None:
     if statement.children:
         name = _resolve_str_arg(dd, statement.children[0], 'Vault Connection Name')
@@ -116,11 +126,14 @@ def execute_disconnect(dd: DataDictionary, statement: Tree) -> None:
     _CONNECTIONS.disconnect(name)
     _set_result(dd, {}, None)
 
+#-------------------------------------------------------------------------------
+# Generic API execution
+#-------------------------------------------------------------------------------
 
 def execute_api_delete(dd: DataDictionary, statement: Tree) -> None:
     args: dict = _extract_args(dd, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
-    url: str = _resolve_str_arg(dd, statement.children[0], 'URL')
+    url: str = _normalize_path(_resolve_str_arg(dd, statement.children[0], 'Path'))
     namespace: str = _get_arg(args, _NS_ARG, str, True)
     using = _set_default_conn(dd, _get_default_conn(dd, args))
     _set_result(dd,
@@ -131,7 +144,7 @@ def execute_api_delete(dd: DataDictionary, statement: Tree) -> None:
 def execute_api_get(dd: DataDictionary, statement: Tree) -> None:
     args: dict = _extract_args(dd, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
-    url: str = _resolve_str_arg(dd, statement.children[0], 'URL')
+    url: str = _normalize_path(_resolve_str_arg(dd, statement.children[0], 'Path'))
     namespace: str = _get_arg(args, _NS_ARG, str, True)
     using = _set_default_conn(dd, _get_default_conn(dd, args))
     _set_result(dd,
@@ -142,7 +155,7 @@ def execute_api_get(dd: DataDictionary, statement: Tree) -> None:
 def execute_api_list(dd: DataDictionary, statement: Tree) -> None:
     args: dict = _extract_args(dd, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
-    url: str = _resolve_str_arg(dd, statement.children[0], 'URL')
+    url: str = _normalize_path(_resolve_str_arg(dd, statement.children[0], 'Path'))
     namespace: str = _get_arg(args, _NS_ARG, str, True)
     using = _set_default_conn(dd, _get_default_conn(dd, args))
     _set_result(dd,
@@ -153,7 +166,7 @@ def execute_api_list(dd: DataDictionary, statement: Tree) -> None:
 def execute_api_patch(dd: DataDictionary, statement: Tree) -> None:
     args: dict = _extract_args(dd, statement)
     _allowed_args(args, _DATA_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
-    url: str = _resolve_str_arg(dd, statement.children[0], 'URL')
+    url: str = _normalize_path(_resolve_str_arg(dd, statement.children[0], 'Path'))
     data = _get_arg(args, _DATA_ARG, str, True)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
     using = _set_default_conn(dd, _get_default_conn(dd, args))
@@ -165,7 +178,7 @@ def execute_api_patch(dd: DataDictionary, statement: Tree) -> None:
 def execute_api_post(dd: DataDictionary, statement: Tree) -> None:
     args: dict = _extract_args(dd, statement)
     _allowed_args(args, _DATA_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
-    url: str = _resolve_str_arg(dd, statement.children[0], 'URL')
+    url: str = _normalize_path(_resolve_str_arg(dd, statement.children[0], 'Path'))
     data = _get_arg(args, _DATA_ARG, str, True)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
     using = _set_default_conn(dd, _get_default_conn(dd, args))
@@ -174,10 +187,30 @@ def execute_api_post(dd: DataDictionary, statement: Tree) -> None:
                 _CONNECTIONS.get_connection(using).do_post(url, data, namespace)
                )
 
+#-------------------------------------------------------------------------------
+# Namespaces
+#
 # Vault DefaultNamespace ""
 # Vault DefaultNamespace "D111382"
 # Vault DefaultNamespace "D111382/One"
 # -- Need to check handling of leading and trailing /s
+# Vault CreateNamespace "D111382"
+# Vault CreateNamespace "D111382", Namespace=""
+# Vault CreateNamespace "One", Namespace="D111382"
+# Vault CreateNamespace "SubOne", Namespace="D111382/One"
+# Vault CreateNamespace "D111382/One/SubOne" -- Allowed if only the parents exist
+# NB: for testing, need to be able to list the root as well
+#     a top-level NS, and a child NS
+# Vault ListNamespaces
+# Vault ListNamespaces ""
+# Vault ListNamespaces "D111382"
+# Vault ListNamespaces Namespace="D111382"
+# Vault ListNamespaces "D111382", Namspace=""
+# Vault ListNamespaces "One", Namspace="D111382"
+# Vault ListNamespaces "SubOne", Namspace="D111382/One"
+# Vault ListNamespaces "D111382/One/SubOne" -- allowed?
+#-------------------------------------------------------------------------------
+
 def execute_default_ns(dd: DataDictionary, statement: Tree) -> None:
     args: dict = _extract_args(dd, statement)
     _allowed_args(args, _RESULT_ARG)
@@ -185,11 +218,6 @@ def execute_default_ns(dd: DataDictionary, statement: Tree) -> None:
     _do_set(dd, '' if ns is None or ns.isspace() else ns.strip(), *DEFAULT_NS_PATH)
     _set_result(dd, args, None)
 
-# Vault CreateNamespace "D111382"
-# Vault CreateNamespace "D111382", Namespace=""
-# Vault CreateNamespace "One", Namespace="D111382"
-# Vault CreateNamespace "SubOne", Namespace="D111382/One"
-# Vault CreateNamespace "D111382/One/SubOne" -- Allowed if only the parents exist
 def execute_create_ns(dd: DataDictionary, statement: Tree) -> None:
     args: dict = _extract_args(dd, statement)
     _allowed_args(args, _NS_ARG, _META_ARG, _RESULT_ARG, _USING_ARG)
@@ -202,7 +230,6 @@ def execute_create_ns(dd: DataDictionary, statement: Tree) -> None:
                 _CONNECTIONS.get_connection(using).create_namespace(new_namespace, metadata, parent_namespace)
                )
 
-# See list for tests
 def execute_read_ns(dd: DataDictionary, statement: Tree) -> None:
     args: dict = _extract_args(dd, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -214,7 +241,6 @@ def execute_read_ns(dd: DataDictionary, statement: Tree) -> None:
                 _CONNECTIONS.get_connection(using).read_namespace(ns, parent_namespace)
                )
 
-# See list for tests
 def execute_update_ns(dd: DataDictionary, statement: Tree) -> None:
     args: dict = _extract_args(dd, statement)
     _allowed_args(args, _NS_ARG, _META_ARG, _RESULT_ARG, _USING_ARG)
@@ -227,7 +253,6 @@ def execute_update_ns(dd: DataDictionary, statement: Tree) -> None:
                 _CONNECTIONS.get_connection(using).update_namespace(ns, metadata, parent_namespace)
                )
 
-# See list for tests
 def execute_delete_ns(dd: DataDictionary, statement: Tree) -> None:
     args: dict = _extract_args(dd, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -239,16 +264,6 @@ def execute_delete_ns(dd: DataDictionary, statement: Tree) -> None:
                 _CONNECTIONS.get_connection(using).delete_namespace(ns, parent_namespace)
                )
 
-# NB: for testing, need to be able to list the root as well
-#     a top-level NS, and a child NS
-#     Vault ListNamespaces
-#     Vault ListNamespaces ""
-#     Vault ListNamespaces "D111382"
-#     Vault ListNamespaces Namespace="D111382"
-#     Vault ListNamespaces "D111382", Namspace=""
-#     Vault ListNamespaces "One", Namspace="D111382"
-#     Vault ListNamespaces "SubOne", Namspace="D111382/One"
-#     Vault ListNamespaces "D111382/One/SubOne" -- allowed?
 def execute_list_ns(dd: DataDictionary, statement: Tree) -> None:
     namespace: str = _resolve_str_arg(dd, statement.children[0], 'Namespace', True) if len(statement.children) > 1 else ""
     args: dict = _extract_args(dd, statement)
@@ -284,6 +299,10 @@ def execute_unlock_ns(dd: DataDictionary, statement: Tree) -> None:
         args,
         _CONNECTIONS.get_connection(using).unlock_namespace(_combine_ns(parent_namespace, namespace), args.get(_KEY_ARG))
     )
+
+#-------------------------------------------------------------------------------
+# Secret Engine mounts
+#-------------------------------------------------------------------------------
 
 def execute_create_mount(dd: DataDictionary, statement: Tree) -> None:
     mount_point = _resolve_str_arg(dd, statement.children[0], 'Mount Point')
@@ -360,6 +379,10 @@ def execute_list_mounts(dd: DataDictionary, statement: Tree) -> None:
                 args,
                 _CONNECTIONS.get_connection(using).list_mounts(namespace))
 
+#-------------------------------------------------------------------------------
+# KV2 secrets and metadata
+#-------------------------------------------------------------------------------
+
 def execute_create_kv_secret(dd: DataDictionary, statement: Tree) -> None:
     """For create, Data is required but Metadata is optional"""
     mount_point, path = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Path'))
@@ -371,10 +394,12 @@ def execute_create_kv_secret(dd: DataDictionary, statement: Tree) -> None:
     # TODO doesn't CAS always need to be zero here?
     # TODO can you really create it w/o Any secrets?
     data = add_kv_cas(extract_kv_data(_get_arg(args, _DATA_ARG, dict)) if _DATA_ARG in args else {}, cas)
-    _set_result(dd,
+    result = _set_result(dd,
                 args,
                 _CONNECTIONS.get_connection(using).create_kv2_secret(mount_point, path, data, namespace))
-    # TODO return on error
+        # If the data part fails, we'll skip the meta part
+        # Caller should be using <result>.status to see if things were okay
+    if result['status'] is not None: return
     if _META_ARG in args:
         metadata = extract_kv_metadata(_get_arg(args, _META_ARG, dict))
         _set_result(dd,
@@ -413,10 +438,12 @@ def execute_update_kv_secret(dd: DataDictionary, statement: Tree) -> None:
     _set_result(dd, args, None) # in case neither data or metada is provides
     if _DATA_ARG in args:
         data = add_kv_cas(extract_kv_data(_get_arg(args, _DATA_ARG, dict)), cas)
-        _set_result(dd,
+        result = _set_result(dd,
                     args,
                     _CONNECTIONS.get_connection(using).update_kv2_secret(mount_point, path, data, namespace))
-        # TODO return on error
+        # If the data part fails, we'll skip the meta part
+        # Caller should be using <result>.status to see if things were okay
+        if result['status'] is not None: return
     if _META_ARG in args:
         metadata = extract_kv_metadata(_get_arg(args, _META_ARG, dict))
         _set_result(dd,
@@ -434,10 +461,12 @@ def execute_patch_kv_secret(dd: DataDictionary, statement: Tree) -> None:
     _set_result(dd, args, None) # in case neither data or metada is provides
     if _DATA_ARG in args:
         data = add_kv_cas(extract_kv_data(_get_arg(args, _DATA_ARG, dict)), cas)
-        _set_result(dd,
+        result = _set_result(dd,
                     args,
                     _CONNECTIONS.get_connection(using).patch_kv2_secret(mount_point, path, data, namespace))
-        # TODO return on error
+        # If the data part fails, we'll skip the meta part
+        # Caller should be using <result>.status to see if things were okay
+        if result['status'] is not None: return
     if _META_ARG in args:
         metadata = extract_kv_metadata(_get_arg(args, _META_ARG, dict))
         _set_result(dd,
@@ -445,56 +474,114 @@ def execute_patch_kv_secret(dd: DataDictionary, statement: Tree) -> None:
                     _CONNECTIONS.get_connection(using).patch_kv2_metadata(mount_point, path, metadata, namespace))
 
 def execute_delete_kv_secret(dd: DataDictionary, statement: Tree) -> None:
-    value = eval_expr(dd, statement.children[0])
-    print(value) # TODO
+    mount_point, path = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Path'))
+    args = _extract_args(dd, statement)
+    _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    # TODO use _VERSIONS_ARG for target version(s) Sent as an array
+    # TODO use _DATA to allow direct use of "versions"
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    using = _set_default_conn(dd, _get_default_conn(dd, args))
+    _set_result(dd,
+                args,
+                _CONNECTIONS.get_connection(using).delete_kv2_secret(mount_point, path, namespace))
+
+# TODO Future
+# - execute_undelete_kv_secret
+# - execute_destory_kv_secret
+# - execute_delete_kv2_metadata
 
 def execute_list_kv_secrets(dd: DataDictionary, statement: Tree) -> None:
-    value = eval_expr(dd, statement.children[0])
-    print(value) # TODO
+    mount_point, path = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Path'))
+    args = _extract_args(dd, statement)
+    _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    using = _set_default_conn(dd, _get_default_conn(dd, args))
+    _set_result(dd,
+                args,
+                _CONNECTIONS.get_connection(using).list_kv2_secrets(mount_point, path, namespace))
 
-def execute_create_ldap_lib(dd: DataDictionary, statement: Tree) -> None:
-    value = eval_expr(dd, statement.children[0])
-    print(value) # TODO
+#-------------------------------------------------------------------------------
+# LDAP secrets engine
+#-------------------------------------------------------------------------------
 
-def execute_read_ldap_lib(dd: DataDictionary, statement: Tree) -> None:
-    value = eval_expr(dd, statement.children[0])
-    print(value) # TODO
+def execute_create_ldap_library(dd: DataDictionary, statement: Tree) -> None:
+    raise NotImplementedError() # TODO
 
-def execute_update_ldap_lib(dd: DataDictionary, statement: Tree) -> None:
-    value = eval_expr(dd, statement.children[0])
-    print(value) # TODO
+def execute_read_ldap_library(dd: DataDictionary, statement: Tree) -> None:
+    mount_point, name = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Name'))
+    args = _extract_args(dd, statement)
+    _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    using = _set_default_conn(dd, _get_default_conn(dd, args))
+    _set_result(dd,
+                args,
+                _CONNECTIONS.get_connection(using).read_ldap_library(mount_point, name, namespace))
 
-def execute_delete_ldap_lib(dd: DataDictionary, statement: Tree) -> None:
-    value = eval_expr(dd, statement.children[0])
-    print(value) # TODO
+def execute_update_ldap_library(dd: DataDictionary, statement: Tree) -> None:
+    raise NotImplementedError() # TODO
 
-def execute_list_ldap_libs(dd: DataDictionary, statement: Tree) -> None:
-    value = eval_expr(dd, statement.children[0])
-    print(value) # TODO
+def execute_delete_ldap_library(dd: DataDictionary, statement: Tree) -> None:
+    raise NotImplementedError() # TODO
+
+def execute_list_ldap_libraries(dd: DataDictionary, statement: Tree) -> None:
+    mount_point = _resolve_str_arg(dd, statement.children[0], 'Mount Point')
+    args = _extract_args(dd, statement)
+    _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    using = _set_default_conn(dd, _get_default_conn(dd, args))
+    _set_result(dd,
+                args,
+                _CONNECTIONS.get_connection(using).list_ldap_libraries(mount_point, namespace))
 
 def execute_create_ldap_secret(dd: DataDictionary, statement: Tree) -> None:
-    value = eval_expr(dd, statement.children[0])
-    print(value) # TODO
+    raise NotImplementedError() # TODO
 
 def execute_read_ldap_secret(dd: DataDictionary, statement: Tree) -> None:
-    value = eval_expr(dd, statement.children[0])
-    print(value) # TODO
+    mount_point, name = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Name'))
+    args = _extract_args(dd, statement)
+    _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    using = _set_default_conn(dd, _get_default_conn(dd, args))
+    _set_result(dd,
+                args,
+                _CONNECTIONS.get_connection(using).read_ldap_secret(mount_point, name, namespace))
 
 def execute_update_ldap_secret(dd: DataDictionary, statement: Tree) -> None:
-    value = eval_expr(dd, statement.children[0])
-    print(value) # TODO
+    raise NotImplementedError() # TODO
 
 def execute_delete_ldap_secret(dd: DataDictionary, statement: Tree) -> None:
-    value = eval_expr(dd, statement.children[0])
-    print(value) # TODO
+    raise NotImplementedError() # TODO
 
 def execute_list_ldap_secrets(dd: DataDictionary, statement: Tree) -> None:
-    value = eval_expr(dd, statement.children[0])
-    print(value) # TODO
+    mount_point = _resolve_str_arg(dd, statement.children[0], 'Mount Point')
+    args = _extract_args(dd, statement)
+    _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    using = _set_default_conn(dd, _get_default_conn(dd, args))
+    _set_result(dd,
+                args,
+                _CONNECTIONS.get_connection(using).list_ldap_secrets(mount_point, namespace))
 
 def execute_rotate_ldap_secret(dd: DataDictionary, statement: Tree) -> None:
-    value = eval_expr(dd, statement.children[0])
-    print(value) # TODO
+    raise NotImplementedError() # TODO
+
+#-------------------------------------------------------------------------------
+# Database secrets engine
+#-------------------------------------------------------------------------------
+
+# TODO work point...
+# read
+# update
+# delete
+# create db role
+# read db role
+# update db role
+# delete db role
+# list db roles
+# generate db creds
+# rotate db cres
+
+
 
 # TODO may need to clean up duped slashes etc
 def _combine_ns(parent: str, child: str) -> str:
@@ -510,7 +597,7 @@ def _split_mount_path(s: str) -> tuple:
     s = '/'.join(filter(None, s.split('/')))
     parts = s.split('/', 1)
     if len(parts) != 2:
-        raise ValueError(f'Missing Path in {s}')
+        raise ValueError(f'Missing information following Mount Point: {s}')
     return parts
 
 def _extract_args(dd: DataDictionary, statement: Tree) -> dict:
