@@ -124,17 +124,30 @@ class VaultClient():
                 # Some operations return no text
                 rc = {}
             retcode = response.status
+            # details for those interested
+            rc["_vclient"] = {
+                "url": url,
+                "method": method,
+                "status": retcode,
+                "vault_index": response.getheader("X-Vault-Index"),
+                "vault_cluster": response.getheader("X-Vault-Cluster"),
+                "vault_lease_id": response.getheader("X-Vault-Lease-Id"),
+            }
+            # The top-level status field for a client doing a quick
+            # check for problems by seeing if this is not None
+            status = None
+            if "errors" in rc:               status = rc["errors"]
+            elif "warnings" in rc:           status = rc["warnings"]
+            elif not (200 <= retcode < 300): status = retcode
+            rc['status'] = status
             if not 200 <= retcode < 300:
-                text_response = text_response.strip()
-                # TODO look at old code to hunt down the first error if present
                 if retcode in (HTTPStatus.NOT_FOUND, HTTPStatus.BAD_REQUEST, HTTPStatus.FORBIDDEN):
-                    self._debug(retcode, ' on ', self._addr + url, ' : ', text_response)
+                    self._warn(retcode, ' on ', self._addr + url, ' : ', status)
                 else:
-                    self._warn(retcode, ' on ', self._addr + url, ' : ', text_response)
-                    raise VaultStatusException(retcode, response.reason, url=self._addr + url, response_body=text_response)
+                    self._error(retcode, ' on ', self._addr + url, ' : ', status)
             return rc
         except HTTPError as e:
-            self._debug(e.code, ' on ', self._addr + url)
+            self._error(e.code, ' on ', self._addr + url)
             raise
 
     def open(self):
@@ -211,20 +224,24 @@ class VaultClient():
 
     def read_kv2_config(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
         mount_point = self._fix_mount_point(mount_point)
+        # https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#read-kv-engine-configuration
         return self.do_get(encode_url(f'/v1/{mount_point}config'), namespace)
 
     def update_kv2_config(self, mount_point: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         mount_point = self._fix_mount_point(mount_point)
+        # https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#configure-the-kv-engine
         return self.do_post(encode_url(f'/v1/{mount_point}config'), config, namespace)
 
     def create_kv2_secret(self, mount_point: str, path: str, data: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         mount_point = self._fix_mount_point(mount_point)
         path = self._fix_kv_path(path)
+        # https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#create-update-secret
         return self.do_post(encode_url(f'/v1/{mount_point}data{path}'), _create_kv_data(data), namespace)
 
     def read_kv2_secret(self, mount_point: str, path: str, version: int=None, namespace: str=None) -> Dict[str, Any]:
         mount_point = self._fix_mount_point(mount_point)
         path = self._fix_kv_path(path)
+        # https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#read-secret-version
         return self.do_get(encode_url(f'/v1/{mount_point}data{path}') + (f'?version={version}' if version else ''), namespace)
 
     def update_kv2_secret(self, mount_point: str, path: str, data: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
@@ -233,16 +250,57 @@ class VaultClient():
     def patch_kv2_secret(self, mount_point: str, path: str, data: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         mount_point = self._fix_mount_point(mount_point)
         path = self._fix_kv_path(path)
+        # https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#patch-secret
         return self.do_patch(encode_url(f'/v1/{mount_point}data{path}'), _create_kv_data(data), namespace)
+
+    def delete_kv2_secret(self, mount_point: str, path: str, data: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
+        """Soft delete of current or specified versions"""
+        mount_point = self._fix_mount_point(mount_point)
+        path = self._fix_kv_path(path)
+        if data is None or not 'versions' in data:
+            # Delete the latest version
+            # https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#delete-latest-version-of-secret
+            return self.do_delete(encode_url(f'/v1/{mount_point}data{path}'), namespace)
+        # Delete the specified versions
+        # https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#delete-secret-versions
+        return self.do_post(encode_url(f'/v1/{mount_point}delete{path}'), {'versions': data['versions']}, namespace)
+
+    def undelete_kv2_secret(self, mount_point: str, path: str, data: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
+        mount_point = self._fix_mount_point(mount_point)
+        path = self._fix_kv_path(path)
+        if data is None or not 'versions' in data:
+            raise ValueError('versions required for undelete')
+        # https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#undelete-secret-versions
+        return self.do_post(encode_url(f'/v1/{mount_point}undelete{path}'), {'versions': data['versions']}, namespace)
+
+    def destroy_kv2_secret(self, mount_point: str, path: str, data: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
+        mount_point = self._fix_mount_point(mount_point)
+        path = self._fix_kv_path(path)
+        if data is None or not 'versions' in data:
+            raise ValueError('versions required for destroy')
+        # https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#destroy-secret-versions
+        return self.make_request(encode_url(f'/v1/{mount_point}destroy{path}'),
+                                "PUT", # That's what the docs say...
+                                {'versions': data['versions']},
+                                namespace)
+
+    def list_kv2_secrets(self, mount_point: str, path: str, namespace: str=None) -> Dict[str, Any]:
+        mount_point = self._fix_mount_point(mount_point)
+        path = self._fix_kv_path(path)
+        # https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#list-secrets
+        return self.do_list(encode_url(f'/v1/{mount_point}metadata{path}'), namespace)
 
     def create_kv2_metadata(self, mount_point: str, path: str, metadata: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         mount_point = self._fix_mount_point(mount_point)
         path = self._fix_kv_path(path)
+        # https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#create-update-metadata
+        # NB: only supports the custom metadata part ATM, not other things like CAS et al
         return self.do_post(encode_url(f'/v1/{mount_point}metadata{path}'), _create_metadata(metadata), namespace)
 
     def read_kv2_metadata(self, mount_point: str, path: str, namespace: str=None) -> Dict[str, Any]:
         mount_point = self._fix_mount_point(mount_point)
         path = self._fix_kv_path(path)
+        # https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#read-secret-metadata
         return self.do_get(encode_url(f'/v1/{mount_point}metadata{path}'), namespace)
 
     def update_kv2_metadata(self, mount_point: str, path: str, metadata: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
@@ -251,19 +309,20 @@ class VaultClient():
     def patch_kv2_metadata(self, mount_point: str, path: str, metadata: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         mount_point = self._fix_mount_point(mount_point)
         path = self._fix_kv_path(path)
+        # https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#patch-metadata
+        # NB: only supports the custom metadata part ATM, not other things like CAS et al
         return self.do_patch(encode_url(f'/v1/{mount_point}metadata{path}'), _create_metadata(metadata), namespace)
+
+    def delete_kv2_metadata(self, mount_point: str, path: str, namespace: str=None) -> Dict[str, Any]:
+        mount_point = self._fix_mount_point(mount_point)
+        # https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#delete-metadata-and-all-versions
+        return self.do_delete(encode_url(f'/v1/{mount_point}metadata{path}'), namespace)
 
     def get_kv2_subkeys(self, namespace: str, mount_point: str, path: str) -> list:
         mount_point = self._fix_mount_point(mount_point)
         path = self._fix_kv_path(path)
-        subkeys = self.do_get(encode_url(f'/v1/{mount_point}subkeys{path}') + '?depth=1', namespace)
-        return [subkeys.keys()] if subkeys else []
-
-    def list_kv2_subpaths(self, namespace: str, mount_point: str, path: str='') -> list:
-        mount_point = self._fix_mount_point(mount_point)
-        path = self._fix_kv_path(path)
-        paths = self.do_list(encode_url(f'/v1/{mount_point}metadata{path}'), namespace)
-        return sorted(list(set([f"{path.rstrip('/')}" for path in paths])))
+        # https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#read-secret-subkeys
+        return  self.do_get(encode_url(f'/v1/{mount_point}subkeys{path}') + '?depth=1', namespace)
 
     def read_aws_config(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
         """
@@ -504,6 +563,10 @@ class VaultClient():
         # Go thought the options: what the user provided on the call,
         # in the constructor, or default to "root"
         return ns if ns else self._default_ns if self._default_ns else ''
+
+    @staticmethod
+    def _error(*args) -> None:
+        _LOG.error(''.join(str(arg) for arg in args))
 
     @staticmethod
     def _warn(*args) -> None:
