@@ -4,6 +4,7 @@ It also generates the grammar fragments used to identify the functions.
 """
 
 from collections import defaultdict
+from collections.abc import Iterable
 from functools import lru_cache
 from typing import Any, Callable
 import inspect
@@ -18,6 +19,7 @@ from mathpak import (
     format_duration,
     format_json,
     format_timestamp,
+    int_arg,
     is_dir,
     is_file,
     md_blockquote,
@@ -177,6 +179,24 @@ def _id(obj: Any) -> Any:
 """
     return id(obj)
 
+def _enumerate(obj: Any, start_at: int=0) -> Any:
+    """
+**Create an enumeration for a collection**
+
+* _value_.Enumerate()
+* _value_.Enumerate(_start_at_)
+
+The _start_at_ argument defines the number used in the enumerated tuple.
+The default value for _start_at_ is zero.
+Enumeration of values that are not collections produces an enumeration of a single entry.
+Enumerating _None_ returns an empty list.
+"""
+    if obj is None: return []
+    start_at = int_arg(start_at, "StartAt")
+    if isinstance(obj, Iterable) and not isinstance(obj, (str, bytes, bytearray)):
+        return list(enumerate(obj, start=start_at))
+    return [(start_at, obj)]
+
 _BUILT_IN_FUNCS = {
     "Abs":            poly_abs,
     "Add":            poly_add,
@@ -208,6 +228,7 @@ _BUILT_IN_FUNCS = {
     "DivMod":         poly_divmod,
     "EncodeURL":      encode_url,
     "EndsWith":       poly_endswith,
+    "Enumerate":      _enumerate,
     "ExpandTabs":     poly_expandtabs,
     "FileExists":     file_exists,
     "FindStr":        poly_find,
