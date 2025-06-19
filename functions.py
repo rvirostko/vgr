@@ -4,7 +4,7 @@ It also generates the grammar fragments used to identify the functions.
 """
 
 from collections import defaultdict
-from collections.abc import Iterable
+from collections.abc import Sequence, Iterable
 from functools import lru_cache
 from typing import Any, Callable
 import inspect
@@ -217,6 +217,27 @@ The _value_'s type determines what is returned:
     if isinstance(x, dict): return {k: _negate(v) for k, v in x.items()}
     return x
 
+def _slice(x: Any, start: int=None, stop: int=None, step: int=None) -> Any:
+    """
+**Extract a portion of a list or string**
+
+* _value_.Slice()
+* _value_.Slice(_start_)
+* _value_.Slice(_start_, _stop_)
+* _value_.Slice(_start_, _stop_, _step_)
+"""
+    start = int_arg(start, "Start") if start is not None else None
+    stop = int_arg(stop, "Stop") if stop is not None else None
+    step = int_arg(step, "Step") if step is not None else None
+    if x is None: return None
+    # Treat bytes and bytearray like strings (return same type)
+    if isinstance(x, (str, bytes, bytearray)): return x[start:stop:step]
+    # Accept any object that supports slicing via __getitem__
+    if isinstance(x, Sequence): return list(x[start:stop:step])
+    # Convert iterable to list then slice
+    if isinstance(x, Iterable): return list(list(x)[start:stop:step])
+    return x
+
 _BUILT_IN_FUNCS = {
     "Abs":            poly_abs,
     "Add":            poly_add,
@@ -349,6 +370,7 @@ _BUILT_IN_FUNCS = {
     "RSplit":         poly_rsplit,
     "ShortenStr":     poly_shorten,
     "SizeOf":         poly_sizeof,
+    "Slice":          _slice,
     "Sort":           poly_sort,
     "Split":          poly_split,
     "SplitLines":     poly_splitlines,
