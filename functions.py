@@ -197,6 +197,26 @@ Enumerating _None_ returns an empty list.
         return list(enumerate(obj, start=start_at))
     return [(start_at, obj)]
 
+def _negate(x: Any) -> Any:
+    """
+**Returns the negation of a value**
+
+* _value_.Negate()
+
+The _value_'s type determines what is returned:
+* _None_ : always returns _True_
+* String : returns _value_ unchanged
+* Boolean : returns the logical negation
+* Int and Float : return the arithmetic negation
+* Lists and Dictionaries : distributed negation
+"""
+    if x is None: return True
+    if isinstance(x, bool): return not x
+    if isinstance(x, (int, float)): return -x
+    if isinstance(x, (list, tuple)): return type(x)(_negate(x1) for x1 in x)
+    if isinstance(x, dict): return {k: _negate(v) for k, v in x.items()}
+    return x
+
 _BUILT_IN_FUNCS = {
     "Abs":            poly_abs,
     "Add":            poly_add,
@@ -299,6 +319,7 @@ _BUILT_IN_FUNCS = {
     "Mode":           poly_mode,
     "Mul":            poly_mul,
     "MultiMode":      poly_multimode,
+    "Negate":         _negate,
     "Number":         poly_number,
     "Ord":            poly_ord,
     "ParseBinary":    poly_parse_bin,
