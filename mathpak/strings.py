@@ -10,33 +10,32 @@ from .common import X_None_Op, NoneType, Y_Coll_Op, str_arg, int_arg, type_str, 
 from .reg_ex import poly_regex_replace, poly_vregex_replace
 from .types import poly_str
 
-TNone = type(None)
 # No-args string method that returns a string, e.q. "x.upper()"
 # This is transformational on string items, but idempotent on others
 # ["bob", 27, True].upper() -> ["BOB", 27, True]
 string_operations = {
-    TNone: lambda _, __, ___: None,
-    bool:  lambda _, x, __: x,
-    int:   lambda _, x, __: x,
-    float: lambda _, x, __: x,
-    str:   lambda _, x, sm: sm(x),
-    list:  lambda op, x, _: [op(x1) for x1 in x ],
-    tuple: lambda op, x, _: tuple(op(x1) for x1 in x),
-    dict:  lambda op, x, _: {key: op(value) for key, value in x.items()}
+    NoneType: lambda _op, _x, _sm: None,
+    bool:  lambda _op,  x, _sm: x,
+    int:   lambda _op,  x, _sm: x,
+    float: lambda _op,  x, _sm: x,
+    str:   lambda _op,  x,  sm: sm(x),
+    list:  lambda  op,  x, _sm: [op(x1) for x1 in x ],
+    tuple: lambda  op,  x, _sm: tuple(op(x1) for x1 in x),
+    dict:  lambda  op,  x, _sm: {key: op(value) for key, value in x.items()}
 }
 
 # No-args string method that returns a bool, e.q. "x.isupper()"
 # This is a conversion to bool on string items, but returning None for others
 # ["BOB", 27, True].upper() -> [True, None, None]
 bool_operations = {
-    TNone: lambda _, __, ___: None,
-    bool:  lambda _, x, __: None,
-    int:   lambda _, x, __: None,
-    float: lambda _, x, __: None,
-    str:   lambda _, x, sm: sm(x),
-    list:  lambda op, x, _: [op(x1) for x1 in x ],
-    tuple: lambda op, x, _: tuple(op(x1) for x1 in x),
-    dict:  lambda op, x, _: {key: op(value) for key, value in x.items() if isinstance(value, (str, list, tuple, dict))}
+    NoneType: lambda _op, _x, _sm: None,
+    bool:  lambda _op, _x, _sm: None,
+    int:   lambda _op, _x, _sm: None,
+    float: lambda _op, _x, _sm: None,
+    str:   lambda _op,  x,  sm: sm(x),
+    list:  lambda  op,  x, _sm: [op(x1) for x1 in x ],
+    tuple: lambda  op,  x, _sm: tuple(op(x1) for x1 in x),
+    dict:  lambda  op,  x, _sm: {key: op(value) for key, value in x.items() if isinstance(value, (str, list, tuple, dict))}
 }
 
 def exec_x_op(x: Any, name: str, op: Callable[[Any], Any], string_op, op_table) -> Any:
@@ -118,12 +117,12 @@ def poly_isupper(x: Any) -> Any:
 # ["xFoo", None, 27, True].strip("x") -> ["Foo", None, 27, True]
 # [" xFoo ", None, 27, True].strip([None, "x"]) -> ["Foo", None, 27, True]
 string_string_operations = {
-    X_None_Op    : lambda _, __, ___, ____: None,
-    Y_Coll_Op    : lambda op, x, y, _: reduce(op, y, x),
-    (str, str)   : lambda _, x, y, sm: sm(x, y),
-    (list, str)  : lambda op, x, y, _: [op(x1, y) for x1 in x],
-    (tuple, str) : lambda op, x, y, _: tuple(op(x1, y) for x1 in x),
-    (dict, str)  : lambda op, x, y, _: {key: op(value, y) for key, value in x.items()},
+    X_None_Op    : lambda _op, _x, _y, _sm: None,
+    Y_Coll_Op    : lambda  op,  x,  y, _sm: reduce(op, y, x),
+    (str, str)   : lambda _op,  x,  y,  sm: sm(x, y),
+    (list, str)  : lambda  op,  x,  y, _sm: [op(x1, y) for x1 in x],
+    (tuple, str) : lambda  op,  x,  y, _sm: tuple(op(x1, y) for x1 in x),
+    (dict, str)  : lambda  op,  x,  y, _sm: {key: op(value, y) for key, value in x.items()},
 }
 
 def exec_x_y_op(x: Any, y: Any, name: str, op: Callable[[Any, Any], Any], string_op, op_table) -> Any:
@@ -218,10 +217,10 @@ def poly_endswith(x: Any, suffix: Any) -> bool:
 # 2.leftstr(2).leftstr(2) -> 2
 # ["abc", 2].leftstr(2) -> ["ab", 2]
 string_int_operations = {
-    (str, int)   : lambda _, x, y, sm: sm(x, y),
-    (list, int)  : lambda op, x, y, _: [op(x1, y) for x1 in x],
-    (tuple, int) : lambda op, x, y, _: tuple(op(x1, y) for x1 in x),
-    (dict, int)  : lambda op, x, y, _: {key: op(value, y) for key, value in x.items()},
+    (str, int)   : lambda _op, x, y,  sm: sm(x, y),
+    (list, int)  : lambda  op, x, y, _sm: [op(x1, y) for x1 in x],
+    (tuple, int) : lambda  op, x, y, _sm: tuple(op(x1, y) for x1 in x),
+    (dict, int)  : lambda  op, x, y, _sm: {key: op(value, y) for key, value in x.items()},
 }
 
 def exec_str_int_op(x: Any, y: Any, name: str, op: Callable[[Any, Any], Any], string_op) -> Any:
@@ -251,10 +250,10 @@ def poly_substr(x: Any, start: Any, length: Any=1) -> Any:
     raise ValueError(f'SubStr() on {type_str(x)} not possible')
 
 string_loc_operations = {
-    (str, str)   : lambda _, x, y, sm: sm(x, y),
-    (list, str)  : lambda op, x, y, _: [op(x1, y) for x1 in x],
-    (tuple, str) : lambda op, x, y, _: tuple(op(x1, y) for x1 in x),
-    (dict, str)  : lambda op, x, y, _: {key: op(value, y) for key, value in x.items() if isinstance(value, (str, list, tuple, dict))},
+    (str, str)   : lambda _op, x, y,  sm: sm(x, y),
+    (list, str)  : lambda  op, x, y, _sm: [op(x1, y) for x1 in x],
+    (tuple, str) : lambda  op, x, y, _sm: tuple(op(x1, y) for x1 in x),
+    (dict, str)  : lambda  op, x, y, _sm: {key: op(value, y) for key, value in x.items() if isinstance(value, (str, list, tuple, dict))},
 }
 
 def poly_count(x: Any, sub: Any=None) -> Any:
@@ -357,7 +356,6 @@ Also see JustifyRight()
 """
     return poly_rjust(x, width, '0')
 
-
 ###
 
 def poly_shorten(x: str, length: int, placeholder: str="\u2026") -> str:
@@ -436,9 +434,19 @@ def poly_replace(x: Any, old: Any, new: Any=None) -> Any:
     if isinstance(x, (NoneType, bool, int, float)): return x
     if isinstance(x, re.Pattern): return poly_regex_replace(x, old, new)
     if old is None: return x
-    if new is None: new = ''
-    new = str(new) if isinstance(new, (bool, int, float, str)) else str_arg(old, 'New')
+    if not isinstance(new, str):
+        if new is None:
+            new = ''
+        else:
+            if isinstance(new, (bool, int, float)):
+                new = str(new)
+            else:
+                # at this point, it is just going to raise an error
+                str_arg(new, 'New')
+    # In this case, old is a list of items to be replaced
+    # e.g. poly_replace(my_string, ["a", "e", "i", "o", "u"], "-") to replace all vowels
     if isinstance(old, (list, tuple)): return reduce(lambda x, old1: poly_replace(x, old1, new), old, x)
+    # old needs to be a non-empty, non-None string
     old = str(old) if isinstance(old, (bool, int, float)) else str_arg(old, 'Old')
     if isinstance(x, str): return x.replace(old, new)
     if isinstance(x, (list, tuple)): return type(x)(poly_replace(x1, old, new) for x1 in x)
@@ -473,6 +481,14 @@ def poly_splitlines(x: Any, keepends: bool=False) -> Any:
     raise TypeError(f'Splitlines with {type_str(x)} not supported')
 
 def poly_join(x: Any, sep: str=None) -> Any:
+    """
+**Join together the elements of a list as strings**
+
+* _value_.Join()
+* _value_.Join(_sep_)
+
+The _sep_ argument is the separator between the strings. Defaults to an empty string.
+"""
     if isinstance(x, (NoneType, bool, int, float, str)): return x
     sep = '' if sep is None else str_arg(sep, 'Sep')
     if isinstance(x, (list, tuple)): return sep.join(poly_str(x))
@@ -502,6 +518,48 @@ def poly_translate(x: Any, from_str: Any, to_str: Any=None) -> Any:
             if isinstance(x, (int, float)): return poly_translate(str(x), from_str, to_str)
             if isinstance(x, list): return [poly_translate(x1, from_str, to_str) for x1 in x]
             if isinstance(x, tuple): return (poly_translate(x1, from_str, to_str) for x1 in x)
+    return x
+
+####
+
+def poly_ord(x:Any) -> Any:
+    """
+**Convert a string to its ordinal values**
+
+* _value_.Ord()
+
+If _value_ is a single character, the ordinal is returned; for an multi-character
+string, an array of ordinals are returned.
+The operation is distributed across lists and dictionaries.
+
+Also see Chr()
+"""
+    if x is None: return None
+    if isinstance(x, (int, float)): return int(x) if 0 <= x <= 0x10FFFF else x
+    if isinstance(x, str): return ord(x) if len(x) == 1 else [poly_ord(x1) for x1 in x]
+    if isinstance(x, (bytes, bytearray)): return list(x)
+    if isinstance(x, (list, tuple)): return type(x)(poly_ord(el) for el in x)
+    if isinstance(x, dict): return {k: poly_ord(v) for k, v in x.items()}
+    return x
+
+
+def poly_chr(x: Any ) -> Any:
+    """
+**Convert a number to single character string**
+
+* _value_.Chr()
+
+If _value_ is a value for a Unicode character a single character string
+is returned.
+The operation is distributed across lists and dictionaries.
+
+Also see Ord().
+"""
+    if x is None: return None
+    if isinstance(x, (int, float)): return chr(int(x)) if 0 <= x <= 0x10FFFF else x
+    if isinstance(x, (bytes, bytearray)): return ''.join(chr(b) for b in x)
+    if isinstance(x, (list, tuple)): return type(x)(poly_chr(x1) for x1 in x)
+    if isinstance(x, dict): return {k: poly_chr(v) for k, v in x.items()}
     return x
 
 ####
