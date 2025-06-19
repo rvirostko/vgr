@@ -167,7 +167,7 @@ def execute_api_patch(dd: DataDictionary, statement: Tree) -> None:
     args: dict = _extract_args(dd, statement)
     _allowed_args(args, _DATA_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
     url: str = _normalize_path(_resolve_str_arg(dd, statement.children[0], 'Path'))
-    data = _get_arg(args, _DATA_ARG, str, True)
+    data = _get_arg(args, _DATA_ARG, dict, True)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
     using = _set_default_conn(dd, _get_default_conn(dd, args))
     _set_result(dd,
@@ -179,7 +179,7 @@ def execute_api_post(dd: DataDictionary, statement: Tree) -> None:
     args: dict = _extract_args(dd, statement)
     _allowed_args(args, _DATA_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
     url: str = _normalize_path(_resolve_str_arg(dd, statement.children[0], 'Path'))
-    data = _get_arg(args, _DATA_ARG, str, True)
+    data = _get_arg(args, _DATA_ARG, dict, True)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
     using = _set_default_conn(dd, _get_default_conn(dd, args))
     _set_result(dd,
@@ -485,10 +485,14 @@ def execute_delete_kv_secret(dd: DataDictionary, statement: Tree) -> None:
                 args,
                 _CONNECTIONS.get_connection(using).delete_kv2_secret(mount_point, path, namespace))
 
-# TODO Future
-# - execute_undelete_kv_secret
-# - execute_destory_kv_secret
-# - execute_delete_kv2_metadata
+def execute_undelete_kv_secret(dd: DataDictionary, statement: Tree) -> None:
+    raise NotImplementedError() # TODO
+
+def execute_destroy_kv_secret(dd: DataDictionary, statement: Tree) -> None:
+    raise NotImplementedError() # TODO
+
+def execute_delete_kv_metadata(dd: DataDictionary, statement: Tree) -> None:
+    raise NotImplementedError() # TODO
 
 def execute_list_kv_secrets(dd: DataDictionary, statement: Tree) -> None:
     mount_point, path = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Path'))
@@ -569,19 +573,154 @@ def execute_rotate_ldap_secret(dd: DataDictionary, statement: Tree) -> None:
 # Database secrets engine
 #-------------------------------------------------------------------------------
 
-# TODO work point...
-# read
-# update
-# delete
-# create db role
-# read db role
-# update db role
-# delete db role
-# list db roles
-# generate db creds
-# rotate db cres
+def execute_create_db_connection(dd: DataDictionary, statement: Tree) -> None:
+    mount_point, name = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Name'))
+    args = _extract_args(dd, statement)
+    _allowed_args(args, _CONFIG_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    config = _get_arg(args, _CONFIG_ARG, dict)
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    using = _set_default_conn(dd, _get_default_conn(dd, args))
+    _set_result(dd,
+                args,
+                _CONNECTIONS.get_connection(using).create_database_connection(mount_point, name, config, namespace))
 
+def execute_read_db_connection(dd: DataDictionary, statement: Tree) -> None:
+    mount_point, name = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Name'))
+    args = _extract_args(dd, statement)
+    _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    using = _set_default_conn(dd, _get_default_conn(dd, args))
+    _set_result(dd,
+                args,
+                _CONNECTIONS.get_connection(using).read_database_connection(mount_point, name, namespace))
 
+def execute_update_db_connection(dd: DataDictionary, statement: Tree) -> None:
+    # NB: There's no difference in the call, but the ACL may need to be
+    #     different depending upon it being a create or update.
+    return execute_create_db_connection(dd, statement)
+
+def execute_delete_db_connection(dd: DataDictionary, statement: Tree) -> None:
+    mount_point, name = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Name'))
+    args = _extract_args(dd, statement)
+    _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    using = _set_default_conn(dd, _get_default_conn(dd, args))
+    _set_result(dd,
+                args,
+                _CONNECTIONS.get_connection(using).delete_database_connection(mount_point, name, namespace))
+
+def execute_list_db_connections(dd: DataDictionary, statement: Tree) -> None:
+    mount_point = _resolve_str_arg(dd, statement.children[0], 'Mount Point')
+    args = _extract_args(dd, statement)
+    _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    using = _set_default_conn(dd, _get_default_conn(dd, args))
+    _set_result(dd,
+                args,
+                _CONNECTIONS.get_connection(using).list_database_connections(mount_point, namespace))
+
+def execute_reset_db_connection(dd: DataDictionary, statement: Tree) -> None:
+    mount_point, name = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Name'))
+    args = _extract_args(dd, statement)
+    _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    using = _set_default_conn(dd, _get_default_conn(dd, args))
+    _set_result(dd,
+                args,
+                _CONNECTIONS.get_connection(using).reset_database_connection(mount_point, name, namespace))
+
+def execute_rotate_db_connection_creds(dd: DataDictionary, statement: Tree) -> None:
+    mount_point, name = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Name'))
+    args = _extract_args(dd, statement)
+    _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    using = _set_default_conn(dd, _get_default_conn(dd, args))
+    _set_result(dd,
+                args,
+                _CONNECTIONS.get_connection(using).rotate_database_connection_creds(mount_point, name, namespace))
+
+#-----
+def _is_static_type(args: dict):
+    """Look at _TYPE_ARG and see if user requested "static" """
+    value: str = _get_arg(args, _TYPE_ARG, str, True)
+    if not value: return False
+    return ''.join(filter(str.isalpha, value)).lower().startswith('stat')
+
+def execute_create_db_role(dd: DataDictionary, statement: Tree) -> None:
+    mount_point, role_name = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Role Name'))
+    args = _extract_args(dd, statement)
+    _allowed_args(args, _CONFIG_ARG, _TYPE_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    config = _get_arg(args, _CONFIG_ARG, dict)
+    is_static = _is_static_type(args)
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    using = _set_default_conn(dd, _get_default_conn(dd, args))
+    _set_result(dd,
+                args,
+                _CONNECTIONS.get_connection(using).create_database_role(mount_point, role_name, is_static, config, namespace))
+
+def execute_read_db_role(dd: DataDictionary, statement: Tree) -> None:
+    mount_point, role_name = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Role Name'))
+    args = _extract_args(dd, statement)
+    _allowed_args(args, _TYPE_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    is_static = _is_static_type(args)
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    using = _set_default_conn(dd, _get_default_conn(dd, args))
+    _set_result(dd,
+                args,
+                _CONNECTIONS.get_connection(using).read_database_role(mount_point, role_name, is_static, namespace))
+
+def execute_update_db_role(dd: DataDictionary, statement: Tree) -> None:
+    # NB: There's no difference in the call, but the ACL may need to be
+    #     different depending upon it being a create or update.
+    return execute_create_db_role(dd, statement)
+
+def execute_delete_db_role(dd: DataDictionary, statement: Tree) -> None:
+    mount_point, role_name = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Role Name'))
+    args = _extract_args(dd, statement)
+    _allowed_args(args, _TYPE_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    is_static = _is_static_type(args)
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    using = _set_default_conn(dd, _get_default_conn(dd, args))
+    _set_result(dd,
+                args,
+                _CONNECTIONS.get_connection(using).delete_database_role(mount_point, role_name, is_static, namespace))
+
+def execute_list_db_roles(dd: DataDictionary, statement: Tree) -> None:
+    mount_point = _resolve_str_arg(dd, statement.children[0], 'Mount Point')
+    args = _extract_args(dd, statement)
+    _allowed_args(args, _TYPE_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    is_static = _is_static_type(args)
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    using = _set_default_conn(dd, _get_default_conn(dd, args))
+    _set_result(dd,
+                args,
+                _CONNECTIONS.get_connection(using).list_database_role(mount_point, is_static, namespace))
+
+def execute_generate_db_role_creds(dd: DataDictionary, statement: Tree) -> None:
+    mount_point, role_name = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Role Name'))
+    args = _extract_args(dd, statement)
+    _allowed_args(args, _TYPE_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    is_static = _is_static_type(args)
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    using = _set_default_conn(dd, _get_default_conn(dd, args))
+    _set_result(dd,
+                args,
+                _CONNECTIONS.get_connection(using).generate_database_role_credentials(mount_point, role_name, is_static, namespace))
+
+def execute_vault_rotate_db_role_creds(dd: DataDictionary, statement: Tree) -> None:
+    mount_point, role_name = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Role Name'))
+    args = _extract_args(dd, statement)
+    _allowed_args(args, _TYPE_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    # If type isn't specify--unlike other calls--then static is assumed
+    # But if it is specified, it has to be static
+    is_static = True if _TYPE_ARG not in args else _is_static_type(args)
+    if not is_static:
+        raise ValueError(f'{mount_point}/{role_name} : Can only rotate credentials of static roles')
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    using = _set_default_conn(dd, _get_default_conn(dd, args))
+    _set_result(dd,
+                args,
+                _CONNECTIONS.get_connection(using).rotate_database_static_role_credentials(mount_point, role_name, namespace))
 
 # TODO may need to clean up duped slashes etc
 def _combine_ns(parent: str, child: str) -> str:
