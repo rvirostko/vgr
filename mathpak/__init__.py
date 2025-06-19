@@ -1,3 +1,6 @@
+
+from .common import int_arg, str_arg
+
 from .add import poly_add, poly_sum
 from .attrs import poly_dig, poly_vdig
 from .bases import poly_bin, poly_oct, poly_hex, poly_base64_encode, poly_base64_decode
