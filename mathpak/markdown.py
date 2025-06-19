@@ -25,26 +25,22 @@ def _to_str(s):
     return s
 
 def md_bold(text: Any) -> Any:
-    if isinstance(text, list): return [md_bold(item) for item in text]
-    if isinstance(text, tuple): return tuple(md_bold(item) for item in text)
+    if isinstance(text, (list, type)): return type(text)(md_bold(item) for item in text)
     text = _to_str(text)
     return _BLANK if len(text) == 0 else f"{_MD_BOLD}{text}{_MD_BOLD}"
 
 def md_italics(text: Any) -> Any:
-    if isinstance(text, list): return [md_italics(item) for item in text]
-    if isinstance(text, tuple): return tuple(md_italics(item) for item in text)
+    if isinstance(text, (list, type)): return type(text)(md_italics(item) for item in text)
     text = _to_str(text)
     return _BLANK if len(text) == 0 else f"{_MD_ITALICS}{text}{_MD_ITALICS}"
 
 def md_strikethrough(text: Any) -> Any:
-    if isinstance(text, list): return [md_strikethrough(item) for item in text]
-    if isinstance(text, tuple): return tuple(md_strikethrough(item) for item in text)
+    if isinstance(text, (list, type)): return type(text)(md_strikethrough(item) for item in text)
     text = _to_str(text)
     return _BLANK if len(text) == 0 else f"{_MD_STRIKETHROUGH}{text}{_MD_STRIKETHROUGH}"
 
 def md_code(text: Any) -> Any:
-    if isinstance(text, list): return [md_code(item) for item in text]
-    if isinstance(text, tuple): return tuple(md_code(item) for item in text)
+    if isinstance(text, (list, type)): return type(text)(md_code(item) for item in text)
     text = _to_str(text)
     return _BLANK if len(text) == 0 else f"{_MD_CODE}{text}{_MD_CODE}"
 
@@ -59,8 +55,7 @@ def md_heading(text: Any, level: int=1) -> Any:
     level = poly_int(level)
     # NB: Markdown only goes to 6, not 11
     level = 1 if level is None else max(1, min(level, 6))
-    if isinstance(text, list): return [md_heading(item, level) for item in text]
-    if isinstance(text, tuple): return tuple(md_heading(item, level) for item in text)
+    if isinstance(text, (list, type)): return type(text)(md_heading(item, level) for item in text)
     text = _to_str(text)
     return _BLANK if len(text) == 0 else f"{'#' * level} {text}\n"
 
