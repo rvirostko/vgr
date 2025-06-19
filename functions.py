@@ -162,12 +162,20 @@ from mathpak import (
 )
 
 def _default_to(value: Any, default: Any) -> Any:
-    """Returns a default value if the argument is None.
+    """
+**Returns the default if a value is _None_**
 
-* Fluent: _expression_.DefaultTo(_expression_)
-* Procedural: DefaultTo(_expression_, _expression_)
+* _value_.DefaultTo(_default_)
 """
     return default if value is None else value
+
+def _id(obj: Any) -> Any:
+    """
+**Returns the internal, unique ID used by the item**
+
+* _value_.Id()
+"""
+    return id(obj)
 
 _BUILT_IN_FUNCS = {
     "Abs":            poly_abs,
@@ -212,6 +220,7 @@ _BUILT_IN_FUNCS = {
     "FormatJSON":     format_json,
     "FormatTimestamp":format_timestamp,
     "Hash":           poly_hash,
+    "Id":             _id,
     "In":             poly_in,
     "IndexOf":        poly_index,
     "Int":            poly_int,
