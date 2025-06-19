@@ -38,61 +38,82 @@
     | vault_api_patch
 
 // Connections
-vault_connect   : "Vault"i "Connect"i (_COMMA? vault_conn_arg)* _SEMICOLON?
-vault_disconnect: "Vault"i "Disconnect"i ("From"i? expr)? _SEMICOLON?
+vault_connect   : "Vault"i {{Connect}} (_COMMA? vault_conn_arg)* _SEMICOLON?
+vault_disconnect: "Vault"i {{Disconnect}} ("From"i? expr)? _SEMICOLON?
 vault_conn_arg: "To"i "Host"i? expr -> conn_addr
     | ("With"i "Token"i? | "Token"i ("=" | "Is"i)) expr -> conn_token
     | "As"i expr -> conn_name
 
 // Generic Vault API interactions
-// The expr is the URL. Note that it may have to be URL encoded
-// It should include everything except the host name and port
-vault_api_get    : "Vault"i "APIGet"i expr vault_args _SEMICOLON?
-vault_api_list   : "Vault"i "APIList"i expr vault_args _SEMICOLON?
-vault_api_delete : "Vault"i "APIDelete"i expr vault_args _SEMICOLON?
-vault_api_post   : "Vault"i "APIPost"i expr vault_args _SEMICOLON?
-vault_api_patch  : "Vault"i "APIPatch"i expr vault_args _SEMICOLON?
+// The expr is the path part of the URL. It should include everything
+//  except the host name and port. It may have to be URL encoded.
+vault_api_get    : "Vault"i {{APIGet}} expr vault_args _SEMICOLON?
+vault_api_list   : "Vault"i {{APIList}} expr vault_args _SEMICOLON?
+vault_api_delete : "Vault"i {{APIDelete}} expr vault_args _SEMICOLON?
+vault_api_post   : "Vault"i {{APIPost}} expr vault_args _SEMICOLON?
+vault_api_patch  : "Vault"i {{APIPatch}} expr vault_args _SEMICOLON?
 
 // Namespaces
-vault_default_ns : "Vault"i ("DefaultNamespace"i | "default_namespace"i) expr _SEMICOLON?
-vault_create_ns  : "Vault"i ("CreateNamespace"i | "create_namespace"i) expr vault_args _SEMICOLON?
-vault_read_ns    : "Vault"i ("ReadNamespace"i | "read_namespace"i) expr vault_args _SEMICOLON?
-vault_update_ns  : "Vault"i ("UpdateNamespace"i | "update_namespace"i) expr vault_args _SEMICOLON?
-vault_delete_ns  : "Vault"i ("DeleteNamespace"i | "delete_namespace"i) expr vault_args _SEMICOLON?
-vault_list_ns    : "Vault"i ("ListNamespaces"i | "list_namespaces"i) expr? vault_args _SEMICOLON?
-vault_lock_ns    : "Vault"i ("LockNamespace"i | "lock_namespace"i) expr vault_args _SEMICOLON?
-vault_unlock_ns  : "Vault"i ("UnlockNamespace"i | "unlock_namespace"i) expr vault_args _SEMICOLON?
+vault_default_ns : "Vault"i {{DefaultNamespace}} expr _SEMICOLON?
+vault_create_ns  : "Vault"i {{CreateNamespace}} expr vault_args _SEMICOLON?
+vault_read_ns    : "Vault"i {{ReadNamespace}} expr vault_args _SEMICOLON?
+vault_update_ns  : "Vault"i {{UpdateNamespace}} expr vault_args _SEMICOLON?
+vault_delete_ns  : "Vault"i {{DeleteNamespace}} expr vault_args _SEMICOLON?
+vault_list_ns    : "Vault"i {{ListNamespaces}} expr? vault_args _SEMICOLON?
+vault_lock_ns    : "Vault"i {{LockNamespace}} expr vault_args _SEMICOLON?
+vault_unlock_ns  : "Vault"i {{UnlockNamespace}} expr vault_args _SEMICOLON?
 
 // Secret Engine Mount Points
-vault_create_mount : "Vault"i ("CreateMount"i | "create_mount"i) expr vault_args _SEMICOLON?
-vault_read_mount   : "Vault"i ("ReadMount"i | "read_mount"i) expr vault_args _SEMICOLON?
-vault_update_mount : "Vault"i ("UpdateMount"i | "update_mount"i) expr vault_args _SEMICOLON?
-vault_delete_mount : "Vault"i ("DeleteMount"i | "delete_mount"i) expr vault_args _SEMICOLON?
-vault_list_mounts  : "Vault"i ("ListMounts"i | "list_mounts"i) expr? vault_args _SEMICOLON?
+vault_create_mount : "Vault"i {{CreateMount}} expr vault_args _SEMICOLON?
+vault_read_mount   : "Vault"i {{ReadMount}} expr vault_args _SEMICOLON?
+vault_update_mount : "Vault"i {{UpdateMount}} expr vault_args _SEMICOLON?
+vault_delete_mount : "Vault"i {{DeleteMount}} expr vault_args _SEMICOLON?
+vault_list_mounts  : "Vault"i {{ListMounts}} expr? vault_args _SEMICOLON?
 
 // KV2 Secrets
-vault_create_kv_secret : "Vault"i ("CreateKvSecret"i | "create_kv_secret"i) expr vault_args _SEMICOLON?
-vault_read_kv_secret   : "Vault"i ("ReadKvSecret"i | "read_kv_secret"i) expr vault_args _SEMICOLON?
-vault_read_kv_metadata : "Vault"i ("ReadKvMetadata"i | "read_kv_metadata"i) expr vault_args _SEMICOLON?
-vault_update_kv_secret : "Vault"i ("UpdateKvSecret"i | "update_kv_secret"i) expr vault_args _SEMICOLON?
-vault_delete_kv_secret : "Vault"i ("DeleteKvSecret"i | "delete_kv_secret"i) expr vault_args _SEMICOLON?
-vault_list_kv_secrets  : "Vault"i ("ListKvSecrets"i | "list_kv_secrets"i) expr vault_args _SEMICOLON?
-vault_patch_kv_secret  : "Vault"i ("PatchKvSecret"i | "patch_kv_secret"i) expr vault_args _SEMICOLON?
+vault_create_kv_secret : "Vault"i {{CreateKvSecret}} expr vault_args _SEMICOLON?
+vault_read_kv_secret   : "Vault"i {{ReadKvSecret}} expr vault_args _SEMICOLON?
+vault_read_kv_metadata : "Vault"i {{ReadKvMetadata}} expr vault_args _SEMICOLON?
+vault_delete_kv_metadata : "Vault"i {{DeleteKvMetadata}} expr vault_args _SEMICOLON?
+vault_update_kv_secret : "Vault"i {{UpdateKvSecret}} expr vault_args _SEMICOLON?
+vault_delete_kv_secret : "Vault"i {{DeleteKvSecret}} expr vault_args _SEMICOLON?
+vault_undelete_kv_secret : "Vault"i {{UndeleteKvSecret}} expr vault_args _SEMICOLON?
+vault_destroy_kv_secret : "Vault"i {{DestroyKvSecret}} expr vault_args _SEMICOLON?
+vault_list_kv_secrets  : "Vault"i {{ListKvSecrets}} expr vault_args _SEMICOLON?
+vault_patch_kv_secret  : "Vault"i {{PatchKvSecret}} expr vault_args _SEMICOLON?
 
 // LDAP Libraries Secrets
-vault_create_ldap_lib : "Vault"i ("CreateLdapLibrary"i | "create_ldap_library"i) expr vault_args _SEMICOLON?
-vault_read_ldap_lib   : "Vault"i ("ReadLdapLibrary"i | "read_ldap_library"i) expr vault_args _SEMICOLON?
-vault_update_ldap_lib : "Vault"i ("UpdateLdapLibrary"i | "update_ldap_library"i) expr vault_args _SEMICOLON?
-vault_delete_ldap_lib : "Vault"i ("DeleteLdapLibrary"i | "delete_ldap_library"i) expr vault_args _SEMICOLON?
-vault_list_ldap_libs  : "Vault"i ("ListLdapLibraries"i | "list_ldap_libraries"i) expr vault_args _SEMICOLON?
+vault_create_ldap_lib : "Vault"i {{CreateLdapLibrary}} expr vault_args _SEMICOLON?
+vault_read_ldap_lib   : "Vault"i {{ReadLdapLibrary}} expr vault_args _SEMICOLON?
+vault_update_ldap_lib : "Vault"i {{UpdateLdapLibrary}} expr vault_args _SEMICOLON?
+vault_delete_ldap_lib : "Vault"i {{DeleteLdapLibrary}} expr vault_args _SEMICOLON?
+vault_list_ldap_libs  : "Vault"i {{ListLdapLibraries}} expr vault_args _SEMICOLON?
 
 // LDAP Static Secrets
-vault_create_ldap_secret : "Vault"i ("CreateLdapSecret"i | "create_ldap_secret"i) expr vault_args _SEMICOLON?
-vault_read_ldap_secret   : "Vault"i ("ReadLdapSecret"i | "read_ldap_secret"i) expr vault_args _SEMICOLON?
-vault_update_ldap_secret : "Vault"i ("UpdateLdapSecret"i | "update_ldap_secret"i) expr vault_args _SEMICOLON?
-vault_delete_ldap_secret : "Vault"i ("DeleteLdapSecret"i | "delete_ldap_secret"i) expr vault_args _SEMICOLON?
-vault_list_ldap_secrets  : "Vault"i ("ListLdapSecrets"i | "list_ldap_secrets"i) expr vault_args _SEMICOLON?
-vault_rotate_ldap_secret : "Vault"i ("RotateLdapSecret"i | "rotate_ldap_secret"i) expr vault_args _SEMICOLON?
+vault_create_ldap_secret : "Vault"i {{CreateLdapSecret}} expr vault_args _SEMICOLON?
+vault_read_ldap_secret   : "Vault"i {{ReadLdapSecret}} expr vault_args _SEMICOLON?
+vault_update_ldap_secret : "Vault"i {{UpdateLdapSecret}} expr vault_args _SEMICOLON?
+vault_delete_ldap_secret : "Vault"i {{DeleteLdapSecret}} expr vault_args _SEMICOLON?
+vault_list_ldap_secrets  : "Vault"i {{ListLdapSecrets}} expr vault_args _SEMICOLON?
+vault_rotate_ldap_secret : "Vault"i {{RotateLdapSecret}} expr vault_args _SEMICOLON?
+
+// Database Secrets Engine
+vault_create_db_conn  : "Vault"i {{CreateDbConnection}} expr vault_args _SEMICOLON?
+vault_read_db_conn    : "Vault"i {{ReadDbConnection}} expr vault_args _SEMICOLON?
+vault_update_db_conn  : "Vault"i {{UpdateDbConnection}} expr vault_args _SEMICOLON?
+vault_delete_db_conn  : "Vault"i {{DeleteDbConnection}} expr vault_args _SEMICOLON?
+vault_list_db_conns   : "Vault"i {{ListDbConnections}} expr vault_args _SEMICOLON?
+vault_reset_db_conn   : "Vault"i {{ResetDbConnection}} expr vault_args _SEMICOLON?
+vault_rotate_db_conn  : "Vault"i {{RotateDbConnectionCredentials}} expr vault_args _SEMICOLON?
+
+vault_create_db_role       : "Vault"i {{CreateDbRole}} expr vault_args _SEMICOLON?
+vault_read_db_role         : "Vault"i {{ReadDbRole}} expr vault_args _SEMICOLON?
+vault_update_db_role       : "Vault"i {{UpdateDbRole}} expr vault_args _SEMICOLON?
+vault_list_db_roles        : "Vault"i {{ListDbRoles}} expr vault_args _SEMICOLON?
+vault_generate_db_creds    : "Vault"i {{GenerateDbCredentials}} expr vault_args _SEMICOLON?
+# Note: while other db_role calls use Type is dynamic/static,
+#       rotate only applied to static. If you specify type, if must be static
+vault_rotate_db_role_creds : "Vault"i {{RotateDbRoleCredentials}} expr vault_args _SEMICOLON?
 
 # NB: Expression are treated like tokens iff they are a single name component
 #     and are undefined in the data dictionary
@@ -113,8 +134,8 @@ vault_option: "CAS"i ("=" | "Is"i)? expr -> vopt_cas
     | "Namespace"i "From"i var_name -> vopt_namespace
     | ("Result"i | "Results"i) ("=" | "Is"i | "In"i)? var_name -> vopt_result
     | "Into"i var_name -> vopt_result
-    | ("Secrets"i | "Secret"i) ("=" | "Is"i | "Are"i)? expr -> vopt_data # Alias for data
-    | ("Secrets"i | "Secret"i) "From"i var_name -> vopt_data             # Alias for data
+    | ("Secret"i | "Secrets"i) ("=" | "Is"i | "Are"i)? expr -> vopt_data # Alias for data
+    | ("Secret"i | "Secrets"i) "From"i var_name -> vopt_data             # Alias for data
     | "Type"i ("=" | "Is"i)? expr -> vopt_type
     | "Type"i "From"i var_name -> vopt_type
     | "Using"i "Connection"i? expr -> vopt_using
