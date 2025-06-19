@@ -482,82 +482,81 @@ class VaultClient():
         mount_point = self._fix_mount_point(mount_point)
         return self.do_post(encode_url(f'/v1/{mount_point}static-cred/{name}/rotate'), namespace=namespace)
 
-    def read_database_config(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
-        """
-        Read the database secrets engine configuration for the given mount point.
-        """
+    def create_database_connection(self, mount_point: str, name: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
+        # https://developer.hashicorp.com/vault/api-docs/secret/databases#configure-connection
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_get(encode_url(f'/v1/{mount_point}config'), namespace)
+        return self.do_post(encode_url(f'/v1/{mount_point}config/{name}'), config, namespace)
 
-    def update_database_config(self, mount_point: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
-        """
-        Update the database secrets engine configuration for the given mount point.
-        """
+    def read_database_connection(self, mount_point: str, name:str, namespace: str=None) -> Dict[str, Any]:
+        # https://developer.hashicorp.com/vault/api-docs/secret/databases#read-connection
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_post(encode_url(f'/v1/{mount_point}config'), config, namespace)
+        return self.do_get(encode_url(f'/v1/{mount_point}config/{name}'), namespace)
 
-    def delete_database_config(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
-        """
-        Delete the database secrets engine configuration for the given mount point.
-        """
+    def update_database_connection(self, mount_point: str, name: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
+        # https://developer.hashicorp.com/vault/api-docs/secret/databases#configure-connection
+        return self.create_database_connection(mount_point, name, config, namespace)
+
+    def delete_database_connection(self, mount_point: str, name:str, namespace: str=None) -> Dict[str, Any]:
+        # https://developer.hashicorp.com/vault/api-docs/secret/databases#delete-connection
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_delete(encode_url(f'/v1/{mount_point}config'), namespace)
+        return self.do_delete(encode_url(f'/v1/{mount_point}config/{name}'), namespace)
 
-    def create_database_role(self, mount_point: str, role_name: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
-        """
-        Create or update a database role.
-        """
+    def list_database_connections(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
+        # https://developer.hashicorp.com/vault/api-docs/secret/databases#list-connections
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_post(encode_url(f'/v1/{mount_point}roles/{role_name}'), config, namespace)
+        return self.do_list(encode_url(f'/v1/{mount_point}config'), namespace)
 
-    def read_database_role(self, mount_point: str, role_name: str, namespace: str=None) -> Dict[str, Any]:
-        """
-        Read a database role definition.
-        """
+    def reset_database_connection(self, mount_point: str, name: str, namespace: str=None) -> Dict[str, Any]:
+        # https://developer.hashicorp.com/vault/api-docs/secret/databases#reset-connection
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_get(encode_url(f'/v1/{mount_point}roles/{role_name}'), namespace)
+        return self.do_post(encode_url(f'/v1/{mount_point}reset/{name}'), namespace)
 
-    def update_database_role(self, mount_point: str, role_name: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
-        """
-        Update a database role (alias for create_database_role).
-        """
-        return self.create_database_role(mount_point, role_name, config, namespace)
-
-    def delete_database_role(self, mount_point: str, role_name: str, namespace: str=None) -> Dict[str, Any]:
-        """
-        Delete a database role.
-        """
+    def rotate_database_connection_creds(self, mount_point: str, name: str, namespace: str=None) -> Dict[str, Any]:
+        # https://developer.hashicorp.com/vault/api-docs/secret/databases#rotate-root-credentials
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_delete(encode_url(f'/v1/{mount_point}roles/{role_name}'), namespace)
+        return self.do_delete(encode_url(f'/v1/{mount_point}rotate-root/{name}'), namespace)
 
-    def list_database_roles(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
-        """
-        List database roles at the given mount point.
-        """
-        mount_point = self._fix_mount_point(mount_point)
-        return self.do_list(encode_url(f'/v1/{mount_point}roles'), namespace)
+    def _static_pfx(self, path: str, is_static: bool) -> str:
+        return "static-" + path if is_static else path
 
-    def generate_database_credentials(self, mount_point: str, role_name: str, namespace: str=None) -> Dict[str, Any]:
-        """
-        Generate credentials for the given database role.
-        """
+    def create_database_role(self, mount_point: str, role_name: str, is_static: bool, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
+        # https://developer.hashicorp.com/vault/api-docs/secret/databases#create-role
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_get(encode_url(f'/v1/{mount_point}creds/{role_name}'), namespace)
+        return self.do_post(encode_url(f'/v1/{mount_point}{self._static_pfx("roles", is_static)}/{role_name}'), config, namespace)
 
-    def rotate_database_credentials(self, mount_point: str, role_name: str, namespace: str=None) -> Dict[str, Any]:
-        """
-        Rotate credentials for a static database role.
-        """
+    def read_database_role(self, mount_point: str, role_name: str, is_static: bool, namespace: str=None) -> Dict[str, Any]:
+        # https://developer.hashicorp.com/vault/api-docs/secret/databases#read-role
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_post(encode_url(f'/v1/{mount_point}rotate-role/{role_name}'), namespace=namespace)
+        return self.do_get(encode_url(f'/v1/{mount_point}{self._static_pfx("roles", is_static)}/{role_name}'), namespace)
+
+    def update_database_role(self, mount_point: str, role_name: str, is_static: bool, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
+        # https://developer.hashicorp.com/vault/api-docs/secret/databases#create-role
+        return self.create_database_role(mount_point, role_name, is_static, config, namespace)
+
+    def delete_database_role(self, mount_point: str, role_name: str, is_static: bool, namespace: str=None) -> Dict[str, Any]:
+        # https://developer.hashicorp.com/vault/api-docs/secret/databases#delete-role
+        mount_point = self._fix_mount_point(mount_point)
+        return self.do_delete(encode_url(f'/v1/{mount_point}{self._static_pfx("roles", is_static)}/{role_name}'), namespace)
+
+    def list_database_roles(self, mount_point: str, is_static: bool, namespace: str=None) -> Dict[str, Any]:
+        # https://developer.hashicorp.com/vault/api-docs/secret/databases#delete-role
+        mount_point = self._fix_mount_point(mount_point)
+        return self.do_list(encode_url(f'/v1/{mount_point}{self._static_pfx("roles", is_static)}'), namespace)
+
+    def generate_database_role_credentials(self, mount_point: str, role_name: str, is_static: bool, namespace: str=None) -> Dict[str, Any]:
+        # https://developer.hashicorp.com/vault/api-docs/secret/databases#generate-credentials
+        mount_point = self._fix_mount_point(mount_point)
+        return self.do_get(encode_url(f'/v1/{mount_point}{self._static_pfx("creds", is_static)}/{role_name}'), namespace)
+
+    def rotate_database_static_role_credentials(self, mount_point: str, role_name: str, namespace: str=None) -> Dict[str, Any]:
+        # https://developer.hashicorp.com/vault/api-docs/secret/databases#rotate-static-role-credentials        mount_point = self._fix_mount_point(mount_point)
+        return self.do_post(encode_url(f'/v1/{mount_point}rotate-role/{role_name}'), namespace)
 
     def __enter__(self):
         return self.open()
 
-    #pylint: disable=unused-argument
-    def __exit__(self, exc_type, exc_val, exc_tb):
+    def __exit__(self, _exc_type, _exc_val, _exc_tb):
         self.close()
-    #pylint: enable=unused-argument
 
     def _ns(self, ns: str) -> str:
         # Go thought the options: what the user provided on the call,
