@@ -59,6 +59,13 @@ def str_to_int(x: str) -> int:
     return None if n is None else int(n)
 
 def str_to_bool(x: str) -> bool:
+    """
+    Attempts to convert a string to a boolean.
+    Understand "true" and "false" and other versions.
+    If the string can be converted to a number,
+    it is compared agains zero. Otherwise Python
+    "truthiness" applies.
+    """
     if x is None or x.isspace(): return False
     x = x.strip().lower()
     if x in _TRUE_STRS: return True
@@ -71,6 +78,13 @@ def str_to_bool(x: str) -> bool:
         return True
 
 def bool_arg(arg: Any, name: str) -> bool:
+    """
+    Type checks the argument as a boolean.
+    None is considered false; string representations of T/F are parsed.
+    Int/float are compared against zero.
+    All other types are invalid.
+    See str_to_bool() for conversion details.
+    """
     if arg is None: return False
     if isinstance(arg, bool): return arg
     if isinstance(arg, str): return str_to_bool(arg)
@@ -78,6 +92,10 @@ def bool_arg(arg: Any, name: str) -> bool:
     raise ValueError(f'{name} argument must be a boolean, found {type_str(arg)}')
 
 def int_arg(arg: Any, name: str) -> int:
+    """
+    Type checks the argument as an integer number (int, float, or converted string)
+    None is treated as zero.
+    """
     if isinstance(arg, str): arg = str_to_number(arg)
     if arg is None: arg = 0
     if not isinstance(arg, (int, float)):
@@ -85,6 +103,7 @@ def int_arg(arg: Any, name: str) -> int:
     return int(arg)
 
 def str_arg(arg: Any, name: str) -> str:
+    """Type checks the argument as a non-None, non-blank string"""
     if arg is None:
         raise ValueError(f'{name} argument cannot be None')
     if isinstance(arg, str):
