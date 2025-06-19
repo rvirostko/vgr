@@ -70,8 +70,8 @@ def dd_init() -> DataDictionary:
     dd.set_var(60 * 60 * 24, _TIME_PREFIX, 'sec_per_day')
     tz = datetime.now().astimezone()
     dd.set_var(int(tz.utcoffset().total_seconds()), _TIME_PREFIX, 'utc_offset')
-    dd.set_var(int(tz.dst()), _TIME_PREFIX, 'dst')
-    dd.set_var(int(tz.tzname()), _TIME_PREFIX, 'tz_name')
+    dd.set_var(bool(tz.dst()), _TIME_PREFIX, 'dst')
+    dd.set_var(tz.tzname(), _TIME_PREFIX, 'tz_name')
     for func, name in ((_get_os_consts, 'os'), (_get_environment, 'env')):
         dd.set_var(func(), name)
         dd.add_immutable_prefix(name)
