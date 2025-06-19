@@ -4,6 +4,7 @@ Utility routines for working with the global Data Dictionary
 """
 
 from copy import deepcopy
+from datetime import datetime
 from typing import Any
 import getpass
 import math
@@ -20,6 +21,8 @@ from mathpak import poly_number, poly_bool
 
 _VGR_PREFIX = 'vgr'
 _STATEMENT_PATH = (_VGR_PREFIX, 'statement')
+_MATH_PREFIX = 'math'
+_TIME_PREFIX = 'time'
 LOG_LEVEL_PATH = (_VGR_PREFIX, 'log_level')
 SHELL_PROMPT_PATH = (_VGR_PREFIX, 'prompt')
 SHELL_HISTORY_PATH = (_VGR_PREFIX, 'history')
@@ -55,9 +58,20 @@ def dd_init() -> DataDictionary:
         name = mod.__name__
         dd.set_var(_get_consts(mod), name)
         dd.add_immutable_prefix(name)
-    dd.set_var(-math.inf, 'math', 'neg_inf')
-    dd.set_var(sys.float_info.max, 'math', 'float', 'max')
-    dd.set_var(sys.float_info.min, 'math', 'float', 'min')
+    # Our extension to math's constants
+    dd.set_var(-math.inf, _MATH_PREFIX, 'neg_inf')
+    dd.set_var(sys.float_info.max, _MATH_PREFIX, 'float', 'max')
+    dd.set_var(sys.float_info.min, _MATH_PREFIX, 'float', 'min')
+    # Time related constants
+    # There are a lot of other constanst we could define, but it gets stupid
+    dd.add_immutable_prefix(_TIME_PREFIX)
+    # These can be used with Unix Epoch values
+    dd.set_var(60 * 60, _TIME_PREFIX, 'sec_per_hr')
+    dd.set_var(60 * 60 * 24, _TIME_PREFIX, 'sec_per_day')
+    tz = datetime.now().astimezone()
+    dd.set_var(int(tz.utcoffset().total_seconds()), _TIME_PREFIX, 'utc_offset')
+    dd.set_var(int(tz.dst()), _TIME_PREFIX, 'dst')
+    dd.set_var(int(tz.tzname()), _TIME_PREFIX, 'tz_name')
     for func, name in ((_get_os_consts, 'os'), (_get_environment, 'env')):
         dd.set_var(func(), name)
         dd.add_immutable_prefix(name)
