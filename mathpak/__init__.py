@@ -34,6 +34,7 @@ from .strings import poly_substr, poly_append, poly_prepend, poly_isdecimal, pol
 from .strings import poly_swapcase, poly_title, poly_upper, poly_count, poly_index, poly_rindex, poly_rightstr, poly_leftstr
 from .strings import poly_vappend, poly_vprepend, poly_format, poly_vreplace, poly_vstrip, poly_vrstrip
 from .strings import poly_vlstrip, poly_vremoveprefix, poly_vremovesuffix, poly_split, poly_rsplit
+from .strings import poly_ord, poly_chr
 from .sub import poly_sub
 from .time_funcs import format_duration, format_timestamp
 from .types import poly_bool, poly_float, poly_int, poly_isbool, poly_isfloat, poly_isint, poly_isnumber
