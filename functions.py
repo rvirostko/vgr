@@ -6,6 +6,7 @@ It also generates the grammar fragments used to identify the functions.
 from collections import defaultdict
 from collections.abc import Sequence, Iterable
 from functools import lru_cache
+from itertools import zip_longest
 from typing import Any, Callable
 import inspect
 import re
@@ -238,6 +239,24 @@ def _slice(x: Any, start: int=None, stop: int=None, step: int=None) -> Any:
     if isinstance(x, Iterable): return list(list(x)[start:stop:step])
     return x
 
+def _zip_with(first: Any, *rest) -> Any:
+    """
+**Combine elements of collections into a list of tuples**
+
+* _value_.ZipWith()
+* _value_.ZipWith(_expresssion_ [,_expression_...])
+
+Combines the elements of the listed collections into an array of arrays.
+Each element will have the _N_th matching values joined together.
+If the lists are of unequal length, _None_ values are used for the
+missing items.
+
+"""
+    def normalize(x):
+        return x if isinstance(x, Iterable) and not isinstance(x, (str, bytes, bytearray)) else [x]
+    iterables = [normalize(first)] + [normalize(arg) for arg in rest]
+    return list(zip_longest(*iterables))
+
 _BUILT_IN_FUNCS = {
     "Abs":            poly_abs,
     "Add":            poly_add,
@@ -405,6 +424,7 @@ _BUILT_IN_FUNCS = {
     "Upper":          poly_upper,
     "Variance":       poly_variance,
     "ZeroFill":       poly_zfill,
+    "ZipWith":        _zip_with,
 }
 
 # Binds a (pretty) name to the function to be executed
