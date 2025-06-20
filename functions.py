@@ -239,12 +239,12 @@ def _slice(x: Any, start: int=None, stop: int=None, step: int=None) -> Any:
     if isinstance(x, Iterable): return list(list(x)[start:stop:step])
     return x
 
-def _zip_with(first: Any, *rest) -> Any:
+def _combine_with(first: Any, *rest) -> Any:
     """
 **Combine elements of collections into a list of tuples**
 
-* _value_.ZipWith()
-* _value_.ZipWith(_expresssion_ [,_expression_...])
+* _value_.CombineWith()
+* _value_.CombineWith(_expresssion_ [,_expression_...])
 
 Combines the elements of the listed collections into an array of arrays.
 Each element will have the _N_th matching values joined together.
@@ -275,6 +275,7 @@ _BUILT_IN_FUNCS = {
     "Ceil":           poly_ceil,
     "Center":         poly_center,
     "Chr":            poly_chr,
+    "CombineWith":    _combine_with,
     "CompilePattern": compile_pattern,
     "Contains":       poly_contains_any,
     "ContainsAll":    poly_contains_all,
@@ -424,7 +425,6 @@ _BUILT_IN_FUNCS = {
     "Upper":          poly_upper,
     "Variance":       poly_variance,
     "ZeroFill":       poly_zfill,
-    "ZipWith":        _zip_with,
 }
 
 # Binds a (pretty) name to the function to be executed
