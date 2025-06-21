@@ -1,0 +1,13 @@
+#----------------------------------------------------------------------
+# Calculate and display Fibonacci numbers from fib(0) to fib(8)
+#----------------------------------------------------------------------
+
+fstack = [0, 0]
+i = 0
+While i <= 8:
+    fib = (i > 0 && i <= 2) ? 1 : fstack.Sum()
+    Append fib To fstack
+    Remove First From fstack
+    Printf "fib({}) = {}\n", i, fib
+    i += 1
+End

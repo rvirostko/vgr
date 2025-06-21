@@ -1,0 +1,22 @@
+#----------------------------------------------------------------------
+# Calculate and display Fibonacci numbers from fib(0) to fib(8)
+# Since we don't use ";" between print params to
+# indicate "no space", it has been converted to
+# "," and ofs is set to nothing.
+Set arg.ofs = ""
+#----------------------------------------------------------------------
+
+LET fib0 = 0
+LET fib1 = 0
+LET i = 0
+DO WHILE i <= 8
+    IF i > 0 AND i <= 2 DO
+        LET fib2 = 1
+    ELSE DO
+        LET fib2 = fib0 + fib1
+    END
+    LET fib0 = fib1
+    LET fib1 = fib2
+    PRINT "fib(", i, ") = ", fib2
+    LET i = i + 1
+LOOP

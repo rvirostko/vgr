@@ -1,0 +1,15 @@
+//---------------------------------------------------------------------
+// Calculate and display Fibonacci numbers from fib(0) to fib(8)
+// Derived from 'C' code, but not looking very much like it...
+//---------------------------------------------------------------------
+
+fib0 = 0;
+fib1 = 0;
+i = 0;
+while (i <= 8):
+    fib = (i > 0 && i <= 2) ? 1 : fib0 + fib1;
+    printf "fib({}) = {}\n", i, fib;
+    fib0 = fib1;
+    fib1 = fib;
+    i += 1;
+end;

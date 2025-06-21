@@ -1,0 +1,23 @@
+-----------------------------------------------------------------------
+-- Calculate and display Fibonacci numbers from fib(0) to fib(8)
+-- Had to add commas between items in Display
+-----------------------------------------------------------------------
+
+MOVE 0 TO I
+PERFORM UNTIL I > 8
+    IF I < 2
+        DISPLAY "fib(", I, ") = ", I
+    ELSE
+        MOVE 0 TO FIB0
+        MOVE 1 TO FIB1
+        MOVE 2 TO J
+        PERFORM UNTIL J > I
+            ADD FIB0 TO FIB1 GIVING T
+            MOVE FIB1 TO FIB0
+            MOVE T TO FIB1
+            ADD 1 TO J
+        END-PERFORM
+        DISPLAY "fib(", I, ") = ", FIB1
+    END-IF
+    ADD 1 TO I
+END-PERFORM
