@@ -5,6 +5,7 @@ import argparse
 import os
 import sys
 import traceback
+import logging
 
 from lark import Lark, exceptions
 
@@ -21,6 +22,8 @@ from mathpak import poly_bool
 from output import expand_filename
 from redir import print_stderr
 from stmt_exec import STATEMENT_HANDLERS, execute_statements
+
+LOG = logging.getLogger()
 
 class VGRCmdLine(CmdLine):
     _DEFAULT_HISTORY_SIZE = 100
@@ -181,11 +184,11 @@ Run any of these with _help_ for more information
             print()
 
     def _operator_help(self, *args) -> None:
-        # TODO
+        # TODO help for operators
         print(args)
 
     def _statement_help(self, *args) -> None:
-        # TODO
+        # TODO help for statements
         print(args)
 
 def create_dd(args) -> DataDictionary:
@@ -260,12 +263,18 @@ class SaveOrderedSources(argparse.Action):
         namespace.ordered.append((option.lstrip('-')[0].lower(), values))
 
 def print_debug(dd: DataDictionary, /, *args, **kwargs) -> None:
-    """If debug is on print to stderr"""
-    if dd.debug: print_stderr(*args, **kwargs)
+    """If debug is on print to stderr and maybe the log"""
+    if dd.debug:
+        print_stderr(*args, **kwargs)
+        if LOG.isEnabledFor(logging.DEBUG):
+            LOG.debug(*args, **kwargs)
 
 def print_verbose(dd: DataDictionary, /, *args, **kwargs) -> None:
-    """If verbose is on print to stderr"""
-    if dd.verbose: print_stderr(*args, **kwargs)
+    """If verbose is on print to stderr and maybe the log"""
+    if dd.verbose:
+        print_stderr(*args, **kwargs)
+        if LOG.isEnabledFor(logging.INFO):
+            LOG.info(*args, **kwargs)
 
 def main():
     clp = argparse.ArgumentParser(
@@ -310,7 +319,7 @@ Environment variables:
 
     init_logging(args.logfile, args.logoverwrite)
     set_logging_level(args.loglevel)
-
+    LOG.info('Starting')
     dd = create_dd(args)
     add_builtin_functions()
     extensions = load_extensions(dd, args.extensions)
@@ -318,6 +327,7 @@ Environment variables:
     if args.user_args:
         print_verbose(dd, 'Parsing user args...')
         dd_parse_user_args(dd, args.user_args)
+    LOG.info('Ready')
 
     # NB: args.execute and args.file will always be None
     #     as there values have been accumulated in
@@ -366,27 +376,28 @@ Environment variables:
         print(str(e))
         exit_code = e.exit_code
     except VgrException as e:
-        # TODO log it
+        LOG.exception('Exception')
         if dd.debug:
             traceback.print_exc(file=sys.stderr)
         print_stderr(str(e))
         print_debug(dd, e)
         exit_code = VgrExitingException.EXIT_FAILED
     except exceptions.UnexpectedInput as e:
-        # TODO log it
+        LOG.exception('Exception')
         if dd.debug:
             traceback.print_exc(file=sys.stderr)
         print_stderr(format_unexpected_input(e))
         print_debug(dd, e)
         exit_code = VgrExitingException.EXIT_FAILED
     except Exception as e:
-        # TODO log it
+        LOG.exception('Exception')
         if dd.debug:
             traceback.print_exc(file=sys.stderr)
         print_stderr(format_generic_exception(e))
         print_debug(dd, e)
         exit_code = VgrExitingException.EXIT_FAILED
     print_verbose(dd, f'Exit code is {exit_code}')
+    LOG.info('Exiting')
     sys.exit(exit_code)
 
 if __name__ == '__main__':
