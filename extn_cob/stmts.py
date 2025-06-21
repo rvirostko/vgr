@@ -120,13 +120,13 @@ If not specified, the test expression is performed before the block of statement
     # Echo the control portion, not the statements
     if dd.echo:
         print_stderr(SSM.source_for(statement, statement.children[-1]))
-    test_before = True
-    cindex = 0
-    ccount = len(statement.children)
-    # Five means a before/after indicator is included
-    if ccount > 5:
-        test_before = statement.children[cindex].data == 'test_before'
-        cindex += 1
+    ba_ind = statement.children[0]
+    if isinstance(ba_ind, Tree) and ba_ind.data in ('test_before', 'test_after'):
+        test_before = ba_ind.data == 'test_before'
+        cindex = 1
+    else:
+        test_before = True
+        cindex = 0
     path = dd_path(statement.children[cindex])
     cindex += 1
     value = eval_to_number(dd, bind_operations(statement.children[cindex]), 'Perform Varying start value')
