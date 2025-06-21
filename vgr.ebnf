@@ -45,6 +45,12 @@ statements: statement+
     | debug
     | echo
     | exit
+    | list_append
+    | list_insert
+    | list_prepend
+    | list_remove
+    | list_remove_first
+    | list_remove_last
     | load_from
     | log
     | open
@@ -152,6 +158,16 @@ sort_key: sort_dir? "Key"i? NAME -> key
 sort_asc: "Ascending"i | "Asc"i -> asc
 sort_des: "Descending"i | "Des"i -> des
 unique_clause: "Unique"i ("On"i NAME (_COMMA NAME)*)? -> unique
+
+list_append: "Append"i list_all? expr "To"i "List"i? var_name _SEMICOLON?
+list_prepend: "Prepend"i list_all? expr "To"i "List"i? var_name _SEMICOLON?
+list_insert: "Insert"i list_all? expr "Into"i "List"i? var_name "At"i ("Pos"i | "Position"i | "Index"i)? expr _SEMICOLON?
+list_all: "All"i
+// "All" is retained but has no special meaning for remove
+list_remove: "Remove"i "All"i? expr "From"i "List"i? var_name list_remove_giving? _SEMICOLON?
+list_remove_first: "Remove"i "First"i "Item"i? "From"i "List"i? var_name list_remove_giving? _SEMICOLON?
+list_remove_last: "Remove"i "Last"i "Item"i? "From"i "List"i? var_name list_remove_giving? _SEMICOLON?
+?list_remove_giving: "Giving"i var_name
 
 select: "Select"i outputs? from_clause where_clause? product_clause? limit_clause? for_clause? _SEMICOLON?
 

@@ -19,6 +19,7 @@ from redir import execute_open, execute_close, print_stderr, print_stdout
 from src_mgr import SSM
 from stmt_cflags import execute_debug, execute_echo, execute_verbose
 from stmt_exit import execute_assert, execute_exit
+from stmt_list import execute_list_append, execute_list_insert, execute_list_prepend, execute_list_remove, execute_list_remove_first, execute_list_remove_last
 from stmt_log import execute_log, execute_log_setlevel
 from stmt_misc import execute_sleep
 from stmt_print import execute_print, execute_printf
@@ -301,6 +302,12 @@ STATEMENT_HANDLERS = {
     'zip':          execute_zip,
     'log':          execute_log,
     'log_setlevel': execute_log_setlevel,
+    'list_append':  execute_list_append,
+    'list_prepend': execute_list_prepend,
+    'list_insert':  execute_list_insert,
+    'list_remove':  execute_list_remove,
+    'list_remove_first': execute_list_remove_first,
+    'list_remove_last': execute_list_remove_last,
 }
 
 def remove_comments(input_text: str) -> str:
