@@ -9,32 +9,62 @@ import re
 
 from lark import Lark, Tree, Token, Transformer, v_args
 
-from app_exceptions import remember_terminals, VgrStatementBreak, VgrStatementContinue, VgrRuntimeError, VgrException
+from app_exceptions import (
+    remember_terminals,
+    VgrException,
+    VgrRuntimeError,
+    VgrStatementBreak,
+    VgrStatementContinue,
+)
 from data_dict import DataDictionary
 from dbg import print_tree
-from dd_config import dd_set_statement, dd_clear_scratch, dd_path, do_set, do_unset, dd_push_source, dd_pop_source
+from dd_config import (
+    dd_clear_scratch,
+    dd_path,
+    dd_pop_source,
+    dd_push_source,
+    dd_set_statement,
+    do_set,
+    do_unset,
+)
 from evaluate import bind_operations, eval_expr, eval_filename_expr
 from mathpak import poly_bool, poly_list, poly_int
 from redir import execute_open, execute_close, print_stderr, print_stdout
 from src_mgr import SSM
 from stmt_cflags import execute_debug, execute_echo, execute_verbose
 from stmt_exit import execute_assert, execute_exit
-from stmt_list import execute_list_append, execute_list_insert, execute_list_prepend, execute_list_remove, execute_list_remove_first, execute_list_remove_last
+from stmt_list import (
+    execute_list_append,
+    execute_list_insert,
+    execute_list_prepend,
+    execute_list_remove_first,
+    execute_list_remove_last,
+    execute_list_remove,
+)
 from stmt_log import execute_log, execute_log_setlevel
 from stmt_misc import execute_sleep
 from stmt_print import execute_print, execute_printf
 from stmt_select import execute_select
-from stmt_set import execute_load_from, execute_set, execute_unset, execute_reset, execute_set_in_place
+from stmt_set import (
+    execute_load_from,
+    execute_reset,
+    execute_set_in_place,
+    execute_set,
+    execute_unset,
+)
 from stmt_sort import execute_sort
 from stmt_zip import execute_zip
 from tags import control_statement
 
 def execute_source(dd: DataDictionary, statement: Tree) -> None:
     """
-**Source Statements from a file**
+**Execute statements stored in a file**
 
 * Source _expression_ [, _expression_]... [;]
 
+Each _expression_ is evaluated to a file name. Statements in the file
+are executed, inheriting the current state of all variable and
+input/output redirection.
 """
     for child in statement.children:
         file = eval_filename_expr(dd, child, True)
@@ -55,7 +85,8 @@ def execute_source(dd: DataDictionary, statement: Tree) -> None:
             raise VgrRuntimeError(child, e) from e
 
 def execute_break(_: DataDictionary, statement: Tree) -> None:
-    """Exits the current block of statements.
+    """
+**Exits the current block of statements**
 
 * Break [;]
 
@@ -64,7 +95,8 @@ Can be used with If, Unless, While, Until, and ForEach statements
     raise VgrStatementBreak(statement)
 
 def execute_continue(_: DataDictionary, statement: Tree) -> None:
-    """Causes the current loop to to start again.
+    """
+**Causes the current loop to to start again**
 
 * Continue [;]
 
@@ -72,12 +104,13 @@ def execute_continue(_: DataDictionary, statement: Tree) -> None:
     raise VgrStatementContinue(statement)
 
 def execute_pass(_: DataDictionary, __: Tree) -> None:
-    """A placeholder for a statement.
+    """
+**A placeholder for a statement**
+
 * NOP [;]
 * Pass [;]
 
-A placeholder for a statement, such as during iterative development
-which takes no action and has no side effects."""
+A placeholder for a statement, which takes no action and has no side effects."""
 
 def exec_if_else(dd: DataDictionary, statement: Tree, desired_value: bool) -> None:
     if dd.echo:
@@ -94,7 +127,8 @@ def exec_if_else(dd: DataDictionary, statement: Tree, desired_value: bool) -> No
 
 @control_statement
 def execute_if(dd: DataDictionary, statement: Tree) -> None:
-    """Conditionally execute a block of statements.
+    """
+**Conditionally execute a block of statements**
 
 * If _expression_ [Then | Do | :]
     _statement_...
@@ -112,15 +146,17 @@ If it evaluates to False, the second block of statements, if provided, is execut
 
 @control_statement
 def execute_unless(dd: DataDictionary, statement: Tree) -> None:
-    """Conditionally execute a block of statements.
+    """
+**Conditionally execute a block of statements**
 
 * Unless _expression [Then | :] _statement_... End [;]
 
-If the expression evaluates to False the block of statements is executed.
+If the expression evaluates to _False_ the block of statements is executed.
 """
     exec_if_else(dd, statement, False)
 
 def exec_loop(dd: DataDictionary, statement: Tree, desired_value: bool) -> None:
+    """Internal implemenation for loops with a predicate"""
     if dd.echo:
         print_stderr(SSM.source_for(statement, statement.children[1]))
     predicate = bind_operations(statement.children[0])
@@ -134,6 +170,7 @@ def exec_loop(dd: DataDictionary, statement: Tree, desired_value: bool) -> None:
             continue
 
 def exec_repeat(dd: DataDictionary, statement: Tree) -> None:
+    """Internal implementation for loops with a fixed count"""
     if dd.echo:
         print_stderr(SSM.source_for(statement, statement.children[1]))
     expr = bind_operations(statement.children[0])
@@ -151,13 +188,14 @@ def exec_repeat(dd: DataDictionary, statement: Tree) -> None:
 
 @control_statement
 def execute_while(dd: DataDictionary, statement: Tree) -> None:
-    """Repeatedly execute a block of statements while a condition exists.
+    """
+**Repeatedly execute a block of statements while a condition exists**
 
 * While _expression_ [Do | :]
     _statement_...
   End [;]
 
-As long as the expression evaluates to True, the block of statements is
+As long as the expression evaluates to _True_, the block of statements is
 repeatedly executed.
 If a Break statement is encountered, looping ends regardless of the
 expression's value. If a Continue statement is encountered, statements
@@ -167,13 +205,14 @@ following it are skipped, and the expression is checked again.
 
 @control_statement
 def execute_until(dd: DataDictionary, statement: Tree) -> None:
-    """Repeatedly execute a block of statements until a condition is reached.
+    """
+**Repeatedly execute a block of statements until a condition is reached**
 
 * Until _expression_ [Do | :]
     _statement_...
   End [;]
 
-The block of statements is executed until the expression evaluates to True.
+The block of statements is executed until the expression evaluates to _True_.
 If a Break statement is encountered, looping ends regardless of the
 expression's value. If a Continue statement is encountered, statements
 following it are skipped, and the expression is checked again.
@@ -182,7 +221,8 @@ following it are skipped, and the expression is checked again.
 
 @control_statement
 def execute_repeat(dd: DataDictionary, statement: Tree) -> None:
-    """Execute a block of statements a fixed number of times.
+    """
+**Execute a block of statements a fixed number of times**
 
 * Repeat _expression_ [Do | :]
     _statement_...
@@ -199,7 +239,8 @@ following it are skipped, and looping continues.
 
 @control_statement
 def execute_foreach(dd: DataDictionary, statement: Tree) -> None:
-    """Iterate over a set of values.
+    """
+**Iterate over a set of values**
 
 * ForEach _variable_ In _expression_ [Do | :]
     _statement_...
