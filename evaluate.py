@@ -259,14 +259,14 @@ def eval_to_str(dd: DataDictionary, expr: Tree, name: str, allow_none: bool=Fals
     rc = eval_expr(dd, expr)
     if rc is None and allow_none: return None
     if not isinstance(rc, str):
-        raise TypeError(f'{name} must be a string; found {type_str(rc)}') # TODO
+        raise VgrRuntimeError(expr, TypeError(f'{name} must be a string; found {type_str(rc)}'))
     return rc
 
 def eval_to_int(dd: DataDictionary, expr: Tree, name: str, allow_none: bool=False) -> int:
     rc = eval_expr(dd, expr)
     if rc is None and allow_none: return None
     if not isinstance(rc, (bool, int, float, str)):
-        raise TypeError(f'{name} must be an integer; found {type_str(rc)}') # TODO
+        raise VgrRuntimeError(expr, TypeError(f'{name} must be an integer; found {type_str(rc)}'))
     return poly_int(rc)
 
 def eval_to_number(dd: DataDictionary, expr: Tree, name: str, allow_none: bool=False):
@@ -275,13 +275,13 @@ def eval_to_number(dd: DataDictionary, expr: Tree, name: str, allow_none: bool=F
     if isinstance(rc, bool): return int(rc)
     if isinstance(rc, (int, float)): return rc
     if isinstance(rc, str): return poly_number(rc)
-    raise TypeError(f'{name} must be an integer; found {type_str(rc)}') # TODO
+    raise VgrRuntimeError(expr, TypeError(f'{name} must be an integer; found {type_str(rc)}'))
 
 def eval_to_bool(dd: DataDictionary, expr: Tree, name: str, allow_none: bool=False) -> bool:
     rc = eval_expr(dd, expr)
     if rc is None and allow_none: return None
     if not isinstance(rc, (bool, int, float, str)):
-        raise TypeError(f'{name} must be an boolean; found {type_str(rc)}') # TODO
+        raise VgrRuntimeError(expr, TypeError(f'{name} must be an boolean; found {type_str(rc)}'))
     return poly_bool(rc)
 
 def eval_filename_expr(dd: DataDictionary, expr: Tree, allow_none: bool=False) -> str:
