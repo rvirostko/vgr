@@ -69,9 +69,6 @@ def poly_sort(x: Any, unique: bool=False, reverse: bool=False) -> Any:
         return _unique_sorted(rc) if unique else rc
     return x
 
-def poly_isempty(x: Any) -> bool:
-    return not x or (isinstance(x, str) and x.isspace())
-
 def poly_sizeof(x: Any) -> int:
     """
 **Recursively calculates the size of an item and all its contents**
