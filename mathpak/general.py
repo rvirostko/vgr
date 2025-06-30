@@ -71,10 +71,15 @@ def poly_sizeof(x: Any) -> int:
 
 def poly_getitem(x:Any, index: Any) -> Any:
     """
-**Return the N-th item for a list**
+**Return the N-th item from a list**
+
+* _value_.Item(_expression_)
 
 If the index is invalid or _None_ then _None_ is returned.
-If the item is an ordinal rather than a list, it is returned unchanged.
+For all other types the value is returned unchanged.
+If the expression itself is a list, the corresponding items
+will be returned in an array.
+Requests for items outside the list's bounds results in _None_.
 """
     if not isinstance(x, (list, tuple)): return x
     if isinstance(index, (list, tuple)): return dist_x(poly_getitem, x, index)
@@ -85,8 +90,10 @@ def poly_firstitem(x: Any) -> Any:
     """
 **Return the first item from a list**
 
+* _value_.FirstItem()
+
 If the list is empty then _None_ is returned.
-If the item is an ordinal rather than a list, it is returned unchanged.
+For all other types the value is returned unchanged.
 """
     return poly_getitem(x, 0)
 
@@ -94,21 +101,32 @@ def poly_lastitem(x: Any) -> Any:
     """
 **Return the last item from a list**
 
+* _value_.LastItem()
+
 If the list is empty then _None_ is returned.
-If the item is an ordinal rather than a list, it is returned unchanged.
+For all other types the value is returned unchanged.
 """
     if not isinstance(x, (list, tuple)): return x
     return x[-1] if len(x) > 0 else None
 
 def poly_unique(x: Any) -> Any:
-    """A unique that can work with unsorted items"""
+    """
+**A unique that works with lists or strings**
+
+* _value_.Unique()
+
+For strings, a string containing all the unique characters in
+the string is returned.
+For lists, a list of unique items is returned.
+For all other types the item is returned unchanged.
+"""
     if isinstance(x, str): return poly_unique(x.encode()).decode()
     if isinstance(x, (list, tuple)):
         unique = []
         for x1 in x:
             if not any(poly_eq(x1, existing) for existing in unique):
                 unique.append(x1)
-        return unique if isinstance(x, list) else tuple(unique)
+        return unique
     return x
 
 def dsort(data: dict, keys: list[str], ascending: list[bool], unique: bool, unique_cols: list[str]) -> list:
