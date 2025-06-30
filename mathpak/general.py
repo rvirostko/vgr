@@ -80,7 +80,7 @@ def poly_sizeof(x: Any) -> int:
 
 def poly_getitem(x:Any, index: Any) -> Any:
     """
-**Return the N-th item for a lis**
+**Return the N-th item for a list**
 
 If the index is invalid or _None_ then _None_ is returned.
 If the item is an ordinal rather than a list, it is returned unchanged.
