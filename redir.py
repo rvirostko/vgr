@@ -9,10 +9,10 @@ import textwrap
 
 from lark import Tree
 
+from app_exceptions import VgrExitingException, VgrRuntimeError
+from data_dict import DataDictionary
 from evaluate import eval_filename_expr
 from output import IORedirector, prepare_path
-from data_dict import DataDictionary
-from app_exceptions import VgrExitingException
 
 _REDIRECTOR = IORedirector()
 
@@ -59,9 +59,13 @@ See *Close*
 """
     stream = _eval_stream_name(statement.children[0])
     filename = eval_filename_expr(dd, statement.children[1])
-    mode = 'w'
-    if len(statement.children) > 2: mode = statement.children[2].data.lower()
-    if mode not in ('a', 'w', 'x'): raise ValueError(f'Unknown mode {mode}') # SNO
+    if stream == 'stdin':
+        if len(statement.children) > 2:
+            raise VgrRuntimeError(statement, ValueError('Invalid options for stdin'))
+        mode = 'r'
+    else:
+        mode = statement.children[2].data.lower() if len(statement.children) > 2 else 'w'
+    if mode not in ('r', 'a', 'w', 'x'): raise ValueError(f'Unknown mode {mode}') # SNO
     try:
         getattr(_REDIRECTOR, stream)(prepare_path(filename), mode=mode)
         if dd.verbose: print_stderr(stream, "redirected to", filename)
@@ -91,5 +95,5 @@ def close_all_redirects() -> None:
 def _eval_stream_name(node: Tree) -> str:
     """The node's data (name) is the stream name"""
     stream = node.data.lower()
-    if stream in ('stderr', 'stdout'): return stream
+    if stream in ('stderr', 'stdout', 'stdin'): return stream
     raise ValueError(f'Unknown stream {stream}') # SNO
