@@ -4,6 +4,7 @@ Functions to check or change types
 
 from typing import Any
 import json
+import math
 
 from .common import str_to_number, str_to_bool, str_to_int
 
@@ -115,6 +116,47 @@ def poly_isnumber(x: Any) -> bool:
 Only _float_ and _int_ items are considered numbers.
 """
     return isinstance(x, (int, float))
+
+def poly_isinf(x: Any) -> bool:
+    """
+**Returns _True_ if the value is infinity**
+
+* _value_.IsInf()
+
+"""
+    return math.isinf(x) if isinstance(x, (int, float)) else False
+
+def poly_isfinite(x: Any) -> bool:
+    """
+**Returns _True_ if the value is finite**
+
+* _value_.IsFinite()
+
+"""
+    return math.isfinite(x) if isinstance(x, (int, float)) else False
+
+def poly_isnan(x: Any) -> bool:
+    """
+**Returns _True_ if the value is the special _not a number_ constant**
+
+* _value_.IsNan()
+
+"""
+    return math.isnan(x) if isinstance(x, (int, float)) else False
+
+def poly_iszero(x: Any) -> bool:
+    """
+**Returns _True_ if the value is zero**
+
+* _value_.IsZero()
+
+"""
+    if isinstance(x, str):
+        try:
+            x = str_to_number(x)
+        except ValueError:
+            return False
+    return x == 0 if isinstance(x, (int, float)) else False
 
 def poly_str(x: Any) -> Any:
     """
