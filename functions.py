@@ -70,7 +70,6 @@ from mathpak import (
     poly_isbool,
     poly_isdecimal,
     poly_isdigit,
-    poly_isempty,
     poly_isfloat,
     poly_isidentifier,
     poly_isint,
@@ -257,6 +256,46 @@ missing items.
     iterables = [normalize(first)] + [normalize(arg) for arg in rest]
     return list(zip_longest(*iterables))
 
+def _is_empty(x: Any) -> bool:
+    """
+**Test a value to see if it is _empty_**
+
+* _value_.IsEmpty()
+
+A value is considered empty if:
+* It is _None_
+* It is a list that has no items
+* It is a dictionary that has attributes
+* It is a string that has zero length or
+  consists of only space characters
+* It is a number that is zero
+* It is the boolean _False_
+"""
+    if isinstance(x, (list, tuple, dict)): return len(x) == 0
+    if isinstance(x, str): return len(x) == 0 or x.isspace()
+    if isinstance(x, (int, float)): return x == 0
+    return x is None
+
+def _is_not_empty(x: Any) -> bool:
+    """
+**Test a value to see if it is _not empty_**
+
+* _value_.IsNotEmpty()
+
+A value is considered empty if:
+* It is a list that has one or more items
+* It is a dictionary that has one or more attributes
+* It is a string that consists of more than just space characters
+* It is a number that is not zero
+* It is the boolean _True_
+"""
+    if isinstance(x, (list, tuple, dict)): return len(x) > 0
+    if isinstance(x, str): return len(x) > 0 and not x.isspace()
+    if isinstance(x, (int, float)): return x != 0
+    return x is not None
+
+#    return (isinstance(x, (list, tuple, dict)) and len(x) > 0) or (isinstance(x, str) and len(x) > 0 and not x.isspace())
+
 _BUILT_IN_FUNCS = {
     "Abs":            poly_abs,
     "Add":            poly_add,
@@ -274,6 +313,7 @@ _BUILT_IN_FUNCS = {
     "CaseFold":       poly_casefold,
     "Ceil":           poly_ceil,
     "Center":         poly_center,
+    "Centre":         poly_center,
     "Chr":            poly_chr,
     "CombineWith":    _combine_with,
     "CompilePattern": compile_pattern,
@@ -313,13 +353,14 @@ _BUILT_IN_FUNCS = {
     "IsDecimal":      poly_isdecimal,
     "IsDigit":        poly_isdigit,
     "IsDirectory":    is_dir,
-    "IsEmpty":        poly_isempty,
+    "IsEmpty":        _is_empty,
     "IsFile":         is_file,
     "IsFloat":        poly_isfloat,
     "IsIdentifier":   poly_isidentifier,
     "IsInt":          poly_isint,
     "IsList":         poly_islist,
     "IsLower":        poly_islower,
+    "IsNotEmpty":     _is_not_empty,
     "IsNumber":       poly_isnumber,
     "IsNumeric":      poly_isnumeric,
     "IsPrintable":    poly_isprintable,
