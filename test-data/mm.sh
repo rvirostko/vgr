@@ -23,8 +23,8 @@ subj="Hello Again!"
 
 -- Check prereqs
 -- Is empty checks for None, an empty string, or one composed only of spaces
-Assert !arg.today.IsEmpty() : "You need to pass in the date for the output file"
-Assert !arg.subj.IsEmpty() : "You need to pass in the email subject"
+Assert arg.today.IsNotEmpty() : "You need to pass in the date for the output file"
+Assert arg.subj.IsNotEmpty() : "You need to pass in the email subject"
 
 -- Load can guess the type based on the extension
 -- but no harm in explicitly defining the type
