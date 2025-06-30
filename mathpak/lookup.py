@@ -5,11 +5,25 @@ from .common import type_str
 from .inequ import poly_eq
 
 def poly_lookup(x: Any, attr: Any, *args) -> Any:
-    if not isinstance(x, (list, tuple)): return None
-    if not isinstance(attr, str): raise TypeError(f'String required for lookup attribute; found {type_str(attr)}')
-    attr = attr.strip()
-    if not attr: return None
-    if len(args) == 0: return []
+    """
+**Find a matching entry in a list by value**
+
+* _list_.Lookup(_attr_, _value_...)
+
+The _attr_ argument must resolve to a string.
+The attributes name in the list must be an exact match.
+For the value argument, it may be a single value or a list of values.
+
+The result is always a list, which may be empty. A lookup performed on None or a non-list
+always returns an empty list or results.
+"""
+    if not isinstance(x, (list, tuple)):
+        return []
+    if isinstance(attr, (int, float)): attr = str(attr)
+    if not isinstance(attr, str):
+        raise TypeError(f'String required for lookup attribute; found {type_str(attr)}')
+    # NB: Don't strip the attr! Crazy people put blanks in CSV column headers and you may have to deal with that
+    if not attr or len(args) == 0: return []
     if len(args) > 1: return _multi_lookup(x, attr, args)
     arg = args[0]
     return _multi_lookup(x, attr, arg) if isinstance(arg, (list, tuple)) else _lookup(x, attr, arg)
@@ -22,4 +36,7 @@ def _lookup(x: Any, attr: str, value: Any) -> list[Any]:
     # NB: since poly_eq() uses the first param to drive conversions,
     #     we use the data we have in the records as the "right" type
     #     and let value be adjusted accordingly
-    return [x1 for x1 in x if isinstance(x1, dict) and poly_eq(x1.get(attr), value)]
+    return [x1 for x1 in x
+            if isinstance(x1, dict) and
+                value in x1 and
+                poly_eq(x1.get(attr), value)]
