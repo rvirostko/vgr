@@ -10,7 +10,7 @@ from .common import type_str
 from .div import poly_div, poly_fdiv, poly_divmod
 from .files import base_name, dir_name, is_dir, is_file, file_exists
 from .general import poly_getitem, poly_sort, poly_unique, poly_type, dsort, poly_reverse
-from .general import poly_hash, poly_sizeof, poly_repr, poly_len, poly_firstitem, poly_lastitem, poly_ascii
+from .general import poly_hash, poly_sizeof, poly_repr, poly_firstitem, poly_lastitem, poly_ascii
 from .inequ import poly_eq, poly_ge, poly_gt, poly_le, poly_lt, poly_ne
 from .is_in import poly_in, poly_not_in, poly_contains_all, poly_contains_any
 from .json_funcs import format_json, parse_json, strip_nulls, to_json, to_json_string

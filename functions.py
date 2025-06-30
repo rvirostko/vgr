@@ -85,7 +85,6 @@ from mathpak import (
     poly_join,
     poly_lastitem,
     poly_leftstr,
-    poly_len,
     poly_list,
     poly_ljust,
     poly_lookup,
@@ -294,7 +293,17 @@ A value is considered empty if:
     if isinstance(x, (int, float)): return x != 0
     return x is not None
 
-#    return (isinstance(x, (list, tuple, dict)) and len(x) > 0) or (isinstance(x, str) and len(x) > 0 and not x.isspace())
+def _length(x: Any) -> bool:
+    """
+**Return the length of an an item**
+
+* _value_.Length()
+
+Returns the length of lists and strings.
+For dictionaries, the number of attributes is returned.
+For all other values _None_ is returned.
+"""
+    return len(x) if hasattr(x, '__len__') else None
 
 _BUILT_IN_FUNCS = {
     "Abs":            poly_abs,
@@ -375,8 +384,8 @@ _BUILT_IN_FUNCS = {
     "LeftShift":      poly_shl,
     "LeftStr":        poly_leftstr,
     "LeftStrip":      poly_vlstrip,
-    "Len":            poly_len,
-    "Length":         poly_len,
+    "Len":            _length,
+    "Length":         _length,
     "List":           poly_list,
     "Lookup":         poly_lookup,
     "Lower":          poly_lower,

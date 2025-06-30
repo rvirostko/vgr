@@ -48,15 +48,6 @@ For _None_ the value _NoneType_ is returned.
 """
     return type(x).__name__
 
-def poly_len(x: Any) -> bool:
-    """
-**Return the length of an an item**
-
-Returns the length of arrays, tuples, and strings.
-For all other items _None_ is returned.
-"""
-    return len(x) if hasattr(x, '__len__') else None
-
 def poly_sort(x: Any, unique: bool=False, reverse: bool=False) -> Any:
     """
     Sort with unique and reverse
