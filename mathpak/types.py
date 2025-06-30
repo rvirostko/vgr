@@ -117,6 +117,21 @@ Only _float_ and _int_ items are considered numbers.
 """
     return isinstance(x, (int, float))
 
+def poly_sign(x: Any) -> Any:
+    """
+**Return an integer value indicating the sign of a number**
+
+* _value_.Sign()
+
+If the value is greater than zero, _1_ is returned.
+If less than zero, _-1_ is returned. Zero is returned for zero.
+Distributed across lists and strings are converted to numbers.
+For all other types, _None_ is returned.
+"""
+    if isinstance(x, (list, tuple)): return type(x)(poly_sign(x1) for x1 in x)
+    if isinstance(x, str): x = str_to_number(x)
+    return (x > 0) - (x < 0) if isinstance(x, (int, float)) else None
+
 def poly_isinf(x: Any) -> bool:
     """
 **Returns _True_ if the value is infinity**
