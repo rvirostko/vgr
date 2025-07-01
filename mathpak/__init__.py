@@ -20,7 +20,7 @@ from .markdown import  md_ordered_list, md_strikethrough, md_unordered_list
 from .markdown import md_blockquote, md_bold, md_code, md_code_block, md_heading, md_italics, md_link
 from .match import poly_imatches, poly_matches, poly_not_imatches, poly_not_matches, poly_matches_all
 from .match import poly_vmatches, poly_vmatches_all
-from .misc_math import poly_abs, poly_ceil, poly_floor, poly_round, poly_trunc
+from .misc_math import poly_abs, poly_ceil, poly_floor, poly_round, poly_trunc, poly_round_multiple, poly_ceil_multiple, poly_floor_multiple
 from .mod import poly_mod
 from .mul import poly_mul
 from .pow import poly_pow

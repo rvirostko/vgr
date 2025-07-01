@@ -48,18 +48,48 @@ def poly_floor(x: Any, precision: float=0) -> Any:
     raise TypeError(f'Unsupported type for floor: {type_str(x)}')
 
 def poly_round(x: Any, ndigits: int=0) -> Any:
+    if x is None: return None
     if isinstance(x, str):
         x = str_to_number(x)
-    if x is None: return None
     if isinstance(ndigits, (int, float)):
         ndigits = int(ndigits)
     else:
-        if isinstance(ndigits, str): return poly_round(str_to_number(ndigits))
+        if isinstance(ndigits, str): return poly_round(x, str_to_number(ndigits))
         if isinstance(ndigits, (list, tuple)): return reduce(poly_round, ndigits, x)
-        raise TypeError(f'Unsupported type: {type_str(ndigits)}')
+        raise TypeError(f'Unsupported type for ndigits: {type_str(ndigits)}')
     if hasattr(x, '__round__'): return round(x, ndigits)
     if isinstance(x, (list, tuple)): return dist_x(poly_round,  x, ndigits)
     return x
+
+def poly_round_multiple(x: Any, multiple) -> Any:
+    if isinstance(x, str): x = str_to_number(x)
+    if not isinstance(multiple, (int, float)):
+        if isinstance(multiple, str): return poly_round_multiple(x, str_to_number(multiple))
+        if isinstance(multiple, (list, tuple)): return reduce(poly_round_multiple, multiple, x)
+        raise TypeError(f'Unsupported type for multiple: {type_str(multiple)}')
+    if isinstance(x, (int, float)): return 0 if multiple == 0 else multiple * round(x / multiple)
+    if isinstance(x, (list, tuple)): return dist_x(poly_round_multiple,  x, multiple)
+    return None
+
+def poly_floor_multiple(x: Any, multiple) -> Any:
+    if isinstance(x, str): x = str_to_number(x)
+    if not isinstance(multiple, (int, float)):
+        if isinstance(multiple, str): return poly_floor_multiple(x, str_to_number(multiple))
+        if isinstance(multiple, (list, tuple)): return reduce(poly_floor_multiple, multiple, x)
+        raise TypeError(f'Unsupported type for multiple: {type_str(multiple)}')
+    if isinstance(x, (int, float)): return 0 if multiple == 0 else multiple * math.floor(x / multiple)
+    if isinstance(x, (list, tuple)): return dist_x(poly_floor_multiple,  x, multiple)
+    return None
+
+def poly_ceil_multiple(x: Any, multiple) -> Any:
+    if isinstance(x, str): x = str_to_number(x)
+    if not isinstance(multiple, (int, float)):
+        if isinstance(multiple, str): return poly_ceil_multiple(x, str_to_number(multiple))
+        if isinstance(multiple, (list, tuple)): return reduce(poly_ceil_multiple, multiple, x)
+        raise TypeError(f'Unsupported type for multiple: {type_str(multiple)}')
+    if isinstance(x, (int, float)): return 0 if multiple == 0 else multiple * math.ceil(x / multiple)
+    if isinstance(x, (list, tuple)): return dist_x(poly_ceil_multiple,  x, multiple)
+    return None
 
 def _dist(op: Callable[[Any], Any], x: Any) -> Any:
     if x is None: return None
