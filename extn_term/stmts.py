@@ -333,10 +333,14 @@ def _resolve_ansi_color(val: Any) -> int:
     if not isinstance(val, str): return None
     val = val.strip()
     try:
-        val = round(float(val))
-        return val if 0 <= val <= 255 else None
+        v = round(float(val))
+        return v if 0 <= v <= 255 else None
     except ValueError:
         pass
+    m = re.fullmatch(r"color(\d{1,3})", val)
+    if m:
+        v = int(m.group(1))
+        if 0 <= v <= 255: return v
     return _COLOR_NAME_MAP.get(_canonical_color_name(val))
 
 def _canonical_color_name(val: str) -> str:
