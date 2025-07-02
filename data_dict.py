@@ -156,7 +156,7 @@ class DataDictionary():
         data = self._dd
         for key in path:
             if not isinstance(data, dict) or key not in data: return None
-            data = data[key]
+            data = self.value_for(data[key])
         return data
 
     def exists(self, *path: str) -> tuple[bool, Any]:
@@ -169,7 +169,7 @@ class DataDictionary():
         for key in path:
             if not isinstance(data, dict) or key not in data: return (False, None)
             data = data[key]
-        return (True, data)
+        return (True, self.value_for(data))
 
     def validate_user_path(self, *path: str) -> tuple:
         if not path: raise ValueError('Empty/Missing path')
@@ -190,3 +190,11 @@ class DataDictionary():
         if prefix in self._immutable_prefixes:
             raise ValueError(f'Cannot alter {".".join(path)} - {prefix} is immutable')
         return path
+
+    def value_for(self, data: Any) -> Any:
+        """
+        Allows us to dereferce executable items stored in the dictionary.
+        This is (typically) handled by default, but not if you traverse the
+        contents of the directory directly.
+        """
+        return data() if callable(data) and not isinstance(data, type) else data
