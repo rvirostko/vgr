@@ -25,7 +25,6 @@ whitespace is removed.
 * 'true', 't', 'yes', 'y', or 'on' return _True_
 * 'false', 'f', 'no', 'n' or 'off' return _False_
 * If none of the above, it is converted to a number, then a bool.
-  Strings that cannot be converted to a number result in a value error.
 
 If it is a non-convertable type then _True_ is returned, as any
 non-_None_ value is consider _True_.
@@ -33,7 +32,12 @@ non-_None_ value is consider _True_.
     if x is None: return False
     if poly_isbool(x): return x
     if poly_isnumber(x): return bool(x)
-    if poly_isstr(x): return str_to_bool(x)
+    if poly_isstr(x):
+        try:
+            return str_to_bool(x)
+        except ValueError:
+            # Not, null, and not empty, so Python truthy
+            return True
     if isinstance(x, (list, tuple)): return type(x)(poly_bool(x1) for x1 in x)
     return True
 
