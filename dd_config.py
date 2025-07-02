@@ -9,6 +9,7 @@ from typing import Any
 import getpass
 import math
 import os
+import platform
 import random
 import re
 import socket
@@ -41,7 +42,7 @@ ORS_PATH = (_ARG_PREFIX, 'ors')
 # If no "For" is given with a Select, this is the type used as default
 DEFAULT_FOR_TYPE_PATH = (_ARG_PREFIX, 'default_for_type')
 
-_ENV_EXCLUDE = tuple(re.compile(pattern, re.IGNORECASE) for pattern in ('^VSCODE', '^_$', '^(OLD)?PWD$'))
+_ENV_EXCLUDE = tuple(re.compile(pattern, re.IGNORECASE) for pattern in ('^VSCODE', '^_$', '^(OLD)?PWD$', '^__CF'))
 _OS_CONSTS = ( 'defpath',  'devnull', 'extsep', 'linesep', 'name', 'pardir', 'pathsep', 'sep' )
 
 _RE_PREFIX = 're'
@@ -238,8 +239,13 @@ def do_unset(dd: DataDictionary, *path) -> None:
 def _get_os_consts() -> dict:
     rc = { key: value for key, value in _get_consts(os).items() if key in _OS_CONSTS }
     rc['login'] = lambda: getpass.getuser() or 'unknown'
-    rc['pid'] = lambda: os.getpid
-    rc['cwd'] = lambda: os.getcwd
+    rc['pid'] = os.getpid
+    rc['cwd'] = os.getcwd
+    rc['platform'] = sys.platform
+    rc['version'] = sys.version
+    rc['system'] = platform.system()
+    rc['node'] = platform.node()
+    rc['hostname'] = socket.gethostname()
     return rc
 
 def _get_environment() -> dict:
