@@ -51,6 +51,7 @@ statements: statement+
     | list_remove
     | list_remove_first
     | list_remove_last
+    | list_replace
     | load_from
     | log
     | open
@@ -134,7 +135,8 @@ LOG_LEVEL: "Debug"i | "Info"i | "Warn"i | "Warning"i | "Error"i
 open: "Open"i io_type "File"i? expr open_ext? _SEMICOLON?
 close: "Close"i io_type "File"i? _SEMICOLON? -> close
 ?io_type: ("Error"i | "stderr"i) -> stderr
-    | ("Output"i | "stdout"i) -> stdout
+    | ("Output"i | "stdout"i | "sysprint"i) -> stdout
+    | ("Input"i | "stdin"i | "sysin"i) -> stdin
 ?open_ext: ("Append"i | "Extend"i | "a"i) -> a
     | ("Overwrite"i | "w"i) -> w
     | ("No"i "Overwrite"i | "x"i) -> x
@@ -162,12 +164,12 @@ unique_clause: "Unique"i ("On"i NAME (_COMMA NAME)*)? -> unique
 list_append: "Append"i list_all? expr "To"i "List"i? var_name _SEMICOLON?
 list_prepend: "Prepend"i list_all? expr "To"i "List"i? var_name _SEMICOLON?
 list_insert: "Insert"i list_all? expr "Into"i "List"i? var_name "At"i ("Pos"i | "Position"i | "Index"i)? expr _SEMICOLON?
+list_remove: "Remove"i expr "From"i "List"i? var_name list_giving? _SEMICOLON?
+list_remove_first: "Remove"i "First"i "Item"i? "From"i "List"i? var_name list_giving? _SEMICOLON?
+list_remove_last: "Remove"i "Last"i "Item"i? "From"i "List"i? var_name list_giving? _SEMICOLON?
+list_replace: "Replace"i expr "In"i "List"i? var_name "With"i expr list_giving? _SEMICOLON?
 list_all: "All"i
-// "All" is retained but has no special meaning for remove
-list_remove: "Remove"i "All"i? expr "From"i "List"i? var_name list_remove_giving? _SEMICOLON?
-list_remove_first: "Remove"i "First"i "Item"i? "From"i "List"i? var_name list_remove_giving? _SEMICOLON?
-list_remove_last: "Remove"i "Last"i "Item"i? "From"i "List"i? var_name list_remove_giving? _SEMICOLON?
-?list_remove_giving: "Giving"i var_name
+?list_giving: "Giving"i var_name
 
 select: "Select"i outputs? from_clause where_clause? product_clause? limit_clause? for_clause? _SEMICOLON?
 
@@ -290,11 +292,11 @@ ternary: expr "?" expr ":" expr -> c_ternary
     // Return bools, typically not "chained"
     // TODO does this mean the rhs can be an expression?
     | expr2 ("==" | "Equals"i | "Is"i | "Is"i? "Equal"i "To"i) expr2 -> eq_op
-    | expr2 ("!="| "\u2260" | "<>" | "Is"i "Not"i | "Is"i? "Not"i "Equal"i "To"i | (("Doesnt"i | "Does"i? "Not"i) "Equal"i)) expr2 -> neq_op // Unicode ≠ (not eq)
+    | expr2 ("!=" | "\u2260" | "<>" | "\u00AC=" | "Is"i "Not"i | "Is"i? "Not"i "Equal"i "To"i | (("Doesnt"i | "Does"i? "Not"i) "Equal"i)) expr2 -> neq_op // Unicode ≠ (not eq) and ¬ (not)
     | expr2 ("<" | "\uFF1C" | "Is"i? "Less"i "Than"i) expr2 -> lt_op // Unicode ＜ (fullwidth <)
     | expr2 (">" | "\uFF1E" | "Is"i? "Greater"i "Than"i) expr2 -> gt_op // Unicode ＞ (fullwidth >)
-    | expr2 ("<=" | "\u2264" | "Is"? "Not"i "Greater"i "Than"i) expr2 -> le_op
-    | expr2 (">=" | "\u2265" | "Is"i? "Not"i "Less"i "Than"i) expr2 -> ge_op
+    | expr2 ("<=" | "\u2264" | "\u00AC>" | "Is"? "Not"i "Greater"i "Than"i) expr2 -> le_op // Unicode ¬ (not)
+    | expr2 (">=" | "\u2265" | "\u00AC<" | "Is"i? "Not"i "Less"i "Than"i) expr2 -> ge_op // Unicode ¬ (not)
     | expr2 "Is"i? "In"i expr2 -> in_op
     | expr2 "Is"i? "Not"i "In"i expr2 -> not_in_op
     | expr2 "Contains"i "Any"i? expr2 -> contains_op
