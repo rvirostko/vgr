@@ -42,8 +42,7 @@ def str_to_number(s: str) -> Number:
     May return None
     """
     if s is None or s.isspace(): return None
-    s = s.strip().lower()
-    if s == "none": return None
+    s = s.strip()
     try:
         x: float = float(s)
         return int(x) if x.is_integer() else x
@@ -58,24 +57,21 @@ def str_to_int(x: str) -> int:
     n = str_to_number(x)
     return None if n is None else int(n)
 
-def str_to_bool(x: str) -> bool:
+def str_to_bool(s: str) -> bool:
     """
     Attempts to convert a string to a boolean.
     Understand "true" and "false" and other versions.
     If the string can be converted to a number,
-    it is compared agains zero. Otherwise Python
-    "truthiness" applies.
+    it is compared against zero.
     """
-    if x is None or x.isspace(): return False
-    x = x.strip().lower()
-    if x in _TRUE_STRS: return True
-    if x in _FALSE_STRS: return False
+    if s is None or s.isspace(): return False
+    s = s.strip().lower()
+    if s in _TRUE_STRS: return True
+    if s in _FALSE_STRS: return False
     try:
-        n = str_to_number(x)
-        return n is not None and n != 0
-    except ValueError:
-        # we return True just because a non-None is "truthy"
-        return True
+        return str_to_number(s) != 0
+    except ValueError as e:
+        raise ValueError(f'Cannot convert {repr(s)} to a boolean') from e
 
 def bool_arg(arg: Any, name: str) -> bool:
     """
@@ -87,7 +83,12 @@ def bool_arg(arg: Any, name: str) -> bool:
     """
     if arg is None: return False
     if isinstance(arg, bool): return arg
-    if isinstance(arg, str): return str_to_bool(arg)
+    if isinstance(arg, str):
+        try:
+            return str_to_bool(arg)
+        except ValueError:
+            # Not, null, and not empty, so Python truthy
+            return True
     if isinstance(arg, (int, float)): return arg != 0
     raise ValueError(f'{name} argument must be a boolean, found {type_str(arg)}')
 
