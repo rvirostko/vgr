@@ -8,7 +8,7 @@ import sys
 
 from lark import Tree, Token
 
-from app_exceptions import VgrExitingException, VgrStatementBreak, VgrStatementContinue
+from app_exceptions import VgrExitingException, VgrStatementBreak, VgrStatementContinue, VgrRuntimeError
 from data_dict import DataDictionary
 from dd_config import dd_path, do_set, do_assignment, do_unset
 from evaluate import eval_expr, bind_operations, eval_to_number
@@ -375,7 +375,7 @@ see control characters.
             else:
                 print_stdout(name, '= -empty-')
         else:
-            print_stdout(name, '=', repr(value))
+            print_stdout(name, '=', repr(dd.value_for(value)))
     children = statement.children
     if children:
         for var_name in children:
@@ -406,7 +406,9 @@ between items and ending with a newline.
     args = tuple()
     if statement.children:
         last_child = statement.children[-1]
-        if isinstance(last_child, Tree) and last_child.data in ('stdout', 'stderr'):
+        if isinstance(last_child, Tree) and last_child.data in ('stdout', 'stderr', 'stdin'):
+            if last_child.data == 'stdin':
+                raise VgrRuntimeError(last_child, ValueError(f'Cannot send output to {last_child.data}'))
             dest_stdout = last_child.data == 'stdout'
             args = tuple(eval_expr(dd, expr) for expr in statement.children[:-1])
         else:
