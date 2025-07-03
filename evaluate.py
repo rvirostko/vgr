@@ -168,6 +168,52 @@ def deref_var(data: Any, /, *path: str) -> Any:
         data = data[key]
     return data
 
+def var_name_path(node: Tree) -> tuple[str]:
+    """
+    Returns a path into the data dictionary from a parsed var_name.
+    This is typically used for lvalues.
+    """
+    if isinstance(node, Tree) and node.data == "var_name":
+        return tuple(name.value for name in node.children)
+    raise VgrRuntimeError(node, TypeError('Expected var_name')) # SNO
+
+def eval_expr_or_const(dd: DataDictionary, expr: Any) -> Any:
+    """
+    This lets values be unquoted as arguments.
+    For example it allows
+
+        Vault CreateMount secrets Type is **KV2**
+
+    to be used interchangably with
+
+        Vault CreateMount "secrets" Type is **"KV2"**
+
+    If _KV2_ is not defined in the data dictionary.
+
+    It also handles
+
+        Vault CreateMount "secrets" Type **from KV2**
+
+    where _KV2_ is stored as a _var_name_,
+    disambiguating the previous checks.
+
+    If none of these conditions apply, the expression is handled as a normal
+    expression (see eval_expr())
+    """
+    if isinstance(expr, Tree):
+        # var_name is typically used as a lvalue, but here the
+        # syntax is an explicit "value of" rather than a constant value
+        if expr.data == "var_name":
+            return dd.get_var_user(*var_name_path(expr))
+        # This allows for arguments to be unquoted if it is a simple (one part) name
+        # and its value is not known in the data dictionary
+        if expr.data == "var_ref" and len(expr.children) == 1 and isinstance(expr.children[0], Token) and expr.children[0].type == "NAME":
+            name = expr.children[0].value
+            exists, value = dd.exists(name)
+            return value if exists else name
+    # If not one of the special cases, treat this as an expression
+    return eval_expr(dd, expr)
+
 # pylint: disable=too-many-public-methods
 # disabled because we MUST have a method for each rule
 # it is the way Transformer works

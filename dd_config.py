@@ -205,15 +205,13 @@ def dd_push_source(dd: DataDictionary, source: str) -> str:
 def dd_clear_scratch(dd: DataDictionary) -> None:
     dd.get_var(_SCRATCH_PREFIX).clear()
 
-def dd_path(var_ref: Tree) -> tuple[str]:
-    return tuple(name.value for name in var_ref.children)
-
 def do_assignment(dd: DataDictionary, expr: Tree, value: Any, path: tuple[str]) -> None:
     """
     Use when you are doing an assignment (set) where you cannot be sure
     that the result is a reference to another mutable variable such as a list or dict.
     When it is, we need to make a copy before setting the value in the DD.
     """
+    # TODO I'm not sure we need/want to have this anymore...
     if isinstance(expr, Tree) and expr.data == 'var_ref' and isinstance(value, (list, dict)):
         value = deepcopy(value)
     do_set(dd, value, *path)

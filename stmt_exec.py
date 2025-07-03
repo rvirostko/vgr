@@ -20,14 +20,13 @@ from data_dict import DataDictionary
 from dbg import print_tree
 from dd_config import (
     dd_clear_scratch,
-    dd_path,
     dd_pop_source,
     dd_push_source,
     dd_set_statement,
     do_set,
     do_unset,
 )
-from evaluate import bind_operations, eval_expr, eval_filename_expr
+from evaluate import bind_operations, eval_expr, eval_filename_expr, var_name_path
 from mathpak import poly_bool, poly_list, poly_int
 from redir import execute_open, execute_close, print_stderr, print_stdout
 from src_mgr import SSM
@@ -257,7 +256,7 @@ following it are skipped, and the loop continues with the next item.
 """
     if dd.echo:
         print_stderr(SSM.source_for(statement, statement.children[2]))
-    path = dd_path(statement.children[0])
+    path = var_name_path(statement.children[0])
     collection = poly_list(eval_expr(dd, bind_operations(statement.children[1])))
     if collection is not None:
         try:

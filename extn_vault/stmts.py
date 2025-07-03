@@ -2,22 +2,15 @@
 Implementations of Vault Statements
 """
 
-from pathlib import Path
 from typing import Any
-import sys
 
-from lark import Tree, Token
+from lark import Tree
 
-from evaluate import eval_expr
-
-# HACK: Add parent directory to sys.path
-sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
-
-# pylint: disable=wrong-import-position
+from app_exceptions import VgrRuntimeError
+from evaluate import eval_expr_or_const
 from data_dict import DataDictionary
 from redir import print_stderr, shorten
 from vault_api.client_mgr import VaultClientManager
-# pylint: enable=wrong-import-position
 
 from .dd_consts import DEFAULT_NS_PATH, DEFAULT_RESULT_PATH, DEFAULT_CONN_PATH
 from .functions import extract_kv_data, extract_kv_metadata, add_kv_cas
@@ -110,9 +103,9 @@ def execute_connect(dd: DataDictionary, statement: Tree) -> None:
             elif name == 'conn_name':
                 conn_name = _resolve_str_arg(dd, child.children[0], 'Vault Connection Name')
             else:
-                raise NotImplementedError(f'Argument f{repr(name)} not handled') # SNO
+                raise VgrRuntimeError(child, NotImplementedError(f'Argument f{repr(name)} not handled')) # SNO
         else:
-            raise ValueError(f'Unexpected Vault argument {repr(child)}') # SNO
+            raise VgrRuntimeError(child, ValueError(f'Unexpected Vault argument {repr(child)}')) # SNO
     conn_name = conn_name or _DEFAULT_CONN_NAME
     _CONNECTIONS.connect(conn_name, addr, token)
     _set_default_conn(dd, conn_name)
@@ -748,40 +741,23 @@ def _extract_args(dd: DataDictionary, statement: Tree) -> dict:
             if arg_name in _ARG_VAR_NAME:
                 args[arg_name] = tuple(name.value for name in arg_node.children)
             elif arg_name in _ARG_INT_EXPR:
-                v = _resolve_arg_value(dd, arg_node)
+                v = eval_expr_or_const(dd, arg_node)
                 if v:
                     if not isinstance(v, (int, float)): raise TypeError(f'{arg_name.title()} must be a int; found {repr(type(v).__name__)}')
                     args[arg_name] = int(v)
             elif arg_name in _ARG_EXPR:
-                args[arg_name] = _resolve_arg_value(dd, arg_node)
+                args[arg_name] = eval_expr_or_const(dd, arg_node)
             else:
-                raise NotImplementedError(f'Vault argument {repr(arg_name)} not implemented') # SNO
+                raise VgrRuntimeError(child, NotImplementedError(f'Vault argument {repr(arg_name)} not implemented')) # SNO
         else:
-            raise ValueError(f'Unexpected Vault argument {repr(child.data)}:{type(child)}') # SNO
+            raise VgrRuntimeError(child, ValueError(f'Unexpected Vault argument {repr(child.data)}:{type(child)}')) # SNO
     return args
 
 def _resolve_str_arg(dd: DataDictionary, expr: Tree, name: str, allow_none: bool=False) -> str:
-    rc = _resolve_arg_value(dd, expr)
+    rc = eval_expr_or_const(dd, expr)
     if rc is None and allow_none: return None
     if not isinstance(rc, str): raise TypeError(f'{name} must be a string; found {repr(type(rc).__name__)}')
     return rc
-
-def _resolve_arg_value(dd: DataDictionary, node):
-    """
-    This lets values be unquoted as arguments.
-    For example it allows
-        Vault CreateMount secrets Type is KV2
-    to be interchangabe with
-        Vault CreateMount "secrets" Type is "KV2"
-    _if_ secrets and KV2 are not defined in the data dictionary
-    """
-    # TODO fix - "unhandled type RULE var_name" when using "From X"
-    if isinstance(node, Tree) and node.data == "var_ref":
-        if len(node.children) == 1 and isinstance(node.children[0], Token) and node.children[0].type == "NAME":
-            name = node.children[0].value
-            exists, value = dd.exists(name)
-            return value if exists else name
-    return eval_expr(dd, node)
 
 def _allowed_args(args: dict, *allowed_keys) -> None:
     """Raise an error if any key in args is not in allowed_keys."""

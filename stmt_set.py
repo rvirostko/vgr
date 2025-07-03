@@ -11,8 +11,8 @@ import os
 from lark import Tree, Token
 
 from data_dict import DataDictionary
-from dd_config import dd_path, do_assignment, do_unset, _ARG_PREFIX, dd_set_awk_params
-from evaluate import eval_expr, eval_filename_expr
+from dd_config import do_assignment, do_unset, _ARG_PREFIX, dd_set_awk_params
+from evaluate import eval_expr, eval_filename_expr, var_name_path
 from mathpak import poly_add, poly_sub, poly_mul, poly_div, poly_fdiv, poly_mod, poly_pow
 from mathpak import poly_bit_and, poly_bit_or, poly_bit_xor, poly_shl, poly_shr
 from redir import print_stderr, shorten, close_all_redirects
@@ -23,7 +23,7 @@ def execute_set(dd: DataDictionary, statement: Tree) -> None:
 
 * Set _variable_ [= | To] _expression_ [;]
 """
-    path = dd_path(statement.children[0])
+    path = var_name_path(statement.children[0])
     expr = statement.children[1]
     do_assignment(dd, expr, eval_expr(dd, expr), path)
 
@@ -34,8 +34,7 @@ def execute_unset(dd: DataDictionary, statement: Tree) -> None:
 * Unset _variable_ [, _variable_]... [;]
 """
     for item in statement.children:
-        path = dd_path(item)
-        do_unset(dd, *path)
+        do_unset(dd, *var_name_path(item))
 
 def execute_reset(dd: DataDictionary, statement: Tree) -> None:
     """
@@ -103,7 +102,7 @@ def execute_set_in_place(dd: DataDictionary, statement: Tree) -> None:
 * Set _variable_ >>= _expression_ [;] -- Bit Shift Right
 
 """
-    path = dd_path(statement.children[0])
+    path = var_name_path(statement.children[0])
     op = _IN_PLACE_OP[statement.children[1].value]
     expr = statement.children[2]
     do_assignment(dd, expr, op(dd.get_var_user(*path), eval_expr(dd, expr)), path)
@@ -124,7 +123,7 @@ The _expression_ is resolved to string as file to be loaded
 If no type is included, the type is inferred from the extension of the file
 name with Text as the default.
 """
-    path = dd_path(statement.children[0])
+    path = var_name_path(statement.children[0])
     filename = eval_filename_expr(dd, statement.children[1])
     dtype = load_data_type(filename, statement.children[2] if len(statement.children) > 2 else None)
     # TODO need to have an encoding param

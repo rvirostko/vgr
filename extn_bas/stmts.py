@@ -11,8 +11,8 @@ from stmt_exec import bind_operations, dispatch_statement, exec_loop
 from stmt_set import execute_set
 from tags import control_statement
 from src_mgr import SSM
-from dd_config import dd_path, do_set, do_unset
-from evaluate import eval_to_number
+from dd_config import do_set, do_unset
+from evaluate import eval_to_number, var_name_path
 
 @control_statement
 def execute_do_while(dd: DataDictionary, statement: Tree) -> None:
@@ -65,7 +65,7 @@ following it are skipped and looping proceeds.
     if dd.echo:
         print_stderr(SSM.source_for(statement, statement.children[-1]))
     cindex = 0
-    path = dd_path(statement.children[cindex])
+    path = var_name_path(statement.children[cindex])
     cindex += 1
     value = eval_to_number(dd, bind_operations(statement.children[cindex]), 'For-Next start')
     cindex += 1

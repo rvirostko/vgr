@@ -8,8 +8,7 @@ from lark import Tree
 
 from app_exceptions import VgrRuntimeError
 from data_dict import DataDictionary
-from dd_config import dd_path
-from evaluate import eval_expr, eval_to_int
+from evaluate import eval_expr, eval_to_int, var_name_path
 from redir import print_stderr
 
 def _extract_list_all(statement: Tree, idx: int=0) -> tuple[int, bool]:
@@ -26,7 +25,7 @@ def _eval_list_src(dd: DataDictionary, statement: Tree, idx: int, do_all: bool) 
     return idx, [src]
 
 def _eval_list_target(dd: DataDictionary, statement: Tree, idx: int) -> tuple[int, tuple[str], list]:
-    path = dd_path(statement.children[idx])
+    path = var_name_path(statement.children[idx])
     idx += 1
     value = dd.get_var_user(*path)
     if value is None: return idx, path, dd.set_var_user([], *path)
@@ -37,7 +36,7 @@ def _eval_list_target(dd: DataDictionary, statement: Tree, idx: int) -> tuple[in
 def _eval_list_giving(statement: Tree, idx: int) -> tuple[Tree, tuple[str]]:
     # NB: since this relies on length alone, it can be fragile
     gexpr = statement.children[idx] if idx < len(statement.children) else None
-    return gexpr, dd_path(gexpr) if gexpr else None
+    return gexpr, var_name_path(gexpr) if gexpr else None
 
 def _set_list_giving(dd: DataDictionary, path: tuple[str], value: Any, expr: Tree) -> None:
     try:

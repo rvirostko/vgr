@@ -10,8 +10,8 @@ from lark import Tree, Token
 
 from app_exceptions import VgrExitingException, VgrStatementBreak, VgrStatementContinue, VgrRuntimeError
 from data_dict import DataDictionary
-from dd_config import dd_path, do_set, do_assignment, do_unset
-from evaluate import eval_expr, bind_operations, eval_to_number
+from dd_config import do_set, do_assignment, do_unset
+from evaluate import eval_expr, bind_operations, eval_to_number, var_name_path
 from mathpak import poly_add, poly_bool, poly_sub, poly_number, poly_mul, poly_div
 from redir import print_stderr, print_stdout
 from src_mgr import SSM
@@ -20,26 +20,33 @@ from stmt_set import execute_set
 from tags import control_statement
 
 def execute_accept_date(dd: DataDictionary, statement: Tree) -> None:
-    do_set(dd, datetime.now().strftime('%y%m%d'), *dd_path(statement.children[0]))
+    # TODO
+    do_set(dd, datetime.now().strftime('%y%m%d'), *var_name_path(statement.children[0]))
 
 def execute_accept_yyyymmdd(dd: DataDictionary, statement: Tree) -> None:
-    do_set(dd, datetime.now().strftime('%Y%m%d'), *dd_path(statement.children[0]))
+    # TODO
+    do_set(dd, datetime.now().strftime('%Y%m%d'), *var_name_path(statement.children[0]))
 
 def execute_accept_day(dd: DataDictionary, statement: Tree) -> None:
-    do_set(dd, datetime.now().strftime('%y%j'), *dd_path(statement.children[0]))
+    # TODO
+    do_set(dd, datetime.now().strftime('%y%j'), *var_name_path(statement.children[0]))
 
 def execute_accept_yyyyddd(dd: DataDictionary, statement: Tree) -> None:
-    do_set(dd, datetime.now().strftime('%Y%j'), *dd_path(statement.children[0]))
+    # TODO
+    do_set(dd, datetime.now().strftime('%Y%j'), *var_name_path(statement.children[0]))
 
 def execute_accept_dow(dd: DataDictionary, statement: Tree) -> None:
-    do_set(dd, datetime.now().weekday() + 1, *dd_path(statement.children[0]))
+    # TODO
+    do_set(dd, datetime.now().weekday() + 1, *var_name_path(statement.children[0]))
 
 def execute_accept_time(dd: DataDictionary, statement: Tree) -> None:
+    # TODO
     now = datetime.now()
-    do_set(dd, now.strftime('%H%M%S') + f'{now.microsecond // 10000:02d}', *dd_path(statement.children[0]))
+    do_set(dd, now.strftime('%H%M%S') + f'{now.microsecond // 10000:02d}', *var_name_path(statement.children[0]))
 
 def execute_accept_epoch(dd: DataDictionary, statement: Tree) -> None:
-    do_set(dd, int(datetime.now().timestamp()), *dd_path(statement.children[0]))
+    # TODO
+    do_set(dd, int(datetime.now().timestamp()), *var_name_path(statement.children[0]))
 
 def execute_accept_input(dd: DataDictionary, statement: Tree) -> None:
     """
@@ -47,15 +54,15 @@ def execute_accept_input(dd: DataDictionary, statement: Tree) -> None:
 
 * Accept _variable_ From [Console | Stdin | Sysin | Sysinp] [;]
 
-At end-of-file (when stdin is not interactive) of if the user hits return
-without entering any information, the contents of _variable_ remain
+At end-of-file (when not interactive) or if the user hits return
+without entering any information, the contents of _variable_ remains
 unchanged.
 
 There is no limit on the length of input, but input is read per-line.
 """
     line = sys.stdin.readline()
     if line: line = line.rstrip('\n')
-    if line: do_set(dd, line, *dd_path(statement.children[0]))
+    if line: do_set(dd, line, *var_name_path(statement.children[0]))
 
 def execute_exit(_: DataDictionary, statement: Tree) -> None:
     """Terminate execution
@@ -127,7 +134,7 @@ If not specified, the test expression is performed before the block of statement
     else:
         test_before = True
         cindex = 0
-    path = dd_path(statement.children[cindex])
+    path = var_name_path(statement.children[cindex])
     cindex += 1
     value = eval_to_number(dd, bind_operations(statement.children[cindex]), 'Perform Varying start value')
     cindex += 1
@@ -193,7 +200,7 @@ def execute_inc(dd: DataDictionary, statement: Tree) -> None:
 If the variable does not exist, it is created and initialized to zero.
 This is fundamentally an arithmetic, scalar opertion.
 """
-    path = dd_path(statement.children[0])
+    path = var_name_path(statement.children[0])
     x = poly_number(dd.get_var_user(*path)) or 0
     y = poly_number(eval_expr(dd, statement.children[1])) or 0
     do_set(dd, poly_add(x, y), *path)
@@ -206,7 +213,7 @@ def execute_dec(dd: DataDictionary, statement: Tree) -> None:
 If the variable does not exist, it is created and initialized to zero.
 This is fundamentally an arithmetic, scalar opertion.
 """
-    path = dd_path(statement.children[0])
+    path = var_name_path(statement.children[0])
     x = poly_number(dd.get_var_user(*path)) or 0
     y = poly_number(eval_expr(dd, statement.children[1])) or 0
     do_set(dd, poly_sub(x, y), *path)
@@ -232,8 +239,8 @@ request is ignored and a regular move is performed.
         corresponding = True
         start = 1
     expr = statement.children[start]
-    path = dd_path(statement.children[start + 1])
     src = eval_expr(dd, expr)
+    path = var_name_path(statement.children[start + 1])
     dest = dd.get_var_user(*path) if corresponding else None
     if isinstance(src, dict) and isinstance(dest, dict):
         # Should end up here if corresponding was specified,
