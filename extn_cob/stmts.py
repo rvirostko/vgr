@@ -19,50 +19,44 @@ from stmt_exec import exec_if_else, exec_loop, exec_repeat, dispatch_statement
 from stmt_set import execute_set
 from tags import control_statement
 
-def execute_accept_date(dd: DataDictionary, statement: Tree) -> None:
-    # TODO
-    do_set(dd, datetime.now().strftime('%y%m%d'), *var_name_path(statement.children[0]))
+_DT_FUNCS = {
+    'cobol_accept_date':     lambda: datetime.now().strftime('%y%m%d'),
+    'cobol_accept_day':      lambda: datetime.now().strftime('%y%j'),
+    'cobol_accept_dow':      lambda: datetime.now().weekday() + 1,
+    'cobol_accept_epoch':    lambda: int(datetime.now().timestamp()),
+    'cobol_accept_time':     lambda: (now := datetime.now()).strftime('%H%M%S') + f'{now.microsecond // 10000:02d}',
+    'cobol_accept_yyyyddd':  lambda: datetime.now().strftime('%Y%j'),
+    'cobol_accept_yyyymmdd': lambda: datetime.now().strftime('%Y%m%d'),
+}
 
-def execute_accept_yyyymmdd(dd: DataDictionary, statement: Tree) -> None:
-    # TODO
-    do_set(dd, datetime.now().strftime('%Y%m%d'), *var_name_path(statement.children[0]))
-
-def execute_accept_day(dd: DataDictionary, statement: Tree) -> None:
-    # TODO
-    do_set(dd, datetime.now().strftime('%y%j'), *var_name_path(statement.children[0]))
-
-def execute_accept_yyyyddd(dd: DataDictionary, statement: Tree) -> None:
-    # TODO
-    do_set(dd, datetime.now().strftime('%Y%j'), *var_name_path(statement.children[0]))
-
-def execute_accept_dow(dd: DataDictionary, statement: Tree) -> None:
-    # TODO
-    do_set(dd, datetime.now().weekday() + 1, *var_name_path(statement.children[0]))
-
-def execute_accept_time(dd: DataDictionary, statement: Tree) -> None:
-    # TODO
-    now = datetime.now()
-    do_set(dd, now.strftime('%H%M%S') + f'{now.microsecond // 10000:02d}', *var_name_path(statement.children[0]))
-
-def execute_accept_epoch(dd: DataDictionary, statement: Tree) -> None:
-    # TODO
-    do_set(dd, int(datetime.now().timestamp()), *var_name_path(statement.children[0]))
-
-def execute_accept_input(dd: DataDictionary, statement: Tree) -> None:
+def execute_accept(dd: DataDictionary, statement: Tree) -> None:
     """
-**Accept user input**
+**Get user input or Retrieve date and time values**
 
 * Accept _variable_ From [Console | Stdin | Sysin | Sysinp] [;]
+* Accept _variable_ From [Unix] Epoch [;]
+* Accept _variable_ From Date [;]
+* Accept _variable_ From Date YYYYMMDD [;]
+* Accept _variable_ From Day YYYYDDD [;]
+* Accept _variable_ From Day-Of-Week [;]
+* Accept _variable_ From Day [;]
+* Accept _variable_ From Time [;]
+* Accept _variable_ From Timestamp [;]
 
-At end-of-file (when not interactive) or if the user hits return
+Note that _Timestamp_ and _Epoch_ are aliases, returning the number of seconds
+since 1-Jan-1970.
+
+For user input, when at end-of-file (when not interactive) or if the user hits return
 without entering any information, the contents of _variable_ remains
-unchanged.
-
-There is no limit on the length of input, but input is read per-line.
+unchanged. There is no limit on the length of user input, but it is a single line.
 """
-    line = sys.stdin.readline()
-    if line: line = line.rstrip('\n')
-    if line: do_set(dd, line, *var_name_path(statement.children[0]))
+    name = statement.data
+    if name in _DT_FUNCS:
+        do_set(dd, _DT_FUNCS.get(statement.data)(), *var_name_path(statement.children[0]))
+    else:
+        line = sys.stdin.readline()
+        line = line.rstrip('\n') if line else line
+        if line: do_set(dd, line, *var_name_path(statement.children[0]))
 
 def execute_exit(_: DataDictionary, statement: Tree) -> None:
     """Terminate execution

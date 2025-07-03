@@ -7,14 +7,7 @@ from pathlib import Path
 
 from extn import VgrExtension
 from .stmts import (
-    execute_accept_date,
-    execute_accept_day,
-    execute_accept_dow,
-    execute_accept_epoch,
-    execute_accept_input,
-    execute_accept_time,
-    execute_accept_yyyyddd,
-    execute_accept_yyyymmdd,
+    execute_accept,
     execute_add_giving,
     execute_add_to,
     execute_compute,
@@ -37,14 +30,14 @@ from .stmts import (
 )
 
 _HANDLERS = {
-    'cobol_accept_date':     execute_accept_date,
-    'cobol_accept_day':      execute_accept_day,
-    'cobol_accept_dow':      execute_accept_dow,
-    'cobol_accept_epoch':    execute_accept_epoch,
-    'cobol_accept_input':    execute_accept_input,
-    'cobol_accept_time':     execute_accept_time,
-    'cobol_accept_yyyyddd':  execute_accept_yyyyddd,
-    'cobol_accept_yyyymmdd': execute_accept_yyyymmdd,
+    'cobol_accept_date':     execute_accept,
+    'cobol_accept_day':      execute_accept,
+    'cobol_accept_dow':      execute_accept,
+    'cobol_accept_epoch':    execute_accept,
+    'cobol_accept_input':    execute_accept,
+    'cobol_accept_time':     execute_accept,
+    'cobol_accept_yyyyddd':  execute_accept,
+    'cobol_accept_yyyymmdd': execute_accept,
     'cobol_add_giving':      execute_add_giving,
     'cobol_add_to':          execute_add_to,
     'cobol_compute':         execute_compute,
