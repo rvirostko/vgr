@@ -43,51 +43,44 @@ def _str_str_op(op: Callable[[Any, Any], Any], x: str, y: str) -> str:
     y_len = len(y_bytes)
     return ''.join(chr(op(ord(c), y_bytes[i % y_len])) for i, c in enumerate(x))
 
-def poly_vbit_and(x: Any, *args) -> Any:
-    """
-    Varargs version of poly_bit_and()
-    The arguments are bit-or-ed together then and-ed
-    poly_vbit_and(0x5A, 0x01, 0x10) -> poly_and(0x5A, 0x11) -> 0x10
-    """
-    return poly_bit_and(x, reduce(poly_bit_or, args, 0))
-
-def poly_bit_and(x: Any, y: Any) -> Any:
+def poly_bit_and(x: Any, *args) -> Any:
     """Polymorphic bitwise and function.
 
 # TODO
 
 TypeError raised on all other combinations
 """
+    return _bit_and(x, reduce(poly_bit_or, args, 0))
+
+def _bit_and(x: Any, y: Any) -> Any:
     operation = get_operation(x, y, bit_operations)
-    return operation(poly_bit_and, x, y) if operation else x & y
+    return operation(_bit_and, x, y) if operation else x & y
 
-def poly_vbit_or(x: Any, *args) -> Any:
-    """Varargs version of poly_bit_or()"""
-    return reduce(poly_bit_or, args, x)
-
-def poly_bit_or(x: Any, y: Any) -> Any:
+def poly_bit_or(x: Any, *args) -> Any:
     """Polymorphic bitwise or function.
 
 # TODO
 
 TypeError raised on all other combinations
 """
+    return reduce(_bit_or, args, x)
+
+def _bit_or(x: Any, y: Any) -> Any:
     operation = get_operation(x, y, bit_or_operations, bit_operations)
-    return operation(poly_bit_or, x, y) if operation else x | y
+    return operation(_bit_or, x, y) if operation else x | y
 
-def poly_vbit_xor(x: Any, *args) -> Any:
-    """Varags version of poly_bit_xor"""
-    return poly_bit_xor(x, poly_vbit_or(0, args))
-
-def poly_bit_xor(x: Any, y: Any) -> Any:
+def poly_bit_xor(x: Any, *args) -> Any:
     """Polymorphic bitwise xor function.
 
 # TODO
 
 TypeError raised on all other combinations
 """
+    return _bit_xor(x, poly_bit_or(0, args))
+
+def _bit_xor(x: Any, y: Any) -> Any:
     operation = get_operation(x, y, bit_operations)
-    return operation(poly_bit_xor, x, y) if operation else x ^ y
+    return operation(_bit_xor, x, y) if operation else x ^ y
 
 def poly_bit_not(x: Any) -> Any:
     """Polymorphic bitwise invert (negation) function.

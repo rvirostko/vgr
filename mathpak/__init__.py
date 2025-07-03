@@ -5,7 +5,7 @@ from .add import poly_add, poly_sum
 from .attrs import poly_dig, poly_vdig
 from .bases import poly_bin, poly_oct, poly_hex, poly_base64_encode, poly_base64_decode
 from .bases import poly_parse_int, poly_parse_bin, poly_parse_oct, poly_parse_hex
-from .bit_ops import poly_bit_and, poly_bit_or, poly_bit_xor, poly_bit_not, poly_vbit_and, poly_vbit_or, poly_vbit_xor
+from .bit_ops import poly_bit_and, poly_bit_or, poly_bit_not, poly_bit_xor
 from .common import type_str, str_to_bool, str_to_number, str_to_int
 from .div import poly_div, poly_fdiv, poly_divmod
 from .files import base_name, dir_name, is_dir, is_file, file_exists
