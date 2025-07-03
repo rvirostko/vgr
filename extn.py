@@ -2,10 +2,11 @@
 Prototype for an extension system
 """
 
+from pathlib import Path
 from typing import Dict, Callable
 import configparser
 import importlib
-from pathlib import Path
+import re
 
 from data_dict import DataDictionary
 
@@ -53,6 +54,32 @@ class VgrExtension:
         """
         return {}
     #pylint: enable=unused-argument
+
+    @staticmethod
+    def _to_snake_case(s: str) -> str:
+        # TODO copied from "functions"
+        s = re.sub(r'(?<=[a-z0-9])([A-Z])', r'_\1', s)  # insert _ before A-Z if preceded by lowercase or digit
+        s = re.sub(r'(?<=[A-Z])([A-Z][a-z])', r'_\1', s)  # handle acronym boundary: XMLParser -> XML_Parser
+        return s.lower()
+
+    @staticmethod
+    def expand_names(text: str) -> str:
+        """
+        Expands name in the form of {{MyName}} in
+        grammar files into the appropriate camel and snake case entries.
+
+            stmt: {{FooBar}} expr
+
+        becomes
+
+            stmt: ("FooBar"i | "foo_bar"i) expr
+        """
+        def repl(match):
+            name = match.group(1)
+            snake = VgrExtension._to_snake_case(name)
+            if name == snake: return f'"{name}"i'
+            return f'("{name}"i | "{snake}"i)'
+        return re.sub(r'\{\{([A-Za-z][A-Za-z0-9]*)\}\}', repl, text)
 
 class VgrExtensionRegistry:
     """

@@ -133,21 +133,6 @@ _FUNCTIONS = {
     "MsToDuration"      : ms_to_duration,
 }
 
-# TODO copied from "functions"
-def _to_snake_case(s: str) -> str:
-    s = re.sub(r'(?<=[a-z0-9])([A-Z])', r'_\1', s)  # insert _ before A-Z if preceded by lowercase or digit
-    s = re.sub(r'(?<=[A-Z])([A-Z][a-z])', r'_\1', s)  # handle acronym boundary: XMLParser -> XML_Parser
-    return s.lower()
-
-# TODO this should be make part of VGRExtension
-def expand_names(text: str) -> str:
-    def repl(match):
-        name = match.group(1)
-        snake = _to_snake_case(name)
-        if name == snake: return f'"{name}"i'
-        return f'("{name}"i | "{snake}"i)'
-    return re.sub(r'\{\{([A-Za-z][A-Za-z0-9]*)\}\}', repl, text)
-
 class VaultExtension(VgrExtension):
 
     def initialize(self, dd: DataDictionary) -> None:
@@ -165,7 +150,7 @@ class VaultExtension(VgrExtension):
     def grammar(self) -> str:
         extn_grammar = Path(__file__).parent / 'vault.ebnf'
         with extn_grammar.open('r', encoding='utf-8-sig') as f:
-            g = expand_names(f.read())
+            g = self.expand_names(f.read())
         g += 'vault_from: "Vault"i VAULT_TARGET\n'
         return g + 'VAULT_TARGET: ' + ' | '.join(tuple(f'"{t}"i' for t in _TARGETS))
 
