@@ -133,7 +133,7 @@ vault_option: "CAS"i ("=" | "Is"i)? expr -> vopt_cas
     | "Namespace"i ("=" | "Is"i)? expr -> vopt_namespace
     | "Namespace"i "From"i var_name -> vopt_namespace
     | ("Result"i | "Results"i) ("=" | "Is"i | "In"i)? var_name -> vopt_result
-    | "Into"i var_name -> vopt_result
+    | "Giving"i var_name -> vopt_result
     | ("Secret"i | "Secrets"i) ("=" | "Is"i | "Are"i)? expr -> vopt_data # Alias for data
     | ("Secret"i | "Secrets"i) "From"i var_name -> vopt_data             # Alias for data
     | "Type"i ("=" | "Is"i)? expr -> vopt_type
