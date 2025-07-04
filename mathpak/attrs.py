@@ -6,7 +6,7 @@ from typing import Any
 
 from .common import type_str, NoneType
 
-def poly_vdig(x: Any, *args) -> Any:
+def poly_dig(x: Any, *args) -> Any:
     """Traverse a path in a dictionary object.
 
 * _dict_.Dig(_path_ [, _path_]) [;]
@@ -18,11 +18,11 @@ Path parts can be:
 """
     data = x
     for arg in args:
-        data = poly_dig(data, arg)
+        data = _dig(data, arg)
         if data is None: break
     return data
 
-def poly_dig(x: Any, path: Any) -> Any:
+def _dig(x: Any, path: Any) -> Any:
     if isinstance(x, (NoneType, bool, int, float, str, tuple, list)): return x
     if isinstance(x, dict):
         if isinstance(path, str):

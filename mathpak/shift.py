@@ -7,12 +7,9 @@ from typing import Any
 
 from .common import dist_x, str_to_int, X_None_Op, Y_None_Op, get_operation, matching_default
 
-def poly_vshl(x: Any, *args):
-    """Varargs version of poly_shl"""
-    return reduce(poly_shl, args, x)
-
-def poly_shl(x: Any, y: Any) -> Any:
-    """Polymorphic shift left function.
+def poly_shl(x: Any, *args) -> Any:
+    """
+**Polymorphic shift left function**
 
 | x     | y     | returns | operation        |
 |-------|-------|---------|------------------|
@@ -34,15 +31,11 @@ def poly_shl(x: Any, y: Any) -> Any:
 
 TypeError raised on all other combinations
 """
-    operation = get_operation(x, y, shift_operations)
-    return operation(poly_shl, x, y) if operation else x << y
+    return reduce(_shl, args, x)
 
-def poly_vshr(x: Any, *args):
-    """Varargs version of poly_shr"""
-    return reduce(poly_shr, args, x)
-
-def poly_shr(x: Any, y: Any) -> Any:
-    """Polymorphic shift right function.
+def poly_shr(x: Any, *args):
+    """
+**Polymorphic shift right function**
 
 | x     | y     | returns | operation        |
 |-------|-------|---------|------------------|
@@ -64,8 +57,15 @@ def poly_shr(x: Any, y: Any) -> Any:
 
 TypeError raised on all other combinations
     """
+    return reduce(_shr, args, x)
+
+def _shl(x: Any, y: Any) -> Any:
     operation = get_operation(x, y, shift_operations)
-    return operation(poly_shr, x, y) if operation else x >> y
+    return operation(_shl, x, y) if operation else x << y
+
+def _shr(x: Any, y: Any) -> Any:
+    operation = get_operation(x, y, shift_operations)
+    return operation(_shr, x, y) if operation else x >> y
 
 shift_operations = {
     X_None_Op: lambda op, _, y: None if y is None else op(matching_default(y), y),

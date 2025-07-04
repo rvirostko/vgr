@@ -8,30 +8,30 @@ import re
 
 from .common import NoneType, bool_arg, type_str
 
-def poly_vmatches(x: Any, *args) -> Any:
+def poly_matches(x: Any, *args) -> Any:
     if not args: return x
-    if len(args) == 1: return poly_matches(x, args[0])
-    return poly_matches(x, [*args])
+    if len(args) == 1: return _matches(x, args[0])
+    return _matches(x, [*args])
 
-def poly_matches(x: Any, y: Any, ci: bool=False) -> Any:
+def _matches(x: Any, y: Any, ci: bool=False) -> Any:
     return _do_match(x, y, ci, False)
 
-def poly_vmatches_all(x: Any, *args) -> Any:
+def poly_matches_all(x: Any, *args) -> Any:
     if not args: return x
-    if len(args) == 1: return poly_matches_all(x, args[0])
-    return poly_matches_all(x, [*args])
+    if len(args) == 1: return _matches_all(x, args[0])
+    return _matches_all(x, [*args])
 
-def poly_matches_all(x: Any, y: Any, ci: bool=False) -> Any:
+def _matches_all(x: Any, y: Any, ci: bool=False) -> Any:
     return _do_match(x, y, ci, True)
 
 def poly_not_matches(x: Any, y: Any, ci: bool=False) -> Any:
-    return not poly_matches(x, y, ci)
+    return not _matches(x, y, ci)
 
 def poly_imatches(x: Any, y: Any) -> Any:
-    return poly_matches(x, y, True)
+    return _matches(x, y, True)
 
 def poly_not_imatches(x: Any, y: Any) -> Any:
-    return not poly_matches(x, y, True)
+    return not _matches(x, y, True)
 
 def _do_match(x: Any, y: Any, ci: bool, do_all: bool) -> Any:
     ci = bool_arg(ci, "Case Independent")

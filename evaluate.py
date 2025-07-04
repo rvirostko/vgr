@@ -20,7 +20,7 @@ from mathpak import poly_contains_all, poly_contains_any, type_str, poly_number
 from mathpak import poly_eq, poly_pow, poly_fdiv, poly_ge, poly_imatches, poly_gt
 from mathpak import poly_in, poly_le, poly_lt, poly_matches, poly_mod, poly_mul
 from mathpak import poly_ne, poly_not_imatches, poly_not_in
-from mathpak import poly_not_matches, poly_matches_all, poly_vshl, poly_vshr, poly_sub, poly_not
+from mathpak import poly_not_matches, poly_matches_all, poly_shl, poly_shr, poly_sub, poly_not
 from mathpak import poly_add, poly_bit_and, poly_bit_xor, poly_div
 from output import verify_relative_path
 
@@ -252,8 +252,8 @@ class OperationBinder(Transformer):
     def mod_op(self, tree): return SimpleOperation(tree, poly_mod)
     def mul_op(self, tree): return SimpleOperation(tree, poly_mul)
     def pow_op(self, tree): return SimpleOperation(tree, poly_pow)
-    def shl_op(self, tree): return SimpleOperation(tree, poly_vshl)
-    def shr_op(self, tree): return SimpleOperation(tree, poly_vshr)
+    def shl_op(self, tree): return SimpleOperation(tree, poly_shl)
+    def shr_op(self, tree): return SimpleOperation(tree, poly_shr)
     def sub_op(self, tree): return SimpleOperation(tree, poly_sub)
 
     # Polymorphic operations with a single arg
