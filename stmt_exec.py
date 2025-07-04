@@ -296,7 +296,7 @@ class ConstantsNormalizer(Transformer):
 
     def STRING(self, token):
         # Removes the quoting and interprets escape sequences
-        token.value = ast.literal_eval(token.value)
+        token.value = ast.literal_eval(self.normalize_outer_quotes(token.value))
         return token
     def TRUE(self, token): return self._new_token(token, token.type, True)
     def FALSE(self, token): return self._new_token(token, token.type, False)
@@ -316,6 +316,24 @@ class ConstantsNormalizer(Transformer):
     def _new_token(self, token, new_type: str, value: Any):
         return Token(new_type, value, token.start_pos, token.line, token.column,
                      token.end_line, token.end_column, token.end_pos)
+
+    def normalize_outer_quotes(self, s: str) -> str:
+        """Fixes up typographic quotes from text pasted in from MS products like Word"""
+        if s[0] in 'Rr':
+            prefix = s[0]
+            open_quote = s[1]
+        else:
+            prefix = ""
+            open_quote = s[0]
+        # the string is clean
+        if open_quote in ('"', "'"): return s
+        if prefix: s = s[1:]
+        close_quote = s[-1]
+        # Typographic single quotes
+        if open_quote == '\u2018' and close_quote == '\u2019': return prefix + "'" + s[1:-1] + "'"
+        # Typographic double quotes
+        if open_quote == '\u201C' and close_quote == '\u201D': return prefix + '"' + s[1:-1] + '"'
+        return prefix + s
 # pylint: enable=invalid-name
 
 @v_args(tree=True)

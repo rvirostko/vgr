@@ -334,9 +334,11 @@ var_name: NAME (_DOT NAME)*
 {FUNCTIONS}
 
 // modified versions of python.STRING/LONG_STRING : removed the [ufb]
-_STRING: /r?("(?!"").*?(?<!\\)(\\\\)*?"|'(?!'').*?(?<!\\)(\\\\)*?')/i
-_LONG_STRING: /r?(""".*?(?<!\\)(\\\\)*?"""|'''.*?(?<!\\)(\\\\)*?''')/is
-STRING: _STRING | _LONG_STRING
+_STRING: /[Rr]?("(?!"").*?(?<!\\)(\\\\)*?"|'(?!'').*?(?<!\\)(\\\\)*?')/
+_LONG_STRING: /[Rr]?(""".*?(?<!\\)(\\\\)*?"""|'''.*?(?<!\\)(\\\\)*?''')/s
+// Allow typographic quotes from C/P sources, but fix them up internally
+_MS_STRING: /[Rr]?(\u201C(?!"").*?(?<!\\)(\\\\)*?\u201D|\u2018(?!'').*?(?<!\\)(\\\\)*?\u2019)/
+STRING: _STRING | _LONG_STRING | _MS_STRING
 
 %import common.WS
 %ignore WS
