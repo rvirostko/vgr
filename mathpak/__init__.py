@@ -11,7 +11,16 @@ from .div import poly_div, poly_fdiv, poly_divmod
 from .files import base_name, dir_name, is_dir, is_file, file_exists
 from .general import poly_getitem, poly_sort, poly_unique, poly_type, dsort, poly_reverse
 from .general import poly_hash, poly_sizeof, poly_repr, poly_firstitem, poly_lastitem, poly_ascii
-from .inequ import poly_eq, poly_ge, poly_gt, poly_le, poly_lt, poly_ne
+from .inequ import (
+    poly_between,
+    poly_clamp,
+    poly_eq,
+    poly_ge,
+    poly_gt,
+    poly_le,
+    poly_lt,
+    poly_ne,
+)
 from .is_in import poly_in, poly_not_in, poly_contains_all, poly_contains_any
 from .json_funcs import format_json, parse_json, strip_nulls, to_json, to_json_string
 from .logic import poly_and, poly_not, poly_or
@@ -20,7 +29,16 @@ from .markdown import  md_ordered_list, md_strikethrough, md_unordered_list
 from .markdown import md_blockquote, md_bold, md_code, md_code_block, md_heading, md_italics, md_link
 from .match import poly_imatches, poly_matches, poly_not_imatches, poly_not_matches, poly_matches_all
 from .match import poly_vmatches, poly_vmatches_all
-from .misc_math import poly_abs, poly_ceil, poly_floor, poly_round, poly_trunc, poly_round_multiple, poly_ceil_multiple, poly_floor_multiple
+from .misc_math import (
+    poly_abs,
+    poly_ceil_multiple,
+    poly_ceil,
+    poly_floor_multiple,
+    poly_floor,
+    poly_round_multiple,
+    poly_round,
+    poly_trunc,
+)
 from .mod import poly_mod
 from .mul import poly_mul
 from .pow import poly_pow
