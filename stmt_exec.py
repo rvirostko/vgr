@@ -294,9 +294,10 @@ class ConstantsNormalizer(Transformer):
         '⁾': '',     # remove right paren
     })
 
-    def ESCAPED_STRING(self, token):
+    def STRING(self, token):
         # Removes the quoting and interprets escape sequences
-        return self._new_token(token, "STRING", ast.literal_eval(token.value))
+        token.value = ast.literal_eval(token.value)
+        return token
     def TRUE(self, token): return self._new_token(token, token.type, True)
     def FALSE(self, token): return self._new_token(token, token.type, False)
     def NONE(self, token): return self._new_token(token, 'NONE', None)

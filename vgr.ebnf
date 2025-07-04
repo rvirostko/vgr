@@ -182,7 +182,7 @@ select: "Select"i outputs? from_clause where_clause? product_clause? limit_claus
 ?outputs: output (_COMMA output)* _COMMA?
 
 output: expr
-    | expr "As"i (NAME | ESCAPED_STRING) -> output_as
+    | expr "As"i (NAME | STRING) -> output_as
 
 ?from_clause: "From"i (var_from | file_from {EXTN_FROM})
 var_from: ("Variable"i | "Var"i) var_name ("As"i NAME)?
@@ -258,7 +258,7 @@ product_cols: "All"i -> all
     | col_spec (_COMMA col_spec)*
 ?col_spec: DEC_NUMBER // One based
     | NAME
-    | ESCAPED_STRING
+    | STRING
 // TODO: option to say before or after limits
 
 ?expr: ternary | and_expr
@@ -322,9 +322,9 @@ ternary: expr "?" expr ":" expr -> c_ternary
     | TRUE | FALSE
     | NONE
     | INF | NAN                                         // becomes FLOAT at runtime
-    | ESCAPED_STRING                                    // becomes STRING at runtime
     | HEX_NUMBER | BIN_NUMBER | OCT_NUMBER | DEC_NUMBER // becomes INT at runtime
     | FLOAT_NUMBER                                      // becomes FLOAT at runtime
+    | STRING
     | NAME -> var_ref
 
 var_name: NAME (_DOT NAME)*
@@ -333,6 +333,10 @@ var_name: NAME (_DOT NAME)*
 
 {FUNCTIONS}
 
-%import common.ESCAPED_STRING
+// modified versions of python.STRING/LONG_STRING : removed the [ufb]
+_STRING: /r?("(?!"").*?(?<!\\)(\\\\)*?"|'(?!'').*?(?<!\\)(\\\\)*?')/i
+_LONG_STRING: /r?(""".*?(?<!\\)(\\\\)*?"""|'''.*?(?<!\\)(\\\\)*?''')/is
+STRING: _STRING | _LONG_STRING
+
 %import common.WS
 %ignore WS

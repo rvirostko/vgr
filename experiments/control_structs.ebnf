@@ -1,9 +1,3 @@
-//----
-// Allows singe and double quoted strings
-//----
-STRING: SINGLE_QUOTE_STRING | DOUBLE_QUOTE_STRING
-SINGLE_QUOTE_STRING: /'([^'\\]*(\\.[^'\\]*)*)'/
-DOUBLE_QUOTE_STRING: /"([^"\\]*(\\.[^"\\]*)*)"/
 
 procedure_definition: "procedure"i var "(" (var ("," var)*)? ")" "begin"i? statement* "end"i
 procedure_call: "call"i var "(" (expression ("," expression)*)? ")" -> call
