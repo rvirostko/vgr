@@ -122,6 +122,7 @@ from mathpak import (
     poly_mul,
     poly_multimode,
     poly_ne,
+    poly_not_in,
     poly_number,
     poly_oct,
     poly_ord,
@@ -343,6 +344,10 @@ The values for _plural_ and _signular_ can be any any values.
     return singular if is_one else plural
 
 _BUILT_IN_FUNCS = {
+    "∈":              poly_in,
+    "∉":              poly_not_in,
+    "∏":              poly_mul,
+    "∑":              poly_sum,
     "Abs":            poly_abs,
     "Add":            poly_add,
     "AppendStr":      poly_append,
@@ -404,12 +409,13 @@ _BUILT_IN_FUNCS = {
     "IsDigit":        poly_isdigit,
     "IsDirectory":    is_dir,
     "IsEmpty":        _is_empty,
-    "IsEqualTo":     poly_eq,
+    "IsEqualTo":      poly_eq,
     "IsFile":         is_file,
     "IsFinite":       poly_isfinite,
     "IsFloat":        poly_isfloat,
     "IsGreaterThan":  poly_gt,
     "IsIdentifier":   poly_isidentifier,
+    "IsIn":           poly_in,
     "IsInf":          poly_isinf,
     "IsInt":          poly_isint,
     "IsLessThan":     poly_lt,
@@ -417,6 +423,7 @@ _BUILT_IN_FUNCS = {
     "IsLower":        poly_islower,
     "IsNan":          poly_isnan,
     "IsNotEmpty":     _is_not_empty,
+    "IsNotIn":        poly_not_in,
     "IsNumber":       poly_isnumber,
     "IsNumeric":      poly_isnumeric,
     "IsPrintable":    poly_isprintable,
@@ -461,6 +468,7 @@ _BUILT_IN_FUNCS = {
     "Negate":         _negate,
     "NotEqualTo":     poly_ne,
     "NotGreaterThan": poly_le,
+    "NotIn":          poly_not_in,
     "NotLessThan":    poly_ge,
     "Number":         poly_number,
     "Ord":            poly_ord,
@@ -473,6 +481,7 @@ _BUILT_IN_FUNCS = {
     "Plural":         _plural,
     "Pow":            poly_pow,
     "PrependStr":     poly_prepend,
+    "Product":        poly_mul,
     "PStdev":         poly_pstdev,
     "PVariance":      poly_pvariance,
     "RegexReplace":   poly_regex_replace,
@@ -491,6 +500,7 @@ _BUILT_IN_FUNCS = {
     "Round":          poly_round,
     "RoundMultiple":  poly_round_multiple,
     "RSplit":         poly_rsplit,
+    "s²":             poly_variance,
     "ShortenStr":     poly_shorten,
     "Sign":           poly_sign,
     "SizeOf":         poly_sizeof,
@@ -531,6 +541,7 @@ _BUILT_IN_FUNCS = {
     "Upper":          poly_upper,
     "Variance":       poly_variance,
     "ZeroFill":       poly_zfill,
+    "σ²":             poly_pvariance,
 }
 
 # Binds a (pretty) name to the function to be executed

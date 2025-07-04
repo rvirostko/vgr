@@ -275,6 +275,25 @@ following it are skipped, and the loop continues with the next item.
 # disabled because we MUST have methods named the same as the tokens
 # and the tokens MUST have uppercase names
 class ConstantsNormalizer(Transformer):
+
+    SUPERSCRIPT_TRANSLATION = str.maketrans({
+        '⁰': '0',
+        '¹': '1',
+        '²': '2',
+        '³': '3',
+        '⁴': '4',
+        '⁵': '5',
+        '⁶': '6',
+        '⁷': '7',
+        '⁸': '8',
+        '⁹': '9',
+        '⁺': '+',
+        '⁻': '-',
+        '·': '.',
+        '⁽': '',     # remove left paren
+        '⁾': '',     # remove right paren
+    })
+
     def ESCAPED_STRING(self, token):
         # Removes the quoting and interprets escape sequences
         return self._new_token(token, "STRING", ast.literal_eval(token.value))
@@ -288,6 +307,10 @@ class ConstantsNormalizer(Transformer):
     def OCT_NUMBER(self, token): return self._to_int(token, 8)
     def BIN_NUMBER(self, token): return self._to_int(token, 2)
     def FLOAT_NUMBER(self, token): return self._new_token(token, 'FLOAT', float(token.value))
+    def SUPERSCRIPT_FLOAT(self, token):
+        val = float(token.value.translate(self.SUPERSCRIPT_TRANSLATION))
+        is_float = '·' in token.value
+        return self._new_token(token, 'FLOAT' if is_float else 'INT', val if is_float else int(val))
     def _to_int(self, token, base: int): return self._new_token(token, 'INT', int(token.value, base))
     def _new_token(self, token, new_type: str, value: Any):
         return Token(new_type, value, token.start_pos, token.line, token.column,
