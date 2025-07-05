@@ -6,16 +6,53 @@ from typing import Any, Callable, Iterable
 
 from .common import str_to_number
 
+# TODO experimental
+def bound_ops(*operators):
+    def decorator(func):
+        func.bound_ops = tuple(operators)
+        return func
+    return decorator
+
+@bound_ops("==", "⩵", "Equals", "Is", "[Is] Equal To")
 def poly_eq(x: Any, y: Any) -> bool:
     """
-**Polymorphic equals comparison**
+**Equals comparison**
 
-* _value_.IsEqualTo(_value_)
-* _value_ == _value_
-* _value_ Equals _value_
-* _value_ Is _value_
-* _value_ [Is] Equal To _value_
+* _x_.IsEqualTo(_y_)
+* _x_ == _y_
+* _x_ ⩵ _y_
+* _x_ Equals _y_
+* _x_ Is _y_
+* _x_ [Is] Equal To _y_
 
+| x     | y          | operation           |
+|-------|------------|---------------------|
+| None  | _any_      | y == None           |
+| _any_ | None       | False               |
+| int   | int/float  | x == y              |
+| int   | str        | x == ToNumber(y)†   |
+| int   | list/tuple | [x] == y‡           |
+| float | int/float  | x == y              |
+| float | str        | x == ToNumber(y)    |
+| float | list/tuple | [x] == y            |
+| str   | int/float  | ToNumber(x) == y    |
+| str   | str        | x == y              |
+| str   | list/tuple | [x] == y            |
+| list  | list/tuple | x == y              |
+| list  | _any_      | x == [y]            |
+| tuple | list/tuple | x == y              |
+| tuple | _any_      | x == [y]            |
+| dict  | dict       | x == y by attr      |
+| dict  | _any_      | False               |
+
+TypeError raised on all other combinations
+
+† If the string value cannot be converted to a number
+the corresponding non-string value is converted to
+a string.
+
+‡ After conversion to an array the comparison is
+performed between corresponding elements.
 """
     # None is only equal to itself
     if x is None: return y is None
@@ -23,19 +60,87 @@ def poly_eq(x: Any, y: Any) -> bool:
     override = _overrides.get((type(x), type(y)))
     return override(poly_eq, x, y) if override else x == y
 
+@bound_ops("!=", "≠", "<>", "¬=", "Is Not", "[Is] Not Equal To")
 def poly_ne(x: Any, y: Any) -> bool:
-    """Polymorphic not equals comparison.
-# TODO
+    """
+**Not equals comparison**
+
+* _x_.NotEqualTo(_y_)
+* _x_ != _y_
+* _x_ ≠ _y_
+* _x_ <> _y_
+* _x_ ¬= _y_
+* _x_ Is Not _y_
+* _x_ [Is] Not Equal To _y_
+
+| x     | y          | operation           |
+|-------|------------|---------------------|
+| None  | _any_      | y != None           |
+| _any_ | None       | True                |
+| int   | int/float  | x != y              |
+| int   | str        | x != ToNumber(y)†   |
+| int   | list/tuple | [x] != y‡           |
+| float | int/float  | x != y              |
+| float | str        | x != ToNumber(y)    |
+| float | list/tuple | [x] != y            |
+| str   | int/float  | ToNumber(x) != y    |
+| str   | str        | x != y              |
+| str   | list/tuple | [x] != y            |
+| list  | list/tuple | x != y              |
+| list  | _any_      | x != [y]            |
+| tuple | list/tuple | x != y              |
+| tuple | _any_      | x != [y]            |
+| dict  | dict       | x != y by attr      |
+| dict  | _any_      | True                |
 
 TypeError raised on all other combinations
+
+† If the string value cannot be converted to a number
+the corresponding non-string value is converted to
+a string.
+
+‡ After conversion to an array the comparison is
+performed between corresponding elements.
 """
     return not poly_eq(x, y)
 
+@bound_ops("<", "＜", "[Is] Less Than")
 def poly_lt(x: Any, y: Any) -> bool:
-    """Polymorphic less than comparison.
-# TODO
+    """
+**Polymorphic less than comparison**
+
+* _x_.IsLessThan(_y_)
+* _x_ < _y_
+* _x_ ＜ _y_
+* _x_ [Is] Less Than _y_
+
+| x     | y          | operation          |
+|-------|------------|--------------------|
+| None  | _any_      | y != None          |
+| _any_ | None       | False              |
+| int   | int/float  | x < y              |
+| int   | str        | x < ToNumber(y)†   |
+| int   | list/tuple | [x] < y‡           |
+| float | int/float  | x < y              |
+| float | str        | x < ToNumber(y)    |
+| float | list/tuple | [x] < y            |
+| str   | int/float  | ToNumber(x) < y    |
+| str   | str        | x < y              |
+| str   | list/tuple | [x] < y            |
+| list  | list/tuple | x < y              |
+| list  | _any_      | x < [y]            |
+| tuple | list/tuple | x < y              |
+| tuple | _any_      | x < [y]            |
+| dict  | dict       | x < y by attr      |
 
 TypeError raised on all other combinations
+
+† If the string value cannot be converted to a number
+the corresponding non-string value is converted to
+a string.
+
+‡ After conversion to an array the comparison is
+performed between corresponding elements.
 """
     # None is less than everything except itself
     if x is None: return y is not None
@@ -43,23 +148,88 @@ TypeError raised on all other combinations
     override = _overrides.get((type(x), type(y)))
     return override(poly_lt, x, y) if override else x < y
 
+@bound_ops(">", "＞", "[Is] Greater Than")
 def poly_gt(x: Any, y: Any) -> Any:
-    """Polymorphic greater than comparison.
-# TODO
+    """
+**Greater than comparison**
+
+* _x_.IsGreaterThan(_y_)
+* _x_ > _y_
+* _x_ ＞ _y_
+* _x_ [Is] Greater Than _y_
+
+| x     | y          | operation          |
+|-------|------------|--------------------|
+| None  | _any_      | y != None          |
+| _any_ | None       | True               |
+| int   | int/float  | x > y              |
+| int   | str        | x > ToNumber(y)†   |
+| int   | list/tuple | [x] > y‡           |
+| float | int/float  | x > y              |
+| float | str        | x > ToNumber(y)    |
+| float | list/tuple | [x] > y            |
+| str   | int/float  | ToNumber(x) > y    |
+| str   | str        | x > y              |
+| str   | list/tuple | [x] > y            |
+| list  | list/tuple | x > y              |
+| list  | _any_      | x > [y]            |
+| tuple | list/tuple | x > y              |
+| tuple | _any_      | x > [y]            |
+| dict  | dict       | x > y by attr      |
 
 TypeError raised on all other combinations
+
+† If the string value cannot be converted to a number
+the corresponding non-string value is converted to
+a string.
+
+‡ After conversion to an array the comparison is
+performed between corresponding elements.
 """
     # Everything is greater than None (except itself which is just equal)
-    if x is None: return False
+    if x is None: return y is not None
     if y is None: return True
     override = _overrides.get((type(x), type(y)))
     return override(poly_gt, x, y) if override else x > y
 
+@bound_ops("<=", "≤", "¬>", "[Is] Not Greater Than")
 def poly_le(x: Any, y: Any) -> bool:
-    """Polymorphic less than or equal to comparison.
-# TODO
+    """
+**Less than or equal to comparison**
+
+* _x_.NotGreaterThan(_y_)
+* _x_ <= _y_
+* _x_ ≤ _y_
+* _x_ ¬> _y_
+* _x_ [Is] Not Greater Than _y_
+
+| x     | y          | operation          |
+|-------|------------|--------------------|
+| None  | _any_      | True               |
+| _any_ | None       | False              |
+| int   | int/float  | x <= y             |
+| int   | str        | x <= ToNumber(y)†  |
+| int   | list/tuple | [x] <= y‡          |
+| float | int/float  | x <= y             |
+| float | str        | x <= ToNumber(y)   |
+| float | list/tuple | [x] <= y           |
+| str   | int/float  | ToNumber(x) <= y   |
+| str   | str        | x <= y             |
+| str   | list/tuple | [x] <= y           |
+| list  | list/tuple | x <= y             |
+| list  | _any_      | x <= [y]           |
+| tuple | list/tuple | x <= y             |
+| tuple | _any_      | x <= [y]           |
+| dict  | dict       | x <= y by attr     |
 
 TypeError raised on all other combinations
+
+† If the string value cannot be converted to a number
+the corresponding non-string value is converted to
+a string.
+
+‡ After conversion to an array the comparison is
+performed between corresponding elements.
 """
     # None is less than everything or equal to itself
     if x is None: return True
@@ -67,11 +237,44 @@ TypeError raised on all other combinations
     override = _overrides.get((type(x), type(y)))
     return override(poly_le, x, y) if override else x <= y
 
+@bound_ops(">=", "≥", "¬<", "[Is] Not Less Than")
 def poly_ge(x: Any, y: Any) -> bool:
-    """Polymorphic greater than or equal to comparison.
-# TODO
+    """
+**Greater than or equal to comparison**
+
+* _x_.NotLessThan(_y_)
+* _x_ >= _y_
+* _x_ ≥ _y_
+* _x_ ¬< _y_
+* _x_ [Is] Not Less Than _y_
+
+| x     | y          | operation          |
+|-------|------------|--------------------|
+| None  | _any_      | y == None          |
+| _any_ | None       | True               |
+| int   | int/float  | x >= y             |
+| int   | str        | x >= ToNumber(y)†  |
+| int   | list/tuple | [x] >= y‡          |
+| float | int/float  | x >= y             |
+| float | str        | x >= ToNumber(y)   |
+| float | list/tuple | [x] >= y           |
+| str   | int/float  | ToNumber(x) >= y   |
+| str   | str        | x >= y             |
+| str   | list/tuple | [x] >= y           |
+| list  | list/tuple | x >= y             |
+| list  | _any_      | x >= [y]           |
+| tuple | list/tuple | x >= y             |
+| tuple | _any_      | x >= [y]           |
+| dict  | dict       | x >= y by attr     |
 
 TypeError raised on all other combinations
+
+† If the string value cannot be converted to a number
+the corresponding non-string value is converted to
+a string.
+
+‡ After conversion to an array the comparison is
+performed between corresponding elements.
 """
     # Everything is greater than None and it is equal to itself
     if x is None: return y is None
@@ -88,6 +291,8 @@ def poly_between(x: Any, y: Any, z: Any) -> bool:
 
 When comparing mixed types, the type of the value,
 not the constraints, determines conversions.
+See _NotLessThan()_ and _NotGreaterThan()_ for
+conversion details.
 """
     low, high = (y, z) if poly_lt(y, z) else (z, y)
     # We always want to use x as a base as it influences conversions
@@ -102,6 +307,8 @@ def poly_clamp(x: Any, y: Any, z: Any) -> Any:
 
 When working with mixed types, the type of the value,
 not the constraints, determines conversions.
+See _LessThan()_ and _GreaterThan()_ for
+conversion details.
 """
     low, high = (y, z) if poly_lt(y, z) else (z, y)
     # We always want to use x as a base as it influences conversions
@@ -131,11 +338,7 @@ def _lex_comp(cmp: Callable[[Any, Any], bool], x: Iterable, y: Iterable) -> bool
     # which determines the desired order
     return cmp(len(x), len(y))
 
-# Most items do a "natural" compare, except numeric/string
-# and all collections
-# NB: str/str doe NOT attempt math conversions (it probably should)
-#     and should both be non-numeric, there is an infinite loop problem.
-#     str/str like that would need to be handled outside this table.
+# Most items do a "natural" compare, except numeric/string and all collections
 _overrides = {
     (int, str): _num_str_op,
     (int, list): lambda op, x, y: _lex_comp(op, [x], y),
