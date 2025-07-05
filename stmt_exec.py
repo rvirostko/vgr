@@ -295,9 +295,12 @@ class ConstantsNormalizer(Transformer):
     })
 
     def STRING(self, token):
-        # Removes the quoting and interprets escape sequences
-        token.value = ast.literal_eval(self.normalize_outer_quotes(token.value))
-        return token
+        try:
+            # Removes the quoting and interprets escape sequences
+            token.value = ast.literal_eval(self.normalize_outer_quotes(token.value))
+            return token
+        except SyntaxError as e:
+            raise VgrRuntimeError(token, ValueError(str(e.msg).strip())) from e
     def TRUE(self, token): return self._new_token(token, token.type, True)
     def FALSE(self, token): return self._new_token(token, token.type, False)
     def NONE(self, token): return self._new_token(token, 'NONE', None)
