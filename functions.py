@@ -292,11 +292,11 @@ A value is considered empty if:
     if isinstance(x, (int, float)): return x == 0
     return x is None
 
-def _is_not_empty(x: Any) -> bool:
+def _not_empty(x: Any) -> bool:
     """
 **Test a value to see if it is _not empty_**
 
-* _value_.IsNotEmpty()
+* _value_.NotEmpty()
 
 A value is considered empty if:
 * It is a list that has one or more items
@@ -344,8 +344,6 @@ The values for _plural_ and _signular_ can be any any values.
     return singular if is_one else plural
 
 _BUILT_IN_FUNCS = {
-    "∈":              poly_in,
-    "∉":              poly_not_in,
     "∏":              poly_mul,
     "∑":              poly_sum,
     "Abs":            poly_abs,
@@ -422,8 +420,6 @@ _BUILT_IN_FUNCS = {
     "IsList":         poly_islist,
     "IsLower":        poly_islower,
     "IsNan":          poly_isnan,
-    "IsNotEmpty":     _is_not_empty,
-    "IsNotIn":        poly_not_in,
     "IsNumber":       poly_isnumber,
     "IsNumeric":      poly_isnumeric,
     "IsPrintable":    poly_isprintable,
@@ -466,6 +462,7 @@ _BUILT_IN_FUNCS = {
     "Mul":            poly_mul,
     "MultiMode":      poly_multimode,
     "Negate":         _negate,
+    "NotEmpty":       _not_empty,
     "NotEqualTo":     poly_ne,
     "NotGreaterThan": poly_le,
     "NotIn":          poly_not_in,
