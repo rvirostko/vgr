@@ -297,12 +297,12 @@ ternary: expr "?" expr ":" expr -> c_ternary
     | expr2 (">>" | "RShift"i) expr2 -> shr_op
     // Return bools, typically not "chained"
     // TODO does this mean the rhs can be an expression?
-    | expr2 ("==" | "Equals"i | "Is"i | "Is"i? "Equal"i "To"i) expr2 -> eq_op
-    | expr2 ("!=" | "\u2260" | "<>" | "\u00AC=" | "Is"i "Not"i | "Is"i? "Not"i "Equal"i "To"i | (("Doesnt"i | "Does"i? "Not"i) "Equal"i)) expr2 -> neq_op // Unicode ≠ (not eq) and ¬ (not)
+    | expr2 ("==" | "\u2175" | "Equals"i | "Is"i | "Is"i? "Equal"i "To"i) expr2 -> eq_op // Unicode ⩵ (two consecutive equals signs)
+    | expr2 ("!=" | "\u2260" | "<>" | "\u00AC=" | "Is"i "Not"i | "Is"i? "Not"i "Equal"i "To"i ) expr2 -> neq_op // Unicode ≠ (not eq) and ¬ (not)
     | expr2 ("<" | "\uFF1C" | "Is"i? "Less"i "Than"i) expr2 -> lt_op // Unicode ＜ (fullwidth <)
     | expr2 (">" | "\uFF1E" | "Is"i? "Greater"i "Than"i) expr2 -> gt_op // Unicode ＞ (fullwidth >)
-    | expr2 ("<=" | "\u2264" | "\u00AC>" | "Is"? "Not"i "Greater"i "Than"i) expr2 -> le_op // Unicode ¬ (not)
-    | expr2 (">=" | "\u2265" | "\u00AC<" | "Is"i? "Not"i "Less"i "Than"i) expr2 -> ge_op // Unicode ¬ (not)
+    | expr2 ("<=" | "\u2264" | "\u00AC>" | "Is"? "Not"i "Greater"i "Than"i) expr2 -> le_op // Unicode ≤ (less than or equal to) and ¬ (not)
+    | expr2 (">=" | "\u2265" | "\u00AC<" | "Is"i? "Not"i "Less"i "Than"i) expr2 -> ge_op // Unicode ≥ (greater than or equal to) and ¬ (not)
     | expr2 (("Is"i? "In"i) | "\u2208") expr2 -> in_op // Unicode ∈ (element of)
     | expr2 (("Is"i? "Not"i "In"i) | "\u2209") expr2 -> not_in_op // Unicode ∉ (not an element of)
     | expr2 "Contains"i "Any"i? expr2 -> contains_op
@@ -317,7 +317,7 @@ ternary: expr "?" expr ":" expr -> c_ternary
     | "\u230A" expr "\u230B" -> floor_op // Unicode floor ⌊ x ⌋
     | expr2 SUPERSCRIPT_FLOAT -> pow_op
     // These are more fundemental objects
-    | "[" (expr (_COMMA expr)*)? "]" -> array           // may become CARRAY at runtime
+    | "[" (expr (_COMMA expr)*)? "]" -> array
     | "{" (expr ":" expr (_COMMA expr ":" expr)*)? "}" -> dict
     | TRUE | FALSE
     | NONE
