@@ -41,7 +41,7 @@ Set csv_fn = fn.format(arg.report_title, "csv")
 Set md_fn  = fn.format(arg.report_title, "md")
 Set sid_fn = fn.format("SYSIDs", "csv")
 
-# print "ross.Virosko@CITIZENSBANK.com".Split("@", 2).Stash(_.mail).Item(0).TitleCase() + "@" + _.mail.Item(1).Lower()
+# print "ross.Virosko@CITIZENSBANK.com".Split("@", 2).SetVar(_.mail).Item(0).TitleCase() + "@" + _.mail.Item(1).Lower()
 
 
 EOF

@@ -580,9 +580,9 @@ TODO
 
 TODO
 
-### `Stash()` and the Scratch Area
+### `SetVar()` and the Scratch Area
 
-`Stash()` stores intermediate values, typically but not always in the scratch area (top-level variable `_`), for later use in the same statement. Althought it looks like a function, it operates differently. Instead of changing the current result, like most functions do, it stores a copy to the results for later reference.
+`SetVar()` stores intermediate values, typically but not always in the scratch area (top-level variable `_`), for later use in the same statement. Althought it looks like a function, it operates differently. Instead of changing the current result, like most functions do, it stores a copy to the results for later reference.
 
 The argument is different too: it's not an expression, but a variable name, just like in a `Set` statement.
 
@@ -590,7 +590,7 @@ The **scratch area** is a temporary storage space reserved for holding data duri
 
 ```Text
 vgr> Set email To "robert@SAMPLE.com"
-vgr> Print email.Split("@").Stash(_.email)
+vgr> Print email.Split("@").SetVar(_.email)
       .Item(0).TitleCase()
       + "@" +
       _.email.Item(1).Lower()
@@ -599,11 +599,11 @@ vgr> Exhibit _
 _ = -empty-
 ```
 
-`Stash()` doesn't always have use the scratch area, but if you do, you are responsible for clean-up of values when you are finished.
+`SetVar()` doesn't always have use the scratch area, but if you do, you are responsible for clean-up of values when you are finished.
 
-Additionally, when you use `Stash()` with `Select` you need to be aware of several things.
+Additionally, when you use `SetVar()` with `Select` you need to be aware of several things.
 
 * The scratch area is cleared each time a record is written to the output, in addition to when the `Select` completes.
-* If you use `Stash()` and reference a variable you've stored in the predicate, don't rely on using them across `And` and `Or` boundries, as the `Select` may choose to check these conditions in orders that optimize record traversal and retrieval, not in the order they appear.
+* If you use `SetVar()` and reference a variable you've stored in the predicate, don't rely on using them across `And` and `Or` boundries, as the `Select` may choose to check these conditions in orders that optimize record traversal and retrieval, not in the order they appear.
 
-While not mandated, you should confine your use of `Stash()` to the scratch area and only use scratch variables within the same expression.
+While not mandated, you should confine your use of `SetVar()` to the scratch area and only use scratch variables within the same expression.
