@@ -103,12 +103,12 @@ pass: ("Pass"i | "Nop"i) _SEMICOLON?
 
 sleep: "Sleep"i "For"i? expr ("Seconds"i | "Second"i)? _SEMICOLON?
 
-set: "Set"i var_name ("=" | "To"i) expr _SEMICOLON?
-    | "Var"i? var_name ("=" | "Is"i) expr _SEMICOLON?
-    | ("Set"i | "Var"i)? var_name IN_PLACE_OP expr _SEMICOLON? -> set_in_place
+set: "Set"i ("Variable"i | "Var"i)? var_name ("=" | "To"i) expr _SEMICOLON?
+    | ("Variable"i | "Var"i)? var_name ("=" | "Is"i) expr _SEMICOLON?
+    | ("Set"i ("Variable"i | "Var"i)?)? var_name IN_PLACE_OP expr _SEMICOLON? -> set_in_place
 IN_PLACE_OP: ("+=" | "-=" | "*=" | "/=" | "//=" | "%=" | "**=" | "&=" | "|=" | "^=" | "<<=" | ">>=" )
 
-unset: "Unset"i var_name (_COMMA? var_name)* _SEMICOLON?
+unset: "Unset"i ("Variable"i | "Var"i)? var_name (_COMMA? var_name)* _SEMICOLON?
 
 reset: "Reset"i RESET_OPT (_COMMA? RESET_OPT)* _SEMICOLON?
 RESET_OPT: ("All"i | "Data"i | "Args"i | "Output"i)
@@ -117,7 +117,7 @@ source: "Source"i _SEMICOLON
     | "Source"i "From"i? ("File"i | "Files"i)? expr (_COMMA? expr)* _SEMICOLON?
 
 // TODO needs to have an encoding value (defaults to utf-8-sig)
-load_from: "Load"i var_name ("From"i | "With"i) "File"i? expr ("As"i? load_source_type)? _SEMICOLON?
+load_from: "Load"i ("Variable"i | "Var"i)? var_name ("From"i | "With"i) "File"i? expr ("As"i? load_source_type)? _SEMICOLON?
 load_source_type: "JSON"i "Object"i? -> json_object
     | "JSON"i "Object"i? "Per"i "Line"i -> json_objects
     | "CSV"i -> csv_file
@@ -185,7 +185,7 @@ output: expr
     | expr "As"i (NAME | STRING) -> output_as
 
 ?from_clause: "From"i (var_from | file_from {EXTN_FROM})
-var_from: ("Variable"i | "Var"i) var_name ("As"i NAME)?
+var_from: ("Variable"i | "Var"i)? var_name ("As"i NAME)?
 file_from: "File"i expr load_source_type? ("As"i NAME)?
 
 where_clause: "Where"i expr (_COMMA expr)*
