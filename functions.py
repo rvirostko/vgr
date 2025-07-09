@@ -559,12 +559,17 @@ def _to_snake_case(s: str) -> str:
 @lru_cache
 def get_function_entries():
     return {
-        name: (name.lower().replace('_', ''), (func.__doc__ or '').lower()) for name, func in _FUNC_OPS.items()
+        name: (func, name.lower().replace('_', ''), (func.__doc__ or '').lower()) for name, func in _FUNC_OPS.items()
     }
 
 @lru_cache
-def get_function_names():
-    return sorted(_FUNC_OPS.keys())
+def get_operator_entries():
+    entries = {}
+    for _, func in _FUNC_OPS.items():
+        if hasattr(func, 'bound_ops'):
+            for op in func.bound_ops:
+                entries[op] = (func, op.lower().replace(' ', ''), (func.__doc__ or '').lower())
+    return entries
 
 def add_builtin_functions() -> None:
     for name, function in _BUILT_IN_FUNCS.items(): add_function('built-in', name, function)

@@ -28,6 +28,13 @@ _DEFAULTS_BY_TYPE = {
     tuple : tuple(),
 }
 
+def bound_ops(*operators):
+    """Attach a list of operators to a function so they show up in help"""
+    def decorator(func):
+        func.bound_ops = tuple(operators)
+        return func
+    return decorator
+
 _TRUE_STRS = ('true', 't', 'yes', 'y', 'on')
 _FALSE_STRS = ('false', 'f', 'no', 'n', 'off')
 

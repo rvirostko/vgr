@@ -13,9 +13,9 @@ from app_exceptions import VgrExitingException, format_generic_exception, format
 from data_dict import DataDictionary
 from dd_config import dd_init, dd_parse_user_args
 from dd_config import DEFAULT_FOR_TYPE_PATH, SHELL_HISTORY_PATH, SHELL_HISTORY_SIZE_PATH, SHELL_PROMPT_PATH
-from doc_help import print_md, search_functions, is_probably, print_doc
+from doc_help import print_md, search_entries, is_probably, print_doc
 from extn import VgrExtensionRegistry, VER
-from functions import get_function_defs, add_builtin_functions, add_function
+from functions import get_function_defs, add_builtin_functions, add_function, get_function_entries, get_operator_entries
 from interactive import CmdLine, ArgumentParser, ParserBuilder
 from log_config import init_logging, set_logging_level
 from mathpak import poly_bool
@@ -146,50 +146,49 @@ Run any of these with _help_ for more information
             topic = args[0]
             targs = args[1:]
             if is_probably("cd", topic): print_doc(self._exec_cd)
+            elif is_probably("help", topic) or is_probably("topics", topic): print_doc(self._exec_help)
             elif is_probably("pwd", topic): print_doc(self._exec_pwd)
             elif is_probably("history", topic): print_doc(self._exec_history)
             elif is_probably("multiline", topic): print_doc(self._exec_multiline)
             elif is_probably("prompt", topic): print_doc(self._exec_prompt)
-            elif is_probably("function", topic): self._function_help(*targs)
-            elif is_probably("operator", topic): self._operator_help(*targs)
-            elif is_probably("statement", topic): self._statement_help(*targs)
-            else: print_doc(self._exec_help)
+            elif is_probably("function", topic):
+                self._display_help_results("Functions", "()", get_function_entries(), *targs)
+            elif is_probably("operator", topic) or topic == "ops" or topic == "op":
+                self._display_help_results("Operators", "", get_operator_entries(), *targs)
+            elif is_probably("statement", topic):
+                print() # TODO
+            else:
+                print()
+                print_md('_Use **help topics** to list topics_')
+                print()
 
-    def _function_help(self, *args) -> None:
-        q = args[0] if args else ''
-        functions = search_functions(q)
-        if len(functions) == 0:
+    def _display_help_results(self, search_type: str, suffix: str, entries, *args) -> None:
+        q = ''.join(args) if args else ''
+        results = search_entries(entries, q)
+        if len(results) == 0:
             # We could not find anything
             print()
-            print_md(f'_No function like {args[0]}_')
+            print_md(f'_Nothing matches {q}_')
             print()
-        elif len(functions) == 1:
+        elif len(results) == 1:
             # We got an exact match
-            # Show the function specific help
-            print_doc(functions[0][1])
+            # Show the help for the item
+            print_doc(results[0][1])
         else:
             # Multiple results
             # Show as a list with a summary
             lines = []
-            lines.append(f'**{"Search Results" if q else "Functions"}-**')
-            for name, func in functions:
+            lines.append(f'**{"Search Results" if q else search_type}-**')
+            for name, func in results:
                 doc = (func.__doc__ or "").strip()
                 if doc:
                     # Display first non-blank line, stripped of bolding (the convention) and no sentence
-                    lines.append(f'* `{name}()` - {doc.splitlines()[0].strip().strip("*").rstrip(".")}')
+                    lines.append(f'* `{name}{suffix}` - {doc.splitlines()[0].strip().strip("*").rstrip(".")}')
                 else:
-                    lines.append(f'* `{name}()`')
+                    lines.append(f'* `{name}{suffix}`')
             print()
             print_md('\n'.join(lines))
             print()
-
-    def _operator_help(self, *args) -> None:
-        # TODO help for operators
-        print(args)
-
-    def _statement_help(self, *args) -> None:
-        # TODO help for statements
-        print(args)
 
 def create_dd(args) -> DataDictionary:
     # Since it's startup, and everything else relies on the DD...

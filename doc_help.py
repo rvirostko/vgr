@@ -9,8 +9,6 @@ from rapidfuzz.fuzz import ratio
 from rich.console import Console, Theme
 from rich.markdown import Markdown
 
-from functions import get_function_entries, get_function_op, get_function_names
-
 _THEME = Theme({
     "markdown.text": "",  # Default terminal style
     # NB: Headings are all centered and look horrible: don't use
@@ -39,15 +37,19 @@ _THEME = Theme({
 
 _CONSOLE = Console(width=80, theme=_THEME)
 
-def search_functions(query: str, limit: int = 10) -> list[tuple[str, Callable]]:
-    """Search the functions using some fuzzy logic"""
-    q = (query or "").strip().replace('_', '').lower()
+def search_entries(entries: dict, query: str, limit: int = 10) -> list[tuple[str, Callable]]:
+    """
+    Search using some fuzzy logic. entries should be in the form of:
+
+        key: Canonical name, value: (implementing function, name normalized, documentation normalized)
+
+    """
+    q = (query or "").strip().replace('_', '').casefold().removesuffix("()").removesuffix("(")
     # If no args, return all
-    if not q: return [(name, get_function_op(name)) for name in get_function_names()]
+    if not q: return [(name, entries[name][0]) for name in sorted(entries.keys())]
     tokens = q.split()
     scores = {}
-    # Canonical name, (Name normalized, documentation normalized)
-    for name, (name_norm, doc_norm) in get_function_entries().items():
+    for name, (_, name_norm, doc_norm) in entries.items():
         # 1. Match against full query
         full_score = max(fuzz.QRatio(q, name_norm), fuzz.QRatio(q, doc_norm))
         # 2. Match individual tokens
@@ -62,10 +64,12 @@ def search_functions(query: str, limit: int = 10) -> list[tuple[str, Callable]]:
         (name, score) for name, score in scores.items() if score >= threshold
     ]
     filtered_matches.sort(key=lambda x: -x[1])
+    # If the query is an "exact" match, return only that entry
     top_name = filtered_matches[0][0] if filtered_matches else None
-    if top_name and top_name.casefold() == q:
-        return [(top_name, get_function_op(top_name))]
-    return [(name, get_function_op(name)) for name, _ in filtered_matches[:limit]]
+    if top_name and top_name.casefold().replace('_', '').replace(' ', '') == q:
+        return [(top_name, entries[top_name][0])]
+    # Otherwise, convert the filtered matches into an array and return them all
+    return [(name, entries[name][0]) for name, _ in filtered_matches[:limit]]
 
 def print_doc(func) -> None:
     doc = (func.__doc__ or "").strip()
@@ -74,7 +78,7 @@ def print_doc(func) -> None:
     print()
 
 def print_md(s: str) -> None:
-    if s:_CONSOLE.print(Markdown(s))
+    if s: _CONSOLE.print(Markdown(s))
 
 def is_probably(word: str, s: str, threshold: float = 65.0) -> bool:
     """Return True if s is close enough to the word using a fuzzy match."""

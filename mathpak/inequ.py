@@ -4,16 +4,9 @@ Polymorphic inequality operators
 
 from typing import Any, Callable, Iterable
 
-from .common import str_to_number
+from .common import str_to_number, bound_ops
 
-# TODO experimental
-def bound_ops(*operators):
-    def decorator(func):
-        func.bound_ops = tuple(operators)
-        return func
-    return decorator
-
-@bound_ops("==", "⩵", "Equals", "Is", "[Is] Equal To")
+@bound_ops("==", "⩵", "Equals", "Is", "Is Equal To")
 def poly_eq(x: Any, y: Any) -> bool:
     """
 **Equals comparison**
@@ -60,7 +53,7 @@ performed between corresponding elements.
     override = _overrides.get((type(x), type(y)))
     return override(poly_eq, x, y) if override else x == y
 
-@bound_ops("!=", "≠", "<>", "¬=", "Is Not", "[Is] Not Equal To")
+@bound_ops("!=", "≠", "<>", "¬=", "Is Not", "Is Not Equal To")
 def poly_ne(x: Any, y: Any) -> bool:
     """
 **Not equals comparison**
@@ -104,7 +97,7 @@ performed between corresponding elements.
 """
     return not poly_eq(x, y)
 
-@bound_ops("<", "＜", "[Is] Less Than")
+@bound_ops("<", "＜", "Is Less Than")
 def poly_lt(x: Any, y: Any) -> bool:
     """
 **Polymorphic less than comparison**
@@ -148,7 +141,7 @@ performed between corresponding elements.
     override = _overrides.get((type(x), type(y)))
     return override(poly_lt, x, y) if override else x < y
 
-@bound_ops(">", "＞", "[Is] Greater Than")
+@bound_ops(">", "＞", "Is Greater Than")
 def poly_gt(x: Any, y: Any) -> Any:
     """
 **Greater than comparison**
@@ -192,7 +185,7 @@ performed between corresponding elements.
     override = _overrides.get((type(x), type(y)))
     return override(poly_gt, x, y) if override else x > y
 
-@bound_ops("<=", "≤", "¬>", "[Is] Not Greater Than")
+@bound_ops("<=", "≤", "¬>", "Is Not Greater Than")
 def poly_le(x: Any, y: Any) -> bool:
     """
 **Less than or equal to comparison**
@@ -237,7 +230,7 @@ performed between corresponding elements.
     override = _overrides.get((type(x), type(y)))
     return override(poly_le, x, y) if override else x <= y
 
-@bound_ops(">=", "≥", "¬<", "[Is] Not Less Than")
+@bound_ops(">=", "≥", "¬<", "Is Not Less Than")
 def poly_ge(x: Any, y: Any) -> bool:
     """
 **Greater than or equal to comparison**
