@@ -1,5 +1,6 @@
 
 from contextvars import ContextVar
+from functools import lru_cache
 from pathlib import Path
 from typing import Any
 import ast
@@ -27,7 +28,7 @@ from dd_config import (
     do_unset,
 )
 from evaluate import bind_operations, eval_expr, eval_filename_expr, var_name_path
-from mathpak import poly_bool, poly_list, poly_int
+from mathpak import bound_ops, poly_bool, poly_list, poly_int
 from redir import execute_open, execute_close, print_stderr, print_stdout
 from src_mgr import SSM
 from stmt_cflags import execute_debug, execute_echo, execute_verbose
@@ -55,6 +56,7 @@ from stmt_sort import execute_sort
 from stmt_zip import execute_zip
 from tags import control_statement
 
+@bound_ops("Source")
 def execute_source(dd: DataDictionary, statement: Tree) -> None:
     """
 **Execute statements stored in a file**
@@ -83,6 +85,7 @@ input/output redirection.
         except (OSError, IOError) as e:
             raise VgrRuntimeError(child, e) from e
 
+@bound_ops("Break")
 def execute_break(_: DataDictionary, statement: Tree) -> None:
     """
 **Exits the current block of statements**
@@ -93,15 +96,17 @@ Can be used with If, Unless, While, Until, and ForEach statements
 """
     raise VgrStatementBreak(statement)
 
+@bound_ops("Continue")
 def execute_continue(_: DataDictionary, statement: Tree) -> None:
     """
-**Causes the current loop to to start again**
+**Causes the current loop to start again**
 
 * Continue [;]
 
 """
     raise VgrStatementContinue(statement)
 
+@bound_ops("NOP", "Pass")
 def execute_pass(_: DataDictionary, __: Tree) -> None:
     """
 **A placeholder for a statement**
@@ -125,6 +130,7 @@ def exec_if_else(dd: DataDictionary, statement: Tree, desired_value: bool) -> No
                 dispatch_statement(dd, s)
 
 @control_statement
+@bound_ops("If-Then", "If-Else")
 def execute_if(dd: DataDictionary, statement: Tree) -> None:
     """
 **Conditionally execute a block of statements**
@@ -144,6 +150,7 @@ If it evaluates to False, the second block of statements, if provided, is execut
     exec_if_else(dd, statement, True)
 
 @control_statement
+@bound_ops("Unless")
 def execute_unless(dd: DataDictionary, statement: Tree) -> None:
     """
 **Conditionally execute a block of statements**
@@ -186,6 +193,7 @@ def exec_repeat(dd: DataDictionary, statement: Tree) -> None:
             counter -= 1
 
 @control_statement
+@bound_ops("While")
 def execute_while(dd: DataDictionary, statement: Tree) -> None:
     """
 **Repeatedly execute a block of statements while a condition exists**
@@ -203,6 +211,7 @@ following it are skipped, and the expression is checked again.
     exec_loop(dd, statement, True)
 
 @control_statement
+@bound_ops("Until")
 def execute_until(dd: DataDictionary, statement: Tree) -> None:
     """
 **Repeatedly execute a block of statements until a condition is reached**
@@ -219,6 +228,7 @@ following it are skipped, and the expression is checked again.
     exec_loop(dd, statement, False)
 
 @control_statement
+@bound_ops("Repeat")
 def execute_repeat(dd: DataDictionary, statement: Tree) -> None:
     """
 **Execute a block of statements a fixed number of times**
@@ -237,9 +247,10 @@ following it are skipped, and looping continues.
     exec_repeat(dd, statement)
 
 @control_statement
+@bound_ops("ForEach")
 def execute_foreach(dd: DataDictionary, statement: Tree) -> None:
     """
-**Iterate over a set of values**
+**Iterate over a list of values**
 
 * ForEach _variable_ In _expression_ [Do | :]
     _statement_...
@@ -394,6 +405,17 @@ STATEMENT_HANDLERS = {
     'list_remove_first': execute_list_remove_first,
     'list_remove_last': execute_list_remove_last,
 }
+
+@lru_cache
+def get_statement_entries() -> list:
+    entries = {}
+    for _, func in STATEMENT_HANDLERS.items():
+        # See mathpak/common for the bound_ops decorator
+        if hasattr(func, 'bound_ops'):
+            for op in func.bound_ops:
+                entries[op] = (func, op.lower().replace(' ', ''), (func.__doc__ or '').lower())
+    return entries
+
 
 def remove_comments(input_text: str) -> str:
     """Removes comments but preserves lines for Lark metadata accuracy."""

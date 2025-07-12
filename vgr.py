@@ -13,7 +13,7 @@ from app_exceptions import VgrExitingException, format_generic_exception, format
 from data_dict import DataDictionary
 from dd_config import dd_init, dd_parse_user_args
 from dd_config import DEFAULT_FOR_TYPE_PATH, SHELL_HISTORY_PATH, SHELL_HISTORY_SIZE_PATH, SHELL_PROMPT_PATH
-from doc_help import print_md, search_entries, is_probably, print_doc
+from doc_help import print_md, search_entries, is_probably, print_doc, unique_by_func
 from extn import VgrExtensionRegistry, VER
 from functions import get_function_defs, add_builtin_functions, add_function, get_function_entries, get_operator_entries
 from interactive import CmdLine, ArgumentParser, ParserBuilder
@@ -21,7 +21,7 @@ from log_config import init_logging, set_logging_level
 from mathpak import poly_bool
 from output import expand_filename
 from redir import print_stderr
-from stmt_exec import STATEMENT_HANDLERS, execute_statements
+from stmt_exec import STATEMENT_HANDLERS, get_statement_entries, execute_statements
 
 LOG = logging.getLogger()
 
@@ -125,53 +125,112 @@ class VGRCmdLine(CmdLine):
         except ValueError:
             return default
 
+# TODO we can start to carve up the READ-ME into parts to add to
+# language topics.
     def _exec_help(self, *args) -> None:
         """
-**Help Topics**
+**Language Topics**
+
+* `function` : Search functions only for help
+* `operator` : Search operators only for help
+* `statement` : Search statements only for help
+
+If no value provided with `function`, `operator`, or `statement` search, a list
+the associated items is displayed.
+
+`help` used with any other value searches through
+language features looking for an exact match.
+
+For example `help Add` with return informtion for the `Add()` while
+`help statement Add` is required to get information for the like-named statement.
+
+**Shell Topics**
 
 * `cd` : Change the current working directory
-* `function` : Help for functions
 * `history` : Display or control command line history
 * `multiline` : Turn on multiline editing mode
-* `operator` : Help for operators
 * `prompt` : Define the input input prompt
 * `pwd` : Print the current working directory
-* `statement` : Help for statements
 
-Run any of these with _help_ for more information
 """
         if len(args) < 1:
             print_doc(self._exec_help)
         else:
             topic = args[0]
             targs = args[1:]
-            if is_probably("cd", topic): print_doc(self._exec_cd)
-            elif is_probably("help", topic) or is_probably("topics", topic): print_doc(self._exec_help)
-            elif is_probably("pwd", topic): print_doc(self._exec_pwd)
-            elif is_probably("history", topic): print_doc(self._exec_history)
-            elif is_probably("multiline", topic): print_doc(self._exec_multiline)
-            elif is_probably("prompt", topic): print_doc(self._exec_prompt)
+            q = (' '.join(targs) if targs else '').strip()
+            if is_probably("cd", topic):
+                print_doc(self._exec_cd)
+            elif is_probably("help", topic) or is_probably("topics", topic):
+                print_doc(self._exec_help)
+            elif is_probably("pwd", topic):
+                print_doc(self._exec_pwd)
+            elif is_probably("history", topic):
+                print_doc(self._exec_history)
+            elif is_probably("multiline", topic):
+                print_doc(self._exec_multiline)
+            elif is_probably("prompt", topic):
+                print_doc(self._exec_prompt)
             elif is_probably("function", topic):
-                self._display_help_results("Functions", "()", get_function_entries(), *targs)
-            elif is_probably("operator", topic) or topic == "ops" or topic == "op":
-                self._display_help_results("Operators", "", get_operator_entries(), *targs)
-            elif is_probably("statement", topic):
-                print() # TODO
+                results = self._get_function_help(q) if q else self._all_help(get_function_entries())
+                self._display_function_help(q, results)
+            elif is_probably("operator", topic) or topic in ("ops", "op"):
+                results = self._get_operator_help(q) if q else self._all_help(get_operator_entries())
+                self._display_operator_help(q, results)
+            elif is_probably("statement", topic) or is_probably("stmt", topic):
+                results = self._get_statement_help(q) if q else self._all_help(get_statement_entries())
+                self._display_statement_help(q, results)
             else:
-                print()
-                print_md('_Use **help topics** to list topics_')
-                print()
+                # If no explicit topic that matches, then see what we can find
+                # in statements, functions, and operators
+                q = topic + ' ' + q
+                func_help = self._get_function_help(q)
+                if len(func_help) == 1:
+                    self._display_function_help(q, func_help)
+                else:
+                    op_help = self._get_operator_help(q)
+                    if len(op_help) == 1:
+                        self._display_operator_help(q, op_help)
+                    else:
+                        stmt_help = self._get_statement_help(q)
+                        if stmt_help:
+                            self._display_statement_help(q, stmt_help)
+                        else:
+                            print()
+                            print_md('_Use **help topics** to list topics_')
+                            print()
 
-    def _display_help_results(self, search_type: str, suffix: str, entries, *args) -> None:
-        q = ''.join(args) if args else ''
-        results = search_entries(entries, q)
+    def _all_help(self, entries: list) -> list:
+       return unique_by_func([(name, entries[name][0]) for name in sorted(entries.keys())])
+
+    def _get_operator_help(self, q) -> list:
+        return search_entries(get_operator_entries(), q)
+
+    def _get_statement_help(self, q) -> list:
+        return search_entries(get_statement_entries(), q)
+
+    def _get_function_help(self, q) -> list:
+        return search_entries(get_function_entries(), q)
+
+    def _display_operator_help(self, q, results) -> None:
+        results = [(func.bound_ops[0], func) for _name, func in results]
+        self._display_help_results("Operators", q, results)
+
+    def _display_statement_help(self, q, results) -> None:
+        self._display_help_results("Statements", q, results)
+
+    def _display_function_help(self, q, results) -> None:
+        results = [(name + "()", func) for name, func in results]
+        self._display_help_results("Functions", q, results)
+
+    def _display_help_results(self, search_type: str, q: str, results: list) -> None:
         if len(results) == 0:
             # We could not find anything
             print()
-            print_md(f'_Nothing matches {q}_')
+            print_md(f'_Nothing matches{" " + repr(q) if q else ""}_')
             print()
         elif len(results) == 1:
-            # We got an exact match
+            # We got an single match
             # Show the help for the item
             print_doc(results[0][1])
         else:
@@ -183,9 +242,9 @@ Run any of these with _help_ for more information
                 doc = (func.__doc__ or "").strip()
                 if doc:
                     # Display first non-blank line, stripped of bolding (the convention) and no sentence
-                    lines.append(f'* `{name}{suffix}` - {doc.splitlines()[0].strip().strip("*").rstrip(".")}')
+                    lines.append(f'* `{name}` - {doc.splitlines()[0].strip().strip("*").rstrip(".")}')
                 else:
-                    lines.append(f'* `{name}{suffix}`')
+                    lines.append(f'* `{name}`')
             print()
             print_md('\n'.join(lines))
             print()

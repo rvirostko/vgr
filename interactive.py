@@ -103,7 +103,7 @@ class CmdLine:
 
     def _exec_cd(self, *args) -> None:
         """
-**Change the current working directory**
+**Shell: Change the current working directory**
 
 * `cd` : changes to the user's home directory
 * `cd` _dir_ : changes to the given directory
@@ -124,7 +124,7 @@ need to change location after starting a session you can use this command.
 
     def _exec_pwd(self, *args) -> None:
         """
-**Print the current working directory**
+**Shell: Print the current working directory**
 
 * `pwd` : prints the name of the current directory
 """
@@ -133,7 +133,7 @@ need to change location after starting a session you can use this command.
 
     def _exec_history(self, *args):
         """
-**Command History**
+**Shell: Command History**
 
 * `history` : display recent history
 * `history --clear` : clear history
@@ -153,7 +153,7 @@ need to change location after starting a session you can use this command.
 
     def _exec_multiline(self, *args):
         """
-**Multiline Editing Mode**
+**Shell: Multiline Editing Mode**
 
 * `multiline` : display the current setting
 * `multiline [True | False]` : set multiline editing mode
@@ -170,7 +170,7 @@ To execute commands in multiline editing mode, use `META-Return` instead.
 
     def _exec_prompt(self, *args):
         r"""
-**Change the Shell's Prompt**
+**Shell: Change the Shell's Prompt**
 
 * `prompt` : print the template used to generate the interactive prompt
 * `prompt` _template_ : set the prompt to the template

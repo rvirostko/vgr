@@ -5,55 +5,69 @@ Bitwise shift left and right.
 from functools import reduce
 from typing import Any
 
-from .common import dist_x, str_to_int, X_None_Op, Y_None_Op, get_operation, matching_default
+from .common import bound_ops, dist_x, str_to_int, X_None_Op, Y_None_Op, get_operation, matching_default
 
+@bound_ops("<<")
 def poly_shl(x: Any, *args) -> Any:
     """
-**Polymorphic shift left function**
+**Bitwise Shift Left operation**
 
-| x     | y     | returns | operation        |
-|-------|-------|---------|------------------|
-| int   | int   | int     | x << y           |
-| int   | float | int     | x << int(y)      |
-| int   | str   | int     | x << int(y)      |
-| float | int   | int     | int(x) << y      |
-| float | float | int     | int(x) << y      |
-| float | str   | int     | int(x) << int(y) |
-| str   | int   | int     | int(x) << y      |
-| str   | float | int     | int(x) << y      |
-| str   | str   | int     | int(x) << int(y) |
-| list  | int   | list    | distributed      |
-| list  | float | list    | distributed      |
-| list  | str   | list    | distributed      |
-| tuple | int   | tuple   | distributed      |
-| tuple | float | tuple   | distributed      |
-| tuple | str   | tuple   | distributed      |
+* _x_ << _y_
+* _x_.LeftShift(_y_...)
+
+The values of both _x_ and _y_ are converted to
+integers to perform the operation.
+
+| x     | y     | returns | operation            |
+|-------|-------|---------|----------------------|
+| int   | int   | int     | x << y               |
+| int   | float | int     | x << ToInt(y)        |
+| int   | str   | int     | x << ToInt(y)        |
+| float | int   | int     | ToInt(x) << y        |
+| float | float | int     | ToInt(x) << y        |
+| float | str   | int     | ToInt(x) << ToInt(y) |
+| str   | int   | int     | ToInt(x) << y        |
+| str   | float | int     | ToInt(x) << y        |
+| str   | str   | int     | ToInt(x) << ToInt(y) |
+| list  | int   | list    | distributed          |
+| list  | float | list    | distributed          |
+| list  | str   | list    | distributed          |
+| tuple | int   | tuple   | distributed          |
+| tuple | float | tuple   | distributed          |
+| tuple | str   | tuple   | distributed          |
 
 TypeError raised on all other combinations
 """
     return reduce(_shl, args, x)
 
+@bound_ops(">>")
 def poly_shr(x: Any, *args):
     """
-**Polymorphic shift right function**
+**Bitwise Shift Right operation**
 
-| x     | y     | returns | operation        |
-|-------|-------|---------|------------------|
-| int   | int   | int     | x >> y           |
-| int   | float | int     | x >> int(y)      |
-| int   | str   | int     | x >> int(y)      |
-| float | int   | int     | int(x) >> y      |
-| float | float | int     | int(x) >> int(y) |
-| float | str   | int     | int(x) >> int(y) |
-| str   | int   | int     | int(x) >> y      |
-| str   | float | int     | int(x) >> int(y) |
-| str   | str   | int     | int(x) >> int(y) |
-| list  | int   | list    | distributed      |
-| list  | float | list    | distributed      |
-| list  | str   | list    | distributed      |
-| tuple | int   | tuple   | distributed      |
-| tuple | float | tuple   | distributed      |
-| tuple | str   | tuple   | distributed      |
+* _x_ >> _y_
+* _x_.RightShift(_y_...)
+
+The values of both _x_ and _y_ are converted to
+integers to perform the operation.
+
+| x     | y     | returns | operation            |
+|-------|-------|---------|----------------------|
+| int   | int   | int     | x >> y               |
+| int   | float | int     | x >> ToInt(y)        |
+| int   | str   | int     | x >> ToInt(y)        |
+| float | int   | int     | ToInt(x) >> y        |
+| float | float | int     | ToInt(x) >> ToInt(y) |
+| float | str   | int     | ToInt(x) >> ToInt(y) |
+| str   | int   | int     | ToInt(x) >> y        |
+| str   | float | int     | ToInt(x) >> ToInt(y) |
+| str   | str   | int     | ToInt(x) >> ToInt(y) |
+| list  | int   | list    | distributed          |
+| list  | float | list    | distributed          |
+| list  | str   | list    | distributed          |
+| tuple | int   | tuple   | distributed          |
+| tuple | float | tuple   | distributed          |
+| tuple | str   | tuple   | distributed          |
 
 TypeError raised on all other combinations
     """

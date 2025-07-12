@@ -12,12 +12,15 @@ from lark import Tree
 from data_dict import DataDictionary
 from evaluate import eval_filename_expr, eval_to_str, eval_to_list_str
 from redir import print_stderr
+from mathpak import bound_ops
 from output import prepare_path, verify_relative_path
 
+@bound_ops("Create-ZIP")
 def execute_zip(dd: DataDictionary, statement: Tree):
-    """Create a ZIP Archive
+    """
+**Create a ZIP Archive**
 
-* CREATE ZIP [FILE] _expression_ [_option_ [, _option_]...]
+* Create ZIP [File] _expression_ [_option_ [, _option_]...]
 
 Options are
 

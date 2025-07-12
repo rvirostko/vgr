@@ -11,12 +11,12 @@ def poly_eq(x: Any, y: Any) -> bool:
     """
 **Equals comparison**
 
-* _x_.IsEqualTo(_y_)
 * _x_ == _y_
 * _x_ ⩵ _y_
 * _x_ Equals _y_
 * _x_ Is _y_
 * _x_ [Is] Equal To _y_
+* _x_.IsEqualTo(_y_)
 
 | x     | y          | operation           |
 |-------|------------|---------------------|
@@ -58,13 +58,13 @@ def poly_ne(x: Any, y: Any) -> bool:
     """
 **Not equals comparison**
 
-* _x_.NotEqualTo(_y_)
 * _x_ != _y_
 * _x_ ≠ _y_
 * _x_ <> _y_
 * _x_ ¬= _y_
 * _x_ Is Not _y_
 * _x_ [Is] Not Equal To _y_
+* _x_.NotEqualTo(_y_)
 
 | x     | y          | operation           |
 |-------|------------|---------------------|
@@ -100,12 +100,12 @@ performed between corresponding elements.
 @bound_ops("<", "＜", "Is Less Than")
 def poly_lt(x: Any, y: Any) -> bool:
     """
-**Polymorphic less than comparison**
+**Less than comparison**
 
-* _x_.IsLessThan(_y_)
 * _x_ < _y_
 * _x_ ＜ _y_
 * _x_ [Is] Less Than _y_
+* _x_.IsLessThan(_y_)
 
 | x     | y          | operation          |
 |-------|------------|--------------------|
@@ -146,10 +146,10 @@ def poly_gt(x: Any, y: Any) -> Any:
     """
 **Greater than comparison**
 
-* _x_.IsGreaterThan(_y_)
 * _x_ > _y_
 * _x_ ＞ _y_
 * _x_ [Is] Greater Than _y_
+* _x_.IsGreaterThan(_y_)
 
 | x     | y          | operation          |
 |-------|------------|--------------------|
@@ -185,16 +185,17 @@ performed between corresponding elements.
     override = _overrides.get((type(x), type(y)))
     return override(poly_gt, x, y) if override else x > y
 
-@bound_ops("<=", "≤", "¬>", "Is Not Greater Than")
+@bound_ops("<=", "≤", "¬>", "!>", "Is Not Greater Than")
 def poly_le(x: Any, y: Any) -> bool:
     """
 **Less than or equal to comparison**
 
-* _x_.NotGreaterThan(_y_)
 * _x_ <= _y_
 * _x_ ≤ _y_
 * _x_ ¬> _y_
+* _x_ !> _y_
 * _x_ [Is] Not Greater Than _y_
+* _x_.NotGreaterThan(_y_)
 
 | x     | y          | operation          |
 |-------|------------|--------------------|
@@ -230,16 +231,17 @@ performed between corresponding elements.
     override = _overrides.get((type(x), type(y)))
     return override(poly_le, x, y) if override else x <= y
 
-@bound_ops(">=", "≥", "¬<", "Is Not Less Than")
+@bound_ops(">=", "≥", "¬<", "!<", "Is Not Less Than")
 def poly_ge(x: Any, y: Any) -> bool:
     """
 **Greater than or equal to comparison**
 
-* _x_.NotLessThan(_y_)
 * _x_ >= _y_
 * _x_ ≥ _y_
 * _x_ ¬< _y_
+* _x_ !< _y_
 * _x_ [Is] Not Less Than _y_
+* _x_.NotLessThan(_y_)
 
 | x     | y          | operation          |
 |-------|------------|--------------------|

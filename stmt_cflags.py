@@ -6,8 +6,10 @@ from lark import Tree, Token
 
 from data_dict import DataDictionary
 from evaluate import eval_to_bool
+from mathpak import bound_ops
 from redir import print_stderr
 
+@bound_ops("Echo")
 def execute_echo(dd: DataDictionary, statement: Tree) -> None:
     """
 **Turn echo mode on or off**
@@ -22,6 +24,7 @@ When on, statements are echoed before execution
     dd.echo = _flag_value(dd, statement, 'Echo')
     if dd.verbose: print_stderr('Echo =', dd.echo)
 
+@bound_ops("Debug")
 def execute_debug(dd: DataDictionary, statement: Tree) -> None:
     """
 **Turn debug mode on or off**
@@ -36,6 +39,7 @@ When on, additional technical output is generated.
     dd.debug = _flag_value(dd, statement, 'Debug')
     if dd.verbose: print_stderr('Debug =', dd.debug)
 
+@bound_ops("Verbose")
 def execute_verbose(dd: DataDictionary, statement: Tree) -> None:
     """
 **Turn verbose mode on or off**

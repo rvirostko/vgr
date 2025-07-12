@@ -78,6 +78,7 @@ def ms_to_duration(ms: Any) -> str:
     remaining_ms = float(ms)
     for unit, factor in _TIME_UNITS_FACTOR:
         if remaining_ms >= factor:
+            # NB: his is the only place where "precission" is used with floor()
             value = poly_floor(remaining_ms / factor, .25)
             result.append(f'{value}{unit}')
             remaining_ms -= value * factor

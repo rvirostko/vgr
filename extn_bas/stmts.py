@@ -14,7 +14,10 @@ from src_mgr import SSM
 from dd_config import do_set, do_unset
 from evaluate import eval_to_number, var_name_path
 
+from mathpak import bound_ops
+
 @control_statement
+@bound_ops("Do-While")
 def execute_do_while(dd: DataDictionary, statement: Tree) -> None:
     """A BASIC-style Do-While Loop
 
@@ -30,6 +33,7 @@ following it are skipped, and the expression is checked again."""
     exec_loop(dd, statement, True)
 
 @control_statement
+@bound_ops("Do-Until")
 def execute_do_until(dd: DataDictionary, statement: Tree) -> None:
     """A BASIC-style Do-Until Loop
 
@@ -45,14 +49,15 @@ following it are skipped, and the expression is checked again.
     exec_loop(dd, statement, False)
 
 @control_statement
+@bound_ops("For-Next")
 def execute_for_next(dd: DataDictionary, statement: Tree) -> None:
     """
 **A BASIC-style For-Next Loop**
 
-* For _varabile_ = _expressions_ To _expression_ [:]
+* For _variable_ = _expressions_ To _expression_ [:]
     _statement_...
   Next [;]
-* For _varabile_ = _expressions_ To _expression_ By _expression_ [:]
+* For _variable_ = _expressions_ To _expression_ By _expression_ [:]
     _statement_...
   Next [;]
 
@@ -97,6 +102,7 @@ following it are skipped and looping proceeds.
     finally:
         do_unset(dd, *path)
 
+@bound_ops("Exit-Block")
 def execute_exit(_: DataDictionary, statement: Tree) -> None:
     """
 **Exits the current block of statements**
@@ -111,6 +117,7 @@ block is exited without regards to type.
 """
     raise VgrStatementBreak(statement)
 
+@bound_ops("Continue-Block")
 def execute_continue(_: DataDictionary, statement: Tree) -> None:
     """
 **Causes the current loop to to start again**
@@ -125,6 +132,7 @@ block is restarted without regards to type.
 """
     raise VgrStatementContinue(statement)
 
+@bound_ops("Let")
 def execute_let(dd: DataDictionary, statement: Tree) -> None:
     """
 **Assign a value to a variable**
@@ -135,6 +143,7 @@ BASIC equivalent of _Set_
 """
     execute_set(dd, statement)
 
+@bound_ops("Troff")
 def execute_troff(dd: DataDictionary, _: Tree) -> None:
     """
 **Turn off Tracing Mode**
@@ -146,6 +155,7 @@ BASIC equivalent of _Echo False_
     dd.echo = False
     if dd.verbose: print_stderr('Trace Off')
 
+@bound_ops("Tron")
 def execute_tron(dd: DataDictionary, _: Tree) -> None:
     """
 **Turn on Tracing Mode**

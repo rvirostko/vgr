@@ -1,33 +1,34 @@
 from functools import reduce
 from typing import Any
 
-from .common import numeric_operations, get_operation
+from .common import bound_ops, numeric_operations, get_operation
 
+@bound_ops("/", "÷")
 def poly_div(x: Any, *args):
     """
-**Polymorphic division**
+**Division operation**
 
 * _x_ / _y_
 * _x_ ÷ _y_
-* _x_.Div(_y..._)
+* _x_.Div(_y_...)
 
-| x     | y     | returns | operation           |
-|-------|-------|---------|---------------------|
-| int   | int   | float   | x / y               |
-| int   | float | float   | x / y               |
-| int   | str   | float   | x / float(y)        |
-| float | int   | float   | x / y               |
-| float | float | float   | x / y               |
-| float | str   | float   | x / float(y)        |
-| str   | int   | float   | float(x) / y        |
-| str   | float | float   | float(x) / y        |
-| str   | str   | float   | float(x) / float(y) |
-| list  | int   | list    | distributive        |
-| list  | float | list    | distributive        |
-| list  | str   | list    | distributive        |
-| tuple | int   | tuple   | distributive        |
-| tuple | float | tuple   | distributive        |
-| tuple | str   | tuple   | distributive        |
+| x     | y     | returns | operation                 |
+|-------|-------|---------|---------------------------|
+| int   | int   | float   | x / y                     |
+| int   | float | float   | x / y                     |
+| int   | str   | float   | x / ToNumber(y)           |
+| float | int   | float   | x / y                     |
+| float | float | float   | x / y                     |
+| float | str   | float   | x / ToNumber(y)           |
+| str   | int   | float   | ToNumber(x) / y           |
+| str   | float | float   | ToNumber(x) / y           |
+| str   | str   | float   | ToNumber(x) / ToNumber(y) |
+| list  | int   | list    | distributive              |
+| list  | float | list    | distributive              |
+| list  | str   | list    | distributive              |
+| tuple | int   | tuple   | distributive              |
+| tuple | float | tuple   | distributive              |
+| tuple | str   | tuple   | distributive              |
 
 TypeError raised on all other combinations
 """
@@ -37,30 +38,34 @@ def _div(x: Any, y: Any) -> Any:
     operation = get_operation(x, y, numeric_operations)
     return operation(_div, x, y) if operation else x / y
 
+@bound_ops("//")
 def poly_fdiv(x: Any, *args):
     """
-**Polymorphic floor division**
+**Floor division operation**
 
 * _x_ // _y_
-* _x_.FloorDiv(_y..._)
+* _x_.FloorDiv(_y_...)
 
-| x     | y     | returns | operation            |
-|-------|-------|---------|----------------------|
-| int   | int   | float   | x // y               |
-| int   | float | float   | x // y               |
-| int   | str   | float   | x // float(y)        |
-| float | int   | float   | x // y               |
-| float | float | float   | x // y               |
-| float | str   | float   | x // float(y)        |
-| str   | int   | float   | float(x) // y        |
-| str   | float | float   | float(x) // y        |
-| str   | str   | float   | float(x) // float(y) |
-| list  | int   | list    | distributive         |
-| list  | float | list    | distributive         |
-| list  | str   | list    | distributive         |
-| tuple | int   | tuple   | distributive         |
-| tuple | float | tuple   | distributive         |
-| tuple | str   | tuple   | distributive         |
+Floor division returns the largest integer less than
+or equal to the result of the division.
+
+| x     | y     | returns   | operation                  |
+|-------|-------|-----------|----------------------------|
+| int   | int   | int       | x // y                     |
+| int   | float | int/float | x // y                     |
+| int   | str   | int/float | x // ToNumber(y)           |
+| float | int   | float     | x // y                     |
+| float | float | float     | x // y                     |
+| float | str   | float     | x // ToNumber(y)           |
+| str   | int   | int/float | ToNumber(x) // y           |
+| str   | float | float     | ToNumber(x) // y           |
+| str   | str   | int/float | ToNumber(x) // ToNumber(y) |
+| list  | int   | list      | distributive               |
+| list  | float | list      | distributive               |
+| list  | str   | list      | distributive               |
+| tuple | int   | tuple     | distributive               |
+| tuple | float | tuple     | distributive               |
+| tuple | str   | tuple     | distributive               |
 
 TypeError raised on all other combinations
 """
@@ -72,31 +77,32 @@ def _fdiv(x: Any, y: Any) -> Any:
 
 def poly_divmod(x: Any, y: Any) -> Any:
     """
-**Polymorphic division/modulo**
+**Division/modulo operation**
 
 * _x_.DivMod(_y_)
 
-| x     | y     | returns | operation                  |
-|-------|-------|---------|----------------------------|
-| int   | int   | float   | divmod(x, y)               |
-| int   | float | float   | divmod(x, y)               |
-| int   | str   | float   | divmod(x, float(y))        |
-| float | int   | float   | divmod(x, y)               |
-| float | float | float   | divmod(x, y)               |
-| float | str   | float   | divmod(x, float(y))        |
-| str   | int   | float   | divmod(float(x), y         |
-| str   | float | float   | divmod(float(x), y         |
-| str   | str   | float   | divmod(float(x), float(y)) |
-| list  | int   | list    | distributive               |
-| list  | float | list    | distributive               |
-| list  | str   | list    | distributive               |
-| tuple | int   | tuple   | distributive               |
-| tuple | float | tuple   | distributive               |
-| tuple | str   | tuple   | distributive               |
+Returns a tuple of (_x_ // _y_, _x_ % _y_)
+
+| x     | y     | returns | operation                         |
+|-------|-------|---------|-----------------------------------|
+| int   | int   | tuple   | x divmod by y                     |
+| int   | float | tuple   | x divmod by y                     |
+| int   | str   | tuple   | x divmod by ToNumber(y)           |
+| float | int   | tuple   | x divmod by y                     |
+| float | float | tuple   | x divmod by y                     |
+| float | str   | tuple   | x divmod by ToNumber(y)           |
+| str   | int   | tuple   | ToNumber(x) divmod by y           |
+| str   | float | tuple   | ToNumber(x) divmod by y           |
+| str   | str   | tuple   | ToNumber(x) divmod by ToNumber(y) |
+| list  | int   | list    | distributive                      |
+| list  | float | list    | distributive                      |
+| list  | str   | list    | distributive                      |
+| tuple | int   | tuple   | distributive                      |
+| tuple | float | tuple   | distributive                      |
+| tuple | str   | tuple   | distributive                      |
 
 TypeError raised on all other combinations
 
-Returns a tuple of (_x_ // _y_, _x_ % _y_)
 """
     operation = get_operation(x, y, numeric_operations)
     return operation(poly_divmod, x, y) if operation else divmod(x, y)

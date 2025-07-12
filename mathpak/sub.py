@@ -1,36 +1,38 @@
 from functools import reduce
 from typing import Any
 
-from .common import get_operation, numeric_operations
+from .common import bound_ops, get_operation, numeric_operations
 
+@bound_ops("-", "－")
 def poly_sub(x: Any, *args):
     """
-**Polymorphic subtraction**
+**Subtraction peration**
 
 * _x_ - _y_
-* _x_.Sub(_y..._)
+* _x_ － _y_
+* _x_.Sub(_y_...)
 
-| x     | y     | returns | operation               |
-|-------|-------|---------|-------------------------|
-| int   | int   | int     | x - y                   |
-| int   | float | float   | x - y                   |
-| int   | str   | float   | x - float(y)            |
-| float | int   | float   | x - y                   |
-| float | float | float   | x - y                   |
-| float | str   | float   | x - float(y)            |
-| str   | int   | float   | float(x) - y            |
-| str   | float | float   | float(x) - y            |
-| str   | str   | float   | float(x) - float(y)     |
-| list  | int   | list    | distributed             |
-| list  | float | list    | distributed             |
-| list  | str   | list    | distributed             |
-| tuple | int   | tuple   | distributed             |
-| tuple | float | tuple   | distributed             |
-| tuple | str   | tuple   | distributed             |
-| dict  | str   | dict    | remove key y from x     |
-| dict  | list  | dict    | remove keys in y from x |
-| dict  | tuple | dict    | remove keys in y from x |
-| dict  | dict  | dict    | remove keys in y from x |
+| x     | y     | returns   | operation                 |
+|-------|-------|-----------|---------------------------|
+| int   | int   | int       | x - y                     |
+| int   | float | float     | x - y                     |
+| int   | str   | int/float | x - ToNumber(y)           |
+| float | int   | float     | x - y                     |
+| float | float | float     | x - y                     |
+| float | str   | int/float | x - ToNumber(y)           |
+| str   | int   | int/float | ToNumber(x) - y           |
+| str   | float | int/float | ToNumber(x) - y           |
+| str   | str   | int/float | ToNumber(x) - ToNumber(y) |
+| list  | int   | list      | distributed               |
+| list  | float | list      | distributed               |
+| list  | str   | list      | distributed               |
+| tuple | int   | tuple     | distributed               |
+| tuple | float | tuple     | distributed               |
+| tuple | str   | tuple     | distributed               |
+| dict  | str   | dict      | remove key y from x       |
+| dict  | list  | dict      | remove keys in y from x   |
+| dict  | tuple | dict      | remove keys in y from x   |
+| dict  | dict  | dict      | remove keys in y from x   |
 
 TypeError raised on all other combinations
 """

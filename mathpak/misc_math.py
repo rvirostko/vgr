@@ -2,14 +2,35 @@ from functools import reduce
 from typing import Any, Callable
 import math
 
-from .common import str_to_number, type_str, dist_x
+from .common import bound_ops, str_to_number, type_str, dist_x
 
 def poly_abs(x: Any) -> Any:
+    """
+**Return the absolute value of a number**
+
+* _value_.Abs()
+
+Strings will be converted to numbers.
+Distributed over lists.
+Idempotent for None and dictionaries.
+"""
     if x is None: return None
     if isinstance(x, str): return poly_abs(str_to_number(x))
     return abs(x) if hasattr(x, '__abs__') else _dist(poly_abs, x)
 
+# First item is just for display purposes
+@bound_ops("⌈...⌉")
 def poly_ceil(x: Any) -> Any:
+    """
+**Ceil operation: Maps a value to the least integer greater than or equal to it**
+
+* _value_.Ceil()
+* ⌈ _value_ ⌉
+
+Strings will be converted to numbers.
+Distributed over lists.
+Idempotent for None and dictionaries.
+"""
     if x is None: return None
     if isinstance(x, str): return poly_ceil(str_to_number(x))
     return math.ceil(x) if hasattr(x, '__ceil__') else _dist(poly_ceil, x)
@@ -19,7 +40,23 @@ def poly_trunc(x: Any) -> Any:
     if isinstance(x, str): return poly_trunc(str_to_number(x))
     return math.trunc(x) if hasattr(x, '__trunc__') else _dist(poly_trunc, x)
 
+# TODO: I'm not sure that precision is a good thing here, and we might
+#       want to have an additional function?
+#       The additional parameter will remain undocument until it's figured out.
+#       Needs to become "FRound(x, precision)"
+# First item is just for display purposes
+@bound_ops("⌊...⌋")
 def poly_floor(x: Any, precision: float=0) -> Any:
+    """
+**Floor operation: Maps a value to the least integer less than or equal to it**
+
+* _value_.Floor()
+* ⌊ _value_ ⌋
+
+Strings will be converted to numbers.
+Distributed over lists.
+Idempotent for None and dictionaries.
+"""
     if isinstance(x, str):
         x = str_to_number(x)
     if x is None: return None

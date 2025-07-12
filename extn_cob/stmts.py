@@ -12,7 +12,7 @@ from app_exceptions import VgrExitingException, VgrStatementBreak, VgrStatementC
 from data_dict import DataDictionary
 from dd_config import do_set, do_assignment, do_unset
 from evaluate import eval_expr, bind_operations, eval_to_number, var_name_path
-from mathpak import poly_add, poly_bool, poly_sub, poly_number, poly_mul, poly_div
+from mathpak import bound_ops, poly_add, poly_bool, poly_sub, poly_number, poly_mul, poly_div
 from redir import print_stderr, print_stdout
 from src_mgr import SSM
 from stmt_exec import exec_if_else, exec_loop, exec_repeat, dispatch_statement
@@ -29,6 +29,7 @@ _DT_FUNCS = {
     'cobol_accept_yyyymmdd': lambda: datetime.now().strftime('%Y%m%d'),
 }
 
+@bound_ops("Accept")
 def execute_accept(dd: DataDictionary, statement: Tree) -> None:
     """
 **Get user input or Retrieve date and time values**
@@ -58,8 +59,10 @@ unchanged. There is no limit on the length of user input, but it is a single lin
         line = line.rstrip('\n') if line else line
         if line: do_set(dd, line, *var_name_path(statement.children[0]))
 
+@bound_ops("Stop-Run")
 def execute_exit(_: DataDictionary, statement: Tree) -> None:
-    """Terminate execution
+    """
+**Terminate execution**
 
 * Stop Run [;]
 
@@ -68,8 +71,10 @@ Ends the program with an exit code of zero.
     raise VgrExitingException(VgrExitingException.EXIT_SUCCESS, statement, '')
 
 @control_statement
+@bound_ops("Perform-Until")
 def execute_perform_until(dd: DataDictionary, statement: Tree) -> None:
-    """Repeatedly execute a block of statements until a condition is reached.
+    """
+**Repeatedly execute a block of statements until a condition is reached**
 
 * Perform Until _expression_
     _statement_...
@@ -83,8 +88,10 @@ following it are skipped, and the expression is checked again.
     exec_loop(dd, statement, False)
 
 @control_statement
+@bound_ops("Perform-Times")
 def execute_perform_times(dd: DataDictionary, statement: Tree) -> None:
-    """Execute a block of statements a fixed number of times.
+    """
+**Execute a block of statements a fixed number of times**
 
 * Perform _expression_ Times
     _statement_...
@@ -100,8 +107,10 @@ following it are skipped, and looping continues.
     exec_repeat(dd, statement)
 
 @control_statement
+@bound_ops("Perform-Varying")
 def execute_perform_varying(dd: DataDictionary, statement: Tree) -> None:
-    """Execute a block of statements while increasing or decreasing a variable's value.
+    """
+**Execute a block of statements while increasing or decreasing a variable's value**
 
 * Perform Varying _variable_ From _expression_ By _expressions_ Until _expression_
     _statement_...
@@ -152,15 +161,19 @@ If not specified, the test expression is performed before the block of statement
     finally:
         do_unset(dd, *path)
 
+@bound_ops("Compute")
 def execute_compute(dd: DataDictionary, statement: Tree) -> None:
-    """Assign a value to a variable.
+    """
+**Assign a value to a variable**
 
 * Compute _variable_ = _expression_ [;]
 """
     execute_set(dd, statement)
 
+@bound_ops("Next-Sentence")
 def execute_next_sentence(_: DataDictionary, statement: Tree) -> None:
-    """Exits the current block of statements.
+    """
+**Exits the current block of statements**
 
 * Next Sentence [;]
 
@@ -169,8 +182,10 @@ Can be used with conditional and looping statements
     raise VgrStatementBreak(statement)
 
 @control_statement
+@bound_ops("If-End-If")
 def execute_if(dd: DataDictionary, statement: Tree) -> None:
-    """Conditionally execute a block of statements.
+    """
+**Conditionally execute a block of statements**
 
 * If _expression_
     _statement_...
@@ -186,8 +201,10 @@ If it evaluates to False, the second block of statements, if provided, is execut
 """
     exec_if_else(dd, statement, True)
 
+@bound_ops("Set-Up")
 def execute_inc(dd: DataDictionary, statement: Tree) -> None:
-    """Increment a counter by an amount
+    """
+**Increment a counter by an amount**
 
 * Set _variable_ Up By _expression_ [;]
 
@@ -199,8 +216,10 @@ This is fundamentally an arithmetic, scalar opertion.
     y = poly_number(eval_expr(dd, statement.children[1])) or 0
     do_set(dd, poly_add(x, y), *path)
 
+@bound_ops("Set-Down")
 def execute_dec(dd: DataDictionary, statement: Tree) -> None:
-    """Deccrement a counter by an amount
+    """
+**Deccrement a counter by an amount**
 
 * Set _variable_ Down By _expression_ [;]
 
@@ -212,15 +231,17 @@ This is fundamentally an arithmetic, scalar opertion.
     y = poly_number(eval_expr(dd, statement.children[1])) or 0
     do_set(dd, poly_sub(x, y), *path)
 
+@bound_ops("Move")
 def execute_move_to(dd: DataDictionary, statement: Tree) -> None:
-    """Assign a value to a variable.
+    """
+**Assign a value to a variable
 
 * Move _expression_ To _variable_ [;]
 * Move Corresponding _expression_ To _variable_ [;]
 * Move Corr _expression_ To _variable_ [;]
 
-The first form is equivalent to a SET operation.
-The second form works with dictionaries, copying attribute from the
+The first form is equivalent to a Set operation.
+The second and third forms work with dictionaries, copying attribute from the
 evaluated _expression_ to _variable_. If the variable does not exist,
 is None or not a dictionary, a regular move is performed.
 If _expression_ does not resolve to a dictionary, the corresponding
@@ -250,10 +271,13 @@ request is ignored and a regular move is performed.
         # This is like a "regular" set
         do_assignment(dd, expr, src, path)
 
+@bound_ops("Add")
 def execute_add_to(dd: DataDictionary, statement: Tree) -> None:
-    """ Add one or more values to a variable
+    """
+**Add one or more values to a variable**
 
 * Add _expression_... To _variable_ [End-Add] [;]
+* Add _expression_... To _expression_ Giving _variable_ [End-Add] [;]
 
 If the variable does not exist, it is created and initialized to zero.
 This is fundamentally an arithmetic, scalar opertion.
@@ -263,22 +287,19 @@ This is fundamentally an arithmetic, scalar opertion.
     args = tuple(poly_number(eval_expr(dd, expr)) or 0 for expr in statement.children[:-1])
     do_set(dd, poly_add(x, *args), *path)
 
+# Doc added to add_to
 def execute_add_giving(dd: DataDictionary, statement: Tree) -> None:
-    """ Add two or more values and assign to a variable
-
-* Add _expression_... To _expression_ Giving __variable_ [End-Add] [;]
-
-If the variable does not exist, it is created.
-This is fundamentally an arithmetic, scalar opertion.
-"""
     path = tuple(name.value for name in statement.children[-1].children)
     args = tuple(poly_number(eval_expr(dd, expr)) or 0 for expr in statement.children[:-1])
     do_set(dd, poly_add(*args), *path)
 
+@bound_ops("Subtract")
 def execute_sub_from(dd: DataDictionary, statement: Tree) -> None:
-    """ Subtract one or more values from a variable
+    """
+**Subtract one or more values from a variable**
 
 * Subtract _expression_... From _variable_ [;]
+* Subtract _expression_... From _expression_ Giving _variable_ [;]
 
 If the variable does not exist, it is created and initialized to zero.
 This is fundamentally an arithmetic, scalar opertion.
@@ -288,20 +309,16 @@ This is fundamentally an arithmetic, scalar opertion.
     args = tuple(poly_number(eval_expr(dd, expr)) or 0 for expr in statement.children[:-1])
     do_set(dd, poly_sub(x, *args), *path)
 
+# Doc added to sub_from
 def execute_sub_giving(dd: DataDictionary, statement: Tree) -> None:
-    """ Subtract two or more values and assign to a variable
-
-* Subtract _expression_... From _expression_ Giving _variable_ [;]
-
-If the variable does not exist, it is created and initialized to zero.
-This is fundamentally an arithmetic, scalar opertion.
-"""
     path = tuple(name.value for name in statement.children[-1].children)
     args = tuple(poly_number(eval_expr(dd, expr)) or 0 for expr in statement.children[:-1])
     do_set(dd, poly_sub(args[-1], *args[:-1]), *path)
 
+@bound_ops("Multipy")
 def execute_mul_by(dd: DataDictionary, statement: Tree) -> None:
-    """ Multiply one number by another
+    """
+**Multiply one number by another**
 
 * Multiply _expression_ By _variable_ [;]
 * Multiply _expression_ By _expression_ Giving _variable_ [;]
@@ -320,14 +337,17 @@ This is fundamentally an arithmetic, scalar opertion.
         value = poly_mul(args[0], args[1])
     do_set(dd, value, *path)
 
+@bound_ops("Divide")
 def execute_div_into(dd: DataDictionary, statement: Tree) -> None:
-    """ Divide one number by another
+    """
+**Divide one number by another**
 
 * Divide _expression_ Into _variable_ [;]
 * Divide _expression_ Into _expression_ Giving _variable_ [;]
+* Divide _expression_ By _expression_ Giving _variable_ [;]
 
-In the first form, the variable is divided by the results of the expression.
-In the second, the result of the division is placed into the variable.
+In the first form the variable is divided by the results of the expression.
+In the other forms the result of the division is placed into the variable.
 
 In either case, if the variable does not exist, it is created and initialized to zero.
 This is fundamentally an arithmetic, scalar opertion.
@@ -340,22 +360,16 @@ This is fundamentally an arithmetic, scalar opertion.
         value = poly_div(args[1], args[0])
     do_set(dd, value, *path)
 
+# Doc added to div_into
 def execute_div_by(dd: DataDictionary, statement: Tree) -> None:
-    """ Divide one number by another and assigning the result to a variable
-
-* Divide _expression_ By _expression_ Giving _variable_ [;]
-
-The result of the division is placed into the variable.
-
-If the variable does not exist, it is created and initialized to zero.
-This is fundamentally an arithmetic, scalar opertion.
-"""
     path = tuple(name.value for name in statement.children[-1].children)
     args = tuple(poly_number(eval_expr(dd, expr)) or 0 for expr in statement.children[:-1])
     do_set(dd, poly_div(*args), *path)
 
+@bound_ops("Exhibit")
 def execute_exhibit(dd: DataDictionary, statement: Tree) -> None:
-    """Display the name and values of variables
+    """
+**Display the names and values of variables**
 
 * Exhibit _variable_ [, _variable_]... [;]
 
@@ -364,7 +378,7 @@ portion is displayed on its own line.
 
 Without arguments, all variables are displayed
 
-Unlike PRINT and PRINTF, the values display are the _representation_ of the data, not
+Unlike Print and Printf, the values display are the _representation_ of the data, not
 its printable value. This lets you diferentiate between an integer and a string, and
 see control characters.
 """
@@ -392,8 +406,10 @@ see control characters.
         for key in sorted(dd.keys()):
             exhibit_value(key, dd.get_var(key))
 
+@bound_ops("Display")
 def execute_display_on(dd: DataDictionary, statement: Tree) -> None:
-    """Print values to either the output (stdout) or error (stderr) streams.
+    """
+**Print values to either the output (stdout) or error (stderr) streams**
 
 * Display _expression_... [;]
 * Display _expression_... On Output [;]

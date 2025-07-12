@@ -14,14 +14,42 @@ from lark import v_args, Tree, Token, Transformer
 from app_exceptions import VgrRuntimeError
 from data_dict import DataDictionary
 from functions import get_function_op
-from mathpak import poly_bool, poly_int, poly_bit_or
-from mathpak import poly_ceil, poly_floor
-from mathpak import poly_contains_all, poly_contains_any, type_str, poly_number
-from mathpak import poly_eq, poly_pow, poly_fdiv, poly_ge, poly_imatches, poly_gt
-from mathpak import poly_in, poly_le, poly_lt, poly_matches, poly_mod, poly_mul
-from mathpak import poly_ne, poly_not_imatches, poly_not_in
-from mathpak import poly_not_matches, poly_matches_all, poly_shl, poly_shr, poly_sub, poly_not
-from mathpak import poly_add, poly_bit_and, poly_bit_xor, poly_div
+from mathpak import (
+    poly_add,
+    poly_bit_and,
+    poly_bit_or,
+    poly_bit_xor,
+    poly_bool,
+    poly_ceil,
+    poly_contains_all,
+    poly_contains_any,
+    poly_div,
+    poly_eq,
+    poly_fdiv,
+    poly_floor,
+    poly_ge,
+    poly_gt,
+    poly_imatches,
+    poly_in,
+    poly_int,
+    poly_le,
+    poly_lt,
+    poly_matches_all,
+    poly_matches,
+    poly_mod,
+    poly_mul,
+    poly_ne,
+    poly_not_imatches,
+    poly_not_in,
+    poly_not_matches,
+    poly_not,
+    poly_number,
+    poly_pow,
+    poly_shl,
+    poly_shr,
+    poly_sub,
+    type_str,
+)
 from output import verify_relative_path
 
 def assert_has_meta(tree: Tree):

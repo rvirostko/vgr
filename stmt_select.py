@@ -12,7 +12,7 @@ from data_xtract import QueryFilter, InfoOutput, DataExtractor, EndExtractExcept
 from dbg import print_tree
 from dd_config import DEFAULT_FOR_TYPE_PATH, ROWID_PATH, dd_clear_scratch
 from evaluate import bind_operations, eval_expr, eval_to_bool, eval_to_int, eval_to_str, eval_filename_expr
-from mathpak import poly_bool
+from mathpak import poly_bool, bound_ops
 from output import CSVRecordWriter, JSONRecordWriter, MarkdownRecordWriter, TemplateRecordWriter, TextRecordWriter
 from output import RecordWriter, RecordLimiter, RecordCartesianProduct
 from redir import stdout, stderr, print_stderr
@@ -369,7 +369,13 @@ def add_implicit(dd, from_type, target, tree) -> Tree:
     return ImplicitContextAdder().add_contexts(tree, target, valid_contexts)
 
 @control_statement
+@bound_ops("Select")
 def execute_select(dd: DataDictionary, statement: Tree):
+    """
+** A Select statement for lists, files, and data sources**
+
+TODO
+"""
     select = SelectAnalyzer(dd).analyze(statement)
     # NB: at this point not all operations will show as bound
     # (notably in the outputs and the predicates) and

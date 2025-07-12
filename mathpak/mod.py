@@ -5,15 +5,15 @@ Modulo operation.
 from functools import reduce
 from typing import Any
 
-from .common import numeric_operations, get_operation
+from .common import bound_ops, numeric_operations, get_operation
 
+@bound_ops("%")
 def poly_mod(x: Any, *args):
     """
-**Polymorphic modulo**
+**Modulo operation**
 
 * _x_ % _y_
-* _x_ Mod _y_
-* _x_.Mod(_y..._)
+* _x_.Mod(_y_...)
 
 | x     | y     | returns | operation           |
 |-------|-------|---------|---------------------|

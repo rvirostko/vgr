@@ -1,44 +1,45 @@
 from functools import reduce
 from typing import Any
 
-from .common import get_operation, numeric_operations, dist_x, dist_y, str_to_number
+from .common import bound_ops, get_operation, numeric_operations, dist_x, dist_y, str_to_number
 
+@bound_ops("+", "＋")
 def poly_add(x: Any, *args):
     """
-**Polymorphic addition**
+**Addition/concatenation operation**
 
 * _x_ + _y_
 * _x_ ＋ _y_
-* _x_.Add(_y..._)
+* _x_.Add(_y_...)
 
-| x     | y     | returns | operation             |
-|-------|-------|---------|-----------------------|
-| int   | int   | int     | x + y                 |
-| int   | float | float   | float(x) + y          |
-| int   | str   | Any     | x + ToNumber(y)       |
-| int   | list  | list    | distributive          |
-| int   | tuple | tuple   | distributive          |
-| float | int   | float   | x + float(y)          |
-| float | float | float   | x + y                 |
-| float | str   | Any     | x + ToNumber(y)       |
-| float | list  | list    | distributive          |
-| float | tuple | tuple   | distributive          |
-| str   | int   | Any     | concat x and ToStr(y) |
-| str   | float | Any     | concat x and ToStr(y) |
-| str   | str   | str     | concat x and y        |
-| str   | list  | list    | distributive          |
-| str   | tuple | tuple   | distributive          |
-| list  | int   | list    | distributive          |
-| list  | float | list    | distributive          |
-| list  | str   | list    | distributive          |
-| list  | list  | list    | union of lists        |
-| list  | tuple | list    | union of lists        |
-| tuple | int   | tuple   | distributive          |
-| tuple | float | tuple   | distributive          |
-| tuple | str   | tuple   | distributive          |
-| tuple | list  | tuple   | union of lists        |
-| tuple | tuple | tuple   | union of lists        |
-| dict  | dict  | dict    | union of dicts        |
+| x     | y     | returns   | operation             |
+|-------|-------|-----------|-----------------------|
+| int   | int   | int       | x + y                 |
+| int   | float | float     | x + y                 |
+| int   | str   | in/float  | x + ToNumber(y)       |
+| int   | list  | list      | distributive          |
+| int   | tuple | tuple     | distributive          |
+| float | int   | int/float | x + ToFloat(y)        |
+| float | float | float     | x + y                 |
+| float | str   | int/float | x + ToNumber(y)       |
+| float | list  | list      | distributive          |
+| float | tuple | tuple     | distributive          |
+| str   | int   | str       | concat x and ToStr(y) |
+| str   | float | str       | concat x and ToStr(y) |
+| str   | str   | str       | concat x and y        |
+| str   | list  | list      | distributive          |
+| str   | tuple | tuple     | distributive          |
+| list  | int   | list      | distributive          |
+| list  | float | list      | distributive          |
+| list  | str   | list      | distributive          |
+| list  | list  | list      | union of lists        |
+| list  | tuple | list      | union of lists        |
+| tuple | int   | tuple     | distributive          |
+| tuple | float | tuple     | distributive          |
+| tuple | str   | tuple     | distributive          |
+| tuple | list  | tuple     | union of lists        |
+| tuple | tuple | tuple     | union of lists        |
+| dict  | dict  | dict      | union of dicts        |
 
 TypeError raised on all other combinations
 
@@ -50,7 +51,6 @@ def _add(x: Any, y: Any) -> Any:
     operation = get_operation(x, y, _add_operations, numeric_operations)
     return operation(_add, x, y) if operation else x + y
 
-# TODO should we call poly_str?
 _add_operations = {
     (int, list): dist_y,
     (int, tuple): dist_y,
@@ -75,7 +75,7 @@ def poly_sum(x: Any, *args) -> Any:
 **Recursively sum lists of numbers**
 
 * _value_.Sum()
-* _value_.Sum(_values..._)
+* _value_.Sum(_values_...)
 
 If a value is _None_ it is treated as a zero.
 String values are converted to numbers when possible.

@@ -9,11 +9,13 @@ from lark import Tree
 from app_exceptions import VgrExitingException
 from data_dict import DataDictionary
 from evaluate import eval_expr, eval_to_str
-from mathpak import poly_bool, poly_int
+from mathpak import bound_ops, poly_bool, poly_int
 from redir import print_stderr
 from src_mgr import SSM
 
 _LOG = logging.getLogger(__name__)
+
+@bound_ops("Exit")
 
 def execute_exit(dd: DataDictionary, statement: Tree) -> None:
     """
@@ -39,6 +41,7 @@ Note that in this specific case "True" returns zero and "False" returns one.
     _LOG.info('%s', msg)
     raise VgrExitingException(rc, statement, msg)
 
+@bound_ops("Assert")
 def execute_assert(dd: DataDictionary, statement: Tree) -> None:
     """
 **Assert that a condition is met, terminating execution if it is not**

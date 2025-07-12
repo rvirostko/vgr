@@ -9,7 +9,7 @@ from lark import Tree, Visitor
 from data_dict import DataDictionary
 from dd_config import do_set
 from evaluate import eval_filename_expr, bind_operations
-from mathpak import poly_sort, dsort
+from mathpak import poly_sort, dsort, bound_ops
 from output import CSVRecordWriter, JSONRecordWriter, TextRecordWriter
 from redir import print_stderr
 from stmt_set import load_file_as, load_data_type
@@ -116,7 +116,11 @@ class SortAnalyzer(Visitor):
         else:
             raise NotImplementedError(f'Sort source/target {repr(node.data)} not implemented') # SNO
 
+@bound_ops("Sort")
 def execute_sort(dd: DataDictionary, statement: Tree) -> None:
+    """
+**Sort the contents of a list or a file**
+"""
     sort = SortAnalyzer(dd).analyze(statement)
     source = sort.sort_source
     target = sort.sort_target

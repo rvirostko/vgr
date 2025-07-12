@@ -14,19 +14,34 @@ from data_dict import DataDictionary
 from dd_config import do_assignment, do_unset, _ARG_PREFIX, dd_set_awk_params
 from evaluate import eval_expr, eval_filename_expr, var_name_path
 from mathpak import poly_add, poly_sub, poly_mul, poly_div, poly_fdiv, poly_mod, poly_pow
-from mathpak import poly_bit_and, poly_bit_or, poly_bit_xor, poly_shl, poly_shr
+from mathpak import poly_bit_and, poly_bit_or, poly_bit_xor, poly_shl, poly_shr, bound_ops
 from redir import print_stderr, shorten, close_all_redirects
 
+@bound_ops("Set")
 def execute_set(dd: DataDictionary, statement: Tree) -> None:
     """
-**Assign a value to a variable**
+**Assign a value to a variable or modify a variable's existing value**
 
 * Set _variable_ [= | To] _expression_ [;]
+* Set _variable_ += _expression_ [;] -- Addition
+* Set _variable_ -= _expression_ [;] -- Subtraction
+* Set _variable_ *= _expression_ [;] -- Multiplication
+* Set _variable_ /= _expression_ [;] -- Division
+* Set _variable_ //= _expression_ [;] -- Floor Division
+* Set _variable_ %= _expression_ [;] -- Modulo
+* Set _variable_ **= _expression_ [;] -- Power
+* Set _variable_ &= _expression_ [;] -- Bit And
+* Set _variable_ |= _expression_ [;] -- Bit Or
+* Set _variable_ ^= _expression_ [;] -- Bit Xor
+* Set _variable_ <<= _expression_ [;] -- Bit Shift Left
+* Set _variable_ >>= _expression_ [;] -- Bit Shift Right
+
 """
     path = var_name_path(statement.children[0])
     expr = statement.children[1]
     do_assignment(dd, expr, eval_expr(dd, expr), path)
 
+@bound_ops("Unset")
 def execute_unset(dd: DataDictionary, statement: Tree) -> None:
     """
 **Remove a variable**
@@ -36,6 +51,7 @@ def execute_unset(dd: DataDictionary, statement: Tree) -> None:
     for item in statement.children:
         do_unset(dd, *var_name_path(item))
 
+@bound_ops("Reset")
 def execute_reset(dd: DataDictionary, statement: Tree) -> None:
     """
 **Reset global state to initial conditions
@@ -84,29 +100,15 @@ _IN_PLACE_OP = {
     "<<=": poly_shl,
     ">>=": poly_shr,
 }
+
+# Doc combined with set
 def execute_set_in_place(dd: DataDictionary, statement: Tree) -> None:
-    """
-**Modify a variable's existing value**
-
-* Set _variable_ += _expression_ [;] -- Addition
-* Set _variable_ -= _expression_ [;] -- Subtraction
-* Set _variable_ *= _expression_ [;] -- Multiplication
-* Set _variable_ /= _expression_ [;] -- Division
-* Set _variable_ //= _expression_ [;] -- Floor Division
-* Set _variable_ %= _expression_ [;] -- Modulo
-* Set _variable_ **= _expression_ [;] -- Power
-* Set _variable_ &= _expression_ [;] -- Bit And
-* Set _variable_ |= _expression_ [;] -- Bit Or
-* Set _variable_ ^= _expression_ [;] -- Bit Xor
-* Set _variable_ <<= _expression_ [;] -- Bit Shift Left
-* Set _variable_ >>= _expression_ [;] -- Bit Shift Right
-
-"""
     path = var_name_path(statement.children[0])
     op = _IN_PLACE_OP[statement.children[1].value]
     expr = statement.children[2]
     do_assignment(dd, expr, op(dd.get_var_user(*path), eval_expr(dd, expr)), path)
 
+@bound_ops("Load", "Load-From")
 def execute_load_from(dd: DataDictionary, statement: Tree) -> None:
     """
 **Assign a value to a variable from a file**

@@ -344,8 +344,12 @@ The values for _plural_ and _signular_ can be any any values.
     return singular if is_one else plural
 
 _BUILT_IN_FUNCS = {
-    "∏":              poly_mul,
+# TODO make into operators...
     "∑":              poly_sum,
+    "σ²":             poly_pvariance,
+    "s²":             poly_variance,
+    "Sum":            poly_sum,
+
     "Abs":            poly_abs,
     "Add":            poly_add,
     "AppendStr":      poly_append,
@@ -478,7 +482,6 @@ _BUILT_IN_FUNCS = {
     "Plural":         _plural,
     "Pow":            poly_pow,
     "PrependStr":     poly_prepend,
-    "Product":        poly_mul,
     "PStdev":         poly_pstdev,
     "PVariance":      poly_pvariance,
     "RegexReplace":   poly_regex_replace,
@@ -497,7 +500,6 @@ _BUILT_IN_FUNCS = {
     "Round":          poly_round,
     "RoundMultiple":  poly_round_multiple,
     "RSplit":         poly_rsplit,
-    "s²":             poly_variance,
     "ShortenStr":     poly_shorten,
     "Sign":           poly_sign,
     "SizeOf":         poly_sizeof,
@@ -516,7 +518,6 @@ _BUILT_IN_FUNCS = {
     "StrRev":         poly_strrev, # a (MS) 'C'-like name
     "Sub":            poly_sub,
     "SubStr":         poly_substr,
-    "Sum":            poly_sum,
     "SwapCase":       poly_swapcase,
     "TitleCase":      poly_title,
     "ToBinary":       poly_bin,
@@ -538,7 +539,6 @@ _BUILT_IN_FUNCS = {
     "Upper":          poly_upper,
     "Variance":       poly_variance,
     "ZeroFill":       poly_zfill,
-    "σ²":             poly_pvariance,
 }
 
 # Binds a (pretty) name to the function to be executed
@@ -566,6 +566,7 @@ def get_function_entries():
 def get_operator_entries():
     entries = {}
     for _, func in _FUNC_OPS.items():
+        # See mathpak/common for the bound_ops decorator
         if hasattr(func, 'bound_ops'):
             for op in func.bound_ops:
                 entries[op] = (func, op.lower().replace(' ', ''), (func.__doc__ or '').lower())

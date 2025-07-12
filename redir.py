@@ -12,6 +12,7 @@ from lark import Tree
 from app_exceptions import VgrExitingException, VgrRuntimeError
 from data_dict import DataDictionary
 from evaluate import eval_filename_expr
+from mathpak import bound_ops
 from output import IORedirector, prepare_path
 
 _REDIRECTOR = IORedirector()
@@ -37,6 +38,7 @@ def shorten(s: str, width: int=64) -> str:
     """
     return textwrap.shorten(s, width=width, placeholder="\u2026")
 
+@bound_ops("Open")
 def execute_open(dd: DataDictionary, statement: Tree) -> None:
     """
 **Send output to a file**
@@ -72,6 +74,7 @@ See *Close*
     except Exception as e:
         raise VgrExitingException(VgrExitingException.EXIT_FAILED, statement, str(e)) from e
 
+@bound_ops("Close")
 def execute_close(dd: DataDictionary, statement: Tree) -> None:
     """
 **Close output to a file**

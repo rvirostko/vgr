@@ -18,7 +18,9 @@ from lark import Tree
 from app_exceptions import VgrRuntimeError
 from evaluate import eval_expr
 from data_dict import DataDictionary
+from mathpak import bound_ops
 from redir import stdout
+
 from .xterm_colors import TERM_COLORS, AUX_COLORS
 
 # pylint: disable=invalid-name
@@ -737,7 +739,33 @@ _CMD_DISPATCH = {
     "term_set_clipboard": _term_set_clipboard,
 }
 
+@bound_ops("Terminal", "Term")
 def execute_term_statement(dd: DataDictionary, statement: Tree) -> None:
+    """
+**Execute Terminal control commands**
+
+* Terminal _command_ [, _command_]... [;]
+* Term _command_ [, _command_]... [;]
+
+**Cursor Control**
+
+* [CursorPos | Pos | cup] _expression_, _expression_ - Move cursor to line,column, ones based
+* [GetCursorPos | GetPos | dsr_cursor] - Read cursposition into _term.cursor_
+* [Line | vpa] [_expression_] - Move cursor position to line
+* [Col | hpa] [_expression_] - Move cursor position to column
+* [CursorHome | Home] -> Move cursor to 1,1
+* [CursorSave | CSave | decsc) -> Save the cursor location
+* [CursorRestore | CRestore | decrc) -> Reposition cursor to last saved location
+* [CursorShow | CShow) - Make the cursor visiable
+* [CursorHide | CHide) -> Hide the cursor
+* [CursorVisible | dectcem) [= _expression_] - Change cursor visibility
+* [CursorUp | cuu) [_expression_] -> Move the cursor up one or more lines
+* [CursorDown | cud) [_expression_] -> Move the cursor down one or more lines
+* [CursorLeft | CursorBack | cub) [_expression_] -> Move the cursor left one or more columns
+* [CursorRight | CursorForward | cuf) [_expression_] -> Move the cursor right one or more columns
+
+TODO
+"""
     for cmd in statement.children:
         try:
             handler = _CMD_DISPATCH.get(cmd.data)

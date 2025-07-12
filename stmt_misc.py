@@ -8,8 +8,10 @@ from lark import Tree
 
 from data_dict import DataDictionary
 from evaluate import eval_to_number
+from mathpak import bound_ops
 from redir import print_stderr
 
+@bound_ops("Sleep")
 def execute_sleep(dd: DataDictionary, statement: Tree) -> None:
     """
 **Sleep for a given number of seconds**

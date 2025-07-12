@@ -2,24 +2,26 @@ from functools import reduce
 from typing import Any
 import itertools
 
-from .common import dist_x, dist_y, X_None_Op, Y_None_Op, get_operation, str_to_int
+from .common import bound_ops, dist_x, dist_y, X_None_Op, Y_None_Op, get_operation, str_to_int
 
+@bound_ops("*", "×", "∏")
 def poly_mul(x: Any, *args):
     """
-**Polymorphic multiplication**
+**Multiplication operation**
 
 * _x_ * _y_
 * _x_ × _y_
-* _x_.Mul(_y..._)
+* _x_.Mul(_y_...)
+* ∏(_x_, _y_...)
 
 | x     | y     | returns | operation           |
 |-------|-------|---------|---------------------|
 | int   | int   | int     | x * y               |
-| int   | float | float   | float(x) * y        |
+| int   | float | float   | x * y               |
 | int   | str   | str     | string repetition   |
 | int   | list  | list    | distributive        |
 | int   | tuple | tuple   | distributive        |
-| float | int   | float   | x * float(y)        |
+| float | int   | float   | x * y               |
 | float | float | float   | x * y               |
 | float | str   | str     | string repetition   |
 | float | list  | list    | distributive        |

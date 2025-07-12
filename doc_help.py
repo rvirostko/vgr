@@ -35,50 +35,61 @@ _THEME = Theme({
     "markdown.image": "underline",
 }, inherit=True)
 
-_CONSOLE = Console(width=80, theme=_THEME)
+# Pull out weights etc for better tuning
+_FULL_SCORE_WEIGHT = 1.5
+_WEAK_SCORE_RATIO = 0.7
 
-def search_entries(entries: dict, query: str, limit: int = 10) -> list[tuple[str, Callable]]:
+def search_entries(entries: dict, query: str="", limit: int = 10) -> list[tuple[str, Callable]]:
     """
     Search using some fuzzy logic. entries should be in the form of:
 
         key: Canonical name, value: (implementing function, name normalized, documentation normalized)
 
     """
-    q = (query or "").strip().replace('_', '').casefold().removesuffix("()").removesuffix("(")
-    # If no args, return all
-    if not q: return [(name, entries[name][0]) for name in sorted(entries.keys())]
+    if not entries: return []
+    q = query.strip().replace('_', '').casefold().removesuffix("()").removesuffix("(")
     tokens = q.split()
     scores = {}
     for name, (_, name_norm, doc_norm) in entries.items():
         # 1. Match against full query
-        full_score = max(fuzz.QRatio(q, name_norm), fuzz.QRatio(q, doc_norm))
+        query_score = max(fuzz.QRatio(q, name_norm), fuzz.QRatio(q, doc_norm))
         # 2. Match individual tokens
-        token_scores = [max(fuzz.partial_ratio(tok, name_norm), fuzz.partial_ratio(tok, doc_norm)) for tok in tokens]
+        token_score = sum(max(fuzz.partial_ratio(tok, name_norm), fuzz.partial_ratio(tok, doc_norm)) for tok in tokens)
         # 3. Composite score: prioritize full match, reward partial token matches
-        score = full_score * 1.5 + sum(token_scores)
-        scores[name] = score
-    if not scores: return []
-    threshold = max(scores.values()) * 0.70  # discard weak matches
+        scores[name] = query_score * _FULL_SCORE_WEIGHT + token_score
     # Only include matches above threshold, sorted by score descending
+    threshold = max(scores.values()) * _WEAK_SCORE_RATIO
     filtered_matches = [
         (name, score) for name, score in scores.items() if score >= threshold
     ]
+    # Sort by descending score
     filtered_matches.sort(key=lambda x: -x[1])
     # If the query is an "exact" match, return only that entry
     top_name = filtered_matches[0][0] if filtered_matches else None
     if top_name and top_name.casefold().replace('_', '').replace(' ', '') == q:
         return [(top_name, entries[top_name][0])]
-    # Otherwise, convert the filtered matches into an array and return them all
-    return [(name, entries[name][0]) for name, _ in filtered_matches[:limit]]
+    # Otherwise, convert the filtered matches into an array and return
+    # references that are unique by function
+    return unique_by_func([(name, entries[name][0]) for name, _score in filtered_matches], limit)
 
-def print_doc(func) -> None:
+def unique_by_func(entries: list, limit: int=None) -> list:
+    funcs = set()
+    rc = []
+    for name, func in entries:
+        if func not in funcs:
+            rc.append((name, func))
+            funcs.add(func)
+            if limit and len(rc) >= limit: break
+    return rc
+
+def print_doc(func: Callable) -> None:
     doc = (func.__doc__ or "").strip()
     print()
     print_md(doc if doc else '_Sorry, no documentation available_')
     print()
 
 def print_md(s: str) -> None:
-    if s: _CONSOLE.print(Markdown(s))
+    if s: Console(theme=_THEME).print(Markdown(s))
 
 def is_probably(word: str, s: str, threshold: float = 65.0) -> bool:
     """Return True if s is close enough to the word using a fuzzy match."""

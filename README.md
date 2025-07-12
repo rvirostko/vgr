@@ -277,10 +277,10 @@ The basic arithmetic operations are:
 
 * Addition, Sutraction, Multiplication, and Division: Unsurprisingly these are `+`, `-`, `*`, and `/` respectively, although you can use fancy Unicode values like `÷` and `×` too.
 * _Floor Division_ : `//` returns an integer result of division
-* Modulo : you can specify either `%` or `Mod`
-* Raising to a power : you can specify `**` or `Pow`
-* [Bitwise AND](https://en.wikipedia.org/wiki/Bitwise_operation#AND), [Bitwise OR](https://en.wikipedia.org/wiki/Bitwise_operation#OR), and [Bitwise XOR](https://en.wikipedia.org/wiki/Bitwise_operation#XOR) : These use `&`, `|`, and `^` respectively. You can also use `Xor` for the latter.
-* [Bit Shifting](https://en.wikipedia.org/wiki/Bitwise_operation#Shift_operations) : use `<<` or `LShift` for left shift and `>>` or `RShift` for right shift.
+* Modulo : `%`
+* Raising to a power : `**`
+* [Bitwise AND](https://en.wikipedia.org/wiki/Bitwise_operation#AND), [Bitwise OR](https://en.wikipedia.org/wiki/Bitwise_operation#OR), and [Bitwise XOR](https://en.wikipedia.org/wiki/Bitwise_operation#XOR) : These use `&`, `|`, and `^` respectively.
+* [Bit Shifting](https://en.wikipedia.org/wiki/Bitwise_operation#Shift_operations) : use `<<` for left shift and `>>` for right shift.
 
 ```Text
 vgr> set x = 5
@@ -332,9 +332,9 @@ Typically whitespace, spaces, tabs, newlines, etc, are not important in expressi
 ```Text
 vgr> print x*y+2,x*y-2
 print x*y+2,x*y-2
-         ^
-Unexpected input at line 1, column 10.
-vgr> print x*y+ 2,x*y- 2
+               ^
+Unexpected input at line 1, column 16.
+vgr> print x*y+2,x*y- 2
 25 | 5
 vgr> print x * y + +2, x * y - -2
 25 | 25
@@ -401,20 +401,6 @@ vgr> Verbose False; Echo 0;
 Verbose False;
 Echo 0;
 ```
-
-> **Pro Tip…**
->
-> Keep typing `Echo On` and still having it be off? That's because `On` is a variable name, not a keyword or a constant. So why not make your own constants?
->
-> ```Text
-> vgr> Set On to True
-> vgr> Set Off to False
-> vgr> Echo On; Verbose On;
-> Verbose On;
-> Verbose = True
-> ```
->
-> Just remember that variable names are case sensitive, so you'll need to be consistent in your usage.
 
 ### Exit and Assert
 

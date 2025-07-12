@@ -10,8 +10,9 @@ from data_dict import DataDictionary
 from dd_config import OFS_PATH, ORS_PATH
 from redir import print_stdout, print_stderr, stdout
 from evaluate import eval_expr, eval_to_str
-from mathpak import poly_format
+from mathpak import poly_format, bound_ops
 
+@bound_ops("Print")
 def execute_print(dd: DataDictionary, statement: Tree) -> None:
     """
 **Print values, similar to AWK's print statement**
@@ -34,6 +35,7 @@ In this case, only the _arg.orgs_ is printed.
     print_stdout(*[eval_expr(dd, expr) for expr in statement.children], sep=sep, end=end)
     stdout().flush()
 
+@bound_ops("Printf")
 def execute_printf(dd: DataDictionary, statement: Tree) -> None:
     """
 **Print formatted values, similar to AWK's printf statement**

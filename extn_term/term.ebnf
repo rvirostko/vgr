@@ -9,7 +9,6 @@ term_statement: ("Terminal"i | "Term"i) term_cmd (_COMMA? term_cmd)* _SEMICOLON?
         | term_set_attr
         | term_draw_box
 
-
 term_cursor_cmd: ("CursorPos"i | "Pos"i | "cup"i) expr "," expr -> cup
         | ("GetCursorPos"i | "GetPos"i | "dsr_cursor"i) -> dsr_cursor
         | ("Line"i | "vpa"i) expr? -> vpa

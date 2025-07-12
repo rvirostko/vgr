@@ -271,7 +271,7 @@ ternary: expr "?" expr ":" expr -> c_ternary
     | or_expr (("&&" | "\u2227" | "And"i) or_expr)+ -> and_op // Unicode ∧ (conjunction)
 
 ?or_expr: expr2
-    | expr2 (("||" | "\u2228" | "Or"i ) expr2)+ -> or_op // Unicode ∨ (disjunction)
+    | expr2 (("||" | "\u2228" | "Or"i) expr2)+ -> or_op // Unicode ∨ (disjunction)
 
 // Flattening operations out here allows the parse tree to hold
 // the operation type explicitly instead of a generic "OP" where
@@ -288,21 +288,21 @@ ternary: expr "?" expr ":" expr -> c_ternary
     | expr2 ("*" | "\u00D7") expr2 -> mul_op // Unicode × (multiplication)
     | expr2 ("/" | "\u00F7") expr2 -> div_op // Unicode ÷ (division)
     | expr2 "//" expr2 -> fdiv_op
-    | expr2 ("%" | "Mod"i) expr2 -> mod_op
-    | expr2 ("**" | "Pow"i) expr2 -> pow_op
+    | expr2 "%" expr2 -> mod_op
+    | expr2 "**" expr2 -> pow_op
     | expr2 "&" expr2 -> bit_and_op
     | expr2 "|" expr2 -> bit_or_op
-    | expr2 ("^"  | "Xor"i) expr2 -> bit_xor_op
-    | expr2 ("<<" | "LShift"i) expr2 -> shl_op
-    | expr2 (">>" | "RShift"i) expr2 -> shr_op
+    | expr2 "^" expr2 -> bit_xor_op
+    | expr2 "<<" expr2 -> shl_op
+    | expr2 ">>" expr2 -> shr_op
     // Return bools, typically not "chained"
     // TODO does this mean the rhs can be an expression?
     | expr2 ("==" | "\u2175" | "Equals"i | "Is"i | "Is"i? "Equal"i "To"i) expr2 -> eq_op // Unicode ⩵ (two consecutive equals signs)
     | expr2 ("!=" | "\u2260" | "<>" | "\u00AC=" | "Is"i "Not"i | "Is"i? "Not"i "Equal"i "To"i ) expr2 -> neq_op // Unicode ≠ (not eq) and ¬ (not)
     | expr2 ("<" | "\uFF1C" | "Is"i? "Less"i "Than"i) expr2 -> lt_op // Unicode ＜ (fullwidth <)
     | expr2 (">" | "\uFF1E" | "Is"i? "Greater"i "Than"i) expr2 -> gt_op // Unicode ＞ (fullwidth >)
-    | expr2 ("<=" | "\u2264" | "\u00AC>" | "Is"? "Not"i "Greater"i "Than"i) expr2 -> le_op // Unicode ≤ (less than or equal to) and ¬ (not)
-    | expr2 (">=" | "\u2265" | "\u00AC<" | "Is"i? "Not"i "Less"i "Than"i) expr2 -> ge_op // Unicode ≥ (greater than or equal to) and ¬ (not)
+    | expr2 ("<=" | "\u2264" | "\u00AC>" | "!>" | "Is"? "Not"i "Greater"i "Than"i) expr2 -> le_op // Unicode ≤ (less than or equal to) and ¬ (not)
+    | expr2 (">=" | "\u2265" | "\u00AC<" | "!<" | "Is"i? "Not"i "Less"i "Than"i) expr2 -> ge_op // Unicode ≥ (greater than or equal to) and ¬ (not)
     | expr2 (("Is"i? "In"i) | "\u2208") expr2 -> in_op // Unicode ∈ (element of)
     | expr2 (("Is"i? "Not"i "In"i) | "\u2209") expr2 -> not_in_op // Unicode ∉ (not an element of)
     | expr2 "Contains"i "Any"i? expr2 -> contains_op
@@ -315,6 +315,7 @@ ternary: expr "?" expr ":" expr -> c_ternary
     // Misc operations
     | "\u2308" expr "\u2309" -> ceil_op  // Unicode ceiling ⌈ x ⌉
     | "\u230A" expr "\u230B" -> floor_op // Unicode floor ⌊ x ⌋
+    | "\u220F" _LPAREN expr (_COMMA? expr)* _RPAREN -> mul_op // Unicode ∏ (product)
     | expr2 SUPERSCRIPT_FLOAT -> pow_op
     // These are more fundemental objects
     | "[" (expr (_COMMA expr)*)? "]" -> array

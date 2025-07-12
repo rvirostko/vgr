@@ -1,7 +1,7 @@
 from functools import reduce
 from typing import Any, Callable
 
-from .common import dist_x, dist_y, str_to_number, X_None_Op, Y_None_Op, get_operation
+from .common import bound_ops, dist_x, dist_y, str_to_number, X_None_Op, Y_None_Op, get_operation
 
 def _str_num_op(op: Callable[[Any, Any], Any], x: str, y: Any) -> Any:
     """See if the string can be converted to a number before applying the operation"""
@@ -43,8 +43,13 @@ def _str_str_op(op: Callable[[Any, Any], Any], x: str, y: str) -> str:
     y_len = len(y_bytes)
     return ''.join(chr(op(ord(c), y_bytes[i % y_len])) for i, c in enumerate(x))
 
+@bound_ops("&")
 def poly_bit_and(x: Any, *args) -> Any:
-    """Polymorphic bitwise and function.
+    """
+**Bitwise And operation**
+
+* _x_ & _y_
+* _x_.BitAnd(_y_...)
 
 # TODO
 
@@ -56,8 +61,13 @@ def _bit_and(x: Any, y: Any) -> Any:
     operation = get_operation(x, y, bit_operations)
     return operation(_bit_and, x, y) if operation else x & y
 
+@bound_ops("|")
 def poly_bit_or(x: Any, *args) -> Any:
-    """Polymorphic bitwise or function.
+    """
+**Bitwise Or operation**
+
+* _x_ | _y_
+* _x_.BitOr(_y_...)
 
 # TODO
 
@@ -69,21 +79,29 @@ def _bit_or(x: Any, y: Any) -> Any:
     operation = get_operation(x, y, bit_or_operations, bit_operations)
     return operation(_bit_or, x, y) if operation else x | y
 
+@bound_ops("^")
 def poly_bit_xor(x: Any, *args) -> Any:
-    """Polymorphic bitwise xor function.
+    """
+**Bitwise exclusive Or (Xor) operation**
+
+* _x_ ^ _y_
+* _x_.BitXor(_y_...)
 
 # TODO
 
 TypeError raised on all other combinations
 """
-    return _bit_xor(x, poly_bit_or(0, args))
+    return reduce(_bit_xor, args, x)
 
 def _bit_xor(x: Any, y: Any) -> Any:
     operation = get_operation(x, y, bit_operations)
     return operation(_bit_xor, x, y) if operation else x ^ y
 
 def poly_bit_not(x: Any) -> Any:
-    """Polymorphic bitwise invert (negation) function.
+    """
+**Bitwise invert (negation) operation**
+
+* _x_.BitNot()
 
 # TODO
 

@@ -9,6 +9,7 @@ from lark import Tree
 from app_exceptions import VgrRuntimeError
 from data_dict import DataDictionary
 from evaluate import eval_expr, eval_to_int, var_name_path
+from mathpak import bound_ops
 from redir import print_stderr
 
 def _extract_list_all(statement: Tree, idx: int=0) -> tuple[int, bool]:
@@ -44,6 +45,7 @@ def _set_list_giving(dd: DataDictionary, path: tuple[str], value: Any, expr: Tre
     except Exception as e:
         raise VgrRuntimeError(expr, e) from e
 
+@bound_ops("Append")
 def execute_list_append(dd: DataDictionary, statement: Tree) -> None:
     idx, do_all = _extract_list_all(statement)
     idx, src = _eval_list_src(dd, statement, idx, do_all)
@@ -57,6 +59,7 @@ def execute_list_append(dd: DataDictionary, statement: Tree) -> None:
         if dd.verbose:
             print_stderr('List', '.'.join(path), 'unchanged')
 
+@bound_ops("Prepend")
 def execute_list_prepend(dd: DataDictionary, statement: Tree) -> None:
     idx, do_all = _extract_list_all(statement)
     idx, src = _eval_list_src(dd, statement, idx, do_all)
@@ -70,6 +73,7 @@ def execute_list_prepend(dd: DataDictionary, statement: Tree) -> None:
         if dd.verbose:
             print_stderr('List', '.'.join(path), 'unchanged')
 
+@bound_ops("Insert")
 def execute_list_insert(dd: DataDictionary, statement: Tree) -> None:
     idx, do_all = _extract_list_all(statement)
     idx, src = _eval_list_src(dd, statement, idx, do_all)
@@ -87,6 +91,7 @@ def execute_list_insert(dd: DataDictionary, statement: Tree) -> None:
         if dd.verbose:
             print_stderr('List', '.'.join(path), 'unchanged')
 
+# Combine doc with list_remove
 def execute_list_remove_first(dd: DataDictionary, statement: Tree) -> None:
     idx, path, dst = _eval_list_target(dd, statement, 0)
     gexpr, giving_path = _eval_list_giving(statement, idx)
@@ -103,6 +108,7 @@ def execute_list_remove_first(dd: DataDictionary, statement: Tree) -> None:
         if dd.verbose:
             print_stderr('List', '.'.join(path), 'unchanged')
 
+# Combine doc with list_remove
 def execute_list_remove_last(dd: DataDictionary, statement: Tree) -> None:
     idx, path, dst = _eval_list_target(dd, statement, 0)
     gexpr, giving_path = _eval_list_giving(statement, idx)
@@ -119,6 +125,7 @@ def execute_list_remove_last(dd: DataDictionary, statement: Tree) -> None:
         if dd.verbose:
             print_stderr('List', '.'.join(path), 'unchanged')
 
+@bound_ops("Remove")
 def execute_list_remove(dd: DataDictionary, statement: Tree) -> None:
     # While we allow "all" it does not change behavior
     idx, _do_all = _extract_list_all(statement)
@@ -159,6 +166,7 @@ def execute_list_remove(dd: DataDictionary, statement: Tree) -> None:
 #    expr - source
 #    list_giving?
 
+@bound_ops("Replace")
 def execute_list_replace(dd: DataDictionary, statement: Tree) -> None:
     idx, positions = _eval_and_advance(dd, statement, 0)
     idx, path, dst = _eval_list_target(dd, statement, idx)
