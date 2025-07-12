@@ -216,7 +216,7 @@ Changes made at runtime are not persistent.
         """Expands the Bash-like prompt sequences"""
         # replaces /<x> from _PROMPT_ESCAPES and handling //<x> to escape one
         # does not handle other backslash escaping or anything sophisticated
-        return re.sub(r'\.',
+        return re.sub(r'[\\](.)',
                     lambda match : self._PROMPT_ESCAPES.get(match.group(1), lambda : match.group(1))(),
                     self.prompt)
 
