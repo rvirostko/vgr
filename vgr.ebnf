@@ -38,6 +38,7 @@ SUPERSCRIPT_FLOAT: /⁽[⁺⁻]?[⁰¹²³⁴⁵⁶⁷⁸⁹]+(·[⁰¹²³⁴�
 // or a single subscripted digit (₀₁₂₃₄₅₆₇₈₉)
 NAME: /[A-Za-z_](?:[A-Za-z0-9_]|-+[A-Za-z])*(?:\u2032+|[\u2033\u2034\u2057\u2080-\u2089])?/
 
+opt_statements: statement*
 statements: statement+
 ?statement: simple_statement
     | select
@@ -341,5 +342,14 @@ _LONG_STRING: /[Rr]?(""".*?(?<!\\)(\\\\)*?"""|'''.*?(?<!\\)(\\\\)*?''')/s
 _MS_STRING: /[Rr]?(\u201C(?!"").*?(?<!\\)(\\\\)*?\u201D|\u2018(?!'').*?(?<!\\)(\\\\)*?\u2019)/
 STRING: _STRING | _LONG_STRING | _MS_STRING
 
+SH_COMMENT: /#[^\n]*/
+CPP_COMMENT: /\/\/[^\n]*/
+C_COMMENT: "/*" /(.|\n)*?/ "*/"
+SQL_COMMENT: /--[^\n]*/
+
 %import common.WS
 %ignore WS
+%ignore SH_COMMENT
+%ignore C_COMMENT
+%ignore CPP_COMMENT
+%ignore SQL_COMMENT

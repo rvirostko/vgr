@@ -306,7 +306,7 @@ def create_parser(dd: DataDictionary, grammar_file: str, extn_registry: VgrExten
                        ('{FUNCTIONS}', get_function_defs())):
         grammar = grammar.replace(tag, value)
     return Lark(grammar,
-                start='statements',
+                start='opt_statements',
                 lexer='contextual',
                 parser='lalr',
                 debug=True,

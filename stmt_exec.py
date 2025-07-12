@@ -416,18 +416,11 @@ def get_statement_entries() -> list:
                 entries[op] = (func, op.lower().replace(' ', ''), (func.__doc__ or '').lower())
     return entries
 
-
-def remove_comments(input_text: str) -> str:
-    """Removes comments but preserves lines for Lark metadata accuracy."""
-    # We do Hash, C-style, and SQL style
-    return re.sub(r'(^|;)[ \t]*(#|//|--).*$', r'\1', input_text, flags=re.MULTILINE)
-
 _parser_context: ContextVar = ContextVar('vgr_parser_context', default=None)
 
 def execute_statements(parser: Lark, dd: DataDictionary, statement_text: str, source: str) -> None:
     try:
         dd_push_source(dd, source)
-        statement_text = remove_comments(statement_text)
         if not statement_text or statement_text.isspace(): return
         _parser = _parser_context.get() if parser is None else parser
         remember_terminals(_parser)
