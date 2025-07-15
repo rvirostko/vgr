@@ -6,7 +6,9 @@ from enum import IntEnum, auto
 from functools import lru_cache, cached_property
 from typing import Any
 import base64
+import json
 import os
+import pathlib
 import re
 import shutil
 import sys
@@ -315,6 +317,8 @@ def add_dd_constants(dd: DataDictionary, prefix: str) -> None:
         _COLOR_NAME_MAP[_canonical_color_name(name)] = val
     dd.set_var(_DUMB_TERM, prefix, 'dumb_term')
     dd.set_var(_NO_COLOR, prefix, 'no_color')
+    dd.set_var(json.load(open(pathlib.Path(__file__).parent / "spinners.json", encoding="utf-8")), prefix, 'spinner')
+    dd.set_var('https://github.com/sindresorhus/cli-spinners/blob/main/spinners.json', prefix, "spinners_source")
 
 def _print(*args: Any) -> None:
     if not _DUMB_TERM:
