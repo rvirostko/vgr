@@ -22,6 +22,7 @@ from mathpak import poly_bool
 from output import expand_filename
 from redir import print_stderr
 from stmt_exec import STATEMENT_HANDLERS, get_statement_entries, execute_statements
+from version import __version__, __version_date__, __description__
 
 LOG = logging.getLogger()
 
@@ -151,6 +152,7 @@ For example `help Add` with return informtion for the `Add()` while
 * `multiline` : Turn on multiline editing mode
 * `prompt` : Define the input input prompt
 * `pwd` : Print the current working directory
+* `version` : Display version information
 
 """
         if len(args) < 1:
@@ -159,11 +161,15 @@ For example `help Add` with return informtion for the `Add()` while
             topic = args[0]
             targs = args[1:]
             q = (' '.join(targs) if targs else '').strip()
-            if is_probably("cd", topic):
+            if is_probably("version", topic) or topic in ("ver", "v"):
+                print()
+                print_md(f'**{__version__} {__version_date__}**')
+                print()
+            elif is_probably("cd", topic):
                 print_doc(self._exec_cd)
-            elif is_probably("help", topic) or is_probably("topics", topic):
+            elif is_probably("help", topic) or is_probably("topics", topic) or topic in ("?", "/h", "/?"):
                 print_doc(self._exec_help)
-            elif is_probably("pwd", topic):
+            elif is_probably("pwd", topic) :
                 print_doc(self._exec_pwd)
             elif is_probably("history", topic):
                 print_doc(self._exec_history)
@@ -336,11 +342,17 @@ def print_verbose(dd: DataDictionary, /, *args, **kwargs) -> None:
 
 def main():
     clp = argparse.ArgumentParser(
-        description='Generic Reporting for Hashicorp Vault - WIP',
-        epilog="""Statements added with --execute and statements loaded by --file
-are executed in the order they are given. Following that, statements are read from
-stdin if they are available. If no --execute and --file arguments are given, and
-stdin is interactive, the shell is started.
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        description=f'{__version__} {__version_date__}',
+        epilog="""Statements added with --execute and --file are executed in the order they are given.
+
+Following that, statements are read from stdin if they are available.
+
+If no --execute and --file arguments are given, and stdin is interactive, by default the shell is started. Using --shell false prevents the shell for opening.
+
+Additional arguments are added to the "arg" variable. Only simple data types can be set. Quotes are not required for strings.
+
+--verbose, --debug, and --echo control only the initial settings. Commands in --execute and --file arguments can still change them when running.
 
 Environment variables:
   - OFS/ORS - output field and record separators as defined by AWK
@@ -349,6 +361,7 @@ Environment variables:
   - VGR_HISTORY_SIZE - max number of lines stored in history
 """
     )
+    clp.add_argument('-v', '--version', action='version', version=f'{__version__} {__version_date__}')
     clp.add_argument('-e', '--execute', nargs='*', metavar='STATEMENTS', action=SaveOrderedSources,
                     help='Execute the given statements')
     clp.add_argument('-f', '--file', nargs='*', metavar='FILE', action=SaveOrderedSources,
@@ -370,7 +383,7 @@ Environment variables:
     clp.add_argument('--grammar',  metavar="FILE", type=str,
                     default=None, help='Grammar definition: developement option only')
     clp.add_argument('--extensions',  metavar="FILE", type=str,
-                    default=None, help='Extensions file')
+                    default=None, help='Extensions file: developement option only')
     clp.add_argument('user_args', nargs='*', metavar='NAME=VALUE',
                     default=[], help='Additional arguments. Values maybe booleans, numbers, or strings')
     args = clp.parse_args()

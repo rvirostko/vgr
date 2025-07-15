@@ -23,15 +23,19 @@ from lark import Tree
 from data_dict import DataDictionary
 from redir import shorten, print_stderr
 from mathpak import str_to_number, str_to_bool
+from version import __version__, __version_date__
 
 _VGR_PREFIX = 'vgr'
 _STATEMENT_PATH = (_VGR_PREFIX, 'statement')
-_TIME_PREFIX = 'time'
+_VER_PATH = (_VGR_PREFIX, 'version')
+_VER_DATE_PATH = (_VGR_PREFIX, 'version_date')
 LOG_LEVEL_PATH = (_VGR_PREFIX, 'log_level')
 SHELL_PROMPT_PATH = (_VGR_PREFIX, 'prompt')
 SHELL_HISTORY_PATH = (_VGR_PREFIX, 'history')
 SHELL_HISTORY_SIZE_PATH = (_VGR_PREFIX, 'history_size')
 SOURCE_STACK_PATH = (_VGR_PREFIX, 'source')
+
+_TIME_PREFIX = 'time'
 
 _SCRATCH_PREFIX = '_'
 ROWID_PATH = (_SCRATCH_PREFIX, 'rowid')
@@ -139,6 +143,8 @@ def dd_init() -> DataDictionary:
     dd = DataDictionary()
     dd.add_protected_prefix(_ARG_PREFIX)
     dd.add_immutable_prefix(_VGR_PREFIX)
+    dd.set_var(__version__, *_VER_PATH)
+    dd.set_var(__version_date__, *_VER_DATE_PATH)
     dd.set_var([], *SOURCE_STACK_PATH)
     dd.set_var({}, _SCRATCH_PREFIX)
     dd.add_protected_prefix(_SCRATCH_PREFIX)
