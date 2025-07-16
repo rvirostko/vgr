@@ -361,7 +361,3 @@ def eval_to_bool(dd: DataDictionary, expr: Tree, name: str, allow_none: bool=Fal
 def eval_filename_expr(dd: DataDictionary, expr: Tree, allow_none: bool=False) -> str:
     """Helper that gets a string that should be a relative filename"""
     return verify_relative_path(eval_to_str(dd, expr, 'File name', allow_none))
-
-def eval_to_list_str(dd: DataDictionary, clause: Tree, name: str) -> list[str]:
-    """Helper that returns a list of strings. No 'None's are allowed."""
-    return [eval_to_str(dd, expr, name) for expr in clause.children]
