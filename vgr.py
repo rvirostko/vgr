@@ -52,7 +52,7 @@ class VGRCmdLine(CmdLine):
 
     def execute_statements(self, text: str) -> bool:
         try:
-            execute_statements(self._parser, self._dd, text, '<shell>')
+            execute_statements(self._parser, self._dd, text.rstrip(), '<shell>')
         except exceptions.UnexpectedInput as e:
             if self.debug:
                 traceback.print_exc(file=sys.stderr)
