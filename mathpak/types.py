@@ -28,6 +28,8 @@ whitespace is removed.
 
 If it is a non-convertable type then _True_ is returned, as any
 non-_None_ value is consider _True_.
+
+Conversion is distributed over lists.
 """
     if x is None: return False
     if poly_isbool(x): return x
