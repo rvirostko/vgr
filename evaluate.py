@@ -311,7 +311,9 @@ def eval_expr(dd: DataDictionary, expr: Any) -> Any:
             except Exception as e:
                 raise VgrRuntimeError(expr, e) from e
         raise VgrRuntimeError(expr, NotImplementedError(f'Unhandled type {repr(expr.data)}')) #SNO
-    if isinstance(expr, Token): return expr.value
+    if isinstance(expr, Token):
+        # All tokens should be CONSTs so we don't want users mucking them up
+        return deepcopy(expr.value)
     raise VgrRuntimeError(expr, NotImplementedError(f'Unknown type {type_str(expr)}')) #SNO
 
 def eval_to_str(dd: DataDictionary, expr: Tree, name: str, allow_none: bool=False) -> str:
