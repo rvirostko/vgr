@@ -6,7 +6,6 @@ from typing import Any
 import ast
 import math
 import os
-import re
 
 from lark import Lark, Tree, Token, Transformer, v_args
 
@@ -28,6 +27,7 @@ from dd_config import (
     do_unset,
 )
 from evaluate import bind_operations, eval_expr, eval_filename_expr, var_name_path
+from functions import build_dict
 from mathpak import bound_ops, poly_true, poly_list, poly_int
 from redir import execute_open, execute_close, print_stderr, print_stdout
 from src_mgr import SSM
@@ -306,6 +306,34 @@ class ConstantsNormalizer(Transformer):
         '⁾': '',     # remove right paren
     })
 
+    @v_args(tree=True)
+    def array(self, tree: Tree):
+        items = tree.children
+        if not items:
+            meta = tree.meta
+            return Token('CONST', [], meta.start_pos, meta.line, meta.column,
+                         meta.end_line, meta.end_column, meta.end_pos)
+        if all(isinstance(child, Token) and child.type == "CONST" for child in items):
+            first, last = tree.children[0], tree.children[-1]
+            return Token('CONST', [child.value for child in items],
+                        first.start_pos, first.line, first.column,
+                        last.end_line, last.end_column, last.end_pos)
+        return tree
+
+    @v_args(tree=True)
+    def dict(self, tree: Tree):
+        items = tree.children
+        if not items:
+            meta = tree.meta
+            return Token('CONST', {}, meta.start_pos, meta.line, meta.column,
+                         meta.end_line, meta.end_column, meta.end_pos)
+        if all(isinstance(child, Token) and child.type == "CONST" for child in items):
+            first, last = tree.children[0], tree.children[-1]
+            return Token('CONST', build_dict(*[child.value for child in items]),
+                        first.start_pos, first.line, first.column,
+                        last.end_line, last.end_column, last.end_pos)
+        return tree
+
     def STRING(self, token):
         try:
             # Removes the quoting and interprets escape sequences
@@ -326,9 +354,7 @@ class ConstantsNormalizer(Transformer):
         val = float(token.value.translate(self.SUPERSCRIPT_TRANSLATION))
         return self._const_token(token, val if '·' in token.value else int(val))
     def _to_int(self, token, base: int): return self._const_token(token, int(token.value, base))
-    def _const_token(self, token, value: Any):
-        return Token('CONST', value, token.start_pos, token.line, token.column,
-                     token.end_line, token.end_column, token.end_pos)
+    def _const_token(self, token, value: Any): return Token.new_borrow_pos('CONST', value, token)
 
     def normalize_outer_quotes(self, s: str) -> str:
         """Fixes up typographic quotes from text pasted in from MS products like Word"""
