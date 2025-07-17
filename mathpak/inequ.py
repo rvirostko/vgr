@@ -53,6 +53,25 @@ performed between corresponding elements.
     override = _overrides.get((type(x), type(y)))
     return override(poly_eq, x, y) if override else x == y
 
+@bound_ops("===")
+def poly_exact_eq(x: Any, y: Any) -> bool:
+    """
+**Exact Equals comparison**
+
+* _x_ === _y_
+
+While similar to a regular equals comparison, it requires that
+types of the two values match. No conversion are performed.
+"""
+    # None is only equal to itself
+    if x is None: return y is None
+    if y is None: return False
+    tx = type(x)
+    ty = type(y)
+    if tx != ty: return False
+    override = _overrides.get((tx, ty))
+    return override(poly_exact_eq, x, y) if override else x == y
+
 @bound_ops("!=", "≠", "<>", "¬=", "Is Not", "Is Not Equal To")
 def poly_ne(x: Any, y: Any) -> bool:
     """

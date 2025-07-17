@@ -42,6 +42,7 @@ from .inequ import (
     poly_between,
     poly_clamp,
     poly_eq,
+    poly_exact_eq,
     poly_ge,
     poly_gt,
     poly_le,

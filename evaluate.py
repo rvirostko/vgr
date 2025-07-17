@@ -23,6 +23,7 @@ from mathpak import (
     poly_contains_any,
     poly_div,
     poly_eq,
+    poly_exact_eq,
     poly_false,
     poly_fdiv,
     poly_floor,
@@ -242,6 +243,7 @@ class OperationBinder(Transformer):
     # Comparisons of some type with two operands that return booleans
     def contains_op(self, tree): return SimpleOperation(tree, poly_contains_any)
     def contains_all_op(self, tree): return SimpleOperation(tree, poly_contains_all)
+    def exact_eq_op(self, tree): return SimpleOperation(tree, poly_exact_eq)
     def eq_op(self, tree): return SimpleOperation(tree, poly_eq)
     def ge_op(self, tree): return SimpleOperation(tree, poly_ge)
     def gt_op(self, tree): return SimpleOperation(tree, poly_gt)
