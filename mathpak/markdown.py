@@ -24,27 +24,51 @@ def _to_str(s):
     if s.isspace(): return _BLANK
     return s
 
+def _fmt(text: str, code: str) -> str:
+    return _BLANK if len(text) == 0 else f"{code}{text}{code}"
+
 def md_bold(text: Any) -> Any:
+    """
+**Format the text in Markdown as bold**
+
+* _value_.MdBold()
+"""
     if isinstance(text, (list, type)): return type(text)(md_bold(item) for item in text)
-    text = _to_str(text)
-    return _BLANK if len(text) == 0 else f"{_MD_BOLD}{text}{_MD_BOLD}"
+    return _fmt(_to_str(text), _MD_BOLD)
 
 def md_italics(text: Any) -> Any:
+    """
+**Format the text in Markdown as italics**
+
+* _value_.MdItalics()
+"""
     if isinstance(text, (list, type)): return type(text)(md_italics(item) for item in text)
-    text = _to_str(text)
-    return _BLANK if len(text) == 0 else f"{_MD_ITALICS}{text}{_MD_ITALICS}"
+    return _fmt(_to_str(text), _MD_ITALICS)
 
 def md_strikethrough(text: Any) -> Any:
+    """
+**Format the text in Markdown as strike-through**
+
+* _value_.MdStrikeThrough()
+"""
     if isinstance(text, (list, type)): return type(text)(md_strikethrough(item) for item in text)
-    text = _to_str(text)
-    return _BLANK if len(text) == 0 else f"{_MD_STRIKETHROUGH}{text}{_MD_STRIKETHROUGH}"
+    return _fmt(_to_str(text), _MD_STRIKETHROUGH)
 
 def md_code(text: Any) -> Any:
+    """
+**Format the text in Markdown as code**
+
+* _value_.MdCode()
+"""
     if isinstance(text, (list, type)): return type(text)(md_code(item) for item in text)
-    text = _to_str(text)
-    return _BLANK if len(text) == 0 else f"{_MD_CODE}{text}{_MD_CODE}"
+    return _fmt(_to_str(text), _MD_CODE)
 
 def md_link(text: Any, url: Any) -> Any:
+    """
+**Format the text in Markdown as a link**
+
+* _value_.MdLink(_url_)
+"""
     if isinstance(text, (list, tuple)) and isinstance(url, (list, tuple)):
         return _meld(md_link, text, url)
     text = _to_str(text)
@@ -52,6 +76,12 @@ def md_link(text: Any, url: Any) -> Any:
     return _BLANK if len(text) == 0 or len(url) == 0 else f"[{text}]({url})"
 
 def md_heading(text: Any, level: int=1) -> Any:
+    """
+**Format the text in Markdown as a heading**
+
+* _value_.MdHeading() _level_ _1_
+* _value_.MdHeading(_level_) _range_ _1_ _to_ _6_
+"""
     level = poly_int(level)
     # NB: Markdown only goes to 6, not 11
     level = 1 if level is None else max(1, min(level, 6))
@@ -60,6 +90,13 @@ def md_heading(text: Any, level: int=1) -> Any:
     return _BLANK if len(text) == 0 else f"{'#' * level} {text}\n"
 
 def md_blockquote(text: Any) -> Any:
+    """
+**Format the text in Markdown as a block quote**
+
+* _value_.MdBlockQuote()
+
+If _value_ is a list, each element in it is formatted as part of the block.
+"""
     if isinstance(text, (list, tuple)):
         if not text: return _BLANK
         return "\n".join([f"{_MD_BLOCK_QUOTE}{line}" for line in [poly_str(i) for i in text] if line is not None])
@@ -67,6 +104,13 @@ def md_blockquote(text: Any) -> Any:
     return _BLANK if len(text) == 0 else md_blockquote(text.splitlines())
 
 def md_unordered_list(text: Any) -> Any:
+    """
+**Format the text in Markdown as an unordered list item**
+
+* _value_.MdUnorderedList()
+
+If _value_ is a list, each element in it is formated as a list item.
+"""
     if isinstance(text, (list, tuple)):
         if not text: return _BLANK
         return "\n".join([f"- {item}" for item in [poly_str(i) for i in text] if item is not None])
@@ -74,6 +118,13 @@ def md_unordered_list(text: Any) -> Any:
     return _BLANK if len(text) == 0 else md_unordered_list(text.splitlines())
 
 def md_ordered_list(text: Any) -> Any:
+    """
+**Format the text in Markdown as an ordered list item**
+
+* _value_.MdOrderedList()
+
+If _value_ is a list, each element in it is formated as a list item.
+"""
     if isinstance(text, (list, tuple)):
         if not text: return _BLANK
         # Convert to strings, then filter out the nulls
@@ -85,6 +136,13 @@ def md_ordered_list(text: Any) -> Any:
     return _BLANK if len(text) == 0 else md_ordered_list(text.splitlines())
 
 def md_code_block(text: Any, lang: str=None) -> Any:
+    """
+**Format the text in Markdown as a code block**
+
+* _value_.MdCodeBlock()
+
+If _value_ is a list, each element in it is formatted as part of the block.
+"""
     lang = _to_str(lang)
     if isinstance(text, (list, tuple)):
         if not text: return _BLANK
