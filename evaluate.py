@@ -7,24 +7,23 @@ Functions to:
 from abc import ABC, abstractmethod
 from copy import deepcopy
 from typing import Any
-import copy
 
 from lark import v_args, Tree, Token, Transformer
 
 from app_exceptions import VgrRuntimeError
 from data_dict import DataDictionary
-from functions import get_function_op
+from functions import get_function_op, build_list, build_dict, logical_and, logical_or
 from mathpak import (
     poly_add,
     poly_bit_and,
     poly_bit_or,
     poly_bit_xor,
-    poly_bool,
     poly_ceil,
     poly_contains_all,
     poly_contains_any,
     poly_div,
     poly_eq,
+    poly_false,
     poly_fdiv,
     poly_floor,
     poly_ge,
@@ -42,12 +41,12 @@ from mathpak import (
     poly_not_imatches,
     poly_not_in,
     poly_not_matches,
-    poly_not,
     poly_number,
     poly_pow,
     poly_shl,
     poly_shr,
     poly_sub,
+    poly_true,
     type_str,
 )
 from output import verify_relative_path
@@ -114,40 +113,37 @@ class SetVarOperation(Operation):
     """
     def execute(self, dd: DataDictionary, args: list) -> Any:
         # <expr>.SetVar(<var_name>)
-        value = eval_expr(dd, args[0])
-        v2 = copy.deepcopy(value) if isinstance(value, (list, dict)) else value
-        dd.set_var_user(v2, *tuple(arg.value for arg in args[1].children))
-        return value
+        return dd.set_var_user(eval_expr(dd, args[0]), *tuple(arg.value for arg in args[1].children))
 
     def op_name(self) -> str:
         return 'set_var'
 
 class AndOperation(Operation):
-    """A short-circuiting And"""
 
     def execute(self, dd: DataDictionary, args: list) -> Any:
-        """Return False on the first expression that evaluates to False"""
-        for arg in args:
-            if not poly_bool(eval_expr(dd, arg)):
-                return False
-        return True
+        return logical_and(lambda arg: poly_true(eval_expr(dd, arg)), args)
 
     def op_name(self) -> str:
         return 'and'
 
 class OrOperation(Operation):
-    """A short-circuiting Or"""
 
     def execute(self, dd: DataDictionary, args: list) -> Any:
-        """Return True on the first expression that evaluates to True"""
-        for arg in args:
-            if poly_bool(eval_expr(dd, arg)):
-                return True
-        return False
+        return logical_or(lambda arg: poly_true(eval_expr(dd, arg)), args)
 
     def op_name(self) -> str:
         return 'or'
 
+class NotOperation(Operation):
+
+    def execute(self, dd: DataDictionary, args: list) -> Any:
+        # NB: grammar defines this as taking a single arg
+        return poly_false(eval_expr(dd, args[0]))
+
+    def op_name(self) -> str:
+        return 'not'
+
+# TODO needs to move for doc reasons...
 class Ternary(Operation):
     """
     Instance that handles the implemenation of ternary expressions.
@@ -169,22 +165,12 @@ class Ternary(Operation):
         Then depending upon the truth value, execute the "true" or
         "false" part and return the result.
         """
-        if poly_bool(eval_expr(dd, args[self._seq[0]])):
+        if poly_true(eval_expr(dd, args[self._seq[0]])):
             return eval_expr(dd, args[self._seq[1]])
         return eval_expr(dd, args[self._seq[2]])
 
     def op_name(self) -> str:
         return 'ternary' + repr(self._seq)
-
-def build_array(*values: Any) -> list[Any]:
-    """Builds an array from the collected values"""
-    return None if values is None else list(values)
-
-def build_dict(*values: Any) -> dict:
-    # Values is alternating pairs of key/values
-    # so we use a "stride" of two to form two groups
-    # and recombine into pairs using zip()
-    return None if values is None else dict(zip(values[::2], values[1::2]))
 
 def deref_var(data: Any, /, *path: str) -> Any:
     """
@@ -251,7 +237,7 @@ class OperationBinder(Transformer):
     # Fundemental boolean logic
     def and_op(self, tree): return AndOperation(tree)
     def or_op(self, tree): return OrOperation(tree)
-    def unary_not(self, tree): return SimpleOperation(tree, poly_not)
+    def unary_not(self, tree): return NotOperation(tree)
 
     # Comparisons of some type with two operands that return booleans
     def contains_op(self, tree): return SimpleOperation(tree, poly_contains_any)
@@ -288,12 +274,12 @@ class OperationBinder(Transformer):
     def ceil_op(self, tree): return SimpleOperation(tree, poly_ceil)
     def floor_op(self, tree): return SimpleOperation(tree, poly_floor)
 
-    # Ternary operations: indicies are for predicate, true-sise, false-side
+    # Ternary operations: indicies are for predicate, true-side, false-side
     def c_ternary(self, tree): return Ternary(tree, (0, 1, 2))
     def py_ternary(self, tree): return Ternary(tree, (1, 0, 2))
 
     # Other operations
-    def array(self, tree): return SimpleOperation(tree, build_array)
+    def array(self, tree): return SimpleOperation(tree, build_list)
     def dict(self, tree): return SimpleOperation(tree, build_dict)
     def deref(self, tree): return SimpleOperation(tree, deref_var)
     def function(self, tree): return SimpleOperation(tree, get_function_op(tree.children.pop(0).value))
@@ -356,7 +342,7 @@ def eval_to_bool(dd: DataDictionary, expr: Tree, name: str, allow_none: bool=Fal
     if rc is None and allow_none: return None
     if not isinstance(rc, (bool, int, float, str)):
         raise VgrRuntimeError(expr, TypeError(f'{name} must be an boolean; found {type_str(rc)}'))
-    return poly_bool(rc)
+    return poly_true(rc)
 
 def eval_filename_expr(dd: DataDictionary, expr: Tree, allow_none: bool=False) -> str:
     """Helper that gets a string that should be a relative filename"""

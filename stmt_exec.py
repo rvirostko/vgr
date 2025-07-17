@@ -28,7 +28,7 @@ from dd_config import (
     do_unset,
 )
 from evaluate import bind_operations, eval_expr, eval_filename_expr, var_name_path
-from mathpak import bound_ops, poly_bool, poly_list, poly_int
+from mathpak import bound_ops, poly_true, poly_list, poly_int
 from redir import execute_open, execute_close, print_stderr, print_stdout
 from src_mgr import SSM
 from stmt_cflags import execute_debug, execute_echo, execute_verbose
@@ -114,12 +114,13 @@ def execute_pass(_: DataDictionary, __: Tree) -> None:
 * NOP [;]
 * Pass [;]
 
-A placeholder for a statement, which takes no action and has no side effects."""
+A placeholder for a statement, which takes no action and has no side effects.
+"""
 
 def exec_if_else(dd: DataDictionary, statement: Tree, desired_value: bool) -> None:
     if dd.echo:
         print_stderr(SSM.source_for(statement, statement.children[1]))
-    if poly_bool(eval_expr(dd, bind_operations(statement.children[0]))) == desired_value:
+    if poly_true(eval_expr(dd, bind_operations(statement.children[0]))) == desired_value:
         for s in statement.children[1:]:
             if s.data != 'else':
                 dispatch_statement(dd, s)
@@ -167,7 +168,7 @@ def exec_loop(dd: DataDictionary, statement: Tree, desired_value: bool) -> None:
         print_stderr(SSM.source_for(statement, statement.children[1]))
     predicate = bind_operations(statement.children[0])
     while True:
-        if poly_bool(eval_expr(dd, predicate)) != desired_value: return
+        if poly_true(eval_expr(dd, predicate)) != desired_value: return
         try:
             for s in statement.children[1:]: dispatch_statement(dd, s)
         except VgrStatementBreak:
@@ -308,27 +309,25 @@ class ConstantsNormalizer(Transformer):
     def STRING(self, token):
         try:
             # Removes the quoting and interprets escape sequences
-            token.value = ast.literal_eval(self.normalize_outer_quotes(token.value))
-            return token
+            return self._const_token(token, ast.literal_eval(self.normalize_outer_quotes(token.value)))
         except SyntaxError as e:
             raise VgrRuntimeError(token, ValueError(str(e.msg).strip())) from e
-    def TRUE(self, token): return self._new_token(token, token.type, True)
-    def FALSE(self, token): return self._new_token(token, token.type, False)
-    def NONE(self, token): return self._new_token(token, 'NONE', None)
-    def INF(self, token): return self._new_token(token, 'FLOAT', math.inf)
-    def NAN(self, token): return self._new_token(token, 'FLOAT', math.nan)
+    def TRUE(self, token): return self._const_token(token, True)
+    def FALSE(self, token): return self._const_token(token, False)
+    def NONE(self, token): return self._const_token(token, None)
+    def INF(self, token): return self._const_token(token, math.inf)
+    def NAN(self, token): return self._const_token(token, math.nan)
     def DEC_NUMBER(self, token): return self._to_int(token, 10)
     def HEX_NUMBER(self, token): return self._to_int(token, 16)
     def OCT_NUMBER(self, token): return self._to_int(token, 8)
     def BIN_NUMBER(self, token): return self._to_int(token, 2)
-    def FLOAT_NUMBER(self, token): return self._new_token(token, 'FLOAT', float(token.value))
+    def FLOAT_NUMBER(self, token): return self._const_token(token, float(token.value))
     def SUPERSCRIPT_FLOAT(self, token):
         val = float(token.value.translate(self.SUPERSCRIPT_TRANSLATION))
-        is_float = '·' in token.value
-        return self._new_token(token, 'FLOAT' if is_float else 'INT', val if is_float else int(val))
-    def _to_int(self, token, base: int): return self._new_token(token, 'INT', int(token.value, base))
-    def _new_token(self, token, new_type: str, value: Any):
-        return Token(new_type, value, token.start_pos, token.line, token.column,
+        return self._const_token(token, val if '·' in token.value else int(val))
+    def _to_int(self, token, base: int): return self._const_token(token, int(token.value, base))
+    def _const_token(self, token, value: Any):
+        return Token('CONST', value, token.start_pos, token.line, token.column,
                      token.end_line, token.end_column, token.end_pos)
 
     def normalize_outer_quotes(self, s: str) -> str:

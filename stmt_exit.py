@@ -9,7 +9,7 @@ from lark import Tree
 from app_exceptions import VgrExitingException
 from data_dict import DataDictionary
 from evaluate import eval_expr, eval_to_str
-from mathpak import bound_ops, poly_bool, poly_int
+from mathpak import bound_ops, poly_true, poly_int
 from redir import print_stderr
 from src_mgr import SSM
 
@@ -36,7 +36,7 @@ Note that in this specific case "True" returns zero and "False" returns one.
             try:
                 rc = poly_int(x)
             except ValueError:
-                rc = VgrExitingException.EXIT_SUCCESS if poly_bool(x) else VgrExitingException.EXIT_FAILED
+                rc = VgrExitingException.EXIT_SUCCESS if poly_true(x) else VgrExitingException.EXIT_FAILED
             msg = f'Exiting with rc = {rc}'
     _LOG.info('%s', msg)
     raise VgrExitingException(rc, statement, msg)
@@ -60,7 +60,7 @@ If no message is given the the failing expression is used as the message
 Execution ends with an exit code of 1 indicating failure
 """
     exprs = [*statement.children]
-    v: bool = poly_bool(eval_expr(dd, exprs.pop(0))) if len(exprs) else False
+    v: bool = poly_true(eval_expr(dd, exprs.pop(0))) if len(exprs) else False
     if not v:
         msg: str = None
         if len(exprs) > 0:

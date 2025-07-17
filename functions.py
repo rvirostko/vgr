@@ -6,13 +6,14 @@ It also generates the grammar fragments used to identify the functions.
 from collections import defaultdict
 from collections.abc import Sequence, Iterable
 from functools import lru_cache
-from itertools import zip_longest
+from itertools import chain, zip_longest
 from typing import Any, Callable
 import inspect
 import re
 
 from mathpak import (
     base_name,
+    bound_ops,
     compile_pattern,
     dir_name,
     encode_url,
@@ -64,6 +65,7 @@ from mathpak import (
     poly_endswith,
     poly_eq,
     poly_expandtabs,
+    poly_false,
     poly_fdiv,
     poly_find,
     poly_firstitem,
@@ -168,6 +170,7 @@ from mathpak import (
     poly_swapcase,
     poly_title,
     poly_translate,
+    poly_true,
     poly_trunc,
     poly_type,
     poly_unique,
@@ -307,7 +310,7 @@ A value is considered empty if:
 """
     if isinstance(x, (list, tuple, dict)): return len(x) > 0
     if isinstance(x, str): return len(x) > 0 and not x.isspace()
-    if isinstance(x, (int, float)): return x != 0
+    if isinstance(x, (int, float)): return bool(x)
     return x is not None
 
 def _length(x: Any) -> bool:
@@ -342,6 +345,67 @@ The values for _plural_ and _signular_ can be any any values.
     else:
         is_one = hasattr(x, "__len__") and len(x) == 1
     return singular if is_one else plural
+
+@bound_ops("[...]", "list")
+def build_list(*values: Any) -> list[Any]:
+    """
+**Create a list from the collected values**
+
+* **[** **]** _an_ _empty_ _list_
+* **[** _expression_ [, _expression_]... **]** _an_ _initialized_ _list_
+
+Lists can contain any type including _None_, other lists, and dictionaries.
+"""
+    return [] if values is None else list(values)
+
+@bound_ops("{...}", "dictionary", "dict")
+def build_dict(*values: Any) -> dict:
+    """
+**Create a dictionary from the collected values**
+
+* **{** **}** _an_ _empty_ _dictionary_
+* **{** _key_ **:** _value_ [, _key_ **:** _value_]... **}** _an_ _initialized_ _dictionary_
+
+Keys can be any ordinal type: int, float, string. _None_ cannot be a key.
+
+Values can be any type including _None_, other lists, and dictionaries.
+"""
+    # Values is alternating pairs of key/values
+    # so we use a "stride" of two to form two groups
+    # and recombine into pairs using zip()
+    return None if values is None else dict(zip(values[::2], values[1::2]))
+
+@bound_ops("||", "Or", "∨")
+def logical_or(eval_arg, args: list) -> Any:
+    """
+**Logical Or operation**
+
+* _x_ || _y_
+* _x_ Or _y_
+* _x_ ∨ _y_
+
+The values for _x_ and _y_  are evaluated as booleans.
+"""
+    # NOTE! args is from the parse tree,
+    #       not the evaluated expressions
+    for arg in args:
+        if eval_arg(arg): return True
+    return False
+
+@bound_ops("&&", "And", "∧")
+def logical_and(eval_arg, args: list) -> Any:
+    """
+**Logical And operation**
+
+* _x_ && _y_
+* _x_ And _y_
+* _x_ ∧ _y_
+
+The values for _x_ and _y_  are evaluated as booleans.
+"""
+    for arg in args:
+        if not eval_arg(arg): return False
+    return True
 
 _BUILT_IN_FUNCS = {
 # TODO make into operators...
@@ -412,6 +476,7 @@ _BUILT_IN_FUNCS = {
     "IsDirectory":    is_dir,
     "IsEmpty":        _is_empty,
     "IsEqualTo":      poly_eq,
+    "IsFalse":        poly_false,
     "IsFile":         is_file,
     "IsFinite":       poly_isfinite,
     "IsFloat":        poly_isfloat,
@@ -430,6 +495,7 @@ _BUILT_IN_FUNCS = {
     "IsSpace":        poly_isspace,
     "IsStr":          poly_isstr,
     "IsTitle":        poly_istitle,
+    "IsTrue":         poly_true,
     "IsUpper":        poly_isupper,
     "IsZero":         poly_iszero,
     "Item":           poly_getitem,
@@ -466,6 +532,7 @@ _BUILT_IN_FUNCS = {
     "Mul":            poly_mul,
     "MultiMode":      poly_multimode,
     "Negate":         _negate,
+    "Not":            poly_false,
     "NotEmpty":       _not_empty,
     "NotEqualTo":     poly_ne,
     "NotGreaterThan": poly_le,
@@ -562,10 +629,13 @@ def get_function_entries():
         name: (func, name.lower().replace('_', ''), (func.__doc__ or '').lower()) for name, func in _FUNC_OPS.items()
     }
 
+# TODO - Need to add "special" things like and or and not
+_OTHER_OPS = [build_dict, build_list, logical_or]
+
 @lru_cache
 def get_operator_entries():
     entries = {}
-    for _, func in _FUNC_OPS.items():
+    for func in chain(_FUNC_OPS.values(), _OTHER_OPS):
         # See mathpak/common for the bound_ops decorator
         if hasattr(func, 'bound_ops'):
             for op in func.bound_ops:

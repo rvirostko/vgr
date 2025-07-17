@@ -5,46 +5,33 @@ Boolean logic functions
 from typing import Any
 
 from .common import bound_ops
-from .types import poly_bool
 
-@bound_ops("&&", "And", "∧")
-def poly_and(x: Any, y: Any) -> Any:
+def poly_true(x: Any) -> bool:
     """
-**Logical And operation**
+**Check for logical True**
 
-* _x_ && _y_
-* _x_ And _y_
-* _x_ ∧ _y_
+* _value_.IsTrue()
 
-The values for _x_ and _y_  are evaluated as booleans:
-see ToBool() for conversion details.
+Numbers are evaluated as _False_ for zero and True for non-zero.
+All non-_None_ values are consider _True_.
 """
-    return poly_bool(x) and poly_bool(y)
-
-@bound_ops("||", "Or", "∨")
-def poly_or(x: Any, y: Any) -> Any:
-    """
-**Logical Or operation**
-
-* _x_ || _y_
-* _x_ Or _y_
-* _x_ ∨ _y_
-
-The values for _x_ and _y_  are evaluated as booleans:
-see _ToBool()_ for conversion details.
-"""
-    return poly_bool(x) or poly_bool(y)
+    if x is None: return False
+    if isinstance(x, (int, float)): return bool(x)
+    return True
 
 @bound_ops("!", "！", "¬")
-def poly_not(x: Any) -> Any:
+def poly_false(x: Any) -> bool:
     """
 **Logical Negation (Not) operation**
 
 * ! _x_
 * ！_x_
 * ¬ _x_
+* _value_.IsFalse()
 
-The value of _x_ is evaluated as a boolean:
-see _ToBool()_ for conversion details.
+Numbers are evaluated as _False_ for zero and _True_ for non-zero.
+All non-_None_ values are consider _True_.
 """
-    return not poly_bool(x)
+    if x is None: return True
+    if isinstance(x, (int, float)): return not bool(x)
+    return False

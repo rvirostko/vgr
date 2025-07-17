@@ -50,7 +50,7 @@ from .inequ import (
 )
 from .is_in import poly_in, poly_not_in, poly_contains_all, poly_contains_any
 from .json_funcs import format_json, parse_json, strip_nulls, to_json, to_json_string
-from .logic import poly_and, poly_not, poly_or
+from .logic import poly_true, poly_false
 from .lookup import poly_lookup
 from .markdown import (
     md_blockquote,

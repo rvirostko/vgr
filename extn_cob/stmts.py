@@ -12,7 +12,7 @@ from app_exceptions import VgrExitingException, VgrStatementBreak, VgrStatementC
 from data_dict import DataDictionary
 from dd_config import do_set, do_assignment, do_unset
 from evaluate import eval_expr, bind_operations, eval_to_number, var_name_path
-from mathpak import bound_ops, poly_add, poly_bool, poly_sub, poly_number, poly_mul, poly_div
+from mathpak import bound_ops, poly_add, poly_true, poly_sub, poly_number, poly_mul, poly_div
 from redir import print_stderr, print_stdout
 from src_mgr import SSM
 from stmt_exec import exec_if_else, exec_loop, exec_repeat, dispatch_statement
@@ -149,7 +149,7 @@ If not specified, the test expression is performed before the block of statement
     try:
         while True:
             do_set(dd, value, *path)
-            if test_before and poly_bool(eval_expr(dd, predicate)): return
+            if test_before and poly_true(eval_expr(dd, predicate)): return
             try:
                 for s in statement.children[cindex:]: dispatch_statement(dd, s)
             except VgrStatementBreak:
@@ -157,7 +157,7 @@ If not specified, the test expression is performed before the block of statement
             except VgrStatementContinue:
                 pass
             value += inc
-            if not test_before and poly_bool(eval_expr(dd, predicate)): return
+            if not test_before and poly_true(eval_expr(dd, predicate)): return
     finally:
         do_unset(dd, *path)
 

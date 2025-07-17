@@ -12,7 +12,7 @@ from data_xtract import QueryFilter, InfoOutput, DataExtractor, EndExtractExcept
 from dbg import print_tree
 from dd_config import DEFAULT_FOR_TYPE_PATH, ROWID_PATH, dd_clear_scratch
 from evaluate import bind_operations, eval_expr, eval_to_bool, eval_to_int, eval_to_str, eval_filename_expr
-from mathpak import poly_bool, bound_ops
+from mathpak import poly_false, bound_ops
 from output import CSVRecordWriter, JSONRecordWriter, MarkdownRecordWriter, TemplateRecordWriter, TextRecordWriter
 from output import RecordWriter, RecordLimiter, RecordCartesianProduct
 from redir import stdout, stderr, print_stderr
@@ -460,7 +460,7 @@ class QueryRunner(QueryFilter, InfoOutput):
         predicates = self._select.predicates
         if predicates:
             for predicate in predicates:
-                if not poly_bool(eval_expr(self._dd, predicate)): return False
+                if poly_false(eval_expr(self._dd, predicate)): return False
         record: list = None
         outputs = self._select.output_statements
         if outputs:
