@@ -6,10 +6,11 @@ import copy
 
 from lark import Tree, Visitor
 
+from app_exceptions import VgrRuntimeError
 from data_dict import DataDictionary
 from dd_config import do_set
-from evaluate import eval_filename_expr, bind_operations
-from mathpak import poly_sort, dsort, bound_ops
+from evaluate import eval_expr_or_const, eval_filename_expr, bind_operations
+from mathpak import poly_sort, dsort, bound_ops, type_str
 from output import CSVRecordWriter, JSONRecordWriter, TextRecordWriter
 from redir import print_stderr
 from stmt_set import load_file_as, load_data_type
@@ -86,7 +87,7 @@ class SortAnalyzer(Visitor):
         ...on ascending key id_num...
         ...on descending key id_num...
         """
-        self._source[_SORT_COLS].append(node.children[-1].value)
+        self._source[_SORT_COLS].append(self._get_key("Sort key", node.children[-1]))
         self._source[_SORT_FLAGS].append(node.children[0].data == 'sort_asc' if len(node.children) == 2 else True)
 
     def unique(self, node: Tree):
@@ -96,10 +97,19 @@ class SortAnalyzer(Visitor):
         """
         self._target[_UNIQUE] = True
         if len(node.children) > 0:
-            self._target[_UNIQUE_COLS] = [name.value for name in node.children]
+            self._target[_UNIQUE_COLS] = [self._get_key("Uniqueness key", child) for child in node.children]
 
-    def _ref_to_name(self, var_ref: Tree) -> str:
-        return '.'.join(name.value for name in var_ref.children)
+    def _get_key(self, name: str, arg) -> str:
+        """
+        **Reads in a key name**
+
+        The key can be a simple unquoted name _if_ it is undefined in the data dictionary.
+        The key can be an expression, in which case it must be a string.
+        While underlying code also supports a variable reference, the grammar does not support this.
+        """
+        rc = eval_expr_or_const(self._dd, arg)
+        if rc is None or isinstance(rc, (str, int, float)): return rc
+        raise VgrRuntimeError(arg, TypeError(f'{name} must be a simple type; found {type_str(rc)}'))
 
     def _store_io(self, node: Tree, io: dict) -> None:
         """
@@ -160,7 +170,8 @@ def _read_data(dd: DataDictionary, source: dict) -> list:
                 if dd.verbose: print_stderr(f'Extraneous Sort ordering ignored: {repr(sort_cols[1:])}')
             source[_FIELDS] = source[_SORT_COLS] = ['line']
         else:
-            source[_FIELDS] = sorted(data[0].keys())
+            # while unlikely (maybe?) we need to support non-string ordinals as keys
+            source[_FIELDS] = sorted(data[0].keys(), key=lambda x: '' if x is None else str(x))
     else:
         # TODO encoding
         # defaults to utf-8-sig
