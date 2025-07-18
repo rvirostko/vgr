@@ -159,14 +159,14 @@ sort: "Sort"i sort_source sort_keys? unique_clause? sort_target? _SEMICOLON?
 sort_source: sort_obj -> source
 sort_target: ("Into"i | "Giving"i) sort_obj -> target
 ?sort_obj: sort_file | sort_var
-sort_file: "File"i? expr ("As"i? load_source_type)? -> file
-sort_var: ("Variable"i | "Var"i) var_name -> var
+sort_file: "File"i expr ("As"i? load_source_type)? -> file
+sort_var: ("Variable"i | "Var"i)? var_name -> var
 sort_keys: ("On"i | "By"i) sort_key (_COMMA sort_key)* -> keys
-sort_key: sort_dir? "Key"i? NAME -> key
+sort_key: sort_dir? "Key"i? expr -> key
 ?sort_dir: sort_asc | sort_des
 sort_asc: "Ascending"i | "Asc"i -> asc
 sort_des: "Descending"i | "Des"i -> des
-unique_clause: "Unique"i ("On"i NAME (_COMMA NAME)*)? -> unique
+unique_clause: "Unique"i ("On"i expr (_COMMA expr)*)? -> unique
 
 list_append: "Append"i list_all? expr "To"i "List"i? var_name _SEMICOLON?
 list_prepend: "Prepend"i list_all? expr "To"i "List"i? var_name _SEMICOLON?
