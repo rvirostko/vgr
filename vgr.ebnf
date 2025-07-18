@@ -183,11 +183,12 @@ select: "Select"i outputs? from_clause where_clause? product_clause? limit_claus
 ?outputs: output (_COMMA output)* _COMMA?
 
 output: expr
-    | expr "As"i (NAME | STRING) -> output_as
+    | expr "As"i expr -> output_as
 
 ?from_clause: "From"i (var_from | file_from {EXTN_FROM})
-var_from: ("Variable"i | "Var"i)? var_name ("As"i NAME)?
-file_from: "File"i expr load_source_type? ("As"i NAME)?
+var_from: ("Variable"i | "Var"i)? var_name ("As"i expr)?
+file_from: "File"i expr ("As"i expr)?
+    | "File"i expr load_source_type ("As"i expr)? -> file_from_typed
 
 where_clause: "Where"i expr (_COMMA expr)*
 

@@ -4,16 +4,32 @@ TODO
 
 from typing import Any
 from copy import deepcopy
+import re
 
 from lark import Tree, Token, Transformer, Visitor, v_args
 
+from app_exceptions import VgrRuntimeError
 from data_dict import DataDictionary
 from data_xtract import QueryFilter, InfoOutput, DataExtractor, EndExtractException
 from dbg import print_tree
 from dd_config import DEFAULT_FOR_TYPE_PATH, ROWID_PATH, dd_clear_scratch
-from evaluate import bind_operations, eval_expr, eval_to_bool, eval_to_int, eval_to_str, eval_filename_expr
-from mathpak import poly_false, bound_ops
-from output import CSVRecordWriter, JSONRecordWriter, MarkdownRecordWriter, TemplateRecordWriter, TextRecordWriter
+from evaluate import (
+    bind_operations,
+    eval_expr_or_const,
+    eval_expr,
+    eval_filename_expr,
+    eval_to_bool,
+    eval_to_int,
+    eval_to_str,
+)
+from mathpak import poly_false, bound_ops, type_str
+from output import (
+    CSVRecordWriter,
+    JSONRecordWriter,
+    MarkdownRecordWriter,
+    TemplateRecordWriter,
+    TextRecordWriter,
+)
 from output import RecordWriter, RecordLimiter, RecordCartesianProduct
 from redir import stdout, stderr, print_stderr
 from stmt_set import load_data_type, load_file_as
@@ -22,6 +38,9 @@ from xtract_memory import InMemoryExtractor
 from xtract_vault import VAULT_TARGETS, VaultDataExtractor
 
 class SelectAnalyzer(Visitor):
+
+    # NB: Need to keep in sync with grammar
+    _VAR_NAME = re.compile(r'[A-Za-z_](?:[A-Za-z0-9_]|-+[A-Za-z])*(?:\u2032+|[\u2033\u2034\u2057\u2080-\u2089])?')
 
     _DEFAUL_TARGET_NAME = '_record'
 
@@ -147,17 +166,39 @@ class SelectAnalyzer(Visitor):
     def output(self, node: Tree):
         """
         ... <expr> ...
-        Makes a default column name
+        A column with a default name
         """
         # NB: do not bind
         expr = node.children[0]
         self.output_statements.append(expr)
         self._headers.append(self.get_default_col_name(expr))
 
+    def output_as(self, node: Tree):
+        """
+        ... <expr> AS <expr> ...
+        Column is explicity named
+        """
+        # NB: do not bind
+        self.output_statements.append(node.children[0])
+        # If it is an output_as, it will have two children:
+        # The second child is the "as"
+        # NB: if blank, it will get a default later
+        #     Also note that we don't trim string values
+        #     as spaces are legal in dictionaries and csv files
+        as_node = node.children[1]
+        as_value = eval_expr_or_const(self._dd, bind_operations(as_node))
+        if as_value is None or isinstance(as_value, (str, int, float)):
+            # Although we allow None, we treat it as an empty entry
+            self._headers.append('' if as_value is None else as_value)
+        else:
+            raise VgrRuntimeError(as_node, TypeError(f"Value for 'As' must be a simple type; found {type_str(as_value)}"))
+
     @classmethod
     def get_default_col_name(cls, node: Tree) -> str:
-        # If they have some type of constant, we'll use it
-        if isinstance(node, Token): return str(node.value).strip()
+        # If they have some type of constant, we'll use it if it is a simple type
+        if isinstance(node, Token):
+            value = node.value
+            return str(value).strip() if isinstance(value, (str, int, float)) else ''
         if isinstance(node, Tree):
             # For variable names, we just make that into a string
             if node.data == 'var_ref': return '.'.join(name.value for name in node.children)
@@ -184,45 +225,42 @@ class SelectAnalyzer(Visitor):
             rc.append(name)
         return rc
 
-    def output_as(self, node: Tree):
-        """
-        ... <expr> AS [name|string] ...
-        Column is explicity named
-        """
-        # NB: do not bind
-        self.output_statements.append(node.children[0])
-        # If it is an output_as, it will have two children:
-        # The second child will be either a NAME or a STRING,
-        # but all we need is its value regardless of type
-        # NB: if blank, it will get a default later
-        self._headers.append(node.children[1].value.strip())
-
     def var_from(self, node: Tree):
         """... From Var <name> [As <target>] ..."""
         node = bind_operations(node)
         self.from_opts['type'] = 'memory'
         self.from_opts['var'] = tuple(name.value for name in node.children[0].children)
-        self.from_opts['target'] = node.children[1].value if len(node.children) > 1 else self._DEFAUL_TARGET_NAME
+        self.from_opts['target'] = self._get_target_name(node.children[1]) if len(node.children) > 1 else self._DEFAUL_TARGET_NAME
 
     def file_from(self, node: Tree):
-        """... From File <filename> <opt>? [As <target>] ..."""
+        """... From File <filename> [As <target>] ..."""
         node = bind_operations(node)
         self.from_opts['type'] = 'memory'
         filename = eval_filename_expr(self._dd, bind_operations(node.children[0]))
         self.from_opts['file'] = filename
-        target_node = None
-        opt_node = None
-        c = len(node.children)
-        if c == 2:
-            if isinstance(node.children[1], Token):
-                target_node = node.children[1]
-            else:
-               opt_node = node.children[1]
-        elif c == 3:
-            opt_node = node.children[1]
-            target_node = node.children[2]
-        self.from_opts['dtype'] = load_data_type(filename, opt_node)
-        self.from_opts['target'] = target_node.value if target_node else self._DEFAUL_TARGET_NAME
+        self.from_opts['dtype'] = load_data_type(filename, None)
+        self.from_opts['target'] = self._get_target_name(node.children[1]) if len(node.children) > 1 else self._DEFAUL_TARGET_NAME
+
+    def file_from_typed(self, node: Tree):
+        """... From File <filename> <source_type> [As <target>] ..."""
+        node = bind_operations(node)
+        self.from_opts['type'] = 'memory'
+        filename = eval_filename_expr(self._dd, bind_operations(node.children[0]))
+        self.from_opts['file'] = filename
+        self.from_opts['dtype'] = load_data_type(filename, node.children[1])
+        self.from_opts['target'] = self._get_target_name(node.children[2]) if len(node.children) > 2 else self._DEFAUL_TARGET_NAME
+
+    def _get_target_name(self, node: Tree) -> str:
+        target = eval_expr_or_const(self._dd, bind_operations(node))
+        if target is None: return self._DEFAUL_TARGET_NAME
+        if not isinstance(target, str): raise VgrRuntimeError(node, TypeError(f"Value for 'As' must be a string; found {type_str(target)}"))
+        target = target.strip()
+        if self._VAR_NAME.fullmatch(target) is None: raise VgrRuntimeError(node, TypeError(f"Value for 'As' must be a valid simple variable name; {repr(target)}"))
+        try:
+            self._dd.validate_user_set_path(target)
+            return target
+        except ValueError as e:
+            raise VgrRuntimeError(node, e) from e
 
     def from_vault(self, node: Tree):
         """... From [Vault] <vault-target> ..."""
@@ -467,7 +505,7 @@ class QueryRunner(QueryFilter, InfoOutput):
             record = [ eval_expr(self._dd, expr) for expr in outputs ]
         else:
             # Result of a "Select From ..." so your output is
-            # the entirity of the target data.
+            # the entirty of the target data.
             # NB: The JSON writer has special handling for this
             record = [ data ]
         try:
@@ -523,8 +561,11 @@ def create_extractor(dd: DataDictionary, opts: dict) -> DataExtractor:
         filename = opts.get('file', None)
         if filename:
             # TODO need input encoding opt, default to usf-8-sig
-            with open(filename, 'r', encoding='utf-8-sig') as f:
-                data, _ = load_file_as(f, opts['dtype'])
+            try:
+                with open(filename, 'r', encoding='utf-8-sig') as f:
+                    data, _ = load_file_as(f, opts['dtype'])
+            except Exception as e:
+                raise ValueError(f'While reading {repr(filename)}: {str(e)}') from e
             if not isinstance(data, list):
                 data = [data] if isinstance(data, dict) else [{'value' : data}]
             if dd.verbose: print_stderr(dd, 'Read', len(data), 'Records ' if len(data) != 1 else 'Record', 'From', filename)
