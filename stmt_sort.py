@@ -175,10 +175,13 @@ def _read_data(dd: DataDictionary, source: dict) -> list:
     else:
         # TODO encoding
         # defaults to utf-8-sig
-        with open(source[_FILE], 'r', encoding='utf-8-sig') as f:
-            data, fields = load_file_as(f, source[_DTYPE])
-        source[_FIELDS] = fields
-        data = data if isinstance(data, (list, tuple)) else [] if data is None else [data]
+        try:
+            with open(source[_FILE], 'r', encoding='utf-8-sig') as f:
+                data, fields = load_file_as(f, source[_DTYPE])
+            source[_FIELDS] = fields
+            data = data if isinstance(data, (list, tuple)) else [] if data is None else [data]
+        except Exception as e:
+            raise ValueError(f'While reading {repr(source[_FILE])}: {str(e)}') from e
     # The "on" keys must all be known in our fields
     _validate_subset(source[_SORT_COLS], source[_FIELDS])
     # We put our sort fields in the first cols of output
