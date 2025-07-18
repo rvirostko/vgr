@@ -159,11 +159,8 @@ def _check_keys(keys: list[str], name: str):
     if not isinstance(keys, (list, tuple)):
         raise TypeError(f'For {name} expected list, found {type_str(keys)}')
     for i, s in enumerate(keys):
-        if not isinstance(s, str):
-            raise TypeError(f'{name}[{i}]: expected string, found {type_str(s)}')
-        s = s.strip()
-        if not s:
-            raise ValueError(f'{name}[{i}]: expected string, found blank')
+        if s is None or isinstance(s, (str, int, float)): continue
+        raise TypeError(f'{name}[{i}]: expected simple type, found {type_str(s)}')
     return keys
 
 def _check_sort_dir(lst: list[bool]) -> list[bool]:
