@@ -103,14 +103,14 @@ class TemplateRecordWriter(FileRecordWriter):
 {%- endfor -%}
 {%- set ns.fmt = (ns.fmt | trim) ~ " " ~ box.V -%}
 {%- set ns.bar = box.H * (ns.col_widths | max) -%}
-{%- set divider = record_keys | map("truncate", 0, True, "", 0) | map("replace", "", ns.bar) | list -%}
+{%- set divider = record_keys | map("string") | map("truncate", 0, True, "", 0) | map("replace", "", ns.bar) | list -%}
 {%- set ns.bar = ns.fmt.format(*divider) | replace(" ", box.H) -%}
 {%- set st = box.V ~ box.H -%}
 {%- set md = box.H ~ box.V ~ box.H -%}
 {%- set ed = box.H ~ box.V  -%}
 {{ ns.bar | replace(md, box.H ~ box.T ~ box.H) | replace(st, box.DR ~ box.H) | replace(ed, box.H ~ box.DL) }}
 {%- if include_headers %}
-{{ ns.fmt.format(*record_keys) }}
+{{ ns.fmt.format(*record_keys | map("string")) }}
 {{ ns.bar | replace(md, box.H ~ box.X ~ box.H) | replace(st, box.L ~ box.H) | replace(ed, box.H ~ box.R) }}
 {%- endif %}
 {% for row in record_data -%}
