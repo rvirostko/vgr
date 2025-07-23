@@ -250,7 +250,7 @@ request is ignored and a regular move is performed.
     corresponding = False
     start = 0
     fc = statement.children[0]
-    if isinstance(fc, Token) and fc.value == 'corr':
+    if isinstance(fc, Tree) and fc.data == 'cobol_move_corr':
         corresponding = True
         start = 1
     expr = statement.children[start]

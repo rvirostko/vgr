@@ -38,9 +38,11 @@ cobol_inc: "Set"i ("Variable"i | "Var"i)? var_name "Up"i "By"i expr "End-Compute
 cobol_dec: "Set"i ("Variable"i | "Var"i)? var_name "Down"i "By"i expr _SEMICOLON?
 
 cobol_exit: "Stop"i "Run"i _SEMICOLON?
-cobol_perform_times: "Perform"i expr "Times"i statement+ "End-Perform"i _SEMICOLON?
-cobol_perform_until: "Perform"i "Until"i expr statement+ "End-Perform"i _SEMICOLON?
-cobol_perform_varying: "Perform"i varying_test_type? "Varying"i var_name "From"i expr "By"i expr "Until"i expr statement+ "End-Perform"i _SEMICOLON?
+
+# NB: Performs contain non-standard ":" separator (optional) to be compatible with other block statements
+cobol_perform_times: "Perform"i expr "Times"i ":"? statement+ "End-Perform"i _SEMICOLON?
+cobol_perform_until: "Perform"i "Until"i expr ":"? statement+ "End-Perform"i _SEMICOLON?
+cobol_perform_varying: "Perform"i varying_test_type? "Varying"i var_name "From"i expr "By"i expr "Until"i expr ":"? statement+ "End-Perform"i _SEMICOLON?
 ?varying_test_type: "With"i? "Test"i "Before"i -> test_before
     | "With"i? "Test"i "After"i -> test_after
 cobol_if: "If"i expr statement+ cobol_else_clause? "End-If"i _SEMICOLON?
@@ -68,5 +70,5 @@ cobol_mul_by: "Multiply"i expr "By"i (expr "Giving"i)? var_name "End-Multiply"i?
 cobol_div_into: "Divide"i expr "Into"i (expr "Giving"i)? var_name "Rounded"i? "End-Divide"i? _SEMICOLON?
 cobol_div_by: "Divide"i expr "By"i expr "Giving"i var_name "Rounded"i? "End-Divide"i? _SEMICOLON?
 
-cobol_move_to: "Move"i CORR? expr "To"i var_name _SEMICOLON?
-CORR.80: ("Corresponding"i | "Corr"i)
+cobol_move_to: "Move"i cobol_move_corr? expr "To"i var_name _SEMICOLON?
+cobol_move_corr: ("Corresponding"i | "Corr"i)
