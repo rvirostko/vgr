@@ -156,7 +156,7 @@ def execute_unless(dd: DataDictionary, statement: Tree) -> None:
     """
 **Conditionally execute a block of statements**
 
-* Unless _expression [Then | :] _statement_... End [;]
+* Unless _expression_ [Then | :] _statement_... End [;]
 
 If the expression evaluates to _False_ the block of statements is executed.
 """
