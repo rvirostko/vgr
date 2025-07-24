@@ -15,16 +15,16 @@ from output import CSVRecordWriter, JSONRecordWriter, TextRecordWriter
 from redir import print_stderr
 from stmt_set import load_file_as, load_data_type
 
-_TYPE = 'type'
-_VAR = 'var'
-_FILE = 'file'
-_DTYPE = 'dtype'
+_TYPE = 'type'     # will be _VAR or _FILE
+_VAR = 'var'       # read from/write to a varialbe
+_FILE = 'file'     # read from/write to a file
+_DTYPE = 'dtype'   # data type (CSV, JSON, et al)
 _FIELDS = 'fields'
-_SORT_COLS = 'sort_cols'
-_SORT_FLAGS = 'sort_flags'
-_IN_PLACE = 'in_place'
-_UNIQUE = 'unique'
-_UNIQUE_COLS = 'unique_cols'
+_SORT_COLS = 'sort_cols'     # list of columns used in sorting
+_SORT_FLAGS = 'sort_flags'   # matching list of sort order bools (T -> asc)
+_IN_PLACE = 'in_place'       # boolean
+_UNIQUE = 'unique'           # boolean
+_UNIQUE_COLS = 'unique_cols' # columns that determine uniqueness
 
 class SortAnalyzer(Visitor):
     def __init__(self, dd: DataDictionary):
@@ -57,6 +57,8 @@ class SortAnalyzer(Visitor):
         return self._target
 
     def sort(self, _: Tree):
+        # If no target was specified, this is an in-place sort
+        # Copy over relevant attrs from _source to _target
         if _TYPE not in self._target:
             self._source[_IN_PLACE] = True
             for a in [_TYPE, _VAR, _FILE, _DTYPE]:
@@ -130,6 +132,52 @@ class SortAnalyzer(Visitor):
 def execute_sort(dd: DataDictionary, statement: Tree) -> None:
     """
 **Sort the contents of a list or a file**
+
+* Sort [Variable | Var] _variable_ _keys_ [_unique_] [_target_] [;]
+* Sort File _file_name_ [_file_type_] _keys_ [_unique_] [_target_] [;]
+
+The _keys_ option
+* ... [On | By] _key_spec_ [, _key_spec_ ...] ...
+* _key_spec_ : [Ascending | Descending] [Key] _expression_
+* Ascending and Descending may be abbreviated as Asc or Des
+* Ascending is the default ordering
+* When sorting non-dictionary items, no keys are required.
+  The only available key is _line_.
+
+The _unique_ option
+* ... Unique ...
+* ... Unique On _expression_ [, _expression ...] ...
+* Without a list of keys, uniqueness performed on keys used to perform the sort
+* When sorting non-dictionary items, no keys are required.
+  The only available key is _line_.
+
+The _target_ option
+* ... [Into | Giving] [Variable | Var] _variable_ ...
+* ... [Into | Giving] File _file_name_ ...
+* ... [Into | Giving] File _file_name_ [_file_type_] ...
+* If omitted, sort is performed in-place
+
+The _file_type_ option
+* ... As _type_ ... where _type_ is : JSON or JSON Object (an array of objects),
+    JSON Object Per Line (each line is an object),
+    CSV (CSV data),
+    Text Lines (each item a line of text) or
+    Text (entire object as text)
+* If no file type is given it is guessed from the extension
+
+**Examples**
+
+```
+# Sort the contents of a variable and write to a file
+Sort persons On Key fname, lname Into File "persons.sorted" As Json
+
+# Sort a CSV file in place
+Sort File export + ".dat" As CSV On Asc Key id, Des env
+
+# Sort/unique
+Sort accts On acct_nbr Unique
+```
+
 """
     sort = SortAnalyzer(dd).analyze(statement)
     source = sort.sort_source
@@ -137,7 +185,7 @@ def execute_sort(dd: DataDictionary, statement: Tree) -> None:
     data = _read_data(dd, source)
     # At this point, we write out everything; no per col filtering
     target[_FIELDS] = source[_FIELDS]
-    if dd.debug:
+    if dd.verbose:
         print_stderr("Sort Source =", repr(source))
         print_stderr("Sort Target =", repr(target))
     data = _do_sort(dd, data, source, target)
@@ -146,7 +194,7 @@ def execute_sort(dd: DataDictionary, statement: Tree) -> None:
 def _do_sort(_: DataDictionary, data: list, source: dict, target: dict) -> list:
     if source[_DTYPE] == 'text_file':
         sort_flags = source[_SORT_FLAGS]
-        data = poly_sort(data, target[_UNIQUE], len(sort_flags) == 0 or any(sort_flags))
+        data = poly_sort(data, target[_UNIQUE], len(sort_flags) != 0 and not any(sort_flags))
     else:
         unique_cols = target[_UNIQUE_COLS]
         unique_cols = target[_FIELDS] if len(unique_cols) == 0 else unique_cols
@@ -167,7 +215,8 @@ def _read_data(dd: DataDictionary, source: dict) -> list:
             # no matter what was used with "on"
             sort_cols = source[_SORT_COLS]
             if len(sort_cols) > 1:
-                if dd.verbose: print_stderr(f'Extraneous Sort ordering ignored: {repr(sort_cols[1:])}')
+                if dd.verbose:
+                    print_stderr(f'Extraneous Sort ordering ignored: {repr(sort_cols[1:])}')
             source[_FIELDS] = source[_SORT_COLS] = ['line']
         else:
             # while unlikely (maybe?) we need to support non-string ordinals as keys
