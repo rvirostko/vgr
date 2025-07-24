@@ -62,11 +62,12 @@ def _flag_value(dd: DataDictionary, statement: Tree, name: str) -> bool:
     # without messing with the grammar -OR- the DD
     # The only thing that could be a problem would be a DD
     # value of "on" or "off" being set...
-    if statement.children[0].data == 'var_ref' and len(statement.children[0].children) == 1:
-        arg = statement.children[0].children[0]
+    first_child = statement.children[0]
+    if isinstance(first_child, Tree) and first_child.data == 'var_ref' and len(first_child.children) == 1:
+        arg = first_child.children[0]
         if isinstance(arg, Token) and arg.type == 'NAME':
             value = str(arg.value).casefold()
             if value == 'on': return True
             if value == 'off': return False
-    rc = eval_to_bool(dd, statement.children[0], name, True)
+    rc = eval_to_bool(dd, first_child, name, True)
     return False if rc is None else rc
