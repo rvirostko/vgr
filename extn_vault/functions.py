@@ -10,24 +10,24 @@ from mathpak import type_str, poly_floor
 # Used in str -> ms
 _DURATION_STR_PATTERN = re.compile(r'(-?\d+\.?\d*)(ns|us|µs|ms|s|m|h|d)?', re.IGNORECASE)
 _TIME_UNITS_LOOKUP = {
-    'ns': 1 / 1_000_000,
+    'd': 24 * 60 * 60 * 1_000,
+    'h': 60 * 60 * 1_000,
+    'm': 60 * 1_000,
+    's': 1_000,
+    'ms': 1,
     'us': 1 / 1_000,
     'µs': 1 / 1_000,
-    'ms': 1,
-    's': 1_000,
-    'm': 60 * 1_000,
-    'h': 60 * 60 * 1_000,
-    'd': 24 * 60 * 60 * 1_000
+    'ns': 1 / 1_000_000
 }
 
 # Used in ms -> str
 _TIME_UNITS_FACTOR = [
-    ('d', 24 * 60 * 60 * 1000),
-    ('h', 60 * 60 * 1000),
-    ('m', 60 * 1000),
-    ('s', 1000),
+    ('d', 24 * 60 * 60 * 1_000),
+    ('h', 60 * 60 * 1_000),
+    ('m', 60 * 1_000),
+    ('s', 1_000),
     ('ms', 1),
-    ('us', 1 / 1000),
+    ('us', 1 / 1_000),
     ('ns', 1 / 1_000_000)
 ]
 
@@ -35,8 +35,13 @@ def duration_to_ms(duration: Any) -> int:
     """
 **Convert a Vault duration value to milliseconds**
 
+* _value_.DurationToMs()
+
 Numeric values are assumed to be in seconds.
 String values are converted as per the Vault specification for duration strings.
+
+`"15d5h".DurationToMs()` → `1_314_000_000`
+
 """
     if duration is None:
         return None
@@ -45,6 +50,7 @@ String values are converted as per the Vault specification for duration strings.
         return int(duration * 1_000)
     if not isinstance(duration, str):
         raise ValueError(f'Unsupported duration type {type_str(duration)}')
+    duration = duration.strip()
     total_milliseconds = 0
     position = 0
     while position < len(duration):
@@ -67,6 +73,15 @@ String values are converted as per the Vault specification for duration strings.
 def ms_to_duration(ms: Any) -> str:
     """
 **Converts a duration in milliseconds into a Vault duration string**
+
+* _value_.MsToDuration()
+
+Value must be a number, either an integer or floating point value, and
+must be in _milliseconds_ not seconds. Numeric values returned from Vault
+are most likely in seconds, so use `DurationToMs()` to convert them to
+milliseconds.
+
+`1_314_000_000.MsToDuration()` → `15d5h`
 """
     if ms is None:
         return None
@@ -78,9 +93,10 @@ def ms_to_duration(ms: Any) -> str:
     remaining_ms = float(ms)
     for unit, factor in _TIME_UNITS_FACTOR:
         if remaining_ms >= factor:
-            # NB: his is the only place where "precission" is used with floor()
+            # NB: this is the only place where "precision" is used with floor()
             value = poly_floor(remaining_ms / factor, .25)
-            result.append(f'{value}{unit}')
+            # If value is a whole number, remove the fractional part
+            result.append(f'{str(value).removesuffix(".0")}{unit}')
             remaining_ms -= value * factor
             if remaining_ms <= 0: break
     return ''.join(result)
