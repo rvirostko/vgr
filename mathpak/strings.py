@@ -478,18 +478,28 @@ def poly_splitlines(x: Any, keepends: bool=False) -> Any:
     if isinstance(x, (list, tuple)): return type(x)(poly_splitlines(x1, keepends) for x1 in x)
     raise TypeError(f'Splitlines with {type_str(x)} not supported')
 
-def poly_join(x: Any, sep: str=None) -> Any:
+def poly_join(x: Any, separator: str=None) -> Any:
     """
 **Join together the elements of a list as strings**
 
 * _value_.Join()
-* _value_.Join(_sep_)
+* _value_.Join(_seperator_)
 
-The _sep_ argument is the separator between the strings. Defaults to an empty string.
+The _separator_ argument is the separator between the strings.
+It defaults to an empty string.
+
+If _value_is a list, the items in it are converted to strings and concatenated
+using _separator_. Items in the list that are _None_ are ignored.
+
+If _value_ is an ordinal, it is converted to a string, and
+_separator_ is not used. With a _value_ of _None_ or for an empty list and
+empty string is returned.
+
 """
-    if isinstance(x, (NoneType, bool, int, float, str)): return x
-    sep = '' if sep is None else str_arg(sep, 'Sep')
-    if isinstance(x, (list, tuple)): return sep.join(poly_str(x))
+    if x is None: return ""
+    if isinstance(x, (bool, int, float, str)): return poly_str(x)
+    separator = '' if separator is None else str_arg(separator, 'Separator', False)
+    if isinstance(x, (list, tuple)): return separator.join([poly_str(x1) for x1 in x if x1 is not None])
     raise TypeError(f'Join of {type_str(x)} not supported')
 
 def poly_format(format_string: Any, *args) -> str:

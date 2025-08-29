@@ -110,12 +110,12 @@ def int_arg(arg: Any, name: str) -> int:
         raise ValueError(f'{name} argument must be a number, found {type_str(arg)}')
     return int(arg)
 
-def str_arg(arg: Any, name: str) -> str:
-    """Type checks the argument as a non-None, non-blank string"""
-    if arg is None:
+def str_arg(arg: Any, name: str, req_value: bool=True) -> str:
+    """Type checks the argument as string and optionally, non-None, non-blank"""
+    if req_value and arg is None:
         raise ValueError(f'{name} argument cannot be None')
     if isinstance(arg, str):
-        if len(arg) == 0:
+        if req_value and len(arg) == 0:
             raise ValueError(f'{name} argument cannot be blank')
         return arg
     raise ValueError(f'{name} argument must be a string, found {type_str(arg)}')
