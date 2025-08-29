@@ -40,6 +40,8 @@ def _eval_list_giving(statement: Tree, idx: int) -> tuple[Tree, tuple[str]]:
     return gexpr, var_name_path(gexpr) if gexpr else None
 
 def _set_list_giving(dd: DataDictionary, path: tuple[str], value: Any, expr: Tree) -> None:
+    # TODO: if of length one, should we unpack
+    # TODO is value always going to be an array
     try:
         dd.set_var_user(value, *path)
     except Exception as e:
@@ -47,6 +49,21 @@ def _set_list_giving(dd: DataDictionary, path: tuple[str], value: Any, expr: Tre
 
 @bound_ops("Append")
 def execute_list_append(dd: DataDictionary, statement: Tree) -> None:
+    """
+**Add items to the end of a list**
+
+* Append _item_ To [List] _variable_ [;]
+* Append All _item_ To [List] _variable_ [;]
+
+In the first form _item_ is added to the specified list, regardless of its type.
+In the second form when _All_ is specified, if _item_ is a list, all of its
+members are added to the specified list.
+If _item_ is not a list itself, there is no difference between the first and
+second forms.
+
+If _variable_ is not defined it is created as an empty list.
+If _variable_ is not a list, it is converted to a list.
+"""
     idx, do_all = _extract_list_all(statement)
     idx, src = _eval_list_src(dd, statement, idx, do_all)
     idx, path, dst = _eval_list_target(dd, statement, idx)
@@ -61,6 +78,21 @@ def execute_list_append(dd: DataDictionary, statement: Tree) -> None:
 
 @bound_ops("Prepend")
 def execute_list_prepend(dd: DataDictionary, statement: Tree) -> None:
+    """
+**Add items to the beginning of a list**
+
+* Prepend _item_ To [List] _variable_ [;]
+* Prepend All _item_ To [List] _variable_ [;]
+
+In the first form _item_ is added to the specified list, regardless of its type.
+In the second form when _All_ is specified, if _item_ is a list, all of its
+members are added to the specified list.
+If _item_ is not a list itself, there is no difference between the first and
+second forms.
+
+If _variable_ is not defined it is created as an empty list.
+If _variable_ is not a list, it is converted to a list.
+"""
     idx, do_all = _extract_list_all(statement)
     idx, src = _eval_list_src(dd, statement, idx, do_all)
     idx, path, dst = _eval_list_target(dd, statement, idx)
@@ -75,11 +107,33 @@ def execute_list_prepend(dd: DataDictionary, statement: Tree) -> None:
 
 @bound_ops("Insert")
 def execute_list_insert(dd: DataDictionary, statement: Tree) -> None:
+    """
+**Add items to the beginning of a list**
+
+* Insert _item_ Into [List] _variable_ At [Pos | Position | Index] _position_ [;]
+* Insert All _item_ Into [List] _variable_ At [Pos | Position | Index] _position_ [;]
+
+In the first form _item_ is inserted to the specified list, regardless of its type.
+In the second form when _All_ is specified, if _item_ is a list, all of its
+members are inserted to the specified list.
+If _item_ is not a list itself, there is no difference between the first and
+second forms.
+
+The _position_ argument must be a number and be greater than or equal to zero
+and less than the length of the existing array.
+
+If _variable_ is not defined it is created as an empty list.
+If _variable_ is not a list, it is converted to a list.
+"""
     idx, do_all = _extract_list_all(statement)
     idx, src = _eval_list_src(dd, statement, idx, do_all)
     idx, path, dst = _eval_list_target(dd, statement, idx)
-    pos_expr = statement.children[idx]
+    try:
+        pos_expr = statement.children[idx]
+    except (ValueError, TypeError) as e:
+        raise VgrRuntimeError(statement.children[idx], e) from e
     pos = eval_to_int(dd, pos_expr, 'Position')
+    # TODO why do we not normalize?
     if pos < 0 or pos > len(dst):
         raise VgrRuntimeError(pos_expr, ValueError(f'Position {pos} is invalid'))
     if src:
@@ -127,7 +181,27 @@ def execute_list_remove_last(dd: DataDictionary, statement: Tree) -> None:
 
 @bound_ops("Remove")
 def execute_list_remove(dd: DataDictionary, statement: Tree) -> None:
-    # While we allow "all" it does not change behavior
+    """
+**Remove one or more items from a list by position**
+
+* Remove First [Item] From [List] _variable_ [Giving _removed_var_] [;]
+* Remove Last [Item] From [List] _variable_ [Giving _removed_var_] [;]
+* Remove _position_ From [List] _variable_ [Giving _removed_var_ ] [;]
+
+In the first form _item_ is inserted to the specified list, regardless of its type.
+In the second form when _All_ is specified, if _item_ is a list, all of its
+members are inserted to the specified list.
+If _item_ is not a list itself, there is no difference between the first and
+second forms.
+
+The _position_ argument must be a number and be greater than or equal to zero
+and less than the length of the existing array.
+
+If _variable_ is not defined it is created as an empty list.
+If _variable_ is not a list, it is converted to a list.
+"""
+    # While we allow "all" it is not in the grammar
+    # and does not change behavior
     idx, _do_all = _extract_list_all(statement)
     idx, positions = _eval_and_advance(dd, statement, idx)
     idx, path, dst = _eval_list_target(dd, statement, idx)
@@ -201,10 +275,12 @@ def _remove_items(dst: list, removals: list) -> list:
     # Sort positions in descending order
     for pos, indices in sorted(removal_mapping.items(), key=lambda mapping: mapping[0], reverse=True):
         # Invalid positions are ignored
+        # TODO should generate an error
         if 0 <= pos < len(dst):
             removed_value = dst[pos]
             del dst[pos]
             count += 1
+            # If we pulled out a None, no need to update removed[]
             if removed_value is not None:
                 for index in indices:
                     removed[index] = removed_value
