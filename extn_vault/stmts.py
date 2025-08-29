@@ -103,9 +103,9 @@ def execute_connect(dd: DataDictionary, statement: Tree) -> None:
             elif name == 'conn_name':
                 conn_name = _resolve_str_arg(dd, child.children[0], 'Vault Connection Name')
             else:
-                raise VgrRuntimeError(child, NotImplementedError(f'Argument f{repr(name)} not handled')) # SNO
+                raise VgrRuntimeError(child, NotImplementedError(f'Argument {name!r} not handled')) # SNO
         else:
-            raise VgrRuntimeError(child, ValueError(f'Unexpected Vault argument {repr(child)}')) # SNO
+            raise VgrRuntimeError(child, ValueError(f'Unexpected Vault argument {child!r}')) # SNO
     conn_name = conn_name or _DEFAULT_CONN_NAME
     _CONNECTIONS.connect(conn_name, addr, token)
     _set_default_conn(dd, conn_name)
@@ -743,20 +743,20 @@ def _extract_args(dd: DataDictionary, statement: Tree) -> dict:
             elif arg_name in _ARG_INT_EXPR:
                 v = eval_expr_or_const(dd, arg_node)
                 if v:
-                    if not isinstance(v, (int, float)): raise TypeError(f'{arg_name.title()} must be a int; found {repr(type(v).__name__)}')
+                    if not isinstance(v, (int, float)): raise TypeError(f'{arg_name.title()} must be a int; found {type(v).__name__!r}')
                     args[arg_name] = int(v)
             elif arg_name in _ARG_EXPR:
                 args[arg_name] = eval_expr_or_const(dd, arg_node)
             else:
-                raise VgrRuntimeError(child, NotImplementedError(f'Vault argument {repr(arg_name)} not implemented')) # SNO
+                raise VgrRuntimeError(child, NotImplementedError(f'Vault argument {arg_name!r} not implemented')) # SNO
         else:
-            raise VgrRuntimeError(child, ValueError(f'Unexpected Vault argument {repr(child.data)}:{type(child)}')) # SNO
+            raise VgrRuntimeError(child, ValueError(f'Unexpected Vault argument {child.data!r}:{type(child)}')) # SNO
     return args
 
 def _resolve_str_arg(dd: DataDictionary, expr: Tree, name: str, allow_none: bool=False) -> str:
     rc = eval_expr_or_const(dd, expr)
     if rc is None and allow_none: return None
-    if not isinstance(rc, str): raise TypeError(f'{name} must be a string; found {repr(type(rc).__name__)}')
+    if not isinstance(rc, str): raise TypeError(f'{name} must be a string; found {type(rc).__name__!r}')
     return rc
 
 def _allowed_args(args: dict, *allowed_keys) -> None:
@@ -769,7 +769,7 @@ def _get_arg(args: dict, name: str, expected_type: type, optional: bool = False)
     """Retrieve a typed value from args or raise if missing or wrong type."""
     if name not in args:
         if optional: return None
-        raise ValueError(f'Missing required argument: {name.tile()}')
+        raise ValueError(f'Missing required argument: {name.title()}')
     value = args[name]
     if isinstance(value, expected_type): return value
-    raise TypeError(f'Argument {name.title()} must be of type {repr(expected_type.__name__)}, found {repr(type(value).__name__)}')
+    raise TypeError(f'Argument {name.title()} must be of type {expected_type.__name__!r}, found {type(value).__name__!r}')
