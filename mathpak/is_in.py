@@ -6,7 +6,7 @@ scalar values.
 
 from typing import Any
 
-from .common import NoneType
+from .common import NoneType, bound_ops
 
 # Impl def and testing req
 #   * If x is a collection, should it be distributive (not use all)
@@ -26,9 +26,11 @@ from .common import NoneType
 #     Print my_coll.ContainsAny("a", "c")
 #   * We could introduce an "either use a single array or multiple scalars" for the y value
 
+@bound_ops("In", "Is-In")
 def poly_in(x: Any, y: Any) -> Any:
     return _is_in(x, y, False)
 
+@bound_ops("Not-In", "Is-Not-In")
 def poly_not_in(x: Any, y: Any) -> Any:
     if isinstance(x, (list, tuple)):
         return all(poly_not_in(x1, y) for x1 in x)
@@ -43,10 +45,11 @@ def poly_not_in(x: Any, y: Any) -> Any:
     # try a scalar comparison
     return not (isinstance(x, type(y)) and x == y)
 
-
+@bound_ops("Contains")
 def poly_contains_any(x: Any, y: Any) -> Any:
     return _is_in(y, x, False)
 
+@bound_ops("Contains-All")
 def poly_contains_all(x: Any, y: Any) -> Any:
     return _is_in(y, x, True)
 
