@@ -64,6 +64,7 @@ from mathpak import (
     poly_divmod,
     poly_endswith,
     poly_eq,
+    poly_exact_eq,
     poly_expandtabs,
     poly_false,
     poly_fdiv,
@@ -78,6 +79,7 @@ from mathpak import (
     poly_gt,
     poly_hash,
     poly_hex,
+    poly_imatches,
     poly_in,
     poly_index,
     poly_int,
@@ -124,7 +126,9 @@ from mathpak import (
     poly_mul,
     poly_multimode,
     poly_ne,
+    poly_not_imatches,
     poly_not_in,
+    poly_not_matches,
     poly_number,
     poly_oct,
     poly_ord,
@@ -629,13 +633,52 @@ def get_function_entries():
         name: (func, name.lower().replace('_', ''), (func.__doc__ or '').lower()) for name, func in _FUNC_OPS.items()
     }
 
-# TODO - Need to add "special" things like and or and not
-_OTHER_OPS = [build_dict, build_list, logical_or]
+# Needs to include all items bound to operators
+_OP_FUNCS = [
+    #    def unary_not(self, tree): return NotOperation(tree)
+    build_dict, # dict
+    build_list, # array
+    logical_and, # and_op
+    logical_or, # or_op
+    poly_add, # add_op
+    poly_bit_and, # bit_and_op
+    poly_bit_or, # bit_or_op
+    poly_bit_xor, # bit_xor_op
+    poly_ceil, # poly_ceil_op
+    poly_contains_all, # contains_all_op
+    poly_contains_any, # contains_op
+    poly_div, # div_op
+    poly_eq, # eq_op
+    poly_exact_eq, # exact_eq_op
+    poly_fdiv, # fdiv_op
+    poly_floor, # poly_floor_op
+    poly_ge, # ge_op
+    poly_gt, # gt_op
+    poly_imatches, # imatches_op
+    poly_in, # in_op
+    poly_le, # le_op
+    poly_lt, # lt_op
+    poly_matches_all, # matches_all_op
+    poly_matches, # matches_op
+    poly_mod, # mod_op
+    poly_mul, # mul_op
+    poly_ne, # neq_op
+    poly_not_imatches, # not_imatches_op
+    poly_not_in, # not_in_op
+    poly_not_matches, # not_matches_op
+    poly_pow, # pow_op
+    poly_shl, # shl_op
+    poly_shr, # shr_op
+    poly_sub, # sub_op
+    # def c_ternary(self, tree): return Ternary(tree, (0, 1, 2))
+    # def py_ternary(self, tree): return Ternary(tree, (1, 0, 2))
+    # def set_var(self, tree): return SetVarOperation(tree)
+]
 
 @lru_cache
 def get_operator_entries():
     entries = {}
-    for func in chain(_FUNC_OPS.values(), _OTHER_OPS):
+    for func in _OP_FUNCS:
         # See mathpak/common for the bound_ops decorator
         if hasattr(func, 'bound_ops'):
             for op in func.bound_ops:
