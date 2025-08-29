@@ -54,6 +54,15 @@ class LimitedFileHistory(FileHistory):
         """Clear the history"""
         self._loaded_strings = []
 
+class VgrHistory(LimitedFileHistory):
+    def __init__(self, filename, max_lines):
+        super().__init__(filename, max_lines)
+
+    def append_string(self, string: str) -> None:
+        # No need to stuff the exit into the history
+        if string.strip().casefold() != "exit":
+            super().append_string(string)
+
 class CmdLine:
 
     _CD_PARSER: ArgumentParser = (ParserBuilder()
@@ -88,7 +97,7 @@ class CmdLine:
     def __init__(self):
         self._print_debug("Loading history from", self.history_filename)
         self._print_debug("Max history entries is", self.max_history_entries)
-        self._history = LimitedFileHistory(self.history_filename, self.max_history_entries)
+        self._history = VgrHistory(self.history_filename, self.max_history_entries)
         self.multiline = False
         self._dispatch = {}
         self.add_cmd("cd", self._exec_cd)
