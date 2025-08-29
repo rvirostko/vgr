@@ -4,7 +4,6 @@ Vault extension to the grammar
 
 from typing import Dict, Callable
 from pathlib import Path
-import re
 
 from extn import VgrExtension
 from data_dict import DataDictionary
