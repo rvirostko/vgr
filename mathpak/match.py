@@ -6,35 +6,125 @@ Includes case independent variations.
 from typing import Any
 import re
 
-from .common import NoneType, bool_arg, type_str
+from .common import bound_ops, NoneType, type_str
 
+@bound_ops("~", "Matches", "Matches-Any")
 def poly_matches(x: Any, *args) -> Any:
-    if not args: return x
-    if len(args) == 1: return _matches(x, args[0])
-    return _matches(x, [*args])
+    """
+**Perform a regular expression match**
 
-def _matches(x: Any, y: Any, ci: bool=False) -> Any:
-    return _do_match(x, y, ci, False)
+* _value_ ~ _pattern_
+* _value_ ~ [ _pattern_... ]
+* _value_ Matches [Any] _pattern_
+* _value_ Matches [Any] [ _pattern_... ]
+* _value_.Matches(_pattern_...)
 
-def poly_matches_all(x: Any, *args) -> Any:
-    if not args: return x
-    if len(args) == 1: return _matches_all(x, args[0])
-    return _matches_all(x, [*args])
+If _value_ is a collection, then _all_ values in it must match _pattern_
+for the expression to be _True_. If _pattern_ is a collection, then one or
+more of its contents must match for the expression to be _True_.
 
-def _matches_all(x: Any, y: Any, ci: bool=False) -> Any:
-    return _do_match(x, y, ci, True)
+* `"aaa" Matches "^(a|b)+$"` → `True`
+* `["aaa", "abba"] Matches "^(a|b)+$"` → `True`
+* `["aaa", "abba", "bad"] Matches "^(a|b)+$"` → `False`
 
-def poly_not_matches(x: Any, y: Any, ci: bool=False) -> Any:
-    return not _matches(x, y, ci)
+In its functional form, one or values for _pattern_ may be specified, acting as
+if it was a collection of patterns.
 
+* `"aaa".Matches("^a+$", "^b+$")` → `True`
+* `"bbb".Matches("^a+$", "^b+$")` → `True`
+* `"abba".Matches("^a+$", "^b+$")` → `False`
+
+While fundamentally a string/regular expression operation, it will
+work with ordinals, but only if the _pattern_ is also an ordinal, performing an
+equality comparison.
+
+* `5 ~ 5` → `True`
+* `5 ~ 10` → `False`
+* `5 ~ [5, 10]` → _error_
+
+Also see operators `!~` and `~*`
+"""
+    if not args: args = [None]
+    return _do_match(x, args[0] if len(args) == 0 else [*args])
+
+@bound_ops("~*")
 def poly_imatches(x: Any, y: Any) -> Any:
-    return _matches(x, y, True)
+    """
+**Perform a case independent regular expression match**
 
+* _value_ ~* _pattern_
+* _value_ ~* [ _pattern_... ]
+
+Operates identically to `Matches` except matching is performed independent
+of case. This applies to characters in both the _value_ and the _pattern_.
+
+* `"aaa" ~* "^(a|b)+$"` → `True`
+* `"Aaa" ~* "^(a|b)+$"` → `True`
+* `"aaa" ~* "^(A|b)+$"` → `True`
+
+Also see operators `~` and `!~*`
+"""
+    return _do_match(x, y, True)
+
+@bound_ops("Matches-All")
+def poly_matches_all(x: Any, *args) -> Any:
+    """
+**Perform a regular expression match**
+
+* _value_ Matches All _pattern_
+* _value_ Matches All [_pattern_...]
+* _value_.MatchesAll(_pattern_...)
+
+Operates indentically to `Matches` except _value_ must match _all_ of the
+patterns. When _pattern_ is a single value, or a collection with exactly one
+value, it operates identically to `Matches`. When a colleciton of patterns
+of is provided, _all_ must match.
+
+* `"aaa".MatchesAll("^a+$")` → `True`
+* `"aaa".MatchesAll("^a+$", "^b+$")` → `False`
+"""
+    if not args: args = [None]
+    return _do_match(x, args[0] if len(args) == 0 else [*args], False, True)
+
+@bound_ops("!~")
+def poly_not_matches(x: Any, y: Any) -> Any:
+    """
+**Perform a negated regular expression match**
+
+* _value_ !~ _pattern_
+* _value_ !~ [ _pattern_... ]
+
+Operates identically to `Matches` except that it requires that _value_
+does _not_ match any of the patterns.
+
+* `"aaa" !~ "^b+$"` → `True`
+* `"aaa" !~ ["^a+$", "^b+$"]` → `False`
+* `"abba" !~ ["^a+$", "^b+$"]` → `True`
+
+Also see operators `~` and `!~*`
+"""
+    return not _do_match(x, y)
+
+@bound_ops("!~*")
 def poly_not_imatches(x: Any, y: Any) -> Any:
-    return not _matches(x, y, True)
+    """
+**Perform a negated case independent regular expression match**
 
-def _do_match(x: Any, y: Any, ci: bool, do_all: bool) -> Any:
-    ci = bool_arg(ci, "Case Independent")
+* _value_ !~* _pattern_
+* _value_ !~* [ _pattern_... ]
+
+Operates identically to `Matches` except that the match is performed independent
+of case and it request that _value_ does _not_ match any of the patterns.
+
+* `"Aaa" !~* "^b+$"` → `True`
+* `"aaa" !~* ["^A+$", "^B+$"]` → `False`
+* `"Abba" !~* ["^a+$", "^b+$"]` → `True`
+
+Also see operators `~*` and `!~`
+"""
+    return not _do_match(x, y, True)
+
+def _do_match(x: Any, y: Any, ci: bool=False, do_all: bool=False) -> Any:
     # None Matches <Any> and None Matches None
     if x is None: return y is None
     # <Any> Matches None
