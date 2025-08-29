@@ -6,7 +6,7 @@ from .common import bound_ops, get_operation, numeric_operations
 @bound_ops("-", "－")
 def poly_sub(x: Any, *args):
     """
-**Subtraction peration**
+**Subtraction operation**
 
 * _x_ - _y_
 * _x_ － _y_
