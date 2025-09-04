@@ -6,6 +6,8 @@ Also the base of a "help" system.
 
 from abc import ABC, abstractmethod
 from argparse import ArgumentParser, ArgumentError, ArgumentTypeError, Namespace, OPTIONAL
+from typing import Iterable
+import ast
 import os
 import re
 import socket
@@ -39,28 +41,54 @@ class ParserBuilder(ABC):
 
 class LimitedFileHistory(FileHistory):
     """A file-based history that enforces a max line limit"""
-    def __init__(self, filename, max_lines: int=100):
+    def __init__(self, filename, max_history: int=100):
         super().__init__(filename)
-        self._max_lines = min(max(2, max_lines), 2048)
+        self.max_length = max_history
 
-    def append_string(self, string: str) -> None:
-        """If the history lines exceeds the max, discard the oldest ones"""
-        super().append_string(string)
-        # NB: list is store most recent to oldest
-        if len(self._loaded_strings) > self._max_lines:
-            self._loaded_strings = self._loaded_strings[:self._max_lines]
+    @property
+    def max_length(self):
+        return self._max_length
+
+    @max_length.setter
+    def max_length(self, value):
+        self._max_length = min(max(2, value), 2048)
+        if self._loaded: self.store_string(None)
+
+    def load_history_strings(self) -> Iterable[list]:
+        if not os.path.exists(self.filename): return
+        count = 0
+        with open(self.filename, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if line:
+                    try:
+                        yield ast.literal_eval(line)
+                        count += 1
+                        if count >= self._max_length: return
+                    except (SyntaxError, ValueError):
+                        continue
+
+    def store_string(self, _string: str) -> None:
+        if len(self._loaded_strings) > self.max_length:
+            self._loaded_strings = self._loaded_strings[:self.max_length]
+        with open(self.filename, "w", encoding="utf-8") as f:
+            for e in self._loaded_strings:
+                # Serialize using repr() so it can be read by ast.literal_eval
+                f.write(f"{repr(e)}\n")
 
     def clear(self) -> None:
         """Clear the history"""
         self._loaded_strings = []
+        with open(self.filename, "w", encoding="utf-8") as f:
+            f.close()
 
 class VgrHistory(LimitedFileHistory):
     def __init__(self, filename, max_lines):
         super().__init__(filename, max_lines)
 
     def append_string(self, string: str) -> None:
-        # No need to stuff the exit into the history
-        if string.strip().casefold() != "exit":
+        # No need to stuff these into the history
+        if string.strip().casefold() not in ["exit", "history"]:
             super().append_string(string)
 
 class CmdLine:
@@ -157,7 +185,7 @@ need to change location after starting a session you can use this command.
                     self._history.clear()
                     self._print_verbose('History cleared')
                 if values.max is not None:
-                    self.max_history_entries = self._history._max_lines = values.max
+                    self.max_history_entries = self._history.max_length = values.max
                     self._print_verbose('History max entries =', values.max)
 
     def _exec_multiline(self, *args):
