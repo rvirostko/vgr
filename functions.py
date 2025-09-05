@@ -747,7 +747,7 @@ def get_function_defs(w: int=99) -> str:
             first = False
         else:
             rc += '    | '
-        rc += label + ' _LPAREN'
+        rc += label + ' "("'
         arg_count = 0
         # Required arguments patterns
         if min_args > 0:
@@ -768,7 +768,7 @@ def get_function_defs(w: int=99) -> str:
                     rc += ' (_COMMA expr)?'
                     arg_count += 1
             rc += ")?" if min_args == 0 else ''
-        rc +=  ' _RPAREN\n'
+        rc +=  ' ")"\n'
     return rc.strip()
 
 def get_arg_range(op) -> tuple:

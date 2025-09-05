@@ -1,16 +1,10 @@
-// Omitted from the parse tree
-_DOT: "."
-_COMMA: ","
-_LPAREN: "("
-_RPAREN: ")"
-_SEMICOLON: ";"
+//----------------------------------------------------------
+// VGR - A DSL for scripting reports
+//----------------------------------------------------------
 
-// Converted to their literal values after parsing
-TRUE.90:  "True"i  | "\u22A4"           // Unicode ⊤ (top)
-FALSE.90: "False"i | "\u22A5"           // Unicode ⊥ (bottom)
-NONE.90:  "None"i  | "\u2205" | "Null"i // Unicode ∅ (Empty set)
-INF.90:   "Inf"i   | "\u221E"           // Unicode ∞ (infinity)
-NAN.90: "nan"i
+// Omitted from the parse tree
+_COMMA: ","
+_SEMICOLON: ";"
 
 // Numeric values
 // NB: octal and binary regexs are shorter than the length
@@ -24,7 +18,7 @@ DEC_NUMBER: /-?[0-9](?:_?[0-9])*/
 _SPECIAL_DEC: /[0-9](?:_?[0-9])*/
 _EXP_PART: /[eE][+-][0-9](?:_?[0-9])*/
 // NB: slight difference from Python as floats can't end with a "."
-_DECIMAL: _DOT _SPECIAL_DEC | _SPECIAL_DEC _DOT _SPECIAL_DEC
+_DECIMAL: "." _SPECIAL_DEC | _SPECIAL_DEC "." _SPECIAL_DEC
 FLOAT_NUMBER: "-"? (_SPECIAL_DEC _EXP_PART | _DECIMAL _EXP_PART?)
 
 // This becomes either a FLOAT or INT (when no decimal referenced) at runtime
@@ -111,8 +105,11 @@ IN_PLACE_OP: ("+=" | "-=" | "*=" | "/=" | "//=" | "%=" | "**=" | "&=" | "|=" | "
 
 unset: "Unset"i ("Variable"i | "Var"i)? var_name (_COMMA? var_name)* _SEMICOLON?
 
-reset: "Reset"i RESET_OPT (_COMMA? RESET_OPT)* _SEMICOLON?
-RESET_OPT: ("All"i | "Data"i | "Args"i | "Output"i)
+reset: "Reset"i reset_opt (_COMMA? reset_opt)* _SEMICOLON?
+?reset_opt: "All"i -> all
+    | "Data"i -> data
+    | "Args"i -> args
+    | "Output"i -> output
 
 source: "Source"i _SEMICOLON
     | "Source"i "From"i? ("File"i | "Files"i)? expr (_COMMA? expr)* _SEMICOLON?
@@ -134,10 +131,13 @@ print: "Print"i _SEMICOLON
 printf: "Printf"i _SEMICOLON
     | "Printf"i expr (_COMMA expr)* _SEMICOLON?
 
-log: "Log"i LOG_LEVEL _SEMICOLON
-   | "Log"i LOG_LEVEL _COMMA? expr (_COMMA expr)* _SEMICOLON?
-   | "Log"i "Level"i LOG_LEVEL _SEMICOLON? -> log_setlevel
-LOG_LEVEL: "Debug"i | "Info"i | "Warn"i | "Warning"i | "Error"i
+log: "Log"i log_level _SEMICOLON
+   | "Log"i log_level _COMMA? expr (_COMMA expr)* _SEMICOLON?
+   | "Log"i "Level"i log_level _SEMICOLON? -> log_setlevel
+?log_level: "Debug"i -> debug
+    | "Info"i -> info
+    | ("Warn"i | "Warning"i) -> warn
+    | "Error"i -> error
 
 open: "Open"i io_type "File"i? expr open_ext? _SEMICOLON?
 close: "Close"i io_type "File"i? _SEMICOLON? -> close
@@ -224,8 +224,9 @@ for_markdown: "MarkDown"i (_COMMA? markdown_option (_COMMA markdown_option)*)?
     | "Include"i "Headers"i (("=" | "Is"i) expr)? -> include_headers
     | ("No"i | "Omit"i) "Headers"i (("=" | "Is"i) expr)? -> omit_headers
 
-for_template: TEMPLATE_TYPE? ("Template"i | "Jinja"i | "Jinja2"i) (template_filename | "Default"i)? (_COMMA? template_option (_COMMA template_option)*)?
-TEMPLATE_TYPE: "Record"i | "Batch"i
+for_template: template_type? ("Template"i | "Jinja"i | "Jinja2"i) (template_filename | "Default"i)? (_COMMA? template_option (_COMMA template_option)*)?
+?template_type: "Record"i -> record
+    | "Batch"i -> batch
 template_filename: "File"i? expr
 ?template_option: "Encode"i? "Ascii"i (("=" | "Is"i) expr)? -> encode_ascii
     | "Encode"i? ("Unicode"i | "UTF8"i | "UTF-8"i) (("=" | "Is"i) expr)? -> encode_unicode
@@ -278,12 +279,12 @@ ternary: expr "?" expr ":" expr -> c_ternary
 // Flattening operations out here allows the parse tree to hold
 // the operation type explicitly instead of a generic "OP" where
 // we need to deal with aliases
-?expr2: _LPAREN expr _RPAREN
+?expr2: "(" expr ")"
     // must be expr2 not expr else it binds across and/or
     | ("!" | "\uFF01" | "\u00AC") expr2 -> unary_not // Unicode ！(fullwidth excl) and ¬ (logical not)
-    | expr2 _DOT ("SetVar"i | "set_var"i) _LPAREN var_name _RPAREN -> set_var
-    | expr2 _DOT function -> function_call
-    | expr2 _DOT NAME -> deref
+    | expr2 "." ("SetVar"i | "set_var"i) "(" var_name ")" -> set_var
+    | expr2 "." function -> function_call
+    | expr2 "." NAME -> deref
     // Polymorphic operations than *could* be chained
     | expr2 ("+" | "\uFF0B") expr2 -> add_op // Unicode ＋ (fullwidth plus)
     | expr2 ("-" | "\u2212" | "\uFF0D") expr2 -> sub_op // Unicode − (minus sign) and － (fullwidth minus)
@@ -316,22 +317,24 @@ ternary: expr "?" expr ":" expr -> c_ternary
     | expr2 "!~" expr2 -> not_matches_op
     | expr2 "!~*" expr2 -> not_imatches_op
     // Misc operations
-    | "\u2308" expr "\u2309" -> ceil_op  // Unicode ceiling ⌈ x ⌉
-    | "\u230A" expr "\u230B" -> floor_op // Unicode floor ⌊ x ⌋
-    | "\u220F" _LPAREN expr (_COMMA? expr)* _RPAREN -> mul_op // Unicode ∏ (product)
+    | "\u2308" expr "\u2309" -> ceil_op                 // Unicode ceiling ⌈ x ⌉
+    | "\u230A" expr "\u230B" -> floor_op                // Unicode floor ⌊ x ⌋
+    | "\u220F" "(" expr (_COMMA? expr)* ")" -> mul_op   // Unicode ∏ (product)
     | expr2 SUPERSCRIPT_FLOAT -> pow_op
     // These are more fundemental objects
     | "[" (expr (_COMMA expr)*)? "]" -> array
     | "{" (expr ":" expr (_COMMA expr ":" expr)*)? "}" -> dict
-    | TRUE | FALSE
-    | NONE
-    | INF | NAN                                         // becomes FLOAT at runtime
+    | ("True"i  | "\u22A4") -> vtrue                    // Unicode ⊤ (top)
+    | ("False"i | "\u22A5") -> vfalse                   // Unicode ⊥ (bottom)
+    | ("None"i  | "\u2205" | "Null"i) -> vnone          // Unicode ∅ (Empty set)
+    | ("Inf"i   | "\u221E") -> vinf                     // Unicode ∞ (infinity)
+    | "Nan"i -> vnan
     | HEX_NUMBER | BIN_NUMBER | OCT_NUMBER | DEC_NUMBER // becomes INT at runtime
     | FLOAT_NUMBER                                      // becomes FLOAT at runtime
     | STRING
     | NAME -> var_ref
 
-var_name: NAME (_DOT NAME)*
+var_name: NAME ("." NAME)*
 
 {EXTN_GRAMMAR}
 

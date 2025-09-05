@@ -340,11 +340,22 @@ class ConstantsNormalizer(Transformer):
             return self._const_token(token, ast.literal_eval(self.normalize_outer_quotes(token.value)))
         except SyntaxError as e:
             raise VgrRuntimeError(token, ValueError(str(e.msg).strip())) from e
-    def TRUE(self, token): return self._const_token(token, True)
-    def FALSE(self, token): return self._const_token(token, False)
-    def NONE(self, token): return self._const_token(token, None)
-    def INF(self, token): return self._const_token(token, math.inf)
-    def NAN(self, token): return self._const_token(token, math.nan)
+
+    @v_args(tree=True)
+    def vtrue(self, tree: Tree): return self._const_tree(tree, True)
+
+    @v_args(tree=True)
+    def vfalse(self, tree: Tree): return self._const_tree(tree, False)
+
+    @v_args(tree=True)
+    def vnone(self, tree: Tree): return self._const_tree(tree, None)
+
+    @v_args(tree=True)
+    def vinf(self, tree: Tree): return self._const_tree(tree, math.inf)
+
+    @v_args(tree=True)
+    def vnan(self, tree: Tree): return self._const_tree(tree, math.nan)
+
     def DEC_NUMBER(self, token): return self._to_int(token, 10)
     def HEX_NUMBER(self, token): return self._to_int(token, 16)
     def OCT_NUMBER(self, token): return self._to_int(token, 8)
@@ -354,7 +365,18 @@ class ConstantsNormalizer(Transformer):
         val = float(token.value.translate(self.SUPERSCRIPT_TRANSLATION))
         return self._const_token(token, val if '·' in token.value else int(val))
     def _to_int(self, token, base: int): return self._const_token(token, int(token.value, base))
-    def _const_token(self, token, value: Any): return Token.new_borrow_pos('CONST', value, token)
+
+    def _const_token(self, token, value: Any):
+        """The token is replaced by a CONST value"""
+        return Token.new_borrow_pos('CONST', value, token)
+
+    def _const_tree(self, tree: Tree, value: Any):
+        """The tree is replaced by a CONST value"""
+        meta = tree.meta
+        return Token('CONST', value,
+                     meta.start_pos, meta.line, meta.column,
+                     meta.end_line, meta.end_column, meta.end_pos)
+
 
     def normalize_outer_quotes(self, s: str) -> str:
         """Fixes up typographic quotes from text pasted in from MS products like Word"""

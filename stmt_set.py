@@ -70,7 +70,7 @@ Where _option_ is-
 """
     o_verbose = dd.verbose
     for opt in statement.children:
-        s = str(opt.value).casefold()
+        s = str(opt.data).casefold()
         if s in ('all', 'output'):
             if o_verbose: print_stderr('Resetting Output/Error redirection')
             close_all_redirects()

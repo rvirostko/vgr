@@ -32,7 +32,7 @@ _LEVEL_MAP = {
 
 # Doc combined with execute_log
 def execute_log_setlevel(dd: DataDictionary, statement: Tree) -> None:
-    log_level = statement.children[0].value.title()
+    log_level = statement.children[0].data.title()
     level = _LEVEL_MAP.get(log_level)
     if level is None:
         raise ValueError(f'Unsupported log level {repr(log_level)}')
@@ -57,7 +57,7 @@ The first expression is resolved to a string used to format the other values
 Formatting syntax is that used in [Python's str.format()](https://docs.python.org/3/library/string.html#formatstrings)
 
 """
-    log_level = statement.children[0].value.title()
+    log_level = statement.children[0].data.title()
     log_func = _LOG_FUNCTION.get(log_level)
     if log_func is None:
         raise ValueError(f'Unsupported log level {repr(log_level)}')

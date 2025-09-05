@@ -313,8 +313,8 @@ class SelectAnalyzer(Visitor):
         node = bind_operations(node)
         self.output_opts['type'] = 'template'
         for i, child in enumerate(node.children):
-            if self.is_token(child, 'TEMPLATE_TYPE'):
-                self.output_opts['template_type'] = child.value.lower()
+            if self.is_tree(child, 'batch') or self.is_tree(child, 'record'):
+                self.output_opts['template_type'] = child.data.lower()
                 continue
             if self.is_tree(child, 'template_filename'):
                 self.output_opts['template_filename'] = eval_filename_expr(self._dd, child.children[0])
