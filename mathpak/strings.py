@@ -51,7 +51,22 @@ def exec_bool_op(x: Any, name: str, op: Callable[[Any], Any], string_op) -> Any:
     return exec_x_op(x, name, op, string_op, bool_operations)
 
 def poly_strlen(x: Any) -> Any:
-    return exec_str_op(x, 'StringLen', poly_strlen, str.__len__)
+    """
+**Return the length of a string**
+
+* _value_.StrLen()
+
+If _value_ is of any type except string, _None_ is returned.
+
+`"foo".StrLen()` → `3`
+
+`7.StrLen()` → `None`
+
+`["cat", "kitten"].StrLen()` -> `[3, 6]`
+
+Also see *Len()*
+"""
+    return exec_str_op(x, 'StrLen', poly_strlen, str.__len__) if isinstance(x, (str, list, tuple, dict)) else None
 
 def poly_strrev(x: Any) -> Any:
     return exec_str_op(x, 'StringRev', poly_strrev, lambda s: s[::-1])
@@ -186,30 +201,65 @@ def _removeprefix(x: Any, prefix: Any) -> Any:
 def _removesuffix(x: Any, suffix: Any) -> Any:
     return x if suffix is None else exec_str_str_op(x, suffix, 'RemoveSuffix', _removesuffix, str.removesuffix)
 
-# ["xFoo", None, 27, True].StartsWith("y") -> [False, None, None, None]
-# ["xFoo", None, 27, True].StartsWith("x") -> [True, None, None, None]
-_bool_string_ops = {
-    (str, str)   : lambda _, x, y, sm: sm(x, y),
-    (list, str)  : lambda op, x, y, _: [op(x1, y) for x1 in x],
-    (tuple, str) : lambda op, x, y, _: tuple(op(x1, y) for x1 in x),
-    (dict, str)  : lambda op, x, y, _: {key: op(value, y) for key, value in x.items() if isinstance(value, (str, list, tuple, dict))},
-}
-
-def exec_bool_str_op(x: Any, y: Any, name: str, op: Callable[[Any, Any], Any], string_op) -> Any:
-    # For these types, the operation is indeterminent
-    if isinstance(x, (NoneType, bool, int, float)): return None
-    return exec_x_y_op(x, y, name, op, string_op, _bool_string_ops)
-
 ####
 # str/str that return bools
 
-def poly_startswith(x: Any, prefix: Any) -> Any:
-    if prefix is None: return x is None
-    return exec_bool_str_op(x, prefix, "StartsWith", poly_startswith, str.startswith)
+def _exec_bool_str_op(x: Any, y: Any, name: str, op: Callable[[Any, Any], Any], string_op) -> Any:
+    def flatten(arg):
+        return (y for a in arg for y in (flatten(a) if isinstance(a, (list, tuple)) else (a,)))
+    if isinstance(x, (list, tuple)): return type(x)(op(x1, y) for x1 in x)
+    if isinstance(x, dict): return {key: op(value, y) for key, value in x.items() if isinstance(value, str)}
+    if isinstance(x, str):
+        for y1 in flatten(y):
+            if y1 is None: continue
+            if not isinstance(y1, str):
+                raise ValueError(f'{name}() between {type_str(x)} and {type_str(y1)} not possible')
+            if y1 and string_op(x, y1): return True
+    return False
 
-def poly_endswith(x: Any, suffix: Any) -> bool:
-    if suffix is None: return x is None
-    return exec_bool_str_op(x, suffix, "EndsWith", poly_endswith, str.endswith)
+def poly_startswith(x: Any, *prefixes: Any) -> Any:
+    """
+**Does a string value starts with the specified prefix**
+
+* _value_.StartsWith(_prefix_)
+* _value_.StartsWith(_prefix_, ...)
+
+The _prefix_ argument must be either a string or a list of strings. Lists and individual strings
+may be intermixed.
+
+If _value_ is a list, the operation is distributed over the values in the list.
+If _value_ is a dictionary, the operation is distributed over all keys that are strings.
+If _value_ is neither a list, dictionary, or string, _False_ is returned.
+
+`"foo".StartsWith("f")` → `True`
+
+`["foo", "bar", "cat", 7].StartsWith("a", ["b", "c"])` → `[False, True, True, False]`
+
+`{"one": "a", "two": "d", "three": 3}.StartsWith("a", "b", "c")` → `{"one": True, "two": False}`
+
+Also see *EndsWith()*
+"""
+    return _exec_bool_str_op(x, prefixes, "StartsWith", poly_startswith, str.startswith)
+
+def poly_endswith(x: Any, *suffixes: Any) -> bool:
+    """
+**Does a string value end with the specified suffix**
+
+* _value_.EndsWith(_suffix_)
+* _value_.EndsWith(_suffix_, ...)
+
+The _suffix_ argument must be either a string or a list of strings. Lists and individual strings
+may be intermixed.
+
+If _value_ is a list, the operation is distributed over the values in the list.
+If _value_ is a dictionary, the operation is distributed over all keys that are strings.
+If _value_ is neither a list, dictionary, or string, _False_ is returned.
+
+`"foo".EndsWith("oo")` → `True`
+
+Also see *StartsWith()*
+"""
+    return _exec_bool_str_op(x, suffixes, "EndsWith", poly_endswith, str.endswith)
 
 # "abc".LeftStr(2) -> "ab"
 # 2.LeftStr(2).LeftStr(2) -> 2
@@ -305,7 +355,7 @@ The _width_ argument is interpreted as a numeric value. If _None_, zero is assum
 The _pad_ argument, if provided, is interpreted as a string value. Only the first character is used.
 If not provided, the default is a space.
 
-Also see JustifyLeft() and JustifyRight()
+Also see *JustifyLeft()* and *JustifyRight()*
 """
     return _layout_opt(x, width, fillchar, poly_center, str.center)
 
@@ -321,7 +371,7 @@ The _width_ argument is interpreted as a numeric value. If _None_, zero is assum
 The _pad_ argument, if provided, is interpreted as a string value. Only the first character is used.
 If not provided, the default is a space.
 
-Also see Center() and JustifyRight()
+Also see *Center()* and *JustifyRight()*
 """
     return _layout_opt(x, width, fillchar, poly_ljust, str.ljust)
 
@@ -337,7 +387,7 @@ The _width_ argument is interpreted as a numeric value. If _None_, zero is assum
 The _pad_ argument, if provided, is interpreted as a string value. Only the first character is used.
 If not provided, the default is a space.
 
-Also see Center() and JustifyLeft()
+Also see *Center()* and *JustifyLeft()*
 """
     return _layout_opt(x, width, fillchar, poly_rjust, str.rjust)
 
@@ -350,7 +400,7 @@ def poly_zfill(x: Any, width: int) -> Any:
 If the _value_ to be centered is _None_, it is treated as an empty string.
 The _width_ argument is interpreted as a numeric value. If _None_, zero is assumed.
 
-Also see JustifyRight()
+Also see *JustifyRight()*
 """
     return poly_rjust(x, width, '0')
 
@@ -488,11 +538,11 @@ def poly_join(x: Any, separator: str=None) -> Any:
 The _separator_ argument is the separator between the strings.
 It defaults to an empty string.
 
-If _value_is a list, the items in it are converted to strings and concatenated
+If _value_ is a list, the items in it are converted to strings and concatenated
 using _separator_. Items in the list that are _None_ are ignored.
 
 If _value_ is an ordinal, it is converted to a string, and
-_separator_ is not used. With a _value_ of _None_ or for an empty list and
+_separator_ is not used. With a _value_ of _None_ or for an empty list an
 empty string is returned.
 
 """
@@ -542,7 +592,7 @@ If _value_ is a single character, the ordinal is returned; for an multi-characte
 string, an array of ordinals are returned.
 The operation is distributed across lists and dictionaries.
 
-Also see Chr()
+Also see *Chr()*
 """
     if x is None: return None
     if isinstance(x, (int, float)): return int(x) if 0 <= x <= 0x10FFFF else x
@@ -563,7 +613,7 @@ If _value_ is a value for a Unicode character a single character string
 is returned.
 The operation is distributed across lists and dictionaries.
 
-Also see Ord().
+Also see *Ord()*
 """
     if x is None: return None
     if isinstance(x, (int, float)): return chr(int(x)) if 0 <= x <= 0x10FFFF else x
