@@ -7,9 +7,9 @@ from .inequ import poly_lt, poly_gt, poly_eq, poly_ne
 
 def poly_reverse(x: Any) -> Any:
     """
-**Reverses the contents an item**
+**Reverses the contents of the value**
 
-If the item is an ordinal rather than a list, it is returned unchanged.
+If _value_ is an ordinal rather than a list, it is returned unchanged.
 See the Python [reversed() function](https://docs.python.org/3/library/functions.html#reversed)
 """
     if isinstance(x, (list, tuple)):
@@ -117,8 +117,8 @@ def poly_unique(x: Any) -> Any:
 
 For strings, a string containing all the unique characters in
 the string is returned.
-For lists, a list of unique items is returned.
-For all other types the item is returned unchanged.
+For lists, a list of unique values is returned.
+For all other types the value is returned unchanged.
 """
     if isinstance(x, str): return poly_unique(x.encode()).decode()
     if isinstance(x, (list, tuple)):

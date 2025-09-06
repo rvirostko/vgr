@@ -91,7 +91,6 @@ from mathpak import (
     poly_isdigit,
     poly_isfinite,
     poly_isfloat,
-    poly_isidentifier,
     poly_isinf,
     poly_isint,
     poly_islist,
@@ -196,7 +195,7 @@ def _default_to(value: Any, default: Any) -> Any:
 
 def _id(obj: Any) -> Any:
     """
-**Returns the internal, unique ID used by the item**
+**Returns the internal, unique ID used by the value**
 
 * _value_.Id()
 """
@@ -470,8 +469,8 @@ _BUILT_IN_FUNCS = {
     "In":             poly_in,
     "IndexOf":        poly_index,
     "Int":            poly_int,
-    "IsAlnum":        poly_isalnum,
     "IsAlpha":        poly_isalpha,
+    "IsAlphaNumeric": poly_isalnum,
     "IsAscii":        poly_isascii,
     "IsBetween":      poly_between,
     "IsBool":         poly_isbool,
@@ -485,7 +484,6 @@ _BUILT_IN_FUNCS = {
     "IsFinite":       poly_isfinite,
     "IsFloat":        poly_isfloat,
     "IsGreaterThan":  poly_gt,
-    "IsIdentifier":   poly_isidentifier,
     "IsIn":           poly_in,
     "IsInf":          poly_isinf,
     "IsInt":          poly_isint,

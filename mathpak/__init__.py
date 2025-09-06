@@ -110,7 +110,6 @@ from .strings import (
     poly_isascii,
     poly_isdecimal,
     poly_isdigit,
-    poly_isidentifier,
     poly_islower,
     poly_isnumeric,
     poly_isprintable,
