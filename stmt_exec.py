@@ -50,6 +50,7 @@ from stmt_set import (
     execute_reset,
     execute_set_in_place,
     execute_set,
+    execute_swap,
     execute_unset,
 )
 from stmt_sort import execute_sort
@@ -437,6 +438,7 @@ STATEMENT_HANDLERS = {
     'sleep':        execute_sleep,
     'sort':         execute_sort,
     'source':       execute_source,
+    'swap':         execute_swap,
     'unless':       execute_unless,
     'unset':        execute_unset,
     'until':        execute_until,

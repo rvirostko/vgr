@@ -12,7 +12,7 @@ from lark import Tree, Token
 
 from app_exceptions import VgrRuntimeError
 from data_dict import DataDictionary
-from dd_config import do_assignment, do_unset, _ARG_PREFIX, dd_set_awk_params
+from dd_config import do_assignment, do_set, do_unset, _ARG_PREFIX, dd_set_awk_params
 from evaluate import eval_expr, eval_filename_expr, var_name_path
 from mathpak import poly_add, poly_sub, poly_mul, poly_div, poly_fdiv, poly_mod, poly_pow
 from mathpak import poly_bit_and, poly_bit_or, poly_bit_xor, poly_shl, poly_shr, bound_ops
@@ -108,6 +108,22 @@ def execute_set_in_place(dd: DataDictionary, statement: Tree) -> None:
     op = _IN_PLACE_OP[statement.children[1].value]
     expr = statement.children[2]
     do_assignment(dd, expr, op(dd.get_var_user(*path), eval_expr(dd, expr)), path)
+
+@bound_ops("Swap")
+def execute_swap(dd: DataDictionary, statement: Tree) -> None:
+    """
+**Exchange the values of two variables**
+
+* Swap [Varaible] _x_ With _y_ [;]
+* Swap [Variables] _x_ And _y_ [;]
+
+Both variables must _not_ be immutable
+"""
+    path1 = dd.validate_user_set_path(*var_name_path(statement.children[0]))
+    path2 = dd.validate_user_set_path(*var_name_path(statement.children[1]))
+    temp = dd.get_var_user(*path1)
+    do_set(dd, dd.get_var_user(*path2), *path1)
+    do_set(dd, temp, *path2)
 
 @bound_ops("Load", "Load-From")
 def execute_load_from(dd: DataDictionary, statement: Tree) -> None:
