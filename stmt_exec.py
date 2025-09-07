@@ -126,7 +126,7 @@ A placeholder for a statement, which takes no action and has no side effects.
 
 def exec_if_else(dd: DataDictionary, statement: Tree, desired_value: bool) -> None:
     if dd.echo:
-        print_stderr(SSM.source_for(statement, statement.children[1]))
+        print_stderr(SSM.source_for(statement, statement.children[1]).strip())
     if poly_true(eval_expr(dd, bind_operations(statement.children[0]))) == desired_value:
         for s in statement.children[1:]:
             if s.data != 'else':
@@ -172,7 +172,7 @@ If the expression evaluates to _False_ the block of statements is executed.
 def exec_loop(dd: DataDictionary, statement: Tree, desired_value: bool) -> None:
     """Internal implemenation for loops with a predicate"""
     if dd.echo:
-        print_stderr(SSM.source_for(statement, statement.children[1]))
+        print_stderr(SSM.source_for(statement, statement.children[1]).strip())
     predicate = bind_operations(statement.children[0])
     while True:
         if poly_true(eval_expr(dd, predicate)) != desired_value: return
@@ -186,7 +186,7 @@ def exec_loop(dd: DataDictionary, statement: Tree, desired_value: bool) -> None:
 def exec_repeat(dd: DataDictionary, statement: Tree) -> None:
     """Internal implementation for loops with a fixed count"""
     if dd.echo:
-        print_stderr(SSM.source_for(statement, statement.children[1]))
+        print_stderr(SSM.source_for(statement, statement.children[1]).strip())
     expr = bind_operations(statement.children[0])
     counter = poly_int(eval_expr(dd, expr))
     if isinstance(counter, (int, float)):
@@ -274,7 +274,7 @@ number of items remaining. If a Continue statement is encountered, statements
 following it are skipped, and the loop continues with the next item.
 """
     if dd.echo:
-        print_stderr(SSM.source_for(statement, statement.children[2]))
+        print_stderr(SSM.source_for(statement, statement.children[2]).strip())
     path = var_name_path(statement.children[0])
     collection = poly_list(eval_expr(dd, bind_operations(statement.children[1])))
     if collection is not None:
@@ -329,7 +329,7 @@ Print "Month", month, "is a", season, "month"
 Also see `Choose-Using`
 """
     if dd.echo:
-        print_stderr(SSM.source_for(statement, statement.children[1]).strip())
+        print_stderr(SSM.source_for(statement, statement.children[0]).strip())
     statement_children = iter(statement.children)
     choosen_block = None
     for block in statement_children:
@@ -339,14 +339,14 @@ Also see `Choose-Using`
             # We do a Pythonic test for "True" here, avoiding internal conversions
             if eval_expr(dd, bind_operations(next(choice_children, None))):
                 if dd.echo:
-                    print_stderr(SSM.source_for(block, block.children[1]))
+                    print_stderr(SSM.source_for(block, block.children[1]).strip())
                 # After the expression to test the iterator
                 # points to the following statements
                 choosen_block = choice_children
         else:
             # it is 'otherwise_block' which is automatically selected
             if dd.echo:
-                print_stderr(SSM.source_for(block, block.children[0]))
+                print_stderr(SSM.source_for(block, block.children[0]).strip())
             choosen_block = iter(block.children)
         # If a block of statements was choosen execute them
         # Nested "break" and "continue" statments can be used to end execution
@@ -418,7 +418,7 @@ Also see `Choose`
                 #     and the resulting type of the expression
                 if poly_eq(desired_value, eval_expr(dd, bind_operations(target_expr))):
                     if dd.echo:
-                        print_stderr(SSM.source_for(block, block.children[1]))
+                        print_stderr(SSM.source_for(block, block.children[1]).strip())
                     # The children start with the values, and the iterator now
                     # points to the following statements
                     choosen_block = values_children
@@ -426,7 +426,7 @@ Also see `Choose`
         else:
             # it is 'otherwise_block' which is automatically selected
             if dd.echo:
-                print_stderr(SSM.source_for(block, block.children[0]))
+                print_stderr(SSM.source_for(block, block.children[0]).strip())
             choosen_block = iter(block.children)
         # If a block of statements was choosen execute them
         # Nested "break" and "continue" statments can be used to end execution

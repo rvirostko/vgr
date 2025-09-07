@@ -129,7 +129,7 @@ If not specified, the test expression is performed before the block of statement
 """
     # Echo the control portion, not the statements
     if dd.echo:
-        print_stderr(SSM.source_for(statement, statement.children[-1]))
+        print_stderr(SSM.source_for(statement, statement.children[-1]).strip())
     ba_ind = statement.children[0]
     if isinstance(ba_ind, Tree) and ba_ind.data in ('test_before', 'test_after'):
         test_before = ba_ind.data == 'test_before'

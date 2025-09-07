@@ -68,7 +68,7 @@ following it are skipped and looping proceeds.
 """
     # Echo the control portion, not the statements
     if dd.echo:
-        print_stderr(SSM.source_for(statement, statement.children[-1]))
+        print_stderr(SSM.source_for(statement, statement.children[-1]).strip())
     cindex = 0
     path = var_name_path(statement.children[cindex])
     cindex += 1
