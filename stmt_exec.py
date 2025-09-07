@@ -28,7 +28,13 @@ from dd_config import (
 )
 from evaluate import bind_operations, eval_expr, eval_filename_expr, var_name_path
 from functions import build_dict
-from mathpak import bound_ops, poly_true, poly_list, poly_int
+from mathpak import (
+    bound_ops,
+    poly_eq,
+    poly_int,
+    poly_list,
+    poly_true,
+)
 from redir import execute_open, execute_close, print_stderr, print_stdout
 from src_mgr import SSM
 from stmt_cflags import execute_debug, execute_echo, execute_verbose
@@ -284,6 +290,153 @@ following it are skipped, and the loop continues with the next item.
         finally:
             do_unset(dd, *path)
 
+@control_statement
+@bound_ops("Choose")
+def execute_choose(dd: DataDictionary, statement: Tree) -> None:
+    """
+**Choose from a set of statements based on a series of tests**
+
+* Choose :
+    When _expr_ : _statement_...
+  End [;]
+* Choose :
+    When _expr_ : _statement_...
+    Otherwise : _statement_...
+  End [;]
+
+The values in `When` clauses are examined in order, and the first to
+evaluate to _True_ has its block of statements executed.
+
+If none of the `When` clauses evaluates to _True_ the `Otherwise` cause,
+if provided, is selected. Note that this clause _must_ follow all the `When`
+causes, and that at least one `When` must be specified.
+
+Both `Break` and `Continue` can be used within blocks of statements.
+
+Example:
+```
+Set month To time.today.month
+Choose :
+    When month In [1, 2, 12]:      Set season To "winter"
+    When month ≥ 3 And month ≤ 5:  Set season To "spring"
+    When month ≥ 6 And month ≤ 8:  Set season To "summer"
+    When month ≥ 9 And month ≤ 11: Set season To "fall"
+    Otherwise: Assert False: "Invalid month {}", month
+End
+Print "Month", month, "is a", season, "month"
+```
+
+Also see `Choose-Using`
+"""
+    if dd.echo:
+        print_stderr(SSM.source_for(statement, statement.children[1]).strip())
+    statement_children = iter(statement.children)
+    choosen_block = None
+    for block in statement_children:
+        if block.data == 'choice_block':
+            choice_children = iter(block.children)
+            # The first child is the expression to test
+            # We do a Pythonic test for "True" here, avoiding internal conversions
+            if eval_expr(dd, bind_operations(next(choice_children, None))):
+                if dd.echo:
+                    print_stderr(SSM.source_for(block, block.children[1]))
+                # After the expression to test the iterator
+                # points to the following statements
+                choosen_block = choice_children
+        else:
+            # it is 'otherwise_block' which is automatically selected
+            if dd.echo:
+                print_stderr(SSM.source_for(block, block.children[0]))
+            choosen_block = iter(block.children)
+        # If a block of statements was choosen execute them
+        # Nested "break" and "continue" statments can be used to end execution
+        if choosen_block is not None:
+            try:
+                for s in choosen_block: dispatch_statement(dd, s)
+            except (VgrStatementBreak, VgrStatementContinue):
+                pass
+            return
+
+@control_statement
+@bound_ops("Choose-Using")
+def execute_choose_using(dd: DataDictionary, statement: Tree) -> None:
+    """
+**Choose from a set of statements based on a value**
+
+* Choose Using _expr_ :
+    When _expr_ [, _expr_]... : _statement_...
+  End [;]
+* Choose Using _expr_ :
+    When _expr_ [, _expr_]... : _statement_...
+    Otherwise : _statement_...
+  End [;]
+
+The expression in the Choose statement is evaluated and it becomes the
+_desired value_ which is compared against values in `When` clauses.
+The comparison performed is identical to the `==` operator, and follows
+the same type rules.
+
+The values in `When` clauses are examined in order, and the first to equal
+the desired value has its block of statements executed. Multiple values to
+compare are specified by separating them with commas.
+
+If none of the `When` clauses match the desired value the `Otherwise` cause,
+if provided, is selected. Note that this clause _must_ follow all the `When`
+causes, and that at least one `When` must be specified.
+
+Both `Break` and `Continue` can be used within blocks of statements.
+While an expression can be used as the values in `When` it is recommended
+that constant or references to constants be used.
+
+Example:
+```
+Set month To time.today.month
+Choose Using month:
+    When 1, 2, 12:  Set season To "winter"
+    When 3, 4, 5:   Set season To "spring"
+    When 6, 7, 8:   Set season To "summer"
+    When 9, 10, 11: Set season To "fall"
+    Otherwise: Assert False: "Invalid month {}", month
+End
+Print "Month", month, "is a", season, "month"
+```
+
+Also see `Choose`
+"""
+    if dd.echo:
+        print_stderr(SSM.source_for(statement, statement.children[1]).strip())
+    statement_children = iter(statement.children)
+    # The first child is the expression used in the value comparisons
+    desired_value = eval_expr(dd, bind_operations(next(statement_children, None)))
+    choosen_block = None
+    for block in statement_children:
+        if block.data == 'values_block':
+            values_children = iter(block.children)
+            for target_expr in next(values_children, None).children:
+                # NB: this may cause a TypeError if there is a mismatch
+                #     betweeen the desired_value's type, which drives "casting"
+                #     and the resulting type of the expression
+                if poly_eq(desired_value, eval_expr(dd, bind_operations(target_expr))):
+                    if dd.echo:
+                        print_stderr(SSM.source_for(block, block.children[1]))
+                    # The children start with the values, and the iterator now
+                    # points to the following statements
+                    choosen_block = values_children
+                    break # no need to look at other values
+        else:
+            # it is 'otherwise_block' which is automatically selected
+            if dd.echo:
+                print_stderr(SSM.source_for(block, block.children[0]))
+            choosen_block = iter(block.children)
+        # If a block of statements was choosen execute them
+        # Nested "break" and "continue" statments can be used to end execution
+        if choosen_block is not None:
+            try:
+                for s in choosen_block: dispatch_statement(dd, s)
+            except (VgrStatementBreak, VgrStatementContinue):
+                pass
+            return
+
 # pylint: disable=invalid-name
 # disabled because we MUST have methods named the same as the tokens
 # and the tokens MUST have uppercase names
@@ -418,6 +571,8 @@ class VarRefOptimizer(Transformer):
 STATEMENT_HANDLERS = {
     'assert':       execute_assert,
     'break':        execute_break,
+    'choose':       execute_choose,
+    'choose_using': execute_choose_using,
     'close':        execute_close,
     'continue':     execute_continue,
     'debug':        execute_debug,

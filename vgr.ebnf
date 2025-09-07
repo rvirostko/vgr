@@ -69,7 +69,8 @@ statements: statement+
     | verbose
     | zip
 
-?control_statements: if_statement
+?control_statements: choose_statement
+    | if_statement
     | unless_statement
     | while_statement
     | until_statement
@@ -85,6 +86,13 @@ foreach_statement: "ForEach"i var_name "In"i expr ("Do"i | ":") statement+ "End"
 else_clause: "Else"i ("Do"i | ":") statement+ -> else
 break: "Break"i _SEMICOLON?
 continue: "Continue"i _SEMICOLON?
+
+choose_statement: "Choose"i ":" choice_block+ otherwise_block? "End"i _SEMICOLON? -> choose
+    | "Choose"i "Using"i expr ":" values_block+ otherwise_block? "End"i _SEMICOLON? -> choose_using
+choice_block: "When"i expr ":" statement+
+values_block: "When"i value_list ":" statement+
+value_list: expr (_COMMA expr)*
+otherwise_block: "Otherwise"i ":" statement+
 
 // simple boolean on/off, true/false
 // these are "proper statements" as they control the behavior of other statements
