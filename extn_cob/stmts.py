@@ -6,13 +6,27 @@ from datetime import datetime
 from typing import Any
 import sys
 
-from lark import Tree, Token
+from lark import Tree
 
 from app_exceptions import VgrExitingException, VgrStatementBreak, VgrStatementContinue, VgrRuntimeError
 from data_dict import DataDictionary
 from dd_config import do_set, do_assignment, do_unset
 from evaluate import eval_expr, bind_operations, eval_to_number, var_name_path
-from mathpak import bound_ops, poly_add, poly_true, poly_sub, poly_number, poly_mul, poly_div
+from mathpak import (
+    bound_ops,
+    poly_add,
+    poly_div,
+    poly_eq,
+    poly_false,
+    poly_ge,
+    poly_le,
+    poly_lt,
+    poly_mul,
+    poly_ne,
+    poly_number,
+    poly_sub,
+    poly_true,
+)
 from redir import print_stderr, print_stdout
 from src_mgr import SSM
 from stmt_exec import exec_if_else, exec_loop, exec_repeat, dispatch_statement
@@ -434,3 +448,104 @@ between items and ending with a newline.
         print_stdout(*args, sep='')
     else:
         print_stderr(*args, sep='')
+
+@control_statement
+@bound_ops("Evaluate")
+def execute_evaluate(dd: DataDictionary, statement: Tree) -> None:
+    """
+**Choose from a set of statements based on a value**
+
+* Evaluate _expression_
+    When [Not] _expression_  _statement_...
+    When [Not] _expression_ [Through | Thru] _expression_: _statement_...
+  End-Evaluate [;]
+* Evaluate _expression_
+    When [Not] _expression_ _statement_...
+    When [Not] _expression_ [Through | Thru] _expression_ _statement_...
+    When Other _statement_...
+  End-Evaluate [;]
+
+The expression in the statement is evaluated and it becomes the
+_desired value_ which is compared against values in `When` clauses.
+
+The comparison performed is identical to the `==` operator–or `!-` if `Not` is present– and follows
+the same type rules.
+The values in `When` clauses are examined in order, and the first to match
+the desired value has its block of statements executed.
+
+If none of the `When` clauses match the desired value the `When Other` cause,
+if provided, is selected. Note that this clause _must_ be the last `When`
+cause, and that at least one other `When` must be specified.
+
+In addition to `Next Sentence`, `Break` and `Continue` can be used within blocks of statements.
+
+Examples:
+```
+Move time.today.month To month
+Evaluate month
+    When 1 Thru 2   Move "a Winter" To season
+    When 3 Thru 5   Move "a Spring" To season
+    When 6 Thru 8   Move "a Summer" To season
+    When 9 Thru 11  Move "an Autumn" To season
+    When 12         Move "a Winter" To season
+    When Other Assert False: "Invalid month {}", month
+End-Evaluate
+Display "Month " month " is " season " month"
+
+Move 0 to Lower_bound
+Move 255 to Upper_bound
+Move 3 to Modulus
+Evaluate True
+    When X Is None           Assert False: "X is not set"
+    When X.Type() != "int"   Assert False: "X must be an integer"
+    When X < Lower_bound     Assert False: "X cannot be less than {}", Lower_bound
+    When X > Upper_bound     Assert False: "X cannot be greater than {}", Upper_bound
+    When X.FloorDiv(Modulus) Assert False: "X must be divisible by {}", Modulus
+    When Other Display X " checks out!"
+End-Evaluate
+```
+"""
+    if dd.echo:
+        print_stderr(SSM.source_for(statement, statement.children[1]).strip())
+    statement_children = iter(statement.children)
+    # The first child is the expression used in the value comparisons
+    desired_value = eval_expr(dd, bind_operations(next(statement_children, None)))
+    choosen_block = None
+    for block in statement_children:
+        if block.data in ['cobol_when_block', 'cobol_when_not_block']:
+            compare_op = poly_eq if block.data == 'cobol_when_block' else poly_ne
+            # NB: this may cause a TypeError if there is a mismatch
+            #     betweeen the desired_value's type, which drives "casting"
+            #     and the resulting type of the expression
+            values_children = iter(block.children)
+            if compare_op(desired_value, eval_expr(dd, bind_operations(next(values_children)))):
+                if dd.echo:
+                    print_stderr(SSM.source_for(block, block.children[1]).strip())
+                # The children start with the value, and the iterator now
+                # points to the following statements
+                choosen_block = values_children
+        elif block.data in ['cobol_when_thru_block', 'cobol_when_not_thru_block']:
+            test_op = poly_true if block.data == 'cobol_when_thru_block' else poly_false
+            values_children = iter(block.children)
+            v1 = eval_expr(dd, bind_operations(next(values_children)))
+            v2 = eval_expr(dd, bind_operations(next(values_children)))
+            if poly_lt(v2, v1): v1, v2 = v2, v1
+            if test_op(poly_ge(desired_value, v1) and poly_le(desired_value, v2)):
+                if dd.echo:
+                    print_stderr(SSM.source_for(block, block.children[1]).strip())
+                # The children start with the value, and the iterator now
+                # points to the following statements
+                choosen_block = values_children
+        else:
+            # it is 'when other' which is automatically selected
+            if dd.echo:
+                print_stderr(SSM.source_for(block, block.children[0]).strip())
+            choosen_block = iter(block.children)
+        # If a block of statements was choosen execute them
+        # Nested "break" and "continue" statments can be used to end execution
+        if choosen_block is not None:
+            try:
+                for s in choosen_block: dispatch_statement(dd, s)
+            except (VgrStatementBreak, VgrStatementContinue):
+                pass
+            return
