@@ -284,17 +284,22 @@ class OperationBinder(Transformer):
     def array(self, tree): return SimpleOperation(tree, build_list)
     def dict(self, tree): return SimpleOperation(tree, build_dict)
     def deref(self, tree): return SimpleOperation(tree, deref_var)
-    def function(self, tree): return SimpleOperation(tree, get_function_op(tree.children.pop(0).value))
     def var_ref(self, tree): return VarRef(tree)
     def set_var(self, tree): return SetVarOperation(tree)
     def function_call(self, tree):
         # The expression becomes the first argument to the function,
         # and it takes the place of the wrapper from parsing
         expr, func = tree.children
-        func.children.insert(0, expr)
-        return func
+        rc = SimpleOperation(func, get_function_op(func.children.pop(0).value))
+        rc.children.insert(0, expr)
+        return rc
 # pylint: enable=too-many-public-methods
 
+# NB: Changes to OperationBinder() may fix issues
+#     with double binding of functions which means
+#     this should not be a public and there's no need
+#     for diferentiating "control statements" etc
+#     Out of FUD, we won't be doing that now...
 def bind_operations(statement: Tree) -> Tree:
     """
     Transforms an expression and binds operations to nodes for
