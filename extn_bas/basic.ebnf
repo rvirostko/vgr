@@ -21,3 +21,8 @@ basic_continue: "Continue"i ("Do"i | "For"i | "While"i) _SEMICOLON?
 basic_let: "Let"i var_name "=" expr _SEMICOLON?
 basic_troff: "Troff"i _SEMICOLON?
 basic_tron: "Tron"i _SEMICOLON?
+
+// Prototype not working: conflicts with the "Select" statement
+// basic_select_case: "Select"i "Case"i expr ":"? case_values_block+ case_else_block? "End"i "Select"i _SEMICOLON? -> choose_using
+// case_values_block: "Case"i value_list ":"? statement+ -> values_block
+// case_else_block: "Case"i "Else"i ":"? statement+ -> otherwise_block
