@@ -110,7 +110,7 @@ sleep: "Sleep"i "For"i? expr ("Seconds"i | "Second"i)? _SEMICOLON?
 set: "Set"i ("Variable"i | "Var"i)? var_name ("=" | "To"i) expr _SEMICOLON?
     | ("Variable"i | "Var"i)? var_name ("=" | "Is"i) expr _SEMICOLON?
     | ("Set"i ("Variable"i | "Var"i)?)? var_name IN_PLACE_OP expr _SEMICOLON? -> set_in_place
-IN_PLACE_OP: ("+=" | "-=" | "*=" | "/=" | "//=" | "%=" | "**=" | "&=" | "|=" | "^=" | "<<=" | ">>=" )
+IN_PLACE_OP: ("+=" | "-=" | "*=" | "/=" | "%=" | "**=" | "&=" | "|=" | "^=" | "<<=" | ">>=" )
 
 swap: "Swap"i ("Variable"i | "Var"i)? var_name "With"i var_name _SEMICOLON?
     | "Swap"i ("Variables"i | "Var"i)? var_name "And"i var_name _SEMICOLON?
@@ -302,7 +302,6 @@ ternary: expr "?" expr ":" expr -> c_ternary
     | expr2 ("-" | "\u2212" | "\uFF0D") expr2 -> sub_op // Unicode − (minus sign) and － (fullwidth minus)
     | expr2 ("*" | "\u00D7") expr2 -> mul_op // Unicode × (multiplication)
     | expr2 ("/" | "\u00F7") expr2 -> div_op // Unicode ÷ (division)
-    | expr2 "//" expr2 -> fdiv_op
     | expr2 "%" expr2 -> mod_op
     | expr2 "**" expr2 -> pow_op
     | expr2 "&" expr2 -> bit_and_op

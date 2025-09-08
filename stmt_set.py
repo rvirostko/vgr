@@ -14,7 +14,7 @@ from app_exceptions import VgrRuntimeError
 from data_dict import DataDictionary
 from dd_config import do_assignment, do_set, do_unset, _ARG_PREFIX, dd_set_awk_params
 from evaluate import eval_expr, eval_filename_expr, var_name_path
-from mathpak import poly_add, poly_sub, poly_mul, poly_div, poly_fdiv, poly_mod, poly_pow
+from mathpak import poly_add, poly_sub, poly_mul, poly_div, poly_mod, poly_pow
 from mathpak import poly_bit_and, poly_bit_or, poly_bit_xor, poly_shl, poly_shr, bound_ops
 from redir import print_stderr, shorten, close_all_redirects
 
@@ -28,7 +28,6 @@ def execute_set(dd: DataDictionary, statement: Tree) -> None:
 * Set _variable_ -= _expression_ [;] -- Subtraction
 * Set _variable_ *= _expression_ [;] -- Multiplication
 * Set _variable_ /= _expression_ [;] -- Division
-* Set _variable_ //= _expression_ [;] -- Floor Division
 * Set _variable_ %= _expression_ [;] -- Modulo
 * Set _variable_ **= _expression_ [;] -- Power
 * Set _variable_ &= _expression_ [;] -- Bit And
@@ -92,7 +91,6 @@ _IN_PLACE_OP = {
     "-=":  poly_sub,
     "*=":  poly_mul,
     "/=":  poly_div,
-    "//=": poly_fdiv,
     "%=":  poly_mod,
     "**=": poly_pow,
     "&=":  poly_bit_and,

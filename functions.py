@@ -648,7 +648,6 @@ _OP_FUNCS = [
     poly_div, # div_op
     poly_eq, # eq_op
     poly_exact_eq, # exact_eq_op
-    poly_fdiv, # fdiv_op
     poly_floor, # poly_floor_op
     poly_ge, # ge_op
     poly_gt, # gt_op

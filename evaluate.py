@@ -25,7 +25,6 @@ from mathpak import (
     poly_eq,
     poly_exact_eq,
     poly_false,
-    poly_fdiv,
     poly_floor,
     poly_ge,
     poly_gt,
@@ -264,7 +263,6 @@ class OperationBinder(Transformer):
     def bit_or_op(self, tree): return SimpleOperation(tree, poly_bit_or)
     def bit_xor_op(self, tree): return SimpleOperation(tree, poly_bit_xor)
     def div_op(self, tree): return SimpleOperation(tree, poly_div)
-    def fdiv_op(self, tree): return SimpleOperation(tree, poly_fdiv)
     def mod_op(self, tree): return SimpleOperation(tree, poly_mod)
     def mul_op(self, tree): return SimpleOperation(tree, poly_mul)
     def pow_op(self, tree): return SimpleOperation(tree, poly_pow)

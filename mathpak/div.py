@@ -38,34 +38,32 @@ def _div(x: Any, y: Any) -> Any:
     operation = get_operation(x, y, numeric_operations)
     return operation(_div, x, y) if operation else x / y
 
-@bound_ops("//")
 def poly_fdiv(x: Any, *args):
     """
 **Floor division operation**
 
-* _x_ // _y_
 * _x_.FloorDiv(_y_...)
 
 Floor division returns the largest integer less than
 or equal to the result of the division.
 
-| x     | y     | returns   | operation                  |
-|-------|-------|-----------|----------------------------|
-| int   | int   | int       | x // y                     |
-| int   | float | int/float | x // y                     |
-| int   | str   | int/float | x // ToNumber(y)           |
-| float | int   | float     | x // y                     |
-| float | float | float     | x // y                     |
-| float | str   | float     | x // ToNumber(y)           |
-| str   | int   | int/float | ToNumber(x) // y           |
-| str   | float | float     | ToNumber(x) // y           |
-| str   | str   | int/float | ToNumber(x) // ToNumber(y) |
-| list  | int   | list      | distributive               |
-| list  | float | list      | distributive               |
-| list  | str   | list      | distributive               |
-| tuple | int   | tuple     | distributive               |
-| tuple | float | tuple     | distributive               |
-| tuple | str   | tuple     | distributive               |
+| x     | y     | returns   | operation                    |
+|-------|-------|-----------|------------------------------|
+| int   | int   | int       | x fdiv y                     |
+| int   | float | int/float | x fdiv y                     |
+| int   | str   | int/float | x fdiv ToNumber(y)           |
+| float | int   | float     | x fdiv y                     |
+| float | float | float     | x fdiv y                     |
+| float | str   | float     | x fdiv ToNumber(y)           |
+| str   | int   | int/float | ToNumber(x) fdiv y           |
+| str   | float | float     | ToNumber(x) fdiv y           |
+| str   | str   | int/float | ToNumber(x) fdiv ToNumber(y) |
+| list  | int   | list      | distributive                 |
+| list  | float | list      | distributive                 |
+| list  | str   | list      | distributive                 |
+| tuple | int   | tuple     | distributive                 |
+| tuple | float | tuple     | distributive                 |
+| tuple | str   | tuple     | distributive                 |
 
 TypeError raised on all other combinations
 """
@@ -81,7 +79,7 @@ def poly_divmod(x: Any, y: Any) -> Any:
 
 * _x_.DivMod(_y_)
 
-Returns a tuple of (_x_ // _y_, _x_ % _y_)
+Returns a tuple of (_x_ fdiv _y_, _x_ % _y_)
 
 | x     | y     | returns | operation                         |
 |-------|-------|---------|-----------------------------------|
