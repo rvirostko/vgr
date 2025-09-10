@@ -6,7 +6,7 @@ It also generates the grammar fragments used to identify the functions.
 from collections import defaultdict
 from collections.abc import Sequence, Iterable
 from functools import lru_cache
-from itertools import chain, zip_longest
+from itertools import zip_longest
 from typing import Any, Callable
 import inspect
 import re
@@ -89,6 +89,7 @@ from mathpak import (
     poly_isbool,
     poly_isdecimal,
     poly_isdigit,
+    poly_isempty,
     poly_isfinite,
     poly_isfloat,
     poly_isinf,
@@ -128,6 +129,7 @@ from mathpak import (
     poly_not_imatches,
     poly_not_in,
     poly_not_matches,
+    poly_notempty,
     poly_number,
     poly_oct,
     poly_ord,
@@ -277,44 +279,6 @@ missing items.
         return x if isinstance(x, Iterable) and not isinstance(x, (str, bytes, bytearray)) else [x]
     iterables = [normalize(first)] + [normalize(arg) for arg in rest]
     return list(zip_longest(*iterables))
-
-def _is_empty(x: Any) -> bool:
-    """
-**Test a value to see if it is _empty_**
-
-* _value_.IsEmpty()
-
-A value is considered empty if:
-* It is _None_
-* It is a list that has no items
-* It is a dictionary that has attributes
-* It is a string that has zero length or
-  consists of only space characters
-* It is a number that is zero
-* It is the boolean _False_
-"""
-    if isinstance(x, (list, tuple, dict)): return len(x) == 0
-    if isinstance(x, str): return len(x) == 0 or x.isspace()
-    if isinstance(x, (int, float)): return x == 0
-    return x is None
-
-def _not_empty(x: Any) -> bool:
-    """
-**Test a value to see if it is _not empty_**
-
-* _value_.NotEmpty()
-
-A value is considered empty if:
-* It is a list that has one or more items
-* It is a dictionary that has one or more attributes
-* It is a string that consists of more than just space characters
-* It is a number that is not zero
-* It is the boolean _True_
-"""
-    if isinstance(x, (list, tuple, dict)): return len(x) > 0
-    if isinstance(x, str): return len(x) > 0 and not x.isspace()
-    if isinstance(x, (int, float)): return bool(x)
-    return x is not None
 
 def _length(x: Any) -> bool:
     """
@@ -477,7 +441,7 @@ _BUILT_IN_FUNCS = {
     "IsDecimal":      poly_isdecimal,
     "IsDigit":        poly_isdigit,
     "IsDirectory":    is_dir,
-    "IsEmpty":        _is_empty,
+    "IsEmpty":        poly_isempty,
     "IsEqualTo":      poly_eq,
     "IsFalse":        poly_false,
     "IsFile":         is_file,
@@ -491,7 +455,7 @@ _BUILT_IN_FUNCS = {
     "IsList":         poly_islist,
     "IsLower":        poly_islower,
     "IsNan":          poly_isnan,
-    "IsNotEmpty":     _not_empty,
+    "IsNotEmpty":     poly_notempty,
     "IsNotEqualTo":   poly_ne,
     "IsNotGreaterThan": poly_le,
     "IsNotIn":        poly_not_in,
