@@ -166,6 +166,8 @@ from .types import (
     poly_number,
     poly_sign,
     poly_str,
+    poly_isempty,
+    poly_notempty,
 )
 from .web import parse_url, encode_url
 

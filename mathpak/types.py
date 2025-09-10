@@ -228,3 +228,41 @@ If _value_ is _None_ an empty list is returned.
     if isinstance(x, (list, tuple)): return x
     if isinstance(x, dict): return [(key, x[key]) for key in sorted(x)]
     return [x]
+
+def poly_isempty(x: Any) -> bool:
+    """
+**Test a value to see if it is _empty_**
+
+* _value_.IsEmpty()
+
+A value is considered empty if:
+* It is _None_
+* It is a list that has no items
+* It is a dictionary that has attributes
+* It is a string that has zero length or
+  consists of only space characters
+* It is a number that is zero
+* It is the boolean _False_
+"""
+    if isinstance(x, (list, tuple, dict)): return len(x) == 0
+    if isinstance(x, str): return len(x) == 0 or x.isspace()
+    if isinstance(x, (int, float)): return x == 0
+    return x is None
+
+def poly_notempty(x: Any) -> bool:
+    """
+**Test a value to see if it is _not empty_**
+
+* _value_.NotEmpty()
+
+A value is considered empty if:
+* It is a list that has one or more items
+* It is a dictionary that has one or more attributes
+* It is a string that consists of more than just space characters
+* It is a number that is not zero
+* It is the boolean _True_
+"""
+    if isinstance(x, (list, tuple, dict)): return len(x) > 0
+    if isinstance(x, str): return len(x) > 0 and not x.isspace()
+    if isinstance(x, (int, float)): return bool(x)
+    return x is not None
