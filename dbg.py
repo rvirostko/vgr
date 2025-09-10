@@ -7,6 +7,7 @@ import sys
 
 from lark import Tree, Token
 
+from mathpak import type_str
 from redir import print_stderr
 
 def print_tree(item: Any, indent=2) -> None:
@@ -27,6 +28,6 @@ def print_tree(item: Any, indent=2) -> None:
         if isinstance(item, Token):
             token: Token = item
             print_stderr(f'{prefix}{token.type}: {token.value!r} '
-                        f'(Pos: {token.line}:{token.column}-{token.end_line}:{token.end_column} {type(token.value).__name__})')
+                        f'(Pos: {token.line}:{token.column}-{token.end_line}:{token.end_column} {type_str(token.value)})')
         else:
             raise ValueError(item.type()) # SNO: What else can there be?

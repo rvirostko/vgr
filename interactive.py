@@ -17,7 +17,7 @@ import time
 from prompt_toolkit import PromptSession
 from prompt_toolkit.history import FileHistory
 
-from mathpak import poly_bool
+from mathpak import poly_bool, type_str
 
 class CustomArgParser(ArgumentParser):
     """A non-exiting argument parser"""
@@ -265,7 +265,7 @@ Changes made at runtime are not persistent.
             return None
 
     def _print_exception(self, e: Exception) -> None:
-        self._print_stderr(e if self.debug else e.args[0] if e.args else f"{type(e).__name__}")
+        self._print_stderr(e if self.debug else e.args[0] if e.args else f'{type_str(e)}')
 
     def _print_stderr(self, *args, **kwargs) -> None: print(*args, **kwargs, file=sys.stderr)
 
