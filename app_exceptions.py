@@ -5,6 +5,7 @@ from lark import Lark, Tree, Token, exceptions
 from lark.exceptions import VisitError
 
 from src_mgr import SSM
+from mathpak import type_str
 
 class VgrException(VisitError):
     def __init__(self, node, orig_exc, source_text):
@@ -15,7 +16,7 @@ class VgrException(VisitError):
             rule = f'token:{node.type}'
             meta = node
         else:
-            raise TypeError(f"Expected Tree or Token, got {type(node)}")
+            raise TypeError(f"Expected Tree or Token, got {type_str(node)}")
         super().__init__(rule, node, orig_exc)
         self.line = getattr(meta, 'line', None)
         self.column = getattr(meta, 'column', None)
