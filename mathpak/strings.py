@@ -330,7 +330,6 @@ and there is at least one cased character in the string.
 
 `["FOO-BAR", "Foo Bar"].IsUpper()` → `[True, False]`
 """
-    "".isupper()
     return _exec_bool_op(x, 'IsUpper', poly_isupper, str.isupper)
 
 ####
