@@ -6,7 +6,7 @@ scalar values.
 
 from typing import Any
 
-from .common import NoneType, bound_ops
+from .common import NoneType, bound_ops, type_str
 
 # Impl def and testing req
 #   * If x is a collection, should it be distributive (not use all)
@@ -35,7 +35,7 @@ def poly_not_in(x: Any, y: Any) -> Any:
     if isinstance(x, (list, tuple)):
         return all(poly_not_in(x1, y) for x1 in x)
     if not isinstance(x, (NoneType, bool, int, str, float)):
-        raise TypeError(f'Cannot use {type(x)} with an in/contains operation')
+        raise TypeError(f'Cannot use {type_str(x)} with an in/contains operation')
     if isinstance(y, str):
         return not (isinstance(x, str) and x in y)
     if isinstance(y, (list, tuple)):
@@ -58,7 +58,7 @@ def _is_in(x: Any, y: Any, do_all: bool) -> Any:
         t = (_is_in(x1, y, do_all) for x1 in x)
         return all(t) if do_all else any(t)
     if not isinstance(x, (NoneType, bool, int, str, float)):
-        raise TypeError(f'Cannot use {type(x)} with an in/contains operation')
+        raise TypeError(f'Cannot use {type_str(x)} with an in/contains operation')
     if isinstance(y, str):
         return isinstance(x, str) and x in y
     if isinstance(y, (list, tuple)):
