@@ -715,11 +715,10 @@ def execute_vault_rotate_db_role_creds(dd: DataDictionary, statement: Tree) -> N
                 args,
                 _CONNECTIONS.get_connection(using).rotate_database_static_role_credentials(mount_point, role_name, namespace))
 
-# TODO may need to clean up duped slashes etc
 def _combine_ns(parent: str, child: str) -> str:
     """Combine parent and child namespace paths into a single path."""
-    parent = (parent or '').strip('/')
-    child = (child or '').strip('/')
+    parent = (parent or '').strip('/').replace('//', '/')
+    child = (child or '').strip('/').replace('//', '/')
     if not parent and not child: return ''
     if not parent: return child
     if not child: return parent
@@ -732,6 +731,9 @@ def _split_mount_path(s: str) -> tuple:
         raise ValueError(f'Missing information following Mount Point: {s}')
     return parts
 
+def _type_str(o: Any) -> str:
+    return repr(type(o).__name__)
+
 def _extract_args(dd: DataDictionary, statement: Tree) -> dict:
     args = {}
     for child in statement.children[-1].children:
@@ -743,20 +745,20 @@ def _extract_args(dd: DataDictionary, statement: Tree) -> dict:
             elif arg_name in _ARG_INT_EXPR:
                 v = eval_expr_or_const(dd, arg_node)
                 if v:
-                    if not isinstance(v, (int, float)): raise TypeError(f'{arg_name.title()} must be a int; found {type(v).__name__!r}')
+                    if not isinstance(v, (int, float)): raise TypeError(f'{arg_name.title()} must be a int; found {_type_str(v)}')
                     args[arg_name] = int(v)
             elif arg_name in _ARG_EXPR:
                 args[arg_name] = eval_expr_or_const(dd, arg_node)
             else:
                 raise VgrRuntimeError(child, NotImplementedError(f'Vault argument {arg_name!r} not implemented')) # SNO
         else:
-            raise VgrRuntimeError(child, ValueError(f'Unexpected Vault argument {child.data!r}:{type(child)}')) # SNO
+            raise VgrRuntimeError(child, ValueError(f'Unexpected Vault argument {child.data!r}:{_type_str(child)}')) # SNO
     return args
 
 def _resolve_str_arg(dd: DataDictionary, expr: Tree, name: str, allow_none: bool=False) -> str:
     rc = eval_expr_or_const(dd, expr)
     if rc is None and allow_none: return None
-    if not isinstance(rc, str): raise TypeError(f'{name} must be a string; found {type(rc).__name__!r}')
+    if not isinstance(rc, str): raise TypeError(f'{name} must be a string; found {_type_str(rc)}')
     return rc
 
 def _allowed_args(args: dict, *allowed_keys) -> None:
@@ -772,4 +774,4 @@ def _get_arg(args: dict, name: str, expected_type: type, optional: bool = False)
         raise ValueError(f'Missing required argument: {name.title()}')
     value = args[name]
     if isinstance(value, expected_type): return value
-    raise TypeError(f'Argument {name.title()} must be of type {expected_type.__name__!r}, found {type(value).__name__!r}')
+    raise TypeError(f'Argument {name.title()} must be of type {_type_str(expected_type)}, found {_type_str(value)}')
