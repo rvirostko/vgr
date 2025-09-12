@@ -1,5 +1,37 @@
 echo on
 
+// Basic ASCII Latin letters
+Set abc To 5
+Assert (abc + 1) == 6
+
+// Latin-1 Supplement (U+00C0–U+00FF), e.g., À-ÿ
+Set ÌÝö To 10
+Assert (ÌÝö * 2) == 20
+
+// Latin Extended-A (U+0100–U+017F)
+Set ĀĒŌ To 7
+Assert (ĀĒŌ - 3) == 4
+
+// Latin Extended-B (U+0180–U+024F)
+Set ƀƃƌ To 12
+Assert (ƀƃƌ / 2) == 6
+
+// Latin Extended Additional (U+1E00–U+1EFF)
+Set ḀḁḂ To 15
+Assert (ḀḁḂ + 5) == 20
+
+// Leading $ with basic Latin
+Set $abc To 8
+Assert ($abc * 3) == 24
+
+// Leading $ with Latin-1 Supplement
+Set $Éßç To 6
+Assert ($Éßç - 2) == 4
+
+// Leading $ with Latin Extended-A
+Set $ĂĔŎ To 9
+Assert ($ĂĔŎ + 1) == 10
+
 // Leading $ followed by digit and non-digits
 Set $1foo To 42
 Assert ($1foo + 8) == 50
