@@ -12,7 +12,7 @@ from lark import Tree, Token
 
 from app_exceptions import VgrRuntimeError
 from dd_config import do_assignment, do_set, do_unset, _ARG_PREFIX, dd_set_awk_params
-from evaluate import eval_filename_expr, var_name_path
+from evaluate import var_name_path
 from exec_context import ExecContext
 from mathpak import (
     bound_ops,
@@ -154,7 +154,7 @@ name with Text as the default.
 """
     path = var_name_path(statement.children[0])
     fn_child = statement.children[1]
-    filename = eval_filename_expr(ctx.dd, fn_child)
+    filename = ctx.eval_filename_expr(fn_child)
     dtype = load_data_type(filename, statement.children[2] if len(statement.children) > 2 else None)
     # TODO need to have an encoding param
     # defaults to utf-8-sig

@@ -49,7 +49,6 @@ from mathpak import (
     poly_true,
     type_str,
 )
-from output import verify_relative_path
 
 def assert_has_meta(tree: Tree):
     """Correct error handling relies on the metadata, so we need to check correctness"""
@@ -321,14 +320,6 @@ def eval_expr(dd: DataDictionary, expr: Any) -> Any:
         return deepcopy(expr.value)
     raise VgrRuntimeError(expr, NotImplementedError(f'Unknown type {type_str(expr)}')) #SNO
 
-def eval_to_str(dd: DataDictionary, expr: Tree, name: str, allow_none: bool=False) -> str:
-    """Helper that makes sure you got a string back from an expression"""
-    rc = eval_expr(dd, expr)
-    if rc is None and allow_none: return None
-    if not isinstance(rc, str):
-        raise VgrRuntimeError(expr, TypeError(f'{name} must be a string; found {type_str(rc)}'))
-    return rc
-
 def eval_to_int(dd: DataDictionary, expr: Tree, name: str, allow_none: bool=False) -> int:
     rc = eval_expr(dd, expr)
     if rc is None and allow_none: return None
@@ -350,7 +341,3 @@ def eval_to_bool(dd: DataDictionary, expr: Tree, name: str, allow_none: bool=Fal
     if not isinstance(rc, (bool, int, float, str)):
         raise VgrRuntimeError(expr, TypeError(f'{name} must be an boolean; found {type_str(rc)}'))
     return poly_true(rc)
-
-def eval_filename_expr(dd: DataDictionary, expr: Tree, allow_none: bool=False) -> str:
-    """Helper that gets a string that should be a relative filename"""
-    return verify_relative_path(eval_to_str(dd, expr, 'File name', allow_none))

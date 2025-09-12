@@ -23,7 +23,8 @@ from dd_config import (
     do_set,
     do_unset,
 )
-from evaluate import bind_operations, eval_expr, eval_expr_or_const, eval_filename_expr, var_name_path
+from evaluate import bind_operations, eval_expr, eval_expr_or_const, var_name_path
+from output import verify_relative_path
 from exec_context import ExecContext
 from functions import build_dict
 from mathpak import (
@@ -31,6 +32,7 @@ from mathpak import (
     poly_int,
     poly_list,
     poly_true,
+    type_str,
 )
 from redir import execute_open, execute_close, print_stderr, print_stdout
 from src_mgr import SSM
@@ -73,7 +75,7 @@ are executed, inheriting the current state of all variable and
 input/output redirection.
 """
     for child in statement.children:
-        file = eval_filename_expr(ctx.dd, child, True)
+        file = ctx.eval_filename_expr(child, True)
         if file is None or len(file) == 0: continue
         path = Path(file)
         if not path.exists():
@@ -483,11 +485,28 @@ class DefaultExecContext(ExecContext):
     def eval_expr(self, expr: Any) -> Any: return eval_expr(self.dd, expr)
     def eval_expr_or_const(self, expr: Any) -> Any: return eval_expr_or_const(self.dd, expr)
 
+    def eval_to_str(self, expr: Tree, name: str, allow_none: bool=False) -> str:
+        """Helper that makes sure you got a string back from an expression"""
+        rc = self.eval_expr(expr)
+        if rc is None and allow_none: return None
+        if not isinstance(rc, str):
+            raise VgrRuntimeError(expr, TypeError(f'{name} must be a string; found {type_str(rc)}'))
+        return rc
+
+    def eval_filename_expr(self, expr: Any, allow_none: bool=False) -> str:
+        """Helper that gets a string that should be a relative filename"""
+        return verify_relative_path(self.eval_to_str(expr, 'File name', allow_none))
+
     def echo_source(self, tree, end_tree = None):
         if self.dd.echo: print_stderr((SSM.source_for(tree, end_tree) or '').strip())
 
     def print_verbose(self, *args, **kwargs) -> None:
         if self.dd.verbose: print_stderr(*args, **kwargs)
+
+    def parse_expression(self, expr_text: str) -> Tree:
+        if expr_text and not expr_text.isspace():
+            return self._parser.parse(expr_text, start='expr')
+        return None
 
     def execute_statements(self, statement_text: str, origin: str) -> None:
         """Parse the text and execute the resulting statements"""
@@ -497,7 +516,7 @@ class DefaultExecContext(ExecContext):
             SSM.set_statement(statement_text, origin)
             try:
                 self._push_source(origin)
-                self.dispatch_statements(self._parser.parse(statement_text).children)
+                self.dispatch_statements(self._parser.parse(statement_text, start='opt_statements').children)
                 # We only restore these if everything worked: otherwise we loose
                 # the source that an exception may need
                 SSM.set_statement(prev_statement, prev_origin)

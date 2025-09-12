@@ -4,7 +4,6 @@ Contains the implementation for the ECHO, DEBUG and VERBOSE statements
 
 from lark import Tree, Token
 
-from data_dict import DataDictionary
 from evaluate import eval_to_bool, bind_operations
 from exec_context import ExecContext
 from mathpak import bound_ops
@@ -25,7 +24,7 @@ Without arguments, statement echoing is turned on.
 When on, statements are echoed before execution
 Note that this command itself never echoes itself.
 """
-    ctx.dd.echo = _flag_value(ctx.dd, bind_operations(statement), 'Echo')
+    ctx.dd.echo = _flag_value(ctx, bind_operations(statement), 'Echo')
     ctx.print_verbose('Echo =', ctx.dd.echo)
 
 @bound_ops("Debug")
@@ -40,7 +39,7 @@ def execute_debug(ctx: ExecContext, statement: Tree) -> None:
 Without arguments, debug is turned on.
 When on, additional technical output is generated.
 """
-    ctx.dd.debug = _flag_value(ctx.dd, statement, 'Debug')
+    ctx.dd.debug = _flag_value(ctx, statement, 'Debug')
     ctx.print_verbose('Debug =', ctx.dd.debug)
 
 @bound_ops("Verbose")
@@ -56,10 +55,10 @@ Without arguments, verbose is turned on.
 When on, additional operational output is generated.
 """
     o_verbose = ctx.dd.verbose
-    ctx.dd.verbose = _flag_value(ctx.dd, statement, 'Verbose')
+    ctx.dd.verbose = _flag_value(ctx, statement, 'Verbose')
     if ctx.dd.verbose or o_verbose: print_stderr('Verbose =', ctx.dd.verbose)
 
-def _flag_value(dd: DataDictionary, statement: Tree, name: str) -> bool:
+def _flag_value(ctx: ExecContext, statement: Tree, name: str) -> bool:
     # default behavior for a flag is a request to turn on
     if not statement.children: return True
     # This is a bit of a hack to allow "<flag> [on|off]"
@@ -73,5 +72,5 @@ def _flag_value(dd: DataDictionary, statement: Tree, name: str) -> bool:
             value = str(arg.value).casefold()
             if value == 'on': return True
             if value == 'off': return False
-    rc = eval_to_bool(dd, first_child, name, True)
+    rc = eval_to_bool(ctx.dd, first_child, name, True)
     return False if rc is None else rc

@@ -10,7 +10,6 @@ import textwrap
 from lark import Tree
 
 from app_exceptions import VgrExitingException, VgrRuntimeError
-from evaluate import eval_filename_expr
 from exec_context import ExecContext
 from mathpak import bound_ops
 from output import IORedirector, prepare_path
@@ -60,7 +59,7 @@ All redirection is closed at program termination.
 Also see *Close*
 """
     stream = _eval_stream_name(statement.children[0])
-    filename = eval_filename_expr(ctx.dd, statement.children[1])
+    filename = ctx.eval_filename_expr(statement.children[1])
     if stream == 'stdin':
         if len(statement.children) > 2:
             raise VgrRuntimeError(statement, ValueError('Invalid options for stdin'))

@@ -26,6 +26,9 @@ class ExecContext(ABC):
         return self._dd
 
     @abstractmethod
+    def parse_expression(self, expr_text: str) -> Tree: pass
+
+    @abstractmethod
     def execute_statements(self, statement_text: str, origin: str) -> None: pass
 
     @abstractmethod
@@ -48,6 +51,12 @@ class ExecContext(ABC):
 
     @abstractmethod
     def eval_expr_or_const(self, expr: Any) -> Any: pass
+
+    @abstractmethod
+    def eval_to_str(self, expr: Tree, name: str, allow_none: bool=False) -> str: pass
+
+    @abstractmethod
+    def eval_filename_expr(self, expr: Any, allow_none: bool=False) -> str: pass
 
     @abstractmethod
     def echo_source(self, tree: Tree, end_tree: Tree=None) -> str: pass

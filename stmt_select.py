@@ -1,5 +1,5 @@
 """
-TODO
+Implementation of the SELECT statement
 """
 
 from typing import Any
@@ -9,18 +9,13 @@ import re
 from lark import Tree, Token, Transformer, Visitor, v_args
 
 from app_exceptions import VgrRuntimeError
-from data_dict import DataDictionary
 from data_xtract import QueryFilter, InfoOutput, DataExtractor, EndExtractException
 from dbg import print_tree
 from dd_config import DEFAULT_FOR_TYPE_PATH, ROWID_PATH, dd_clear_scratch
 from evaluate import (
     bind_operations,
-    eval_expr_or_const,
-    eval_expr,
-    eval_filename_expr,
     eval_to_bool,
     eval_to_int,
-    eval_to_str,
 )
 from exec_context import ExecContext
 from mathpak import poly_false, bound_ops, type_str
@@ -101,9 +96,9 @@ class SelectAnalyzer(Visitor):
         'trim_blocks'      : 'Trim Blocks',
     }
 
-    def __init__(self, dd: DataDictionary):
+    def __init__(self, ctx: ExecContext):
         super().__init__()
-        self._dd = dd
+        self._ctx = ctx
         self._predicates = []
         self._from_opts = {}
         self._output_statements = []
@@ -116,8 +111,8 @@ class SelectAnalyzer(Visitor):
         return self
 
     @property
-    def dd(self) -> DataDictionary:
-        return self._dd
+    def ctx(self) -> ExecContext:
+        return self._ctx
 
     @property
     def from_opts(self) -> dict:
@@ -148,8 +143,8 @@ class SelectAnalyzer(Visitor):
         """
         # We add these here because they get passed to down to
         # writers et al for possible extra output (mostly Templates)
-        self.output_opts['debug'] = self._dd.debug
-        self.output_opts['verbose'] = self._dd.verbose
+        self.output_opts['debug'] = self.ctx.dd.debug
+        self.output_opts['verbose'] = self.ctx.dd.verbose
         # If there were no output statements (Select From...)
         # we are extracting the entire record and the target
         # name is the name for the columns
@@ -158,10 +153,10 @@ class SelectAnalyzer(Visitor):
         self.output_opts['headers'] = self.make_cols_names_unique(self._headers)
         from_type = self.from_opts['type']
         target = self.from_opts['target']
-        self._output_statements = [bind_operations(add_implicit(self._dd, from_type, target, o))
+        self._output_statements = [bind_operations(add_implicit(self.ctx.dd, from_type, target, o))
                                    for o in self.output_statements]
         # TODO for predicates, this might be premature...
-        self._predicates = [bind_operations(add_implicit(self._dd, from_type, target, p))
+        self._predicates = [bind_operations(add_implicit(self.ctx.dd, from_type, target, p))
                             for p in self.predicates]
 
     def output(self, node: Tree):
@@ -187,7 +182,7 @@ class SelectAnalyzer(Visitor):
         #     Also note that we don't trim string values
         #     as spaces are legal in dictionaries and csv files
         as_node = node.children[1]
-        as_value = eval_expr_or_const(self._dd, bind_operations(as_node))
+        as_value = self.ctx.eval_expr_or_const(bind_operations(as_node))
         if as_value is None or isinstance(as_value, (str, int, float)):
             # Although we allow None, we treat it as an empty entry
             self._headers.append('' if as_value is None else as_value)
@@ -237,7 +232,7 @@ class SelectAnalyzer(Visitor):
         """... From File <filename> [As <target>] ..."""
         node = bind_operations(node)
         self.from_opts['type'] = 'memory'
-        filename = eval_filename_expr(self._dd, bind_operations(node.children[0]))
+        filename = self.ctx.eval_filename_expr(bind_operations(node.children[0]))
         self.from_opts['file'] = filename
         self.from_opts['dtype'] = load_data_type(filename, None)
         self.from_opts['target'] = self._get_target_name(node.children[1]) if len(node.children) > 1 else self._DEFAUL_TARGET_NAME
@@ -246,19 +241,19 @@ class SelectAnalyzer(Visitor):
         """... From File <filename> <source_type> [As <target>] ..."""
         node = bind_operations(node)
         self.from_opts['type'] = 'memory'
-        filename = eval_filename_expr(self._dd, bind_operations(node.children[0]))
+        filename = self.ctx.eval_filename_expr(bind_operations(node.children[0]))
         self.from_opts['file'] = filename
         self.from_opts['dtype'] = load_data_type(filename, node.children[1])
         self.from_opts['target'] = self._get_target_name(node.children[2]) if len(node.children) > 2 else self._DEFAUL_TARGET_NAME
 
     def _get_target_name(self, node: Tree) -> str:
-        target = eval_expr_or_const(self._dd, bind_operations(node))
+        target = self.ctx.eval_expr_or_const(bind_operations(node))
         if target is None: return self._DEFAUL_TARGET_NAME
         if not isinstance(target, str): raise VgrRuntimeError(node, TypeError(f"Value for 'As' must be a string; found {type_str(target)}"))
         target = target.strip()
         if self._VAR_NAME.fullmatch(target) is None: raise VgrRuntimeError(node, TypeError(f"Value for 'As' must be a valid simple variable name; {target!r}"))
         try:
-            self._dd.validate_user_set_path(target)
+            self.ctx.dd.validate_user_set_path(target)
             return target
         except ValueError as e:
             raise VgrRuntimeError(node, e) from e
@@ -278,8 +273,8 @@ class SelectAnalyzer(Visitor):
         """... Limit <limit> (Offset <offset>)? ..."""
         node = bind_operations(node)
         children = node.children
-        if len(children) >= 1: self.output_controls['limit'] = eval_to_int(self._dd, children[0], 'Limit', True)
-        if len(children) >= 2: self.output_controls['offset'] = eval_to_int(self._dd, node.children[1], 'Offset', True)
+        if len(children) >= 1: self.output_controls['limit'] = eval_to_int(self.ctx.dd, children[0], 'Limit', True)
+        if len(children) >= 2: self.output_controls['offset'] = eval_to_int(self.ctx.dd, node.children[1], 'Offset', True)
 
     def product_clause(self, node: Tree):
         node = bind_operations(node)
@@ -318,7 +313,7 @@ class SelectAnalyzer(Visitor):
                 self.output_opts['template_type'] = child.data.lower()
                 continue
             if self.is_tree(child, 'template_filename'):
-                self.output_opts['template_filename'] = eval_filename_expr(self._dd, child.children[0])
+                self.output_opts['template_filename'] = self.ctx.eval_filename_expr(child.children[0])
                 continue
             # remainder are options...
             self._parse_output_ops(node, i)
@@ -355,13 +350,13 @@ class SelectAnalyzer(Visitor):
             raise NotImplementedError(f'Output option {name!r} of type {self.output_opts["type"]}') #SNO
 
     def _bool_arg(self, node:Tree, name: str) -> bool:
-        return eval_to_bool(self._dd, node.children[0], name, True) if node.children else True
+        return eval_to_bool(self.ctx.dd, node.children[0], name, True) if node.children else True
 
     def _int_arg(self, node:Tree, name: str, default: int=0) -> int:
-        return eval_to_int(self._dd, node.children[0], name, True) if node.children else default
+        return eval_to_int(self.ctx.dd, node.children[0], name, True) if node.children else default
 
     def _str_arg(self, node:Tree, name: str, default: str=None) -> str:
-        return eval_to_str(self._dd, node.children[0], name, True) if node.children else default
+        return self.ctx.eval_to_str(node.children[0], name, True) if node.children else default
 
     @staticmethod
     def is_token(child, token_type: str) -> bool:
@@ -415,7 +410,7 @@ def execute_select(ctx: ExecContext, statement: Tree):
 
 TODO
 """
-    select = SelectAnalyzer(ctx.dd).analyze(statement)
+    select = SelectAnalyzer(ctx).analyze(statement)
     # NB: at this point not all operations will show as bound
     # (notably in the outputs and the predicates) and
     # that is by design, so don't panic
@@ -425,16 +420,20 @@ TODO
     output_opts['type'] = output_opts.get('type', (ctx.get_var_user(*DEFAULT_FOR_TYPE_PATH) or 'csv').lower())
     writer = create_writer(output_opts, select.output_controls)
     if ctx.dd.debug: print_stderr(repr(writer))
-    extractor = create_extractor(ctx.dd, select.from_opts)
+    extractor = create_extractor(ctx, select.from_opts)
     if ctx.dd.debug: print_stderr(repr(extractor))
-    QueryRunner(ctx.dd, select, writer).run_extraction(extractor)
+    QueryRunner(ctx, select, writer).run_extraction(extractor)
 
 class QueryRunner(QueryFilter, InfoOutput):
-    def __init__(self, dd: DataDictionary, select: SelectAnalyzer, writer: RecordWriter):
-        self._dd = dd
+    def __init__(self, ctx: ExecContext, select: SelectAnalyzer, writer: RecordWriter):
+        self._ctx = ctx
         self._select = select
         self._writer = writer
         self._rowid = 0
+
+    @property
+    def ctx(self) -> ExecContext:
+        return self._ctx
 
     @property
     def rowid(self) -> int:
@@ -443,7 +442,7 @@ class QueryRunner(QueryFilter, InfoOutput):
     @rowid.setter
     def rowid(self, value: int) -> int:
         self._rowid = int(value)
-        self._dd.set_var_user(self._rowid, *ROWID_PATH)
+        self.ctx.set_var_user(self._rowid, *ROWID_PATH)
 
     def inc_rowid(self):
         self.rowid += 1
@@ -499,11 +498,11 @@ class QueryRunner(QueryFilter, InfoOutput):
         predicates = self._select.predicates
         if predicates:
             for predicate in predicates:
-                if poly_false(eval_expr(self._dd, predicate)): return False
+                if poly_false(self.ctx.eval_expr(predicate)): return False
         record: list = None
         outputs = self._select.output_statements
         if outputs:
-            record = [ eval_expr(self._dd, expr) for expr in outputs ]
+            record = [ self.ctx.eval_expr(expr) for expr in outputs ]
         else:
             # Result of a "Select From ..." so your output is
             # the entirty of the target data.
@@ -514,7 +513,7 @@ class QueryRunner(QueryFilter, InfoOutput):
                 raise EndExtractException()
             return True
         finally:
-            dd_clear_scratch(self._dd)
+            dd_clear_scratch(self.ctx.dd)
 
     def set_data(self, key: str, data: Any) -> None:
         """
@@ -530,7 +529,7 @@ class QueryRunner(QueryFilter, InfoOutput):
             # affect filter_intermediate behavior.
             self.unset_data(key)
         else:
-            self._dd.set_var_user(data, key)
+            self.ctx.set_var_user(data, key)
 
     def unset_data(self, key: str) -> None:
         """
@@ -538,15 +537,15 @@ class QueryRunner(QueryFilter, InfoOutput):
         from the data dictionary.
         See set_data().
         """
-        self._dd.unset_var_user(key)
+        self.ctx.dd.unset_var_user(key)
 
     def print_debug(self, *args, **kwargs):
-        if self._dd.debug: print_stderr(*args, **kwargs)
+        if self.ctx.dd.debug: print_stderr(*args, **kwargs)
 
     def print_verbose(self, /, *args, **kwargs):
-        if self._dd.verbose: print_stderr(*args, **kwargs)
+        self.ctx.print_verbose(*args, **kwargs)
 
-def create_extractor(dd: DataDictionary, opts: dict) -> DataExtractor:
+def create_extractor(ctx: ExecContext, opts: dict) -> DataExtractor:
     """
     Using the options, create an extractor for data.
     """
@@ -558,7 +557,7 @@ def create_extractor(dd: DataDictionary, opts: dict) -> DataExtractor:
     if xtype == 'memory':
         path = opts.get('var', None)
         if path:
-            return InMemoryExtractor(dd.get_var_user(*path), target)
+            return InMemoryExtractor(ctx.get_var_user(*path), target)
         filename = opts.get('file', None)
         if filename:
             # TODO need input encoding opt, default to usf-8-sig
@@ -569,7 +568,7 @@ def create_extractor(dd: DataDictionary, opts: dict) -> DataExtractor:
                 raise ValueError(f'While reading {filename!r}: {str(e)}') from e
             if not isinstance(data, list):
                 data = [data] if isinstance(data, dict) else [{'value' : data}]
-            if dd.verbose: print_stderr(dd, 'Read', len(data), 'Records ' if len(data) != 1 else 'Record', 'From', filename)
+            ctx.print_verbose('Read', len(data), 'Records ' if len(data) != 1 else 'Record', 'From', filename)
             return InMemoryExtractor(data, target)
     raise NotImplementedError(f'Extractor type {xtype!r}') #SNO
 

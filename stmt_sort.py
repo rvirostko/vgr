@@ -9,7 +9,7 @@ from lark import Tree, Visitor
 from app_exceptions import VgrRuntimeError
 from data_dict import DataDictionary
 from dd_config import do_set
-from evaluate import eval_expr_or_const, eval_filename_expr, bind_operations
+from evaluate import bind_operations
 from exec_context import ExecContext
 from mathpak import poly_sort, dsort, bound_ops, type_str
 from output import CSVRecordWriter, JSONRecordWriter, TextRecordWriter
@@ -28,9 +28,9 @@ _UNIQUE = 'unique'           # boolean
 _UNIQUE_COLS = 'unique_cols' # columns that determine uniqueness
 
 class SortAnalyzer(Visitor):
-    def __init__(self, dd: DataDictionary):
+    def __init__(self, ctx: ExecContext):
         super().__init__()
-        self._dd = dd
+        self._ctx = ctx
         self._source = {
             _SORT_COLS: [],
             _SORT_FLAGS: [],
@@ -46,8 +46,8 @@ class SortAnalyzer(Visitor):
         return self
 
     @property
-    def dd(self) -> DataDictionary:
-        return self._dd
+    def ctx(self) -> ExecContext:
+        return self._ctx
 
     @property
     def sort_source(self) -> dict:
@@ -110,7 +110,7 @@ class SortAnalyzer(Visitor):
         The key can be an expression, in which case it must be a string.
         While underlying code also supports a variable reference, the grammar does not support this.
         """
-        rc = eval_expr_or_const(self._dd, arg)
+        rc = self.ctx.eval_expr_or_const(arg)
         if rc is None or isinstance(rc, (str, int, float)): return rc
         raise VgrRuntimeError(arg, TypeError(f'{name} must be a simple type; found {type_str(rc)}'))
 
@@ -122,7 +122,7 @@ class SortAnalyzer(Visitor):
         """
         io[_TYPE] = node.data
         if node.data == 'file':
-            io[_FILE] = eval_filename_expr(self._dd, bind_operations(node.children[0]))
+            io[_FILE] = self.ctx.eval_filename_expr(bind_operations(node.children[0]))
             io[_DTYPE] = load_data_type(io[_FILE], node.children[1] if len(node.children) == 2 else None)
         elif node.data == 'var':
             io[_VAR] = tuple(name.value for name in node.children[0].children)
@@ -180,7 +180,7 @@ Sort accts On acct_nbr Unique
 ```
 
 """
-    sort = SortAnalyzer(ctx.dd).analyze(statement)
+    sort = SortAnalyzer(ctx).analyze(statement)
     source = sort.sort_source
     target = sort.sort_target
     data = _read_data(ctx.dd, source)

@@ -7,7 +7,6 @@ import logging
 from lark import Tree
 
 from app_exceptions import VgrExitingException
-from evaluate import eval_to_str
 from exec_context import ExecContext
 from mathpak import bound_ops, poly_true, poly_int
 from redir import print_stderr
@@ -64,7 +63,7 @@ Execution ends with an exit code of 1 indicating failure
         msg: str = None
         if len(exprs) > 0:
             try:
-                msg = eval_to_str(ctx.dd, exprs.pop(0), 'Format string', True)
+                msg = ctx.eval_to_str(exprs.pop(0), 'Format string', True)
                 if msg is not None: msg = msg.format(*[ctx.eval_expr(expr) for expr in exprs])
             except (ValueError, TypeError) as e:
                 print_stderr(f'While evaluating {SSM.source_for(statement)} on line {statement.meta.line}: ', e)

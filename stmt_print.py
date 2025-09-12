@@ -8,7 +8,6 @@ from lark import Tree
 
 from dd_config import OFS_PATH, ORS_PATH
 from redir import print_stdout, stdout
-from evaluate import eval_to_str
 from exec_context import ExecContext
 from mathpak import poly_format, bound_ops
 
@@ -51,7 +50,7 @@ The first expression is resolved to a string used to format the other values.
 Formatting syntax is that used in [Python's str.format()](https://docs.python.org/3/library/string.html#formatstrings)
 """
     if len(statement.children) < 1: return
-    format_string = eval_to_str(ctx.dd, statement.children[0], 'Format string', True)
+    format_string = ctx.eval_to_str(statement.children[0], 'Format string', True)
     value = poly_format(format_string, *tuple(ctx.eval_expr(expr) for expr in statement.children[1:]))
     if value:
         print_stdout(value, end='')

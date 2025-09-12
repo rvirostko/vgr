@@ -6,7 +6,6 @@ import logging
 from lark import Tree
 
 from dd_config import LOG_LEVEL_PATH
-from evaluate import eval_to_str
 from exec_context import ExecContext
 from mathpak import poly_format, bound_ops
 
@@ -61,6 +60,6 @@ Formatting syntax is that used in [Python's str.format()](https://docs.python.or
         raise ValueError(f'Unsupported log level {log_level!r}')
     value = ''
     if len(statement.children) > 1:
-        format_string = eval_to_str(ctx.dd, statement.children[1], 'Format string', True)
+        format_string = ctx.eval_to_str(statement.children[1], 'Format string', True)
         value = poly_format(format_string, *tuple(ctx.eval_expr(expr) for expr in statement.children[2:]))
     log_func(value)

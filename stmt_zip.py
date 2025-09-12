@@ -11,7 +11,6 @@ import zipfile
 from lark import Tree
 
 from app_exceptions import VgrRuntimeError
-from evaluate import eval_filename_expr, eval_to_str
 from exec_context import ExecContext
 from mathpak import bound_ops, type_str
 from output import prepare_path, verify_relative_path
@@ -41,7 +40,7 @@ Both files and directories must be relative to the current directory.
 
 If a comment is specified multiple times, only the last one is used.
 """
-    zip_name = eval_filename_expr(ctx.dd, statement.children[0])
+    zip_name = ctx.eval_filename_expr(statement.children[0])
     include_patterns: list[str] = []
     exclude_patterns: list[str] = []
     comment: str = None
@@ -49,7 +48,7 @@ If a comment is specified multiple times, only the last one is used.
         arg_type = child.data
         if arg_type == 'include': include_patterns.extend(_eval_to_list_str(ctx, child, 'Include'))
         elif arg_type == 'exclude': exclude_patterns.extend(_eval_to_list_str(ctx, child, 'Exclude'))
-        elif arg_type == 'comment': comment = eval_to_str(ctx.dd, child.children[0], 'Comment', True)
+        elif arg_type == 'comment': comment = ctx.eval_to_str(child.children[0], 'Comment', True)
         else: raise VgrRuntimeError(child, ValueError(f'Unhandled type {arg_type!r}'))
     added_files = set()
     # General follow zip's -r behavior when it comes to subdirs
