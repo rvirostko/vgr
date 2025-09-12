@@ -11,8 +11,7 @@ import zipfile
 from lark import Tree
 
 from app_exceptions import VgrRuntimeError
-from data_dict import DataDictionary
-from evaluate import eval_expr, eval_filename_expr, eval_to_str
+from evaluate import eval_filename_expr, eval_to_str
 from exec_context import ExecContext
 from mathpak import bound_ops, type_str
 from output import prepare_path, verify_relative_path
@@ -48,8 +47,8 @@ If a comment is specified multiple times, only the last one is used.
     comment: str = None
     for child in statement.children[1:]:
         arg_type = child.data
-        if arg_type == 'include': include_patterns.extend(_eval_to_list_str(ctx.dd, child, 'Include'))
-        elif arg_type == 'exclude': exclude_patterns.extend(_eval_to_list_str(ctx.dd, child, 'Exclude'))
+        if arg_type == 'include': include_patterns.extend(_eval_to_list_str(ctx, child, 'Include'))
+        elif arg_type == 'exclude': exclude_patterns.extend(_eval_to_list_str(ctx, child, 'Exclude'))
         elif arg_type == 'comment': comment = eval_to_str(ctx.dd, child.children[0], 'Comment', True)
         else: raise VgrRuntimeError(child, ValueError(f'Unhandled type {arg_type!r}'))
     added_files = set()
@@ -79,7 +78,7 @@ If a comment is specified multiple times, only the last one is used.
             ctx.print_verbose('Created an empty archive')
         ctx.print_verbose(f'Wrote {os.path.getsize(zip_name):,} bytes')
 
-def _eval_to_list_str(dd: DataDictionary, clause: Tree, name: str) -> list[str]:
+def _eval_to_list_str(ctx: ExecContext, clause: Tree, name: str) -> list[str]:
     """Helper that returns a list of strings, recursively handling collections"""
     rc = []
     def add_it(expr: Tree, val: Any) -> None:
@@ -93,5 +92,5 @@ def _eval_to_list_str(dd: DataDictionary, clause: Tree, name: str) -> list[str]:
             else:
                 # Ignore others if it "isn't anything", but if it is, it's an error
                 if val: raise VgrRuntimeError(expr, TypeError(f'{name} must be a string; found {type_str(rc)}'))
-    for expr in clause.children: add_it(expr, eval_expr(dd, expr))
+    for expr in clause.children: add_it(expr, ctx.eval_expr(expr))
     return rc
