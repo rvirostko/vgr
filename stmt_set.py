@@ -11,15 +11,27 @@ import os
 from lark import Tree, Token
 
 from app_exceptions import VgrRuntimeError
-from data_dict import DataDictionary
 from dd_config import do_assignment, do_set, do_unset, _ARG_PREFIX, dd_set_awk_params
-from evaluate import eval_expr, eval_filename_expr, var_name_path
-from mathpak import poly_add, poly_sub, poly_mul, poly_div, poly_mod, poly_pow
-from mathpak import poly_bit_and, poly_bit_or, poly_bit_xor, poly_shl, poly_shr, bound_ops
+from evaluate import eval_filename_expr, var_name_path
+from exec_context import ExecContext
+from mathpak import (
+    bound_ops,
+    poly_add,
+    poly_bit_and,
+    poly_bit_or,
+    poly_bit_xor,
+    poly_div,
+    poly_mod,
+    poly_mul,
+    poly_pow,
+    poly_shl,
+    poly_shr,
+    poly_sub,
+)
 from redir import print_stderr, shorten, close_all_redirects
 
 @bound_ops("Set")
-def execute_set(dd: DataDictionary, statement: Tree) -> None:
+def execute_set(ctx: ExecContext, statement: Tree) -> None:
     """
 **Assign a value to a variable or modify a variable's existing value**
 
@@ -39,20 +51,20 @@ def execute_set(dd: DataDictionary, statement: Tree) -> None:
 """
     path = var_name_path(statement.children[0])
     expr = statement.children[1]
-    do_assignment(dd, expr, eval_expr(dd, expr), path)
+    do_assignment(ctx.dd, expr, ctx.eval_expr(expr), path)
 
 @bound_ops("Unset")
-def execute_unset(dd: DataDictionary, statement: Tree) -> None:
+def execute_unset(ctx: ExecContext, statement: Tree) -> None:
     """
 **Remove a variable**
 
 * Unset _variable_ [, _variable_]... [;]
 """
     for item in statement.children:
-        do_unset(dd, *var_name_path(item))
+        do_unset(ctx.dd, *var_name_path(item))
 
 @bound_ops("Reset")
-def execute_reset(dd: DataDictionary, statement: Tree) -> None:
+def execute_reset(ctx: ExecContext, statement: Tree) -> None:
     """
 **Reset global state to initial conditions
 
@@ -67,7 +79,7 @@ Where _option_ is-
 * All - Resets all of the above
 
 """
-    o_verbose = dd.verbose
+    o_verbose = ctx.dd.verbose
     for opt in statement.children:
         s = str(opt.data).casefold()
         if s in ('all', 'output'):
@@ -75,16 +87,16 @@ Where _option_ is-
             close_all_redirects()
         if s in ('all', 'data'):
             if o_verbose: print_stderr('Resetting all user data')
-            t_args = dd.get_var(_ARG_PREFIX)
-            dd.reset()
-            dd.set_var(t_args, _ARG_PREFIX)
+            t_args = ctx.get_var(_ARG_PREFIX)
+            ctx.dd.reset()
+            ctx.set_var(t_args, _ARG_PREFIX)
         if s in ('all', 'args'):
-            if o_verbose: print_stderr(f'Reseting {repr(_ARG_PREFIX)} settings')
-            dd.unset_var(_ARG_PREFIX)
-            dd.debug = False
-            dd.verbose = False
-            dd.echo = False
-            dd_set_awk_params(dd)
+            if o_verbose: print_stderr(f'Reseting {_ARG_PREFIX!r} settings')
+            ctx.dd.unset_var(_ARG_PREFIX)
+            ctx.dd.debug = False
+            ctx.dd.verbose = False
+            ctx.dd.echo = False
+            dd_set_awk_params(ctx.dd)
 
 _IN_PLACE_OP = {
     "+=":  poly_add,
@@ -101,14 +113,14 @@ _IN_PLACE_OP = {
 }
 
 # Doc combined with set
-def execute_set_in_place(dd: DataDictionary, statement: Tree) -> None:
+def execute_set_in_place(ctx: ExecContext, statement: Tree) -> None:
     path = var_name_path(statement.children[0])
     op = _IN_PLACE_OP[statement.children[1].value]
     expr = statement.children[2]
-    do_assignment(dd, expr, op(dd.get_var_user(*path), eval_expr(dd, expr)), path)
+    do_assignment(ctx.dd, expr, op(ctx.get_var_user(*path), ctx.eval_expr(expr)), path)
 
 @bound_ops("Swap")
-def execute_swap(dd: DataDictionary, statement: Tree) -> None:
+def execute_swap(ctx: ExecContext, statement: Tree) -> None:
     """
 **Exchange the values of two variables**
 
@@ -117,14 +129,14 @@ def execute_swap(dd: DataDictionary, statement: Tree) -> None:
 
 Both variables must _not_ be immutable
 """
-    path1 = dd.validate_user_set_path(*var_name_path(statement.children[0]))
-    path2 = dd.validate_user_set_path(*var_name_path(statement.children[1]))
-    temp = dd.get_var_user(*path1)
-    do_set(dd, dd.get_var_user(*path2), *path1)
-    do_set(dd, temp, *path2)
+    path1 = ctx.dd.validate_user_set_path(*var_name_path(statement.children[0]))
+    path2 = ctx.dd.validate_user_set_path(*var_name_path(statement.children[1]))
+    temp = ctx.get_var_user(*path1)
+    do_set(ctx.dd, ctx.get_var_user(*path2), *path1)
+    do_set(ctx.dd, temp, *path2)
 
 @bound_ops("Load", "Load-From")
-def execute_load_from(dd: DataDictionary, statement: Tree) -> None:
+def execute_load_from(ctx: ExecContext, statement: Tree) -> None:
     """
 **Assign a value to a variable from a file**
 
@@ -142,23 +154,23 @@ name with Text as the default.
 """
     path = var_name_path(statement.children[0])
     fn_child = statement.children[1]
-    filename = eval_filename_expr(dd, fn_child)
+    filename = eval_filename_expr(ctx.dd, fn_child)
     dtype = load_data_type(filename, statement.children[2] if len(statement.children) > 2 else None)
     # TODO need to have an encoding param
     # defaults to utf-8-sig
     try:
         with open(filename, 'r', encoding='utf-8-sig') as f:
             data, fieldnames = load_file_as(f, dtype)
-            dd.set_var_user(data, *path)
+            ctx.set_var_user(data, *path)
     except Exception as e:
-        raise VgrRuntimeError(fn_child, ValueError(f'While reading {repr(filename)}: {str(e)}')) from e
-    if dd.verbose:
+        raise VgrRuntimeError(fn_child, ValueError(f'While reading {filename!r}: {str(e)}')) from e
+    if ctx.dd.verbose:
         if isinstance(data, list):
             length = len(data)
-            print_stderr('Loaded', '.'.join(path), 'With', length, 'Records' if length != 1 else 'Record')
+            ctx.print_verbose('Loaded', '.'.join(path), 'With', length, 'Records' if length != 1 else 'Record')
         else:
-            print_stderr('Loaded', '.'.join(path), 'With', shorten(repr(data)))
-        if fieldnames and dd.verbose: print_stderr('Fieldnames :', '', ', '.join(repr(f) for f in fieldnames))
+            ctx.print_verbose('Loaded', '.'.join(path), 'With', shorten(repr(data)))
+        if fieldnames: ctx.print_verbose('Fieldnames :', '', ', '.join(repr(f) for f in fieldnames))
 
 def load_data_type(filename: str, token: Token) -> str:
     """Returns one of:
@@ -184,7 +196,7 @@ def load_file_as(file: TextIOWrapper, dtype: str) -> tuple:
         return _info_from_json([json.loads(line) for line in file if line.strip()])
     if dtype == 'csv_file':
         return _info_from_csv(csv.DictReader(file))
-    raise ValueError(f'Unknown file content type {repr(dtype)}') # SNO
+    raise ValueError(f'Unknown file content type {dtype!r}') # SNO
 
 def _info_from_csv(reader: csv.DictReader) -> tuple:
     return (list(reader), reader.fieldnames or [])

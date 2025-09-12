@@ -1,0 +1,84 @@
+Reset All
+
+set a to [1,2,3]
+set b to a
+
+echo on
+set c to a + 2
+echo off
+exhibit a, c
+assert a == b && a != c && b != c
+Print;
+
+echo on
+set c to a + b
+echo off
+exhibit a, b, c
+assert a == b && a != c && b != c
+Print;
+
+echo on
+set c to a - 2
+echo off
+exhibit a, c
+assert a == b && a != c && b != c
+Print;
+
+echo on
+set c to a * b
+echo off
+exhibit a, b, c
+assert a == b && a != c && b != c
+Print;
+
+echo on
+set c to a / 2
+echo off
+exhibit a, c
+assert a == b && a != c && b != c
+Print;
+
+echo on
+set c to a.floor_div(2)
+echo off
+exhibit a, c
+assert a == b && a != c && b != c
+Print;
+
+echo on
+set c to a.div_mod(2)
+echo off
+exhibit a, c
+assert a == b && a != c && b != c
+Print;
+
+echo on
+set c to a % 2
+echo off
+exhibit a, c
+assert a == b && a != c && b != c
+Print;
+
+echo on
+set c to a ** 2
+echo off
+exhibit a, c
+assert a == b && a != c && b != c
+Print;
+
+echo on
+set c to a.sum()
+echo off
+exhibit a, c
+assert a == b && a != c && b != c
+Print;
+
+echo on
+set b to a * 2 * math.random100.div(10)
+set c to [b.min(), b.mean(), b.max()]
+set d to b.variance()
+set e to b.pvariance()
+set f to b.stdev()
+echo off
+exhibit a, b, c, d, e, f
+Print;

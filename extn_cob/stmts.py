@@ -9,9 +9,9 @@ import sys
 from lark import Tree
 
 from app_exceptions import VgrExitingException, VgrStatementBreak, VgrStatementContinue, VgrRuntimeError
-from data_dict import DataDictionary
 from dd_config import do_set, do_assignment, do_unset
-from evaluate import eval_expr, bind_operations, eval_to_number, var_name_path
+from evaluate import bind_operations, eval_to_number, var_name_path
+from exec_context import ExecContext
 from mathpak import (
     bound_ops,
     poly_add,
@@ -28,8 +28,7 @@ from mathpak import (
     poly_true,
 )
 from redir import print_stderr, print_stdout
-from src_mgr import SSM
-from stmt_exec import exec_if_else, exec_loop, exec_repeat, dispatch_statement
+from stmt_exec import exec_if_else, exec_loop, exec_repeat
 from stmt_set import execute_set
 from tags import control_statement
 
@@ -44,7 +43,7 @@ _DT_FUNCS = {
 }
 
 @bound_ops("Accept")
-def execute_accept(dd: DataDictionary, statement: Tree) -> None:
+def execute_accept(ctx: ExecContext, statement: Tree) -> None:
     """
 **Get user input or Retrieve date and time values**
 
@@ -67,14 +66,14 @@ unchanged. There is no limit on the length of user input, but it is a single lin
 """
     name = statement.data
     if name in _DT_FUNCS:
-        do_set(dd, _DT_FUNCS.get(statement.data)(), *var_name_path(statement.children[0]))
+        do_set(ctx.dd, _DT_FUNCS.get(statement.data)(), *var_name_path(statement.children[0]))
     else:
         line = sys.stdin.readline()
         line = line.rstrip('\n') if line else line
-        if line: do_set(dd, line, *var_name_path(statement.children[0]))
+        if line: do_set(ctx.dd, line, *var_name_path(statement.children[0]))
 
 @bound_ops("Stop-Run")
-def execute_exit(_: DataDictionary, statement: Tree) -> None:
+def execute_exit(_: ExecContext, statement: Tree) -> None:
     """
 **Terminate execution**
 
@@ -86,7 +85,7 @@ Ends the program with an exit code of zero.
 
 @control_statement
 @bound_ops("Perform-Until")
-def execute_perform_until(dd: DataDictionary, statement: Tree) -> None:
+def execute_perform_until(ctx: ExecContext, statement: Tree) -> None:
     """
 **Repeatedly execute a block of statements until a condition is reached**
 
@@ -99,11 +98,11 @@ If a Break or Next Sentence statement is encountered, looping ends regardless of
 expression's value. If a Continue statement is encountered, statements
 following it are skipped, and the expression is checked again.
 """
-    exec_loop(dd, statement, False)
+    exec_loop(ctx, statement, False)
 
 @control_statement
 @bound_ops("Perform-Times")
-def execute_perform_times(dd: DataDictionary, statement: Tree) -> None:
+def execute_perform_times(ctx: ExecContext, statement: Tree) -> None:
     """
 **Execute a block of statements a fixed number of times**
 
@@ -118,11 +117,11 @@ If a Break or Next Sentence statement is encountered, looping ends regardless of
 expression's value. If a Continue statement is encountered, statements
 following it are skipped, and looping continues.
 """
-    exec_repeat(dd, statement)
+    exec_repeat(ctx, statement)
 
 @control_statement
 @bound_ops("Perform-Varying")
-def execute_perform_varying(dd: DataDictionary, statement: Tree) -> None:
+def execute_perform_varying(ctx: ExecContext, statement: Tree) -> None:
     """
 **Execute a block of statements while increasing or decreasing a variable's value**
 
@@ -142,8 +141,7 @@ following it are skipped, and looping continues.
 If not specified, the test expression is performed before the block of statements.
 """
     # Echo the control portion, not the statements
-    if dd.echo:
-        print_stderr(SSM.source_for(statement, statement.children[-1]).strip())
+    ctx.echo_source(statement, statement.children[-1])
     ba_ind = statement.children[0]
     if isinstance(ba_ind, Tree) and ba_ind.data in ('test_before', 'test_after'):
         test_before = ba_ind.data == 'test_before'
@@ -153,39 +151,39 @@ If not specified, the test expression is performed before the block of statement
         cindex = 0
     path = var_name_path(statement.children[cindex])
     cindex += 1
-    value = eval_to_number(dd, bind_operations(statement.children[cindex]), 'Perform Varying start value')
+    value = eval_to_number(ctx.dd, bind_operations(statement.children[cindex]), 'Perform Varying start value')
     cindex += 1
-    inc = eval_to_number(dd, bind_operations(statement.children[cindex]), 'Perform Varying increment')
+    inc = eval_to_number(ctx.dd, bind_operations(statement.children[cindex]), 'Perform Varying increment')
     if inc == 0: raise ValueError('Perform Varying requires a non-zero increment')
     cindex += 1
     predicate = bind_operations(statement.children[cindex])
     cindex += 1
     try:
         while True:
-            do_set(dd, value, *path)
-            if test_before and poly_true(eval_expr(dd, predicate)): return
+            do_set(ctx.dd, value, *path)
+            if test_before and poly_true(ctx.eval_expr(predicate)): return
             try:
-                for s in statement.children[cindex:]: dispatch_statement(dd, s)
+                ctx.dispatch_statements(statement.children[cindex:])
             except VgrStatementBreak:
                 return
             except VgrStatementContinue:
                 pass
             value += inc
-            if not test_before and poly_true(eval_expr(dd, predicate)): return
+            if not test_before and poly_true(ctx.eval_expr(predicate)): return
     finally:
-        do_unset(dd, *path)
+        do_unset(ctx.dd, *path)
 
 @bound_ops("Compute")
-def execute_compute(dd: DataDictionary, statement: Tree) -> None:
+def execute_compute(ctx: ExecContext, statement: Tree) -> None:
     """
 **Assign a value to a variable**
 
 * Compute _variable_ = _expression_ [;]
 """
-    execute_set(dd, statement)
+    execute_set(ctx, statement)
 
 @bound_ops("Next-Sentence")
-def execute_next_sentence(_: DataDictionary, statement: Tree) -> None:
+def execute_next_sentence(_: ExecContext, statement: Tree) -> None:
     """
 **Exits the current block of statements**
 
@@ -197,7 +195,7 @@ Can be used with conditional and looping statements
 
 @control_statement
 @bound_ops("If-End-If")
-def execute_if(dd: DataDictionary, statement: Tree) -> None:
+def execute_if(ctx: ExecContext, statement: Tree) -> None:
     """
 **Conditionally execute a block of statements**
 
@@ -213,10 +211,10 @@ def execute_if(dd: DataDictionary, statement: Tree) -> None:
 If the expression evaluates to True the first block of statements is executed.
 If it evaluates to False, the second block of statements, if provided, is executed.
 """
-    exec_if_else(dd, statement, True)
+    exec_if_else(ctx, statement, True)
 
 @bound_ops("Set-Up")
-def execute_inc(dd: DataDictionary, statement: Tree) -> None:
+def execute_inc(ctx: ExecContext, statement: Tree) -> None:
     """
 **Increment a counter by an amount**
 
@@ -226,12 +224,12 @@ If the variable does not exist, it is created and initialized to zero.
 This is fundamentally an arithmetic, scalar opertion.
 """
     path = var_name_path(statement.children[0])
-    x = poly_number(dd.get_var_user(*path)) or 0
-    y = poly_number(eval_expr(dd, statement.children[1])) or 0
-    do_set(dd, poly_add(x, y), *path)
+    x = poly_number(ctx.get_var_user(*path)) or 0
+    y = poly_number(ctx.eval_expr(statement.children[1])) or 0
+    do_set(ctx.dd, poly_add(x, y), *path)
 
 @bound_ops("Set-Down")
-def execute_dec(dd: DataDictionary, statement: Tree) -> None:
+def execute_dec(ctx: ExecContext, statement: Tree) -> None:
     """
 **Deccrement a counter by an amount**
 
@@ -241,12 +239,12 @@ If the variable does not exist, it is created and initialized to zero.
 This is fundamentally an arithmetic, scalar opertion.
 """
     path = var_name_path(statement.children[0])
-    x = poly_number(dd.get_var_user(*path)) or 0
-    y = poly_number(eval_expr(dd, statement.children[1])) or 0
-    do_set(dd, poly_sub(x, y), *path)
+    x = poly_number(ctx.get_var_user(*path)) or 0
+    y = poly_number(ctx.eval_expr(statement.children[1])) or 0
+    do_set(ctx.dd, poly_sub(x, y), *path)
 
 @bound_ops("Move")
-def execute_move_to(dd: DataDictionary, statement: Tree) -> None:
+def execute_move_to(ctx: ExecContext, statement: Tree) -> None:
     """
 **Assign a value to a variable
 
@@ -268,9 +266,9 @@ request is ignored and a regular move is performed.
         corresponding = True
         start = 1
     expr = statement.children[start]
-    src = eval_expr(dd, expr)
+    src = ctx.eval_expr(expr)
     path = var_name_path(statement.children[start + 1])
-    dest = dd.get_var_user(*path) if corresponding else None
+    dest = ctx.get_var_user(*path) if corresponding else None
     if isinstance(src, dict) and isinstance(dest, dict):
         # Should end up here if corresponding was specified,
         # what we are moving is a dictionary, and the
@@ -279,14 +277,14 @@ request is ignored and a regular move is performed.
         # This isn't strictly needed as we've done a modification in place
         # However, it does print out something in verbose, so we execute
         # for that side effect
-        do_set(dd, dest, *path)
+        do_set(ctx.dd, dest, *path)
     else:
         # Either no corresponding, or either the src/dest is not a dict
         # This is like a "regular" set
-        do_assignment(dd, expr, src, path)
+        do_assignment(ctx.dd, expr, src, path)
 
 @bound_ops("Add")
-def execute_add_to(dd: DataDictionary, statement: Tree) -> None:
+def execute_add_to(ctx: ExecContext, statement: Tree) -> None:
     """
 **Add one or more values to a variable**
 
@@ -297,18 +295,18 @@ If the variable does not exist, it is created and initialized to zero.
 This is fundamentally an arithmetic, scalar opertion.
 """
     path = tuple(name.value for name in statement.children[-1].children)
-    x = poly_number(dd.get_var_user(*path)) or 0
-    args = tuple(poly_number(eval_expr(dd, expr)) or 0 for expr in statement.children[:-1])
-    do_set(dd, poly_add(x, *args), *path)
+    x = poly_number(ctx.get_var_user(*path)) or 0
+    args = tuple(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
+    do_set(ctx.dd, poly_add(x, *args), *path)
 
 # Doc added to add_to
-def execute_add_giving(dd: DataDictionary, statement: Tree) -> None:
+def execute_add_giving(ctx: ExecContext, statement: Tree) -> None:
     path = tuple(name.value for name in statement.children[-1].children)
-    args = tuple(poly_number(eval_expr(dd, expr)) or 0 for expr in statement.children[:-1])
-    do_set(dd, poly_add(*args), *path)
+    args = tuple(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
+    do_set(ctx.dd, poly_add(*args), *path)
 
 @bound_ops("Subtract")
-def execute_sub_from(dd: DataDictionary, statement: Tree) -> None:
+def execute_sub_from(ctx: ExecContext, statement: Tree) -> None:
     """
 **Subtract one or more values from a variable**
 
@@ -319,18 +317,18 @@ If the variable does not exist, it is created and initialized to zero.
 This is fundamentally an arithmetic, scalar opertion.
 """
     path = tuple(name.value for name in statement.children[-1].children)
-    x = poly_number(dd.get_var_user(*path)) or 0
-    args = tuple(poly_number(eval_expr(dd, expr)) or 0 for expr in statement.children[:-1])
-    do_set(dd, poly_sub(x, *args), *path)
+    x = poly_number(ctx.get_var_user(*path)) or 0
+    args = tuple(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
+    do_set(ctx.dd, poly_sub(x, *args), *path)
 
 # Doc added to sub_from
-def execute_sub_giving(dd: DataDictionary, statement: Tree) -> None:
+def execute_sub_giving(ctx: ExecContext, statement: Tree) -> None:
     path = tuple(name.value for name in statement.children[-1].children)
-    args = tuple(poly_number(eval_expr(dd, expr)) or 0 for expr in statement.children[:-1])
-    do_set(dd, poly_sub(args[-1], *args[:-1]), *path)
+    args = tuple(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
+    do_set(ctx.dd, poly_sub(args[-1], *args[:-1]), *path)
 
 @bound_ops("Multipy")
-def execute_mul_by(dd: DataDictionary, statement: Tree) -> None:
+def execute_mul_by(ctx: ExecContext, statement: Tree) -> None:
     """
 **Multiply one number by another**
 
@@ -344,15 +342,15 @@ In either case, if the variable does not exist, it is created and initialized to
 This is fundamentally an arithmetic, scalar opertion.
 """
     path = tuple(name.value for name in statement.children[-1].children)
-    args = tuple(poly_number(eval_expr(dd, expr)) or 0 for expr in statement.children[:-1])
+    args = tuple(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
     if len(args) == 1:
-        value = poly_mul(poly_number(dd.get_var_user(*path)) or 0, args[0])
+        value = poly_mul(poly_number(ctx.get_var_user(*path)) or 0, args[0])
     else:
         value = poly_mul(args[0], args[1])
-    do_set(dd, value, *path)
+    do_set(ctx.dd, value, *path)
 
 @bound_ops("Divide")
-def execute_div_into(dd: DataDictionary, statement: Tree) -> None:
+def execute_div_into(ctx: ExecContext, statement: Tree) -> None:
     """
 **Divide one number by another**
 
@@ -367,21 +365,21 @@ In either case, if the variable does not exist, it is created and initialized to
 This is fundamentally an arithmetic, scalar opertion.
 """
     path = tuple(name.value for name in statement.children[-1].children)
-    args = tuple(poly_number(eval_expr(dd, expr)) or 0 for expr in statement.children[:-1])
+    args = tuple(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
     if len(args) == 1:
-        value = poly_div(poly_number(dd.get_var_user(*path)) or 0, args[0])
+        value = poly_div(poly_number(ctx.get_var_user(*path)) or 0, args[0])
     else:
         value = poly_div(args[1], args[0])
-    do_set(dd, value, *path)
+    do_set(ctx.dd, value, *path)
 
 # Doc added to div_into
-def execute_div_by(dd: DataDictionary, statement: Tree) -> None:
+def execute_div_by(ctx: ExecContext, statement: Tree) -> None:
     path = tuple(name.value for name in statement.children[-1].children)
-    args = tuple(poly_number(eval_expr(dd, expr)) or 0 for expr in statement.children[:-1])
-    do_set(dd, poly_div(*args), *path)
+    args = tuple(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
+    do_set(ctx.dd, poly_div(*args), *path)
 
 @bound_ops("Exhibit")
-def execute_exhibit(dd: DataDictionary, statement: Tree) -> None:
+def execute_exhibit(ctx: ExecContext, statement: Tree) -> None:
     """
 **Display the names and values of variables**
 
@@ -404,24 +402,24 @@ see control characters.
             else:
                 print_stdout(name, '= -empty-')
         else:
-            print_stdout(name, '=', repr(dd.value_for(value)))
+            print_stdout(name, '=', repr(ctx.dd.value_for(value)))
     children = statement.children
     if children:
         for var_name in children:
             path = tuple(name.value for name in var_name.children)
             name = '.'.join(path)
-            exists, value = dd.exists(*path)
+            exists, value = ctx.dd.exists(*path)
             if exists:
                 exhibit_value(name, value)
             else:
                 print_stdout(name, '= -not set-')
     else:
         # No arguments dumps the entire dictionary
-        for key in sorted(dd.keys()):
-            exhibit_value(key, dd.get_var(key))
+        for key in sorted(ctx.dd.keys()):
+            exhibit_value(key, ctx.get_var(key))
 
 @bound_ops("Display")
-def execute_display_on(dd: DataDictionary, statement: Tree) -> None:
+def execute_display_on(ctx: ExecContext, statement: Tree) -> None:
     """
 **Print values to either the output (stdout) or error (stderr) streams**
 
@@ -441,9 +439,9 @@ between items and ending with a newline.
             if last_child.data == 'stdin':
                 raise VgrRuntimeError(last_child, ValueError(f'Cannot send output to {last_child.data}'))
             dest_stdout = last_child.data == 'stdout'
-            args = tuple(eval_expr(dd, expr) for expr in statement.children[:-1])
+            args = tuple(ctx.eval_expr(expr) for expr in statement.children[:-1])
         else:
-            args = tuple(eval_expr(dd, expr) for expr in statement.children)
+            args = tuple(ctx.eval_expr(expr) for expr in statement.children)
     if dest_stdout:
         print_stdout(*args, sep='')
     else:
@@ -451,7 +449,7 @@ between items and ending with a newline.
 
 @control_statement
 @bound_ops("Evaluate")
-def execute_evaluate(dd: DataDictionary, statement: Tree) -> None:
+def execute_evaluate(ctx: ExecContext, statement: Tree) -> None:
     """
 **Choose from a set of statements based on a value**
 
@@ -505,11 +503,10 @@ Evaluate True
 End-Evaluate
 ```
 """
-    if dd.echo:
-        print_stderr(SSM.source_for(statement, statement.children[1]).strip())
+    ctx.echo_source(statement, statement.children[1])
     statement_children = iter(statement.children)
     # The first child is the expression used in the value comparisons
-    desired_value = eval_expr(dd, bind_operations(next(statement_children, None)))
+    desired_value = ctx.eval_expr(bind_operations(next(statement_children, None)))
     choosen_block = None
     for block in statement_children:
         if block.data in ['cobol_when_block', 'cobol_when_not_block']:
@@ -518,34 +515,31 @@ End-Evaluate
             #     betweeen the desired_value's type, which drives "casting"
             #     and the resulting type of the expression
             values_children = iter(block.children)
-            if compare_op(desired_value, eval_expr(dd, bind_operations(next(values_children)))):
-                if dd.echo:
-                    print_stderr(SSM.source_for(block, block.children[1]).strip())
+            if compare_op(desired_value, ctx.eval_expr(bind_operations(next(values_children)))):
+                ctx.echo_source(block, block.children[1])
                 # The children start with the value, and the iterator now
                 # points to the following statements
                 choosen_block = values_children
         elif block.data in ['cobol_when_thru_block', 'cobol_when_not_thru_block']:
             test_op = poly_true if block.data == 'cobol_when_thru_block' else poly_false
             values_children = iter(block.children)
-            v1 = eval_expr(dd, bind_operations(next(values_children)))
-            v2 = eval_expr(dd, bind_operations(next(values_children)))
+            v1 = ctx.eval_expr(bind_operations(next(values_children)))
+            v2 = ctx.eval_expr(bind_operations(next(values_children)))
             if poly_lt(v2, v1): v1, v2 = v2, v1
             if test_op(poly_ge(desired_value, v1) and poly_le(desired_value, v2)):
-                if dd.echo:
-                    print_stderr(SSM.source_for(block, block.children[1]).strip())
+                ctx.echo_source(block, block.children[1])
                 # The children start with the value, and the iterator now
                 # points to the following statements
                 choosen_block = values_children
         else:
             # it is 'when other' which is automatically selected
-            if dd.echo:
-                print_stderr(SSM.source_for(block, block.children[0]).strip())
+            ctx.echo_source(block, block.children[0])
             choosen_block = iter(block.children)
         # If a block of statements was choosen execute them
         # Nested "break" and "continue" statments can be used to end execution
         if choosen_block is not None:
             try:
-                for s in choosen_block: dispatch_statement(dd, s)
+                ctx.dispatch_statements(choosen_block)
             except (VgrStatementBreak, VgrStatementContinue):
                 pass
             return

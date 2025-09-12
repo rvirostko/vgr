@@ -1,7 +1,4 @@
-#! /bin/bash
-
-../vgr.py <<EOF || echo "FAILED"
-
+Reset All
 Set a To "hello  "
 Set b to "  Hello"
 # Build up a dictionary
@@ -23,12 +20,11 @@ Printf fmt, "Lower()", a, a.Lower(), b, b.Lower(), c, c.Lower(), d, d.Lower()
 Printf fmt, "SwapCase()", a, a.SwapCase(), b, b.SwapCase(), c, c.SwapCase(), d, d.SwapCase()
 Printf fmt, "TitleCase()", a, a.TitleCase(), b, b.TitleCase(), c, c.TitleCase(), d, d.TitleCase()
 Printf fmt, "Upper()", a, a.Upper(), b, b.Upper(), c, c.Upper(), d, d.Upper()
-Printf fmt, "IsAlnum()", a, a.IsAlnum(), b, b.IsAlnum(), c, c.IsAlnum(), d, d.IsAlnum()
+Printf fmt, "IsAlnum()", a, a.IsAlphaNumeric(), b, b.IsAlphaNumeric(), c, c.IsAlphaNumeric(), d, d.IsAlphaNumeric()
 Printf fmt, "IsAlpha()", a, a.IsAlpha(), b, b.IsAlpha(), c, c.IsAlpha(), d, d.IsAlpha()
 Printf fmt, "IsAscii()", a, a.IsAscii(), b, b.IsAscii(), c, c.IsAscii(), d, d.IsAscii()
 Printf fmt, "IsDecimal()", a, a.IsDecimal(), b, b.IsDecimal(), c, c.IsDecimal(), d, d.IsDecimal()
 Printf fmt, "IsDigit()", a, a.IsDigit(), b, b.IsDigit(), c, c.IsDigit(), d, d.IsDigit()
-Printf fmt, "IsIdentifier()", a, a.IsIdentifier(), b, b.IsIdentifier(), c, c.IsIdentifier(), d, d.IsIdentifier()
 Printf fmt, "IsLower()", a, a.IsLower(), b, b.IsLower(), c, c.IsLower(), d, d.IsLower()
 Printf fmt, "IsNumeric()", a, a.IsNumeric(), b, b.IsNumeric(), c, c.IsNumeric(), d, d.IsNumeric()
 Printf fmt, "IsPrintable()", a, a.IsPrintable(), b, b.IsPrintable(), c, c.IsPrintable(), d, d.IsPrintable()
@@ -96,6 +92,3 @@ Printf fmt, label, a, a.PrependStr(s4, s5), b, b.PrependStr(s4, s5), c, c.Prepen
 # RegExReplace()
 # CompilePattern()
 # Translate
-
-
-EOF

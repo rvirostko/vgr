@@ -59,7 +59,7 @@ class VaultMountVisitor:
             config = self.client.do_get(encode_url(f'/v1/{mount_point}/config'), namespace).get('data', {})
             self.visit_ldap_mount(namespace, mount_point, config)
         else:
-            raise NotImplementedError(f'Mount type {repr(mtype)} not handled')
+            raise NotImplementedError(f'Mount type {mtype!r} not handled')
 
     def visit_aws_mount(self, namespace: str, mount_point: str, config: Dict[str, Any]) -> None:
         """
@@ -90,10 +90,10 @@ class VaultMountVisitor:
     #pylint: enable=unused-argument
 
     def visit_database_connections(self, namespace :str, mount_point :str, config: Dict[str, Any]) -> None:
-         """
-         Call this method to visit all the database connections associated with the mount point.
-         """
-         for conn_name in config.get('keys', []):
+        """
+        Call this method to visit all the database connections associated with the mount point.
+        """
+        for conn_name in config.get('keys', []):
             conn = self.client.do_get(encode_url(f'/v1/{mount_point}/config/{conn_name}'), namespace).get('data', {})
             self.visit_database_connection(namespace, mount_point, config, conn_name, conn)
 

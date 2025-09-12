@@ -315,7 +315,7 @@ def eval_expr(dd: DataDictionary, expr: Any) -> Any:
                 raise e
             except Exception as e:
                 raise VgrRuntimeError(expr, e) from e
-        raise VgrRuntimeError(expr, NotImplementedError(f'Unhandled type {repr(expr.data)}')) #SNO
+        raise VgrRuntimeError(expr, NotImplementedError(f'Unhandled type {expr.data!r}')) #SNO
     if isinstance(expr, Token):
         # All tokens should be CONSTs so we don't want users mucking them up
         return deepcopy(expr.value)

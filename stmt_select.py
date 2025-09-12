@@ -22,6 +22,7 @@ from evaluate import (
     eval_to_int,
     eval_to_str,
 )
+from exec_context import ExecContext
 from mathpak import poly_false, bound_ops, type_str
 from output import (
     CSVRecordWriter,
@@ -255,7 +256,7 @@ class SelectAnalyzer(Visitor):
         if target is None: return self._DEFAUL_TARGET_NAME
         if not isinstance(target, str): raise VgrRuntimeError(node, TypeError(f"Value for 'As' must be a string; found {type_str(target)}"))
         target = target.strip()
-        if self._VAR_NAME.fullmatch(target) is None: raise VgrRuntimeError(node, TypeError(f"Value for 'As' must be a valid simple variable name; {repr(target)}"))
+        if self._VAR_NAME.fullmatch(target) is None: raise VgrRuntimeError(node, TypeError(f"Value for 'As' must be a valid simple variable name; {target!r}"))
         try:
             self._dd.validate_user_set_path(target)
             return target
@@ -351,7 +352,7 @@ class SelectAnalyzer(Visitor):
             if name == 'quoting':
                 self.output_opts[name] = c.children[0].value.lower()
                 continue
-            raise NotImplementedError(f'Output option {repr(name)} of type {self.output_opts["type"]}') #SNO
+            raise NotImplementedError(f'Output option {name!r} of type {self.output_opts["type"]}') #SNO
 
     def _bool_arg(self, node:Tree, name: str) -> bool:
         return eval_to_bool(self._dd, node.children[0], name, True) if node.children else True
@@ -408,25 +409,25 @@ def add_implicit(dd, from_type, target, tree) -> Tree:
 
 @control_statement
 @bound_ops("Select")
-def execute_select(dd: DataDictionary, statement: Tree):
+def execute_select(ctx: ExecContext, statement: Tree):
     """
 ** A Select statement for lists, files, and data sources**
 
 TODO
 """
-    select = SelectAnalyzer(dd).analyze(statement)
+    select = SelectAnalyzer(ctx.dd).analyze(statement)
     # NB: at this point not all operations will show as bound
     # (notably in the outputs and the predicates) and
     # that is by design, so don't panic
-    if dd.debug: print_tree(statement)
+    if ctx.dd.debug: print_tree(statement)
     output_opts = select.output_opts
     # If the type was not set, we use the default, and if not there, use CSV
-    output_opts['type'] = output_opts.get('type', (dd.get_var_user(*DEFAULT_FOR_TYPE_PATH) or 'csv').lower())
+    output_opts['type'] = output_opts.get('type', (ctx.get_var_user(*DEFAULT_FOR_TYPE_PATH) or 'csv').lower())
     writer = create_writer(output_opts, select.output_controls)
-    if dd.debug: print_stderr(repr(writer))
-    extractor = create_extractor(dd, select.from_opts)
-    if dd.debug: print_stderr(repr(extractor))
-    QueryRunner(dd, select, writer).run_extraction(extractor)
+    if ctx.dd.debug: print_stderr(repr(writer))
+    extractor = create_extractor(ctx.dd, select.from_opts)
+    if ctx.dd.debug: print_stderr(repr(extractor))
+    QueryRunner(ctx.dd, select, writer).run_extraction(extractor)
 
 class QueryRunner(QueryFilter, InfoOutput):
     def __init__(self, dd: DataDictionary, select: SelectAnalyzer, writer: RecordWriter):
@@ -565,12 +566,12 @@ def create_extractor(dd: DataDictionary, opts: dict) -> DataExtractor:
                 with open(filename, 'r', encoding='utf-8-sig') as f:
                     data, _ = load_file_as(f, opts['dtype'])
             except Exception as e:
-                raise ValueError(f'While reading {repr(filename)}: {str(e)}') from e
+                raise ValueError(f'While reading {filename!r}: {str(e)}') from e
             if not isinstance(data, list):
                 data = [data] if isinstance(data, dict) else [{'value' : data}]
             if dd.verbose: print_stderr(dd, 'Read', len(data), 'Records ' if len(data) != 1 else 'Record', 'From', filename)
             return InMemoryExtractor(data, target)
-    raise NotImplementedError(f'Extractor type {repr(xtype)}') #SNO
+    raise NotImplementedError(f'Extractor type {xtype!r}') #SNO
 
 def create_writer(opts: dict, controls: dict) -> RecordWriter:
     """

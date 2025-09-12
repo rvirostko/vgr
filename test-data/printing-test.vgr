@@ -1,7 +1,4 @@
-#! /bin/bash
-
-../vgr.py <<EOF || echo "FAILED"
-
+Reset All
 Echo False
 Verbose False
 Debug False
@@ -53,5 +50,3 @@ set arg.ors = NONE
 Printf rs_fmt, "Unset:", arg.ofs.repr(), arg.ors.repr()
 Print a, b, c
 Printf "\n"
-
-EOF

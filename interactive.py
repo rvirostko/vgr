@@ -74,7 +74,7 @@ class LimitedFileHistory(FileHistory):
         with open(self.filename, "w", encoding="utf-8") as f:
             for e in self._loaded_strings:
                 # Serialize using repr() so it can be read by ast.literal_eval
-                f.write(f"{repr(e)}\n")
+                f.write(f'{e!r}\n')
 
     def clear(self) -> None:
         """Clear the history"""
@@ -231,10 +231,10 @@ Changes made at runtime are not persistent.
         values = self._parse(self._PROMPT_PARSER, *args)
         if values is not None:
             if values.template is None:
-                print(f'prompt is {repr(self.prompt)}')
+                print(f'prompt is {self.prompt!r}')
             else:
                 self.prompt = values.template
-                self._print_verbose('Prompt changed to', repr(self.prompt))
+                self._print_verbose(f'Prompt changed to {self.prompt!r}')
 
     def _exec_help(self, *args) -> None:
         pass

@@ -10,8 +10,8 @@ import textwrap
 from lark import Tree
 
 from app_exceptions import VgrExitingException, VgrRuntimeError
-from data_dict import DataDictionary
 from evaluate import eval_filename_expr
+from exec_context import ExecContext
 from mathpak import bound_ops
 from output import IORedirector, prepare_path
 
@@ -39,7 +39,7 @@ def shorten(s: str, width: int=64) -> str:
     return textwrap.shorten(s, width=width, placeholder="\u2026")
 
 @bound_ops("Open")
-def execute_open(dd: DataDictionary, statement: Tree) -> None:
+def execute_open(ctx: ExecContext, statement: Tree) -> None:
     """
 **Send output to a file**
 
@@ -60,7 +60,7 @@ All redirection is closed at program termination.
 Also see *Close*
 """
     stream = _eval_stream_name(statement.children[0])
-    filename = eval_filename_expr(dd, statement.children[1])
+    filename = eval_filename_expr(ctx.dd, statement.children[1])
     if stream == 'stdin':
         if len(statement.children) > 2:
             raise VgrRuntimeError(statement, ValueError('Invalid options for stdin'))
@@ -70,12 +70,12 @@ Also see *Close*
     if mode not in ('r', 'a', 'w', 'x'): raise ValueError(f'Unknown mode {mode}') # SNO
     try:
         getattr(_REDIRECTOR, stream)(prepare_path(filename), mode=mode)
-        if dd.verbose: print_stderr(stream, "redirected to", filename)
+        ctx.print_verbose(stream, "redirected to", filename)
     except Exception as e:
         raise VgrExitingException(VgrExitingException.EXIT_FAILED, statement, str(e)) from e
 
 @bound_ops("Close")
-def execute_close(dd: DataDictionary, statement: Tree) -> None:
+def execute_close(ctx: ExecContext, statement: Tree) -> None:
     """
 **Close output to a file**
 
@@ -90,7 +90,7 @@ Also see *Open*
 """
     stream = _eval_stream_name(statement.children[0])
     getattr(_REDIRECTOR, stream)(None)
-    if dd.verbose: print_stderr(stream, "closed")
+    ctx.print_verbose(stream, "closed")
 
 def close_all_redirects() -> None:
     _REDIRECTOR.end_redirects()

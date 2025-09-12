@@ -142,7 +142,7 @@ def _do_match(x: Any, y: Any, ci: bool=False, do_all: bool=False) -> Any:
         try:
             y = re.compile(y, re.IGNORECASE if ci else 0)
         except Exception as e:
-            raise ValueError(f'Match Pattern error: {repr(y)}') from e
+            raise ValueError(f'Match Pattern error: {y!r}') from e
     # "Ziggy" Matches "^Z" -> True
     if isinstance(y, re.Pattern):
         return re.search(y, x) is not None

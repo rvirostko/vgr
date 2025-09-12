@@ -9,8 +9,8 @@ from lark import Tree
 from app_exceptions import VgrRuntimeError
 from data_dict import DataDictionary
 from evaluate import eval_expr, eval_to_int, var_name_path
+from exec_context import ExecContext
 from mathpak import bound_ops
-from redir import print_stderr
 
 def _extract_list_all(statement: Tree, idx: int=0) -> tuple[int, bool]:
     if isinstance(statement.children[idx], Tree) and statement.children[0].data == "list_all":
@@ -48,7 +48,7 @@ def _set_list_giving(dd: DataDictionary, path: tuple[str], value: Any, expr: Tre
         raise VgrRuntimeError(expr, e) from e
 
 @bound_ops("Append")
-def execute_list_append(dd: DataDictionary, statement: Tree) -> None:
+def execute_list_append(ctx: ExecContext, statement: Tree) -> None:
     """
 **Add items to the end of a list**
 
@@ -65,19 +65,16 @@ If _variable_ is not defined it is created as an empty list.
 If _variable_ is not a list, it is converted to a list.
 """
     idx, do_all = _extract_list_all(statement)
-    idx, src = _eval_list_src(dd, statement, idx, do_all)
-    idx, path, dst = _eval_list_target(dd, statement, idx)
+    idx, src = _eval_list_src(ctx.dd, statement, idx, do_all)
+    idx, path, dst = _eval_list_target(ctx.dd, statement, idx)
     if src:
         dst.extend(src)
-        if dd.verbose:
-            l = len(src)
-            print_stderr('Appended', l, f'item{"s" if l != 1 else ""} To', '.'.join(path))
+        ctx.print_verbose('Appended', len(src), f'item{"s" if len(src) != 1 else ""} To', '.'.join(path))
     else:
-        if dd.verbose:
-            print_stderr('List', '.'.join(path), 'unchanged')
+        ctx.print_verbose('List', '.'.join(path), 'unchanged')
 
 @bound_ops("Prepend")
-def execute_list_prepend(dd: DataDictionary, statement: Tree) -> None:
+def execute_list_prepend(ctx: ExecContext, statement: Tree) -> None:
     """
 **Add items to the beginning of a list**
 
@@ -94,19 +91,16 @@ If _variable_ is not defined it is created as an empty list.
 If _variable_ is not a list, it is converted to a list.
 """
     idx, do_all = _extract_list_all(statement)
-    idx, src = _eval_list_src(dd, statement, idx, do_all)
-    idx, path, dst = _eval_list_target(dd, statement, idx)
+    idx, src = _eval_list_src(ctx.dd, statement, idx, do_all)
+    idx, path, dst = _eval_list_target(ctx.dd, statement, idx)
     if src:
         dst[:0] = src
-        if dd.verbose:
-            l = len(src)
-            print_stderr('Prepended', l, f'item{"s" if l != 1 else ""} To', '.'.join(path))
+        ctx.print_verbose('Prepended', len(src), f'item{"s" if len(src) != 1 else ""} To', '.'.join(path))
     else:
-        if dd.verbose:
-            print_stderr('List', '.'.join(path), 'unchanged')
+        ctx.print_verbose('List', '.'.join(path), 'unchanged')
 
 @bound_ops("Insert")
-def execute_list_insert(dd: DataDictionary, statement: Tree) -> None:
+def execute_list_insert(ctx: ExecContext, statement: Tree) -> None:
     """
 **Add items to the beginning of a list**
 
@@ -126,61 +120,54 @@ If _variable_ is not defined it is created as an empty list.
 If _variable_ is not a list, it is converted to a list.
 """
     idx, do_all = _extract_list_all(statement)
-    idx, src = _eval_list_src(dd, statement, idx, do_all)
-    idx, path, dst = _eval_list_target(dd, statement, idx)
+    idx, src = _eval_list_src(ctx.dd, statement, idx, do_all)
+    idx, path, dst = _eval_list_target(ctx.dd, statement, idx)
     try:
         pos_expr = statement.children[idx]
     except (ValueError, TypeError) as e:
         raise VgrRuntimeError(statement.children[idx], e) from e
-    pos = eval_to_int(dd, pos_expr, 'Position')
+    pos = eval_to_int(ctx.dd, pos_expr, 'Position')
     # TODO why do we not normalize?
     if pos < 0 or pos > len(dst):
         raise VgrRuntimeError(pos_expr, ValueError(f'Position {pos} is invalid'))
     if src:
         dst[pos:pos] = src
-        if dd.verbose:
-            l = len(src)
-            print_stderr('Inserted', l, f'item{"s" if l != 1 else ""} Into', '.'.join(path), 'At', pos)
+        ctx.print_verbose('Inserted', len(src), f'item{"s" if len(src) != 1 else ""} Into', '.'.join(path), 'At', pos)
     else:
-        if dd.verbose:
-            print_stderr('List', '.'.join(path), 'unchanged')
+        ctx.print_verbose('List', '.'.join(path), 'unchanged')
 
 # Combine doc with list_remove
-def execute_list_remove_first(dd: DataDictionary, statement: Tree) -> None:
-    idx, path, dst = _eval_list_target(dd, statement, 0)
+def execute_list_remove_first(ctx: ExecContext, statement: Tree) -> None:
+    idx, path, dst = _eval_list_target(ctx.dd, statement, 0)
     gexpr, giving_path = _eval_list_giving(statement, idx)
     if dst:
         if giving_path:
-            _set_list_giving(dd, giving_path, dst.pop(0), gexpr)
+            _set_list_giving(ctx.dd, giving_path, dst.pop(0), gexpr)
         else:
             del dst[0]
-        if dd.verbose:
-            print_stderr('Removed first item from', '.'.join(path))
+        ctx.print_verbose('Removed first item from', '.'.join(path))
     else:
         if giving_path:
-            _set_list_giving(dd, giving_path, None, gexpr)
-        if dd.verbose:
-            print_stderr('List', '.'.join(path), 'unchanged')
+            _set_list_giving(ctx.dd, giving_path, None, gexpr)
+        ctx.print_verbose('List', '.'.join(path), 'unchanged')
 
 # Combine doc with list_remove
-def execute_list_remove_last(dd: DataDictionary, statement: Tree) -> None:
-    idx, path, dst = _eval_list_target(dd, statement, 0)
+def execute_list_remove_last(ctx: ExecContext, statement: Tree) -> None:
+    idx, path, dst = _eval_list_target(ctx.dd, statement, 0)
     gexpr, giving_path = _eval_list_giving(statement, idx)
     if dst:
         if giving_path:
-            _set_list_giving(dd, giving_path, dst.pop(), gexpr)
+            _set_list_giving(ctx.dd, giving_path, dst.pop(), gexpr)
         else:
             del dst[-1]
-        if dd.verbose:
-            print_stderr('Removed last item from', '.'.join(path))
+        ctx.print_verbose('Removed last item from', '.'.join(path))
     else:
         if giving_path:
-            _set_list_giving(dd, giving_path, None, gexpr)
-        if dd.verbose:
-            print_stderr('List', '.'.join(path), 'unchanged')
+            _set_list_giving(ctx.dd, giving_path, None, gexpr)
+        ctx.print_verbose('List', '.'.join(path), 'unchanged')
 
 @bound_ops("Remove")
-def execute_list_remove(dd: DataDictionary, statement: Tree) -> None:
+def execute_list_remove(ctx: ExecContext, statement: Tree) -> None:
     """
 **Remove one or more items from a list by position**
 
@@ -203,22 +190,20 @@ If _variable_ is not a list, it is converted to a list.
     # While we allow "all" it is not in the grammar
     # and does not change behavior
     idx, _do_all = _extract_list_all(statement)
-    idx, positions = _eval_and_advance(dd, statement, idx)
-    idx, path, dst = _eval_list_target(dd, statement, idx)
+    idx, positions = _eval_and_advance(ctx.dd, statement, idx)
+    idx, path, dst = _eval_list_target(ctx.dd, statement, idx)
     gexpr, giving_path = _eval_list_giving(statement, idx)
     rcount, removed = _remove_items(dst, _normalize_positions(positions))
     if rcount:
         if giving_path:
             # if caller only asked for one item, return one item
             if not isinstance(positions, (list, tuple)): removed = removed[0]
-            _set_list_giving(dd, giving_path, removed, gexpr)
-        if dd.verbose:
-            print_stderr('Removed', rcount, f'item{"s" if rcount != 1 else ""} From', '.'.join(path))
+            _set_list_giving(ctx.dd, giving_path, removed, gexpr)
+        ctx.print_verbose('Removed', rcount, f'item{"s" if rcount != 1 else ""} From', '.'.join(path))
     else:
         if giving_path:
-            _set_list_giving(dd, giving_path, None, gexpr)
-        if dd.verbose:
-            print_stderr('List', '.'.join(path), 'unchanged')
+            _set_list_giving(ctx.dd, giving_path, None, gexpr)
+        ctx.print_verbose('List', '.'.join(path), 'unchanged')
 
 # All means treat as separate entities
 # 1) Replace 5 in item with "a" -- item[5] = "a"
@@ -241,11 +226,12 @@ If _variable_ is not a list, it is converted to a list.
 #    list_giving?
 
 @bound_ops("Replace")
-def execute_list_replace(dd: DataDictionary, statement: Tree) -> None:
-    idx, positions = _eval_and_advance(dd, statement, 0)
-    idx, path, dst = _eval_list_target(dd, statement, idx)
+def execute_list_replace(ctx: ExecContext, statement: Tree) -> None:
+    idx, positions = _eval_and_advance(ctx.dd, statement, 0)
+    idx, path, dst = _eval_list_target(ctx.dd, statement, idx)
     idx, do_all = _extract_list_all(statement, idx)
     gexpr, giving_path = _eval_list_giving(statement, idx)
+    # TODO unfinished!
 
 def _normalize_positions(positions) -> list:
     """By the end, we should have a list filled with ints or Nones"""

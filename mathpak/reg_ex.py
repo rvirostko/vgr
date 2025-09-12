@@ -14,7 +14,7 @@ def compile_pattern(x: Any, flags: int=0) -> Any:
         try:
             return re.compile(x, flags)
         except Exception as e:
-            raise ValueError(f'Pattern error: {repr(x)}') from e
+            raise ValueError(f'Pattern error: {x!r}') from e
     if isinstance(x, (list, tuple)):
         return type(x)(compile_pattern(x1, flags) for x1 in x)
     raise ValueError(f'Cannot Compile {type_str(x)} to a Pattern')

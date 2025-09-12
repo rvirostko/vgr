@@ -51,7 +51,7 @@ def poly_parse_int(x: Any, base: Any=10) -> Any:
         try:
             return None if len(x) == 0 or x.isspace() else int(x.strip(), base)
         except ValueError as e:
-            raise ValueError(f'Invalid value for use with base {base}: {repr(x)}') from e
+            raise ValueError(f'Invalid value for use with base {base}: {x!r}') from e
     if isinstance(x, (list, tuple)): return type(x)(poly_parse_int(x1, base) for x1 in x)
     raise TypeError(f'Parsing from {type_str(x)} not supported')
 

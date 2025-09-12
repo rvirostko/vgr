@@ -26,14 +26,12 @@ from mathpak import str_to_number, str_to_bool
 from version import __version__, __version_date__
 
 _VGR_PREFIX = 'vgr'
-_STATEMENT_PATH = (_VGR_PREFIX, 'statement')
 _VER_PATH = (_VGR_PREFIX, 'version')
 _VER_DATE_PATH = (_VGR_PREFIX, 'version_date')
 LOG_LEVEL_PATH = (_VGR_PREFIX, 'log_level')
 SHELL_PROMPT_PATH = (_VGR_PREFIX, 'prompt')
 SHELL_HISTORY_PATH = (_VGR_PREFIX, 'history')
 SHELL_HISTORY_SIZE_PATH = (_VGR_PREFIX, 'history_size')
-SOURCE_STACK_PATH = (_VGR_PREFIX, 'source')
 
 _TIME_PREFIX = 'time'
 
@@ -145,7 +143,6 @@ def dd_init() -> DataDictionary:
     dd.add_immutable_prefix(_VGR_PREFIX)
     dd.set_var(__version__, *_VER_PATH)
     dd.set_var(__version_date__, *_VER_DATE_PATH)
-    dd.set_var([], *SOURCE_STACK_PATH)
     dd.set_var({}, _SCRATCH_PREFIX)
     dd.add_protected_prefix(_SCRATCH_PREFIX)
     for flag in _RE_FLAGS:
@@ -188,25 +185,6 @@ def dd_parse_user_args(dd: DataDictionary, user_args: list) -> None:
                 match = re.fullmatch(r'\s*"([^"]*)"\s*', value)
                 path = (_ARG_PREFIX,) + path
                 dd.set_var(match.group(1) if match else _coerce_value(value), *path)
-
-def dd_set_statement(dd: DataDictionary, statement_text: str) -> str:
-    dd.set_var(statement_text, *_STATEMENT_PATH)
-
-def dd_pop_source(dd: DataDictionary) -> str:
-    source_stack: list = dd.get_var(*SOURCE_STACK_PATH)
-    rc = source_stack.pop() if source_stack else ''
-    dd.set_var(source_stack, *SOURCE_STACK_PATH)
-    return rc
-
-def dd_push_source(dd: DataDictionary, source: str) -> str:
-    # the <...> notation is used to indicate cmd line, stdin, etc
-    # which don't really have a file name.
-    # the source stack is strictly for file name context
-    if source.startswith('<') and source.endswith('>'): source = ''
-    source_stack: list = dd.get_var('vgr', 'source')
-    source_stack.insert(0, source)
-    dd.set_var(source_stack, 'vgr', 'source')
-    return source
 
 def dd_clear_scratch(dd: DataDictionary) -> None:
     dd.get_var(_SCRATCH_PREFIX).clear()

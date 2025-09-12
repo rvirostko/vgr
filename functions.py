@@ -652,7 +652,7 @@ def add_builtin_functions() -> None:
 def add_function(extn_name: str, name: str, function: Callable) -> None:
     lc = name.lower()
     if lc in _FUNC_INDEX:
-        raise ValueError(f'Extension {repr(extn_name)} tried to redefine {repr(name)}')
+        raise ValueError(f'Extension {extn_name!r} tried to redefine {name!r}')
     _FUNC_OPS[name] = function
     _FUNC_INDEX[lc] = name
     _FUNC_INDEX[_to_snake_case(name)] = name
@@ -670,7 +670,7 @@ def get_function_op(name: str):
     """Given a function name get the function that implements it"""
     function = get_function(name)
     if function: return function[1]
-    raise NotImplementedError(f'Function {repr(name)} not implemented') # SNO
+    raise NotImplementedError(f'Function {name!r} not implemented') # SNO
 
 def get_function_defs(w: int=99) -> str:
     """Dynamically generate the LARK patterns for functions based on our dictionary"""

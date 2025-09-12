@@ -13,12 +13,12 @@ from lark import Tree
 from app_exceptions import VgrRuntimeError
 from data_dict import DataDictionary
 from evaluate import eval_expr, eval_filename_expr, eval_to_str
+from exec_context import ExecContext
 from mathpak import bound_ops, type_str
 from output import prepare_path, verify_relative_path
-from redir import print_stderr
 
 @bound_ops("Create-ZIP")
-def execute_zip(dd: DataDictionary, statement: Tree):
+def execute_zip(ctx: ExecContext, statement: Tree):
     """
 **Create a ZIP Archive**
 
@@ -42,16 +42,16 @@ Both files and directories must be relative to the current directory.
 
 If a comment is specified multiple times, only the last one is used.
 """
-    zip_name = eval_filename_expr(dd, statement.children[0])
+    zip_name = eval_filename_expr(ctx.dd, statement.children[0])
     include_patterns: list[str] = []
     exclude_patterns: list[str] = []
     comment: str = None
     for child in statement.children[1:]:
         arg_type = child.data
-        if arg_type == 'include': include_patterns.extend(_eval_to_list_str(dd, child, 'Include'))
-        elif arg_type == 'exclude': exclude_patterns.extend(_eval_to_list_str(dd, child, 'Exclude'))
-        elif arg_type == 'comment': comment = eval_to_str(dd, child.children[0], 'Comment', True)
-        else: raise VgrRuntimeError(child, ValueError(f'Unhandled type {repr(arg_type)}'))
+        if arg_type == 'include': include_patterns.extend(_eval_to_list_str(ctx.dd, child, 'Include'))
+        elif arg_type == 'exclude': exclude_patterns.extend(_eval_to_list_str(ctx.dd, child, 'Exclude'))
+        elif arg_type == 'comment': comment = eval_to_str(ctx.dd, child.children[0], 'Comment', True)
+        else: raise VgrRuntimeError(child, ValueError(f'Unhandled type {arg_type!r}'))
     added_files = set()
     # General follow zip's -r behavior when it comes to subdirs
     for pattern in include_patterns:
@@ -67,18 +67,17 @@ If a comment is specified multiple times, only the last one is used.
     added_files = {
         f for f in added_files if not any(fnmatch.fnmatch(f, pattern) for pattern in exclude_patterns)
     }
-    if dd.verbose: print_stderr('Creating', zip_name)
+    ctx.print_verbose('Creating', zip_name)
     with zipfile.ZipFile(prepare_path(zip_name), 'w', zipfile.ZIP_DEFLATED) as zf:
         if comment: zf.comment = comment.encode('utf-8')
         if added_files:
             for file in sorted(added_files):
                 relpath = os.path.relpath(file)
-                if dd.verbose: print_stderr('Adding', relpath)
+                ctx.print_verbose('Adding', relpath)
                 zf.write(file, relpath)
         else:
-            if dd.verbose: print_stderr('Created an empty archive')
-        if dd.verbose:
-            print_stderr(f'Wrote {os.path.getsize(zip_name):,} bytes')
+            ctx.print_verbose('Created an empty archive')
+        ctx.print_verbose(f'Wrote {os.path.getsize(zip_name):,} bytes')
 
 def _eval_to_list_str(dd: DataDictionary, clause: Tree, name: str) -> list[str]:
     """Helper that returns a list of strings, recursively handling collections"""

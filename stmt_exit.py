@@ -7,8 +7,8 @@ import logging
 from lark import Tree
 
 from app_exceptions import VgrExitingException
-from data_dict import DataDictionary
-from evaluate import eval_expr, eval_to_str
+from evaluate import eval_to_str
+from exec_context import ExecContext
 from mathpak import bound_ops, poly_true, poly_int
 from redir import print_stderr
 from src_mgr import SSM
@@ -16,8 +16,7 @@ from src_mgr import SSM
 _LOG = logging.getLogger(__name__)
 
 @bound_ops("Exit")
-
-def execute_exit(dd: DataDictionary, statement: Tree) -> None:
+def execute_exit(ctx: ExecContext, statement: Tree) -> None:
     """
 **Terminate execution**
 
@@ -31,7 +30,7 @@ Note that in this specific case "True" returns zero and "False" returns one.
     rc = VgrExitingException.EXIT_SUCCESS
     msg = 'Exiting'
     if statement.children:
-        x = eval_expr(dd, statement.children[0])
+        x = ctx.eval_expr(statement.children[0])
         if x is not None:
             try:
                 rc = poly_int(x)
@@ -42,7 +41,7 @@ Note that in this specific case "True" returns zero and "False" returns one.
     raise VgrExitingException(rc, statement, msg)
 
 @bound_ops("Assert")
-def execute_assert(dd: DataDictionary, statement: Tree) -> None:
+def execute_assert(ctx: ExecContext, statement: Tree) -> None:
     """
 **Assert that a condition is met, terminating execution if it is not**
 
@@ -60,13 +59,13 @@ If no message is given the the failing expression is used as the message
 Execution ends with an exit code of 1 indicating failure
 """
     exprs = [*statement.children]
-    v: bool = poly_true(eval_expr(dd, exprs.pop(0))) if len(exprs) else False
+    v: bool = poly_true(ctx.eval_expr(exprs.pop(0))) if len(exprs) else False
     if not v:
         msg: str = None
         if len(exprs) > 0:
             try:
-                msg = eval_to_str(dd, exprs.pop(0), 'Format string', True)
-                if msg is not None: msg = msg.format(*[eval_expr(dd, expr) for expr in exprs])
+                msg = eval_to_str(ctx.dd, exprs.pop(0), 'Format string', True)
+                if msg is not None: msg = msg.format(*[ctx.eval_expr(expr) for expr in exprs])
             except (ValueError, TypeError) as e:
                 print_stderr(f'While evaluating {SSM.source_for(statement)} on line {statement.meta.line}: ', e)
                 msg = None

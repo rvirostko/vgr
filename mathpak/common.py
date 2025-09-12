@@ -54,7 +54,7 @@ def str_to_number(s: str) -> Number:
         x: float = float(s)
         return int(x) if x.is_integer() else x
     except ValueError as e:
-        raise ValueError(f'Cannot convert {repr(s)} to a number') from e
+        raise ValueError(f'Cannot convert {s!r} to a number') from e
 
 def str_to_int(x: str) -> int:
     """
@@ -78,7 +78,7 @@ def str_to_bool(s: str) -> bool:
     try:
         return str_to_number(s) != 0
     except ValueError as e:
-        raise ValueError(f'Cannot convert {repr(s)} to a boolean') from e
+        raise ValueError(f'Cannot convert {s!r} to a boolean') from e
 
 def bool_arg(arg: Any, name: str) -> bool:
     """

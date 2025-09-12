@@ -95,7 +95,7 @@ class VgrExtensionRegistry:
         if not isinstance(extn_file, Path):
             extn_file = Path(extn_file)
         if not extn_file.exists():
-            print(f'Warning: {repr(extn_file)} does not exist')
+            print(f'Warning: {extn_file!r} does not exist')
             return
         config = configparser.ConfigParser()
         config.read(extn_file)
@@ -105,7 +105,7 @@ class VgrExtensionRegistry:
                 raise ValueError(f'Missing class in section [{section}]')
             module_name, _, class_name = class_path.rpartition('.')
             if not module_name or not class_name:
-                raise ValueError(f'Invalid class path {repr(class_path)} in section [{section}]')
+                raise ValueError(f'Invalid class path {class_path!r} in section [{section}]')
             try:
                 module = importlib.import_module(module_name)
                 cls = getattr(module, class_name)
@@ -115,7 +115,7 @@ class VgrExtensionRegistry:
                 extn.initialize(dd)
                 self._registry[section] = extn
             except (ImportError, AttributeError) as e:
-                raise ImportError(f'Failed to load class {repr(class_path)} in section [{section}]') from e
+                raise ImportError(f'Failed to load class {class_path!r} in section [{section}]') from e
 
     def get(self, name):
         return self._registry.get(name)

@@ -6,13 +6,12 @@ import time
 
 from lark import Tree
 
-from data_dict import DataDictionary
 from evaluate import eval_to_number
+from exec_context import ExecContext
 from mathpak import bound_ops
-from redir import print_stderr
 
 @bound_ops("Sleep")
-def execute_sleep(dd: DataDictionary, statement: Tree) -> None:
+def execute_sleep(ctx: ExecContext, statement: Tree) -> None:
     """
 **Sleep for a given number of seconds**
 
@@ -21,10 +20,10 @@ def execute_sleep(dd: DataDictionary, statement: Tree) -> None:
 Values may be floating point, e.g. .01 to delay for ten milliseconds.
 Negative and zero values are ignored. Maximum sleep time is five minutes.
 """
-    n = eval_to_number(dd, statement.children[0], 'Sleep time')
+    n = eval_to_number(ctx.dd, statement.children[0], 'Sleep time')
     n = min(max(n, 0), 300)
     if n > 0:
-        if dd.verbose: print_stderr('Sleeping for', n, "seconds")
+        ctx.print_verbose('Sleeping for', n, "seconds")
         time.sleep(n)
     else:
-        if dd.verbose: print_stderr('Sleep skipped')
+        ctx.print_verbose('Sleep skipped')

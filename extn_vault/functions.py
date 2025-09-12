@@ -56,7 +56,7 @@ String values are converted as per the Vault specification for duration strings.
     while position < len(duration):
         match = _DURATION_STR_PATTERN.match(duration, position)
         if not match:
-            raise ValueError(f'Invalid duration format at {position}: {repr(duration)}')
+            raise ValueError(f'Invalid duration format at {position}: {duration!r}')
         value, unit = match.groups()
         value = float(value)
         if unit is None:
@@ -65,7 +65,7 @@ String values are converted as per the Vault specification for duration strings.
         else:
             unit = unit.lower()
         if unit not in _TIME_UNITS_LOOKUP:
-            raise ValueError(f'Invalid time unit {repr(unit)} in duration string {repr(duration)}')
+            raise ValueError(f'Invalid time unit {unit!r} in duration string {duration!r}')
         total_milliseconds += value * _TIME_UNITS_LOOKUP[unit]
         position = match.end()
     return int(total_milliseconds)

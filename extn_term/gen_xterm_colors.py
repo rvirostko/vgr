@@ -31,14 +31,14 @@ def main():
     print("# The index of the named color is its value")
     print("TERM_COLORS = [")
     for color in colors:
-        print(f"    {repr(color)},")
+        print(f"    {color!r},")
     print("]")
     print()
     print("# Consult after checking TERM_COLORS first")
     print("AUX_COLORS = {")
     for key, value in aux.items():
         if key not in colors:
-            print(f"    {repr(key)}: {repr(value)},")
+            print(f"    {key!r}: {value!r},")
     print("}")
     print()
 
@@ -55,13 +55,13 @@ def build_color_array(data):
         name = item["name"].replace('Gray', 'Grey')
         idx = item["colorId"]
         if not (0 <= idx < 256):
-            print(f"Index error {idx} for {repr(name)}", file=sys.stderr)
+            print(f"Index error {idx} for {name!r}", file=sys.stderr)
             continue
         # Check if the slot at the index is already occupied
         if color_array[idx] is not None:
             if color_array[idx].casefold() != name.casefold():
                 print(
-                    f"Conflict at {idx} {repr(name)}: {repr(color_array[idx])} is already present",
+                    f"Conflict at {idx} {name!r}: {color_array[idx]!r} is already present",
                     file=sys.stderr
                 )
                 aux_names[name] = idx
@@ -71,7 +71,7 @@ def build_color_array(data):
         if name_lower in name_to_index:
             prev_idx = name_to_index[name_lower]
             print(
-                f"Name conflict at {idx} for {repr(name)}: already used at index {prev_idx}",
+                f"Name conflict at {idx} for {name!r}: already used at index {prev_idx}",
                 file=sys.stderr
             )
             continue

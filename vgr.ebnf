@@ -87,10 +87,34 @@ else_clause: "Else"i ("Do"i | ":") statement+ -> else
 break: "Break"i _SEMICOLON?
 continue: "Continue"i _SEMICOLON?
 
-choose_statement: "Choose"i ":" choice_block+ otherwise_block? "End"i _SEMICOLON? -> choose
-    | "Choose"i "Using"i expr ":" values_block+ otherwise_block? "End"i _SEMICOLON? -> choose_using
+op_eq: ("==" | "\u2175" | "Equals"i | "Is"i | "Is"i? "Equal"i "To"i)                       // Unicode ⩵ (two consecutive equals signs)
+op_ne: ("!=" | "\u2260" | "<>" | "\u00AC=" | "Is"i "Not"i | "Is"i? "Not"i "Equal"i "To"i ) // Unicode ≠ (not eq) and ¬ (not)
+// NB: intentionally "not greater than or equal to" et al
+op_lt: ("<" | "\uFF1C" | "Less"i "Than"i)                                                  // Unicode ＜ (fullwidth <)
+op_gt: (">" | "\uFF1E" | "Greater"i "Than"i)                                               // Unicode ＞ (fullwidth >)
+op_le: ("<=" | "\u2264" | "\u00AC>" | "!>") | ("Not"i op_gt)                               // Unicode ≤ (less than or equal to) and ¬ (not)
+op_ge: (">=" | "\u2265" | "\u00AC<" | "!<") | ("Not"i op_lt)                               // Unicode ≥ (greater than or equal to) and ¬ (not)
+op_contains: "Contains"i
+op_not_contains: ("Not"i op_contains | "Does"i "Not"i "Contain"i)
+op_matches: "~" | "Matches"i
+op_not_matches: ("!~" | "Not"i op_matches | "Does"i "Not"i "Match"i)
+op_imatches: "~*"
+op_not_imatches: "!~*" | "Not"i op_imatches
+
+choose_statement: "Choose"i choose_all? ":" choice_block+ otherwise_block? "End"i _SEMICOLON? -> choose
+    | "Choose"i choose_all? "Using"i expr ":" values_block+ otherwise_block? "End"i _SEMICOLON? -> choose_using
+choose_all: "All"i
 choice_block: "When"i expr ":" statement+
-values_block: "When"i value_list ":" statement+
+values_block: "When"i "Is"i? "Empty"i ":" statement+ -> is_empty_block
+    | "When"i "Is"i? "Not"i "Empty"i ":" statement+ -> is_not_empty_block
+    | "When"i value_list ":" statement+
+    | "When"i "Not"i value_list ":" statement+ -> not_values_block
+    | "When"i expr ("Through"i | "Thru"i | "To"i) expr ":" statement+ -> range_block
+    | "When"i "Not"i expr ("Through"i | "Thru"i | "To"i) expr ":" statement+ -> not_range_block
+    | "When"i (op_lt | op_gt | op_ge | op_le) expr ":" statement+ -> ineq_block
+    | "When"i (op_eq | op_ne | op_contains | op_matches | op_not_contains | op_not_matches) value_list ":" statement+
+
+
 value_list: expr (_COMMA expr)*
 otherwise_block: "Otherwise"i ":" statement+
 

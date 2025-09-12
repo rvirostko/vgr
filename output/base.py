@@ -86,7 +86,7 @@ class RecordWriter(ABC):
         attr_repr = []
         for attr in self._attrs():
             if hasattr(self, attr):
-                attr_repr.append(f'{attr}={repr(getattr(self, attr))}')
+                attr_repr.append(f'{attr}={getattr(self, attr)!r}')
             else:
                 attr_repr.append(f'{attr}=<missing>')
         return f'{self.__class__.__name__}({", ".join(attr_repr)})'

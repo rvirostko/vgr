@@ -136,9 +136,9 @@ class VaultClient():
             # The top-level status field for a client doing a quick
             # check for problems by seeing if this is not None
             status = None
-            if "errors" in rc:               status = rc["errors"]
-            elif "warnings" in rc:           status = rc["warnings"]
-            elif not (200 <= retcode < 300): status = retcode
+            if "errors" in rc:             status = rc["errors"]
+            elif "warnings" in rc:         status = rc["warnings"]
+            elif not 200 <= retcode < 300: status = retcode
             rc['status'] = status
             if not 200 <= retcode < 300:
                 if retcode in (HTTPStatus.NOT_FOUND, HTTPStatus.BAD_REQUEST, HTTPStatus.FORBIDDEN):
@@ -592,7 +592,7 @@ def _create_kv_data(data: Any) -> Dict[str, Any]:
             return data
         # We assume that the dictionary we got is the data itself
         return {_DATA_KEY: data}
-    raise ValueError(f'Unexpected type {repr(type(data).__name__)} for data')
+    raise ValueError(f'Unexpected type {type(data).__name__!r} for data')
 
 def _create_metadata(metadata: Any) -> Dict[str, Any]:
     """Create a custom_metadata dictionary that conforms to Vault's limits."""
@@ -600,7 +600,7 @@ def _create_metadata(metadata: Any) -> Dict[str, Any]:
         return {_CM_KEY: {}}
     if isinstance(metadata, dict):
         return {_CM_KEY: _validate_metadata(metadata.get(_CM_KEY, metadata))}
-    raise ValueError(f'Unexpected type {repr(type(metadata).__name__)} for metadata')
+    raise ValueError(f'Unexpected type {type(metadata).__name__!r} for metadata')
 
 def _validate_metadata(metadata: Dict[str, Any]) -> Dict[str, str]:
     """Validate and format metadata keys and values."""
@@ -609,12 +609,12 @@ def _validate_metadata(metadata: Dict[str, Any]) -> Dict[str, str]:
         # Ensure the key is a string and no longer than MAX_KEY_LENGTH bytes
         key = str(key) if not isinstance(key, str) else key
         if len(key.encode('utf-8')) > _CM_KEY_MAX_LEN:
-            raise ValueError(f"{_CM_KEY} key {repr(key)} exceeds {_CM_KEY_MAX_LEN} bytes")
+            raise ValueError(f'{_CM_KEY} key {key!r} exceeds {_CM_KEY_MAX_LEN} bytes')
         if value is not None:
             # Ensure the value is a string and no longer than MAX_VALUE_LENGTH bytes
             value = str(value) if not isinstance(value, str) else value
             if len(value.encode('utf-8')) > _CM_VALUE_MAX_LEN:
-                raise ValueError(f"{_CM_KEY} value for {repr(key)} exceeds {_CM_VALUE_MAX_LEN} bytes")
+                raise ValueError(f'{_CM_KEY} value for {key!r} exceeds {_CM_VALUE_MAX_LEN} bytes')
             # Vault can't store empty entries, so skip them
             if value: validated_metadata[key] = value
     return validated_metadata
@@ -628,4 +628,4 @@ def _create_unlock(data: Any) -> Dict[str, Any]:
         if _UNLOCK_KEY in data:
             return {_UNLOCK_KEY: data[_UNLOCK_KEY]}
         return {}
-    raise ValueError(f'Unexpected type {repr(type(data).__name__)}')
+    raise ValueError(f'Unexpected type {type(data).__name__!r}')

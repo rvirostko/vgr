@@ -19,6 +19,7 @@ from lark import Tree
 
 from app_exceptions import VgrRuntimeError
 from evaluate import eval_expr
+from exec_context import ExecContext
 from data_dict import DataDictionary
 from mathpak import bound_ops
 from redir import stdout
@@ -744,7 +745,7 @@ _CMD_DISPATCH = {
 }
 
 @bound_ops("Terminal", "Term")
-def execute_term_statement(dd: DataDictionary, statement: Tree) -> None:
+def execute_term_statement(ctx: ExecContext, statement: Tree) -> None:
     """
 **Execute Terminal control commands**
 
@@ -774,7 +775,7 @@ TODO
         try:
             handler = _CMD_DISPATCH.get(cmd.data)
             if handler is None: raise ValueError(f"Unhandled term command: {cmd.data}")
-            handler(dd, cmd)
+            handler(ctx.dd, cmd)
         except KeyboardInterrupt as e:
             _print('\n')
             raise VgrRuntimeError(cmd, e) from e

@@ -1,8 +1,7 @@
 
-from contextvars import ContextVar
 from functools import lru_cache
 from pathlib import Path
-from typing import Any
+from typing import Any, Iterable
 import ast
 import math
 import os
@@ -20,17 +19,15 @@ from data_dict import DataDictionary
 from dbg import print_tree
 from dd_config import (
     dd_clear_scratch,
-    dd_pop_source,
-    dd_push_source,
-    dd_set_statement,
+    _VGR_PREFIX,
     do_set,
     do_unset,
 )
-from evaluate import bind_operations, eval_expr, eval_filename_expr, var_name_path
+from evaluate import bind_operations, eval_expr, eval_expr_or_const, eval_filename_expr, var_name_path
+from exec_context import ExecContext
 from functions import build_dict
 from mathpak import (
     bound_ops,
-    poly_eq,
     poly_int,
     poly_list,
     poly_true,
@@ -38,6 +35,7 @@ from mathpak import (
 from redir import execute_open, execute_close, print_stderr, print_stdout
 from src_mgr import SSM
 from stmt_cflags import execute_debug, execute_echo, execute_verbose
+from stmt_choose import execute_choose, execute_choose_using
 from stmt_exit import execute_assert, execute_exit
 from stmt_list import (
     execute_list_append,
@@ -64,7 +62,7 @@ from stmt_zip import execute_zip
 from tags import control_statement
 
 @bound_ops("Source")
-def execute_source(dd: DataDictionary, statement: Tree) -> None:
+def execute_source(ctx: ExecContext, statement: Tree) -> None:
     """
 **Execute statements stored in a file**
 
@@ -75,25 +73,25 @@ are executed, inheriting the current state of all variable and
 input/output redirection.
 """
     for child in statement.children:
-        file = eval_filename_expr(dd, child, True)
+        file = eval_filename_expr(ctx.dd, child, True)
         if file is None or len(file) == 0: continue
         path = Path(file)
         if not path.exists():
-            raise VgrRuntimeError(child, Exception(f'File {repr(file)} not found'))
+            raise VgrRuntimeError(child, Exception(f'File {file!r} not found'))
         if not path.is_file():
-            raise VgrRuntimeError(child, Exception(f'{repr(file)} does not reference a file'))
+            raise VgrRuntimeError(child, Exception(f'{file!r} does not reference a file'))
         if not os.access(path, os.R_OK):
-            raise VgrRuntimeError(child, Exception(f'File {repr(file)} not readable'))
+            raise VgrRuntimeError(child, Exception(f'File {file!r} not readable'))
         try:
             statements = None
             with open(path, 'r', encoding='utf-8-sig') as f:
                 statements = f.read()
-            execute_statements(None, dd, statements, file)
+            ctx.execute_statements(statements, file)
         except (OSError, IOError) as e:
             raise VgrRuntimeError(child, e) from e
 
 @bound_ops("Break")
-def execute_break(_: DataDictionary, statement: Tree) -> None:
+def execute_break(_: ExecContext, statement: Tree) -> None:
     """
 **Exits the current block of statements**
 
@@ -104,7 +102,7 @@ Can be used with If, Unless, While, Until, and ForEach statements
     raise VgrStatementBreak(statement)
 
 @bound_ops("Continue")
-def execute_continue(_: DataDictionary, statement: Tree) -> None:
+def execute_continue(_: ExecContext, statement: Tree) -> None:
     """
 **Causes the current loop to start again**
 
@@ -114,7 +112,7 @@ def execute_continue(_: DataDictionary, statement: Tree) -> None:
     raise VgrStatementContinue(statement)
 
 @bound_ops("NOP", "Pass")
-def execute_pass(_: DataDictionary, __: Tree) -> None:
+def execute_pass(_: ExecContext, __: Tree) -> None:
     """
 **A placeholder for a statement**
 
@@ -124,22 +122,20 @@ def execute_pass(_: DataDictionary, __: Tree) -> None:
 A placeholder for a statement, which takes no action and has no side effects.
 """
 
-def exec_if_else(dd: DataDictionary, statement: Tree, desired_value: bool) -> None:
-    if dd.echo:
-        print_stderr(SSM.source_for(statement, statement.children[1]).strip())
-    if poly_true(eval_expr(dd, bind_operations(statement.children[0]))) == desired_value:
-        for s in statement.children[1:]:
-            if s.data != 'else':
-                dispatch_statement(dd, s)
+def exec_if_else(ctx: ExecContext, statement: Tree, desired_value: bool) -> None:
+    ctx.echo_source(statement, statement.children[1])
+    has_else = statement.children[-1].data == 'else'
+    if poly_true(ctx.eval_expr(bind_operations(statement.children[0]))) == desired_value:
+        # Execute true side: skips the expression and the else if present
+        ctx.dispatch_statements(statement.children[1:-1 if has_else else None])
     else:
-        last = statement.children[-1]
-        if last.data == 'else':
-            for s in last.children:
-                dispatch_statement(dd, s)
+        # Execute false side: the "else" is always the last child
+        # and its children are the statements to execute
+        if has_else: ctx.dispatch_statements(statement.children[-1].children)
 
 @control_statement
 @bound_ops("If-Then", "If-Else")
-def execute_if(dd: DataDictionary, statement: Tree) -> None:
+def execute_if(ctx: ExecContext, statement: Tree) -> None:
     """
 **Conditionally execute a block of statements**
 
@@ -155,11 +151,11 @@ def execute_if(dd: DataDictionary, statement: Tree) -> None:
 If the expression evaluates to True the first block of statements is executed.
 If it evaluates to False, the second block of statements, if provided, is executed.
 """
-    exec_if_else(dd, statement, True)
+    exec_if_else(ctx, statement, True)
 
 @control_statement
 @bound_ops("Unless")
-def execute_unless(dd: DataDictionary, statement: Tree) -> None:
+def execute_unless(ctx: ExecContext, statement: Tree) -> None:
     """
 **Conditionally execute a block of statements**
 
@@ -167,33 +163,30 @@ def execute_unless(dd: DataDictionary, statement: Tree) -> None:
 
 If the expression evaluates to _False_ the block of statements is executed.
 """
-    exec_if_else(dd, statement, False)
+    exec_if_else(ctx, statement, False)
 
-def exec_loop(dd: DataDictionary, statement: Tree, desired_value: bool) -> None:
+def exec_loop(ctx: ExecContext, statement: Tree, desired_value: bool) -> None:
     """Internal implemenation for loops with a predicate"""
-    if dd.echo:
-        print_stderr(SSM.source_for(statement, statement.children[1]).strip())
+    ctx.echo_source(statement, statement.children[1])
     predicate = bind_operations(statement.children[0])
     while True:
-        if poly_true(eval_expr(dd, predicate)) != desired_value: return
+        if poly_true(ctx.eval_expr(predicate)) != desired_value: return
         try:
-            for s in statement.children[1:]: dispatch_statement(dd, s)
+            ctx.dispatch_statements(statement.children[1:])
         except VgrStatementBreak:
             return
         except VgrStatementContinue:
             continue
 
-def exec_repeat(dd: DataDictionary, statement: Tree) -> None:
+def exec_repeat(ctx: ExecContext, statement: Tree) -> None:
     """Internal implementation for loops with a fixed count"""
-    if dd.echo:
-        print_stderr(SSM.source_for(statement, statement.children[1]).strip())
-    expr = bind_operations(statement.children[0])
-    counter = poly_int(eval_expr(dd, expr))
+    ctx.echo_source(statement, statement.children[1])
+    counter = poly_int(ctx.eval_expr(bind_operations(statement.children[0])))
     if isinstance(counter, (int, float)):
         counter = math.floor(counter)
         while counter > 0:
             try:
-                for s in statement.children[1:]: dispatch_statement(dd, s)
+                ctx.dispatch_statements(statement.children[1:])
             except VgrStatementBreak:
                 return
             except VgrStatementContinue:
@@ -202,7 +195,7 @@ def exec_repeat(dd: DataDictionary, statement: Tree) -> None:
 
 @control_statement
 @bound_ops("While")
-def execute_while(dd: DataDictionary, statement: Tree) -> None:
+def execute_while(ctx: ExecContext, statement: Tree) -> None:
     """
 **Repeatedly execute a block of statements while a condition exists**
 
@@ -216,11 +209,11 @@ If a Break statement is encountered, looping ends regardless of the
 expression's value. If a Continue statement is encountered, statements
 following it are skipped, and the expression is checked again.
 """
-    exec_loop(dd, statement, True)
+    exec_loop(ctx, statement, True)
 
 @control_statement
 @bound_ops("Until")
-def execute_until(dd: DataDictionary, statement: Tree) -> None:
+def execute_until(ctx: ExecContext, statement: Tree) -> None:
     """
 **Repeatedly execute a block of statements until a condition is reached**
 
@@ -233,11 +226,11 @@ If a Break statement is encountered, looping ends regardless of the
 expression's value. If a Continue statement is encountered, statements
 following it are skipped, and the expression is checked again.
 """
-    exec_loop(dd, statement, False)
+    exec_loop(ctx, statement, False)
 
 @control_statement
 @bound_ops("Repeat")
-def execute_repeat(dd: DataDictionary, statement: Tree) -> None:
+def execute_repeat(ctx: ExecContext, statement: Tree) -> None:
     """
 **Execute a block of statements a fixed number of times**
 
@@ -252,11 +245,11 @@ If a Break statement is encountered, looping ends regardless of the
 expression's value. If a Continue statement is encountered, statements
 following it are skipped, and looping continues.
 """
-    exec_repeat(dd, statement)
+    exec_repeat(ctx, statement)
 
 @control_statement
 @bound_ops("ForEach")
-def execute_foreach(dd: DataDictionary, statement: Tree) -> None:
+def execute_foreach(ctx: ExecContext, statement: Tree) -> None:
     """
 **Iterate over a list of values**
 
@@ -273,169 +266,21 @@ If a Break statement is encountered, iteration ends regardless of the
 number of items remaining. If a Continue statement is encountered, statements
 following it are skipped, and the loop continues with the next item.
 """
-    if dd.echo:
-        print_stderr(SSM.source_for(statement, statement.children[2]).strip())
+    ctx.echo_source(statement, statement.children[2])
     path = var_name_path(statement.children[0])
-    collection = poly_list(eval_expr(dd, bind_operations(statement.children[1])))
+    collection = poly_list(ctx.eval_expr(bind_operations(statement.children[1])))
     if collection is not None:
         try:
             for value in collection:
-                do_set(dd, value, *path)
+                do_set(ctx.dd, value, *path)
                 try:
-                    for s in statement.children[2:]: dispatch_statement(dd, s)
+                    ctx.dispatch_statements(statement.children[2:])
                 except VgrStatementBreak:
                     return
                 except VgrStatementContinue:
                     continue
         finally:
-            do_unset(dd, *path)
-
-@control_statement
-@bound_ops("Choose")
-def execute_choose(dd: DataDictionary, statement: Tree) -> None:
-    """
-**Choose from a set of statements based on a series of tests**
-
-* Choose :
-    When _expression_ : _statement_...
-  End [;]
-* Choose :
-    When _expression_ : _statement_...
-    Otherwise : _statement_...
-  End [;]
-
-The values in `When` clauses are examined in order, and the first to
-evaluate to _True_ has its block of statements executed.
-
-If none of the `When` clauses evaluates to _True_ the `Otherwise` cause,
-if provided, is selected. Note that this clause _must_ follow all the `When`
-causes, and that at least one `When` must be specified.
-
-Both `Break` and `Continue` can be used within blocks of statements.
-
-Example:
-```
-Set month To time.today.month
-Choose :
-    When month In [1, 2, 12]:      Set season To "winter"
-    When month ≥ 3 And month ≤ 5:  Set season To "spring"
-    When month ≥ 6 And month ≤ 8:  Set season To "summer"
-    When month ≥ 9 And month ≤ 11: Set season To "fall"
-    Otherwise: Assert False: "Invalid month {}", month
-End
-Print "Month", month, "is a", season, "month"
-```
-
-Also see `Choose-Using`
-"""
-    if dd.echo:
-        print_stderr(SSM.source_for(statement, statement.children[0]).strip())
-    statement_children = iter(statement.children)
-    choosen_block = None
-    for block in statement_children:
-        if block.data == 'choice_block':
-            choice_children = iter(block.children)
-            # The first child is the expression to test
-            # We do a Pythonic test for "True" here, avoiding internal conversions
-            if eval_expr(dd, bind_operations(next(choice_children, None))):
-                if dd.echo:
-                    print_stderr(SSM.source_for(block, block.children[1]).strip())
-                # After the expression to test the iterator
-                # points to the following statements
-                choosen_block = choice_children
-        else:
-            # it is 'otherwise_block' which is automatically selected
-            if dd.echo:
-                print_stderr(SSM.source_for(block, block.children[0]).strip())
-            choosen_block = iter(block.children)
-        # If a block of statements was choosen execute them
-        # Nested "break" and "continue" statments can be used to end execution
-        if choosen_block is not None:
-            try:
-                for s in choosen_block: dispatch_statement(dd, s)
-            except (VgrStatementBreak, VgrStatementContinue):
-                pass
-            return
-
-@control_statement
-@bound_ops("Choose-Using")
-def execute_choose_using(dd: DataDictionary, statement: Tree) -> None:
-    """
-**Choose from a set of statements based on a value**
-
-* Choose Using _expression_ :
-    When _expression_ [, _expression_]... : _statement_...
-  End [;]
-* Choose Using _expression_ :
-    When _expression_ [, _expression_]... : _statement_...
-    Otherwise : _statement_...
-  End [;]
-
-The expression in the Choose statement is evaluated and it becomes the
-_desired value_ which is compared against values in `When` clauses.
-The comparison performed is identical to the `==` operator, and follows
-the same type rules.
-
-The values in `When` clauses are examined in order, and the first to equal
-the desired value has its block of statements executed. Multiple values to
-compare are specified by separating them with commas.
-
-If none of the `When` clauses match the desired value the `Otherwise` cause,
-if provided, is selected. Note that this clause _must_ follow all the `When`
-causes, and that at least one `When` must be specified.
-
-Both `Break` and `Continue` can be used within blocks of statements.
-While an expression can be used as the values in `When` it is recommended
-that constant or references to constants be used.
-
-Example:
-```
-Set month To time.today.month
-Choose Using month:
-    When 1, 2, 12:  Set season To "winter"
-    When 3, 4, 5:   Set season To "spring"
-    When 6, 7, 8:   Set season To "summer"
-    When 9, 10, 11: Set season To "fall"
-    Otherwise: Assert False: "Invalid month {}", month
-End
-Print "Month", month, "is a", season, "month"
-```
-
-Also see `Choose`
-"""
-    if dd.echo:
-        print_stderr(SSM.source_for(statement, statement.children[1]).strip())
-    statement_children = iter(statement.children)
-    # The first child is the expression used in the value comparisons
-    desired_value = eval_expr(dd, bind_operations(next(statement_children, None)))
-    choosen_block = None
-    for block in statement_children:
-        if block.data == 'values_block':
-            values_children = iter(block.children)
-            for target_expr in next(values_children, None).children:
-                # NB: this may cause a TypeError if there is a mismatch
-                #     betweeen the desired_value's type, which drives "casting"
-                #     and the resulting type of the expression
-                if poly_eq(desired_value, eval_expr(dd, bind_operations(target_expr))):
-                    if dd.echo:
-                        print_stderr(SSM.source_for(block, block.children[1]).strip())
-                    # The children start with the values, and the iterator now
-                    # points to the following statements
-                    choosen_block = values_children
-                    break # no need to look at other values
-        else:
-            # it is 'otherwise_block' which is automatically selected
-            if dd.echo:
-                print_stderr(SSM.source_for(block, block.children[0]).strip())
-            choosen_block = iter(block.children)
-        # If a block of statements was choosen execute them
-        # Nested "break" and "continue" statments can be used to end execution
-        if choosen_block is not None:
-            try:
-                for s in choosen_block: dispatch_statement(dd, s)
-            except (VgrStatementBreak, VgrStatementContinue):
-                pass
-            return
+            do_unset(ctx.dd, *path)
 
 # pylint: disable=invalid-name
 # disabled because we MUST have methods named the same as the tokens
@@ -538,7 +383,7 @@ class ConstantsNormalizer(Transformer):
             prefix = s[0]
             open_quote = s[1]
         else:
-            prefix = ""
+            prefix = ''
             open_quote = s[0]
         # the string is clean
         if open_quote in ('"', "'"): return s
@@ -620,50 +465,90 @@ def get_statement_entries() -> list:
                 entries[op] = (func, op.lower().replace(' ', ''), (func.__doc__ or '').lower())
     return entries
 
-_parser_context: ContextVar = ContextVar('vgr_parser_context', default=None)
+class DefaultExecContext(ExecContext):
+    _SOURCE_STACK_PATH = (_VGR_PREFIX, 'source')
+    _STATEMENT_PATH = (_VGR_PREFIX, 'statement')
 
-def execute_statements(parser: Lark, dd: DataDictionary, statement_text: str, source: str) -> None:
-    try:
-        dd_push_source(dd, source)
-        if not statement_text or statement_text.isspace(): return
-        _parser = _parser_context.get() if parser is None else parser
-        remember_terminals(_parser)
-        SSM.set_statement(statement_text, source)
-        statements: Tree = _parser.parse(statement_text)
-        for statement in statements.children:
+    def __init__(self, parser: Lark, dd: DataDictionary):
+        super().__init__(parser, dd)
+        self.set_var('', *self._STATEMENT_PATH)
+        self.set_var([], *self._SOURCE_STACK_PATH)
+
+    def get_var(self, *path: str) -> Any: return self.dd.get_var(*path)
+    def set_var(self, data: Any, /, *path: str) -> Any: return self.dd.set_var(data, *path)
+
+    def get_var_user(self, *path: str) -> Any: return self.dd.get_var_user(*path)
+    def set_var_user(self, data: Any, /, *path: str): return self.dd.set_var_user(data, *path)
+
+    def eval_expr(self, expr: Any) -> Any: return eval_expr(self.dd, expr)
+    def eval_expr_or_const(self, expr: Any) -> Any: return eval_expr_or_const(self.dd, expr)
+
+    def echo_source(self, tree, end_tree = None):
+        if self.dd.echo: print_stderr((SSM.source_for(tree, end_tree) or '').strip())
+
+    def print_verbose(self, *args, **kwargs) -> None:
+        if self.dd.verbose: print_stderr(*args, **kwargs)
+
+    def execute_statements(self, statement_text: str, origin: str) -> None:
+        """Parse the text and execute the resulting statements"""
+        if statement_text and not statement_text.isspace():
+            prev_statement = SSM.statement_text()
+            prev_origin = SSM.origin()
+            SSM.set_statement(statement_text, origin)
             try:
-                if parser is not None: _parser_context.set(parser)
-                dispatch_statement(dd, statement)
+                self._push_source(origin)
+                self.dispatch_statements(self._parser.parse(statement_text).children)
+                # We only restore these if everything worked: otherwise we loose
+                # the source that an exception may need
+                SSM.set_statement(prev_statement, prev_origin)
             finally:
-                if parser is not None: _parser_context.set(None)
-    finally:
-        dd_pop_source(dd)
+                self._pop_source()
 
-def dispatch_statement(dd: DataDictionary, statement: Tree) -> None:
-    text = SSM.source_for(statement)
-    dd_set_statement(dd, text)
-    statement = ConstantsNormalizer().transform(statement)
-    statement = VarRefOptimizer().transform(statement)
-    if dd.debug: print_tree(statement)
-    handler = STATEMENT_HANDLERS.get(statement.data)
-    if handler:
-        if not getattr(handler, "_is_control_statement", False):
-            # Simple statements: those that don't have nested
-            # statements, ones that don't interate, or have complex requirements
-            # Other statements need to handle binding
-            # and decide what to do for echo
-            statement = bind_operations(statement)
-            if dd.echo: print_stderr(text)
-        try:
-            handler(dd, statement)
-        except VgrException as e:
-            raise e
-        except KeyboardInterrupt as e:
-            print_stdout('')
-            raise VgrRuntimeError(statement, e) from e
-        except Exception as e:
-            raise VgrRuntimeError(statement, e) from e
-        finally:
-            dd_clear_scratch(dd)
-    else:
-        raise VgrRuntimeError(statement, NotImplementedError(f'No handler established for {statement.data}')) #SNO
+    def dispatch_statements(self, statements: Iterable[Tree]) -> None:
+        """Given a sequence of parsed statements dispatch them to their handler"""
+        for statement in statements:
+            self.set_var(SSM.source_for(statement), *self._STATEMENT_PATH)
+            statement = ConstantsNormalizer().transform(statement)
+            statement = VarRefOptimizer().transform(statement)
+            if self.dd.debug: print_tree(statement)
+            handler = STATEMENT_HANDLERS.get(statement.data)
+            if not handler:
+                raise VgrRuntimeError(statement, NotImplementedError(f'No handler established for {statement.data}')) #SNO
+            if not getattr(handler, "_is_control_statement", False):
+                # Simple statements: those that don't have nested
+                # statements, ones that don't interate, or have complex requirements
+                # Other statements need to handle binding
+                # and decide what to do for echo
+                statement = bind_operations(statement)
+                self.echo_source(statement)
+            try:
+                handler(self, statement)
+            except VgrException as e:
+                raise e
+            except KeyboardInterrupt as e:
+                print_stdout('')
+                raise VgrRuntimeError(statement, e) from e
+            except Exception as e:
+                raise VgrRuntimeError(statement, e) from e
+            finally:
+                dd_clear_scratch(self.dd)
+
+    def _push_source(self, source: str) -> None:
+        # the <...> notation is used to indicate cmd line, stdin, etc
+        # which don't really have a file name.
+        # the source stack is strictly for file name context
+        if source.startswith('<') and source.endswith('>'): source = ''
+        source_stack: list = self.get_var(*self._SOURCE_STACK_PATH)
+        source_stack.insert(0, source)
+        self.set_var(source_stack, *self._SOURCE_STACK_PATH)
+
+    def _pop_source(self) -> None:
+        source_stack: list = self.get_var(*self._SOURCE_STACK_PATH)
+        if source_stack:
+            source_stack.pop()
+            self.set_var(source_stack, *self._SOURCE_STACK_PATH)
+
+def create_exec_context(parser: Lark, dd: DataDictionary) -> ExecContext:
+    ctx = DefaultExecContext(parser, dd)
+    remember_terminals(parser)
+    return ctx

@@ -10,6 +10,7 @@ from app_exceptions import VgrRuntimeError
 from data_dict import DataDictionary
 from dd_config import do_set
 from evaluate import eval_expr_or_const, eval_filename_expr, bind_operations
+from exec_context import ExecContext
 from mathpak import poly_sort, dsort, bound_ops, type_str
 from output import CSVRecordWriter, JSONRecordWriter, TextRecordWriter
 from redir import print_stderr
@@ -126,10 +127,10 @@ class SortAnalyzer(Visitor):
         elif node.data == 'var':
             io[_VAR] = tuple(name.value for name in node.children[0].children)
         else:
-            raise NotImplementedError(f'Sort source/target {repr(node.data)} not implemented') # SNO
+            raise NotImplementedError(f'Sort source/target {node.data!r} not implemented') # SNO
 
 @bound_ops("Sort")
-def execute_sort(dd: DataDictionary, statement: Tree) -> None:
+def execute_sort(ctx: ExecContext, statement: Tree) -> None:
     """
 **Sort the contents of a list or a file**
 
@@ -179,17 +180,16 @@ Sort accts On acct_nbr Unique
 ```
 
 """
-    sort = SortAnalyzer(dd).analyze(statement)
+    sort = SortAnalyzer(ctx.dd).analyze(statement)
     source = sort.sort_source
     target = sort.sort_target
-    data = _read_data(dd, source)
+    data = _read_data(ctx.dd, source)
     # At this point, we write out everything; no per col filtering
     target[_FIELDS] = source[_FIELDS]
-    if dd.verbose:
-        print_stderr("Sort Source =", repr(source))
-        print_stderr("Sort Target =", repr(target))
-    data = _do_sort(dd, data, source, target)
-    _write_data(dd, data, target)
+    ctx.print_verbose("Sort Source =", repr(source))
+    ctx.print_verbose("Sort Target =", repr(target))
+    data = _do_sort(ctx.dd, data, source, target)
+    _write_data(ctx.dd, data, target)
 
 def _do_sort(_: DataDictionary, data: list, source: dict, target: dict) -> list:
     if source[_DTYPE] == 'text_file':
@@ -216,7 +216,7 @@ def _read_data(dd: DataDictionary, source: dict) -> list:
             sort_cols = source[_SORT_COLS]
             if len(sort_cols) > 1:
                 if dd.verbose:
-                    print_stderr(f'Extraneous Sort ordering ignored: {repr(sort_cols[1:])}')
+                    print_stderr(f'Extraneous Sort ordering ignored: {sort_cols[1:]!r}')
             source[_FIELDS] = source[_SORT_COLS] = ['line']
         else:
             # while unlikely (maybe?) we need to support non-string ordinals as keys
@@ -230,7 +230,7 @@ def _read_data(dd: DataDictionary, source: dict) -> list:
             source[_FIELDS] = fields
             data = data if isinstance(data, (list, tuple)) else [] if data is None else [data]
         except Exception as e:
-            raise ValueError(f'While reading {repr(source[_FILE])}: {str(e)}') from e
+            raise ValueError(f'While reading {source[_FILE]!r}: {str(e)}') from e
     # The "on" keys must all be known in our fields
     _validate_subset(source[_SORT_COLS], source[_FIELDS])
     # We put our sort fields in the first cols of output
@@ -268,7 +268,7 @@ def _write_data(dd: DataDictionary, data: list, target: dict) -> None:
                 rw.write([row.get(p, None) for p in headers] if isinstance(row, dict) else [row])
             rw.finish()
             return
-        raise ValueError(f'Unknown file content type {repr(dtype)}') # SNO
+        raise ValueError(f'Unknown file content type {dtype!r}') # SNO
 
 def _append_unique(x: list, y: list) -> list:
     return x + [x1 for x1 in y if x1 not in x]

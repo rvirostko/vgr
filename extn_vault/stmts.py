@@ -7,9 +7,8 @@ from typing import Any
 from lark import Tree
 
 from app_exceptions import VgrRuntimeError
-from evaluate import eval_expr_or_const
-from data_dict import DataDictionary
-from redir import print_stderr, shorten
+from exec_context import ExecContext
+from redir import shorten
 from vault_api.client_mgr import VaultClientManager
 
 from .dd_consts import DEFAULT_NS_PATH, DEFAULT_RESULT_PATH, DEFAULT_CONN_PATH
@@ -47,17 +46,16 @@ def _normalize_path(path: str) -> str:
     if path.startswith("/"): return "/v1" + path
     return "/v1/" + path
 
-def _do_set(dd: DataDictionary, value: Any, *path) -> Any:
-    new_value = dd.set_var(value, *path)
-    if dd.verbose:
-        print_stderr('Set', '.'.join(path), 'To', shorten(repr(new_value)))
+def _do_set(ctx: ExecContext, value: Any, *path) -> Any:
+    new_value = ctx.set_var(value, *path)
+    ctx.print_verbose('Set', '.'.join(path), 'To', shorten(repr(new_value)))
     return new_value
 
-def _get_default_ns(dd: DataDictionary, args: dict) -> str:
+def _get_default_ns(ctx: ExecContext, args: dict) -> str:
     """If the args doesn't contain the namespace, use the default one"""
-    return _get_arg(args, _NS_ARG, str, True) or dd.get_var(*DEFAULT_NS_PATH)
+    return _get_arg(args, _NS_ARG, str, True) or ctx.get_var(*DEFAULT_NS_PATH)
 
-def _set_result(dd: DataDictionary, args: dict, data: Any) -> dict:
+def _set_result(ctx: ExecContext, args: dict, data: Any) -> dict:
     """Sees if the user wants to put the results in a custom location or store in the default location"""
     path = DEFAULT_RESULT_PATH
     if _RESULT_ARG in args:
@@ -65,19 +63,19 @@ def _set_result(dd: DataDictionary, args: dict, data: Any) -> dict:
         # They can always restate the default
         # and if they do, we dont check immutability/protection
         if path != DEFAULT_RESULT_PATH:
-            dd.validate_user_set_path(*dd.validate_user_path(*path))
-    return _do_set(dd, data, *path)
+            ctx.dd.validate_user_set_path(*ctx.dd.validate_user_path(*path))
+    return _do_set(ctx, data, *path)
 
-def _set_default_conn(dd: DataDictionary, conn: str) -> str:
+def _set_default_conn(ctx: ExecContext, conn: str) -> str:
     # Only change the DD value if we have to,
     # so as to skip a message when verbose is on
-    curr = dd.get_var(*DEFAULT_CONN_PATH)
-    if curr != conn: _do_set(dd, conn, *DEFAULT_CONN_PATH)
+    curr = ctx.get_var(*DEFAULT_CONN_PATH)
+    if curr != conn: _do_set(ctx, conn, *DEFAULT_CONN_PATH)
     return conn
 
-def _get_default_conn(dd: DataDictionary, args: dict) -> str:
+def _get_default_conn(ctx: ExecContext, args: dict) -> str:
     """If the args doesn't contain the connection, use the default one"""
-    return _get_arg(args, _USING_ARG, str, True) or dd.get_var(*DEFAULT_CONN_PATH) or _DEFAULT_CONN_NAME
+    return _get_arg(args, _USING_ARG, str, True) or ctx.get_var(*DEFAULT_CONN_PATH) or _DEFAULT_CONN_NAME
 
 #-------------------------------------------------------------------------------
 # Connection management
@@ -91,91 +89,91 @@ def _get_default_conn(dd: DataDictionary, args: dict) -> str:
 # Vault Disconnect "Source"
 #-------------------------------------------------------------------------------
 
-def execute_connect(dd: DataDictionary, statement: Tree) -> None:
+def execute_connect(ctx: ExecContext, statement: Tree) -> None:
     addr = token = conn_name = None
     for child in statement.children:
         if isinstance(child, Tree):
             name: str = child.data
             if name == 'conn_addr':
-                addr = _resolve_str_arg(dd, child.children[0], 'Vault Address')
+                addr = _resolve_str_arg(ctx, child.children[0], 'Vault Address')
             elif name == 'conn_token':
-                token = _resolve_str_arg(dd, child.children[0], 'Vault Token')
+                token = _resolve_str_arg(ctx, child.children[0], 'Vault Token')
             elif name == 'conn_name':
-                conn_name = _resolve_str_arg(dd, child.children[0], 'Vault Connection Name')
+                conn_name = _resolve_str_arg(ctx, child.children[0], 'Vault Connection Name')
             else:
                 raise VgrRuntimeError(child, NotImplementedError(f'Argument {name!r} not handled')) # SNO
         else:
             raise VgrRuntimeError(child, ValueError(f'Unexpected Vault argument {child!r}')) # SNO
     conn_name = conn_name or _DEFAULT_CONN_NAME
     _CONNECTIONS.connect(conn_name, addr, token)
-    _set_default_conn(dd, conn_name)
-    _set_result(dd, {}, None)
+    _set_default_conn(ctx, conn_name)
+    _set_result(ctx, {}, None)
 
-def execute_disconnect(dd: DataDictionary, statement: Tree) -> None:
+def execute_disconnect(ctx: ExecContext, statement: Tree) -> None:
     if statement.children:
-        name = _resolve_str_arg(dd, statement.children[0], 'Vault Connection Name')
+        name = _resolve_str_arg(ctx, statement.children[0], 'Vault Connection Name')
     else:
-        name = _get_default_conn(dd, {})
+        name = _get_default_conn(ctx, {})
     _CONNECTIONS.disconnect(name)
-    _set_result(dd, {}, None)
+    _set_result(ctx, {}, None)
 
 #-------------------------------------------------------------------------------
 # Generic API execution
 #-------------------------------------------------------------------------------
 
-def execute_api_delete(dd: DataDictionary, statement: Tree) -> None:
-    args: dict = _extract_args(dd, statement)
+def execute_api_delete(ctx: ExecContext, statement: Tree) -> None:
+    args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
-    url: str = _normalize_path(_resolve_str_arg(dd, statement.children[0], 'Path'))
+    url: str = _normalize_path(_resolve_str_arg(ctx, statement.children[0], 'Path'))
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(dd,
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
                 args,
                 _CONNECTIONS.get_connection(using).do_delete(url, namespace)
                )
 
-def execute_api_get(dd: DataDictionary, statement: Tree) -> None:
-    args: dict = _extract_args(dd, statement)
+def execute_api_get(ctx: ExecContext, statement: Tree) -> None:
+    args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
-    url: str = _normalize_path(_resolve_str_arg(dd, statement.children[0], 'Path'))
+    url: str = _normalize_path(_resolve_str_arg(ctx, statement.children[0], 'Path'))
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(dd,
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
                 args,
                 _CONNECTIONS.get_connection(using).do_get(url, namespace)
                )
 
-def execute_api_list(dd: DataDictionary, statement: Tree) -> None:
-    args: dict = _extract_args(dd, statement)
+def execute_api_list(ctx: ExecContext, statement: Tree) -> None:
+    args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
-    url: str = _normalize_path(_resolve_str_arg(dd, statement.children[0], 'Path'))
+    url: str = _normalize_path(_resolve_str_arg(ctx, statement.children[0], 'Path'))
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(dd,
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
                 args,
                 _CONNECTIONS.get_connection(using).do_list(url, namespace)
                )
 
-def execute_api_patch(dd: DataDictionary, statement: Tree) -> None:
-    args: dict = _extract_args(dd, statement)
+def execute_api_patch(ctx: ExecContext, statement: Tree) -> None:
+    args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _DATA_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
-    url: str = _normalize_path(_resolve_str_arg(dd, statement.children[0], 'Path'))
+    url: str = _normalize_path(_resolve_str_arg(ctx, statement.children[0], 'Path'))
     data = _get_arg(args, _DATA_ARG, dict, True)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(dd,
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
                 args,
                 _CONNECTIONS.get_connection(using).do_patch(url, data, namespace)
                )
 
-def execute_api_post(dd: DataDictionary, statement: Tree) -> None:
-    args: dict = _extract_args(dd, statement)
+def execute_api_post(ctx: ExecContext, statement: Tree) -> None:
+    args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _DATA_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
-    url: str = _normalize_path(_resolve_str_arg(dd, statement.children[0], 'Path'))
+    url: str = _normalize_path(_resolve_str_arg(ctx, statement.children[0], 'Path'))
     data = _get_arg(args, _DATA_ARG, dict, True)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(dd,
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
                 args,
                 _CONNECTIONS.get_connection(using).do_post(url, data, namespace)
                )
@@ -204,102 +202,99 @@ def execute_api_post(dd: DataDictionary, statement: Tree) -> None:
 # Vault ListNamespaces "D111382/One/SubOne" -- allowed?
 #-------------------------------------------------------------------------------
 
-def execute_default_ns(dd: DataDictionary, statement: Tree) -> None:
-    args: dict = _extract_args(dd, statement)
+def execute_default_ns(ctx: ExecContext, statement: Tree) -> None:
+    args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _RESULT_ARG)
-    ns: str = _resolve_str_arg(dd, statement.children[0], 'Default Namespace', True)
-    _do_set(dd, '' if ns is None or ns.isspace() else ns.strip(), *DEFAULT_NS_PATH)
-    _set_result(dd, args, None)
+    ns: str = _resolve_str_arg(ctx, statement.children[0], 'Default Namespace', True)
+    _do_set(ctx, '' if ns is None or ns.isspace() else ns.strip(), *DEFAULT_NS_PATH)
+    _set_result(ctx, args, None)
 
-def execute_create_ns(dd: DataDictionary, statement: Tree) -> None:
-    args: dict = _extract_args(dd, statement)
+def execute_create_ns(ctx: ExecContext, statement: Tree) -> None:
+    args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _META_ARG, _RESULT_ARG, _USING_ARG)
-    new_namespace: str = _resolve_str_arg(dd, statement.children[0], 'New Namespace')
-    parent_namespace: str = _get_default_ns(dd, args)
+    new_namespace: str = _resolve_str_arg(ctx, statement.children[0], 'New Namespace')
+    parent_namespace: str = _get_default_ns(ctx, args)
     metadata = args.get(_META_ARG)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(dd,
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
                 args,
                 _CONNECTIONS.get_connection(using).create_namespace(new_namespace, metadata, parent_namespace)
                )
 
-def execute_read_ns(dd: DataDictionary, statement: Tree) -> None:
-    args: dict = _extract_args(dd, statement)
+def execute_read_ns(ctx: ExecContext, statement: Tree) -> None:
+    args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
-    ns: str = _resolve_str_arg(dd, statement.children[0], 'Namespace')
-    parent_namespace: str = _get_default_ns(dd, args)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(dd,
+    ns: str = _resolve_str_arg(ctx, statement.children[0], 'Namespace')
+    parent_namespace: str = _get_default_ns(ctx, args)
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
                 args,
                 _CONNECTIONS.get_connection(using).read_namespace(ns, parent_namespace)
                )
 
-def execute_update_ns(dd: DataDictionary, statement: Tree) -> None:
-    args: dict = _extract_args(dd, statement)
+def execute_update_ns(ctx: ExecContext, statement: Tree) -> None:
+    args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _META_ARG, _RESULT_ARG, _USING_ARG)
-    ns: str = _resolve_str_arg(dd, statement.children[0], 'Namespace')
-    parent_namespace: str = _get_default_ns(dd, args)
+    ns: str = _resolve_str_arg(ctx, statement.children[0], 'Namespace')
+    parent_namespace: str = _get_default_ns(ctx, args)
     metadata = args.get(_META_ARG)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(dd,
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
                 args,
                 _CONNECTIONS.get_connection(using).update_namespace(ns, metadata, parent_namespace)
                )
 
-def execute_delete_ns(dd: DataDictionary, statement: Tree) -> None:
-    args: dict = _extract_args(dd, statement)
+def execute_delete_ns(ctx: ExecContext, statement: Tree) -> None:
+    args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
-    ns: str = _resolve_str_arg(dd, statement.children[0], 'Namespace')
-    parent_namespace: str = _get_default_ns(dd, args)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(dd,
+    ns: str = _resolve_str_arg(ctx, statement.children[0], 'Namespace')
+    parent_namespace: str = _get_default_ns(ctx, args)
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
                 args,
                 _CONNECTIONS.get_connection(using).delete_namespace(ns, parent_namespace)
                )
 
-def execute_list_ns(dd: DataDictionary, statement: Tree) -> None:
-    namespace: str = _resolve_str_arg(dd, statement.children[0], 'Namespace', True) if len(statement.children) > 1 else ""
-    args: dict = _extract_args(dd, statement)
+def execute_list_ns(ctx: ExecContext, statement: Tree) -> None:
+    namespace: str = _resolve_str_arg(ctx, statement.children[0], 'Namespace', True) if len(statement.children) > 1 else ""
+    args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
-    parent_namespace: str = _get_default_ns(dd, args)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(
-        dd,
-        args,
-        _CONNECTIONS.get_connection(using).list_namespace(_combine_ns(parent_namespace, namespace))
-    )
+    parent_namespace: str = _get_default_ns(ctx, args)
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
+                args,
+                _CONNECTIONS.get_connection(using).list_namespace(_combine_ns(parent_namespace, namespace))
+                )
 
-def execute_lock_ns(dd: DataDictionary, statement: Tree) -> None:
-    args: dict = _extract_args(dd, statement)
+def execute_lock_ns(ctx: ExecContext, statement: Tree) -> None:
+    args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
-    namespace: str = _resolve_str_arg(dd, statement.children[0], 'Namespace')
-    parent_namespace: str = _get_default_ns(dd, args)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(
-        dd,
-        args,
-        _CONNECTIONS.get_connection(using).lock_namespace(_combine_ns(parent_namespace, namespace))
-    )
+    namespace: str = _resolve_str_arg(ctx, statement.children[0], 'Namespace')
+    parent_namespace: str = _get_default_ns(ctx, args)
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
+                args,
+                _CONNECTIONS.get_connection(using).lock_namespace(_combine_ns(parent_namespace, namespace))
+                )
 
-def execute_unlock_ns(dd: DataDictionary, statement: Tree) -> None:
-    args: dict = _extract_args(dd, statement)
+def execute_unlock_ns(ctx: ExecContext, statement: Tree) -> None:
+    args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG, _KEY_ARG)
-    namespace: str = _resolve_str_arg(dd, statement.children[0], 'Namespace')
-    parent_namespace: str = _get_default_ns(dd, args)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(
-        dd,
-        args,
-        _CONNECTIONS.get_connection(using).unlock_namespace(_combine_ns(parent_namespace, namespace), args.get(_KEY_ARG))
-    )
+    namespace: str = _resolve_str_arg(ctx, statement.children[0], 'Namespace')
+    parent_namespace: str = _get_default_ns(ctx, args)
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
+                args,
+                _CONNECTIONS.get_connection(using).unlock_namespace(_combine_ns(parent_namespace, namespace), args.get(_KEY_ARG))
+                )
 
 #-------------------------------------------------------------------------------
 # Secret Engine mounts
 #-------------------------------------------------------------------------------
 
-def execute_create_mount(dd: DataDictionary, statement: Tree) -> None:
-    mount_point = _resolve_str_arg(dd, statement.children[0], 'Mount Point')
-    args = _extract_args(dd, statement)
+def execute_create_mount(ctx: ExecContext, statement: Tree) -> None:
+    mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
+    args = _extract_args(ctx, statement)
     data = {}
     # If Data=... specified, it means it contains all the config info
     # and piecemeal construction is not permitted
@@ -321,24 +316,24 @@ def execute_create_mount(dd: DataDictionary, statement: Tree) -> None:
         config = _get_arg(args, _CONFIG_ARG, dict, True)
         if config: data['config'] = config
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(dd,
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
                 args,
                 _CONNECTIONS.get_connection(using).create_mount(mount_point, data, namespace))
 
-def execute_read_mount(dd: DataDictionary, statement: Tree) -> None:
-    mount_point = _resolve_str_arg(dd, statement.children[0], 'Mount Point')
-    args = _extract_args(dd, statement)
+def execute_read_mount(ctx: ExecContext, statement: Tree) -> None:
+    mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
+    args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(dd,
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
                 args,
                 _CONNECTIONS.get_connection(using).read_mount(mount_point, namespace))
 
-def execute_update_mount(dd: DataDictionary, statement: Tree) -> None:
-    mount_point = _resolve_str_arg(dd, statement.children[0], 'Mount Point')
-    args = _extract_args(dd, statement)
+def execute_update_mount(ctx: ExecContext, statement: Tree) -> None:
+    mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
+    args = _extract_args(ctx, statement)
     data = {}
     # Config and Data are synonymous, but you can't have both
     if _DATA_ARG in args:
@@ -348,27 +343,27 @@ def execute_update_mount(dd: DataDictionary, statement: Tree) -> None:
         _allowed_args(args, _CONFIG_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
         data = _get_arg(args, _CONFIG_ARG, dict)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(dd,
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
                 args,
                 _CONNECTIONS.get_connection(using).update_mount(mount_point, data, namespace))
 
-def execute_delete_mount(dd: DataDictionary, statement: Tree) -> None:
-    mount_point = _resolve_str_arg(dd, statement.children[0], 'Mount Point')
-    args = _extract_args(dd, statement)
+def execute_delete_mount(ctx: ExecContext, statement: Tree) -> None:
+    mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
+    args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(dd,
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
                 args,
                 _CONNECTIONS.get_connection(using).delete_mount(mount_point, namespace))
 
-def execute_list_mounts(dd: DataDictionary, statement: Tree) -> None:
-    args = _extract_args(dd, statement)
+def execute_list_mounts(ctx: ExecContext, statement: Tree) -> None:
+    args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
-    namespace: str = _resolve_str_arg(dd, statement.children[0], 'Namespace', True) if len(statement.children) > 1 else ""
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(dd,
+    namespace: str = _resolve_str_arg(ctx, statement.children[0], 'Namespace', True) if len(statement.children) > 1 else ""
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
                 args,
                 _CONNECTIONS.get_connection(using).list_mounts(namespace))
 
@@ -376,18 +371,18 @@ def execute_list_mounts(dd: DataDictionary, statement: Tree) -> None:
 # KV2 secrets and metadata
 #-------------------------------------------------------------------------------
 
-def execute_create_kv_secret(dd: DataDictionary, statement: Tree) -> None:
+def execute_create_kv_secret(ctx: ExecContext, statement: Tree) -> None:
     """For create, Data is required but Metadata is optional"""
-    mount_point, path = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Path'))
-    args = _extract_args(dd, statement)
+    mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
+    args = _extract_args(ctx, statement)
     _allowed_args(args, _DATA_ARG, _META_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG, _CAS_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
     cas: int = _get_arg(args, _CAS_ARG, int, True)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
     # TODO doesn't CAS always need to be zero here?
     # TODO can you really create it w/o Any secrets?
     data = add_kv_cas(extract_kv_data(_get_arg(args, _DATA_ARG, dict)) if _DATA_ARG in args else {}, cas)
-    result = _set_result(dd,
+    result = _set_result(ctx,
                 args,
                 _CONNECTIONS.get_connection(using).create_kv2_secret(mount_point, path, data, namespace))
         # If the data part fails, we'll skip the meta part
@@ -395,43 +390,43 @@ def execute_create_kv_secret(dd: DataDictionary, statement: Tree) -> None:
     if result['status'] is not None: return
     if _META_ARG in args:
         metadata = extract_kv_metadata(_get_arg(args, _META_ARG, dict))
-        _set_result(dd,
+        _set_result(ctx,
                     args,
                     _CONNECTIONS.get_connection(using).create_kv2_metadata(mount_point, path, metadata, namespace))
 
-def execute_read_kv_secret(dd: DataDictionary, statement: Tree) -> None:
-    mount_point, path = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Path'))
-    args = _extract_args(dd, statement)
+def execute_read_kv_secret(ctx: ExecContext, statement: Tree) -> None:
+    mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
+    args = _extract_args(ctx, statement)
     _allowed_args(args, _VERSION_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
     version: int = _get_arg(args, _VERSION_ARG, int, True)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(dd,
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
                 args,
                 _CONNECTIONS.get_connection(using).read_kv2_secret(mount_point, path, version, namespace))
 
-def execute_read_kv_metadata(dd: DataDictionary, statement: Tree) -> None:
-    mount_point, path = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Path'))
-    args = _extract_args(dd, statement)
+def execute_read_kv_metadata(ctx: ExecContext, statement: Tree) -> None:
+    mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
+    args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(dd,
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
                 args,
                 _CONNECTIONS.get_connection(using).read_kv2_metadata(mount_point, path, namespace))
 
-def execute_update_kv_secret(dd: DataDictionary, statement: Tree) -> None:
+def execute_update_kv_secret(ctx: ExecContext, statement: Tree) -> None:
     """Data and Metadata are optional"""
-    mount_point, path = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Path'))
-    args = _extract_args(dd, statement)
+    mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
+    args = _extract_args(ctx, statement)
     _allowed_args(args, _DATA_ARG, _META_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG, _CAS_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
     cas: int = _get_arg(args, _CAS_ARG, int, True)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(dd, args, None) # in case neither data or metada is provides
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx, args, None) # in case neither data or metada is provides
     if _DATA_ARG in args:
         data = add_kv_cas(extract_kv_data(_get_arg(args, _DATA_ARG, dict)), cas)
-        result = _set_result(dd,
+        result = _set_result(ctx,
                     args,
                     _CONNECTIONS.get_connection(using).update_kv2_secret(mount_point, path, data, namespace))
         # If the data part fails, we'll skip the meta part
@@ -439,22 +434,22 @@ def execute_update_kv_secret(dd: DataDictionary, statement: Tree) -> None:
         if result['status'] is not None: return
     if _META_ARG in args:
         metadata = extract_kv_metadata(_get_arg(args, _META_ARG, dict))
-        _set_result(dd,
+        _set_result(ctx,
                     args,
                     _CONNECTIONS.get_connection(using).update_kv2_metadata(mount_point, path, metadata, namespace))
 
-def execute_patch_kv_secret(dd: DataDictionary, statement: Tree) -> None:
+def execute_patch_kv_secret(ctx: ExecContext, statement: Tree) -> None:
     """Data and Metadata are optional"""
-    mount_point, path = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Path'))
-    args = _extract_args(dd, statement)
+    mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
+    args = _extract_args(ctx, statement)
     _allowed_args(args, _DATA_ARG, _META_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG, _CAS_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
     cas: int = _get_arg(args, _CAS_ARG, int, True)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(dd, args, None) # in case neither data or metada is provides
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx, args, None) # in case neither data or metada is provides
     if _DATA_ARG in args:
         data = add_kv_cas(extract_kv_data(_get_arg(args, _DATA_ARG, dict)), cas)
-        result = _set_result(dd,
+        result = _set_result(ctx,
                     args,
                     _CONNECTIONS.get_connection(using).patch_kv2_secret(mount_point, path, data, namespace))
         # If the data part fails, we'll skip the meta part
@@ -462,38 +457,38 @@ def execute_patch_kv_secret(dd: DataDictionary, statement: Tree) -> None:
         if result['status'] is not None: return
     if _META_ARG in args:
         metadata = extract_kv_metadata(_get_arg(args, _META_ARG, dict))
-        _set_result(dd,
+        _set_result(ctx,
                     args,
                     _CONNECTIONS.get_connection(using).patch_kv2_metadata(mount_point, path, metadata, namespace))
 
-def execute_delete_kv_secret(dd: DataDictionary, statement: Tree) -> None:
-    mount_point, path = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Path'))
-    args = _extract_args(dd, statement)
+def execute_delete_kv_secret(ctx: ExecContext, statement: Tree) -> None:
+    mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
+    args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     # TODO use _VERSIONS_ARG for target version(s) Sent as an array
     # TODO use _DATA to allow direct use of "versions"
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(dd,
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
                 args,
                 _CONNECTIONS.get_connection(using).delete_kv2_secret(mount_point, path, namespace))
 
-def execute_undelete_kv_secret(dd: DataDictionary, statement: Tree) -> None:
+def execute_undelete_kv_secret(ctx: ExecContext, statement: Tree) -> None:
     raise NotImplementedError() # TODO
 
-def execute_destroy_kv_secret(dd: DataDictionary, statement: Tree) -> None:
+def execute_destroy_kv_secret(ctx: ExecContext, statement: Tree) -> None:
     raise NotImplementedError() # TODO
 
-def execute_delete_kv_metadata(dd: DataDictionary, statement: Tree) -> None:
+def execute_delete_kv_metadata(ctx: ExecContext, statement: Tree) -> None:
     raise NotImplementedError() # TODO
 
-def execute_list_kv_secrets(dd: DataDictionary, statement: Tree) -> None:
-    mount_point, path = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Path'))
-    args = _extract_args(dd, statement)
+def execute_list_kv_secrets(ctx: ExecContext, statement: Tree) -> None:
+    mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
+    args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(dd,
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
                 args,
                 _CONNECTIONS.get_connection(using).list_kv2_secrets(mount_point, path, namespace))
 
@@ -501,134 +496,134 @@ def execute_list_kv_secrets(dd: DataDictionary, statement: Tree) -> None:
 # LDAP secrets engine
 #-------------------------------------------------------------------------------
 
-def execute_create_ldap_library(dd: DataDictionary, statement: Tree) -> None:
+def execute_create_ldap_library(ctx: ExecContext, statement: Tree) -> None:
     raise NotImplementedError() # TODO
 
-def execute_read_ldap_library(dd: DataDictionary, statement: Tree) -> None:
-    mount_point, name = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Name'))
-    args = _extract_args(dd, statement)
+def execute_read_ldap_library(ctx: ExecContext, statement: Tree) -> None:
+    mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
+    args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(dd,
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
                 args,
                 _CONNECTIONS.get_connection(using).read_ldap_library(mount_point, name, namespace))
 
-def execute_update_ldap_library(dd: DataDictionary, statement: Tree) -> None:
+def execute_update_ldap_library(ctx: ExecContext, statement: Tree) -> None:
     raise NotImplementedError() # TODO
 
-def execute_delete_ldap_library(dd: DataDictionary, statement: Tree) -> None:
+def execute_delete_ldap_library(ctx: ExecContext, statement: Tree) -> None:
     raise NotImplementedError() # TODO
 
-def execute_list_ldap_libraries(dd: DataDictionary, statement: Tree) -> None:
-    mount_point = _resolve_str_arg(dd, statement.children[0], 'Mount Point')
-    args = _extract_args(dd, statement)
+def execute_list_ldap_libraries(ctx: ExecContext, statement: Tree) -> None:
+    mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
+    args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(dd,
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
                 args,
                 _CONNECTIONS.get_connection(using).list_ldap_libraries(mount_point, namespace))
 
-def execute_create_ldap_secret(dd: DataDictionary, statement: Tree) -> None:
+def execute_create_ldap_secret(ctx: ExecContext, statement: Tree) -> None:
     raise NotImplementedError() # TODO
 
-def execute_read_ldap_secret(dd: DataDictionary, statement: Tree) -> None:
-    mount_point, name = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Name'))
-    args = _extract_args(dd, statement)
+def execute_read_ldap_secret(ctx: ExecContext, statement: Tree) -> None:
+    mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
+    args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(dd,
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
                 args,
                 _CONNECTIONS.get_connection(using).read_ldap_secret(mount_point, name, namespace))
 
-def execute_update_ldap_secret(dd: DataDictionary, statement: Tree) -> None:
+def execute_update_ldap_secret(ctx: ExecContext, statement: Tree) -> None:
     raise NotImplementedError() # TODO
 
-def execute_delete_ldap_secret(dd: DataDictionary, statement: Tree) -> None:
+def execute_delete_ldap_secret(ctx: ExecContext, statement: Tree) -> None:
     raise NotImplementedError() # TODO
 
-def execute_list_ldap_secrets(dd: DataDictionary, statement: Tree) -> None:
-    mount_point = _resolve_str_arg(dd, statement.children[0], 'Mount Point')
-    args = _extract_args(dd, statement)
+def execute_list_ldap_secrets(ctx: ExecContext, statement: Tree) -> None:
+    mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
+    args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(dd,
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
                 args,
                 _CONNECTIONS.get_connection(using).list_ldap_secrets(mount_point, namespace))
 
-def execute_rotate_ldap_secret(dd: DataDictionary, statement: Tree) -> None:
+def execute_rotate_ldap_secret(ctx: ExecContext, statement: Tree) -> None:
     raise NotImplementedError() # TODO
 
 #-------------------------------------------------------------------------------
 # Database secrets engine
 #-------------------------------------------------------------------------------
 
-def execute_create_db_connection(dd: DataDictionary, statement: Tree) -> None:
-    mount_point, name = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Name'))
-    args = _extract_args(dd, statement)
+def execute_create_db_connection(ctx: ExecContext, statement: Tree) -> None:
+    mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
+    args = _extract_args(ctx, statement)
     _allowed_args(args, _CONFIG_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
     config = _get_arg(args, _CONFIG_ARG, dict)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(dd,
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
                 args,
                 _CONNECTIONS.get_connection(using).create_database_connection(mount_point, name, config, namespace))
 
-def execute_read_db_connection(dd: DataDictionary, statement: Tree) -> None:
-    mount_point, name = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Name'))
-    args = _extract_args(dd, statement)
+def execute_read_db_connection(ctx: ExecContext, statement: Tree) -> None:
+    mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
+    args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(dd,
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
                 args,
                 _CONNECTIONS.get_connection(using).read_database_connection(mount_point, name, namespace))
 
-def execute_update_db_connection(dd: DataDictionary, statement: Tree) -> None:
+def execute_update_db_connection(ctx: ExecContext, statement: Tree) -> None:
     # NB: There's no difference in the call, but the ACL may need to be
     #     different depending upon it being a create or update.
-    return execute_create_db_connection(dd, statement)
+    return execute_create_db_connection(ctx, statement)
 
-def execute_delete_db_connection(dd: DataDictionary, statement: Tree) -> None:
-    mount_point, name = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Name'))
-    args = _extract_args(dd, statement)
+def execute_delete_db_connection(ctx: ExecContext, statement: Tree) -> None:
+    mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
+    args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(dd,
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
                 args,
                 _CONNECTIONS.get_connection(using).delete_database_connection(mount_point, name, namespace))
 
-def execute_list_db_connections(dd: DataDictionary, statement: Tree) -> None:
-    mount_point = _resolve_str_arg(dd, statement.children[0], 'Mount Point')
-    args = _extract_args(dd, statement)
+def execute_list_db_connections(ctx: ExecContext, statement: Tree) -> None:
+    mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
+    args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(dd,
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
                 args,
                 _CONNECTIONS.get_connection(using).list_database_connections(mount_point, namespace))
 
-def execute_reset_db_connection(dd: DataDictionary, statement: Tree) -> None:
-    mount_point, name = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Name'))
-    args = _extract_args(dd, statement)
+def execute_reset_db_connection(ctx: ExecContext, statement: Tree) -> None:
+    mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
+    args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(dd,
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
                 args,
                 _CONNECTIONS.get_connection(using).reset_database_connection(mount_point, name, namespace))
 
-def execute_rotate_db_connection_creds(dd: DataDictionary, statement: Tree) -> None:
-    mount_point, name = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Name'))
-    args = _extract_args(dd, statement)
+def execute_rotate_db_connection_creds(ctx: ExecContext, statement: Tree) -> None:
+    mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
+    args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(dd,
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
                 args,
                 _CONNECTIONS.get_connection(using).rotate_database_connection_creds(mount_point, name, namespace))
 
@@ -639,70 +634,70 @@ def _is_static_type(args: dict):
     if not value: return False
     return ''.join(filter(str.isalpha, value)).lower().startswith('stat')
 
-def execute_create_db_role(dd: DataDictionary, statement: Tree) -> None:
-    mount_point, role_name = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Role Name'))
-    args = _extract_args(dd, statement)
+def execute_create_db_role(ctx: ExecContext, statement: Tree) -> None:
+    mount_point, role_name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Role Name'))
+    args = _extract_args(ctx, statement)
     _allowed_args(args, _CONFIG_ARG, _TYPE_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
     config = _get_arg(args, _CONFIG_ARG, dict)
     is_static = _is_static_type(args)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(dd,
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
                 args,
                 _CONNECTIONS.get_connection(using).create_database_role(mount_point, role_name, is_static, config, namespace))
 
-def execute_read_db_role(dd: DataDictionary, statement: Tree) -> None:
-    mount_point, role_name = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Role Name'))
-    args = _extract_args(dd, statement)
+def execute_read_db_role(ctx: ExecContext, statement: Tree) -> None:
+    mount_point, role_name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Role Name'))
+    args = _extract_args(ctx, statement)
     _allowed_args(args, _TYPE_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
     is_static = _is_static_type(args)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(dd,
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
                 args,
                 _CONNECTIONS.get_connection(using).read_database_role(mount_point, role_name, is_static, namespace))
 
-def execute_update_db_role(dd: DataDictionary, statement: Tree) -> None:
+def execute_update_db_role(ctx: ExecContext, statement: Tree) -> None:
     # NB: There's no difference in the call, but the ACL may need to be
     #     different depending upon it being a create or update.
-    return execute_create_db_role(dd, statement)
+    return execute_create_db_role(ctx, statement)
 
-def execute_delete_db_role(dd: DataDictionary, statement: Tree) -> None:
-    mount_point, role_name = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Role Name'))
-    args = _extract_args(dd, statement)
+def execute_delete_db_role(ctx: ExecContext, statement: Tree) -> None:
+    mount_point, role_name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Role Name'))
+    args = _extract_args(ctx, statement)
     _allowed_args(args, _TYPE_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
     is_static = _is_static_type(args)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(dd,
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
                 args,
                 _CONNECTIONS.get_connection(using).delete_database_role(mount_point, role_name, is_static, namespace))
 
-def execute_list_db_roles(dd: DataDictionary, statement: Tree) -> None:
-    mount_point = _resolve_str_arg(dd, statement.children[0], 'Mount Point')
-    args = _extract_args(dd, statement)
+def execute_list_db_roles(ctx: ExecContext, statement: Tree) -> None:
+    mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
+    args = _extract_args(ctx, statement)
     _allowed_args(args, _TYPE_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
     is_static = _is_static_type(args)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(dd,
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
                 args,
                 _CONNECTIONS.get_connection(using).list_database_role(mount_point, is_static, namespace))
 
-def execute_generate_db_role_creds(dd: DataDictionary, statement: Tree) -> None:
-    mount_point, role_name = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Role Name'))
-    args = _extract_args(dd, statement)
+def execute_generate_db_role_creds(ctx: ExecContext, statement: Tree) -> None:
+    mount_point, role_name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Role Name'))
+    args = _extract_args(ctx, statement)
     _allowed_args(args, _TYPE_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
     is_static = _is_static_type(args)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(dd,
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
                 args,
                 _CONNECTIONS.get_connection(using).generate_database_role_credentials(mount_point, role_name, is_static, namespace))
 
-def execute_vault_rotate_db_role_creds(dd: DataDictionary, statement: Tree) -> None:
-    mount_point, role_name = _split_mount_path(_resolve_str_arg(dd, statement.children[0], 'Mount Point/Role Name'))
-    args = _extract_args(dd, statement)
+def execute_vault_rotate_db_role_creds(ctx: ExecContext, statement: Tree) -> None:
+    mount_point, role_name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Role Name'))
+    args = _extract_args(ctx, statement)
     _allowed_args(args, _TYPE_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
     # If type isn't specify--unlike other calls--then static is assumed
     # But if it is specified, it has to be static
@@ -710,8 +705,8 @@ def execute_vault_rotate_db_role_creds(dd: DataDictionary, statement: Tree) -> N
     if not is_static:
         raise ValueError(f'{mount_point}/{role_name} : Can only rotate credentials of static roles')
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(dd, _get_default_conn(dd, args))
-    _set_result(dd,
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
                 args,
                 _CONNECTIONS.get_connection(using).rotate_database_static_role_credentials(mount_point, role_name, namespace))
 
@@ -734,7 +729,7 @@ def _split_mount_path(s: str) -> tuple:
 def _type_str(o: Any) -> str:
     return repr(type(o).__name__)
 
-def _extract_args(dd: DataDictionary, statement: Tree) -> dict:
+def _extract_args(ctx: ExecContext, statement: Tree) -> dict:
     args = {}
     for child in statement.children[-1].children:
         if isinstance(child, Tree) and child.data.startswith('vopt_'):
@@ -743,20 +738,20 @@ def _extract_args(dd: DataDictionary, statement: Tree) -> dict:
             if arg_name in _ARG_VAR_NAME:
                 args[arg_name] = tuple(name.value for name in arg_node.children)
             elif arg_name in _ARG_INT_EXPR:
-                v = eval_expr_or_const(dd, arg_node)
+                v = ctx.eval_expr_or_const(arg_node)
                 if v:
                     if not isinstance(v, (int, float)): raise TypeError(f'{arg_name.title()} must be a int; found {_type_str(v)}')
                     args[arg_name] = int(v)
             elif arg_name in _ARG_EXPR:
-                args[arg_name] = eval_expr_or_const(dd, arg_node)
+                args[arg_name] = ctx.eval_expr_or_const(arg_node)
             else:
                 raise VgrRuntimeError(child, NotImplementedError(f'Vault argument {arg_name!r} not implemented')) # SNO
         else:
             raise VgrRuntimeError(child, ValueError(f'Unexpected Vault argument {child.data!r}:{_type_str(child)}')) # SNO
     return args
 
-def _resolve_str_arg(dd: DataDictionary, expr: Tree, name: str, allow_none: bool=False) -> str:
-    rc = eval_expr_or_const(dd, expr)
+def _resolve_str_arg(ctx: ExecContext, expr: Tree, name: str, allow_none: bool=False) -> str:
+    rc = ctx.eval_expr_or_const(expr)
     if rc is None and allow_none: return None
     if not isinstance(rc, str): raise TypeError(f'{name} must be a string; found {_type_str(rc)}')
     return rc
