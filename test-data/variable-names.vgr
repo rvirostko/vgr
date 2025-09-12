@@ -1,0 +1,47 @@
+echo on
+
+// Leading $ followed by digit and non-digits
+Set $1foo To 42
+Assert ($1foo + 8) == 50
+
+// Basic ASCII letters with numbers
+Set bar2 To 10
+Assert (bar2 * 3) == 30
+
+// Snake-case variable name
+Set my_var_name To 5
+Assert (my_var_name - 2) == 3
+
+// Kebab-case variable name (hyphen in middle)
+Set another-var To 7
+Assert (another-var / 2) == 3.5
+
+// Greek characters
+Set αβγ To 12
+Assert (αβγ * 2) == 24
+
+// Mathematical alphanumeric symbols
+Set 𝐴𝐵𝐶 To 15
+Assert (𝐴𝐵𝐶 + 5) == 20
+
+// Optional prime suffix
+Set x′ To 3
+Assert (x′ * 4) == 12
+
+// Optional double-prime suffix
+Set y″ To 6
+Assert (y″ - 1) == 5
+
+// Optional triple-prime suffix
+Set z‴ To 8
+Assert (z‴ / 2) == 4
+
+// Optional superscript/subscript digits
+Set num₁ To 9
+Assert (num₁ + 1) == 10
+
+// Combined complex case: leading $, Greek, math symbol, hyphen, underscore, digit, and prime
+Set $α-𝐵_3′ To 20
+Assert ($α-𝐵_3′ * 2) == 40
+
+echo off
