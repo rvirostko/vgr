@@ -18,7 +18,6 @@ import tty
 from lark import Tree
 
 from app_exceptions import VgrRuntimeError
-from evaluate import eval_expr
 from exec_context import ExecContext
 from data_dict import DataDictionary
 from mathpak import bound_ops
@@ -327,10 +326,9 @@ def _print(*args: Any) -> None:
         if out.isatty():
             print(*args, file=out, sep='', end='', flush=True)
 
-def _term_cursor_moveto(dd: DataDictionary, cmd: Tree) -> None:
-    # TODO scarf common func from elsewhere
-    line = eval_expr(dd, cmd.children[0])
-    col = eval_expr(dd, cmd.children[1])
+def _term_cursor_moveto(ctx: ExecContext, cmd: Tree) -> None:
+    line = ctx.eval_to_int(cmd.children[0], "Line")
+    col = ctx.eval_to_int(cmd.children[1], "Column")
     _print(TermConsts.CUP.format(line, col))
 
 def _resolve_ansi_color(val: Any) -> int:
@@ -361,8 +359,8 @@ _SGR_ALL_OFF = (
     TermConsts.SGR_HIDDEN_OFF, TermConsts.SGR_STRIKETHRU_OFF
 )
 
-def _term_sgr_style(dd: DataDictionary, cmd: Tree) -> None:
-    reqs = str(eval_expr(dd, cmd.children[0])).strip() if len(cmd.children) > 0 else ''
+def _term_sgr_style(ctx: ExecContext, cmd: Tree) -> None:
+    reqs = str(ctx.eval_expr(cmd.children[0])).strip() if len(cmd.children) > 0 else ''
     if not reqs: return
     _print(*_SGR_ALL_OFF)
     for s in re.split(r'[^a-z0-9_+-]', reqs.casefold()):
@@ -420,8 +418,8 @@ def _term_sgr_style(dd: DataDictionary, cmd: Tree) -> None:
         if c and not _NO_COLOR: _print(TermConsts.SGR_FG.format(c))
         # errors ignored
 
-def _term_set_clipboard(dd: DataDictionary, cmd: Tree) -> None:
-    text = str(eval_expr(dd, cmd.children[0])).strip() if len(cmd.children) > 0 else ''
+def _term_set_clipboard(ctx: ExecContext, cmd: Tree) -> None:
+    text = str(ctx.eval_expr(cmd.children[0])).strip() if len(cmd.children) > 0 else ''
     try:
         import pyperclip
         pyperclip.copy(text)
@@ -435,9 +433,9 @@ _CUU_1 = TermConsts.CUU.format('')
 _CUD_1 = TermConsts.CUD.format('')
 _CUB_1 = TermConsts.CUB.format('')
 
-def _term_draw_hline(dd: DataDictionary, cmd: Tree) -> None:
+def _term_draw_hline(ctx: ExecContext, cmd: Tree) -> None:
     arg_ind = 0
-    args = _eval_all(dd, cmd)
+    args = _eval_all(ctx, cmd)
     if len(args) > 1:
         style = BoxStyle.to_style(args[arg_ind])
         arg_ind += 1
@@ -449,9 +447,9 @@ def _draw_hline(style: BoxStyle, cols: int) -> None:
     if cols:
         _print(BOXES[style][BoxPart.hbar] * cols)
 
-def _term_draw_vline(dd: DataDictionary, cmd: Tree) -> None:
+def _term_draw_vline(ctx: ExecContext, cmd: Tree) -> None:
     arg_ind = 0
-    args = _eval_all(dd, cmd)
+    args = _eval_all(ctx, cmd)
     if len(args) > 1:
         style = BoxStyle.to_style(args[arg_ind])
         arg_ind += 1
@@ -464,13 +462,13 @@ def _draw_vline(style: BoxStyle, lines: int) -> None:
         for _ in range(lines):
             _print(BOXES[style][BoxPart.vbar], _CUB_1, _CUD_1)
 
-def _eval_all(dd: DataDictionary, cmd: Tree) -> list:
-    return [eval_expr(dd, child) for child in cmd.children]
+def _eval_all(ctx: ExecContext, cmd: Tree) -> list:
+    return [ctx.eval_expr(child) for child in cmd.children]
 
-def _term_draw_box(dd: DataDictionary, cmd: Tree) -> None:
+def _term_draw_box(ctx: ExecContext, cmd: Tree) -> None:
     if _DUMB_TERM: return
     arg_ind = 0
-    args = _eval_all(dd, cmd)
+    args = _eval_all(ctx, cmd)
     if len(args) > 2:
         style = BoxStyle.to_style(args[arg_ind])
         arg_ind += 1
@@ -531,71 +529,71 @@ def _term_draw_box(dd: DataDictionary, cmd: Tree) -> None:
     # Move to within the box's boarder
     _print(TermConsts.CUP.format(start_row + 1, start_col + 1))
 
-def _term_dh_print(dd: DataDictionary, cmd: Tree) -> None:
-    s = eval_expr(dd, cmd.children[0])
+def _term_dh_print(ctx: ExecContext, cmd: Tree) -> None:
+    s = ctx.eval_expr(cmd.children[0])
     if s is not None:
         # Turn the current and following lines into double high lines
         _print(TermConsts.DECDHL_TOP, _CUD_1, TermConsts.DECDHL_BOT, _CUU_1)
         # Paint each char on both lines to form the full text
-        for c in str(s):
-            _print(c, _CUB_1, _CUD_1, c, _CUU_1)
+        for char in str(s):
+            _print(char, _CUB_1, _CUD_1, char, _CUU_1)
 
-def _term_scroll_region(dd: DataDictionary, cmd: Tree) -> None:
-    top = int(eval_expr(dd, cmd.children[0]))
-    bottom = int(eval_expr(dd, cmd.children[1]))
+def _term_scroll_region(ctx: ExecContext, cmd: Tree) -> None:
+    top = ctx.eval_to_int(cmd.children[0], "Top")
+    bottom = ctx.eval_to_int(cmd.children[1], "Bottom")
     _print(TermConsts.SECSTBM.format(top, bottom))
 
-def _term_icon_name(dd: DataDictionary, cmd: Tree) -> None:
-    s = eval_expr(dd, cmd.children[0])
+def _term_icon_name(ctx: ExecContext, cmd: Tree) -> None:
+    s = ctx.eval_expr(cmd.children[0])
     s = '' if s is None else str(s)
     _print(TermConsts.ICON_NAME.format(s))
 
-def _term_window_title(dd: DataDictionary, cmd: Tree) -> None:
-    s = eval_expr(dd, cmd.children[0])
+def _term_window_title(ctx: ExecContext, cmd: Tree) -> None:
+    s = ctx.eval_expr(cmd.children[0])
     s = '' if s is None else str(s)
     _print(TermConsts.WINDOW_TITLE.format(s))
 
-def _term_color(dd: DataDictionary, cmd: Tree, reset_seq: str, color_fmt: str) -> None:
+def _term_color(ctx: ExecContext, cmd: Tree, reset_seq: str, color_fmt: str) -> None:
     if _NO_COLOR:
         return
     if len(cmd.children) == 0:
         _print(reset_seq)
     else:
-        value = eval_expr(dd, cmd.children[0])
+        value = ctx.eval_expr(cmd.children[0])
         code = _resolve_ansi_color(value)
         _print(reset_seq if code is None else color_fmt.format(code))
 
-def _term_toggle(dd: DataDictionary, cmd: Tree, on_seq: str, off_seq: str) -> None:
-    on = True if len(cmd.children) == 0 else bool(eval_expr(dd, cmd.children[0]))
+def _term_toggle(ctx: ExecContext, cmd: Tree, on_seq: str, off_seq: str) -> None:
+    on = True if len(cmd.children) == 0 else bool(ctx.eval_expr(cmd.children[0]))
     _print(on_seq if on else off_seq)
 
-def _term_with_count(dd: DataDictionary, cmd: Tree, control_seq: str) -> None:
-    count = 1 if len(cmd.children) == 0 else int(eval_expr(dd, cmd.children[0]))
+def _term_with_count(ctx: ExecContext, cmd: Tree, control_seq: str) -> None:
+    count = 1 if len(cmd.children) == 0 else ctx.eval_to_int(cmd.children[0], "Count")
     _print(control_seq.format(count))
 
-def _term_get_terminal_size(dd: DataDictionary, _: Tree) -> None:
+def _term_get_terminal_size(ctx: ExecContext, _: Tree) -> None:
     if not _DUMB_TERM:
         try:
             response =  shutil.get_terminal_size()
             if response is not None and len(response) >= 2:
-                dd.set_var(response[0], 'term', 'size', 'cols')
-                dd.set_var(response[1], 'term', 'size', 'rows')
+                ctx.set_var(response[0], 'term', 'size', 'cols')
+                ctx.set_var(response[1], 'term', 'size', 'rows')
                 return
         except (OSError, ValueError):
             pass
-    dd.set_var(None, 'term', 'size')
+    ctx.set_var(None, 'term', 'size')
 
 def _get_cursor_pos():
     return _parse_dsr_response(TermConsts.DSR_CURSOR, 'R')
 
-def _term_get_cursor_pos(dd: DataDictionary, _: Tree) -> None:
+def _term_get_cursor_pos(ctx: ExecContext, _: Tree) -> None:
     if not _DUMB_TERM:
         response = _get_cursor_pos()
         if response is None or len(response) < 2:
-            dd.set_var(None, 'term', 'cursor')
+            ctx.set_var(None, 'term', 'cursor')
         else:
-            dd.set_var(response[0], 'term', 'cursor', 'row')
-            dd.set_var(response[1], 'term', 'cursor', 'col')
+            ctx.set_var(response[0], 'term', 'cursor', 'row')
+            ctx.set_var(response[1], 'term', 'cursor', 'col')
 
 def _parse_dsr_response(seq: str, terminator: str) -> list[int]:
     if _DUMB_TERM: return None
@@ -640,106 +638,106 @@ def _parse_dsr_response(seq: str, terminator: str) -> list[int]:
 
 _CMD_DISPATCH = {
     "box":            _term_draw_box,
-    "clear":          lambda _d, _c: _print(TermConsts.ED_ALL, TermConsts.CUP_HOME),
-    "ctrl_ack":       lambda _d, _c: _print("\x06"),
-    "ctrl_bel":       lambda _d, _c: _print("\a"),
-    "ctrl_bs":        lambda _d, _c: _print("\b"),
-    "ctrl_can":       lambda _d, _c: _print("\x18"),
-    "ctrl_cr":        lambda _d, _c: _print("\r"),
-    "ctrl_dc1":       lambda _d, _c: _print("\x11"),
-    "ctrl_dc2":       lambda _d, _c: _print("\x12"),
-    "ctrl_dc3":       lambda _d, _c: _print("\x13"),
-    "ctrl_dc4":       lambda _d, _c: _print("\x14"),
-    "ctrl_dle":       lambda _d, _c: _print("\x10"),
-    "ctrl_em":        lambda _d, _c: _print("\x19"),
-    "ctrl_enq":       lambda _d, _c: _print("\x05"),
-    "ctrl_eot":       lambda _d, _c: _print("\x04"),
-    "ctrl_esc":       lambda _d, _c: _print("\x1b"),
-    "ctrl_etb":       lambda _d, _c: _print("\x17"),
-    "ctrl_etx":       lambda _d, _c: _print("\x03"),
-    "ctrl_ff":        lambda _d, _c: _print("\f"),
-    "ctrl_fs":        lambda _d, _c: _print("\x1c"),
-    "ctrl_gs":        lambda _d, _c: _print("\x1d"),
-    "ctrl_ht":        lambda _d, _c: _print("\t"),
-    "ctrl_lf":        lambda _d, _c: _print("\n"),
-    "ctrl_nak":       lambda _d, _c: _print("\x15"),
-    "ctrl_nul":       lambda _d, _c: _print("\x00"),
-    "ctrl_rs":        lambda _d, _c: _print("\x1e"),
-    "ctrl_si":        lambda _d, _c: _print("\x0f"),
-    "ctrl_so":        lambda _d, _c: _print("\x0e"),
-    "ctrl_soh":       lambda _d, _c: _print("\x01"),
-    "ctrl_stx":       lambda _d, _c: _print("\x02"),
-    "ctrl_sub":       lambda _d, _c: _print("\x1a"),
-    "ctrl_syn":       lambda _d, _c: _print("\x16"),
-    "ctrl_us":        lambda _d, _c: _print("\x1f"),
-    "ctrl_vt":        lambda _d, _c: _print("\v"),
-    "cub":            lambda d, c: _term_with_count(d, c, TermConsts.CUB),
-    "cud":            lambda d, c: _term_with_count(d, c, TermConsts.CUD),
-    "cuf":            lambda d, c: _term_with_count(d, c, TermConsts.CUF),
-    "cup_home":       lambda _d, _c: _print(TermConsts.CUP_HOME),
+    "clear":          lambda _ctx, _cmd: _print(TermConsts.ED_ALL, TermConsts.CUP_HOME),
+    "ctrl_ack":       lambda _ctx, _cmd: _print("\x06"),
+    "ctrl_bel":       lambda _ctx, _cmd: _print("\a"),
+    "ctrl_bs":        lambda _ctx, _cmd: _print("\b"),
+    "ctrl_can":       lambda _ctx, _cmd: _print("\x18"),
+    "ctrl_cr":        lambda _ctx, _cmd: _print("\r"),
+    "ctrl_dc1":       lambda _ctx, _cmd: _print("\x11"),
+    "ctrl_dc2":       lambda _ctx, _cmd: _print("\x12"),
+    "ctrl_dc3":       lambda _ctx, _cmd: _print("\x13"),
+    "ctrl_dc4":       lambda _ctx, _cmd: _print("\x14"),
+    "ctrl_dle":       lambda _ctx, _cmd: _print("\x10"),
+    "ctrl_em":        lambda _ctx, _cmd: _print("\x19"),
+    "ctrl_enq":       lambda _ctx, _cmd: _print("\x05"),
+    "ctrl_eot":       lambda _ctx, _cmd: _print("\x04"),
+    "ctrl_esc":       lambda _ctx, _cmd: _print("\x1b"),
+    "ctrl_etb":       lambda _ctx, _cmd: _print("\x17"),
+    "ctrl_etx":       lambda _ctx, _cmd: _print("\x03"),
+    "ctrl_ff":        lambda _ctx, _cmd: _print("\f"),
+    "ctrl_fs":        lambda _ctx, _cmd: _print("\x1c"),
+    "ctrl_gs":        lambda _ctx, _cmd: _print("\x1d"),
+    "ctrl_ht":        lambda _ctx, _cmd: _print("\t"),
+    "ctrl_lf":        lambda _ctx, _cmd: _print("\n"),
+    "ctrl_nak":       lambda _ctx, _cmd: _print("\x15"),
+    "ctrl_nul":       lambda _ctx, _cmd: _print("\x00"),
+    "ctrl_rs":        lambda _ctx, _cmd: _print("\x1e"),
+    "ctrl_si":        lambda _ctx, _cmd: _print("\x0f"),
+    "ctrl_so":        lambda _ctx, _cmd: _print("\x0e"),
+    "ctrl_soh":       lambda _ctx, _cmd: _print("\x01"),
+    "ctrl_stx":       lambda _ctx, _cmd: _print("\x02"),
+    "ctrl_sub":       lambda _ctx, _cmd: _print("\x1a"),
+    "ctrl_syn":       lambda _ctx, _cmd: _print("\x16"),
+    "ctrl_us":        lambda _ctx, _cmd: _print("\x1f"),
+    "ctrl_vt":        lambda _ctx, _cmd: _print("\v"),
+    "cub":            lambda ctx, cmd: _term_with_count(ctx, cmd, TermConsts.CUB),
+    "cud":            lambda ctx, cmd: _term_with_count(ctx, cmd, TermConsts.CUD),
+    "cuf":            lambda ctx, cmd: _term_with_count(ctx, cmd, TermConsts.CUF),
+    "cup_home":       lambda _ctx, _cmd: _print(TermConsts.CUP_HOME),
     "cup":            _term_cursor_moveto,
-    "cuu":            lambda d, c: _term_with_count(d, c, TermConsts.CUU),
-    "dch":            lambda d, c: _term_with_count(d, c, TermConsts.DCH),
-    "decaln":         lambda _d, _c: _print(TermConsts.DECALN),
-    "decawm":         lambda d, c: _term_toggle(d, c, TermConsts.DECAWM_SET, TermConsts.DECAWM_RESET),
-    "decdhl_bot":     lambda d, c: _term_toggle(d, c, TermConsts.DECDHL_BOT, TermConsts.DECSWL),
-    "decdhl_top":     lambda d, c: _term_toggle(d, c, TermConsts.DECDHL_TOP, TermConsts.DECSWL),
-    "decdwl":         lambda d, c: _term_toggle(d, c, TermConsts.DECDWL, TermConsts.DECSWL),
-    "decom":          lambda d, c: _term_toggle(d, c, TermConsts.DECOM_SET, TermConsts.DECOM_RESET),
-    "decrc":          lambda _d, _c: _print(TermConsts.DECRC),
-    "decsc":          lambda _d, _c: _print(TermConsts.DECSC),
-    "decsclm":        lambda d, c: _term_toggle(d, c, TermConsts.DECSCLM_SET, TermConsts.DECSCLM_RESET),
-    "decstr":         lambda _d, _c: _print(TermConsts.DECSTR),
-    "decswl":         lambda d, c: _term_toggle(d, c, TermConsts.DECSWL, TermConsts.DECDWL),
-    "dectcem_reset":  lambda _d, _c: _print(TermConsts.DECTCEM_RESET),
-    "dectcem_set":    lambda _d, _c: _print(TermConsts.DECTCEM_SET),
-    "dectcem":        lambda d, c: _term_toggle(d, c, TermConsts.DECTCEM_SET, TermConsts.DECTCEM_RESET),
-    "deiconify":      lambda _d, _c: _print(TermConsts.DEICONIFY),
+    "cuu":            lambda ctx, cmd: _term_with_count(ctx, cmd, TermConsts.CUU),
+    "dch":            lambda ctx, cmd: _term_with_count(ctx, cmd, TermConsts.DCH),
+    "decaln":         lambda _ctx, _cmd: _print(TermConsts.DECALN),
+    "decawm":         lambda ctx, cmd: _term_toggle(ctx, cmd, TermConsts.DECAWM_SET, TermConsts.DECAWM_RESET),
+    "decdhl_bot":     lambda ctx, cmd: _term_toggle(ctx, cmd, TermConsts.DECDHL_BOT, TermConsts.DECSWL),
+    "decdhl_top":     lambda ctx, cmd: _term_toggle(ctx, cmd, TermConsts.DECDHL_TOP, TermConsts.DECSWL),
+    "decdwl":         lambda ctx, cmd: _term_toggle(ctx, cmd, TermConsts.DECDWL, TermConsts.DECSWL),
+    "decom":          lambda ctx, cmd: _term_toggle(ctx, cmd, TermConsts.DECOM_SET, TermConsts.DECOM_RESET),
+    "decrc":          lambda _ctx, _cmd: _print(TermConsts.DECRC),
+    "decsc":          lambda _ctx, _cmd: _print(TermConsts.DECSC),
+    "decsclm":        lambda ctx, cmd: _term_toggle(ctx, cmd, TermConsts.DECSCLM_SET, TermConsts.DECSCLM_RESET),
+    "decstr":         lambda _ctx, _cmd: _print(TermConsts.DECSTR),
+    "decswl":         lambda ctx, cmd: _term_toggle(ctx, cmd, TermConsts.DECSWL, TermConsts.DECDWL),
+    "dectcem_reset":  lambda _ctx, _cmd: _print(TermConsts.DECTCEM_RESET),
+    "dectcem_set":    lambda _ctx, _cmd: _print(TermConsts.DECTCEM_SET),
+    "dectcem":        lambda ctx, cmd: _term_toggle(ctx, cmd, TermConsts.DECTCEM_SET, TermConsts.DECTCEM_RESET),
+    "deiconify":      lambda _ctx, _cmd: _print(TermConsts.DEICONIFY),
     "dh_print":       _term_dh_print,
-    "dl":             lambda d, c: _term_with_count(d, c, TermConsts.DL),
+    "dl":             lambda ctx, cmd: _term_with_count(ctx, cmd, TermConsts.DL),
     "dsr_cursor":     _term_get_cursor_pos,
-    "ech":            lambda d, c: _term_with_count(d, c, TermConsts.ECH),
-    "ed_bos":         lambda _d, _c: _print(TermConsts.ED_BCK),
-    "ed_eos":         lambda _d, _c: _print(TermConsts.ED_FWD),
-    "ed":             lambda _d, _c: _print(TermConsts.ED_ALL),
-    "el_bol":         lambda _d, _c: _print(TermConsts.EL_BOL),
-    "el_eol":         lambda _d, _c: _print(TermConsts.EL_EOL),
-    "el":             lambda _d, _c: _print(TermConsts.EL_ALL),
+    "ech":            lambda ctx, cmd: _term_with_count(ctx, cmd, TermConsts.ECH),
+    "ed_bos":         lambda _ctx, _cmd: _print(TermConsts.ED_BCK),
+    "ed_eos":         lambda _ctx, _cmd: _print(TermConsts.ED_FWD),
+    "ed":             lambda _ctx, _cmd: _print(TermConsts.ED_ALL),
+    "el_bol":         lambda _ctx, _cmd: _print(TermConsts.EL_BOL),
+    "el_eol":         lambda _ctx, _cmd: _print(TermConsts.EL_EOL),
+    "el":             lambda _ctx, _cmd: _print(TermConsts.EL_ALL),
     "hline":          _term_draw_hline,
-    "hpa":            lambda d, c: _term_with_count(d, c, TermConsts.HPA),
-    "hts":            lambda _d, _c: _print(TermConsts.HTS),
-    "ich":            lambda d, c: _term_with_count(d, c, TermConsts.ICH),
+    "hpa":            lambda ctx, cmd: _term_with_count(ctx, cmd, TermConsts.HPA),
+    "hts":            lambda _ctx, _cmd: _print(TermConsts.HTS),
+    "ich":            lambda ctx, cmd: _term_with_count(ctx, cmd, TermConsts.ICH),
     "icon_name":      _term_icon_name,
-    "il":             lambda d, c: _term_with_count(d, c, TermConsts.IL),
-    "ind":            lambda _d, _c: _print(TermConsts.IND),
-    "irm":            lambda d, c: _term_toggle(d, c, TermConsts.IRM_SET, TermConsts.IRM_RESET),
-    "print":          lambda d, c: (val := eval_expr(d, c.children[0])) is not None and _print(str(val)),
-    "raise_window":   lambda _d, _c: _print(TermConsts.RAISE_WINDOW),
-    "rep":            lambda d, c: _term_with_count(d, c, TermConsts.REP),
-    "reverse_video":  lambda d, c: _term_toggle(d, c, TermConsts.DECSCNM_SET, TermConsts.DECSCNM_RESET),
-    "ri":             lambda _d, _c: _print(TermConsts.RI),
-    "ris":            lambda _d, _c: _print(TermConsts.RIS),
-    "s7c1t":          lambda d, c: _term_toggle(d, c, TermConsts.S7C1T, TermConsts.S8C1T),
-    "s8c1t":          lambda d, c: _term_toggle(d, c, TermConsts.S8C1T, TermConsts.S7C1T),
+    "il":             lambda ctx, cmd: _term_with_count(ctx, cmd, TermConsts.IL),
+    "ind":            lambda _ctx, _cmd: _print(TermConsts.IND),
+    "irm":            lambda ctx, cmd: _term_toggle(ctx, cmd, TermConsts.IRM_SET, TermConsts.IRM_RESET),
+    "print":          lambda ctx, cmd: (val := ctx.eval_expr(cmd.children[0])) is not None and _print(str(val)),
+    "raise_window":   lambda _ctx, _cmd: _print(TermConsts.RAISE_WINDOW),
+    "rep":            lambda ctx, cmd: _term_with_count(ctx, cmd, TermConsts.REP),
+    "reverse_video":  lambda ctx, cmd: _term_toggle(ctx, cmd, TermConsts.DECSCNM_SET, TermConsts.DECSCNM_RESET),
+    "ri":             lambda _ctx, _cmd: _print(TermConsts.RI),
+    "ris":            lambda _ctx, _cmd: _print(TermConsts.RIS),
+    "s7c1t":          lambda ctx, cmd: _term_toggle(ctx, cmd, TermConsts.S7C1T, TermConsts.S8C1T),
+    "s8c1t":          lambda ctx, cmd: _term_toggle(ctx, cmd, TermConsts.S8C1T, TermConsts.S7C1T),
     "secstbm":        _term_scroll_region,
-    "sgr_bg":         lambda d, c: _term_color(d, c, TermConsts.SGR_RESET_BG, TermConsts.SGR_BG),
-    "sgr_blink":      lambda d, c: _term_toggle(d, c, TermConsts.SGR_BLINK_ON, TermConsts.SGR_BLINK_OFF),
-    "sgr_bold":       lambda d, c: _term_toggle(d, c, TermConsts.SGR_BOLD_ON, TermConsts.SGR_BOLD_OFF),
-    "sgr_dim":        lambda d, c: _term_toggle(d, c, TermConsts.SGR_DIM_ON, TermConsts.SGR_DIM_OFF),
-    "sgr_fg":         lambda d, c: _term_color(d, c, TermConsts.SGR_RESET_FG, TermConsts.SGR_FG),
-    "sgr_hidden":     lambda d, c: _term_toggle(d, c, TermConsts.SGR_HIDDEN_ON, TermConsts.SGR_HIDDEN_OFF),
-    "sgr_italic":     lambda d, c: _term_toggle(d, c, TermConsts.SGR_ITALIC_ON, TermConsts.SGR_ITALIC_OFF),
-    "sgr_reset":      lambda _d, _c: _print(TermConsts.SGR_RESET),
-    "sgr_reverse":    lambda d, c: _term_toggle(d, c, TermConsts.SGR_REVERSE_ON, TermConsts.SGR_REVERSE_OFF),
-    "sgr_strikethru": lambda d, c: _term_toggle(d, c, TermConsts.SGR_STRIKETHRU_ON, TermConsts.SGR_STRIKETHRU_OFF),
+    "sgr_bg":         lambda ctx, cmd: _term_color(ctx, cmd, TermConsts.SGR_RESET_BG, TermConsts.SGR_BG),
+    "sgr_blink":      lambda ctx, cmd: _term_toggle(ctx, cmd, TermConsts.SGR_BLINK_ON, TermConsts.SGR_BLINK_OFF),
+    "sgr_bold":       lambda ctx, cmd: _term_toggle(ctx, cmd, TermConsts.SGR_BOLD_ON, TermConsts.SGR_BOLD_OFF),
+    "sgr_dim":        lambda ctx, cmd: _term_toggle(ctx, cmd, TermConsts.SGR_DIM_ON, TermConsts.SGR_DIM_OFF),
+    "sgr_fg":         lambda ctx, cmd: _term_color(ctx, cmd, TermConsts.SGR_RESET_FG, TermConsts.SGR_FG),
+    "sgr_hidden":     lambda ctx, cmd: _term_toggle(ctx, cmd, TermConsts.SGR_HIDDEN_ON, TermConsts.SGR_HIDDEN_OFF),
+    "sgr_italic":     lambda ctx, cmd: _term_toggle(ctx, cmd, TermConsts.SGR_ITALIC_ON, TermConsts.SGR_ITALIC_OFF),
+    "sgr_reset":      lambda _ctx, _cmd: _print(TermConsts.SGR_RESET),
+    "sgr_reverse":    lambda ctx, cmd: _term_toggle(ctx, cmd, TermConsts.SGR_REVERSE_ON, TermConsts.SGR_REVERSE_OFF),
+    "sgr_strikethru": lambda ctx, cmd: _term_toggle(ctx, cmd, TermConsts.SGR_STRIKETHRU_ON, TermConsts.SGR_STRIKETHRU_OFF),
     "sgr_style":       _term_sgr_style,
-    "sgr_underline":  lambda d, c: _term_toggle(d, c, TermConsts.SGR_UNDERLINE_ON, TermConsts.SGR_UNDERLINE_OFF),
-    "space":          lambda _d, _c: _print(" "),
-    "tbc_all":        lambda _d, _c: _print(TermConsts.TBC_ALL),
-    "tbc":            lambda _d, _c: _print(TermConsts.TBC),
+    "sgr_underline":  lambda ctx, cmd: _term_toggle(ctx, cmd, TermConsts.SGR_UNDERLINE_ON, TermConsts.SGR_UNDERLINE_OFF),
+    "space":          lambda _ctx, _cmd: _print(" "),
+    "tbc_all":        lambda _ctx, _cmd: _print(TermConsts.TBC_ALL),
+    "tbc":            lambda _ctx, _cmd: _print(TermConsts.TBC),
     "term_size":      _term_get_terminal_size,
     "vline":          _term_draw_vline,
-    "vpa":            lambda d, c: _term_with_count(d, c, TermConsts.VPA),
+    "vpa":            lambda ctx, cmd: _term_with_count(ctx, cmd, TermConsts.VPA),
     "window_title":   _term_window_title,
     "term_set_clipboard": _term_set_clipboard,
 }
@@ -775,7 +773,7 @@ TODO
         try:
             handler = _CMD_DISPATCH.get(cmd.data)
             if handler is None: raise ValueError(f"Unhandled term command: {cmd.data}")
-            handler(ctx.dd, cmd)
+            handler(ctx, cmd)
         except KeyboardInterrupt as e:
             _print('\n')
             raise VgrRuntimeError(cmd, e) from e

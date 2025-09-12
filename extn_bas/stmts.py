@@ -10,7 +10,7 @@ from stmt_exec import bind_operations, exec_loop
 from stmt_set import execute_set
 from tags import control_statement
 from dd_config import do_set, do_unset
-from evaluate import eval_to_number, var_name_path
+from evaluate import var_name_path
 
 from mathpak import bound_ops
 
@@ -69,16 +69,16 @@ following it are skipped and looping proceeds.
     cindex = 0
     path = var_name_path(statement.children[cindex])
     cindex += 1
-    value = eval_to_number(ctx.dd, bind_operations(statement.children[cindex]), 'For-Next start')
+    value = ctx.eval_to_number(bind_operations(statement.children[cindex]), 'For-Next start')
     cindex += 1
-    end = eval_to_number(ctx.dd, bind_operations(statement.children[cindex]), 'For-Next end')
+    end = ctx.eval_to_number(bind_operations(statement.children[cindex]), 'For-Next end')
     cindex += 1
     inc = 1
     if statement.data == 'basic_for_next':
         inc = -1 if value > end else 1
     else:
         # This statement has a "by" clause
-        inc = eval_to_number(ctx.dd, bind_operations(statement.children[cindex]), 'For-Next increment')
+        inc = ctx.eval_to_number(bind_operations(statement.children[cindex]), 'For-Next increment')
         if inc == 0: raise ValueError('For-Next increment must be non-zero')
         cindex += 1
     if (end - value) * inc < 0:

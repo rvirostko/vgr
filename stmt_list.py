@@ -7,7 +7,7 @@ from typing import Any
 from lark import Tree
 
 from app_exceptions import VgrRuntimeError
-from evaluate import eval_to_int, var_name_path
+from evaluate import var_name_path
 from exec_context import ExecContext
 from mathpak import bound_ops
 
@@ -125,7 +125,7 @@ If _variable_ is not a list, it is converted to a list.
         pos_expr = statement.children[idx]
     except (ValueError, TypeError) as e:
         raise VgrRuntimeError(statement.children[idx], e) from e
-    pos = eval_to_int(ctx.dd, pos_expr, 'Position')
+    pos = ctx.eval_to_int(ctx.dd, pos_expr, 'Position')
     # TODO why do we not normalize?
     if pos < 0 or pos > len(dst):
         raise VgrRuntimeError(pos_expr, ValueError(f'Position {pos} is invalid'))

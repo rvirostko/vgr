@@ -11,7 +11,8 @@ from typing import Any
 from lark import v_args, Tree, Token, Transformer
 
 from app_exceptions import VgrRuntimeError
-from data_dict import DataDictionary
+from exec_context import ExecContext
+from functor import Functor
 from functions import get_function_op, build_list, build_dict, logical_and, logical_or
 from mathpak import (
     poly_add,
@@ -30,7 +31,6 @@ from mathpak import (
     poly_gt,
     poly_imatches,
     poly_in,
-    poly_int,
     poly_le,
     poly_lt,
     poly_matches_all,
@@ -41,7 +41,6 @@ from mathpak import (
     poly_not_imatches,
     poly_not_in,
     poly_not_matches,
-    poly_number,
     poly_pow,
     poly_shl,
     poly_shr,
@@ -72,7 +71,7 @@ class Operation(Tree, ABC):
         assert_has_meta(self)
 
     @abstractmethod
-    def execute(self, dd: DataDictionary, args: list) -> Any:
+    def execute(self, ctx: ExecContext, args: list) -> Any:
         """Do it"""
 
     @abstractmethod
@@ -85,9 +84,9 @@ class SimpleOperation(Operation):
         super().__init__(base)
         self._op = op
 
-    def execute(self, dd: DataDictionary, args: list) -> Any:
+    def execute(self, ctx: ExecContext, args: list) -> Any:
         # We evaluate all the arguments and execute the operation
-        return self._op(*tuple(eval_expr(dd, arg) for arg in args))
+        return self._op(*tuple(ctx.eval_expr(arg) for arg in args))
 
     def op_name(self) -> str:
         return self._op.__name__
@@ -97,10 +96,10 @@ class VarRef(Operation):
     The children form the path to info in the data dictionary
     """
 
-    def execute(self, dd: DataDictionary, args: list) -> Any:
+    def execute(self, ctx: ExecContext, args: list) -> Any:
         """This is the lookup of a top-level variable"""
         # The args are all NAME tokens
-        return dd.get_var_user(*tuple(arg.value for arg in args))
+        return ctx.get_var_user(*tuple(arg.value for arg in args))
 
     def op_name(self) -> str:
         return 'var_ref'
@@ -110,34 +109,58 @@ class SetVarOperation(Operation):
     Evaluate an expression, storing its value in a variable
     before returning it
     """
-    def execute(self, dd: DataDictionary, args: list) -> Any:
+    def execute(self, ctx: ExecContext, args: list) -> Any:
         # <expr>.SetVar(<var_name>)
-        return dd.set_var_user(eval_expr(dd, args[0]), *tuple(arg.value for arg in args[1].children))
+        return ctx.set_var_user(ctx.eval_expr(args[0]), *tuple(arg.value for arg in args[1].children))
 
     def op_name(self) -> str:
         return 'set_var'
 
+class CompileFunctorOperation(Operation):
+    """
+    Create a functor
+    """
+    def execute(self, ctx: ExecContext, args: list) -> Any:
+        # <expr>.CompileFunctor()
+        return Functor.compile(ctx, ctx.eval_expr(args[0]))
+
+    def op_name(self) -> str:
+        return 'compile_functor'
+
+class InvokeFunctorOperation(Operation):
+    """
+    Invoke a functor
+    """
+    def execute(self, ctx: ExecContext, args: list) -> Any:
+        # $(<expr>, <expr>...)
+        values = [ctx.eval_expr(arg) for arg in args]
+        fn = values.pop(0)
+        return Functor.invoke(ctx, fn, values)
+
+    def op_name(self) -> str:
+        return 'invoke_functor'
+
 class AndOperation(Operation):
 
-    def execute(self, dd: DataDictionary, args: list) -> Any:
-        return logical_and(lambda arg: poly_true(eval_expr(dd, arg)), args)
+    def execute(self, ctx: ExecContext, args: list) -> Any:
+        return logical_and(lambda arg: poly_true(ctx.eval_expr(arg)), args)
 
     def op_name(self) -> str:
         return 'and'
 
 class OrOperation(Operation):
 
-    def execute(self, dd: DataDictionary, args: list) -> Any:
-        return logical_or(lambda arg: poly_true(eval_expr(dd, arg)), args)
+    def execute(self, ctx: ExecContext, args: list) -> Any:
+        return logical_or(lambda arg: poly_true(ctx.eval_expr(arg)), args)
 
     def op_name(self) -> str:
         return 'or'
 
 class NotOperation(Operation):
 
-    def execute(self, dd: DataDictionary, args: list) -> Any:
+    def execute(self, ctx: ExecContext, args: list) -> Any:
         # NB: grammar defines this as taking a single arg
-        return poly_false(eval_expr(dd, args[0]))
+        return poly_false(ctx.eval_expr(args[0]))
 
     def op_name(self) -> str:
         return 'not'
@@ -158,15 +181,15 @@ class Ternary(Operation):
         super().__init__(base)
         self._seq = seq
 
-    def execute(self, dd: DataDictionary, args: list) -> Any:
+    def execute(self, ctx: ExecContext, args: list) -> Any:
         """
         Using the sequence indicies, execute the predicate.
         Then depending upon the truth value, execute the "true" or
         "false" part and return the result.
         """
-        if poly_true(eval_expr(dd, args[self._seq[0]])):
-            return eval_expr(dd, args[self._seq[1]])
-        return eval_expr(dd, args[self._seq[2]])
+        if poly_true(ctx.eval_expr(args[self._seq[0]])):
+            return ctx.eval_expr(args[self._seq[1]])
+        return ctx.eval_expr(args[self._seq[2]])
 
     def op_name(self) -> str:
         return 'ternary' + repr(self._seq)
@@ -190,7 +213,7 @@ def var_name_path(node: Tree) -> tuple[str]:
         return tuple(name.value for name in node.children)
     raise VgrRuntimeError(node, TypeError('Expected var_name')) # SNO
 
-def eval_expr_or_const(dd: DataDictionary, expr: Any) -> Any:
+def eval_expr_or_const(ctx: ExecContext, expr: Any) -> Any:
     """
     This lets values be unquoted as arguments.
     For example it allows
@@ -217,15 +240,15 @@ def eval_expr_or_const(dd: DataDictionary, expr: Any) -> Any:
         # var_name is typically used as a lvalue, but here the
         # syntax is an explicit "value of" rather than a constant value
         if expr.data == "var_name":
-            return dd.get_var_user(*var_name_path(expr))
+            return ctx.get_var_user(*var_name_path(expr))
         # This allows for arguments to be unquoted if it is a simple (one part) name
         # and its value is not known in the data dictionary
         if expr.data == "var_ref" and len(expr.children) == 1 and isinstance(expr.children[0], Token) and expr.children[0].type == "NAME":
             name = expr.children[0].value
-            exists, value = dd.exists(name)
+            exists, value = ctx.dd.exists(name)
             return value if exists else name
     # If not one of the special cases, treat this as an expression
-    return eval_expr(dd, expr)
+    return ctx.eval_expr(expr)
 
 # pylint: disable=too-many-public-methods
 # disabled because we MUST have a method for each rule
@@ -283,6 +306,8 @@ class OperationBinder(Transformer):
     def deref(self, tree): return SimpleOperation(tree, deref_var)
     def var_ref(self, tree): return VarRef(tree)
     def set_var(self, tree): return SetVarOperation(tree)
+    def compile_functor(self, tree): return CompileFunctorOperation(tree)
+    def invoke_functor(self, tree): return InvokeFunctorOperation(tree)
     def function_call(self, tree):
         # The expression becomes the first argument to the function,
         # and it takes the place of the wrapper from parsing
@@ -304,12 +329,12 @@ def bind_operations(statement: Tree) -> Tree:
     """
     return OperationBinder().transform(statement)
 
-def eval_expr(dd: DataDictionary, expr: Any) -> Any:
+def eval_expr(ctx: ExecContext, expr: Any) -> Any:
     """Evalutates an expression"""
     if isinstance(expr, Tree):
         if isinstance(expr, Operation):
             try:
-                return expr.execute(dd, expr.children)
+                return expr.execute(ctx, expr.children)
             except VgrRuntimeError as e:
                 raise e
             except Exception as e:
@@ -319,25 +344,3 @@ def eval_expr(dd: DataDictionary, expr: Any) -> Any:
         # All tokens should be CONSTs so we don't want users mucking them up
         return deepcopy(expr.value)
     raise VgrRuntimeError(expr, NotImplementedError(f'Unknown type {type_str(expr)}')) #SNO
-
-def eval_to_int(dd: DataDictionary, expr: Tree, name: str, allow_none: bool=False) -> int:
-    rc = eval_expr(dd, expr)
-    if rc is None and allow_none: return None
-    if not isinstance(rc, (bool, int, float, str)):
-        raise VgrRuntimeError(expr, TypeError(f'{name} must be an integer; found {type_str(rc)}'))
-    return poly_int(rc)
-
-def eval_to_number(dd: DataDictionary, expr: Tree, name: str, allow_none: bool=False):
-    rc = eval_expr(dd, expr)
-    if rc is None and allow_none: return None
-    if isinstance(rc, bool): return int(rc)
-    if isinstance(rc, (int, float)): return rc
-    if isinstance(rc, str): return poly_number(rc)
-    raise VgrRuntimeError(expr, TypeError(f'{name} must be an integer; found {type_str(rc)}'))
-
-def eval_to_bool(dd: DataDictionary, expr: Tree, name: str, allow_none: bool=False) -> bool:
-    rc = eval_expr(dd, expr)
-    if rc is None and allow_none: return None
-    if not isinstance(rc, (bool, int, float, str)):
-        raise VgrRuntimeError(expr, TypeError(f'{name} must be an boolean; found {type_str(rc)}'))
-    return poly_true(rc)

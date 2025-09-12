@@ -329,6 +329,9 @@ ternary: expr "?" expr ":" expr -> c_ternary
     | expr2 "." ("SetVar"i | "set_var"i) "(" var_name ")" -> set_var
     | expr2 "." function -> function_call
     | expr2 "." NAME -> deref
+    // Functor operations
+    | expr2 "." ("CompileFunctor"i | "compile_functor"i) "(" ")" -> compile_functor
+    | "$" "(" expr (_COMMA expr )* ")" -> invoke_functor
     // Polymorphic operations than *could* be chained
     | expr2 ("+" | "\uFF0B") expr2 -> add_op // Unicode ＋ (fullwidth plus)
     | expr2 ("-" | "\u2212" | "\uFF0D") expr2 -> sub_op // Unicode − (minus sign) and － (fullwidth minus)

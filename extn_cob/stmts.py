@@ -10,7 +10,7 @@ from lark import Tree
 
 from app_exceptions import VgrExitingException, VgrStatementBreak, VgrStatementContinue, VgrRuntimeError
 from dd_config import do_set, do_assignment, do_unset
-from evaluate import bind_operations, eval_to_number, var_name_path
+from evaluate import bind_operations, var_name_path
 from exec_context import ExecContext
 from mathpak import (
     bound_ops,
@@ -151,9 +151,9 @@ If not specified, the test expression is performed before the block of statement
         cindex = 0
     path = var_name_path(statement.children[cindex])
     cindex += 1
-    value = eval_to_number(ctx.dd, bind_operations(statement.children[cindex]), 'Perform Varying start value')
+    value = ctx.eval_to_number(bind_operations(statement.children[cindex]), 'Perform Varying start value')
     cindex += 1
-    inc = eval_to_number(ctx.dd, bind_operations(statement.children[cindex]), 'Perform Varying increment')
+    inc = ctx.eval_to_number(bind_operations(statement.children[cindex]), 'Perform Varying increment')
     if inc == 0: raise ValueError('Perform Varying requires a non-zero increment')
     cindex += 1
     predicate = bind_operations(statement.children[cindex])

@@ -31,6 +31,7 @@ from mathpak import (
     bound_ops,
     poly_int,
     poly_list,
+    poly_number,
     poly_true,
     type_str,
 )
@@ -482,8 +483,8 @@ class DefaultExecContext(ExecContext):
     def get_var_user(self, *path: str) -> Any: return self.dd.get_var_user(*path)
     def set_var_user(self, data: Any, /, *path: str): return self.dd.set_var_user(data, *path)
 
-    def eval_expr(self, expr: Any) -> Any: return eval_expr(self.dd, expr)
-    def eval_expr_or_const(self, expr: Any) -> Any: return eval_expr_or_const(self.dd, expr)
+    def eval_expr(self, expr: Any) -> Any: return eval_expr(self, expr)
+    def eval_expr_or_const(self, expr: Any) -> Any: return eval_expr_or_const(self, expr)
 
     def eval_to_str(self, expr: Tree, name: str, allow_none: bool=False) -> str:
         """Helper that makes sure you got a string back from an expression"""
@@ -497,6 +498,28 @@ class DefaultExecContext(ExecContext):
         """Helper that gets a string that should be a relative filename"""
         return verify_relative_path(self.eval_to_str(expr, 'File name', allow_none))
 
+    def eval_to_int(self, expr: Tree, name: str, allow_none: bool=False) -> int:
+        rc = self.eval_expr(expr)
+        if rc is None and allow_none: return None
+        if not isinstance(rc, (bool, int, float, str)):
+            raise VgrRuntimeError(expr, TypeError(f'{name} must be an integer; found {type_str(rc)}'))
+        return poly_int(rc)
+
+    def eval_to_number(self, expr: Tree, name: str, allow_none: bool=False):
+        rc = self.eval_expr(expr)
+        if rc is None and allow_none: return None
+        if isinstance(rc, bool): return int(rc)
+        if isinstance(rc, (int, float)): return rc
+        if isinstance(rc, str): return poly_number(rc)
+        raise VgrRuntimeError(expr, TypeError(f'{name} must be an integer; found {type_str(rc)}'))
+
+    def eval_to_bool(self, expr: Tree, name: str, allow_none: bool=False) -> bool:
+        rc = self.eval_expr(expr)
+        if rc is None and allow_none: return None
+        if not isinstance(rc, (bool, int, float, str)):
+            raise VgrRuntimeError(expr, TypeError(f'{name} must be an boolean; found {type_str(rc)}'))
+        return poly_true(rc)
+
     def echo_source(self, tree, end_tree = None):
         if self.dd.echo: print_stderr((SSM.source_for(tree, end_tree) or '').strip())
 
@@ -505,7 +528,12 @@ class DefaultExecContext(ExecContext):
 
     def parse_expression(self, expr_text: str) -> Tree:
         if expr_text and not expr_text.isspace():
-            return self._parser.parse(expr_text, start='expr')
+            expr = self._parser.parse(expr_text, start='expr')
+            expr = ConstantsNormalizer().transform(expr)
+            expr = VarRefOptimizer().transform(expr)
+            expr = bind_operations(expr)
+            if self.dd.debug: print_tree(expr)
+            return expr
         return None
 
     def execute_statements(self, statement_text: str, origin: str) -> None:

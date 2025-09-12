@@ -139,7 +139,6 @@ _UUID_ENTRIES = {
 
 def dd_init() -> DataDictionary:
     dd = DataDictionary()
-    dd.add_immutable_prefix('$self')
     dd.add_protected_prefix(_ARG_PREFIX)
     dd.add_immutable_prefix(_VGR_PREFIX)
     dd.set_var(__version__, *_VER_PATH)

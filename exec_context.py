@@ -59,6 +59,12 @@ class ExecContext(ABC):
     def eval_filename_expr(self, expr: Any, allow_none: bool=False) -> str: pass
 
     @abstractmethod
+    def eval_to_int(self, expr: Tree, name: str, allow_none: bool=False) -> int: pass
+
+    @abstractmethod
+    def eval_to_number(self, expr: Tree, name: str, allow_none: bool=False): pass
+
+    @abstractmethod
     def echo_source(self, tree: Tree, end_tree: Tree=None) -> str: pass
 
     @abstractmethod

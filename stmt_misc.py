@@ -6,7 +6,6 @@ import time
 
 from lark import Tree
 
-from evaluate import eval_to_number
 from exec_context import ExecContext
 from mathpak import bound_ops
 
@@ -20,7 +19,7 @@ def execute_sleep(ctx: ExecContext, statement: Tree) -> None:
 Values may be floating point, e.g. .01 to delay for ten milliseconds.
 Negative and zero values are ignored. Maximum sleep time is five minutes.
 """
-    n = eval_to_number(ctx.dd, statement.children[0], 'Sleep time')
+    n = ctx.eval_to_number(statement.children[0], 'Sleep time')
     n = min(max(n, 0), 300)
     if n > 0:
         ctx.print_verbose('Sleeping for', n, "seconds")

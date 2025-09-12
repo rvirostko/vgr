@@ -12,11 +12,7 @@ from app_exceptions import VgrRuntimeError
 from data_xtract import QueryFilter, InfoOutput, DataExtractor, EndExtractException
 from dbg import print_tree
 from dd_config import DEFAULT_FOR_TYPE_PATH, ROWID_PATH, dd_clear_scratch
-from evaluate import (
-    bind_operations,
-    eval_to_bool,
-    eval_to_int,
-)
+from evaluate import bind_operations
 from exec_context import ExecContext
 from mathpak import poly_false, bound_ops, type_str
 from output import (
@@ -273,8 +269,8 @@ class SelectAnalyzer(Visitor):
         """... Limit <limit> (Offset <offset>)? ..."""
         node = bind_operations(node)
         children = node.children
-        if len(children) >= 1: self.output_controls['limit'] = eval_to_int(self.ctx.dd, children[0], 'Limit', True)
-        if len(children) >= 2: self.output_controls['offset'] = eval_to_int(self.ctx.dd, node.children[1], 'Offset', True)
+        if len(children) >= 1: self.output_controls['limit'] = self.ctx.eval_to_int(children[0], 'Limit', True)
+        if len(children) >= 2: self.output_controls['offset'] = self.ctx.eval_to_int(node.children[1], 'Offset', True)
 
     def product_clause(self, node: Tree):
         node = bind_operations(node)
@@ -350,10 +346,10 @@ class SelectAnalyzer(Visitor):
             raise NotImplementedError(f'Output option {name!r} of type {self.output_opts["type"]}') #SNO
 
     def _bool_arg(self, node:Tree, name: str) -> bool:
-        return eval_to_bool(self.ctx.dd, node.children[0], name, True) if node.children else True
+        return self.ctx.eval_to_bool(node.children[0], name, True) if node.children else True
 
     def _int_arg(self, node:Tree, name: str, default: int=0) -> int:
-        return eval_to_int(self.ctx.dd, node.children[0], name, True) if node.children else default
+        return self.ctx.eval_to_int(node.children[0], name, True) if node.children else default
 
     def _str_arg(self, node:Tree, name: str, default: str=None) -> str:
         return self.ctx.eval_to_str(node.children[0], name, True) if node.children else default

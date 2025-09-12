@@ -4,7 +4,7 @@ Contains the implementation for the ECHO, DEBUG and VERBOSE statements
 
 from lark import Tree, Token
 
-from evaluate import eval_to_bool, bind_operations
+from evaluate import bind_operations
 from exec_context import ExecContext
 from mathpak import bound_ops
 from redir import print_stderr
@@ -72,5 +72,5 @@ def _flag_value(ctx: ExecContext, statement: Tree, name: str) -> bool:
             value = str(arg.value).casefold()
             if value == 'on': return True
             if value == 'off': return False
-    rc = eval_to_bool(ctx.dd, first_child, name, True)
+    rc = ctx.eval_to_bool(first_child, name, True)
     return False if rc is None else rc
