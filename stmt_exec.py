@@ -17,7 +17,7 @@ from app_exceptions import (
 from data_dict import DataDictionary
 from dbg import print_tree
 from dd_config import VGR_PREFIX
-from evaluate import bind_operations, eval_expr, eval_expr_or_const, var_name_path, do_set, do_unset
+from evaluate import bind_operations, eval_expr, eval_expr_or_const, do_set, do_unset, get_writable_var_path
 from output import verify_relative_path
 from exec_context import ExecContext
 from functions import build_dict
@@ -284,12 +284,14 @@ number of items remaining. If a Continue statement is encountered, statements
 following it are skipped, and the loop continues with the next item.
 """
     ctx.echo_source(statement, statement.children[2])
-    path = var_name_path(statement.children[0])
+    var_path = get_writable_var_path(ctx, statement.children[0])
     collection = poly_list(ctx.eval_expr(bind_operations(statement.children[1])))
     if collection is not None:
+        # Save the initial state of the variable
+        var_save = ctx.dd.var_exists(*var_path)
         try:
             for value in collection:
-                do_set(ctx, value, *path)
+                do_set(ctx, value, *var_path)
                 try:
                     ctx.dispatch_statements(statement.children[2:])
                 except VgrStatementBreak:
@@ -297,7 +299,11 @@ following it are skipped, and the loop continues with the next item.
                 except VgrStatementContinue:
                     continue
         finally:
-            do_unset(ctx, *path)
+            # restore the previous state of the variable
+            if var_save[0]:
+                do_set(ctx, var_save[1], *var_path)
+            else:
+                do_unset(ctx, *var_path)
 
 # pylint: disable=invalid-name
 # disabled because we MUST have methods named the same as the tokens
@@ -493,13 +499,12 @@ class DefaultExecContext(ExecContext):
     def __init__(self, parser: Lark, dd: DataDictionary):
         super().__init__(parser, dd)
         self._source_stack = []
-        # we maintain the state, but the user can still
+        # We maintain the state, but the user can still
         # read the values, which are global.
         self.set_var(lambda: self.source_stack, VGR_PREFIX,  'source')
         self.set_var(lambda: self.debug, VGR_PREFIX,  'debug')
         self.set_var(lambda: self.echo, VGR_PREFIX, 'echo')
         self.set_var(lambda: self.verbose, VGR_PREFIX, 'verbose')
-        # TODO support a dynamic version of "statement" text
 
     def get_var(self, *path: str) -> Any: return self.dd.get_var(*path)
     def set_var(self, data: Any, /, *path: str) -> Any: return self.dd.set_var(data, *path)

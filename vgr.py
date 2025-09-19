@@ -379,7 +379,7 @@ Environment variables:
                 for filename in svalue:
                     # NB: we don't "sandbox" these files like we do with others
                     filepath = expand_filename(filename)
-                    ctx.print_verbose('Executing statements from ', repr(filepath), '...')
+                    if ctx.verbose: ctx.print_verbose('Executing statements from ', repr(filepath), '...')
                     statements = None
                     with open(filepath, 'r', encoding='utf-8-sig') as f:
                         statements = f.read()
@@ -414,7 +414,7 @@ Environment variables:
         print_stderr(str(VgrException(None, e, None, None)))
         print_debug(ctx.debug, e)
         exit_code = VgrExitingException.EXIT_FAILED
-    ctx.print_verbose(f'Exit code is {exit_code}')
+    ctx.print_verbose('Exit code is', exit_code)
     LOG.info('Exiting')
     sys.exit(exit_code)
 

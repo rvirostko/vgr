@@ -7,7 +7,7 @@ from typing import Any
 from lark import Tree
 
 from app_exceptions import VgrRuntimeError
-from evaluate import var_name_path
+from evaluate import get_writable_var_path
 from exec_context import ExecContext
 from mathpak import bound_ops
 
@@ -25,18 +25,18 @@ def _eval_list_src(ctx: ExecContext, statement: Tree, idx: int, do_all: bool) ->
     return idx, [src]
 
 def _eval_list_target(ctx: ExecContext, statement: Tree, idx: int) -> tuple[int, tuple[str], list]:
-    path = var_name_path(statement.children[idx])
+    var_path = get_writable_var_path(ctx, statement.children[idx])
     idx += 1
-    value = ctx.get_var_user(*path)
-    if value is None: return idx, path, ctx.set_var_user([], *path)
-    if isinstance(value, tuple): return idx, path, ctx.set_var_user([*value], *path)
-    if not isinstance(value, list): return idx, path, ctx.set_var_user([value], *path)
-    return idx, path, value
+    value = ctx.get_var(*var_path)
+    if value is None: return idx, var_path, ctx.set_var([], *var_path)
+    if isinstance(value, tuple): return idx, var_path, ctx.set_var([*value], *var_path)
+    if not isinstance(value, list): return idx, var_path, ctx.set_var([value], *var_path)
+    return idx, var_path, value
 
-def _eval_list_giving(statement: Tree, idx: int) -> tuple[Tree, tuple[str]]:
+def _eval_list_giving(ctx: ExecContext, statement: Tree, idx: int) -> tuple[Tree, tuple[str]]:
     # NB: since this relies on length alone, it can be fragile
-    gexpr = statement.children[idx] if idx < len(statement.children) else None
-    return gexpr, var_name_path(gexpr) if gexpr else None
+    giving_expr = statement.children[idx] if idx < len(statement.children) else None
+    return giving_expr, get_writable_var_path(ctx, giving_expr) if giving_expr else None
 
 def _set_list_giving(ctx: ExecContext, path: tuple[str], value: Any, expr: Tree) -> None:
     # TODO: if of length one, should we unpack
@@ -68,9 +68,9 @@ If _variable_ is not a list, it is converted to a list.
     idx, path, dst = _eval_list_target(ctx, statement, idx)
     if src:
         dst.extend(src)
-        ctx.print_verbose('Appended', len(src), f'item{"s" if len(src) != 1 else ""} To', '.'.join(path))
+        if ctx.verbose: ctx.print_verbose('Appended', len(src), f'item{"s" if len(src) != 1 else ""} To', '.'.join(path))
     else:
-        ctx.print_verbose('List', '.'.join(path), 'unchanged')
+        if ctx.verbose: ctx.print_verbose('List', '.'.join(path), 'unchanged')
 
 @bound_ops("Prepend")
 def execute_list_prepend(ctx: ExecContext, statement: Tree) -> None:
@@ -94,9 +94,9 @@ If _variable_ is not a list, it is converted to a list.
     idx, path, dst = _eval_list_target(ctx, statement, idx)
     if src:
         dst[:0] = src
-        ctx.print_verbose('Prepended', len(src), f'item{"s" if len(src) != 1 else ""} To', '.'.join(path))
+        if ctx.verbose: ctx.print_verbose('Prepended', len(src), f'item{"s" if len(src) != 1 else ""} To', '.'.join(path))
     else:
-        ctx.print_verbose('List', '.'.join(path), 'unchanged')
+        if ctx.verbose: ctx.print_verbose('List', '.'.join(path), 'unchanged')
 
 @bound_ops("Insert")
 def execute_list_insert(ctx: ExecContext, statement: Tree) -> None:
@@ -131,39 +131,39 @@ If _variable_ is not a list, it is converted to a list.
         raise VgrRuntimeError(pos_expr, ValueError(f'Position {pos} is invalid'))
     if src:
         dst[pos:pos] = src
-        ctx.print_verbose('Inserted', len(src), f'item{"s" if len(src) != 1 else ""} Into', '.'.join(path), 'At', pos)
+        if ctx.verbose: ctx.print_verbose('Inserted', len(src), f'item{"s" if len(src) != 1 else ""} Into', '.'.join(path), 'At', pos)
     else:
-        ctx.print_verbose('List', '.'.join(path), 'unchanged')
+        if ctx.verbose: ctx.print_verbose('List', '.'.join(path), 'unchanged')
 
 # Combine doc with list_remove
 def execute_list_remove_first(ctx: ExecContext, statement: Tree) -> None:
     idx, path, dst = _eval_list_target(ctx, statement, 0)
-    gexpr, giving_path = _eval_list_giving(statement, idx)
+    gexpr, giving_path = _eval_list_giving(ctx, statement, idx)
     if dst:
         if giving_path:
             _set_list_giving(ctx, giving_path, dst.pop(0), gexpr)
         else:
             del dst[0]
-        ctx.print_verbose('Removed first item from', '.'.join(path))
+        if ctx.verbose: ctx.print_verbose('Removed first item from', '.'.join(path))
     else:
         if giving_path:
             _set_list_giving(ctx, giving_path, None, gexpr)
-        ctx.print_verbose('List', '.'.join(path), 'unchanged')
+        if ctx.verbose: ctx.print_verbose('List', '.'.join(path), 'unchanged')
 
 # Combine doc with list_remove
 def execute_list_remove_last(ctx: ExecContext, statement: Tree) -> None:
     idx, path, dst = _eval_list_target(ctx, statement, 0)
-    gexpr, giving_path = _eval_list_giving(statement, idx)
+    gexpr, giving_path = _eval_list_giving(ctx, statement, idx)
     if dst:
         if giving_path:
             _set_list_giving(ctx, giving_path, dst.pop(), gexpr)
         else:
             del dst[-1]
-        ctx.print_verbose('Removed last item from', '.'.join(path))
+        if ctx.verbose: ctx.print_verbose('Removed last item from', '.'.join(path))
     else:
         if giving_path:
             _set_list_giving(ctx, giving_path, None, gexpr)
-        ctx.print_verbose('List', '.'.join(path), 'unchanged')
+        if ctx.verbose: ctx.print_verbose('List', '.'.join(path), 'unchanged')
 
 @bound_ops("Remove")
 def execute_list_remove(ctx: ExecContext, statement: Tree) -> None:
@@ -191,18 +191,18 @@ If _variable_ is not a list, it is converted to a list.
     idx, _do_all = _extract_list_all(statement)
     idx, positions = _eval_and_advance(ctx, statement, idx)
     idx, path, dst = _eval_list_target(ctx, statement, idx)
-    gexpr, giving_path = _eval_list_giving(statement, idx)
+    gexpr, giving_path = _eval_list_giving(ctx, statement, idx)
     rcount, removed = _remove_items(dst, _normalize_positions(positions))
     if rcount:
         if giving_path:
             # if caller only asked for one item, return one item
             if not isinstance(positions, (list, tuple)): removed = removed[0]
             _set_list_giving(ctx, giving_path, removed, gexpr)
-        ctx.print_verbose('Removed', rcount, f'item{"s" if rcount != 1 else ""} From', '.'.join(path))
+        if ctx.verbose: ctx.print_verbose('Removed', rcount, f'item{"s" if rcount != 1 else ""} From', '.'.join(path))
     else:
         if giving_path:
             _set_list_giving(ctx, giving_path, None, gexpr)
-        ctx.print_verbose('List', '.'.join(path), 'unchanged')
+        if ctx.verbose: ctx.print_verbose('List', '.'.join(path), 'unchanged')
 
 # All means treat as separate entities
 # 1) Replace 5 in item with "a" -- item[5] = "a"
@@ -229,7 +229,7 @@ def execute_list_replace(ctx: ExecContext, statement: Tree) -> None:
     idx, positions = _eval_and_advance(ctx, statement, 0)
     idx, path, dst = _eval_list_target(ctx, statement, idx)
     idx, do_all = _extract_list_all(statement, idx)
-    gexpr, giving_path = _eval_list_giving(statement, idx)
+    gexpr, giving_path = _eval_list_giving(ctx, statement, idx)
     # TODO unfinished!
 
 def _normalize_positions(positions) -> list:

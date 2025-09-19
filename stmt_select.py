@@ -416,9 +416,9 @@ TODO
     # If the type was not set, we use the default
     output_opts['type'] = output_opts.get('type', 'csv')
     writer = create_writer(output_opts, select.output_controls)
-    ctx.print_debug(repr(writer))
+    if ctx.debug: ctx.print_debug(repr(writer))
     extractor = create_extractor(ctx, select.from_opts)
-    ctx.print_debus(repr(extractor))
+    if ctx.debug: ctx.print_debug(repr(extractor))
     QueryRunner(ctx, select, writer).run_extraction(extractor)
 
 class QueryRunner(QueryFilter, InfoOutput):
@@ -565,7 +565,7 @@ def create_extractor(ctx: ExecContext, opts: dict) -> DataExtractor:
                 raise ValueError(f'While reading {filename!r}: {str(e)}') from e
             if not isinstance(data, list):
                 data = [data] if isinstance(data, dict) else [{'value' : data}]
-            ctx.print_verbose('Read', len(data), 'Records ' if len(data) != 1 else 'Record', 'From', filename)
+            if ctx.verbose: ctx.print_verbose('Read', len(data), 'Records ' if len(data) != 1 else 'Record', 'From', filename)
             return InMemoryExtractor(data, target)
     raise NotImplementedError(f'Extractor type {xtype!r}') #SNO
 

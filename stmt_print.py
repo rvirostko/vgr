@@ -55,5 +55,3 @@ Formatting syntax is that used in [Python's str.format()](https://docs.python.or
     if value:
         print_stdout(value, end='')
         stdout().flush()
-    else:
-        ctx.print_verbose('Nothing to print')

@@ -63,7 +63,7 @@ def do_set(ctx: ExecContext, value: Any, *path) -> None:
     Generates verbose output.
     """
     new_value = ctx.set_var_user(value, *path)
-    ctx.print_verbose('Set', '.'.join(path), 'To', shorten(repr(new_value)))
+    if ctx.verbose: ctx.print_verbose('Set', '.'.join(path), 'To', shorten(repr(new_value)))
 
 def do_unset(ctx: ExecContext, *path) -> None:
     """
@@ -71,12 +71,12 @@ def do_unset(ctx: ExecContext, *path) -> None:
     Generates verbose output.
     """
     old_value = ctx.dd.unset_var_user(*path)
-    ctx.print_verbose('Removed', shorten(repr(old_value)), 'From', '.'.join(path))
+    if ctx.verbose: ctx.print_verbose('Removed', shorten(repr(old_value)), 'From', '.'.join(path))
 
 def get_writable_var_path(ctx: ExecContext, node: Tree) -> tuple:
     """Determine the path and validate it for writability"""
     try:
-        return ctx.validate_user_set_path(*ctx.dd.validate_user_path(*var_name_path(node)))
+        return ctx.validate_user_set_path(*ctx.dd.validate_user_path(*_var_name_path(node)))
     except ValueError as e:
         raise VgrRuntimeError(node, e) from e
 
@@ -88,7 +88,7 @@ def create_param_list(ctx: ExecContext, node: Tree) -> tuple:
     param_paths = []
     # First pass: extract and check for valid and unique names
     for node in param_source:
-        path = var_name_path(node) if isinstance(node, Tree) else (node.value,)
+        path = _var_name_path(node) if isinstance(node, Tree) else (node.value,)
         if path in seen_paths:
             raise VgrRuntimeError(node, ValueError(f'Duplicate parameter {".".join(path)!r}'))
         try:
@@ -193,7 +193,7 @@ class InvokeFunctionOperation(Operation):
     """
     def execute(self, ctx: ExecContext, args: list) -> Any:
         # @<var-name>(<expr>...)
-        fn = ctx.get_var_user(*var_name_path(args[0]))
+        fn = ctx.get_var_user(*_var_name_path(args[0]))
         values = [ctx.eval_expr(arg) for arg in args[1:]]
         return UserFunction.invoke(ctx, fn, values)
 
@@ -212,7 +212,7 @@ class InvokeInlineFunctionOperation(Operation):
     def execute(self, ctx: ExecContext, args: list) -> Any:
         # <expr>.@<var-name>(<expr>...)
         inline_value = ctx.eval_expr(args[0]) # the in-line <expr>
-        fn = ctx.get_var_user(*var_name_path(args[1])) # function ref
+        fn = ctx.get_var_user(*_var_name_path(args[1])) # function ref
         values = [ctx.eval_expr(arg) for arg in args[2:]]
         values.insert(0, inline_value)
         return UserFunction.invoke(ctx, fn, values)
@@ -284,7 +284,7 @@ def deref_var(data: Any, /, *path: str) -> Any:
         data = data[key]
     return data
 
-def var_name_path(node: Tree) -> tuple[str]:
+def _var_name_path(node: Tree) -> tuple[str]:
     """
     Returns a path into the data dictionary from a parsed var_name.
     This is typically used for lvalues.
@@ -320,7 +320,7 @@ def eval_expr_or_const(ctx: ExecContext, expr: Any) -> Any:
         # var_name is typically used as a lvalue, but here the
         # syntax is an explicit "value of" rather than a constant value
         if expr.data == "var_name":
-            return ctx.get_var_user(*var_name_path(expr))
+            return ctx.get_var_user(*_var_name_path(expr))
         # This allows for arguments to be unquoted if it is a simple (one part) name
         # and its value is not known in the data dictionary
         if expr.data == "var_ref" and len(expr.children) == 1 and isinstance(expr.children[0], Token) and expr.children[0].type == "NAME":

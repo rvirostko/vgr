@@ -94,7 +94,7 @@ Where _option_ is-
             dd_init(ctx.dd)
             ctx.set_var(t_args, _ARG_PREFIX)
         if s in ('all', 'args'):
-            ctx.print_verbose(f'Reseting {_ARG_PREFIX!r} settings')
+            if ctx.debug: ctx.print_verbose('Resetting', repr(_ARG_PREFIX), 'settings')
             dd_init_args(ctx.dd)
         if s in ('all'):
             ctx.print_verbose('Resetting Debug, Echo, and Verbose settings')
@@ -185,10 +185,10 @@ name with Text as the default.
     if ctx.verbose:
         if isinstance(data, list):
             length = len(data)
-            ctx.print_verbose('Loaded', '.'.join(var_path), 'With', length, 'Records' if length != 1 else 'Record')
+            if ctx.verbose: ctx.print_verbose('Loaded', '.'.join(var_path), 'With', length, 'Records' if length != 1 else 'Record')
         else:
-            ctx.print_verbose('Loaded', '.'.join(var_path), 'With', shorten(repr(data)))
-        if fieldnames: ctx.print_verbose('Fieldnames :', '', ', '.join(repr(f) for f in fieldnames))
+            if ctx.verbose: ctx.print_verbose('Loaded', '.'.join(var_path), 'With', shorten(repr(data)))
+        if fieldnames and ctx.verbose: ctx.print_verbose('Fieldnames :', '', ', '.join(repr(f) for f in fieldnames))
 
 def load_data_type(filename: str, token: Token) -> str:
     """Returns one of:

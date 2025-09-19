@@ -22,7 +22,7 @@ Negative and zero values are ignored. Maximum sleep time is five minutes.
     n = ctx.eval_to_number(statement.children[0], 'Sleep time')
     n = min(max(n, 0), 300)
     if n > 0:
-        ctx.print_verbose('Sleeping for', n, "seconds")
+        ctx.print_verbose('Sleeping for', n, 'seconds')
         time.sleep(n)
     else:
         ctx.print_verbose('Sleep skipped')

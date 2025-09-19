@@ -75,7 +75,7 @@ If a comment is specified multiple times, only the last one is used.
                 zf.write(file, relpath)
         else:
             ctx.print_verbose('Created an empty archive')
-        ctx.print_verbose(f'Wrote {os.path.getsize(zip_name):,} bytes')
+        if ctx.verbose: ctx.print_verbose(f'Wrote {os.path.getsize(zip_name):,} bytes')
 
 def _eval_to_list_str(ctx: ExecContext, clause: Tree, name: str) -> list[str]:
     """Helper that returns a list of strings, recursively handling collections"""

@@ -184,8 +184,9 @@ Sort accts On acct_nbr Unique
     data = _read_data(ctx, source)
     # At this point, we write out everything; no per col filtering
     target[_FIELDS] = source[_FIELDS]
-    ctx.print_verbose("Sort Source =", repr(source))
-    ctx.print_verbose("Sort Target =", repr(target))
+    if ctx.verbose:
+        ctx.print_verbose("Sort Source =", repr(source))
+        ctx.print_verbose("Sort Target =", repr(target))
     data = _do_sort(ctx.dd, data, source, target)
     _write_data(ctx, data, target)
 
@@ -212,7 +213,7 @@ def _read_data(ctx: ExecContext, source: dict) -> list:
             # text files only have one "column" which we call "line"
             # no matter what was used with "on"
             sort_cols = source[_SORT_COLS]
-            if len(sort_cols) > 1:
+            if len(sort_cols) > 1 and ctx.verbose:
                 ctx.print_verbose('Extraneous Sort ordering ignored:', repr(sort_cols[1:]))
             source[_FIELDS] = source[_SORT_COLS] = ['line']
         else:

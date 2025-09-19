@@ -89,22 +89,38 @@ class ExecContext(ABC):
     def echo_source(self, tree: Tree, end_tree: Tree=None) -> None: pass
 
     @property
-    def debug(self) -> None: return self._debug
+    def debug(self) -> None:
+        """Has the user requested debugging output"""
+        return self._debug
 
     @debug.setter
-    def debug(self, v: bool) -> None: self._debug = bool(v)
+    def debug(self, v: bool) -> None:
+        """Turn verbose mode on or off"""
+        self._debug = bool(v)
 
     @abstractmethod
-    def print_debug(self, *args, **kwargs) -> None: pass
+    def print_debug(self, *args, **kwargs) -> None:
+        """
+        Although this checks for debug, check debug before calling
+        if the arguments are not simple constants
+        """
 
     @property
-    def verbose(self) -> None: return self._verbose
+    def verbose(self) -> None:
+        """Has the user requested detailed output"""
+        return self._verbose
 
     @verbose.setter
-    def verbose(self, v: bool) -> None: self._verbose = bool(v)
+    def verbose(self, v: bool) -> None:
+        """Turn verbose mode on or off"""
+        self._verbose = bool(v)
 
     @abstractmethod
-    def print_verbose(self, *args, **kwargs) -> None: pass
+    def print_verbose(self, *args, **kwargs) -> None:
+        """
+        Although this checks for verbose, check verbose before calling
+        if the arguments are not simple constants
+        """
 
     @abstractmethod
     def print_tree(self, item: Any) -> None: pass
