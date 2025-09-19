@@ -560,7 +560,15 @@ class DefaultExecContext(ExecContext):
         super(DefaultExecContext, DefaultExecContext).echo.__set__(self, v)
 
     def echo_source(self, tree, end_tree = None) -> None:
-        if super().echo: print_stderr(self.get_source(tree, end_tree))
+        if super().echo:
+            src = self.get_source(tree, end_tree)
+            src = src.splitlines()[0] if src else '--unknown--'
+            if super().verbose:
+                # prefix the source with file and line number
+                print_stderr(f'{SSM.current[0]}({SSM.line_number(tree)}) :', src)
+            else:
+                # just the source
+                print_stderr(src)
 
     @ExecContext.debug.setter
     def debug(self, v: bool):

@@ -2,13 +2,11 @@
 Utility functions for working with the source associated with statements
 """
 
-from lark import Tree
+from lark import Tree, Token
 
 class StatementSourceMgr:
     def __init__(self):
         self._stack = []
-        self._text: str = ''
-        self._origin: str = ''
 
     @property
     def current(self) -> tuple:
@@ -19,6 +17,7 @@ class StatementSourceMgr:
 
     def pop(self) -> None:
         self._stack.pop()
+
 
     def source_for(self, node: Tree, end_node: Tree=None) -> str:
         """
@@ -42,10 +41,9 @@ class StatementSourceMgr:
         We need to do this because of the way expression
         trees can be re-arranged
         """
-        if isinstance(item, Tree):
-            start, end = item.meta.start_pos, item.meta.end_pos
-        else:
-            start, end = item.start_pos, item.end_pos
+        if isinstance(item, Token): return item.start_pos, item.end_pos
+        assert isinstance(item, Tree)
+        start, end = item.meta.start_pos, item.meta.end_pos
 
         def _walk(node: Tree) -> None:
             nonlocal start, end
@@ -57,8 +55,27 @@ class StatementSourceMgr:
                 start = min(start, node.start_pos)
                 end = max(end, node.end_pos)
 
-        _walk(item)
+        if item.children: _walk(item)
         return start, end
 
+    @staticmethod
+    def line_number(item: Tree) -> int:
+        """
+        Return the starting line number for a lark Tree or Token.
+        """
+        if isinstance(item, Token): return item.line
+        assert isinstance(item, Tree)
+        line = item.meta.line
+
+        def _walk(node: Tree) -> None:
+            nonlocal line
+            if isinstance(node, Tree):
+                line = min(line, node.meta.line)
+                for child in node.children: _walk(child)
+            else:
+                line = min(line, node.line)
+
+        if item.children: _walk(item)
+        return line
 
 SSM = StatementSourceMgr()
