@@ -1,3 +1,4 @@
+from copy import copy
 from functools import cmp_to_key
 from typing import Any
 import sys
@@ -28,7 +29,51 @@ See the Python [ascii() function](https://docs.python.org/3/library/functions.ht
     return ascii(x)
 
 def poly_hash(x: Any) -> int:
+    """
+**TODO**
+"""
     return hash(x)
+
+def poly_clone(x: Any) -> Any:
+    """
+**Ceates a copy of complex objects**
+
+* _value_.Clone()
+
+Only lists and dictionaries are cloned, as other
+data types do not mutable in the same sense as these
+collections. This operation clones the container: if the
+values within it are complex objects, their values will
+still be shared.
+
+### Examples
+
+Simple types return the same object
+```
+Set x = 5
+Print x.Id(), x.Clone().Id()
+4335020464 4335020464
+```
+
+Cloning a complex object
+```
+Set y = [1,2,3]
+Print y.Id(), y.Clone().Id()
+4808334400 4807906688
+```
+
+Container is cloned, but complex objects are shared
+```
+Set z = [ {"a" : 1} ]
+Set z′ = z.Clone()
+Print z.Id(), z′.Id()
+4810281856 4708798208
+Print z.FirstItem().Id(), z′.FirstItem().Id()
+4502192256 4502192256
+```
+"""
+    if isinstance(x, (list, dict)): return copy(x)
+    return x
 
 def poly_repr(x: Any) -> str:
     """
@@ -42,7 +87,7 @@ Also see Ascii()
 
 def poly_type(x: Any) -> str:
     """
-**Return the Python type of an item**
+**Return the data type of an item**
 
 For _None_ the value _NoneType_ is returned.
 """

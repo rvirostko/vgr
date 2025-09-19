@@ -8,8 +8,8 @@ from lark import Tree
 
 from app_exceptions import VgrRuntimeError
 from exec_context import ExecContext
-from redir import shorten
 from vault_api.client_mgr import VaultClientManager
+from evaluate import do_set
 
 from .dd_consts import DEFAULT_NS_PATH, DEFAULT_RESULT_PATH, DEFAULT_CONN_PATH
 from .functions import extract_kv_data, extract_kv_metadata, add_kv_cas
@@ -46,11 +46,6 @@ def _normalize_path(path: str) -> str:
     if path.startswith("/"): return "/v1" + path
     return "/v1/" + path
 
-def _do_set(ctx: ExecContext, value: Any, *path) -> Any:
-    new_value = ctx.set_var(value, *path)
-    ctx.print_verbose('Set', '.'.join(path), 'To', shorten(repr(new_value)))
-    return new_value
-
 def _get_default_ns(ctx: ExecContext, args: dict) -> str:
     """If the args doesn't contain the namespace, use the default one"""
     return _get_arg(args, _NS_ARG, str, True) or ctx.get_var(*DEFAULT_NS_PATH)
@@ -63,14 +58,15 @@ def _set_result(ctx: ExecContext, args: dict, data: Any) -> dict:
         # They can always restate the default
         # and if they do, we dont check immutability/protection
         if path != DEFAULT_RESULT_PATH:
-            ctx.dd.validate_user_set_path(*ctx.dd.validate_user_path(*path))
-    return _do_set(ctx, data, *path)
+            ctx.validate_user_set_path(*ctx.dd.validate_user_path(*path))
+    do_set(ctx, data, *path)
+    return data
 
 def _set_default_conn(ctx: ExecContext, conn: str) -> str:
     # Only change the DD value if we have to,
     # so as to skip a message when verbose is on
     curr = ctx.get_var(*DEFAULT_CONN_PATH)
-    if curr != conn: _do_set(ctx, conn, *DEFAULT_CONN_PATH)
+    if curr != conn: do_set(ctx, conn, *DEFAULT_CONN_PATH)
     return conn
 
 def _get_default_conn(ctx: ExecContext, args: dict) -> str:
@@ -206,7 +202,7 @@ def execute_default_ns(ctx: ExecContext, statement: Tree) -> None:
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _RESULT_ARG)
     ns: str = _resolve_str_arg(ctx, statement.children[0], 'Default Namespace', True)
-    _do_set(ctx, '' if ns is None or ns.isspace() else ns.strip(), *DEFAULT_NS_PATH)
+    do_set(ctx, '' if ns is None or ns.isspace() else ns.strip(), *DEFAULT_NS_PATH)
     _set_result(ctx, args, None)
 
 def execute_create_ns(ctx: ExecContext, statement: Tree) -> None:

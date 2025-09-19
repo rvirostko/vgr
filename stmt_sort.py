@@ -8,12 +8,10 @@ from lark import Tree, Visitor
 
 from app_exceptions import VgrRuntimeError
 from data_dict import DataDictionary
-from dd_config import do_set
-from evaluate import bind_operations
+from evaluate import bind_operations, do_set
 from exec_context import ExecContext
 from mathpak import poly_sort, dsort, bound_ops, type_str
 from output import CSVRecordWriter, JSONRecordWriter, TextRecordWriter
-from redir import print_stderr
 from stmt_set import load_file_as, load_data_type
 
 _TYPE = 'type'     # will be _VAR or _FILE
@@ -183,13 +181,13 @@ Sort accts On acct_nbr Unique
     sort = SortAnalyzer(ctx).analyze(statement)
     source = sort.sort_source
     target = sort.sort_target
-    data = _read_data(ctx.dd, source)
+    data = _read_data(ctx, source)
     # At this point, we write out everything; no per col filtering
     target[_FIELDS] = source[_FIELDS]
     ctx.print_verbose("Sort Source =", repr(source))
     ctx.print_verbose("Sort Target =", repr(target))
     data = _do_sort(ctx.dd, data, source, target)
-    _write_data(ctx.dd, data, target)
+    _write_data(ctx, data, target)
 
 def _do_sort(_: DataDictionary, data: list, source: dict, target: dict) -> list:
     if source[_DTYPE] == 'text_file':
@@ -201,9 +199,9 @@ def _do_sort(_: DataDictionary, data: list, source: dict, target: dict) -> list:
         data = dsort(data, source[_SORT_COLS], source[_SORT_FLAGS], target[_UNIQUE], unique_cols)
     return data
 
-def _read_data(dd: DataDictionary, source: dict) -> list:
+def _read_data(ctx: ExecContext, source: dict) -> list:
     if source[_TYPE] == 'var':
-        data = dd.get_var(*source[_VAR])
+        data = ctx.get_var(*source[_VAR])
         if not source[_IN_PLACE]:
             data = copy.deepcopy(data)
         # Make sure we have something iterable
@@ -215,8 +213,7 @@ def _read_data(dd: DataDictionary, source: dict) -> list:
             # no matter what was used with "on"
             sort_cols = source[_SORT_COLS]
             if len(sort_cols) > 1:
-                if dd.verbose:
-                    print_stderr(f'Extraneous Sort ordering ignored: {sort_cols[1:]!r}')
+                ctx.print_verbose('Extraneous Sort ordering ignored:', repr(sort_cols[1:]))
             source[_FIELDS] = source[_SORT_COLS] = ['line']
         else:
             # while unlikely (maybe?) we need to support non-string ordinals as keys
@@ -237,10 +234,10 @@ def _read_data(dd: DataDictionary, source: dict) -> list:
     source[_FIELDS] = _append_unique(source[_SORT_COLS], source[_FIELDS])
     return data
 
-def _write_data(dd: DataDictionary, data: list, target: dict) -> None:
+def _write_data(ctx: ExecContext, data: list, target: dict) -> None:
     if target[_TYPE] == 'var':
         # Very simple, just store it
-        do_set(dd, data, *target[_VAR])
+        do_set(ctx, data, *target[_VAR])
         return
     # TODO encoding option
     with open(target[_FILE], 'w', encoding='utf-8-sig') as f:

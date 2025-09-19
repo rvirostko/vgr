@@ -16,6 +16,9 @@ class ExecContext(ABC):
         self._parser = parser
         assert dd is not None
         self._dd = dd
+        self._debug = False
+        self._echo = False
+        self._verbose = False
 
     @property
     def parser(self) -> DataDictionary:
@@ -41,10 +44,19 @@ class ExecContext(ABC):
     def set_var(self, data: Any, /, *path: str) -> Any: pass
 
     @abstractmethod
+    def var_exists(self, *path: str) -> tuple[bool, Any]: pass
+
+    @abstractmethod
     def get_var_user(self, *path: str) -> Any: pass
 
     @abstractmethod
     def set_var_user(self, data: Any, /, *path: str) -> Any: pass
+
+    @abstractmethod
+    def validate_user_set_path(self, *path: str) -> tuple: pass
+
+    @abstractmethod
+    def clear_scratch(self) -> Any: pass
 
     @abstractmethod
     def eval_expr(self, expr: Any) -> Any: pass
@@ -65,7 +77,34 @@ class ExecContext(ABC):
     def eval_to_number(self, expr: Tree, name: str, allow_none: bool=False): pass
 
     @abstractmethod
-    def echo_source(self, tree: Tree, end_tree: Tree=None) -> str: pass
+    def get_source(self, tree, end_tree = None) -> str: pass
+
+    @property
+    def echo(self) -> None: return self._echo
+
+    @echo.setter
+    def echo(self, v: bool) -> None: self._echo = bool(v)
+
+    @abstractmethod
+    def echo_source(self, tree: Tree, end_tree: Tree=None) -> None: pass
+
+    @property
+    def debug(self) -> None: return self._debug
+
+    @debug.setter
+    def debug(self, v: bool) -> None: self._debug = bool(v)
+
+    @abstractmethod
+    def print_debug(self, *args, **kwargs) -> None: pass
+
+    @property
+    def verbose(self) -> None: return self._verbose
+
+    @verbose.setter
+    def verbose(self, v: bool) -> None: self._verbose = bool(v)
 
     @abstractmethod
     def print_verbose(self, *args, **kwargs) -> None: pass
+
+    @abstractmethod
+    def print_tree(self, item: Any) -> None: pass

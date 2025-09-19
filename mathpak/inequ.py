@@ -62,6 +62,11 @@ def poly_exact_eq(x: Any, y: Any) -> bool:
 
 While similar to a regular equals comparison, it requires that
 types of the two values match. No conversion are performed.
+
+```
+5 == "5" -> True
+Print 5 === "5" -> False
+```
 """
     # None is only equal to itself
     if x is None: return y is None

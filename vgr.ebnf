@@ -25,13 +25,15 @@ FLOAT_NUMBER: "-"? (_SPECIAL_DEC _EXP_PART | _DECIMAL _EXP_PART?)
 SUPERSCRIPT_FLOAT: /⁽[⁺⁻]?[⁰¹²³⁴⁵⁶⁷⁸⁹]+(·[⁰¹²³⁴⁵⁶⁷⁸⁹]+)?⁾/
                  | /[⁺⁻]?[⁰¹²³⁴⁵⁶⁷⁸⁹]+(·[⁰¹²³⁴⁵⁶⁷⁸⁹]+)?/
 
+// TODO needs to be moved to code and injected here...
 // NAMEs are generally "snake case", "kabab case", and mixed version of the two, with some limitations.
 // For "kabab", it cannot start with a hyphen and an alpha character must follow a hyphen.
 // This is an attempt to prevent some subtraction operations from looking like identifiers
 // The following characters are permitted:
 //     * '$' in the first position only
+//     * '_'
 //     * Latin characters (A-Z, a-z, \u00C0-\u00FF, \u0100-\u017F, \u0180-\u024F, \u1E00-\u1EFF)
-//     * ASCII digits (0-9)
+//     * ASCII digits (0-9) except for the first character
 //     * Greek letters (\u0370-\u03FF)
 //     * Mathematical alphanumeric symbols (\U0001D400-\U0001D7FF - supplementary plane / 32bit Unicode)
 //     * Optional suffix of one or more prime indicators (\u2032), double thru quad prime indicators (\u2033, \u2034, \u2057),
@@ -45,10 +47,12 @@ statements: statement+
 ?statement: simple_statement
     | select
     | control_statements
+    | def_statements
     {EXTN_STATEMENTS}
 
 ?simple_statement: assert
     | break
+    | call
     | close
     | continue
     | debug
@@ -68,6 +72,7 @@ statements: statement+
     | print
     | printf
     | reset
+    | return
     | set
     | sleep
     | sort
@@ -85,15 +90,25 @@ statements: statement+
     | foreach_statement
     | repeat_statement
 
-if_statement: "If"i expr ("Then"i | "Do"i | ":") statement+ else_clause? "End"i _SEMICOLON? -> if
-unless_statement: "Unless"i expr ("Do"i | ":") statement+ "End"i _SEMICOLON? -> unless
-while_statement: "While"i expr ("Do"i | ":") statement+ "End"i _SEMICOLON? -> while
-until_statement: "Until"i expr ("Do"i | ":") statement+ "End"i _SEMICOLON? -> until
+?def_statements: "Define"i? "Function"i var_name def_params? ":"? def_body "End"i _SEMICOLON? -> def_function
+    | "Define"i? "Procedure"i NAME def_params? ":"? def_body "End"i _SEMICOLON? -> def_procedure
+def_params: "(" (NAME (_COMMA NAME)*)? ")" -> params
+def_body: statement+ -> body
+
+// TODO 2nd form could be moved to COBOL
+call: "Call"i "Procedure"i? var_name ("(" (expr (_COMMA expr)*)? ")")? _SEMICOLON?
+    | "Call"i "Procedure"i? var_name ("With"i | "Using"i) expr (_COMMA? expr )* "End-Call"i? _SEMICOLON?
+
+if_statement: "If"i expr ("Then"i | "Do"i | ":")? statement+ else_clause? "End"i _SEMICOLON? -> if
+unless_statement: "Unless"i expr ("Do"i | ":")? statement+ "End"i _SEMICOLON? -> unless
+while_statement: "While"i expr ("Do"i | ":")? statement+ "End"i _SEMICOLON? -> while
+until_statement: "Until"i expr ("Do"i | ":")? statement+ "End"i _SEMICOLON? -> until
 repeat_statement: "Repeat"i expr ("Do"i | ":")? statement+ "End"i _SEMICOLON? -> repeat
-foreach_statement: "ForEach"i var_name "In"i expr ("Do"i | ":") statement+ "End"i _SEMICOLON? -> foreach
-else_clause: "Else"i ("Do"i | ":") statement+ -> else
+foreach_statement: "ForEach"i var_name "In"i expr ("Do"i | ":")? statement+ "End"i _SEMICOLON? -> foreach
+else_clause: "Else"i ("Do"i | ":")? statement+ -> else
 break: "Break"i _SEMICOLON?
 continue: "Continue"i _SEMICOLON?
+return: "Return"i expr? _SEMICOLON?
 
 op_eq: ("==" | "\u2175" | "Equals"i | "Is"i | "Is"i? "Equal"i "To"i)                       // Unicode ⩵ (two consecutive equals signs)
 op_ne: ("!=" | "\u2260" | "<>" | "\u00AC=" | "Is"i "Not"i | "Is"i? "Not"i "Equal"i "To"i ) // Unicode ≠ (not eq) and ¬ (not)
@@ -121,33 +136,29 @@ values_block: "When"i "Is"i? "Empty"i ":" statement+ -> is_empty_block
     | "When"i "Not"i expr ("Through"i | "Thru"i | "To"i) expr ":" statement+ -> not_range_block
     | "When"i (op_lt | op_gt | op_ge | op_le) expr ":" statement+ -> ineq_block
     | "When"i (op_eq | op_ne | op_contains | op_matches | op_not_contains | op_not_matches) value_list ":" statement+
-
-
 value_list: expr (_COMMA expr)*
 otherwise_block: "Otherwise"i ":" statement+
 
 // simple boolean on/off, true/false
 // these are "proper statements" as they control the behavior of other statements
-debug: "Debug"i _SEMICOLON
-    | "Debug"i ("=" | "Is"i)? expr _SEMICOLON?
-echo: "Echo"i  _SEMICOLON
-    | "Echo"i ("=" | "Is"i)? expr _SEMICOLON?
-verbose: "Verbose"i _SEMICOLON
-    | "Verbose"i ("=" | "Is"i)? expr _SEMICOLON?
+debug: "Debug"i expr? _SEMICOLON?
+echo: "Echo"i expr? _SEMICOLON?
+verbose: "Verbose"i expr? _SEMICOLON?
 
 pass: ("Pass"i | "Nop"i) _SEMICOLON?
 
 sleep: "Sleep"i "For"i? expr ("Seconds"i | "Second"i)? _SEMICOLON?
 
-set: "Set"i ("Variable"i | "Var"i)? var_name ("=" | "To"i) expr _SEMICOLON?
-    | ("Variable"i | "Var"i)? var_name ("=" | "Is"i) expr _SEMICOLON?
-    | ("Set"i ("Variable"i | "Var"i)?)? var_name IN_PLACE_OP expr _SEMICOLON? -> set_in_place
+set:  ("Set"i "Variable"i?)? var_name ("=" | "To"i) expr _SEMICOLON?
+    | ("Set"i "Variable"i?)? var_name ("=" | "To"i)? def_params? ("->" | "=>" | "\u2192") expr _SEMICOLON? -> set_arrow
+    | ("Set"i "Variable"i?)? var_name ("=" | "To"i)? def_params? ("->" | "=>" | "\u2192") "Compile"i "(" expr ")" _SEMICOLON? -> compile_arrow
+    | ("Set"i "Variable"i?)? var_name IN_PLACE_OP expr _SEMICOLON? -> set_in_place
 IN_PLACE_OP: ("+=" | "-=" | "*=" | "/=" | "%=" | "**=" | "&=" | "|=" | "^=" | "<<=" | ">>=" )
 
-swap: "Swap"i ("Variable"i | "Var"i)? var_name "With"i var_name _SEMICOLON?
-    | "Swap"i ("Variables"i | "Var"i)? var_name "And"i var_name _SEMICOLON?
+swap: "Swap"i "Variable"i? var_name "With"i "Variable"i? var_name _SEMICOLON?
+    | "Swap"i "Variables"i? var_name "And"i var_name _SEMICOLON?
 
-unset: "Unset"i ("Variable"i | "Var"i)? var_name (_COMMA? var_name)* _SEMICOLON?
+unset: "Unset"i "Variable"i? var_name (_COMMA var_name)* _SEMICOLON?
 
 reset: "Reset"i reset_opt (_COMMA? reset_opt)* _SEMICOLON?
 ?reset_opt: "All"i -> all
@@ -156,27 +167,22 @@ reset: "Reset"i reset_opt (_COMMA? reset_opt)* _SEMICOLON?
     | "Output"i -> output
 
 source: "Source"i _SEMICOLON
-    | "Source"i "From"i? ("File"i | "Files"i)? expr (_COMMA? expr)* _SEMICOLON?
+    | "Source"i "From"i? ("File"i | "Files"i)? expr (_COMMA expr)* _SEMICOLON?
 
 // TODO needs to have an encoding value (defaults to utf-8-sig)
-load_from: "Load"i ("Variable"i | "Var"i)? var_name ("From"i | "With"i) "File"i? expr ("As"i? load_source_type)? _SEMICOLON?
+load_from: "Load"i "Variable"i? var_name ("From"i | "With"i) "File"i? expr ("As"i? load_source_type)? _SEMICOLON?
 load_source_type: "JSON"i "Object"i? -> json_object
     | "JSON"i "Object"i? "Per"i "Line"i -> json_objects
     | "CSV"i -> csv_file
     | "Text"i ("Lines"i | "Line"i) -> text_lines
     | "Text"i -> text_file
 
-assert: "Assert"i _SEMICOLON
-    | "Assert"i expr (":" expr (_COMMA expr)*)? _SEMICOLON?
+assert: "Assert"i expr (":" expr (_COMMA expr)*)? _SEMICOLON?
 
-print: "Print"i _SEMICOLON
-    | "Print"i expr (_COMMA expr)* _SEMICOLON?
+print: "Print"i (expr (_COMMA expr)*)? _SEMICOLON?
+printf: "Printf"i (expr (_COMMA expr)*)? _SEMICOLON?
 
-printf: "Printf"i _SEMICOLON
-    | "Printf"i expr (_COMMA expr)* _SEMICOLON?
-
-log: "Log"i log_level _SEMICOLON
-   | "Log"i log_level _COMMA? expr (_COMMA expr)* _SEMICOLON?
+log: "Log"i log_level expr (_COMMA expr)* _SEMICOLON?
    | "Log"i "Level"i log_level _SEMICOLON? -> log_setlevel
 ?log_level: "Debug"i -> debug
     | "Info"i -> info
@@ -184,7 +190,7 @@ log: "Log"i log_level _SEMICOLON
     | "Error"i -> error
 
 open: "Open"i io_type "File"i? expr open_ext? _SEMICOLON?
-close: "Close"i io_type "File"i? _SEMICOLON? -> close
+close: "Close"i io_type "File"i? _SEMICOLON?
 ?io_type: ("Error"i | "stderr"i) -> stderr
     | ("Output"i | "stdout"i | "sysprint"i) -> stdout
     | ("Input"i | "stdin"i | "sysin"i) -> stdin
@@ -204,7 +210,7 @@ sort_source: sort_obj -> source
 sort_target: ("Into"i | "Giving"i) sort_obj -> target
 ?sort_obj: sort_file | sort_var
 sort_file: "File"i expr ("As"i? load_source_type)? -> file
-sort_var: ("Variable"i | "Var"i)? var_name -> var
+sort_var: "Variable"i? var_name -> var
 sort_keys: ("On"i | "By"i) sort_key (_COMMA sort_key)* -> keys
 sort_key: sort_dir? "Key"i? expr -> key
 ?sort_dir: sort_asc | sort_des
@@ -230,7 +236,7 @@ output: expr
     | expr "As"i expr -> output_as
 
 ?from_clause: "From"i (var_from | file_from {EXTN_FROM})
-var_from: ("Variable"i | "Var"i)? var_name ("As"i expr)?
+var_from: "Variable"i? var_name ("As"i expr)?
 file_from: "File"i expr ("As"i expr)?
     | "File"i expr load_source_type ("As"i expr)? -> file_from_typed
 
@@ -311,7 +317,7 @@ product_cols: "All"i -> all
 ?expr: ternary | and_expr
 
 ternary: expr "?" expr ":" expr -> c_ternary
-//    | expr "if"i expr "else"i expr -> py_ternary // TODO collision with "real" If statement, but only when capitalized?
+//    | expr "If"i expr "Else"i expr -> py_ternary // TODO collision with "real" If statement, but only when capitalized?
 // When LC, it works, but if (true if 5<7 else false)  print "a" else print "b" end doesn't parse
 
 ?and_expr: or_expr
@@ -323,15 +329,15 @@ ternary: expr "?" expr ":" expr -> c_ternary
 // Flattening operations out here allows the parse tree to hold
 // the operation type explicitly instead of a generic "OP" where
 // we need to deal with aliases
-?expr2: "(" expr ")"
+?expr2: atom
+    | "(" expr ")"
     // must be expr2 not expr else it binds across and/or
     | ("!" | "\uFF01" | "\u00AC") expr2 -> unary_not // Unicode ！(fullwidth excl) and ¬ (logical not)
     | expr2 "." ("SetVar"i | "set_var"i) "(" var_name ")" -> set_var
     | expr2 "." function -> function_call
     | expr2 "." NAME -> deref
-    // Functor operations
-    | expr2 "." ("CompileFunctor"i | "compile_functor"i) "(" ")" -> compile_functor
-    | "$" "(" expr (_COMMA expr )* ")" -> invoke_functor
+    | expr2 "." "@" var_name "(" (expr (_COMMA expr)*)? ")" -> invoke_func_inline
+    | "@" var_name "(" (expr (_COMMA expr)*)? ")" -> invoke_func
     // Polymorphic operations than *could* be chained
     | expr2 ("+" | "\uFF0B") expr2 -> add_op // Unicode ＋ (fullwidth plus)
     | expr2 ("-" | "\u2212" | "\uFF0D") expr2 -> sub_op // Unicode − (minus sign) and － (fullwidth minus)
@@ -345,7 +351,6 @@ ternary: expr "?" expr ":" expr -> c_ternary
     | expr2 "<<" expr2 -> shl_op
     | expr2 ">>" expr2 -> shr_op
     // Return bools, typically not "chained"
-    // TODO does this mean the rhs can be an expression?
     | expr2 ("===") expr2 -> exact_eq_op
     | expr2 ("==" | "\u2175" | "Equals"i | "Is"i | "Is"i? "Equal"i "To"i) expr2 -> eq_op // Unicode ⩵ (two consecutive equals signs)
     | expr2 ("!=" | "\u2260" | "<>" | "\u00AC=" | "Is"i "Not"i | "Is"i? "Not"i "Equal"i "To"i ) expr2 -> neq_op // Unicode ≠ (not eq) and ¬ (not)
@@ -365,12 +370,11 @@ ternary: expr "?" expr ":" expr -> c_ternary
     // Misc operations
     | "\u2308" expr "\u2309" -> ceil_op                 // Unicode ceiling ⌈ x ⌉
     | "\u230A" expr "\u230B" -> floor_op                // Unicode floor ⌊ x ⌋
-    | "\u220F" "(" expr (_COMMA? expr)* ")" -> mul_op   // Unicode ∏ (product)
     | expr2 SUPERSCRIPT_FLOAT -> pow_op
-    // These are more fundemental objects
-    | "[" (expr (_COMMA expr)*)? "]" -> array
-    | "{" (expr ":" expr (_COMMA expr ":" expr)*)? "}" -> dict
-    | ("True"i  | "\u22A4") -> vtrue                    // Unicode ⊤ (top)
+    | "[" (expr (_COMMA expr)*)? _COMMA? "]" -> array
+    | "{" (expr ":" expr (_COMMA expr ":" expr)*)? _COMMA? "}" -> dict
+
+?atom: ("True"i  | "\u22A4") -> vtrue                   // Unicode ⊤ (top)
     | ("False"i | "\u22A5") -> vfalse                   // Unicode ⊥ (bottom)
     | ("None"i  | "\u2205" | "Null"i) -> vnone          // Unicode ∅ (Empty set)
     | ("Inf"i   | "\u221E") -> vinf                     // Unicode ∞ (infinity)

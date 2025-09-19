@@ -6,13 +6,14 @@ Functions to:
 
 from abc import ABC, abstractmethod
 from copy import deepcopy
-from typing import Any
+from typing import Any, Iterable
+import textwrap
 
 from lark import v_args, Tree, Token, Transformer
 
 from app_exceptions import VgrRuntimeError
 from exec_context import ExecContext
-from functor import Functor
+from user_callable import UserFunction
 from functions import get_function_op, build_list, build_dict, logical_and, logical_or
 from mathpak import (
     poly_add,
@@ -48,6 +49,68 @@ from mathpak import (
     poly_true,
     type_str,
 )
+
+def shorten(s: str, width: int=64) -> str:
+    """
+    Limits output that can appear in debug/verbose content.
+    Should be used with repr(...) when you don't know the object size.
+    """
+    return textwrap.shorten(s, width=width, placeholder="\u2026")
+
+def do_set(ctx: ExecContext, value: Any, *path) -> None:
+    """
+    After calculations are done, use this to set a value.
+    Generates verbose output.
+    """
+    new_value = ctx.set_var_user(value, *path)
+    ctx.print_verbose('Set', '.'.join(path), 'To', shorten(repr(new_value)))
+
+def do_unset(ctx: ExecContext, *path) -> None:
+    """
+    Use this to unset a value.
+    Generates verbose output.
+    """
+    old_value = ctx.dd.unset_var_user(*path)
+    ctx.print_verbose('Removed', shorten(repr(old_value)), 'From', '.'.join(path))
+
+def get_writable_var_path(ctx: ExecContext, node: Tree) -> tuple:
+    """Determine the path and validate it for writability"""
+    try:
+        return ctx.validate_user_set_path(*ctx.dd.validate_user_path(*var_name_path(node)))
+    except ValueError as e:
+        raise VgrRuntimeError(node, e) from e
+
+def create_param_list(ctx: ExecContext, node: Tree) -> tuple:
+    """Create list of param paths making sure they are unique and non-overlapping and can be used as writable paths"""
+    if not isinstance(node, Tree) or not node.data == 'params': return []
+    param_source: Iterable = node.children
+    seen_paths = set()
+    param_paths = []
+    # First pass: extract and check for valid and unique names
+    for node in param_source:
+        path = var_name_path(node) if isinstance(node, Tree) else (node.value,)
+        if path in seen_paths:
+            raise VgrRuntimeError(node, ValueError(f'Duplicate parameter {".".join(path)!r}'))
+        try:
+            ctx.dd.validate_user_path(*path)
+        except ValueError as e:
+            raise VgrRuntimeError(node, e) from e
+        try:
+            ctx.validate_user_set_path(*path)
+        except ValueError as e:
+            raise VgrRuntimeError(node, ValueError(f'{".".join(path)!r} cannot be used as a parameter name')) from e
+        seen_paths.add(path)
+        param_paths.append((path, node))
+    # Second pass: check for prefix overlaps
+    for i, (p1, node) in enumerate(param_paths):
+        for j, (p2, _) in enumerate(param_paths):
+            if i != j:
+                # You can't set "a.b" and "a.b.c" regardless or order
+                # because you won't get expected results
+                if (len(p1) < len(p2) and p2[:len(p1)] == p1 or
+                    len(p2) < len(p1) and p1[:len(p2)] == p2):
+                    raise VgrRuntimeError(node, ValueError(f'Parameters {".".join(p1)!r} and {".".join(p2)!r} overlap'))
+    return [entry[0] for entry in param_paths]
 
 def assert_has_meta(tree: Tree):
     """Correct error handling relies on the metadata, so we need to check correctness"""
@@ -111,34 +174,51 @@ class SetVarOperation(Operation):
     """
     def execute(self, ctx: ExecContext, args: list) -> Any:
         # <expr>.SetVar(<var_name>)
-        return ctx.set_var_user(ctx.eval_expr(args[0]), *tuple(arg.value for arg in args[1].children))
+        value = ctx.eval_expr(args[0])
+        var_path = get_writable_var_path(ctx, args[1])
+        do_set(ctx, value, *var_path)
+        return value
 
     def op_name(self) -> str:
         return 'set_var'
 
-class CompileFunctorOperation(Operation):
+class InvokeFunctionOperation(Operation):
     """
-    Create a functor
+    Invoke a user function stand-alone
+
+    ```
+    set adder to (a, b) -> a.DefaultTo(0) + b.DefaultTo(0)
+    print @adder(1,2)
+    ````
     """
     def execute(self, ctx: ExecContext, args: list) -> Any:
-        # <expr>.CompileFunctor()
-        return Functor.compile(ctx, ctx.eval_expr(args[0]))
+        # @<var-name>(<expr>...)
+        fn = ctx.get_var_user(*var_name_path(args[0]))
+        values = [ctx.eval_expr(arg) for arg in args[1:]]
+        return UserFunction.invoke(ctx, fn, values)
 
     def op_name(self) -> str:
-        return 'compile_functor'
+        return 'invoke_func'
 
-class InvokeFunctorOperation(Operation):
+class InvokeInlineFunctionOperation(Operation):
     """
-    Invoke a functor
+    Invoke a user function inline
+
+    ```
+    set adder to (a, b) -> a.DefaultTo(0) + b.DefaultTo(0)
+    print 1.@adder(2)
+    ````
     """
     def execute(self, ctx: ExecContext, args: list) -> Any:
-        # $(<expr>, <expr>...)
-        values = [ctx.eval_expr(arg) for arg in args]
-        fn = values.pop(0)
-        return Functor.invoke(ctx, fn, values)
+        # <expr>.@<var-name>(<expr>...)
+        inline_value = ctx.eval_expr(args[0]) # the in-line <expr>
+        fn = ctx.get_var_user(*var_name_path(args[1])) # function ref
+        values = [ctx.eval_expr(arg) for arg in args[2:]]
+        values.insert(0, inline_value)
+        return UserFunction.invoke(ctx, fn, values)
 
     def op_name(self) -> str:
-        return 'invoke_functor'
+        return 'invoke_in_linefunc'
 
 class AndOperation(Operation):
 
@@ -245,7 +325,7 @@ def eval_expr_or_const(ctx: ExecContext, expr: Any) -> Any:
         # and its value is not known in the data dictionary
         if expr.data == "var_ref" and len(expr.children) == 1 and isinstance(expr.children[0], Token) and expr.children[0].type == "NAME":
             name = expr.children[0].value
-            exists, value = ctx.dd.exists(name)
+            exists, value = ctx.var_exists(name)
             return value if exists else name
     # If not one of the special cases, treat this as an expression
     return ctx.eval_expr(expr)
@@ -306,8 +386,8 @@ class OperationBinder(Transformer):
     def deref(self, tree): return SimpleOperation(tree, deref_var)
     def var_ref(self, tree): return VarRef(tree)
     def set_var(self, tree): return SetVarOperation(tree)
-    def compile_functor(self, tree): return CompileFunctorOperation(tree)
-    def invoke_functor(self, tree): return InvokeFunctorOperation(tree)
+    def invoke_func(self, tree): return InvokeFunctionOperation(tree)
+    def invoke_func_inline(self, tree): return InvokeInlineFunctionOperation(tree)
     def function_call(self, tree):
         # The expression becomes the first argument to the function,
         # and it takes the place of the wrapper from parsing

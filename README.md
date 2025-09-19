@@ -83,7 +83,7 @@ VGR has a hierarchical, global data model, viewed as variables. Some variables a
 * `math` : Python math constants such as `math.e` and `math.inf`. Read-only.
 * `os` : Operating system constants such as `os.linesep` and `os.extsep`. Read-only.
 * `string` : More constants that can be used with string functions, like `string.hexdigits` and `string.ascii_letters`. Read-only.
-* `_vgr` : Read-only internals, some dynamic, other changed by shell commands. If you're interested, you can always do `Print _vgr.grammar`
+* `_vgr` : Read-only internals, some dynamic, other changed by REPL commands.
 
 Another set of variable are used by VGR `Select` statements and are used by their target data. For example, querying for Key-Value stores will cause ns, mount, and kv variable set with information from Vault. These are not read-only, but values you set will be overwritten by `Select`.
 
@@ -360,20 +360,18 @@ TODO
 
 ## Comments
 
-True to its polyglot nature, three different commenting styles are available and may be freely intermixed. Can be the only thing on a line or they can appear after a statement end delineated by a `;`. They may be preceed by spaces or tabs.
+True to its polyglot nature, three different commenting styles are available and may be freely intermixed.
 
 * SQL Style : Comments start with `--`
-* Shell Style : Comments tart with `#`
-* 'C', Java, et al Style : Comments start with `//`
+* Shell Style : Comments start with `#`
+* 'C', Java, et al Style : Comments start with `//` or blocks between `/*` and `*/`
 
 ```Text
-# Just like in a Shell Scripts, AWK, or Python...
+# Just like in Shell Scripts, AWK, or Python...
       // Or back in 'C' and Java
 -- SQL-ish too
-Set x to 42; # This is fine
-Set x to 42 -- But this is an error
-             ^
-Unexpected input at line 4, column 14.
+Set x to 42 # This is fine
+Set x /* comment */ to /* again */ 42
 ```
 
 ## Statements
@@ -395,11 +393,10 @@ vgr> Echo; Verbose;
 Verbose;
 Verbose = True
 vgr> Print arg.echo, arg.verbose
-Print arg.echo, arg.verbose
+Print vgr.echo, vgr.verbose
 True True
 vgr> Verbose False; Echo 0;
 Verbose False;
-Echo 0;
 ```
 
 ### Exit and Assert

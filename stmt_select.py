@@ -10,8 +10,6 @@ from lark import Tree, Token, Transformer, Visitor, v_args
 
 from app_exceptions import VgrRuntimeError
 from data_xtract import QueryFilter, InfoOutput, DataExtractor, EndExtractException
-from dbg import print_tree
-from dd_config import DEFAULT_FOR_TYPE_PATH, ROWID_PATH, dd_clear_scratch
 from evaluate import bind_operations
 from exec_context import ExecContext
 from mathpak import poly_false, bound_ops, type_str
@@ -23,15 +21,18 @@ from output import (
     TextRecordWriter,
 )
 from output import RecordWriter, RecordLimiter, RecordCartesianProduct
-from redir import stdout, stderr, print_stderr
+from redir import stdout, stderr
 from stmt_set import load_data_type, load_file_as
 from tags import control_statement
 from xtract_memory import InMemoryExtractor
 from xtract_vault import VAULT_TARGETS, VaultDataExtractor
 
+_ROWID_PATH = ('_', 'rowid')
+
 class SelectAnalyzer(Visitor):
 
     # NB: Need to keep in sync with grammar
+    # TODO it is out of sync...
     _VAR_NAME = re.compile(r'[A-Za-z_](?:[A-Za-z0-9_]|-+[A-Za-z])*(?:\u2032+|[\u2033\u2034\u2057\u2080-\u2089])?')
 
     _DEFAUL_TARGET_NAME = '_record'
@@ -139,8 +140,8 @@ class SelectAnalyzer(Visitor):
         """
         # We add these here because they get passed to down to
         # writers et al for possible extra output (mostly Templates)
-        self.output_opts['debug'] = self.ctx.dd.debug
-        self.output_opts['verbose'] = self.ctx.dd.verbose
+        self.output_opts['debug'] = self.ctx.debug
+        self.output_opts['verbose'] = self.ctx.verbose
         # If there were no output statements (Select From...)
         # we are extracting the entire record and the target
         # name is the name for the columns
@@ -249,7 +250,7 @@ class SelectAnalyzer(Visitor):
         target = target.strip()
         if self._VAR_NAME.fullmatch(target) is None: raise VgrRuntimeError(node, TypeError(f"Value for 'As' must be a valid simple variable name; {target!r}"))
         try:
-            self.ctx.dd.validate_user_set_path(target)
+            self.ctx.validate_user_set_path(target)
             return target
         except ValueError as e:
             raise VgrRuntimeError(node, e) from e
@@ -410,14 +411,14 @@ TODO
     # NB: at this point not all operations will show as bound
     # (notably in the outputs and the predicates) and
     # that is by design, so don't panic
-    if ctx.dd.debug: print_tree(statement)
+    ctx.print_tree(statement)
     output_opts = select.output_opts
-    # If the type was not set, we use the default, and if not there, use CSV
-    output_opts['type'] = output_opts.get('type', (ctx.get_var_user(*DEFAULT_FOR_TYPE_PATH) or 'csv').lower())
+    # If the type was not set, we use the default
+    output_opts['type'] = output_opts.get('type', 'csv')
     writer = create_writer(output_opts, select.output_controls)
-    if ctx.dd.debug: print_stderr(repr(writer))
+    ctx.print_debug(repr(writer))
     extractor = create_extractor(ctx, select.from_opts)
-    if ctx.dd.debug: print_stderr(repr(extractor))
+    ctx.print_debus(repr(extractor))
     QueryRunner(ctx, select, writer).run_extraction(extractor)
 
 class QueryRunner(QueryFilter, InfoOutput):
@@ -438,7 +439,7 @@ class QueryRunner(QueryFilter, InfoOutput):
     @rowid.setter
     def rowid(self, value: int) -> int:
         self._rowid = int(value)
-        self.ctx.set_var_user(self._rowid, *ROWID_PATH)
+        self.ctx.set_var_user(self._rowid, *_ROWID_PATH)
 
     def inc_rowid(self):
         self.rowid += 1
@@ -509,7 +510,7 @@ class QueryRunner(QueryFilter, InfoOutput):
                 raise EndExtractException()
             return True
         finally:
-            dd_clear_scratch(self.ctx.dd)
+            self.ctx.clear_scratch()
 
     def set_data(self, key: str, data: Any) -> None:
         """
@@ -536,7 +537,7 @@ class QueryRunner(QueryFilter, InfoOutput):
         self.ctx.dd.unset_var_user(key)
 
     def print_debug(self, *args, **kwargs):
-        if self.ctx.dd.debug: print_stderr(*args, **kwargs)
+        self.ctx.print_debug(*args, **kwargs)
 
     def print_verbose(self, /, *args, **kwargs):
         self.ctx.print_verbose(*args, **kwargs)

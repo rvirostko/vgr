@@ -1,7 +1,6 @@
 """
-The base of a Unix shell like editable command line. Include some commands for history control
-and simple file control (cd and ls only).
-Also the base of a "help" system.
+The base of a Unix-like editable command line. Include some commands for history control
+and simple file control. Also the base of a "help" system.
 """
 
 from abc import ABC, abstractmethod
@@ -11,13 +10,14 @@ import ast
 import os
 import re
 import socket
-import sys
+import subprocess
 import time
 
 from prompt_toolkit import PromptSession
 from prompt_toolkit.history import FileHistory
 
-from mathpak import poly_bool, type_str
+from mathpak import poly_bool
+from output import expand_filename
 
 class CustomArgParser(ArgumentParser):
     """A non-exiting argument parser"""
@@ -41,7 +41,7 @@ class ParserBuilder(ABC):
 
 class LimitedFileHistory(FileHistory):
     """A file-based history that enforces a max line limit"""
-    def __init__(self, filename, max_history: int=100):
+    def __init__(self, filename: str='.history', max_history: int=100):
         super().__init__(filename)
         self.max_length = max_history
 
@@ -92,6 +92,7 @@ class VgrHistory(LimitedFileHistory):
             super().append_string(string)
 
 class CmdLine:
+    _DEFAULT_HISTORY_SIZE = 100
 
     _CD_PARSER: ArgumentParser = (ParserBuilder()
                     .argument('path', nargs=OPTIONAL, type=str, default='~')
@@ -123,8 +124,11 @@ class CmdLine:
     }
 
     def __init__(self):
-        self._print_debug("Loading history from", self.history_filename)
-        self._print_debug("Max history entries is", self.max_history_entries)
+        self._prompt = self._prompt or '> '
+        self._history_filename = self._history_filename or '.history'
+        self._max_history_entries = self._max_history_entries or 100
+        self.print_verbose("Loading history from", self.history_filename)
+        self.print_verbose("Max history entries is", self.max_history_entries)
         self._history = VgrHistory(self.history_filename, self.max_history_entries)
         self.multiline = False
         self._dispatch = {}
@@ -134,13 +138,15 @@ class CmdLine:
         self.add_cmd("multiline", self._exec_multiline)
         self.add_cmd("prompt", self._exec_prompt)
         self.add_cmd("pwd", self._exec_pwd)
+        self.add_cmd("!", self._exec_subshell)
+        self.add_cmd("shell", self._exec_subshell)
 
     def add_cmd(self, cmd: str, func) -> None:
         self._dispatch[cmd] = func
 
     def _exec_cd(self, *args) -> None:
         """
-**Shell: Change the current working directory**
+**REPL: Change the current working directory**
 
 * `cd` : changes to the user's home directory
 * `cd` _dir_ : changes to the given directory
@@ -153,7 +159,7 @@ need to change location after starting a session you can use this command.
             path = os.path.abspath(os.path.expanduser(values.path))
             try:
                 os.chdir(path)
-                self._print_verbose('Changed to', os.getcwd())
+                self.print_verbose('Changed to', os.getcwd())
             except FileNotFoundError:
                 print(path, 'does not exist')
             except PermissionError:
@@ -161,7 +167,7 @@ need to change location after starting a session you can use this command.
 
     def _exec_pwd(self, *args) -> None:
         """
-**Shell: Print the current working directory**
+**REPL: Print the current working directory**
 
 * `pwd` : prints the name of the current directory
 """
@@ -170,7 +176,7 @@ need to change location after starting a session you can use this command.
 
     def _exec_history(self, *args):
         """
-**Shell: Command History**
+**REPL: Command History**
 
 * `history` : display recent history
 * `history --clear` : clear history
@@ -183,14 +189,17 @@ need to change location after starting a session you can use this command.
             else:
                 if values.clear is not None:
                     self._history.clear()
-                    self._print_verbose('History cleared')
+                    self.print_verbose('History cleared')
                 if values.max is not None:
-                    self.max_history_entries = self._history.max_length = values.max
-                    self._print_verbose('History max entries =', values.max)
+                    try:
+                        self._max_history_entries = int(values.max)
+                    except ValueError:
+                        self._max_history_entries = self._DEFAULT_HISTORY_SIZE
+                    self.print_verbose('History max entries =', values.max)
 
     def _exec_multiline(self, *args):
         """
-**Shell: Multiline Editing Mode**
+**REPL: Multiline Editing Mode**
 
 * `multiline` : display the current setting
 * `multiline [True | False]` : set multiline editing mode
@@ -202,12 +211,12 @@ To execute commands in multiline editing mode, use `META-Return` instead.
         values = self._parse(self._MULTILINE_PARSER, *args)
         if values is not None:
             if values.multiline is not None: self.multiline = values.multiline
-            self._print_verbose('Multiline mode is', self.multiline)
+            self.print_verbose('Multiline mode is', self.multiline)
             if self.multiline: print('Use Meta-Return to execute commands')
 
     def _exec_prompt(self, *args):
         r"""
-**Shell: Change the Shell's Prompt**
+**REPL: Change the Prompt**
 
 * `prompt` : print the template used to generate the interactive prompt
 * `prompt` _template_ : set the prompt to the template
@@ -233,19 +242,50 @@ Changes made at runtime are not persistent.
             if values.template is None:
                 print(f'prompt is {self.prompt!r}')
             else:
-                self.prompt = values.template
-                self._print_verbose(f'Prompt changed to {self.prompt!r}')
+                self._prompt = values.template
+                self.print_verbose(f'Prompt changed to {self.prompt!r}')
 
-    def _exec_help(self, *args) -> None:
-        pass
+    def _exec_subshell(self, *args) -> None:
+        """
+**REPL: Open an OS sub-shell**
 
-    def _print_doc(self, func) -> None:
-        pass
+* `shell` : open an interactive sub-shell
+* `shell` _command_: run the command in a sub-shell
+
+You can use `!` as an alias for `shell`
+"""
+        if os.name == "nt":
+            # Prefer MSYS2 / Git Bash / Cygwin if they set SHELL
+            shell = os.environ.get('SHELL')
+            if shell and shell.endswith('bash'):
+                shell = [shell]
+            else:
+                # Fall back to cmd.exe only, never PowerShell
+                shell = [os.environ.get('COMSPEC', 'cmd.exe')]
+        else:
+            # POSIX (Linux, macOS, WSL, etc.)
+            shell = [os.environ.get('SHELL', '/bin/sh')]
+        if args:
+            cmd = ' '.join(args).strip()
+            subprocess.run(cmd, shell=True, executable=shell[0], check=False)
+        else:
+            subprocess.run(shell, check=False)
+
+    def _exec_help(self, *args) -> None: pass
+
+    def _print_doc(self, func) -> None: pass
 
     def _parse_command(self, line: str):
-        """Q&D parsing of a command line so we can check for shell commands"""
+        """Q&D parsing of a command line so we can check for REPL commands"""
+        stripped = line.strip()
+        if not stripped: return None
+        # Detect sub-shell escape
+        if stripped.startswith("!"):
+            # parts: command marker "!", and the rest as a single string
+            rest = stripped[1:].lstrip()
+            return "!", [rest] if rest else []
         # Split on spaces, string quoted args
-        parts = [next(filter(None, m.groups()), '') for m in re.finditer(r'"([^"]*)"|\'([^\']*)\'|(\S+)', line.strip())]
+        parts = [next(filter(None, m.groups()), '') for m in re.finditer(r'"([^"]*)"|\'([^\']*)\'|(\S+)', stripped)]
         if not parts: return None
         return parts[0], parts[1:]
 
@@ -261,51 +301,26 @@ Changes made at runtime are not persistent.
         try:
             return parser.parse_args(args)
         except (ArgumentError, ArgumentTypeError, TypeError, ValueError) as e:
-            self._print_exception(e)
+            self.print_exception(e)
             return None
 
-    def _print_exception(self, e: Exception) -> None:
-        self._print_stderr(e if self.debug else e.args[0] if e.args else f'{type_str(e)}')
-
-    def _print_stderr(self, *args, **kwargs) -> None: print(*args, **kwargs, file=sys.stderr)
-
-    def _print_debug(self, *args, **kwargs) -> None:
-        if self.debug: self._print_stderr(*args, **kwargs)
-
-    def _print_verbose(self, *args, **kwargs) -> None:
-        if self.verbose: print(*args, **kwargs)
+    @abstractmethod
+    def print_exception(self, e: Exception) -> None: pass
 
     @abstractmethod
-    def execute_statements(self, text: str) -> bool:
-        return True
+    def print_verbose(self, *args, **kwargs) -> None: pass
+
+    @abstractmethod
+    def execute_statements(self, text: str) -> bool: pass
 
     @property
-    @abstractmethod
-    def debug(self) -> bool: pass
+    def prompt(self) -> str: return self._prompt
 
     @property
-    @abstractmethod
-    def verbose(self) -> bool: pass
+    def history_filename(self) -> str: return expand_filename(self._history_filename)
 
     @property
-    @abstractmethod
-    def prompt(self) -> str: pass
-
-    @prompt.setter
-    @abstractmethod
-    def prompt(self, value: str): pass
-
-    @property
-    @abstractmethod
-    def history_filename(self) -> str:  pass
-
-    @property
-    @abstractmethod
-    def max_history_entries(self) -> int: pass
-
-    @max_history_entries.setter
-    @abstractmethod
-    def max_history_entries(self, value: int): pass
+    def max_history_entries(self) -> int: return self._max_history_entries
 
     def run(self) -> None:
         session = PromptSession(history=self._history)
@@ -320,7 +335,7 @@ Changes made at runtime are not persistent.
                 break
             else:
                 if not text.isspace():
-                    # Determine if the user entered a shell command rather than
+                    # Determine if the user entered a REPL command rather than
                     # a statement to be executed
                     r = self._parse_command(text)
                     if r is not None:
@@ -328,6 +343,6 @@ Changes made at runtime are not persistent.
                         if command in self._dispatch:
                             self._dispatch[command](*options)
                             continue
-                    # Didn't look like a shell command, so it must be a statement
+                    # Didn't look like a REPL command, so it must be a statement
                     if not self.execute_statements(text):
                         break

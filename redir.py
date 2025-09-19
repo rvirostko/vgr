@@ -5,7 +5,6 @@ Handles the stdout/stderr redirection used by statements.
 """
 
 from io import IOBase
-import textwrap
 
 from lark import Tree
 
@@ -29,13 +28,6 @@ def print_stdout(*args, **kwargs) -> None:
 def print_stderr(*args, **kwargs) -> None:
     """Same as print() except that it can redirect to an output file"""
     print(*args, file=_REDIRECTOR.stderr(), **kwargs)
-
-def shorten(s: str, width: int=64) -> str:
-    """
-    Limits output that can appear in debug/verbose content.
-    Should be used with repr(...) when you don't know the object size.
-    """
-    return textwrap.shorten(s, width=width, placeholder="\u2026")
 
 @bound_ops("Open")
 def execute_open(ctx: ExecContext, statement: Tree) -> None:
@@ -71,6 +63,7 @@ Also see *Close*
         getattr(_REDIRECTOR, stream)(prepare_path(filename), mode=mode)
         ctx.print_verbose(stream, "redirected to", filename)
     except Exception as e:
+        # TODO !! this looks totally wrong (C/P error)
         raise VgrExitingException(VgrExitingException.EXIT_FAILED, statement, str(e)) from e
 
 @bound_ops("Close")

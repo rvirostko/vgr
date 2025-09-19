@@ -6,7 +6,10 @@ import logging
 
 from lark import Tree
 
-from app_exceptions import VgrExitingException
+from app_exceptions import (
+    VgrExitingException,
+    VgrStatementReturn,
+)
 from exec_context import ExecContext
 from mathpak import bound_ops, poly_true, poly_int
 from redir import print_stderr
@@ -17,12 +20,12 @@ _LOG = logging.getLogger(__name__)
 @bound_ops("Exit")
 def execute_exit(ctx: ExecContext, statement: Tree) -> None:
     """
-**Terminate execution**
+**Exits the script setting a return code**
 
 * Exit [;]
 * Exit _expression_ [;]
 
-The _expression_ is a numeric the code returned to the shell.
+The _expression_ is a numeric the code returned to the operating system.
 The default return code is zero.
 Note that in this specific case "True" returns zero and "False" returns one.
 """
@@ -42,10 +45,10 @@ Note that in this specific case "True" returns zero and "False" returns one.
 @bound_ops("Assert")
 def execute_assert(ctx: ExecContext, statement: Tree) -> None:
     """
-**Assert that a condition is met, terminating execution if it is not**
+**Assert that a condition is met, halting execution if it is not**
 
 * Assert _expression_ [;]
-* Assert _expression_ : _expression_ [, _expression]... [;]
+* Assert _expression_ : _expression_ [, _expression_]... [;]
 
 The first expression is evaluated as a boolean value which must be true for execution to continue.
 
@@ -71,3 +74,15 @@ Execution ends with an exit code of 1 indicating failure
         msg = str(msg) if msg is not None else f'{SSM.source_for(statement)} failed'
         _LOG.warning('%s', msg)
         raise VgrExitingException(VgrExitingException.EXIT_FAILED, statement, msg)
+
+@bound_ops("Return")
+def execute_return(ctx: ExecContext, statement: Tree) -> None:
+    """
+**Return a value from a function or exit a procedure**
+
+* Return [;]
+* Return _expression_ [;]
+
+"""
+    rc = ctx.eval_expr(statement.children[0]) if statement.children else None
+    raise VgrStatementReturn(rc, statement)

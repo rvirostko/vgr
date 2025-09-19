@@ -1,39 +1,83 @@
-import sys
-import traceback
+import re
+from typing import Any
 
-from lark import Lark, Tree, Token, exceptions
-from lark.exceptions import VisitError
+from lark import Tree
+
+from lark.exceptions import (
+    LexError,
+    ParseError,
+    UnexpectedToken,
+    VisitError,
+)
 
 from src_mgr import SSM
-from mathpak import type_str
 
-class VgrException(VisitError):
-    def __init__(self, node, orig_exc, source_text):
-        if isinstance(node, Tree):
-            rule = getattr(node, 'data', '<unknown>')
-            meta = node.meta
-        elif isinstance(node, Token):
-            rule = f'token:{node.type}'
-            meta = node
-        else:
-            raise TypeError(f"Expected Tree or Token, got {type_str(node)}")
-        super().__init__(rule, node, orig_exc)
-        self.line = getattr(meta, 'line', None)
-        self.column = getattr(meta, 'column', None)
-        self._source_text = source_text
+_ERROR_XLATE = {
+    KeyboardInterrupt:    "Interrupted",
+    LexError:             "Lexing Error",
+    ParseError:           "Parsing Error",
+    UnexpectedToken:      "Syntax Error",
+    VisitError:           "Visitor Error",
+    ZeroDivisionError:    "Divide by Zero",
+}
+
+def _exception_type(e: Exception) -> str:
+    """
+    Convert the exception type into a human-readable string based on a dictionary.
+    If no custom message is found, fallback to the default class name.
+    """
+    if e is None: return 'Error'
+    cls = e if isinstance(e, type) else type(e)
+    if cls in _ERROR_XLATE: return _ERROR_XLATE.get(cls)
+    # insert space before A-Z if preceded by lowercase or digit
+    s = re.sub(r'(?<=[a-z0-9])([A-Z])', r' \1', cls.__name__)
+    # handle acronym boundary: XMLParser -> XML Parser
+    return re.sub(r'(?<=[A-Z])([A-Z][a-z])', r' \1', s)
+
+_MSG_EXCEPTIONS = (
+	IsADirectoryError,
+    FileNotFoundError,
+    IOError,
+    NotImplementedError,
+    OSError,
+    PermissionError,
+    TypeError,
+    ValueError,
+)
+
+def _exception_message(e: Exception) -> str:
+    """
+    Return a user-friendly message from any exception instance.
+    - If no args: returns empty string
+    - If one arg: returns it as string
+    - If multiple args: joins them with commas
+    """
+    if not e or not e.args: return ''
+    if not isinstance(e, _MSG_EXCEPTIONS): return ''
+    if len(e.args) == 1: return str(e.args[0])
+    return ', '.join(map(str, e.args))
+
+class VgrException(Exception):
+    def __init__(self, node, orig_exc: Exception, source_origin: str, source_text: str):
+        self.node = node
+        self.orig_exc = orig_exc
+        self.source_origin = source_origin
+        self.source_text = source_text
+        meta = node.meta if isinstance(node, Tree) else node
+        self.line = getattr(meta, 'line', None) if node else None
+        self.column = getattr(meta, 'column', None) if node else None
 
     def get_context(self, span=40):
-        if not self._source_text or self.line is None or self.column is None:
-            return ""
-        lines = self._source_text.splitlines()
-        if not (0 < self.line <= len(lines)):
-            return ""
+        if not self.source_text or self.line is None or self.column is None: return ''
+        lines = self.source_text.splitlines()
+        if not 0 < self.line <= len(lines): return ''
         line_str = lines[self.line - 1]
         # Strip leading whitespace and adjust column
         leading_ws = len(line_str) - len(line_str.lstrip())
         trimmed_line = line_str.lstrip()
         adjusted_column = max(self.column - leading_ws, 1)
         # Compute start and end positions for span truncation
+        # NB: lark used one-based lines and columns
         start = max(0, adjusted_column - 1 - span)
         end = adjusted_column - 1 + span
         snippet = trimmed_line[start:end]
@@ -41,18 +85,25 @@ class VgrException(VisitError):
         return f"{snippet}\n{pointer_line}"
 
     def __str__(self):
-        context = self.get_context()
-        exc_txt = "Interrupted" if isinstance(self.orig_exc, KeyboardInterrupt) else _capitalize_first(str(self.orig_exc).strip())
-        location = f'{exc_txt}{" at" if exc_txt else "At"} line {self.line}, column {self.column}'
-        return f'{context}\n{location}' if context else location
+        msg = _exception_message(self.orig_exc) or _exception_type(self.orig_exc) or 'Error'
+        src = self.source_origin if self.source_origin and self.source_origin != '<repl>' else None
+        line = f'line {self.line}' if self.line else None
+        col = f'column {self.column}' if self.column else None
+        if src or line or col:
+            # All this because join() suxs...
+            msg += ' at'
+            if src: msg += ' ' + src
+            if line: msg += ' ' + line
+            if col: msg += (', ' if line else ' ') + col
+        return '\n'.join((self.get_context(), msg))
 
-
-def _capitalize_first(s: str) -> str:
-    return s[:1].upper() + s[1:] if s else s
+    @staticmethod
+    def rewrap(e: "VgrException") -> "VgrException":
+        return VgrException(e.node, e.orig_exc, e.source_origin, e.source_text)
 
 class VgrRuntimeError(VgrException):
     def __init__(self, tree, orig_exc):
-        super().__init__(tree, orig_exc, SSM.statement_text())
+        super().__init__(tree, orig_exc, *SSM.current)
 
 class VgrExitingException(VgrException):
     """Raised when a statement has decided the application needs to exit"""
@@ -61,7 +112,7 @@ class VgrExitingException(VgrException):
     EXIT_FAILED = 1
 
     def __init__(self, exit_code: int, statement: Tree, message: str=''):
-        super().__init__(statement, Exception(message), SSM.statement_text())
+        super().__init__(statement, Exception(message), *SSM.current)
         self.message = message.strip()
         self.exit_code = exit_code
         self.statement = statement
@@ -72,7 +123,7 @@ class VgrStatementBreak(VgrException):
     NB: root exception is for when it is used inappropriately
     """
     def __init__(self, statement: Tree):
-        super().__init__(statement, Exception('Break used outside control statement'), SSM.statement_text())
+        super().__init__(statement, Exception('Break used outside control statement'), *SSM.current)
 
 class VgrStatementContinue(VgrException):
     """
@@ -80,72 +131,11 @@ class VgrStatementContinue(VgrException):
     NB: root exception is for when it is used inappropriately
     """
     def __init__(self, statement: Tree):
-        super().__init__(statement, Exception('Continue used outside control statement'), SSM.statement_text())
+        super().__init__(statement, Exception('Continue used outside control statement'), *SSM.current)
 
-# List of tokens that we don't try to translate in exceptions
-_TOKEN_PASS = ('NAME',)
+class VgrStatementReturn(VgrException):
+    """Raised when a returning a value from a function or exiting a procedure"""
 
-_TERMINALS = []
-
-def remember_terminals(parser: Lark) -> None:
-    _TERMINALS.clear()
-    _TERMINALS.extend(parser.parser.lexer_conf.terminals)
-
-def token_value(token_name) -> str:
-    """Lark tokens to their values for error display"""
-    if token_name not in _TOKEN_PASS:
-        for terminal in _TERMINALS:
-            # Get the regex pattern or literal value
-            if terminal.name == token_name: return repr(terminal.pattern.value)
-    # Fallback to token name if no mapping is found
-    return token_name
-
-def get_expected(e: Exception) -> str:
-    rc = ''
-    if hasattr(e, 'token') and e.token:
-        rc += token_value(e.token) + 'unexpected.'
-    if hasattr(e, 'expected') and e.expected:
-        expected = e.expected
-        if not isinstance(expected, (list, tuple, set)): expected = [expected]
-        if expected:
-            rc = '\nExpected '
-            values = [token_value(tok) for tok in sorted(expected)]
-            if len(values) == 1: rc += values[0]
-            elif len(values) == 2: rc += values[0] + ' or ' + values[1]
-            else: rc += ', '.join(values[:-1]) + ', or ' + values[-1]
-            rc += '.'
-    return rc
-
-_ERROR_XLATE = {
-    exceptions.UnexpectedInput: "Syntax error",
-    exceptions.UnexpectedToken: "Unexpected input",
-    exceptions.UnexpectedEOF: "Unexpected End-of-File",
-    exceptions.UnexpectedCharacters: "Unexpected character",
-    exceptions.ParseError: "Error",
-    ValueError: "Error"
-}
-
-def exception_type(e: Exception) -> str:
-    """
-    Convert the exception type into a human-readable string based on a dictionary.
-    If no custom message is found, fallback to the default class name.
-    """
-    etype = type(e)
-    return _ERROR_XLATE.get(etype, etype.__name__)
-
-def format_generic_exception(e: Exception) -> str:
-    try:
-        return exception_type(e) + ': ' + str(e)
-    except (TypeError, ValueError) as e2:
-        traceback.print_exc(file=sys.stderr)
-        print(e2, file=sys.stderr)
-        return str(e)
-
-def format_unexpected_input(e: exceptions.UnexpectedInput) -> str:
-    try:
-        # TODO get file name if applicable
-        return f'{e.get_context(SSM.statement_text())}{exception_type(e)} at line {e.line}, column {e.column}.{get_expected(e)}'
-    except (TypeError, ValueError) as e2:
-        traceback.print_exc(file=sys.stderr)
-        print(e2, file=sys.stderr)
-        return str(e)
+    def __init__(self, return_value: Any, statement: Tree):
+        super().__init__(statement, Exception('Return used outside function/procedure'), *SSM.current)
+        self.return_value = return_value

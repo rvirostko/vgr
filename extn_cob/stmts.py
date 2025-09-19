@@ -9,8 +9,7 @@ import sys
 from lark import Tree
 
 from app_exceptions import VgrExitingException, VgrStatementBreak, VgrStatementContinue, VgrRuntimeError
-from dd_config import do_set, do_assignment, do_unset
-from evaluate import bind_operations, var_name_path
+from evaluate import bind_operations, var_name_path, do_set, do_unset
 from exec_context import ExecContext
 from mathpak import (
     bound_ops,
@@ -66,11 +65,11 @@ unchanged. There is no limit on the length of user input, but it is a single lin
 """
     name = statement.data
     if name in _DT_FUNCS:
-        do_set(ctx.dd, _DT_FUNCS.get(statement.data)(), *var_name_path(statement.children[0]))
+        do_set(ctx, _DT_FUNCS.get(statement.data)(), *var_name_path(statement.children[0]))
     else:
         line = sys.stdin.readline()
         line = line.rstrip('\n') if line else line
-        if line: do_set(ctx.dd, line, *var_name_path(statement.children[0]))
+        if line: do_set(ctx, line, *var_name_path(statement.children[0]))
 
 @bound_ops("Stop-Run")
 def execute_exit(_: ExecContext, statement: Tree) -> None:
@@ -81,7 +80,7 @@ def execute_exit(_: ExecContext, statement: Tree) -> None:
 
 Ends the program with an exit code of zero.
 """
-    raise VgrExitingException(VgrExitingException.EXIT_SUCCESS, statement, '')
+    raise VgrExitingException(VgrExitingException.EXIT_SUCCESS, statement)
 
 @control_statement
 @bound_ops("Perform-Until")
@@ -160,7 +159,7 @@ If not specified, the test expression is performed before the block of statement
     cindex += 1
     try:
         while True:
-            do_set(ctx.dd, value, *path)
+            do_set(ctx, value, *path)
             if test_before and poly_true(ctx.eval_expr(predicate)): return
             try:
                 ctx.dispatch_statements(statement.children[cindex:])
@@ -171,14 +170,16 @@ If not specified, the test expression is performed before the block of statement
             value += inc
             if not test_before and poly_true(ctx.eval_expr(predicate)): return
     finally:
-        do_unset(ctx.dd, *path)
+        do_unset(ctx, *path)
 
 @bound_ops("Compute")
 def execute_compute(ctx: ExecContext, statement: Tree) -> None:
     """
-**Assign a value to a variable**
+**Evaluate and expression and assign to a variable**
 
 * Compute _variable_ = _expression_ [;]
+
+See also `Set`
 """
     execute_set(ctx, statement)
 
@@ -190,6 +191,8 @@ def execute_next_sentence(_: ExecContext, statement: Tree) -> None:
 * Next Sentence [;]
 
 Can be used with conditional and looping statements
+
+See also `Break`
 """
     raise VgrStatementBreak(statement)
 
@@ -226,7 +229,7 @@ This is fundamentally an arithmetic, scalar opertion.
     path = var_name_path(statement.children[0])
     x = poly_number(ctx.get_var_user(*path)) or 0
     y = poly_number(ctx.eval_expr(statement.children[1])) or 0
-    do_set(ctx.dd, poly_add(x, y), *path)
+    do_set(ctx, poly_add(x, y), *path)
 
 @bound_ops("Set-Down")
 def execute_dec(ctx: ExecContext, statement: Tree) -> None:
@@ -241,7 +244,7 @@ This is fundamentally an arithmetic, scalar opertion.
     path = var_name_path(statement.children[0])
     x = poly_number(ctx.get_var_user(*path)) or 0
     y = poly_number(ctx.eval_expr(statement.children[1])) or 0
-    do_set(ctx.dd, poly_sub(x, y), *path)
+    do_set(ctx, poly_sub(x, y), *path)
 
 @bound_ops("Move")
 def execute_move_to(ctx: ExecContext, statement: Tree) -> None:
@@ -252,10 +255,10 @@ def execute_move_to(ctx: ExecContext, statement: Tree) -> None:
 * Move Corresponding _expression_ To _variable_ [;]
 * Move Corr _expression_ To _variable_ [;]
 
-The first form is equivalent to a Set operation.
+The first form is equivalent to `Set`.
 The second and third forms work with dictionaries, copying attribute from the
 evaluated _expression_ to _variable_. If the variable does not exist,
-is None or not a dictionary, a regular move is performed.
+is _None_ or not a dictionary, a regular move is performed.
 If _expression_ does not resolve to a dictionary, the corresponding
 request is ignored and a regular move is performed.
 """
@@ -277,11 +280,11 @@ request is ignored and a regular move is performed.
         # This isn't strictly needed as we've done a modification in place
         # However, it does print out something in verbose, so we execute
         # for that side effect
-        do_set(ctx.dd, dest, *path)
+        do_set(ctx, dest, *path)
     else:
         # Either no corresponding, or either the src/dest is not a dict
         # This is like a "regular" set
-        do_assignment(ctx.dd, expr, src, path)
+        do_set(ctx, src, *path)
 
 @bound_ops("Add")
 def execute_add_to(ctx: ExecContext, statement: Tree) -> None:
@@ -297,13 +300,13 @@ This is fundamentally an arithmetic, scalar opertion.
     path = tuple(name.value for name in statement.children[-1].children)
     x = poly_number(ctx.get_var_user(*path)) or 0
     args = tuple(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
-    do_set(ctx.dd, poly_add(x, *args), *path)
+    do_set(ctx, poly_add(x, *args), *path)
 
 # Doc added to add_to
 def execute_add_giving(ctx: ExecContext, statement: Tree) -> None:
     path = tuple(name.value for name in statement.children[-1].children)
     args = tuple(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
-    do_set(ctx.dd, poly_add(*args), *path)
+    do_set(ctx, poly_add(*args), *path)
 
 @bound_ops("Subtract")
 def execute_sub_from(ctx: ExecContext, statement: Tree) -> None:
@@ -319,13 +322,13 @@ This is fundamentally an arithmetic, scalar opertion.
     path = tuple(name.value for name in statement.children[-1].children)
     x = poly_number(ctx.get_var_user(*path)) or 0
     args = tuple(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
-    do_set(ctx.dd, poly_sub(x, *args), *path)
+    do_set(ctx, poly_sub(x, *args), *path)
 
 # Doc added to sub_from
 def execute_sub_giving(ctx: ExecContext, statement: Tree) -> None:
     path = tuple(name.value for name in statement.children[-1].children)
     args = tuple(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
-    do_set(ctx.dd, poly_sub(args[-1], *args[:-1]), *path)
+    do_set(ctx, poly_sub(args[-1], *args[:-1]), *path)
 
 @bound_ops("Multipy")
 def execute_mul_by(ctx: ExecContext, statement: Tree) -> None:
@@ -347,7 +350,7 @@ This is fundamentally an arithmetic, scalar opertion.
         value = poly_mul(poly_number(ctx.get_var_user(*path)) or 0, args[0])
     else:
         value = poly_mul(args[0], args[1])
-    do_set(ctx.dd, value, *path)
+    do_set(ctx, value, *path)
 
 @bound_ops("Divide")
 def execute_div_into(ctx: ExecContext, statement: Tree) -> None:
@@ -370,13 +373,13 @@ This is fundamentally an arithmetic, scalar opertion.
         value = poly_div(poly_number(ctx.get_var_user(*path)) or 0, args[0])
     else:
         value = poly_div(args[1], args[0])
-    do_set(ctx.dd, value, *path)
+    do_set(ctx, value, *path)
 
 # Doc added to div_into
 def execute_div_by(ctx: ExecContext, statement: Tree) -> None:
     path = tuple(name.value for name in statement.children[-1].children)
     args = tuple(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
-    do_set(ctx.dd, poly_div(*args), *path)
+    do_set(ctx, poly_div(*args), *path)
 
 @bound_ops("Exhibit")
 def execute_exhibit(ctx: ExecContext, statement: Tree) -> None:
@@ -385,7 +388,7 @@ def execute_exhibit(ctx: ExecContext, statement: Tree) -> None:
 
 * Exhibit _variable_ [, _variable_]... [;]
 
-The values are displayed on individual lines. If a variable has sub variables, each
+The values are displayed on individual lines. If a variable has sub values, each
 portion is displayed on its own line.
 
 Without arguments, all variables are displayed
@@ -408,7 +411,7 @@ see control characters.
         for var_name in children:
             path = tuple(name.value for name in var_name.children)
             name = '.'.join(path)
-            exists, value = ctx.dd.exists(*path)
+            exists, value = ctx.var_exists(*path)
             if exists:
                 exhibit_value(name, value)
             else:
@@ -428,8 +431,8 @@ def execute_display_on(ctx: ExecContext, statement: Tree) -> None:
 * Display _expression_... On Error [;]
 
 The default is to print to the output stream.
-While similar to Print, Display does not use _arg.ofs_ or _arg.ors_, with no separator
-between items and ending with a newline.
+While similar to `Print`, `Display` does not use _arg.ofs_ or _arg.ors_, instead using
+with no separator between items and always ending with a newline.
 """
     dest_stdout = True
     args = tuple()
@@ -454,10 +457,6 @@ def execute_evaluate(ctx: ExecContext, statement: Tree) -> None:
 **Choose from a set of statements based on a value**
 
 * Evaluate _expression_
-    When [Not] _expression_  _statement_...
-    When [Not] _expression_ [Through | Thru] _expression_: _statement_...
-  End-Evaluate [;]
-* Evaluate _expression_
     When [Not] _expression_ _statement_...
     When [Not] _expression_ [Through | Thru] _expression_ _statement_...
     When Other _statement_...
@@ -465,6 +464,7 @@ def execute_evaluate(ctx: ExecContext, statement: Tree) -> None:
 
 The expression in the statement is evaluated and it becomes the
 _desired value_ which is compared against values in `When` clauses.
+The `Other` clause is executed if no `When`s match. Its use is optional.
 
 The comparison performed is identical to the `==` operator–or `!-` if `Not` is present– and follows
 the same type rules.

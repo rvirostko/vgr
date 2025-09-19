@@ -5,12 +5,11 @@ BASIC extension statements
 from lark import Tree
 
 from app_exceptions import VgrStatementBreak, VgrStatementContinue
+from evaluate import var_name_path, do_set, do_unset
 from exec_context import ExecContext
 from stmt_exec import bind_operations, exec_loop
 from stmt_set import execute_set
 from tags import control_statement
-from dd_config import do_set, do_unset
-from evaluate import var_name_path
 
 from mathpak import bound_ops
 
@@ -88,7 +87,7 @@ following it are skipped and looping proceeds.
         # NB: if start/end are the same, the loop executes once,
         #     which is typical for Basic implementations
         while (inc > 0 and value <= end) or (inc < 0 and value >= end):
-            do_set(ctx.dd, value, *path)
+            do_set(ctx, value, *path)
             try:
                 ctx.dispatch_statements(statement.children[cindex:])
             except VgrStatementBreak:
@@ -97,7 +96,7 @@ following it are skipped and looping proceeds.
                 pass
             value += inc
     finally:
-        do_unset(ctx.dd, *path)
+        do_unset(ctx, *path)
 
 @bound_ops("Exit-Block")
 def execute_exit(_: ExecContext, statement: Tree) -> None:
@@ -140,6 +139,7 @@ BASIC equivalent of _Set_
 """
     execute_set(ctx, statement)
 
+@control_statement # prevents echoing itself
 @bound_ops("Troff")
 def execute_troff(ctx: ExecContext, _: Tree) -> None:
     """
@@ -149,9 +149,10 @@ def execute_troff(ctx: ExecContext, _: Tree) -> None:
 
 BASIC equivalent of _Echo False_
 """
-    ctx.dd.echo = False
+    ctx.echo = False
     ctx.print_verbose('Trace Off')
 
+@control_statement # prevents echoing itself
 @bound_ops("Tron")
 def execute_tron(ctx: ExecContext, _: Tree) -> None:
     """
@@ -161,5 +162,5 @@ def execute_tron(ctx: ExecContext, _: Tree) -> None:
 
 BASIC equivalent of _Echo True_
 """
-    ctx.dd.echo = True
+    ctx.echo = True
     ctx.print_verbose('Trace On')

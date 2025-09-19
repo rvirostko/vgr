@@ -204,6 +204,15 @@ def poly_isstr(x: Any) -> bool:
 """
     return isinstance(x, str)
 
+def poly_isdict(x: Any) -> bool:
+    """
+**Returns _True_ if the value is a dictionary**
+
+* _value_.IsDictionary()
+
+"""
+    return isinstance(x, dict)
+
 def poly_islist(x: Any) -> bool:
     """
 **Returns _True_ if the value is a list**

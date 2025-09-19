@@ -56,6 +56,7 @@ from mathpak import (
     poly_center,
     poly_chr,
     poly_clamp,
+    poly_clone,
     poly_contains_all,
     poly_contains_any,
     poly_count,
@@ -88,6 +89,7 @@ from mathpak import (
     poly_isascii,
     poly_isbool,
     poly_isdecimal,
+    poly_isdict,
     poly_isdigit,
     poly_isempty,
     poly_isfinite,
@@ -375,12 +377,6 @@ The values for _x_ and _y_  are evaluated as booleans.
     return True
 
 _BUILT_IN_FUNCS = {
-# TODO make into operators...
-    "∑":              poly_sum,
-    "σ²":             poly_pvariance,
-    "s²":             poly_variance,
-    "Sum":            poly_sum,
-
     "Abs":            poly_abs,
     "Add":            poly_add,
     "AppendStr":      poly_append,
@@ -401,6 +397,7 @@ _BUILT_IN_FUNCS = {
     "Centre":         poly_center,
     "Chr":            poly_chr,
     "Clamp":          poly_clamp,
+    "Clone":          poly_clone,
     "CombineWith":    _combine_with,
     "CompilePattern": compile_pattern,
     "Contains":       poly_contains_any,
@@ -439,6 +436,7 @@ _BUILT_IN_FUNCS = {
     "IsBetween":      poly_between,
     "IsBool":         poly_isbool,
     "IsDecimal":      poly_isdecimal,
+    "IsDictionary":   poly_isdict,
     "IsDigit":        poly_isdigit,
     "IsDirectory":    is_dir,
     "IsEmpty":        poly_isempty,
@@ -551,6 +549,7 @@ _BUILT_IN_FUNCS = {
     "StrRev":         poly_strrev, # a (MS) 'C'-like name
     "Sub":            poly_sub,
     "SubStr":         poly_substr,
+    "Sum":            poly_sum,
     "SwapCase":       poly_swapcase,
     "TitleCase":      poly_title,
     "ToBinary":       poly_bin,

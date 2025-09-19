@@ -27,6 +27,7 @@ from .files import base_name, dir_name, is_dir, is_file, file_exists
 from .general import (
     dsort,
     poly_ascii,
+    poly_clone,
     poly_firstitem,
     poly_getitem,
     poly_hash,
@@ -153,6 +154,7 @@ from .types import (
     poly_float,
     poly_int,
     poly_isbool,
+    poly_isdict,
     poly_isfinite,
     poly_isfloat,
     poly_isinf,

@@ -6,10 +6,9 @@ import ast
 import math
 import os
 
-from lark import Lark, Tree, Token, Transformer, v_args
+from lark import Lark, Tree, Token, Transformer, v_args, exceptions
 
 from app_exceptions import (
-    remember_terminals,
     VgrException,
     VgrRuntimeError,
     VgrStatementBreak,
@@ -17,13 +16,8 @@ from app_exceptions import (
 )
 from data_dict import DataDictionary
 from dbg import print_tree
-from dd_config import (
-    dd_clear_scratch,
-    _VGR_PREFIX,
-    do_set,
-    do_unset,
-)
-from evaluate import bind_operations, eval_expr, eval_expr_or_const, var_name_path
+from dd_config import VGR_PREFIX
+from evaluate import bind_operations, eval_expr, eval_expr_or_const, var_name_path, do_set, do_unset
 from output import verify_relative_path
 from exec_context import ExecContext
 from functions import build_dict
@@ -37,9 +31,23 @@ from mathpak import (
 )
 from redir import execute_open, execute_close, print_stderr, print_stdout
 from src_mgr import SSM
-from stmt_cflags import execute_debug, execute_echo, execute_verbose
-from stmt_choose import execute_choose, execute_choose_using
-from stmt_exit import execute_assert, execute_exit
+from stmt_cflags import (
+    execute_debug,
+    execute_echo,
+    execute_verbose,
+)
+from stmt_choose import (
+    execute_choose,
+    execute_choose_using,
+)
+from stmt_exit import (
+    execute_assert,
+    execute_exit,
+    execute_return,
+)
+from stmt_funct import (
+    execute_def_function,
+)
 from stmt_list import (
     execute_list_append,
     execute_list_insert,
@@ -51,10 +59,16 @@ from stmt_list import (
 from stmt_log import execute_log, execute_log_setlevel
 from stmt_misc import execute_sleep
 from stmt_print import execute_print, execute_printf
+from stmt_proc import (
+    execute_call,
+    execute_def_procedure,
+)
 from stmt_select import execute_select
 from stmt_set import (
+    execute_compile_arrow,
     execute_load_from,
     execute_reset,
+    execute_set_arrow,
     execute_set_in_place,
     execute_set,
     execute_swap,
@@ -80,9 +94,9 @@ input/output redirection.
         if file is None or len(file) == 0: continue
         path = Path(file)
         if not path.exists():
-            raise VgrRuntimeError(child, Exception(f'File {file!r} not found'))
+            raise VgrRuntimeError(child, FileNotFoundError(f'File {file!r} not found'))
         if not path.is_file():
-            raise VgrRuntimeError(child, Exception(f'{file!r} does not reference a file'))
+            raise VgrRuntimeError(child, PermissionError(f'{file!r} does not reference a file'))
         if not os.access(path, os.R_OK):
             raise VgrRuntimeError(child, Exception(f'File {file!r} not readable'))
         try:
@@ -275,7 +289,7 @@ following it are skipped, and the loop continues with the next item.
     if collection is not None:
         try:
             for value in collection:
-                do_set(ctx.dd, value, *path)
+                do_set(ctx, value, *path)
                 try:
                     ctx.dispatch_statements(statement.children[2:])
                 except VgrStatementBreak:
@@ -283,7 +297,7 @@ following it are skipped, and the loop continues with the next item.
                 except VgrStatementContinue:
                     continue
         finally:
-            do_unset(ctx.dd, *path)
+            do_unset(ctx, *path)
 
 # pylint: disable=invalid-name
 # disabled because we MUST have methods named the same as the tokens
@@ -417,45 +431,51 @@ class VarRefOptimizer(Transformer):
 # NB: Extension may add items to this list,
 #     but they can't replace existing ones
 STATEMENT_HANDLERS = {
-    'assert':       execute_assert,
-    'break':        execute_break,
-    'choose':       execute_choose,
-    'choose_using': execute_choose_using,
-    'close':        execute_close,
-    'continue':     execute_continue,
-    'debug':        execute_debug,
-    'echo':         execute_echo,
-    'exit':         execute_exit,
-    'foreach':      execute_foreach,
-    'if':           execute_if,
-    'load_from':    execute_load_from,
-    'open':         execute_open,
-    'pass':         execute_pass,
-    'print':        execute_print,
-    'printf':       execute_printf,
-    'repeat':       execute_repeat,
-    'select':       execute_select,
-    'reset':        execute_reset,
-    'set':          execute_set,
-    'set_in_place': execute_set_in_place,
-    'sleep':        execute_sleep,
-    'sort':         execute_sort,
-    'source':       execute_source,
-    'swap':         execute_swap,
-    'unless':       execute_unless,
-    'unset':        execute_unset,
-    'until':        execute_until,
-    'verbose':      execute_verbose,
-    'while':        execute_while,
-    'zip':          execute_zip,
-    'log':          execute_log,
-    'log_setlevel': execute_log_setlevel,
-    'list_append':  execute_list_append,
-    'list_prepend': execute_list_prepend,
-    'list_insert':  execute_list_insert,
-    'list_remove':  execute_list_remove,
+    'assert':            execute_assert,
+    'break':             execute_break,
+    'call':              execute_call,
+    'choose_using':      execute_choose_using,
+    'choose':            execute_choose,
+    'close':             execute_close,
+    'compile_arrow':     execute_compile_arrow,
+    'continue':          execute_continue,
+    'debug':             execute_debug,
+    'def_function':      execute_def_function,
+    'def_procedure':     execute_def_procedure,
+    'echo':              execute_echo,
+    'exit':              execute_exit,
+    'foreach':           execute_foreach,
+    'if':                execute_if,
+    'list_append':       execute_list_append,
+    'list_insert':       execute_list_insert,
+    'list_prepend':      execute_list_prepend,
     'list_remove_first': execute_list_remove_first,
-    'list_remove_last': execute_list_remove_last,
+    'list_remove_last':  execute_list_remove_last,
+    'list_remove':       execute_list_remove,
+    'load_from':         execute_load_from,
+    'log_setlevel':      execute_log_setlevel,
+    'log':               execute_log,
+    'open':              execute_open,
+    'pass':              execute_pass,
+    'print':             execute_print,
+    'printf':            execute_printf,
+    'repeat':            execute_repeat,
+    'reset':             execute_reset,
+    'return':            execute_return,
+    'select':            execute_select,
+    'set_arrow':         execute_set_arrow,
+    'set_in_place':      execute_set_in_place,
+    'set':               execute_set,
+    'sleep':             execute_sleep,
+    'sort':              execute_sort,
+    'source':            execute_source,
+    'swap':              execute_swap,
+    'unless':            execute_unless,
+    'unset':             execute_unset,
+    'until':             execute_until,
+    'verbose':           execute_verbose,
+    'while':             execute_while,
+    'zip':               execute_zip,
 }
 
 @lru_cache
@@ -469,19 +489,27 @@ def get_statement_entries() -> list:
     return entries
 
 class DefaultExecContext(ExecContext):
-    _SOURCE_STACK_PATH = (_VGR_PREFIX, 'source')
-    _STATEMENT_PATH = (_VGR_PREFIX, 'statement')
 
     def __init__(self, parser: Lark, dd: DataDictionary):
         super().__init__(parser, dd)
-        self.set_var('', *self._STATEMENT_PATH)
-        self.set_var([], *self._SOURCE_STACK_PATH)
+        self._source_stack = []
+        # we maintain the state, but the user can still
+        # read the values, which are global.
+        self.set_var(lambda: self.source_stack, VGR_PREFIX,  'source')
+        self.set_var(lambda: self.debug, VGR_PREFIX,  'debug')
+        self.set_var(lambda: self.echo, VGR_PREFIX, 'echo')
+        self.set_var(lambda: self.verbose, VGR_PREFIX, 'verbose')
+        # TODO support a dynamic version of "statement" text
 
     def get_var(self, *path: str) -> Any: return self.dd.get_var(*path)
     def set_var(self, data: Any, /, *path: str) -> Any: return self.dd.set_var(data, *path)
+    def var_exists(self, *path: str) -> tuple[bool, Any]: return self.dd.var_exists(*path)
 
     def get_var_user(self, *path: str) -> Any: return self.dd.get_var_user(*path)
     def set_var_user(self, data: Any, /, *path: str): return self.dd.set_var_user(data, *path)
+    def validate_user_set_path(self, *path: str) -> tuple: return self.dd.validate_user_set_path(*path)
+
+    def clear_scratch(self) -> None: self.dd.clear_scratch()
 
     def eval_expr(self, expr: Any) -> Any: return eval_expr(self, expr)
     def eval_expr_or_const(self, expr: Any) -> Any: return eval_expr_or_const(self, expr)
@@ -520,44 +548,67 @@ class DefaultExecContext(ExecContext):
             raise VgrRuntimeError(expr, TypeError(f'{name} must be an boolean; found {type_str(rc)}'))
         return poly_true(rc)
 
-    def echo_source(self, tree, end_tree = None):
-        if self.dd.echo: print_stderr((SSM.source_for(tree, end_tree) or '').strip())
+    def get_source(self, tree, end_tree = None) -> str:
+        return (SSM.source_for(tree, end_tree) or '').strip()
+
+    @property
+    def source_stack(self) -> list[str]:
+        return self._source_stack
+
+    @ExecContext.echo.setter
+    def echo(self, v: bool):
+        super(DefaultExecContext, DefaultExecContext).echo.__set__(self, v)
+
+    def echo_source(self, tree, end_tree = None) -> None:
+        if super().echo: print_stderr(self.get_source(tree, end_tree))
+
+    @ExecContext.debug.setter
+    def debug(self, v: bool):
+        super(DefaultExecContext, DefaultExecContext).debug.__set__(self, v)
+
+    def print_debug(self, *args, **kwargs) -> None:
+        if super().debug: print_stderr(*args, **kwargs)
+
+    @ExecContext.verbose.setter
+    def verbose(self, v: bool):
+        super(DefaultExecContext, DefaultExecContext).verbose.__set__(self, v)
 
     def print_verbose(self, *args, **kwargs) -> None:
-        if self.dd.verbose: print_stderr(*args, **kwargs)
+        if super().verbose: print_stderr(*args, **kwargs)
 
     def parse_expression(self, expr_text: str) -> Tree:
+        # TODO push source here?
+        # when we create it, we need to know the origin
         if expr_text and not expr_text.isspace():
             expr = self._parser.parse(expr_text, start='expr')
             expr = ConstantsNormalizer().transform(expr)
             expr = VarRefOptimizer().transform(expr)
             expr = bind_operations(expr)
-            if self.dd.debug: print_tree(expr)
+            self.print_tree(expr)
             return expr
         return None
 
     def execute_statements(self, statement_text: str, origin: str) -> None:
         """Parse the text and execute the resulting statements"""
         if statement_text and not statement_text.isspace():
-            prev_statement = SSM.statement_text()
-            prev_origin = SSM.origin()
-            SSM.set_statement(statement_text, origin)
+            SSM.push(origin, statement_text)
+            # the <...> notation is used to indicate cmd line, stdin, etc
+            # which don't really have a file name.
+            # the source stack is strictly for file name context
+            self._source_stack.insert(0, '' if origin.startswith('<') and origin.endswith('>') else origin)
             try:
-                self._push_source(origin)
                 self.dispatch_statements(self._parser.parse(statement_text, start='opt_statements').children)
-                # We only restore these if everything worked: otherwise we loose
-                # the source that an exception may need
-                SSM.set_statement(prev_statement, prev_origin)
+            except exceptions.UnexpectedInput as e:
+                raise VgrException(e, e, *SSM.current) from e
             finally:
-                self._pop_source()
+                self._source_stack.pop(0)
+                SSM.pop()
 
     def dispatch_statements(self, statements: Iterable[Tree]) -> None:
         """Given a sequence of parsed statements dispatch them to their handler"""
         for statement in statements:
-            self.set_var(SSM.source_for(statement), *self._STATEMENT_PATH)
             statement = ConstantsNormalizer().transform(statement)
             statement = VarRefOptimizer().transform(statement)
-            if self.dd.debug: print_tree(statement)
             handler = STATEMENT_HANDLERS.get(statement.data)
             if not handler:
                 raise VgrRuntimeError(statement, NotImplementedError(f'No handler established for {statement.data}')) #SNO
@@ -567,7 +618,10 @@ class DefaultExecContext(ExecContext):
                 # Other statements need to handle binding
                 # and decide what to do for echo
                 statement = bind_operations(statement)
+                self.print_tree(statement)
                 self.echo_source(statement)
+            else:
+                self.print_tree(statement)
             try:
                 handler(self, statement)
             except VgrException as e:
@@ -578,24 +632,10 @@ class DefaultExecContext(ExecContext):
             except Exception as e:
                 raise VgrRuntimeError(statement, e) from e
             finally:
-                dd_clear_scratch(self.dd)
+                self.clear_scratch()
 
-    def _push_source(self, source: str) -> None:
-        # the <...> notation is used to indicate cmd line, stdin, etc
-        # which don't really have a file name.
-        # the source stack is strictly for file name context
-        if source.startswith('<') and source.endswith('>'): source = ''
-        source_stack: list = self.get_var(*self._SOURCE_STACK_PATH)
-        source_stack.insert(0, source)
-        self.set_var(source_stack, *self._SOURCE_STACK_PATH)
-
-    def _pop_source(self) -> None:
-        source_stack: list = self.get_var(*self._SOURCE_STACK_PATH)
-        if source_stack:
-            source_stack.pop()
-            self.set_var(source_stack, *self._SOURCE_STACK_PATH)
+    def print_tree(self, item: Any) -> None:
+        if super().debug: print_tree(item)
 
 def create_exec_context(parser: Lark, dd: DataDictionary) -> ExecContext:
-    ctx = DefaultExecContext(parser, dd)
-    remember_terminals(parser)
-    return ctx
+    return DefaultExecContext(parser, dd)

@@ -33,8 +33,8 @@ cobol_accept: "Accept"i var_name "From"i ("Console"i | "Stdin"i | "Sysin"i | "Sy
 cobol_compute: "Compute"i var_name ("=" | "Equals"i) expr "End-Compute"i? _SEMICOLON?
 
 // NB: Var/Variable are not present in COBOL, but their presence allows this to match the general set statement
-cobol_inc: "Set"i ("Variable"i | "Var"i)? var_name "Up"i "By"i expr _SEMICOLON?
-cobol_dec: "Set"i ("Variable"i | "Var"i)? var_name "Down"i "By"i expr _SEMICOLON?
+cobol_inc: "Set"i "Variable"i? var_name "Up"i "By"i expr _SEMICOLON?
+cobol_dec: "Set"i "Variable"i? var_name "Down"i "By"i expr _SEMICOLON?
 
 cobol_exit: "Stop"i "Run"i _SEMICOLON?
 
@@ -48,8 +48,7 @@ cobol_if: "If"i expr ":"? statement+ cobol_else_clause? "End-If"i _SEMICOLON?
 cobol_else_clause: "Else"i ":"? statement+ -> else
 cobol_next_sentence: "Next"i "Sentence"i _SEMICOLON?
 
-cobol_exhibit: "Exhibit"i _SEMICOLON
-    | "Exhibit"i var_name (_COMMA var_name)* _SEMICOLON?
+cobol_exhibit: "Exhibit"i (var_name (_COMMA? var_name)*)? _SEMICOLON?
 cobol_display_on: "Display"i expr (_COMMA? expr)* (("Upon"i | "On"i) io_type)? _SEMICOLON?
 
 cobol_add_to: "Add"i expr (_COMMA expr)* "To"i var_name "End-Add"i? _SEMICOLON?

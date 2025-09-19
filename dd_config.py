@@ -3,7 +3,6 @@
 Utility routines for working with the global Data Dictionary
 """
 
-from copy import deepcopy
 from datetime import datetime
 from typing import Any
 import getpass
@@ -18,39 +17,26 @@ import sys
 import time
 import uuid
 
-from lark import Tree
-
 from data_dict import DataDictionary
-from redir import shorten, print_stderr
 from mathpak import str_to_number, str_to_bool
 from version import __version__, __version_date__
 
-_VGR_PREFIX = 'vgr'
-_VER_PATH = (_VGR_PREFIX, 'version')
-_VER_DATE_PATH = (_VGR_PREFIX, 'version_date')
-LOG_LEVEL_PATH = (_VGR_PREFIX, 'log_level')
-SHELL_PROMPT_PATH = (_VGR_PREFIX, 'prompt')
-SHELL_HISTORY_PATH = (_VGR_PREFIX, 'history')
-SHELL_HISTORY_SIZE_PATH = (_VGR_PREFIX, 'history_size')
+VGR_PREFIX = 'vgr'
+_VER_PATH = (VGR_PREFIX, 'version')
+_VER_DATE_PATH = (VGR_PREFIX, 'version_date')
+LOG_LEVEL_PATH = (VGR_PREFIX, 'log_level')
 
 _TIME_PREFIX = 'time'
-
-_SCRATCH_PREFIX = '_'
-ROWID_PATH = (_SCRATCH_PREFIX, 'rowid')
 
 _ARG_PREFIX = 'arg'
 OFS_PATH = (_ARG_PREFIX, 'ofs')
 ORS_PATH = (_ARG_PREFIX, 'ors')
-# If no "For" is given with a Select, this is the type used as default
-DEFAULT_FOR_TYPE_PATH = (_ARG_PREFIX, 'default_for_type')
 
 _ENV_EXCLUDE = tuple(re.compile(pattern, re.IGNORECASE) for pattern in ('^VSCODE', '^_$', '^(OLD)?PWD$', '^__CF'))
 _OS_CONSTS = ( 'defpath',  'devnull', 'extsep', 'linesep', 'name', 'pardir', 'pathsep', 'sep' )
 
 _RE_PREFIX = 're'
 _RE_FLAGS = ('ASCII', 'IGNORECASE', 'LOCALE', 'MULTILINE', 'DOTALL', 'UNICODE', 'VERBOSE')
-
-_UUID_PREFIX = 'uuid'
 
 _COMPACT = "compact"
 _FORMAT = "format"
@@ -131,46 +117,55 @@ def _get_machine_uuid() -> str:
     namespace = uuid.NAMESPACE_DNS
     return str(uuid.uuid5(namespace, machine_id_string))
 
+_UUID_PREFIX = 'uuid'
+
 _UUID_ENTRIES = {
     ("machine",):     _get_machine_uuid(),
     ("random_time",): lambda: str(uuid.uuid1()),
     ("random",):      lambda: str(uuid.uuid4()),
 }
 
-def dd_init() -> DataDictionary:
-    dd = DataDictionary()
-    dd.add_protected_prefix(_ARG_PREFIX)
-    dd.add_immutable_prefix(_VGR_PREFIX)
+def dd_init(dd: DataDictionary) -> None:
+    # Clear the whole thing out and have it set its defaults
+    dd.reset()
+    dd_init_args(dd)
+    # Set up app area
+    dd.add_immutable_prefix(VGR_PREFIX)
     dd.set_var(__version__, *_VER_PATH)
     dd.set_var(__version_date__, *_VER_DATE_PATH)
-    dd.set_var({}, _SCRATCH_PREFIX)
-    dd.add_protected_prefix(_SCRATCH_PREFIX)
+    # ... reg ex values
+    dd.add_immutable_prefix(_RE_PREFIX)
     for flag in _RE_FLAGS:
         dd.set_var(getattr(re, flag), _RE_PREFIX, flag)
-    dd.add_immutable_prefix(_RE_PREFIX)
+    # ... math and string values
     for mod in (math, string):
         name = mod.__name__
-        dd.set_var(_get_consts(mod), name)
         dd.add_immutable_prefix(name)
+        dd.set_var(_get_consts(mod), name)
     for path, value in _MATH_ENTRIES.items():
         dd.set_var(value, math.__name__, *path)
+    # ... time values
     dd.add_immutable_prefix(_TIME_PREFIX)
-    for path, value in _UUID_ENTRIES.items():
-        dd.set_var(value, _UUID_PREFIX, *path)
-    dd.add_immutable_prefix(_UUID_PREFIX)
     for path, value in _TIME_ENTRIES.items():
         dd.set_var(value, _TIME_PREFIX, *path)
+    # ... UUID values
+    dd.add_immutable_prefix(_UUID_PREFIX)
+    for path, value in _UUID_ENTRIES.items():
+        dd.set_var(value, _UUID_PREFIX, *path)
+    # .. and OS and environment values
     for func, name in ((_get_os_consts, 'os'), (_get_environment, 'env')):
-        dd.set_var(func(), name)
         dd.add_immutable_prefix(name)
-    dd_set_awk_params(dd)
-    return dd
+        dd.set_var(func(), name)
 
-def dd_set_awk_params(dd: DataDictionary) -> None:
+def dd_init_args(dd: DataDictionary) -> None:
+    # User arguments are empty
+    dd.add_protected_prefix(_ARG_PREFIX)
+    dd.set_var({}, _ARG_PREFIX)
+    # ... except for the awk settings
     # Pick up the defaults AWK would use
     # Since we don't allow the env space to be changed,
     # we have to keep our own copies for the user to change with
-    # either Set or with command line arguments
+    # either Set or command line arguments
     dd.set_var(os.getenv('OFS', ' '), *OFS_PATH)
     dd.set_var(os.getenv('ORS', '\n'), *ORS_PATH)
 
@@ -185,38 +180,6 @@ def dd_parse_user_args(dd: DataDictionary, user_args: list) -> None:
                 match = re.fullmatch(r'\s*"([^"]*)"\s*', value)
                 path = (_ARG_PREFIX,) + path
                 dd.set_var(match.group(1) if match else _coerce_value(value), *path)
-
-def dd_clear_scratch(dd: DataDictionary) -> None:
-    dd.get_var(_SCRATCH_PREFIX).clear()
-
-def do_assignment(dd: DataDictionary, expr: Tree, value: Any, path: tuple[str]) -> None:
-    """
-    Use when you are doing an assignment (set) where you cannot be sure
-    that the result is a reference to another mutable variable such as a list or dict.
-    When it is, we need to make a copy before setting the value in the DD.
-    """
-    # TODO I'm not sure we need/want to have this anymore...
-    if isinstance(expr, Tree) and expr.data == 'var_ref' and isinstance(value, (list, dict)):
-        value = deepcopy(value)
-    do_set(dd, value, *path)
-
-def do_set(dd: DataDictionary, value: Any, *path) -> None:
-    """
-    After calculations are done, use this to set a value.
-    Generates verbose output.
-    """
-    new_value = dd.set_var_user(value, *path)
-    if dd.verbose:
-        print_stderr('Set', '.'.join(path), 'To', shorten(repr(new_value)))
-
-def do_unset(dd: DataDictionary, *path) -> None:
-    """
-    Use this to unset a value.
-    Generates verbose output.
-    """
-    old_value = dd.unset_var_user(*path)
-    if dd.verbose:
-        print_stderr('Removed', shorten(repr(old_value)), 'From', '.'.join(path))
 
 def _get_os_consts() -> dict:
     rc = { key: value for key, value in _get_consts(os).items() if key in _OS_CONSTS }
