@@ -197,6 +197,7 @@ close: "Close"i io_type "File"i? _SEMICOLON?
 ?open_ext: ("Append"i | "Extend"i | "a"i) -> a
     | ("Overwrite"i | "w"i) -> w
     | ("No"i "Overwrite"i | "x"i) -> x
+    | ("Read"i | "r"i) -> r
 
 zip: "Create"i "Zip"i "File"i? expr (_COMMA? zip_option (_COMMA zip_option)*)? _SEMICOLON?
 ?zip_option: "Comment"i ("=" | "Is"i)? expr -> comment
