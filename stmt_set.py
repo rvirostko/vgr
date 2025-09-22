@@ -102,8 +102,17 @@ Where _option_ is-
             ctx.echo = False
             ctx.verbose = False
 
+def _inplace_add_shim(x: Any, y: Any) -> Any:
+    if isinstance(x, (list, tuple)):
+        if isinstance(y, (list, tuple)):
+            x.extend(y)
+        else:
+            x.append(y)
+        return x
+    return poly_add(x, y)
+
 _IN_PLACE_OP = {
-    "+=":  poly_add,
+    "+=":  _inplace_add_shim,
     "-=":  poly_sub,
     "*=":  poly_mul,
     "/=":  poly_div,
