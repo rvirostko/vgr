@@ -53,18 +53,21 @@ Also see *Close*
     stream = _eval_stream_name(statement.children[0])
     filename = ctx.eval_filename_expr(statement.children[1])
     if stream == 'stdin':
-        if len(statement.children) > 2:
-            raise VgrRuntimeError(statement, ValueError('Invalid options for stdin'))
-        mode = 'r'
+        mode = statement.children[2].data.lower() if len(statement.children) > 2 else 'r'
+        if mode not in ('r'):
+            raise VgrRuntimeError(statement.children[2], ValueError('Invalid input mode'))
     else:
         mode = statement.children[2].data.lower() if len(statement.children) > 2 else 'w'
-    if mode not in ('r', 'a', 'w', 'x'): raise ValueError(f'Unknown mode {mode}') # SNO
+        if mode not in ('a', 'w', 'x'):
+            raise VgrRuntimeError(statement.children[2], ValueError('Invalid output mode'))
     try:
         getattr(_REDIRECTOR, stream)(prepare_path(filename), mode=mode)
         ctx.print_verbose(stream, "redirected to", filename)
+    except OSError as e:
+        # likely has something to do with the file, so point there
+        raise VgrRuntimeError(statement.children[1], e) from e
     except Exception as e:
-        # TODO !! this looks totally wrong (C/P error)
-        raise VgrExitingException(VgrExitingException.EXIT_FAILED, statement, str(e)) from e
+        raise VgrRuntimeError(statement, e) from e
 
 @bound_ops("Close")
 def execute_close(ctx: ExecContext, statement: Tree) -> None:
