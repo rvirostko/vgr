@@ -184,8 +184,7 @@ class SelectAnalyzer(Visitor):
         as_node = node.children[1]
         as_value = self.ctx.eval_expr_or_const(bind_operations(as_node))
         if as_value is None or isinstance(as_value, (str, int, float)):
-            # Although we allow None, we treat it as an empty entry
-            self._headers.append('' if as_value is None else as_value)
+            self._headers.append(as_value)
         else:
             raise VgrRuntimeError(as_node, TypeError(f"Value for 'As' must be a simple type; found {type_str(as_value)}"))
 
@@ -201,7 +200,7 @@ class SelectAnalyzer(Visitor):
             # We'll inherit the name for <name>.func(), but not other ops
             if node.data == 'function_call': return cls.get_default_col_name(node.children[0])
         # We'll figure out the default later
-        return ''
+        return None
 
     @classmethod
     def make_cols_names_unique(cls, col_names: list[str]) -> list[str]:
@@ -210,7 +209,7 @@ class SelectAnalyzer(Visitor):
         rc = []
         for i, name in enumerate(col_names):
             # Assign unamed cols their index
-            if name == '': name = f'col_{i + 1}'
+            if name is None: name = f'col_{i + 1}'
             # If name exists append the count to the name
             if name in counter:
                 v = counter[name] + 1
