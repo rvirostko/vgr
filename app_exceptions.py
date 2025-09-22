@@ -55,6 +55,8 @@ def _exception_message(e: Exception) -> str:
     if not e or not e.args: return ''
     if not isinstance(e, _MSG_EXCEPTIONS): return ''
     if len(e.args) == 1: return str(e.args[0])
+    # First arg is always a numeric code
+    if isinstance(e, OSError): return ', '.join(map(str, e.args[1:]))
     return ', '.join(map(str, e.args))
 
 class VgrException(Exception):
