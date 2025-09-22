@@ -100,7 +100,7 @@ class UserFunction(_AbstractUserFunction):
 
     @staticmethod
     def from_expression(source: str, expr: Tree, param_paths: list[tuple[str]]):
-        return _ArrowFunction(source, expr, param_paths)
+        return ArrowFunction(source, expr, param_paths)
 
     @staticmethod
     def compile(ctx: ExecContext, source: Any, param_paths: list[tuple[str]]) -> Any:
@@ -108,8 +108,8 @@ class UserFunction(_AbstractUserFunction):
         if source is None: return None
         if isinstance(source, str):
             # Normally we expect a string to parse
-            return _ArrowFunction(source, ctx.parse_expression(source), param_paths)
-        if isinstance(source, _ArrowFunction):
+            return ArrowFunction(source, ctx.parse_expression(source), param_paths)
+        if isinstance(source, ArrowFunction):
             # This effectively changes the argument paths (maybe)
             return UserFunction.compile(ctx, source._source, param_paths)
         if isinstance(source, (list, tuple)):
@@ -120,7 +120,7 @@ class UserFunction(_AbstractUserFunction):
             return UserFunction.compile(ctx, str(source), param_paths)
         raise TypeError(f'Cannot use {type_str(source)} as the source for an Arrow Function')
 
-class _ArrowFunction(_AbstractUserFunction):
+class ArrowFunction(_AbstractUserFunction):
     """
 **Arrow Functions - lightweight functions**
 
@@ -189,43 +189,3 @@ Invocation of variables which are _not_ functions
 
     def _evaluate(self, ctx: ExecContext) -> Any:
         return ctx.eval_expr(self._expr)
-
-class UserProcedure(_VgrCallable):
-    def __init__(self, param_paths: list[tuple[str]], statements: list):
-        super().__init__(param_paths)
-        assert statements is not None and isinstance(statements, list)
-        self._statements = statements
-        self._restore_values = None
-
-    def __str__(self): return '<procedure>'
-
-    def execute(self, ctx: ExecContext, arg_values: list, restore_paths: list) -> None:
-        try:
-            # NEED TYPE
-            # for setting:
-            #.  if frame has it, use that (its a local)
-            #.  if base has it, use that (its a global)
-            #.  nobody had it, create it as a local
-            ctx.dd.push_frame(self._create_locals_list(arg_values))
-        except Exception as e:
-            # Push did not work, so we not only skip
-            # evaluation, but also the pop
-            raise e
-        try:
-            ctx.dispatch_statements(self._statements)
-        except VgrStatementReturn:
-            # In procedures there is no return value
-            # but the return does end its execution
-            pass
-        except (VgrStatementContinue, VgrStatementBreak) as e:
-            # We can't let these popagate outside the procedure's scope.
-            # rewrap removes their special meaning.
-            raise VgrException.rewrap(e) from e
-        finally:
-            # get the values of the locals we set
-            restore_values = [ctx.get_var(*path) for path in self._param_paths]
-            # discard the frame that contained them
-            ctx.dd.pop_frame()
-            # now restore their values into the frame where they were defined
-            for path, value in zip(restore_paths, restore_values):
-                if path is not None: ctx.set_var(value, *path)

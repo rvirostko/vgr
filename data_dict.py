@@ -11,7 +11,6 @@ from typing import (
     KeysView,
     Optional,
 )
-import copy
 
 _SCRATCH_PREFIX = '_'
 
@@ -45,9 +44,9 @@ class DataDictionary():
 
     def push_frame(self, locals_list: list) -> None:
         if len(self._frames) >= 8192: raise RecursionError()
-        new_frame = CopyOnWriteFrame(self._current_frame, locals_list)
+        new_frame = LocalsFrame(self._current_frame, locals_list)
+        self._frames.append(new_frame)
         try:
-            self._frames.append(new_frame)
             # Fully populate the local variables
             if locals_list:
                 for local in locals_list:
@@ -106,7 +105,7 @@ class DataDictionary():
         # when working in a local frame
         if len(path) > 1:
             for step in path[:-1]:
-                # If the next step doesn't exist, create it as dictionary
+                # If the next step doesn't exist, create it as a dictionary
                 next_step = current.setdefault(step, {})
                 # If it isn't a dictionary, it has to become one
                 if not isinstance(next_step, (Frame, dict)):
@@ -124,14 +123,15 @@ class DataDictionary():
         Note that "None" is not a definitive "not found" statement.
         """
         current = self._current_frame
-        for step in path[:-1]:
-            # If the next step doesn't exist, or is
-            # not a dictionary, we can't go anywhere
-            # to unset something
-            next_step = current.get(step, None)
-            if not isinstance(next_step, (Frame, dict)): return None
-            current = next_step
-        # Last step in the path gets removed
+        if len(path) > 1:
+            for step in path[:-1]:
+                # If the next step doesn't exist, or is
+                # not a dictionary, we can't go anywhere
+                # to unset something
+                next_step = current.get(step, None)
+                if not isinstance(next_step, (Frame, dict)): return None
+                current = next_step
+            # Last step in the path gets removed
         return current.pop(path[-1], None)
 
     def get_var(self, *path: str) -> Any:
@@ -188,6 +188,11 @@ class DataDictionary():
         return data() if callable(data) and not isinstance(data, type) else data
 
 class Frame:
+    """
+    A wrapper around a dictionary represents a _frame_ of data belonging to
+    some scoping of data. Initially, there is the global frame, then as
+    scope is established, new frames are linked into a chain.
+    """
     def __init__(self, locals_list: list=None) -> None:
         self._data: Dict[str, Any] = {}
         # Every frame gets its own scratch are
@@ -232,55 +237,78 @@ class Frame:
     def pop(self, key: str, default: Optional[Any] = None) -> Any:
         return self._data.pop(key, default)
 
-class CopyOnWriteFrame(Frame):
-    def __init__(self, base_frame: Frame, locals_list: list) -> None:
+class LocalsFrame(Frame):
+    """
+    This type of frame has _local_ variables which show others
+    in the calling chain. Newly created variables are created as locals.
+    """
+    def __init__(self, caller_frame: Frame, locals_list: list) -> None:
         super().__init__(locals_list)
-        self._base_frame: Frame = base_frame
+        self._caller_frame: Frame = caller_frame
 
     def drop(self) -> None:
         try:
             super().drop()
         finally:
-            self._base_frame = None
+            self._caller_frame = None
 
     def reset(self, protected_prefixes: tuple, immutable_prefixes: tuple) -> None:
+        # First the locals
         super().reset(protected_prefixes, immutable_prefixes)
-        self._base_frame.reset(protected_prefixes, immutable_prefixes)
+        # then everything else
+        self._caller_frame.reset(protected_prefixes, immutable_prefixes)
 
     def __iter__(self) -> Iterator:
         seen = set()
+        # First the locals
         for key in self._data:
             yield key
             seen.add(key)
-        for key in self._base_frame:
+        # then everything else
+        for key in self._caller_frame:
             if key not in seen:
                 yield key
 
     def __getitem__(self, key: str) -> Any:
-        return self._data[key] if key in self._data else self._base_frame[key]
+        # locals shadow caller frames' variables
+        return self._data[key] if key in self._data else self._caller_frame[key]
+
+    def __setitem__(self, key: str, value: Any) -> None:
+        if key in self._data or key not in self._caller_frame:
+            # already a local or not in caller frames (a new local)
+            self._data[key] = value
+        else:
+            self._caller_frame[key] = value
 
     def __delitem__(self, key: str) -> None:
+        # NB: unsetting a local can expose variables in the callers
         if key in self._data:
             del self._data[key]
         else:
-            del self._base_frame[key]
+            del self._caller_frame[key]
 
     def __contains__(self, key: str) -> bool:
-        return key in self._data or key in self._base_frame
+        # First locals, then the callers's
+        return key in self._data or key in self._caller_frame
 
     def setdefault(self, key: str, default: Optional[Any] = None) -> Any:
         """
         This is called when we are looking for the root of a path for modification.
-        If we have the value, we return it (it is a "local").
-        If the base has the value (it is a "global") we _clone_ it and store
-        the clone before returning it. Otherwise we return the default value.
-        Note that cloning is only performed on lists and dictionaries (mutable objects)
-        and that a "deep copy" is always performed.
         """
-        if key in self._data: return self._data[key]
-        # This is our "copy-on-write" behavior
-        # We only need to make a deep copy for mutable objects
-        if key in self._base_frame: default = self._base_frame[key]
-        if isinstance(default, (list, dict)): default = copy.deepcopy(default)
-        self._data[key] = default
-        return default
+        # If we dont have it, we need to see if callers have it
+        if key not in self._data:
+            # If a caller frame has it, let them handle it
+            if key in self._caller_frame: return self._caller_frame.setdefault(key, default)
+            # A new variable, so it becomes a local
+            self._data[key] = default
+        return self._data[key]
+
+    def get(self, key: str, default: Optional[Any] = None) -> Any:
+        if key in self._data:
+            return self._data.get(key, default)
+        return self._caller_frame.get(key, default)
+
+    def pop(self, key: str, default: Optional[Any] = None) -> Any:
+        if key in self._data:
+            return self._data.pop(key, default)
+        return self._caller_frame.pop(key, default)

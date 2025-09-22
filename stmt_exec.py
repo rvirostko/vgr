@@ -17,7 +17,14 @@ from app_exceptions import (
 from data_dict import DataDictionary
 from dbg import print_tree
 from dd_config import VGR_PREFIX
-from evaluate import bind_operations, eval_expr, eval_expr_or_const, do_set, do_unset, get_writable_var_path
+from evaluate import (
+    bind_operations,
+    eval_expr,
+    eval_expr_or_const,
+    do_set,
+    do_unset,
+    get_writable_var_path,
+)
 from output import verify_relative_path
 from exec_context import ExecContext
 from functions import build_dict
@@ -29,7 +36,12 @@ from mathpak import (
     poly_true,
     type_str,
 )
-from redir import execute_open, execute_close, print_stderr, print_stdout
+from redir import (
+    execute_open,
+    execute_close,
+    print_stderr,
+    print_stdout,
+)
 from src_mgr import SSM
 from stmt_cflags import (
     execute_debug,
@@ -47,6 +59,8 @@ from stmt_exit import (
 )
 from stmt_funct import (
     execute_def_function,
+    execute_call,
+    execute_call_giving,
 )
 from stmt_list import (
     execute_list_append,
@@ -56,12 +70,14 @@ from stmt_list import (
     execute_list_remove_last,
     execute_list_remove,
 )
-from stmt_log import execute_log, execute_log_setlevel
+from stmt_log import (
+    execute_log,
+    execute_log_setlevel,
+)
 from stmt_misc import execute_sleep
-from stmt_print import execute_print, execute_printf
-from stmt_proc import (
-    execute_call,
-    execute_def_procedure,
+from stmt_print import (
+    execute_print,
+    execute_printf,
 )
 from stmt_select import execute_select
 from stmt_set import (
@@ -439,6 +455,7 @@ class VarRefOptimizer(Transformer):
 STATEMENT_HANDLERS = {
     'assert':            execute_assert,
     'break':             execute_break,
+    'call_giving':       execute_call_giving,
     'call':              execute_call,
     'choose_using':      execute_choose_using,
     'choose':            execute_choose,
@@ -447,7 +464,6 @@ STATEMENT_HANDLERS = {
     'continue':          execute_continue,
     'debug':             execute_debug,
     'def_function':      execute_def_function,
-    'def_procedure':     execute_def_procedure,
     'echo':              execute_echo,
     'exit':              execute_exit,
     'foreach':           execute_foreach,
@@ -510,7 +526,9 @@ class DefaultExecContext(ExecContext):
     def set_var(self, data: Any, /, *path: str) -> Any: return self.dd.set_var(data, *path)
     def var_exists(self, *path: str) -> tuple[bool, Any]: return self.dd.var_exists(*path)
 
-    def set_var_user(self, data: Any, /, *path: str): return self.dd.set_var_user(data, *path)
+    def set_var_user(self, data: Any, /, *path: str):
+        """*deprecated*"""
+        return self.dd.set_var_user(data, *path)
 
     def clear_scratch(self) -> None: self.dd.clear_scratch()
 

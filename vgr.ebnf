@@ -91,13 +91,11 @@ statements: statement+
     | repeat_statement
 
 ?def_statements: "Define"i? "Function"i var_name def_params? ":"? def_body "End"i _SEMICOLON? -> def_function
-    | "Define"i? "Procedure"i NAME def_params? ":"? def_body "End"i _SEMICOLON? -> def_procedure
 def_params: "(" (NAME (_COMMA NAME)*)? ")" -> params
 def_body: statement+ -> body
 
-// TODO 2nd form could be moved to COBOL
-call: "Call"i "Procedure"i? var_name ("(" (expr (_COMMA expr)*)? ")")? _SEMICOLON?
-    | "Call"i "Procedure"i? var_name ("With"i | "Using"i) expr (_COMMA? expr )* "End-Call"i? _SEMICOLON?
+call: "Call"i "Function"i? var_name ("(" (expr (_COMMA expr)*)? ")")? _SEMICOLON?
+    | "Call"i "Function"i? var_name ("(" (expr (_COMMA expr)*)? ")")? "Giving"i var_name _SEMICOLON? -> call_giving
 
 if_statement: "If"i expr ("Then"i | "Do"i | ":")? statement+ else_clause? "End"i _SEMICOLON? -> if
 unless_statement: "Unless"i expr ("Do"i | ":")? statement+ "End"i _SEMICOLON? -> unless

@@ -179,6 +179,12 @@ class SetVarOperation(Operation):
     def op_name(self) -> str:
         return 'set_var'
 
+def get_function(ctx: ExecContext, statement: Tree):
+    fn = ctx.get_var(*_var_name_path(statement.children[0]))
+    if fn is None:
+        raise VgrRuntimeError(statement.children[0], ValueError('Function is not defined'))
+    return fn
+
 class InvokeFunctionOperation(Operation):
     """
     Invoke a user function stand-alone
@@ -190,7 +196,7 @@ class InvokeFunctionOperation(Operation):
     """
     def execute(self, ctx: ExecContext, args: list) -> Any:
         # @<var-name>(<expr>...)
-        fn = ctx.get_var(*_var_name_path(args[0]))
+        fn = get_function(ctx, args[0])
         values = [ctx.eval_expr(arg) for arg in args[1:]]
         return UserFunction.invoke(ctx, fn, values)
 
@@ -209,7 +215,7 @@ class InvokeInlineFunctionOperation(Operation):
     def execute(self, ctx: ExecContext, args: list) -> Any:
         # <expr>.@<var-name>(<expr>...)
         inline_value = ctx.eval_expr(args[0]) # the in-line <expr>
-        fn = ctx.get_var(*_var_name_path(args[1])) # function ref
+        fn = get_function(ctx, args[1])
         values = [ctx.eval_expr(arg) for arg in args[2:]]
         values.insert(0, inline_value)
         return UserFunction.invoke(ctx, fn, values)
