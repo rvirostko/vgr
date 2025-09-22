@@ -5,7 +5,7 @@ BASIC extension statements
 from lark import Tree
 
 from app_exceptions import VgrStatementBreak, VgrStatementContinue
-from evaluate import var_name_path, do_set, do_unset
+from evaluate import do_set, do_unset, get_writable_var_path
 from exec_context import ExecContext
 from stmt_exec import bind_operations, exec_loop
 from stmt_set import execute_set
@@ -66,7 +66,7 @@ following it are skipped and looping proceeds.
     # Echo the control portion, not the statements
     ctx.echo_source(statement, statement.children[-1])
     cindex = 0
-    path = var_name_path(statement.children[cindex])
+    var_path = get_writable_var_path(ctx, statement.children[cindex])
     cindex += 1
     value = ctx.eval_to_number(bind_operations(statement.children[cindex]), 'For-Next start')
     cindex += 1
@@ -83,11 +83,13 @@ following it are skipped and looping proceeds.
     if (end - value) * inc < 0:
         # NB: if end and value are the same, we don't care about the sign
         raise ValueError('Sign of For-Next increment results in infinite loop')
+    # Save the initial state of the variable
+    var_save = ctx.dd.var_exists(*var_path)
     try:
         # NB: if start/end are the same, the loop executes once,
         #     which is typical for Basic implementations
         while (inc > 0 and value <= end) or (inc < 0 and value >= end):
-            do_set(ctx, value, *path)
+            do_set(ctx, value, *var_path)
             try:
                 ctx.dispatch_statements(statement.children[cindex:])
             except VgrStatementBreak:
@@ -96,7 +98,11 @@ following it are skipped and looping proceeds.
                 pass
             value += inc
     finally:
-        do_unset(ctx, *path)
+        # restore the previous state of the variable
+        if var_save[0]:
+            do_set(ctx, var_save[1], *var_path)
+        else:
+            do_unset(ctx, *var_path)
 
 @bound_ops("Exit-Block")
 def execute_exit(_: ExecContext, statement: Tree) -> None:

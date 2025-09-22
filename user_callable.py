@@ -223,9 +223,9 @@ class UserProcedure(_VgrCallable):
             raise VgrException.rewrap(e) from e
         finally:
             # get the values of the locals we set
-            restore_values = [ctx.get_var_user(*path) for path in self._param_paths]
+            restore_values = [ctx.get_var(*path) for path in self._param_paths]
             # discard the frame that contained them
             ctx.dd.pop_frame()
             # now restore their values into the frame where they were defined
             for path, value in zip(restore_paths, restore_values):
-                if path is not None: ctx.set_var_user(value, *path)
+                if path is not None: ctx.set_var(value, *path)

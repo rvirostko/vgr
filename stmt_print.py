@@ -27,9 +27,9 @@ are used if the values are set to _None_.
 Note that a semi-colon is _required_ if there are no expressions to print.
 In this case, only the _arg.orgs_ is printed.
 """
-    sep = ctx.get_var_user(*OFS_PATH)
+    sep = ctx.get_var(*OFS_PATH)
     sep = ' ' if sep is None else str(sep)
-    end = ctx.get_var_user(*ORS_PATH)
+    end = ctx.get_var(*ORS_PATH)
     end = os.linesep if end is None else str(end)
     print_stdout(*[ctx.eval_expr(expr) for expr in statement.children], sep=sep, end=end)
     stdout().flush()

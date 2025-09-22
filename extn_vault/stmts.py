@@ -9,7 +9,7 @@ from lark import Tree
 from app_exceptions import VgrRuntimeError
 from exec_context import ExecContext
 from vault_api.client_mgr import VaultClientManager
-from evaluate import do_set
+from evaluate import do_set, _var_name_path
 
 from .dd_consts import DEFAULT_NS_PATH, DEFAULT_RESULT_PATH, DEFAULT_CONN_PATH
 from .functions import extract_kv_data, extract_kv_metadata, add_kv_cas
@@ -57,8 +57,10 @@ def _set_result(ctx: ExecContext, args: dict, data: Any) -> dict:
         path = args[_RESULT_ARG]
         # They can always restate the default
         # and if they do, we dont check immutability/protection
+        # TODO This late check prevents us from doing good error reporting
         if path != DEFAULT_RESULT_PATH:
-            ctx.validate_user_set_path(*ctx.dd.validate_user_path(*path))
+            ctx.dd.validate_user_set_path(*path)
+    # TODO this can cause copy-on-write duplication
     do_set(ctx, data, *path)
     return data
 
@@ -732,9 +734,10 @@ def _extract_args(ctx: ExecContext, statement: Tree) -> dict:
             arg_name = child.data[5:]
             arg_node = child.children[0]
             if arg_name in _ARG_VAR_NAME:
-                args[arg_name] = tuple(name.value for name in arg_node.children)
+                args[arg_name] = _var_name_path(arg_node)
             elif arg_name in _ARG_INT_EXPR:
                 v = ctx.eval_expr_or_const(arg_node)
+                # TODO !! looks like potential common code
                 if v:
                     if not isinstance(v, (int, float)): raise TypeError(f'{arg_name.title()} must be a int; found {_type_str(v)}')
                     args[arg_name] = int(v)

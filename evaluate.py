@@ -12,6 +12,7 @@ import textwrap
 from lark import v_args, Tree, Token, Transformer
 
 from app_exceptions import VgrRuntimeError
+from data_dict import DataDictionary
 from exec_context import ExecContext
 from user_callable import UserFunction
 from functions import get_function_op, build_list, build_dict, logical_and, logical_or
@@ -61,8 +62,9 @@ def do_set(ctx: ExecContext, value: Any, *path) -> None:
     """
     After calculations are done, use this to set a value.
     Generates verbose output.
+    Path should be a vetted
     """
-    new_value = ctx.set_var_user(value, *path)
+    new_value = ctx.set_var(value, *path)
     if ctx.verbose: ctx.print_verbose('Set', '.'.join(path), 'To', shorten(repr(new_value)))
 
 def do_unset(ctx: ExecContext, *path) -> None:
@@ -70,13 +72,13 @@ def do_unset(ctx: ExecContext, *path) -> None:
     Use this to unset a value.
     Generates verbose output.
     """
-    old_value = ctx.dd.unset_var_user(*path)
+    old_value = ctx.dd.unset_var(*path)
     if ctx.verbose: ctx.print_verbose('Removed', shorten(repr(old_value)), 'From', '.'.join(path))
 
 def get_writable_var_path(ctx: ExecContext, node: Tree) -> tuple:
     """Determine the path and validate it for writability"""
     try:
-        return ctx.validate_user_set_path(*ctx.dd.validate_user_path(*_var_name_path(node)))
+        return ctx.dd.validate_user_set_path(*_var_name_path(node))
     except ValueError as e:
         raise VgrRuntimeError(node, e) from e
 
@@ -88,24 +90,16 @@ def create_param_list(ctx: ExecContext, node: Tree) -> tuple:
     param_paths = []
     # First pass: extract and check for valid and unique names
     for node in param_source:
-        path = _var_name_path(node) if isinstance(node, Tree) else (node.value,)
+        path = get_writable_var_path(ctx, node)
         if path in seen_paths:
             raise VgrRuntimeError(node, ValueError(f'Duplicate parameter {".".join(path)!r}'))
-        try:
-            ctx.dd.validate_user_path(*path)
-        except ValueError as e:
-            raise VgrRuntimeError(node, e) from e
-        try:
-            ctx.validate_user_set_path(*path)
-        except ValueError as e:
-            raise VgrRuntimeError(node, ValueError(f'{".".join(path)!r} cannot be used as a parameter name')) from e
         seen_paths.add(path)
         param_paths.append((path, node))
     # Second pass: check for prefix overlaps
     for i, (p1, node) in enumerate(param_paths):
         for j, (p2, _) in enumerate(param_paths):
             if i != j:
-                # You can't set "a.b" and "a.b.c" regardless or order
+                # You can't set "a.b" and "a.b.c" regardless of order
                 # because you won't get expected results
                 if (len(p1) < len(p2) and p2[:len(p1)] == p1 or
                     len(p2) < len(p1) and p1[:len(p2)] == p2):
@@ -160,9 +154,12 @@ class VarRef(Operation):
     """
 
     def execute(self, ctx: ExecContext, args: list) -> Any:
-        """This is the lookup of a top-level variable"""
-        # The args are all NAME tokens
-        return ctx.get_var_user(*tuple(arg.value for arg in args))
+        """
+        This is the lookup of a top-level variable.
+        args are the children of a var_ref Tree, comprising
+        the path and are all NAME tokens
+        """
+        return ctx.get_var(*_var_name_path(self))
 
     def op_name(self) -> str:
         return 'var_ref'
@@ -193,7 +190,7 @@ class InvokeFunctionOperation(Operation):
     """
     def execute(self, ctx: ExecContext, args: list) -> Any:
         # @<var-name>(<expr>...)
-        fn = ctx.get_var_user(*_var_name_path(args[0]))
+        fn = ctx.get_var(*_var_name_path(args[0]))
         values = [ctx.eval_expr(arg) for arg in args[1:]]
         return UserFunction.invoke(ctx, fn, values)
 
@@ -212,7 +209,7 @@ class InvokeInlineFunctionOperation(Operation):
     def execute(self, ctx: ExecContext, args: list) -> Any:
         # <expr>.@<var-name>(<expr>...)
         inline_value = ctx.eval_expr(args[0]) # the in-line <expr>
-        fn = ctx.get_var_user(*_var_name_path(args[1])) # function ref
+        fn = ctx.get_var(*_var_name_path(args[1])) # function ref
         values = [ctx.eval_expr(arg) for arg in args[2:]]
         values.insert(0, inline_value)
         return UserFunction.invoke(ctx, fn, values)
@@ -274,24 +271,57 @@ class Ternary(Operation):
     def op_name(self) -> str:
         return 'ternary' + repr(self._seq)
 
+# TODO needs to be replaced with a more sophisticated
+# sig: path is a set of strings now, not the tokens
+# so error messages have no context
 def deref_var(data: Any, /, *path: str) -> Any:
     """
     This is the lookup of a path relative to data.
-    It does NOT use a data dictionary.
+    It does NOT use a data dictionary except to
+    validate the step names in the path.
     """
-    for key in path:
-        if not isinstance(data, dict) or key not in data: return None
-        data = data[key]
+    for step in path:
+        try:
+            DataDictionary.valid_path_step(step)
+            if not isinstance(data, dict) or step not in data: return None
+            data = data[step]
+        except ValueError as e:
+            raise VgrRuntimeError(step, e) from e
     return data
+
+def _is_name_token(node) -> bool:
+    return isinstance(node, Token) and node.type == 'NAME'
+
+def _is_var_name(node) -> bool:
+    return isinstance(node, Tree) and node.data == 'var_name'
+
+def _is_var_ref(node) -> bool:
+    return isinstance(node, Tree) and node.data == 'var_ref'
 
 def _var_name_path(node: Tree) -> tuple[str]:
     """
-    Returns a path into the data dictionary from a parsed var_name.
-    This is typically used for lvalues.
+    Returns a path into the data dictionary, typically used with lvalues.
+
+    * var_name tree: path from children which should be NAME tokens
+    * var_ref tree: same as var_name
+    * NAME token: single level path
+
+    The path is partially validate: steps are checked, but we
+    can't check for valid write because we don't know the context.
+
+    See also get_writable_var_path()
     """
-    if isinstance(node, Tree) and node.data == "var_name":
-        return tuple(name.value for name in node.children)
-    raise VgrRuntimeError(node, TypeError('Expected var_name')) # SNO
+    def _step_name(token: Token) -> str:
+        # extracts and validates the parts of the path
+        try:
+            if not _is_name_token(token): raise ValueError('Expected NAME') # SNO
+            return DataDictionary.valid_path_step(token.value)
+        except ValueError as e:
+            raise VgrRuntimeError(token, e) from e
+
+    if _is_var_name(node) or _is_var_ref(node): return tuple(_step_name(name) for name in node.children)
+    if _is_name_token(node): return (_step_name(node),)
+    raise VgrRuntimeError(node, TypeError('Expected var_name, var_ref or NAME')) # SNO
 
 def eval_expr_or_const(ctx: ExecContext, expr: Any) -> Any:
     """
@@ -319,11 +349,10 @@ def eval_expr_or_const(ctx: ExecContext, expr: Any) -> Any:
     if isinstance(expr, Tree):
         # var_name is typically used as a lvalue, but here the
         # syntax is an explicit "value of" rather than a constant value
-        if expr.data == "var_name":
-            return ctx.get_var_user(*_var_name_path(expr))
+        if _is_var_name(expr): return ctx.get_var(*_var_name_path(expr))
         # This allows for arguments to be unquoted if it is a simple (one part) name
         # and its value is not known in the data dictionary
-        if expr.data == "var_ref" and len(expr.children) == 1 and isinstance(expr.children[0], Token) and expr.children[0].type == "NAME":
+        if _is_var_ref(expr) and len(expr.children) == 1 and _is_name_token(expr.children[0]):
             name = expr.children[0].value
             exists, value = ctx.var_exists(name)
             return value if exists else name

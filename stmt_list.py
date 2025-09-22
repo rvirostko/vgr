@@ -34,6 +34,7 @@ def _eval_list_target(ctx: ExecContext, statement: Tree, idx: int) -> tuple[int,
     return idx, var_path, value
 
 def _eval_list_giving(ctx: ExecContext, statement: Tree, idx: int) -> tuple[Tree, tuple[str]]:
+    """Returned path is vetted so that is valid and writable"""
     # NB: since this relies on length alone, it can be fragile
     giving_expr = statement.children[idx] if idx < len(statement.children) else None
     return giving_expr, get_writable_var_path(ctx, giving_expr) if giving_expr else None
@@ -42,7 +43,7 @@ def _set_list_giving(ctx: ExecContext, path: tuple[str], value: Any, expr: Tree)
     # TODO: if of length one, should we unpack
     # TODO is value always going to be an array
     try:
-        ctx.set_var_user(value, *path)
+        ctx.set_var(value, *path)
     except Exception as e:
         raise VgrRuntimeError(expr, e) from e
 

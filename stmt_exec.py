@@ -510,9 +510,7 @@ class DefaultExecContext(ExecContext):
     def set_var(self, data: Any, /, *path: str) -> Any: return self.dd.set_var(data, *path)
     def var_exists(self, *path: str) -> tuple[bool, Any]: return self.dd.var_exists(*path)
 
-    def get_var_user(self, *path: str) -> Any: return self.dd.get_var_user(*path)
     def set_var_user(self, data: Any, /, *path: str): return self.dd.set_var_user(data, *path)
-    def validate_user_set_path(self, *path: str) -> tuple: return self.dd.validate_user_set_path(*path)
 
     def clear_scratch(self) -> None: self.dd.clear_scratch()
 

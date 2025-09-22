@@ -9,7 +9,7 @@ import sys
 from lark import Tree
 
 from app_exceptions import VgrExitingException, VgrStatementBreak, VgrStatementContinue, VgrRuntimeError
-from evaluate import bind_operations, var_name_path, do_set, do_unset
+from evaluate import bind_operations, do_set, do_unset, get_writable_var_path, _var_name_path
 from exec_context import ExecContext
 from mathpak import (
     bound_ops,
@@ -63,13 +63,14 @@ For user input, when at end-of-file (when not interactive) or if the user hits r
 without entering any information, the contents of _variable_ remains
 unchanged. There is no limit on the length of user input, but it is a single line.
 """
+    var_path = get_writable_var_path(ctx, statement.children[0])
     name = statement.data
     if name in _DT_FUNCS:
-        do_set(ctx, _DT_FUNCS.get(statement.data)(), *var_name_path(statement.children[0]))
+        do_set(ctx, _DT_FUNCS.get(statement.data)(), *var_path)
     else:
         line = sys.stdin.readline()
         line = line.rstrip('\n') if line else line
-        if line: do_set(ctx, line, *var_name_path(statement.children[0]))
+        if line: do_set(ctx, line, *var_path)
 
 @bound_ops("Stop-Run")
 def execute_exit(_: ExecContext, statement: Tree) -> None:
@@ -148,7 +149,7 @@ If not specified, the test expression is performed before the block of statement
     else:
         test_before = True
         cindex = 0
-    path = var_name_path(statement.children[cindex])
+    var_path = get_writable_var_path(ctx, statement.children[cindex])
     cindex += 1
     value = ctx.eval_to_number(bind_operations(statement.children[cindex]), 'Perform Varying start value')
     cindex += 1
@@ -157,9 +158,11 @@ If not specified, the test expression is performed before the block of statement
     cindex += 1
     predicate = bind_operations(statement.children[cindex])
     cindex += 1
+    # Save the initial state of the variable
+    var_save = ctx.dd.var_exists(*var_path)
     try:
         while True:
-            do_set(ctx, value, *path)
+            do_set(ctx, value, *var_path)
             if test_before and poly_true(ctx.eval_expr(predicate)): return
             try:
                 ctx.dispatch_statements(statement.children[cindex:])
@@ -170,7 +173,11 @@ If not specified, the test expression is performed before the block of statement
             value += inc
             if not test_before and poly_true(ctx.eval_expr(predicate)): return
     finally:
-        do_unset(ctx, *path)
+        # restore the previous state of the variable
+        if var_save[0]:
+            do_set(ctx, var_save[1], *var_path)
+        else:
+            do_unset(ctx, *var_path)
 
 @bound_ops("Compute")
 def execute_compute(ctx: ExecContext, statement: Tree) -> None:
@@ -226,10 +233,10 @@ def execute_inc(ctx: ExecContext, statement: Tree) -> None:
 If the variable does not exist, it is created and initialized to zero.
 This is fundamentally an arithmetic, scalar opertion.
 """
-    path = var_name_path(statement.children[0])
-    x = poly_number(ctx.get_var_user(*path)) or 0
+    var_path = get_writable_var_path(ctx, statement.children[0])
+    x = poly_number(ctx.get_var(*var_path)) or 0
     y = poly_number(ctx.eval_expr(statement.children[1])) or 0
-    do_set(ctx, poly_add(x, y), *path)
+    do_set(ctx, poly_add(x, y), *var_path)
 
 @bound_ops("Set-Down")
 def execute_dec(ctx: ExecContext, statement: Tree) -> None:
@@ -241,10 +248,10 @@ def execute_dec(ctx: ExecContext, statement: Tree) -> None:
 If the variable does not exist, it is created and initialized to zero.
 This is fundamentally an arithmetic, scalar opertion.
 """
-    path = var_name_path(statement.children[0])
-    x = poly_number(ctx.get_var_user(*path)) or 0
+    var_path = get_writable_var_path(ctx, statement.children[0])
+    x = poly_number(ctx.get_var(*var_path)) or 0
     y = poly_number(ctx.eval_expr(statement.children[1])) or 0
-    do_set(ctx, poly_sub(x, y), *path)
+    do_set(ctx, poly_sub(x, y), *var_path)
 
 @bound_ops("Move")
 def execute_move_to(ctx: ExecContext, statement: Tree) -> None:
@@ -268,23 +275,22 @@ request is ignored and a regular move is performed.
     if isinstance(fc, Tree) and fc.data == 'cobol_move_corr':
         corresponding = True
         start = 1
-    expr = statement.children[start]
-    src = ctx.eval_expr(expr)
-    path = var_name_path(statement.children[start + 1])
-    dest = ctx.get_var_user(*path) if corresponding else None
-    if isinstance(src, dict) and isinstance(dest, dict):
+    src_value = ctx.eval_expr(statement.children[start])
+    var_path = get_writable_var_path(ctx, statement.children[start + 1])
+    dest_value = ctx.get_var(*var_path) if corresponding else None
+    if isinstance(src_value, dict) and isinstance(dest_value, dict):
         # Should end up here if corresponding was specified,
         # what we are moving is a dictionary, and the
         # destination existed and is also a dictionary
-        dest.update({k: src[k] for k in src if k in dest.keys()})
+        dest_value.update({k: src_value[k] for k in src_value if k in dest_value.keys()})
         # This isn't strictly needed as we've done a modification in place
         # However, it does print out something in verbose, so we execute
         # for that side effect
-        do_set(ctx, dest, *path)
+        do_set(ctx, dest_value, *var_path)
     else:
-        # Either no corresponding, or either the src/dest is not a dict
-        # This is like a "regular" set
-        do_set(ctx, src, *path)
+        # Either not corresponding move or the src/dest are not a dicts
+        # Just a "regular" set
+        do_set(ctx, src_value, *var_path)
 
 @bound_ops("Add")
 def execute_add_to(ctx: ExecContext, statement: Tree) -> None:
@@ -297,16 +303,16 @@ def execute_add_to(ctx: ExecContext, statement: Tree) -> None:
 If the variable does not exist, it is created and initialized to zero.
 This is fundamentally an arithmetic, scalar opertion.
 """
-    path = tuple(name.value for name in statement.children[-1].children)
-    x = poly_number(ctx.get_var_user(*path)) or 0
+    var_path = get_writable_var_path(ctx, statement.children[-1])
+    x = poly_number(ctx.get_var(*var_path)) or 0
     args = tuple(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
-    do_set(ctx, poly_add(x, *args), *path)
+    do_set(ctx, poly_add(x, *args), *var_path)
 
 # Doc added to add_to
 def execute_add_giving(ctx: ExecContext, statement: Tree) -> None:
-    path = tuple(name.value for name in statement.children[-1].children)
+    var_path = get_writable_var_path(ctx, statement.children[-1])
     args = tuple(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
-    do_set(ctx, poly_add(*args), *path)
+    do_set(ctx, poly_add(*args), *var_path)
 
 @bound_ops("Subtract")
 def execute_sub_from(ctx: ExecContext, statement: Tree) -> None:
@@ -319,16 +325,16 @@ def execute_sub_from(ctx: ExecContext, statement: Tree) -> None:
 If the variable does not exist, it is created and initialized to zero.
 This is fundamentally an arithmetic, scalar opertion.
 """
-    path = tuple(name.value for name in statement.children[-1].children)
-    x = poly_number(ctx.get_var_user(*path)) or 0
+    var_path = get_writable_var_path(ctx, statement.children[-1])
+    x = poly_number(ctx.get_var(*var_path)) or 0
     args = tuple(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
-    do_set(ctx, poly_sub(x, *args), *path)
+    do_set(ctx, poly_sub(x, *args), *var_path)
 
 # Doc added to sub_from
 def execute_sub_giving(ctx: ExecContext, statement: Tree) -> None:
-    path = tuple(name.value for name in statement.children[-1].children)
+    var_path = get_writable_var_path(ctx, statement.children[-1])
     args = tuple(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
-    do_set(ctx, poly_sub(args[-1], *args[:-1]), *path)
+    do_set(ctx, poly_sub(args[-1], *args[:-1]), *var_path)
 
 @bound_ops("Multipy")
 def execute_mul_by(ctx: ExecContext, statement: Tree) -> None:
@@ -344,13 +350,13 @@ In the second, the result of the multiplication is placed into the variable.
 In either case, if the variable does not exist, it is created and initialized to zero.
 This is fundamentally an arithmetic, scalar opertion.
 """
-    path = tuple(name.value for name in statement.children[-1].children)
+    var_path = get_writable_var_path(ctx, statement.children[-1])
     args = tuple(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
     if len(args) == 1:
-        value = poly_mul(poly_number(ctx.get_var_user(*path)) or 0, args[0])
+        value = poly_mul(poly_number(ctx.get_var(*var_path)) or 0, args[0])
     else:
         value = poly_mul(args[0], args[1])
-    do_set(ctx, value, *path)
+    do_set(ctx, value, *var_path)
 
 @bound_ops("Divide")
 def execute_div_into(ctx: ExecContext, statement: Tree) -> None:
@@ -367,19 +373,19 @@ In the other forms the result of the division is placed into the variable.
 In either case, if the variable does not exist, it is created and initialized to zero.
 This is fundamentally an arithmetic, scalar opertion.
 """
-    path = tuple(name.value for name in statement.children[-1].children)
+    var_path = get_writable_var_path(ctx, statement.children[-1])
     args = tuple(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
     if len(args) == 1:
-        value = poly_div(poly_number(ctx.get_var_user(*path)) or 0, args[0])
+        value = poly_div(poly_number(ctx.get_var(*var_path)) or 0, args[0])
     else:
         value = poly_div(args[1], args[0])
-    do_set(ctx, value, *path)
+    do_set(ctx, value, *var_path)
 
 # Doc added to div_into
 def execute_div_by(ctx: ExecContext, statement: Tree) -> None:
-    path = tuple(name.value for name in statement.children[-1].children)
+    var_path = get_writable_var_path(ctx, statement.children[-1])
     args = tuple(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
-    do_set(ctx, poly_div(*args), *path)
+    do_set(ctx, poly_div(*args), *var_path)
 
 @bound_ops("Exhibit")
 def execute_exhibit(ctx: ExecContext, statement: Tree) -> None:
@@ -397,11 +403,11 @@ Unlike Print and Printf, the values display are the _representation_ of the data
 its printable value. This lets you diferentiate between an integer and a string, and
 see control characters.
 """
-    def exhibit_value(name: str, value: Any) -> None:
+    def _exhibit_value(name: str, value: Any) -> None:
         if isinstance(value, dict):
             if value:
                 for key in sorted(value.keys()):
-                    exhibit_value(name + '.' + key, value[key])
+                    _exhibit_value(name + '.' + key, value[key])
             else:
                 print_stdout(name, '= -empty-')
         else:
@@ -409,17 +415,17 @@ see control characters.
     children = statement.children
     if children:
         for var_name in children:
-            path = tuple(name.value for name in var_name.children)
-            name = '.'.join(path)
-            exists, value = ctx.var_exists(*path)
+            var_path = _var_name_path(var_name)
+            name = '.'.join(var_path)
+            exists, value = ctx.var_exists(*var_path)
             if exists:
-                exhibit_value(name, value)
+                _exhibit_value(name, value)
             else:
                 print_stdout(name, '= -not set-')
     else:
         # No arguments dumps the entire dictionary
         for key in sorted(ctx.dd.keys()):
-            exhibit_value(key, ctx.get_var(key))
+            _exhibit_value(key, ctx.get_var(key))
 
 @bound_ops("Display")
 def execute_display_on(ctx: ExecContext, statement: Tree) -> None:

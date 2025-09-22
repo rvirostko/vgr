@@ -121,7 +121,7 @@ def execute_set_in_place(ctx: ExecContext, statement: Tree) -> None:
     var_path = get_writable_var_path(ctx, statement.children[0])
     op = _IN_PLACE_OP[statement.children[1].value]
     expr = statement.children[2]
-    do_set(ctx, op(ctx.get_var_user(*var_path), ctx.eval_expr(expr)), *var_path)
+    do_set(ctx, op(ctx.get_var(*var_path), ctx.eval_expr(expr)), *var_path)
 
 def execute_set_arrow(ctx: ExecContext, statement: Tree) -> None:
     """-documentation combined with `set`-"""
@@ -149,8 +149,8 @@ Both variables must _not_ be immutable
 """
     path1 = get_writable_var_path(ctx, statement.children[0])
     path2 = get_writable_var_path(ctx, statement.children[1])
-    temp = ctx.get_var_user(*path1)
-    do_set(ctx, ctx.get_var_user(*path2), *path1)
+    temp = ctx.get_var(*path1)
+    do_set(ctx, ctx.get_var(*path2), *path1)
     do_set(ctx, temp, *path2)
 
 @bound_ops("Load", "Load-From")
@@ -179,7 +179,7 @@ name with Text as the default.
     try:
         with open(filename, 'r', encoding='utf-8-sig') as f:
             data, fieldnames = load_file_as(f, dtype)
-            ctx.set_var_user(data, *var_path)
+            ctx.set_var(data, *var_path)
     except Exception as e:
         raise VgrRuntimeError(fn_child, OSError(f'While reading {filename!r}: {str(e)}')) from e
     if ctx.verbose:

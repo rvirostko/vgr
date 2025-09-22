@@ -10,7 +10,8 @@ from lark import Tree, Token, Transformer, Visitor, v_args
 
 from app_exceptions import VgrRuntimeError
 from data_xtract import QueryFilter, InfoOutput, DataExtractor, EndExtractException
-from evaluate import bind_operations
+from evaluate import bind_operations, _var_name_path
+
 from exec_context import ExecContext
 from mathpak import poly_false, bound_ops, type_str
 from output import (
@@ -28,6 +29,8 @@ from xtract_memory import InMemoryExtractor
 from xtract_vault import VAULT_TARGETS, VaultDataExtractor
 
 _ROWID_PATH = ('_', 'rowid')
+
+_VAR_OPT = 'var'
 
 class SelectAnalyzer(Visitor):
 
@@ -222,7 +225,7 @@ class SelectAnalyzer(Visitor):
         """... From Var <name> [As <target>] ..."""
         node = bind_operations(node)
         self.from_opts['type'] = 'memory'
-        self.from_opts['var'] = tuple(name.value for name in node.children[0].children)
+        self.from_opts[_VAR_OPT] = _var_name_path(node.children[0])
         self.from_opts['target'] = self._get_target_name(node.children[1]) if len(node.children) > 1 else self._DEFAUL_TARGET_NAME
 
     def file_from(self, node: Tree):
@@ -246,11 +249,14 @@ class SelectAnalyzer(Visitor):
     def _get_target_name(self, node: Tree) -> str:
         target = self.ctx.eval_expr_or_const(bind_operations(node))
         if target is None: return self._DEFAUL_TARGET_NAME
-        if not isinstance(target, str): raise VgrRuntimeError(node, TypeError(f"Value for 'As' must be a string; found {type_str(target)}"))
+        if not isinstance(target, str):
+            raise VgrRuntimeError(node, TypeError(f"Value for 'As' must be a string; found {type_str(target)}"))
         target = target.strip()
-        if self._VAR_NAME.fullmatch(target) is None: raise VgrRuntimeError(node, TypeError(f"Value for 'As' must be a valid simple variable name; {target!r}"))
+        if self._VAR_NAME.fullmatch(target) is None:
+            raise VgrRuntimeError(node, TypeError(f"Value for 'As' must be a valid simple variable name; {target!r}"))
         try:
-            self.ctx.validate_user_set_path(target)
+            # This makes sure you can do something like "... As 'math'"
+            self.ctx.dd.validate_user_set_path(target)
             return target
         except ValueError as e:
             raise VgrRuntimeError(node, e) from e
@@ -439,7 +445,7 @@ class QueryRunner(QueryFilter, InfoOutput):
     @rowid.setter
     def rowid(self, value: int) -> int:
         self._rowid = int(value)
-        self.ctx.set_var_user(self._rowid, *_ROWID_PATH)
+        self.ctx.set_var(self._rowid, *_ROWID_PATH)
 
     def inc_rowid(self):
         self.rowid += 1
@@ -534,7 +540,7 @@ class QueryRunner(QueryFilter, InfoOutput):
         from the data dictionary.
         See set_data().
         """
-        self.ctx.dd.unset_var_user(key)
+        self.ctx.dd.unset_var(key)
 
     def print_debug(self, *args, **kwargs):
         self.ctx.print_debug(*args, **kwargs)
@@ -552,9 +558,9 @@ def create_extractor(ctx: ExecContext, opts: dict) -> DataExtractor:
         # TODO Much more complicated in the future...
         return VaultDataExtractor(target)
     if xtype == 'memory':
-        path = opts.get('var', None)
+        path = opts.get(_VAR_OPT, None)
         if path:
-            return InMemoryExtractor(ctx.get_var_user(*path), target)
+            return InMemoryExtractor(ctx.get_var(*path), target)
         filename = opts.get('file', None)
         if filename:
             # TODO need input encoding opt, default to usf-8-sig

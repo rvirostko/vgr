@@ -47,13 +47,8 @@ class ExecContext(ABC):
     def var_exists(self, *path: str) -> tuple[bool, Any]: pass
 
     @abstractmethod
-    def get_var_user(self, *path: str) -> Any: pass
-
-    @abstractmethod
-    def set_var_user(self, data: Any, /, *path: str) -> Any: pass
-
-    @abstractmethod
-    def validate_user_set_path(self, *path: str) -> tuple: pass
+    def set_var_user(self, data: Any, /, *path: str) -> Any:
+        """Deprecated: should make sure path is checked before calling set_var()"""
 
     @abstractmethod
     def clear_scratch(self) -> Any: pass

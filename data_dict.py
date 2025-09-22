@@ -26,23 +26,22 @@ class DataDictionary():
     def __init__(self):
         # Populate the stack of frames with our "global" frame
         self._frames: list[Frame] = [Frame()]
-        self._immutable_prefixes: tuple = tuple()
-        self._protected_prefixes: tuple = tuple()
+        self._immutable_prefixes: set = set()
+        self._protected_prefixes: set = set()
         self.add_protected_prefix(_SCRATCH_PREFIX)
 
     def add_immutable_prefix(self, prefix: str) -> None:
         """Immutable prefixes means you can't change any part of them"""
-        self._assert_valid_prefix(prefix)
-        self._immutable_prefixes += (prefix, )
+        self._immutable_prefixes.add(self._assert_valid_prefix(prefix))
 
     def add_protected_prefix(self, prefix: str) -> None:
         """Protected prefixes means you can change any part of them, but not at the top-level"""
-        self._assert_valid_prefix(prefix)
-        self._protected_prefixes += (prefix, )
+        self._protected_prefixes.add(self._assert_valid_prefix(prefix))
 
-    def _assert_valid_prefix(self, prefix: str) -> None:
+    def _assert_valid_prefix(self, prefix: str) -> str:
         """Prefixes cannot contain "." or be a reserved word"""
         assert prefix and '.' not in prefix and prefix not in self._RESERVED_WORDS, "Invalid prefix"
+        return prefix
 
     def push_frame(self, locals_list: list) -> None:
         if len(self._frames) >= 8192: raise RecursionError()
@@ -52,7 +51,7 @@ class DataDictionary():
             # Fully populate the local variables
             if locals_list:
                 for local in locals_list:
-                    self.set_var_user(local[1], *local[0])
+                    self.set_var(local[1], *local[0])
         except Exception as e:
             self.pop_frame()
             raise e
@@ -89,30 +88,12 @@ class DataDictionary():
 
     def set_var_user(self, value: Any, /, *path: str) -> Any:
         """
+        *Deprecated*
         Set an item within the dictionary.
         This is a method to call with user input.
         Returns the value passed in.
         """
-        return self.set_var(value, *self.validate_user_set_path(*self.validate_user_path(*path)))
-
-    def get_var_user(self, /, *path: str) -> Any:
-        """
-        Get an item within the dictionary.
-        This is a method to call with user input.
-        Returns the values stored on the path, or None if the
-        path does not lead to a dictionary.
-        Note that "None" is not a definitive "not found" statement.
-        """
-        return self.get_var(*self.validate_user_path(*path))
-
-    def unset_var_user(self, *path: str) -> Any:
-        """
-        Remove an item from the dictionary.
-        This is a method to call with user input.
-        Returns the value removed.
-        Note that "None" is not a definitive "not found" statement.
-        """
-        return self.unset_var(*self.validate_user_set_path(*self.validate_user_path(*path)))
+        return self.set_var(value, *self.validate_user_set_path(*path))
 
     def set_var(self, data: Any, /, *path: str) -> Any:
         """
@@ -178,15 +159,13 @@ class DataDictionary():
             data = data[key]
         return (True, self.value_for(data))
 
-    def validate_user_path(self, *path: str) -> tuple:
-        """Checks the path for validity"""
-        if not path: raise ValueError('Empty/Missing path')
-        # Check for anything that is None, isn't a string, or strings that are "empty"
-        if any(step is None or not isinstance(step, str) or all(sc.isspace() for sc in step) for step in path):
-            raise ValueError(f"Invalid name: {'.'.join(map(str, path))!r}")
-        if any(step.lower() in self._RESERVED_WORDS for step in path):
-            raise ValueError(f'{".".join(path)!r} contains reserved words')
-        return path
+    @staticmethod
+    def valid_path_step(step: str) -> str:
+        if step is None or not isinstance(step, str) or all(sc.isspace() for sc in step):
+            raise ValueError(f'Invalid name component: {step!r}')
+        if step.lower() in DataDictionary._RESERVED_WORDS:
+            raise ValueError(f'{step!r} is a reserved word')
+        return step
 
     def validate_user_set_path(self, *path: str) -> tuple:
         """Check the path for validity in setting, preventing alterations of protected and immutable areas"""
