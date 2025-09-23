@@ -51,9 +51,6 @@ class ExecContext(ABC):
         """Deprecated: should make sure path is checked before calling set_var()"""
 
     @abstractmethod
-    def clear_scratch(self) -> Any: pass
-
-    @abstractmethod
     def eval_expr(self, expr: Any) -> Any: pass
 
     @abstractmethod

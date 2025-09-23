@@ -9,7 +9,7 @@ import sys
 from lark import Tree
 
 from app_exceptions import VgrExitingException, VgrStatementBreak, VgrStatementContinue, VgrRuntimeError
-from evaluate import bind_operations, do_set, do_unset, get_writable_var_path, _var_name_path
+from evaluate import bind_operations, do_set, get_writable_var_path, _var_name_path
 from exec_context import ExecContext
 from mathpak import (
     bound_ops,
@@ -158,9 +158,8 @@ If not specified, the test expression is performed before the block of statement
     cindex += 1
     predicate = bind_operations(statement.children[cindex])
     cindex += 1
-    # Save the initial state of the variable
-    var_save = ctx.dd.var_exists(*var_path)
     try:
+        ctx.dd.push_frame([(var_path, None)])
         while True:
             do_set(ctx, value, *var_path)
             if test_before and poly_true(ctx.eval_expr(predicate)): return
@@ -173,11 +172,7 @@ If not specified, the test expression is performed before the block of statement
             value += inc
             if not test_before and poly_true(ctx.eval_expr(predicate)): return
     finally:
-        # restore the previous state of the variable
-        if var_save[0]:
-            do_set(ctx, var_save[1], *var_path)
-        else:
-            do_unset(ctx, *var_path)
+        ctx.dd.pop_frame()
 
 @bound_ops("Compute")
 def execute_compute(ctx: ExecContext, statement: Tree) -> None:

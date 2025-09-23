@@ -563,30 +563,17 @@ TODO
 
 TODO
 
-### `SetVar()` and the Scratch Area
+### `SetVar()`
 
-`SetVar()` stores intermediate values, typically but not always in the scratch area (top-level variable `_`), for later use in the same statement. Althought it looks like a function, it operates differently. Instead of changing the current result, like most functions do, it stores a copy of the results for later reference.
+`SetVar()` stores intermediate values for later use, often in the same statement. Although it looks like a function, it operates differently. Instead of changing the current result as most functions do, it stores a copy of the results.
 
-The argument is different too: it's not an expression, but a variable name, just like in a `Set` statement.
-
-The **scratch area** is a temporary storage space reserved for holding data during the execution of an expression. It is meant for storing intermediate results, values you do not want to keep. Therefore, this area is ephemeral: it is automatically cleared at the end of each statement.
+The argument is also different: it's not an expression, but a variable name, just like in a `Set` statement.
 
 ```Text
 vgr> Set email To "robert@SAMPLE.com"
-vgr> Print email.Split("@").SetVar(_.email)
+vgr> Print email.Split("@").SetVar(split_email)
       .Item(0).TitleCase()
       + "@" +
-      _.email.Item(1).Lower()
+      split_email.Item(1).Lower()
 Robert@sample.com
-vgr> Exhibit _
-_ = -empty-
 ```
-
-`SetVar()` doesn't always have to use the scratch area, but if you don't, you are responsible for the clean-up of values when you are finished.
-
-Additionally, when you use `SetVar()` with `Select` you need to be aware of several things.
-
-* The scratch area is cleared each time a record is written to the output, in addition to when the `Select` completes.
-* If you use `SetVar()` and reference a variable you've stored in the predicate, don't rely on using it across `And` and `Or` boundries, as the `Select` may choose to check these conditions in orders that optimize record traversal and retrieval, not in the order they appear.
-
-While not mandated, you should confine your use of `SetVar()` to the scratch area and only use scratch variables within the same expression.

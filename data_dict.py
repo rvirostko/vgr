@@ -12,8 +12,6 @@ from typing import (
     Optional,
 )
 
-_SCRATCH_PREFIX = '_'
-
 class DataDictionary():
     """
     A hierachical data store
@@ -27,7 +25,6 @@ class DataDictionary():
         self._frames: list[Frame] = [Frame()]
         self._immutable_prefixes: set = set()
         self._protected_prefixes: set = set()
-        self.add_protected_prefix(_SCRATCH_PREFIX)
 
     def add_immutable_prefix(self, prefix: str) -> None:
         """Immutable prefixes means you can't change any part of them"""
@@ -42,7 +39,7 @@ class DataDictionary():
         assert prefix and '.' not in prefix and prefix not in self._RESERVED_WORDS, "Invalid prefix"
         return prefix
 
-    def push_frame(self, locals_list: list) -> None:
+    def push_frame(self, locals_list: list=None) -> None:
         if len(self._frames) >= 8192: raise RecursionError()
         new_frame = LocalsFrame(self._current_frame, locals_list)
         self._frames.append(new_frame)
@@ -81,9 +78,6 @@ class DataDictionary():
         * Contents of protected prefixes
         """
         self._current_frame.reset(self._protected_prefixes, self._immutable_prefixes)
-
-    def clear_scratch(self) -> None:
-        self.get_var(_SCRATCH_PREFIX).clear()
 
     def set_var_user(self, value: Any, /, *path: str) -> Any:
         """
@@ -217,8 +211,6 @@ class Frame:
     """
     def __init__(self, locals_list: list=None) -> None:
         self._data: Dict[str, Any] = {}
-        # Every frame gets its own scratch are
-        self._data[_SCRATCH_PREFIX] = {}
         # In this way we make sure the frame
         # has these items rooted in it regardless
         # of the design. The caller is responsible
@@ -279,7 +271,7 @@ class LocalsFrame(Frame):
     This type of frame has _local_ variables which show others
     in the calling chain. Newly created variables are created as locals.
     """
-    def __init__(self, caller_frame: Frame, locals_list: list) -> None:
+    def __init__(self, caller_frame: Frame, locals_list: list=None) -> None:
         super().__init__(locals_list)
         self._caller_frame: Frame = caller_frame
 

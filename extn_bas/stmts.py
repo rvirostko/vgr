@@ -5,7 +5,7 @@ BASIC extension statements
 from lark import Tree
 
 from app_exceptions import VgrStatementBreak, VgrStatementContinue
-from evaluate import do_set, do_unset, get_writable_var_path
+from evaluate import do_set, get_writable_var_path
 from exec_context import ExecContext
 from stmt_exec import bind_operations, exec_loop
 from stmt_set import execute_set
@@ -83,9 +83,8 @@ following it are skipped and looping proceeds.
     if (end - value) * inc < 0:
         # NB: if end and value are the same, we don't care about the sign
         raise ValueError('Sign of For-Next increment results in infinite loop')
-    # Save the initial state of the variable
-    var_save = ctx.dd.var_exists(*var_path)
     try:
+        ctx.dd.push_frame([(var_path, None)])
         # NB: if start/end are the same, the loop executes once,
         #     which is typical for Basic implementations
         while (inc > 0 and value <= end) or (inc < 0 and value >= end):
@@ -98,11 +97,7 @@ following it are skipped and looping proceeds.
                 pass
             value += inc
     finally:
-        # restore the previous state of the variable
-        if var_save[0]:
-            do_set(ctx, var_save[1], *var_path)
-        else:
-            do_unset(ctx, *var_path)
+        ctx.dd.pop_frame()
 
 @bound_ops("Exit-Block")
 def execute_exit(_: ExecContext, statement: Tree) -> None:

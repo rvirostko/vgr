@@ -515,7 +515,8 @@ class QueryRunner(QueryFilter, InfoOutput):
                 raise EndExtractException()
             return True
         finally:
-            self.ctx.clear_scratch()
+            pass
+            # TODO should this get its own frame?
 
     def set_data(self, key: str, data: Any) -> None:
         """

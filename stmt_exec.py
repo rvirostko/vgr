@@ -166,7 +166,7 @@ def execute_block(ctx: ExecContext, statement: Tree) -> None:
 Also see `Declare`
 """
     # NB: no source to echo
-    ctx.dd.push_frame([])
+    ctx.dd.push_frame()
     try:
         ctx.dispatch_statements(statement.children)
     finally:
@@ -197,6 +197,33 @@ def _declare(ctx: ExecContext, statement: Tree, as_local: bool=True) -> None:
         rc = ctx.dd.declare_var(as_local, *var_path)
         if ctx.verbose and rc is not None: ctx.print_verbose('.'.join(var_path), 'declared as', 'Local' if rc else 'Global')
 
+@control_statement
+@bound_ops("Do-Forever", "Forever")
+def execute_forever(ctx: ExecContext, statement: Tree) -> None:
+    """
+**Predicate-less loop**
+
+* Do Forever [:]
+    _statement_...
+    End [;]
+
+The statements are repeatedly executed until a `Break` statement is
+encountered. A `Continue` causes the statements to loop.
+
+See also `Break` and `Continue`
+"""
+    ctx.dd.push_frame()
+    try:
+        while True:
+            try:
+                ctx.dispatch_statements(statement.children)
+            except VgrStatementBreak:
+                return
+            except VgrStatementContinue:
+                continue
+    finally:
+        ctx.dd.pop_frame()
+
 def exec_if_else(ctx: ExecContext, statement: Tree, desired_value: bool) -> None:
     ctx.echo_source(statement, statement.children[1])
     has_else = statement.children[-1].data == 'else'
@@ -223,8 +250,8 @@ def execute_if(ctx: ExecContext, statement: Tree) -> None:
     _statement_...
   End [;]
 
-If the expression evaluates to True the first block of statements is executed.
-If it evaluates to False, the second block of statements, if provided, is executed.
+If the expression evaluates to _True_ the first block of statements is executed.
+If it evaluates to _False_, the second block of statements—if provided—is executed.
 """
     exec_if_else(ctx, statement, True)
 
@@ -244,14 +271,18 @@ def exec_loop(ctx: ExecContext, statement: Tree, desired_value: bool) -> None:
     """Internal implemenation for loops with a predicate"""
     ctx.echo_source(statement, statement.children[1])
     predicate = bind_operations(statement.children[0])
-    while True:
-        if poly_true(ctx.eval_expr(predicate)) != desired_value: return
-        try:
-            ctx.dispatch_statements(statement.children[1:])
-        except VgrStatementBreak:
-            return
-        except VgrStatementContinue:
-            continue
+    ctx.dd.push_frame()
+    try:
+        while True:
+            if poly_true(ctx.eval_expr(predicate)) != desired_value: return
+            try:
+                ctx.dispatch_statements(statement.children[1:])
+            except VgrStatementBreak:
+                return
+            except VgrStatementContinue:
+                continue
+    finally:
+        ctx.dd.pop_frame()
 
 def exec_repeat(ctx: ExecContext, statement: Tree) -> None:
     """Internal implementation for loops with a fixed count"""
@@ -259,14 +290,19 @@ def exec_repeat(ctx: ExecContext, statement: Tree) -> None:
     counter = poly_int(ctx.eval_expr(bind_operations(statement.children[0])))
     if isinstance(counter, (int, float)):
         counter = math.floor(counter)
-        while counter > 0:
+        if counter > 0:
+            ctx.dd.push_frame()
             try:
-                ctx.dispatch_statements(statement.children[1:])
-            except VgrStatementBreak:
-                return
-            except VgrStatementContinue:
-                pass
-            counter -= 1
+                while counter > 0:
+                    try:
+                        ctx.dispatch_statements(statement.children[1:])
+                    except VgrStatementBreak:
+                        return
+                    except VgrStatementContinue:
+                        pass
+                    counter -= 1
+            finally:
+                ctx.dd.pop_frame()
 
 @control_statement
 @bound_ops("While")
@@ -344,9 +380,9 @@ following it are skipped, and the loop continues with the next item.
     ctx.echo_source(statement, statement.children[2])
     var_path = get_writable_var_path(ctx, statement.children[0])
     collection = poly_list(ctx.eval_expr(bind_operations(statement.children[1])))
-    if collection is not None:
-        # Save the initial state of the variable
-        var_save = ctx.dd.var_exists(*var_path)
+    if collection is not None and len(collection) > 0:
+        # The value is local to the loop
+        ctx.dd.push_frame([(var_path, None)])
         try:
             for value in collection:
                 do_set(ctx, value, *var_path)
@@ -357,11 +393,7 @@ following it are skipped, and the loop continues with the next item.
                 except VgrStatementContinue:
                     continue
         finally:
-            # restore the previous state of the variable
-            if var_save[0]:
-                do_set(ctx, var_save[1], *var_path)
-            else:
-                do_unset(ctx, *var_path)
+            ctx.dd.pop_frame()
 
 # pylint: disable=invalid-name
 # disabled because we MUST have methods named the same as the tokens
@@ -512,6 +544,7 @@ STATEMENT_HANDLERS = {
     'echo':              execute_echo,
     'exit':              execute_exit,
     'foreach':           execute_foreach,
+    'forever':           execute_forever,
     'if':                execute_if,
     'list_append':       execute_list_append,
     'list_insert':       execute_list_insert,
@@ -574,8 +607,6 @@ class DefaultExecContext(ExecContext):
     def set_var_user(self, data: Any, /, *path: str):
         """*deprecated*"""
         return self.dd.set_var_user(data, *path)
-
-    def clear_scratch(self) -> None: self.dd.clear_scratch()
 
     def eval_expr(self, expr: Any) -> Any: return eval_expr(self, expr)
     def eval_expr_or_const(self, expr: Any) -> Any: return eval_expr_or_const(self, expr)
@@ -705,8 +736,6 @@ class DefaultExecContext(ExecContext):
                 raise VgrRuntimeError(statement, e) from e
             except Exception as e:
                 raise VgrRuntimeError(statement, e) from e
-            finally:
-                self.clear_scratch()
 
     def print_tree(self, item: Any) -> None:
         if super().debug: print_tree(item)
