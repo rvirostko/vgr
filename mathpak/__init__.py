@@ -6,6 +6,8 @@ from .bases import (
     poly_base64_encode,
     poly_bin,
     poly_hex,
+    poly_hex_decode,
+    poly_hex_encode,
     poly_oct,
     poly_parse_bin,
     poly_parse_hex,

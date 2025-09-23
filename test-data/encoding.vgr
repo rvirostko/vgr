@@ -1,0 +1,83 @@
+
+Set bar = "-" * 60
+
+# NB: Both data and charsets can be a list or single entries
+#     because of the nature of ForEach
+Define Function test_hex_encodings(data, charsets):
+    ForEach charset In charsets:
+        Printf "{}\n{}\n{}\n", bar, charset.DefaultTo("-default encoding-"), bar
+        ForEach d In data:
+            Printf "    {!r} → {!r}\n", d, d.HexEncode(charset)
+        End
+        Print
+    End
+End
+
+Define Function hex_round_trip_test(s):
+    enc = s.HexEncode()
+    Assert enc.HexDecode() == s
+    If enc Is Not None:
+        # Leading/trailing whitespace is ignored
+        Assert (" " + enc).HexDecode() == s
+        Assert (enc + " ").HexDecode() == s
+        # Case independent
+        Assert enc.Upper().HexDecode() == s
+        Assert enc.Lower().HexDecode() == s
+    End
+End
+
+Define Function test_b64(data):
+    Printf "{}\nBase64\n{}\n", bar, bar
+    ForEach d In data:
+        Printf "    {!r} → {!r}\n", d, d.Base64Encode()
+    End
+    Print
+End
+
+Define Function b64_round_trip_test(s):
+    enc = s.Base64Encode()
+    Assert enc.Base64Decode() == s
+    If enc Is Not None:
+        # Leading/trailing whitespace is ignored
+        Assert (" " + enc).Base64Decode() == s
+        Assert (enc + " ").Base64Decode() == s
+    End
+End
+
+Set encodings To [ None, 'utf-8', 'cp850',  'iso8859-1', 'mac_roman' ]
+Set limited_encodings To [ 'cp437', 'KOI8-R', 'windows-1251', 'shift_jis' ]
+
+# These are our "standard" tests
+Set test_strings To [
+    None, "", " ",
+    string.ascii_letters,
+    string.digits,
+    string.punctuation,
+]
+
+# Characters we expect to have in most modern charsets
+Set extra_tests To [ "Café", "naïve", "Résumé" ]
+
+# These are only testable with UTF-8
+Set utf8_strings To [
+    "東京",                # Japanese Kanji (Tokyo)
+    "😊",                 # emoji
+    "Добрый день",        # Cyrillic
+    "مرحبا",              # Arabic
+    "𝄞🎵",                 # Musical symbols / surrogate pairs (Unicode > U+FFFF)
+]
+
+Begin:
+    Print "\n* Full Set"
+    Call test_hex_encodings(test_strings + extra_tests, encodings)
+    Print "\n* UTF-8 Strings"
+    Call test_hex_encodings(utf8_strings, "utf-8")
+    Print "\n* Special Charsets"
+    Call test_hex_encodings(test_strings, limited_encodings)
+    Print "\n* Base64"
+    Call test_b64(test_strings)
+    ForEach s in test_strings:
+        Call hex_round_trip_test(s)
+        Call b64_round_trip_test(s)
+    End
+End

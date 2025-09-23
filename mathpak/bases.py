@@ -64,16 +64,82 @@ def poly_parse_oct(x: Any) -> Any:
 def poly_parse_hex(x: Any) -> Any:
     return poly_parse_int(x, 16)
 
-def poly_base64_encode(x: Any) -> Any:
+def _check_charset(charset: str) -> str:
+    """Validate charset name, raising error if not known."""
+    if not charset:
+        charset = "utf-8"
+    else:
+        if not isinstance(charset, str):
+            raise TypeError(f'Expected string for charset, found {type_str(charset)}')
+        charset = charset.strip()
+        if not charset: charset = "utf-8"
+    try:
+        # Just attempt a lookup — doesn't do conversion yet
+        ''.encode(charset)
+        return charset
+    except LookupError as e:
+        raise ValueError(f'Invalid charset {charset!r}') from e
+
+def poly_base64_encode(x: Any, charset: str = "utf-8") -> Any:
+    """
+**Encode a string using base 64 encoding**
+
+* _value_.Base64Encode()
+* _value_.Base64Encode(_charset_)
+
+The default _charset_ is UTF-8.
+"""
     # Idempotentent for these types
     if isinstance(x, (NoneType, bool, int, float)): return x
-    if isinstance(x, str): return base64.b64encode(x.encode()).decode('ascii')
-    if isinstance(x, (list, tuple)): return type(x)(poly_base64_encode(x1) for x1 in x)
+    if isinstance(x, (list, tuple)): return type(x)(poly_base64_encode(x1, charset) for x1 in x)
+    if isinstance(x, str): return base64.b64encode(x.encode()).decode(_check_charset(charset))
     raise TypeError(f'Base64 encoding of {type_str(x)} not supported')
 
-def poly_base64_decode(x: Any) -> Any:
+def poly_base64_decode(x: Any, charset: str = "utf-8") -> Any:
+    """
+**Decode a string using base 64 encoding**
+
+* _value_.Base64Decode()
+* _value_.Base64Decode(_charset_)
+
+The default _charset_ is UTF-8.
+"""
     # Idempotentent for these types
     if isinstance(x, (NoneType, bool, int, float)): return x
-    if isinstance(x, str): return base64.b64decode(x)
-    if isinstance(x, (list, tuple)): return type(x)(poly_base64_decode(x1) for x1 in x)
+    if isinstance(x, (list, tuple)): return type(x)(poly_base64_decode(x1, charset) for x1 in x)
+    if isinstance(x, str):
+        x = x.strip()
+        return '' if not x else base64.b64decode(x).decode(_check_charset(charset))
     raise TypeError(f'Base64 decoding of {type_str(x)} not supported')
+
+def poly_hex_encode(x: Any, charset: str = "utf-8") -> str:
+    """
+**Encode a string as a series of hexidecimal characters**
+
+* _value_.HexEncode()
+* _value_.HexEncode(_charset_)
+
+The default _charset_ is UTF-8.
+"""
+    # Idempotentent for these types
+    if isinstance(x, (NoneType, bool, int, float)): return x
+    if isinstance(x, (list, tuple)): return type(x)(poly_hex_encode(x1, charset) for x1 in x)
+    if isinstance(x, str): return x.encode(_check_charset(charset)).hex()
+    raise TypeError(f'Hex encoding of {type_str(x)} not supported')
+
+def poly_hex_decode(x: Any, charset: str = "utf-8") -> str:
+    """
+**Decode a string of hexidecimal characters into a string**
+
+* _value_.HexDecode()
+* _value_.HexDecode(_charset_)
+
+The default _charset_ is UTF-8.
+"""
+    # Idempotentent for these types
+    if isinstance(x, (NoneType, bool, int, float)): return x
+    if isinstance(x, (list, tuple)): return type(x)(poly_hex_decode(x1, charset) for x1 in x)
+    if isinstance(x, str):
+        x = x.strip()
+        return '' if not x else bytes.fromhex(x).decode(_check_charset(charset))
+    raise TypeError(f'Hex decoding of {type_str(x)} not supported')
