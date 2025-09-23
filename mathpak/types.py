@@ -52,20 +52,32 @@ def poly_isbool(x: Any) -> bool:
 """
     return isinstance(x, bool)
 
-def poly_float(x: Any) -> Any:
+# Unique sentinel object
+_SENTINEL = object()
+
+def poly_float(x: Any, default: Any = _SENTINEL) -> Any:
     """
 **Converts the value to a floating point number**
 
 * _value_.ToFloat()
+* _value_.ToFloat(_default_)
 * _value_.Float()
+* _value_.Float(_default_)
 
-Strings that cannot be converted to an floating point number result in a value error.
 If _value_ is _None_ or is a non-convertable type then _None_ is returned.
+Strings that cannot be converted may result in a value error.
+The optional _default_ value is returned if the value cannot be converted
+to a number. It can be any value, including _None_.
 """
     if poly_isnumber(x): return float(x)
-    if poly_isstr(x): return str_to_number(x)
-    if isinstance(x, (list, tuple)): return type(x)(poly_float(x1) for x1 in x)
-    return None
+    if poly_isstr(x):
+        try:
+            return float(str_to_number(x))
+        except ValueError as e:
+            if default is _SENTINEL: raise e
+            return default
+    if isinstance(x, (list, tuple)): return type(x)(poly_float(x1, default) for x1 in x)
+    return None if default is _SENTINEL else default
 
 def poly_isfloat(x: Any) -> bool:
     """
@@ -75,20 +87,29 @@ def poly_isfloat(x: Any) -> bool:
 """
     return isinstance(x, float)
 
-def poly_int(x: Any) -> Any:
+def poly_int(x: Any, default: Any = _SENTINEL) -> Any:
     """
 **Converts the value to an integer**
 
 * _value_.ToInt()
+* _value_.ToInt(_default_)
 * _value_.Int()
+* _value_.Int(_default_)
 
-Strings that cannot be converted to an integer result in a value error.
 If _value_ is _None_ or is a non-convertable type then _None_ is returned.
+Strings that cannot be converted may result in a value error.
+The optional _default_ value is returned if the value cannot be converted
+to a number. It can be any value, including _None_.
 """
     if poly_isnumber(x): return int(x)
-    if poly_isstr(x): return str_to_int(x)
-    if isinstance(x, (list, tuple)): return type(x)(poly_int(x1) for x1 in x)
-    return None
+    if poly_isstr(x):
+        try:
+            return int(str_to_number(x))
+        except ValueError as e:
+            if default is _SENTINEL: raise e
+            return default
+    if isinstance(x, (list, tuple)): return type(x)(poly_int(x1, default) for x1 in x)
+    return None if default is _SENTINEL else default
 
 def poly_isint(x: Any) -> bool:
     """
@@ -98,20 +119,29 @@ def poly_isint(x: Any) -> bool:
 """
     return isinstance(x, int)
 
-def poly_number(x: Any) -> Any:
+def poly_number(x: Any, default: Any = _SENTINEL) -> Any:
     """
 **Converts the value to a number, which may be an integer or floating point number**
 
 * _value_.ToNumber()
+* _value_.ToNumber(_default_)
 * _value_.Number()
+* _value_.Number(_default_)
 
-Strings that cannot be converted to numbers result in a value error.
 If _value_ is _None_ or is a non-convertable type then _None_ is returned.
+Strings that cannot be converted may result in a value error.
+The optional _default_ value is returned if the value cannot be converted
+to a number. It can be any value, including _None_.
 """
     if poly_isnumber(x): return x
-    if poly_isstr(x): return str_to_number(x)
-    if isinstance(x, (list, tuple)): return type(x)(poly_number(x1) for x1 in x)
-    return None
+    if poly_isstr(x):
+        try:
+            return str_to_number(x)
+        except ValueError as e:
+            if default is _SENTINEL: raise e
+            return default
+    if isinstance(x, (list, tuple)): return type(x)(poly_number(x1, default) for x1 in x)
+    return None if default is _SENTINEL else default
 
 def poly_isnumber(x: Any) -> bool:
     """
