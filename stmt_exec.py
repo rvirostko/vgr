@@ -155,6 +155,48 @@ def execute_pass(_: ExecContext, __: Tree) -> None:
 A placeholder for a statement, which takes no action and has no side effects.
 """
 
+@control_statement
+@bound_ops("Begin", "Begin-End", "Block")
+def execute_block(ctx: ExecContext, statement: Tree) -> None:
+    """
+**Defines a group of statements with local variable scoping**
+
+* Begin [:] _statement_... End [;]
+
+Also see `Declare`
+"""
+    # NB: no source to echo
+    ctx.dd.push_frame([])
+    try:
+        ctx.dispatch_statements(statement.children)
+    finally:
+        ctx.dd.pop_frame()
+
+@bound_ops("Declare", "DCL")
+def execute_declare_local(ctx: ExecContext, statement: Tree) -> None:
+    """
+**Establishes a name as a variable; used for establishing scope**
+
+* Declare _name_,... [;]
+* Declare _name_,... [As] Local [;]
+* Declare _name_,... [As] Global [;]
+
+"""
+    _declare(ctx, statement)
+
+def execute_declare_global(ctx: ExecContext, statement: Tree) -> None:
+    """*documentation combined with local*"""
+    _declare(ctx, statement, False)
+
+def _declare(ctx: ExecContext, statement: Tree, as_local: bool=True) -> None:
+    var_paths = []
+    for child in statement.children:
+        var_paths.append(get_writable_var_path(ctx, child))
+    # Now declare them and produce verbose output
+    for var_path in var_paths:
+        rc = ctx.dd.declare_var(as_local, *var_path)
+        if ctx.verbose and rc is not None: ctx.print_verbose('.'.join(var_path), 'declared as', 'Local' if rc else 'Global')
+
 def exec_if_else(ctx: ExecContext, statement: Tree, desired_value: bool) -> None:
     ctx.echo_source(statement, statement.children[1])
     has_else = statement.children[-1].data == 'else'
@@ -454,6 +496,7 @@ class VarRefOptimizer(Transformer):
 #     but they can't replace existing ones
 STATEMENT_HANDLERS = {
     'assert':            execute_assert,
+    'block':             execute_block,
     'break':             execute_break,
     'call_giving':       execute_call_giving,
     'call':              execute_call,
@@ -463,6 +506,8 @@ STATEMENT_HANDLERS = {
     'compile_arrow':     execute_compile_arrow,
     'continue':          execute_continue,
     'debug':             execute_debug,
+    'declare_local':     execute_declare_local,
+    'declare_global':    execute_declare_global,
     'def_function':      execute_def_function,
     'echo':              execute_echo,
     'exit':              execute_exit,

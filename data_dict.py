@@ -134,6 +134,28 @@ class DataDictionary():
             # Last step in the path gets removed
         return current.pop(path[-1], None)
 
+    def declare_var(self, as_local: bool, *path: str) -> bool:
+        """
+        Declares a variable in the appropriat frame.
+        Returns _True_ if the declaration was local.
+        The value at the path will be set to _None_ if
+        nothing already exists; existing values are never
+        overwritten.
+        """
+        target_frame = self._current_frame
+        # If global and more than the global frame
+        if not as_local and len(self._frames) > 1:
+            # Remove prefix from the current frame if it exists
+            # which clears the way for global access
+            target_frame.remove(path[0])
+            # Switch over to the global frame for the declaration
+            target_frame = self._frames[0]
+        # We anchor the path in the frame
+        rc = target_frame.declare(path[0])
+        # Then we can set its value if it was not already present
+        if rc is not None: self.set_var(None, *path)
+        return rc
+
     def get_var(self, *path: str) -> Any:
         """
         Called with vetted user args or can be called directly.
@@ -204,7 +226,22 @@ class Frame:
         # correct methods.
         if locals_list:
             for prefix in [local[0][0] for local in locals_list]:
-                self._data[prefix] = None
+                self.declare(prefix)
+
+    def declare(self, prefix: str) -> bool:
+        """
+        Idempotent if already present.
+        Returns _True_ if the variable is a global.
+        Returns _None_ if no action taken (already present)
+        """
+        if prefix in self._data: return None
+        self._data[prefix] = None
+        return False # indicates it is a global
+
+    def remove(self, prefix: str) -> bool:
+        if prefix not in self._data: return False
+        del self._data[prefix]
+        return True
 
     def drop(self) -> None:
         self._data.clear()
@@ -245,6 +282,10 @@ class LocalsFrame(Frame):
     def __init__(self, caller_frame: Frame, locals_list: list) -> None:
         super().__init__(locals_list)
         self._caller_frame: Frame = caller_frame
+
+    def declare(self, prefix: str) -> bool:
+        rc = super().declare(prefix)
+        return None if rc is None else True # indicates it is a local
 
     def drop(self) -> None:
         try:

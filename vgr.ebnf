@@ -56,6 +56,7 @@ statements: statement+
     | close
     | continue
     | debug
+    | declare
     | echo
     | exit
     | list_append
@@ -82,7 +83,8 @@ statements: statement+
     | verbose
     | zip
 
-?control_statements: choose_statement
+?control_statements: block_statement
+    | choose_statement
     | if_statement
     | unless_statement
     | while_statement
@@ -96,6 +98,10 @@ def_body: statement+ -> body
 
 call: "Call"i "Function"i? var_name ("(" (expr (_COMMA expr)*)? ")")? _SEMICOLON?
     | "Call"i "Function"i? var_name ("(" (expr (_COMMA expr)*)? ")")? "Giving"i var_name _SEMICOLON? -> call_giving
+
+block_statement: "Begin"i ":"? statement+ "End"i _SEMICOLON? -> block
+declare: ("Declare"i | "DCL"i) var_name (_COMMA var_name)* "As"i? "Local"i? _SEMICOLON? -> declare_local
+    | ("Declare"i | "DCL"i) var_name (_COMMA var_name)* "As"i? "Global"i _SEMICOLON? -> declare_global
 
 if_statement: "If"i expr ("Then"i | "Do"i | ":")? statement+ else_clause? "End"i _SEMICOLON? -> if
 unless_statement: "Unless"i expr ("Do"i | ":")? statement+ "End"i _SEMICOLON? -> unless
