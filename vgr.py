@@ -285,9 +285,8 @@ def print_debug(debug: bool, /, *args, **kwargs) -> None:
             LOG.debug(*args, **kwargs)
 
 def print_exc(ctx: ExecContext) -> None:
-    print("!!")
-    #if ctx.debug:
-    traceback.print_exc(file=sys.stderr)
+    if ctx.debug:
+        traceback.print_exc(file=sys.stderr)
 
 def main():
     clp = argparse.ArgumentParser(
@@ -329,6 +328,8 @@ Environment variables:
                     help='Logging level (debug, info, warning, error, critical)')
     clp.add_argument('--logoverwrite', action='store_true',
                     help='Overwrite log file instead of appending')
+    clp.add_argument('--gen-vsc-extn', action='store_true',
+                     help='Generate a VSCode extension of syntax highlighting')
     clp.add_argument('user_args', nargs='*', metavar='NAME=VALUE',
                     default=[], help='Additional arguments. Values maybe booleans, numbers, or strings')
     args = clp.parse_args()
@@ -347,6 +348,12 @@ Environment variables:
     parser = create_parser(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'vgr.ebnf'),
                            extensions,
                            args.debug, args.verbose)
+
+    if args.gen_vsc_extn:
+        from vscode_extn import create_vscode_extension
+        create_vscode_extension(parser, ["abs"]) # # TODO get the names
+        sys.exit(VgrExitingException.EXIT_SUCCESS)
+
     ctx = create_exec_context(parser, dd)
     ctx.debug = args.debug
     ctx.verbose = args.verbose
