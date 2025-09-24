@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "vgr"
+version = "1.1.1"
+description = "VGR - A scripting language"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { file = "LICENSE.txt" }
+authors = [{ name = "Ross Virostko", email = "ross.virostko@citizensbank.com" }]
+dependencies = [
+    "Jinja2>=3.1.6",
+    "lark>=1.2.2",
+    "ldap3>=2.9.1",
+    "prompt_toolkit>=3.0.50",
+    "RapidFuzz>=3.13.0",
+    "rich>=13.9.4"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.2.0"
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[project.scripts]
+vgr = "vgr.vgr:main"

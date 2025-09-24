@@ -1,0 +1,96 @@
+#!/bin/bash
+
+PROJECT_ROOT=$(pwd)
+
+OUTPUT_DIR="${PROJECT_ROOT}/dist"
+# Ensure output directory exists and is empty
+rm -rf "$OUTPUT_DIR"
+mkdir -p "$OUTPUT_DIR"
+
+# Activate venv if not already
+if [[ -z "${VIRTUAL_ENV:-}" ]]; then
+    if [[ -f "$PROJECT_ROOT/.venv/bin/activate" ]]; then
+        # source in current shell
+        # Must use: source setup_dev.sh instead of ./setup_dev.sh
+        source "$PROJECT_ROOT/.venv/bin/activate"
+    else
+        echo "No virtualenv found. Run: python3 -m venv .venv"
+        exit 1
+    fi
+fi
+
+# Upgrade build tools
+pip install --upgrade pip setuptools wheel build
+
+# Build the wheel
+python3 -m build
+
+## Building a .pyz
+# Configuration
+SRC_DIR="${PROJECT_ROOT}/src/vgr"
+REQ_FILE="${PROJECT_ROOT}/requirements.txt"
+
+ENTRY_POINT=$(python3 - <<'EOF'
+import tomli
+with open("pyproject.toml","rb") as f:
+    data = tomli.load(f)
+print(data["project"]["scripts"]["vgr"])
+EOF
+)
+echo "Entry point: $ENTRY_POINT"
+
+VERSION=$(python3 - <<'EOF'
+import tomli
+with open("pyproject.toml","rb") as f:
+    data = tomli.load(f)
+print(data["project"]["version"])
+EOF
+)
+echo "Version: $VERSION"
+
+PYZ_NAME="vgr-${VERSION}.pyz"
+
+# Create temp build dir
+BUILD_DIR=$(mktemp -d)
+
+# Install dependencies there
+pip install -r "$REQ_FILE" -t "$BUILD_DIR"
+
+# Remove __pycache__, tests, .dist-info directories you don't need
+find "$BUILD_DIR" -type d -name "tests" -or -name "__pycache__" -or -name "*.dist-info" -exec rm -rf {} +
+
+# Copy source code
+cp -r "$SRC_DIR" "$BUILD_DIR/"
+
+# Build the pyz
+PYZ_PATH="$OUTPUT_DIR/$PYZ_NAME"
+echo "Building $PYZ_PATH..."
+python -m zipapp "$BUILD_DIR" \
+    --compress \
+    --output="$PYZ_PATH" \
+    --main="$ENTRY_POINT" \
+    --python="/usr/bin/env python3"
+
+# Clean up
+rm -rf "$BUILD_DIR"
+
+# Compress the pyz
+zip -9 "$PYZ_PATH"
+
+# Create Bash wrapper
+BASH_WRAPPER="$OUTPUT_DIR/vgr"
+echo "#!/bin/bash
+python3 \"\$(dirname \"\$0\")/$PYZ_NAME\" \"\$@\"" > "$BASH_WRAPPER"
+chmod u+x "$BASH_WRAPPER"
+
+# Create Windows batch
+BAT_WRAPPER="$OUTPUT_DIR/vgr.bat"
+echo "@echo off
+python3 \"%~dp0\\$PYZ_NAME\" %*" > "$BAT_WRAPPER"
+
+# Zip up the samples
+SAMPLES_DIR="samples"
+SAMPLES_ZIP="$OUTPUT_DIR/vgr-samples.zip"
+cd "$SAMPLES_DIR"
+zip -r "$SAMPLES_ZIP" ./*
+cd - >/dev/null

@@ -1,0 +1,9 @@
+#!/bin/bash
+
+DEST="$1"
+if [ -z "$DEST" ]; then
+    echo "Usage: $0 <destination-path>"
+    exit 1
+fi
+
+rsync --archive --verbose --update ./ "$DEST/"

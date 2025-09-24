@@ -1,0 +1,53 @@
+#!/bin/bash
+
+PROJECT_ROOT=$(pwd)
+
+VERSION_FILE="${PROJECT_ROOT}/src/vgr/version.py"
+TOML_FILE="${PROJECT_ROOT}/pyproject.toml"
+
+# Default is to just rewrite the date
+BUMP_PART="${1:-date}"
+
+if [[ "$BUMP_PART" != "minor" && "$BUMP_PART" != "rev" && "$BUMP_PART" != "date" ]]; then
+    echo "Invalid argument: $BUMP_PART"
+    echo "Must be one of: date, minor, rev"
+    exit 1
+fi
+
+# Extract current version
+VERSION_LINE=$(grep '^__version__' "$VERSION_FILE")
+VERSION=$(echo "$VERSION_LINE" | sed -E 's/.*"([^"]+)".*/\1/')
+
+IFS='.' read -r MAJOR MINOR REV <<< "$VERSION"
+
+# If "date" we don't update the numbers, just the date
+# It also has the side effect of getting the version file
+# and the TOML file in sync
+if [[ "$BUMP_PART" == "minor" ]]; then
+    printf "Bumping minor version: "
+    MINOR=$((MINOR + 1))
+    REV=0
+else
+    if [[ "$BUMP_PART" == "rev" ]]; then
+        printf "Bumping revision: "
+        REV=$((REV + 1))
+    else
+        printf "Bumping date only: "
+    fi
+fi
+
+NEW_VERSION="${MAJOR}.${MINOR}.${REV}"
+NEW_DATE=$(date +%Y-%m-%d)
+
+printf "${NEW_VERSION} ${NEW_DATE}\n"
+
+sed -i '' -E "s/^(__version__[[:space:]]*=[[:space:]]*\").*(\".*)/\1${NEW_VERSION}\2/" "$VERSION_FILE"
+sed -i '' -E "s/^(__version_date__[[:space:]]*=[[:space:]]*\").*(\".*)/\1${NEW_DATE}\2/" "$VERSION_FILE"
+
+printf "\nIn ${VERSION_FILE}:\n"
+cat "${VERSION_FILE}" | grep "__version_"
+
+sed -i '' -E "s/^(version[[:space:]]*=[[:space:]]*\").*(\".*)/\1${NEW_VERSION}\2/" "$TOML_FILE"
+
+printf "\nIn ${TOML_FILE}:\n"
+cat "${TOML_FILE}" | grep "^version"

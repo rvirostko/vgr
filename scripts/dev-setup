@@ -1,0 +1,22 @@
+#!/bin/bash
+
+PROJECT_ROOT=$(pwd)
+
+# Activate venv if not already
+if [[ -z "${VIRTUAL_ENV:-}" ]]; then
+    if [[ -f "$PROJECT_ROOT/.venv/bin/activate" ]]; then
+        # source in current shell
+        # Must use: source setup_dev.sh instead of ./setup_dev.sh
+        source "$PROJECT_ROOT/.venv/bin/activate"
+    else
+        echo "No virtualenv found. Run: python3 -m venv .venv"
+        exit 1
+    fi
+fi
+
+# Set PYTHONPATH
+export PYTHONPATH="$PROJECT_ROOT/src${PYTHONPATH:+:$PYTHONPATH}"
+echo "PYTHONPATH=$PYTHONPATH"
+
+echo "Development environment ready."
+echo "Run: python -m vgr"

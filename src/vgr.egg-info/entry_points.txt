@@ -1,0 +1,2 @@
+[console_scripts]
+vgr = vgr.vgr:main

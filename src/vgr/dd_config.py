@@ -1,0 +1,226 @@
+
+"""
+Utility routines for working with the global Data Dictionary
+"""
+
+from datetime import datetime
+from typing import Any
+import getpass
+import math
+import os
+import platform
+import random
+import re
+import socket
+import string
+import sys
+import time
+import uuid
+
+from .data_dict import DataDictionary
+from .mathpak import str_to_number, str_to_bool
+from .version import __version__, __version_date__
+
+VGR_PREFIX = 'vgr'
+_VER_PATH = (VGR_PREFIX, 'version')
+_VER_DATE_PATH = (VGR_PREFIX, 'version_date')
+LOG_LEVEL_PATH = (VGR_PREFIX, 'log_level')
+
+_TIME_PREFIX = 'time'
+
+_ARG_PREFIX = 'arg'
+OFS_PATH = (_ARG_PREFIX, 'ofs')
+ORS_PATH = (_ARG_PREFIX, 'ors')
+
+_ENV_EXCLUDE = tuple(re.compile(pattern, re.IGNORECASE) for pattern in ('^VSCODE', '^_$', '^(OLD)?PWD$', '^__CF'))
+_OS_CONSTS = ( 'defpath',  'devnull', 'extsep', 'linesep', 'name', 'pardir', 'pathsep', 'sep' )
+
+_RE_PREFIX = 're'
+_RE_FLAGS = ('ASCII', 'IGNORECASE', 'LOCALE', 'MULTILINE', 'DOTALL', 'UNICODE', 'VERBOSE')
+
+_COMPACT = "compact"
+_FORMAT = "format"
+_TODAY = "today"
+_TIME_ENTRIES = {
+    ("dst",):                       lambda: bool(datetime.now().astimezone().dst()),
+    ("now",):                       lambda: int(time.time()), # Unix Epoch time
+    ("sec_per_day",):               60 * 60 * 24,
+    ("sec_per_hr",):                60 * 60,
+    ("tz_name", ):                  lambda: datetime.now().astimezone().tzname(),
+    ("utc_offset",):                lambda: int(datetime.now().astimezone().utcoffset().total_seconds()),
+    # "today" is a composite object
+    (_TODAY, "day"):                lambda: datetime.now().day,                 # 21
+    (_TODAY, "dow_abbr"):           lambda: datetime.now().strftime("%a"),      # Sat
+    (_TODAY, "dow"):                lambda: datetime.now().strftime("%A"),      # Saturday
+    (_TODAY, "hour"):               lambda: datetime.now().hour,                # 14
+    (_TODAY, "minute"):             lambda: datetime.now().minute,              # 23
+    (_TODAY, "month"):              lambda: datetime.now().month,               # 6
+    (_TODAY, "second"):             lambda: datetime.now().second,              # 45
+    (_TODAY, "weekday"):            lambda: datetime.now().weekday(),           # 5 (Monday=0)
+    (_TODAY, "yday"):               lambda: datetime.now().timetuple().tm_yday, # 172
+    (_TODAY, "year"):               lambda: datetime.now().year,                # 2025
+    # Formats for timestamps et al
+    (_FORMAT, "dmy"):               "%d-%m-%Y",                  # 21-06-2025
+    (_FORMAT, "dt"):                "%Y-%m-%d %H:%M:%S",         # 2025-06-21 14:23:45
+    (_FORMAT, "hm"):                "%H:%M",                     # 14:23
+    (_FORMAT, "hms"):               "%H:%M:%S",                  # 14:23:45
+    (_FORMAT, "mdy"):               "%m/%d/%Y",                  # 06/21/2025
+    (_FORMAT, "ymd"):               "%Y-%m-%d",                  # 2025-06-21
+    # Compact variants
+    (_FORMAT, _COMPACT, "dmy"):     "%d%m%Y",                    # 21062025
+    (_FORMAT, _COMPACT, "dt"):      "%Y%m%d_%H%M%S",             # 20250621_142345
+    (_FORMAT, _COMPACT, "hm"):      "%H%M",                      # 1423
+    (_FORMAT, _COMPACT, "hms"):     "%H%M%S",                    # 142345
+    (_FORMAT, _COMPACT, "mdy"):     "%m%d%Y",                    # 06212025
+    (_FORMAT, _COMPACT, "ymd"):     "%Y%m%d",                    # 20250621
+    # Standards
+    (_FORMAT, "iso8601_ms_offset"): "%Y-%m-%dT%H:%M:%S.%f%z",    # 2025-06-21T14:23:45.123456+0000
+    (_FORMAT, "iso8601_offset"):    "%Y-%m-%dT%H:%M:%S%z",       # 2025-06-21T14:23:45+0000
+    (_FORMAT, "iso8601_z"):         "%Y-%m-%dT%H:%M:%SZ",        # 2025-06-21T14:23:45Z
+    (_FORMAT, "iso8601"):           "%Y-%m-%dT%H:%M:%S",         # 2025-06-21T14:23:45
+    (_FORMAT, "rfc1123"):           "%a, %d %b %Y %H:%M:%S GMT", # Sat, 21 Jun 2025 14:23:45 GMT
+    (_FORMAT, "rfc2822"):           "%a, %d %b %Y %H:%M:%S %z",  # Sat, 21 Jun 2025 14:23:45 +0000
+    # Other standards
+    (_FORMAT, "eu_full"):           "%d %B %Y",                  # 21 June 2025
+    (_FORMAT, "log4j"):             "%Y-%m-%d %H:%M:%S,%f",      # 2025-06-21 14:23:45,123456
+    (_FORMAT, "ordinal_date"):      "%Y-%j",                     # 2025-172
+    (_FORMAT, "short_md"):          "%b %d",                     # Jun 21
+    (_FORMAT, "sql_ms"):            "%Y-%m-%d %H:%M:%S.%f",      # 2025-06-21 14:23:45.123456
+    (_FORMAT, "sql"):               "%Y-%m-%d %H:%M:%S",         # 2025-06-21 14:23:45
+    (_FORMAT, "time_12h"):          "%I:%M %p",                  # 02:23 PM
+    (_FORMAT, "us_full"):           "%B %d, %Y",                 # June 21, 2025
+    (_FORMAT, "week_date"):         "%G-W%V-%u",                 # 2025-W25-6
+}
+
+_MATH_ENTRIES = {
+    ("neg_inf",):     -math.inf,
+    ("float", "max"): sys.float_info.max,
+    ("float", "min"): sys.float_info.min,
+    ("random",):      random.random,
+    ("random100",):   lambda: random.randrange(1, 100)
+}
+
+def _get_machine_uuid() -> str:
+    try:
+        hostname = socket.gethostname()
+        ip_addr = socket.gethostbyname(hostname)
+    except (socket.gaierror, OSError):
+        hostname = "unknown"
+        ip_addr = "unknown"
+    try:
+        mac_int = uuid.getnode()
+        mac_hex = f"{mac_int:012x}"
+    except (ValueError, AttributeError):
+        mac_hex = "unknown"
+    machine_id_string = f"{hostname}-{ip_addr}-{mac_hex}"
+    # Use DNS namespace
+    namespace = uuid.NAMESPACE_DNS
+    return str(uuid.uuid5(namespace, machine_id_string))
+
+_UUID_PREFIX = 'uuid'
+
+_UUID_ENTRIES = {
+    ("machine",):     _get_machine_uuid(),
+    ("random_time",): lambda: str(uuid.uuid1()),
+    ("random",):      lambda: str(uuid.uuid4()),
+}
+
+def dd_init(dd: DataDictionary) -> None:
+    # Clear the whole thing out and have it set its defaults
+    dd.reset()
+    dd_init_args(dd)
+    # Set up app area
+    dd.add_immutable_prefix(VGR_PREFIX)
+    dd.set_var(__version__, *_VER_PATH)
+    dd.set_var(__version_date__, *_VER_DATE_PATH)
+    # ... reg ex values
+    dd.add_immutable_prefix(_RE_PREFIX)
+    for flag in _RE_FLAGS:
+        dd.set_var(getattr(re, flag), _RE_PREFIX, flag)
+    # ... math and string values
+    for mod in (math, string):
+        name = mod.__name__
+        dd.add_immutable_prefix(name)
+        dd.set_var(_get_consts(mod), name)
+    for path, value in _MATH_ENTRIES.items():
+        dd.set_var(value, math.__name__, *path)
+    # ... time values
+    dd.add_immutable_prefix(_TIME_PREFIX)
+    for path, value in _TIME_ENTRIES.items():
+        dd.set_var(value, _TIME_PREFIX, *path)
+    # ... UUID values
+    dd.add_immutable_prefix(_UUID_PREFIX)
+    for path, value in _UUID_ENTRIES.items():
+        dd.set_var(value, _UUID_PREFIX, *path)
+    # .. and OS and environment values
+    for func, name in ((_get_os_consts, 'os'), (_get_environment, 'env')):
+        dd.add_immutable_prefix(name)
+        dd.set_var(func(), name)
+
+def dd_init_args(dd: DataDictionary) -> None:
+    # User arguments are empty
+    dd.add_protected_prefix(_ARG_PREFIX)
+    dd.set_var({}, _ARG_PREFIX)
+    # ... except for the awk settings
+    # Pick up the defaults AWK would use
+    # Since we don't allow the env space to be changed,
+    # we have to keep our own copies for the user to change with
+    # either Set or command line arguments
+    dd.set_var(os.getenv('OFS', ' '), *OFS_PATH)
+    dd.set_var(os.getenv('ORS', '\n'), *ORS_PATH)
+
+def dd_parse_user_args(dd: DataDictionary, user_args: list) -> None:
+    # NB: User args can override debug/echo/verbose...
+    for arg in user_args:
+        if '=' in arg:
+            name, value = re.split(r'\s*=', arg, 1)
+            path = tuple(step for step in re.split(r'\s*[.]\s*', name.strip()))
+            if path:
+                # Strip off the quotes
+                match = re.fullmatch(r'\s*"([^"]*)"\s*', value)
+                path = (_ARG_PREFIX,) + path
+                dd.set_var(match.group(1) if match else _coerce_value(value), *path)
+
+def _get_os_consts() -> dict:
+    rc = { key: value for key, value in _get_consts(os).items() if key in _OS_CONSTS }
+    rc['login'] = lambda: getpass.getuser() or 'unknown'
+    rc['pid'] = os.getpid
+    rc['cwd'] = os.getcwd
+    rc['platform'] = sys.platform
+    rc['version'] = sys.version
+    rc['system'] = platform.system()
+    rc['node'] = platform.node()
+    rc['hostname'] = socket.gethostname()
+    return rc
+
+def _get_environment() -> dict:
+    rc = {
+            name: _coerce_value(value) for name, value in os.environ.items()
+                if not any(pattern.search(name) for pattern in _ENV_EXCLUDE)
+            }
+    for name, value in rc.items():
+        if isinstance(value, str) and re.search(r'(_)?PATH$', name, re.IGNORECASE):
+            rc[name] = tuple(value.split(os.pathsep))
+    return rc
+
+def _get_consts(source_mod) -> dict:
+    return { key: value for key, value in vars(source_mod).items()
+                if isinstance(value, (int, float, str, dict, list, tuple)) and not key.startswith("_")
+            }
+
+def _coerce_value(value: Any) -> Any:
+    """
+    Coerce a string value to None, int, float, or bool.
+    Falls back to the original string.
+    This is for only the most naive of conversions.
+    """
+    if not isinstance(value, str) or not value: return value
+    if value.isspace(): return value
+    if value.strip().casefold() == 'none': return None
+    try:
+        return str_to_number(value)
+    except ValueError:
+        try:
+            return str_to_bool(value)
+        except ValueError:
+            return value
