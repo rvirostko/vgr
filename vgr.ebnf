@@ -183,8 +183,11 @@ load_source_type: "JSON"i "Object"i? -> json_object
 
 assert: "Assert"i expr (":" expr (_COMMA expr)*)? _SEMICOLON?
 
-print: "Print"i (expr (_COMMA expr)*)? _SEMICOLON?
-printf: "Printf"i (expr (_COMMA expr)*)? _SEMICOLON?
+print: "Print"i print_channel? (expr (_COMMA expr)*)? _SEMICOLON?
+printf: "Printf"i print_channel? (expr (_COMMA expr)*)? _SEMICOLON?
+?print_channel: ("Error"i | "stderr"i) -> stderr
+    | ("Output"i | "stdout"i | "sysprint"i) -> stdout
+    | "Markdown"i -> markdown
 
 log: "Log"i log_level expr (_COMMA expr)* _SEMICOLON?
    | "Log"i "Level"i log_level _SEMICOLON? -> log_setlevel
