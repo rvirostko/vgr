@@ -23,7 +23,7 @@ class CustomArgParser(ArgumentParser):
     """A non-exiting argument parser"""
     def error(self, message):
         """Format a ValueError the way we want and don't exit"""
-        raise ValueError(message[:1].upper() + message[1:] )
+        raise ValueError(message[0].upper() + message[1:] )
 
 class ParserBuilder(ABC):
     """Helper for fluent building of ArgumentParser instances"""

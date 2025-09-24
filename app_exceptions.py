@@ -34,30 +34,6 @@ def _exception_type(e: Exception) -> str:
     # handle acronym boundary: XMLParser -> XML Parser
     return re.sub(r'(?<=[A-Z])([A-Z][a-z])', r' \1', s)
 
-_MSG_EXCEPTIONS = (
-	IsADirectoryError,
-    FileNotFoundError,
-    IOError,
-    NotImplementedError,
-    OSError,
-    PermissionError,
-    TypeError,
-    ValueError,
-)
-
-def _exception_message(e: Exception) -> str:
-    """
-    Return a user-friendly message from any exception instance.
-    - If no args: returns empty string
-    - If one arg: returns it as string
-    - If multiple args: joins them with commas
-    """
-    if not e or not e.args: return ''
-    if not isinstance(e, _MSG_EXCEPTIONS): return ''
-    if len(e.args) == 1: return str(e.args[0])
-    # First arg is always a numeric code
-    if isinstance(e, OSError): return ', '.join(map(str, e.args[1:]))
-    return ', '.join(map(str, e.args))
 
 class VgrException(Exception):
     def __init__(self, node, orig_exc: Exception, source_origin: str, source_text: str):
@@ -87,7 +63,7 @@ class VgrException(Exception):
         return f"{snippet}\n{pointer_line}"
 
     def __str__(self):
-        msg = _exception_message(self.orig_exc) or _exception_type(self.orig_exc) or 'Error'
+        msg = self._exception_message() or _exception_type(self.orig_exc) or 'Error'
         src = self.source_origin if self.source_origin and self.source_origin != '<repl>' else None
         line = f'line {self.line}' if self.line else None
         col = f'column {self.column}' if self.column else None
@@ -98,6 +74,32 @@ class VgrException(Exception):
             if line: msg += ' ' + line
             if col: msg += (', ' if line else ' ') + col
         return '\n'.join((self.get_context(), msg))
+
+    def _exception_message(self) -> str:
+        """
+        Return a user-friendly message from any exception instance.
+        - If no args: returns empty string
+        - If one arg: returns it as string
+        - If multiple args: joins them with commas
+        - Special cases for OSError and assertions
+        """
+        e = self.orig_exc
+        if not e or not e.args: return ''
+        rc = ''
+        if len(e.args) == 1:
+            rc = str(e.args[0])
+        elif isinstance(e, OSError):
+            # First arg is always a numeric code
+            rc = ', '.join(map(str, e.args[1:]))
+        else:
+            ', '.join(map(str, e.args))
+        # Text is created either from the source
+        # or from a user format, so use verbatim
+        if isinstance(self, VgrStatementAssert):
+            return rc
+        rc = rc.strip()
+        # Capitalize just the first letter
+        return rc[0].upper() + rc[1:]
 
     @staticmethod
     def rewrap(e: "VgrException") -> "VgrException":
@@ -118,6 +120,12 @@ class VgrExitingException(VgrException):
         self.message = message.strip()
         self.exit_code = exit_code
         self.statement = statement
+
+class VgrStatementAssert(VgrExitingException):
+    """Raised by an assertion"""
+
+    def __init__(self, statement: Tree, message):
+        super().__init__(VgrExitingException.EXIT_FAILED, statement, message)
 
 class VgrStatementBreak(VgrException):
     """

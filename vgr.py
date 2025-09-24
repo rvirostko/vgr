@@ -2,14 +2,15 @@
 
 from typing import Any
 import argparse
+import logging
 import os
+import re
 import sys
 import traceback
-import logging
 
 from lark import Lark
 
-from app_exceptions import VgrExitingException, VgrException
+from app_exceptions import VgrExitingException, VgrStatementAssert, VgrException
 from data_dict import DataDictionary
 from dd_config import dd_init, dd_parse_user_args
 from doc_help import print_md, search_entries, is_probably, print_doc, unique_by_func
@@ -33,6 +34,7 @@ from version import __version__, __version_date__, __description__
 LOG = logging.getLogger()
 
 class VGRCmdLine(CmdLine):
+    _EXIT_PATTERN = re.compile(r"^\s*exit\b", re.IGNORECASE)
     _DEFAULT_HISTORY = '~/.vgr_history'
     _DEFAULT_PROMPT = 'vgr> '
 
@@ -53,15 +55,10 @@ class VGRCmdLine(CmdLine):
         return super().run()
 
     def execute_statements(self, text: str) -> bool:
+        if self._EXIT_PATTERN.match(text): return False
         try:
             self._ctx.execute_statements(text.rstrip(), '<repl>')
         except VgrException as e:
-            # The only exit interactive mode "honors" is the actual exit request
-            # With assertions, fatal errors, et al, we just continue
-            if isinstance(e, VgrExitingException):
-                t: VgrExitingException = e
-                if t.statement.data == 'exit':
-                    return False
             if self._ctx.debug:
                 traceback.print_exc(file=sys.stderr)
             else:
@@ -284,9 +281,12 @@ def print_debug(debug: bool, /, *args, **kwargs) -> None:
         if LOG.isEnabledFor(logging.DEBUG):
             LOG.debug(*args, **kwargs)
 
-def print_exc(ctx: ExecContext) -> None:
+def log_exception(ctx: ExecContext, log_label: str, e: VgrException) -> None:
+    LOG.exception(log_label)
+    print_stderr(str(e))
     if ctx.debug:
         traceback.print_exc(file=sys.stderr)
+        print_debug(ctx.debug, e)
 
 def main():
     clp = argparse.ArgumentParser(
@@ -408,19 +408,15 @@ Environment variables:
             ctx.execute_statements(sys.stdin.read(), '<stdin>')
     except VgrExitingException as e:
         exit_code = e.exit_code
+        if isinstance(e, VgrStatementAssert):
+            log_exception(ctx, 'Assertion', e)
     except VgrException as e:
-        LOG.exception('Exception')
-        print_exc(ctx)
-        print_stderr(str(e))
-        print_debug(ctx.debug, e)
         exit_code = VgrExitingException.EXIT_FAILED
+        log_exception(ctx, 'Exception', e)
     except Exception as e: # pylint: disable=broad-exception-caught
         # Last resort catch: log it and exit
-        LOG.exception('Exception')
-        print_exc(ctx)
-        print_stderr(str(VgrException(None, e, None, None)))
-        print_debug(ctx.debug, e)
         exit_code = VgrExitingException.EXIT_FAILED
+        log_exception(ctx, 'Exception', VgrException(None, e, None, None))
     ctx.print_verbose('Exit code is', exit_code)
     LOG.info('Exiting')
     sys.exit(exit_code)

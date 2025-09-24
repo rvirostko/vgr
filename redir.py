@@ -8,7 +8,7 @@ from io import IOBase
 
 from lark import Tree
 
-from app_exceptions import VgrExitingException, VgrRuntimeError
+from app_exceptions import VgrRuntimeError
 from exec_context import ExecContext
 from mathpak import bound_ops
 from output import IORedirector, prepare_path

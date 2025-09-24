@@ -8,10 +8,16 @@ from lark import Tree
 
 from app_exceptions import (
     VgrExitingException,
+    VgrStatementAssert,
     VgrStatementReturn,
 )
 from exec_context import ExecContext
-from mathpak import bound_ops, poly_true, poly_int
+from mathpak import (
+    bound_ops,
+    poly_int,
+    poly_notempty,
+    poly_true,
+)
 from redir import print_stderr
 from src_mgr import SSM
 
@@ -60,20 +66,21 @@ If no message is given the the failing expression is used as the message
 
 Execution ends with an exit code of 1 indicating failure
 """
-    exprs = [*statement.children]
-    v: bool = poly_true(ctx.eval_expr(exprs.pop(0))) if len(exprs) else False
+    exprs = statement.children
+    v: bool = poly_true(ctx.eval_expr(exprs[0])) if len(exprs) else False
     if not v:
         msg: str = None
-        if len(exprs) > 0:
+        if len(exprs) > 1:
             try:
-                msg = ctx.eval_to_str(exprs.pop(0), 'Format string', True)
-                if msg is not None: msg = msg.format(*[ctx.eval_expr(expr) for expr in exprs])
+                msg = ctx.eval_to_str(exprs[1], 'Format string', True)
+                if poly_notempty(msg):
+                    msg = msg.format(*[ctx.eval_expr(expr) for expr in exprs[2:]])
             except (ValueError, TypeError) as e:
                 print_stderr(f'While evaluating {SSM.source_for(statement)} on line {statement.meta.line}: ', e)
-                msg = None
-        msg = str(msg) if msg is not None else f'{SSM.source_for(statement)} failed'
+        msg = str(msg) if poly_notempty(msg) else f'{SSM.source_for(statement)} failed'
         _LOG.warning('%s', msg)
-        raise VgrExitingException(VgrExitingException.EXIT_FAILED, statement, msg)
+        # Point the "error" at the expression being tested
+        raise VgrStatementAssert(exprs[0], msg)
 
 @bound_ops("Return")
 def execute_return(ctx: ExecContext, statement: Tree) -> None:
