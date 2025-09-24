@@ -1,0 +1,25 @@
+?ldap_statements: ldap_connect
+    | ldap_disconnect
+    | ldap_search
+
+// Connections
+ldap_connect   : "Ldap"i "Connect"i (_COMMA? ldap_conn_arg)* _SEMICOLON?
+ldap_disconnect: "Ldap"i "Disconnect"i ("From"i? expr)? _SEMICOLON?
+ldap_conn_arg: "To"i? "Host"i? ("=" | "Is"i)? expr -> ldap_conn_addr
+    | "User"i ("=" | "Is"i)? expr -> ldap_user
+    | "Password"i ("=" | "Is"i)? expr -> ldap_password
+    | ("Auth"i | "Authentication"i) ("=" | "Is"i)? expr -> ldap_auth
+    | ("Read"i "Only"i) | "Read-Only"i (("=" | "Is"i)? expr)? -> ldap_read_only
+    | "Return"i? "Empty"i ("Attributes"i | "Attrs"i) (("=" | "Is"i)? expr)? -> ldap_empty_attrs
+    | "As"i "Connection"i? expr -> ldap_conn_name
+
+// Searching
+ldap_search: "Ldap"i "Search"i (_COMMA? ldap_search_option (_COMMA? ldap_search_option)*)? _SEMICOLON?
+
+?ldap_search_option: "Base"i ("=" | "Is"i)? expr -> lopt_base
+    | "Scope"i ("=" | "Is"i)? expr -> lopt_scope
+    | "Where"i expr -> lopt_query
+    | "Query"i ("=" | "Is"i)? expr -> lopt_query
+    | ("Result"i | "Results"i) ("=" | "Is"i | "In"i)? var_name -> lopt_result
+    | "Giving"i var_name -> lopt_result
+    | "Using"i "Connection"i? expr -> lopt_using

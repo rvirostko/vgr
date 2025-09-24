@@ -1,5 +1,6 @@
 jinja2
 lark
+ldap3
 prompt_toolkit
 rapidfuzz
 rich
