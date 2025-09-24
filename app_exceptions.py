@@ -1,5 +1,7 @@
-import re
 from typing import Any
+import re
+import sys
+import traceback
 
 from lark import Tree
 
@@ -34,7 +36,6 @@ def _exception_type(e: Exception) -> str:
     # handle acronym boundary: XMLParser -> XML Parser
     return re.sub(r'(?<=[A-Z])([A-Z][a-z])', r' \1', s)
 
-
 class VgrException(Exception):
     def __init__(self, node, orig_exc: Exception, source_origin: str, source_text: str):
         self.node = node
@@ -63,17 +64,21 @@ class VgrException(Exception):
         return f"{snippet}\n{pointer_line}"
 
     def __str__(self):
-        msg = self._exception_message() or _exception_type(self.orig_exc) or 'Error'
-        src = self.source_origin if self.source_origin and self.source_origin != '<repl>' else None
-        line = f'line {self.line}' if self.line else None
-        col = f'column {self.column}' if self.column else None
-        if src or line or col:
-            # All this because join() suxs...
-            msg += ' at'
-            if src: msg += ' ' + src
-            if line: msg += ' ' + line
-            if col: msg += (', ' if line else ' ') + col
-        return '\n'.join((self.get_context(), msg))
+        try:
+            msg = self._exception_message() or _exception_type(self.orig_exc) or 'Error'
+            src = self.source_origin if self.source_origin and self.source_origin != '<repl>' else None
+            line = f'line {self.line}' if self.line else None
+            col = f'column {self.column}' if self.column else None
+            if src or line or col:
+                # All this because join() suxs...
+                msg += ' at'
+                if src: msg += ' ' + src
+                if line: msg += ' ' + line
+                if col: msg += (', ' if line else ' ') + col
+            return '\n'.join((self.get_context(), msg))
+        except Exception:
+            traceback.print_exc(file=sys.stderr)
+            return 'Internal error while generating description'
 
     def _exception_message(self) -> str:
         """
@@ -86,20 +91,18 @@ class VgrException(Exception):
         e = self.orig_exc
         if not e or not e.args: return ''
         rc = ''
-        if len(e.args) == 1:
-            rc = str(e.args[0])
-        elif isinstance(e, OSError):
+        if isinstance(e, OSError):
             # First arg is always a numeric code
             rc = ', '.join(map(str, e.args[1:]))
         else:
-            ', '.join(map(str, e.args))
+            rc = str(e.args[0] if len(e.args) == 1 else e)
         # Text is created either from the source
         # or from a user format, so use verbatim
         if isinstance(self, VgrStatementAssert):
             return rc
         rc = rc.strip()
         # Capitalize just the first letter
-        return rc[0].upper() + rc[1:]
+        return rc[0].upper() + rc[1:] if len(rc) >= 2 else rc.upper()
 
     @staticmethod
     def rewrap(e: "VgrException") -> "VgrException":
