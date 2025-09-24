@@ -132,3 +132,31 @@ def _dist(op: Callable[[Any], Any], x: Any) -> Any:
     if x is None: return None
     # Distribute the operation over the collection
     return type(x)(op(x1) for x1 in x) if isinstance(x, (list, tuple)) else x
+
+def poly_pred(x: Any) -> Any:
+    """
+**Return the arithmetic predecessor of a value**
+
+* _value_.Pred()
+
+"""
+    if x is None: return None
+    if isinstance(x, str): x = str_to_number(x)
+    if isinstance(x, int): return x - 1
+    if isinstance(x, float): return math.nextafter(x, -math.inf)
+    if isinstance(x, (list, tuple)): return type(x)(poly_pred(x1) for x1 in x)
+    raise TypeError(f'Unsupported type: {type_str(x)}')
+
+def poly_succ(x: Any) -> Any:
+    """
+**Return the arithmetic successor of a value**
+
+* _value_.Succ()
+
+"""
+    if x is None: return None
+    if isinstance(x, str): x = str_to_number(x)
+    if isinstance(x, int): return x + 1
+    if isinstance(x, float): return math.nextafter(x, math.inf)
+    if isinstance(x, (list, tuple)): return type(x)(poly_succ(x1) for x1 in x)
+    raise TypeError(f'Unsupported type: {type_str(x)}')

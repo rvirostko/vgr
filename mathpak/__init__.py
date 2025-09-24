@@ -76,8 +76,10 @@ from .misc_math import (
     poly_ceil,
     poly_floor_multiple,
     poly_floor,
+    poly_pred,
     poly_round_multiple,
     poly_round,
+    poly_succ,
     poly_trunc,
 )
 from .mod import poly_mod
