@@ -21,8 +21,6 @@ from evaluate import (
     bind_operations,
     eval_expr,
     eval_expr_or_const,
-    do_set,
-    do_unset,
     get_writable_var_path,
 )
 from output import verify_relative_path
@@ -385,7 +383,7 @@ following it are skipped, and the loop continues with the next item.
         ctx.dd.push_frame([(var_path, None)])
         try:
             for value in collection:
-                do_set(ctx, value, *var_path)
+                ctx.set_var(value, *var_path)
                 try:
                     ctx.dispatch_statements(statement.children[2:])
                 except VgrStatementBreak:

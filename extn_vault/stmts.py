@@ -60,7 +60,6 @@ def _set_result(ctx: ExecContext, args: dict, data: Any) -> dict:
         # TODO This late check prevents us from doing good error reporting
         if path != DEFAULT_RESULT_PATH:
             ctx.dd.validate_user_set_path(*path)
-    # TODO this can cause copy-on-write duplication
     do_set(ctx, data, *path)
     return data
 

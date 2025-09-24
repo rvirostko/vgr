@@ -161,7 +161,7 @@ If not specified, the test expression is performed before the block of statement
     try:
         ctx.dd.push_frame([(var_path, None)])
         while True:
-            do_set(ctx, value, *var_path)
+            ctx.set_var(value, *var_path)
             if test_before and poly_true(ctx.eval_expr(predicate)): return
             try:
                 ctx.dispatch_statements(statement.children[cindex:])

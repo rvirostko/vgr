@@ -5,7 +5,7 @@ BASIC extension statements
 from lark import Tree
 
 from app_exceptions import VgrStatementBreak, VgrStatementContinue
-from evaluate import do_set, get_writable_var_path
+from evaluate import get_writable_var_path
 from exec_context import ExecContext
 from stmt_exec import bind_operations, exec_loop
 from stmt_set import execute_set
@@ -88,7 +88,7 @@ following it are skipped and looping proceeds.
         # NB: if start/end are the same, the loop executes once,
         #     which is typical for Basic implementations
         while (inc > 0 and value <= end) or (inc < 0 and value >= end):
-            do_set(ctx, value, *var_path)
+            ctx.set_var(value, *var_path)
             try:
                 ctx.dispatch_statements(statement.children[cindex:])
             except VgrStatementBreak:
