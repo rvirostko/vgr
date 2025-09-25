@@ -25,10 +25,10 @@ pip install --upgrade pip setuptools wheel build
 # Build the wheel
 python3 -m build
 
+WHEEL_FILE=$(ls -t "$OUTPUT_DIR"/*.whl | head -n1)
+echo "Created wheel $WHEEL_FILE"
+
 ## Building a .pyz
-# Configuration
-SRC_DIR="${PROJECT_ROOT}/src/vgr"
-REQ_FILE="${PROJECT_ROOT}/requirements.txt"
 
 ENTRY_POINT=$(python3 - <<'EOF'
 import tomli
@@ -54,13 +54,18 @@ PYZ_NAME="vgr-${VERSION}.pyz"
 BUILD_DIR=$(mktemp -d)
 
 # Install dependencies there
-pip install -r "$REQ_FILE" -t "$BUILD_DIR"
+pip install -r "${PROJECT_ROOT}/requirements.txt" -t "$BUILD_DIR"
 
-# Remove __pycache__, tests, .dist-info directories you don't need
-find "$BUILD_DIR" -type d -name "tests" -or -name "__pycache__" -or -name "*.dist-info" -exec rm -rf {} +
+# Remove __pycache__, tests, .dist-info directories which aren't needed
+find "$BUILD_DIR" \
+    -type d \
+    -name "tests" -or \
+    -name "__pycache__" -or \
+    -name "*.dist-info" \
+    -exec rm -rf {} +
 
-# Copy source code
-cp -r "$SRC_DIR" "$BUILD_DIR/"
+# Unpack wheel into build dir: includes source and resources
+unzip -q "$WHEEL_FILE" -d "$BUILD_DIR"
 
 # Build the pyz
 PYZ_PATH="$OUTPUT_DIR/$PYZ_NAME"
@@ -68,19 +73,18 @@ echo "Building $PYZ_PATH..."
 python -m zipapp "$BUILD_DIR" \
     --compress \
     --output="$PYZ_PATH" \
-    --main="$ENTRY_POINT" \
-    --python="/usr/bin/env python3"
-
-# Clean up
-rm -rf "$BUILD_DIR"
-
-# Compress the pyz
-zip -9 "$PYZ_PATH"
+    --main="$ENTRY_POINT"
 
 # Create Bash wrapper
 BASH_WRAPPER="$OUTPUT_DIR/vgr"
-echo "#!/bin/bash
-python3 \"\$(dirname \"\$0\")/$PYZ_NAME\" \"\$@\"" > "$BASH_WRAPPER"
+echo "#!/bin/sh
+for cmd in python3.12 python3.11 python3.10 python3.9 python3.8 python3 python; do
+  if command -v \"\$cmd\" >/dev/null 2>&1; then
+    exec \"\$cmd\" \"\$(dirname \"\$0\")/$PYZ_NAME\" \"\$@\"
+  fi
+done
+echo \"Error: No suitable Python interpreter found in PATH\" >&2
+exit 1" > "$BASH_WRAPPER"
 chmod u+x "$BASH_WRAPPER"
 
 # Create Windows batch
@@ -94,3 +98,7 @@ SAMPLES_ZIP="$OUTPUT_DIR/vgr-samples.zip"
 cd "$SAMPLES_DIR"
 zip -r "$SAMPLES_ZIP" ./*
 cd - >/dev/null
+
+# Clean up
+rm -rf "$BUILD_DIR"
+rm -rf .eggs *.egg-info src/*.egg-info
