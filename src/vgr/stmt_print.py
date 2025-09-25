@@ -40,7 +40,7 @@ def execute_print(ctx: ExecContext, statement: Tree) -> None:
     """
 **Print values, similar to AWK's print statement**
 
-* Print _expression_ [, _expression_]... [;]
+* Print [Output | Error | Markdown] ; -- semicolon is required
 * Print [Output | Error | Markdown] _expression_ [, _expression_]... [;]
 
 If no expressions are given, a new line is printed (see below).
@@ -52,12 +52,11 @@ are used if the values are set to _None_.
 If there are no expressions to print only the _arg.ors_ is printed.
 """
     channel, args = _extract_args(statement)
-    if args:
-        sep = ctx.get_var(*OFS_PATH)
-        sep = ' ' if sep is None else str(sep)
-        end = ctx.get_var(*ORS_PATH)
-        end = os.linesep if end is None else str(end)
-        _CHANNEL_MAP[channel](*[ctx.eval_expr(expr) for expr in args], sep=sep, end=end, flush=True)
+    sep = ctx.get_var(*OFS_PATH)
+    sep = ' ' if sep is None else str(sep)
+    end = ctx.get_var(*ORS_PATH)
+    end = os.linesep if end is None else str(end)
+    _CHANNEL_MAP[channel](*[ctx.eval_expr(expr) for expr in args] if args else '', sep=sep, end=end, flush=True)
 
 @bound_ops("Printf")
 def execute_printf(ctx: ExecContext, statement: Tree) -> None:

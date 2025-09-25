@@ -387,12 +387,14 @@ def execute_exhibit(ctx: ExecContext, statement: Tree) -> None:
     """
 **Display the names and values of variables**
 
+* Exhibit ; -- display all, semicolon required
+* Exhibit * [;] -- display all
 * Exhibit _variable_ [, _variable_]... [;]
 
 The values are displayed on individual lines. If a variable has sub values, each
 portion is displayed on its own line.
 
-Without arguments, all variables are displayed
+Without arguments, or a single argument of _*_ all variables are displayed.
 
 Unlike Print and Printf, the values display are the _representation_ of the data, not
 its printable value. This lets you diferentiate between an integer and a string, and
