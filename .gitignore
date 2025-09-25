@@ -3,4 +3,34 @@
 * - mail-output.txt
 * - skipped.csv
 vgr-syntax/
+
+# Python bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.venv/
+env/
+venv/
+
+# Build / packaging artifacts
 dist/
+.eggs/
+*.egg-info/
+src/*.egg-info/
+
+# Installer logs
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Unit test / coverage reports
+.coverage
+htmlcov/
+.tox/
+.nox/
+
+# IDE / editor files
+.vscode/
+.idea/
+*.swp
