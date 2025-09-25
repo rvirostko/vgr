@@ -1,9 +1,0 @@
-Jinja2>=3.1.6
-lark>=1.2.2
-ldap3>=2.9.1
-prompt_toolkit>=3.0.50
-RapidFuzz>=3.13.0
-rich>=13.9.4
-
-[dev]
-pytest>=8.2.0
