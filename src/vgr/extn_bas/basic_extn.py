@@ -3,7 +3,6 @@ Define the BASIC extension
 """
 
 from typing import Dict, Callable
-from pathlib import Path
 
 from ..extn import VgrExtension
 from .stmts import (
@@ -35,9 +34,7 @@ class BasicExtension(VgrExtension):
         return True
 
     def grammar(self) -> str:
-        extn_grammar = Path(__file__).parent / 'basic.ebnf'
-        with extn_grammar.open('r', encoding='utf-8-sig') as f:
-            return f.read()
+        return self.read_resource_text(__package__, 'basic.ebnf')
 
     def statement_handlers(self) -> Dict[str, Callable]:
         return _HANDLERS

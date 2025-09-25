@@ -3,7 +3,6 @@ Defines the Ldap extension
 """
 
 from typing import Dict, Callable
-from pathlib import Path
 
 from ..extn import VgrExtension
 from ..data_dict import DataDictionary
@@ -70,9 +69,7 @@ class LdapExtension(VgrExtension):
         return True
 
     def grammar(self) -> str:
-        extn_grammar = Path(__file__).parent / 'ldap.ebnf'
-        with extn_grammar.open('r', encoding='utf-8') as f:
-            return f.read()
+        return self.read_resource_text(__package__, 'ldap.ebnf')
 
     def functions(self) -> Dict[str, Callable]:
         return _FUNCTIONS

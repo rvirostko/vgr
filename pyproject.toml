@@ -19,16 +19,20 @@ dependencies = [
     "rich>=13.9.4"
 ]
 
+[project.scripts]
+vgr = "vgr.vgr:main"
+
 [project.optional-dependencies]
 dev = [
     "pytest>=8.2.0"
 ]
 
+[tool.setuptools]
+package-dir = {"" = "src"}
+include-package-data = true
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
 [tool.setuptools.package-data]
-"vgr" = ["**/*.ebnf", "**/*.ini", "**/*.json"]
-
-[project.scripts]
-vgr = "vgr.vgr:main"
+"vgr" = ["*.ini", "*.ebnf", "**/*.ebnf", "**/*.ini", "**/*.json"]

@@ -3,7 +3,6 @@ Vault extension to the grammar
 """
 
 from typing import Dict, Callable
-from pathlib import Path
 
 from ..extn import VgrExtension
 from ..data_dict import DataDictionary
@@ -147,9 +146,7 @@ class VaultExtension(VgrExtension):
         return True
 
     def grammar(self) -> str:
-        extn_grammar = Path(__file__).parent / 'vault.ebnf'
-        with extn_grammar.open('r', encoding='utf-8-sig') as f:
-            g = self.expand_names(f.read())
+        g = self.expand_names(self.read_resource_text(__package__, 'vault.ebnf'))
         g += 'vault_from: "Vault"i VAULT_TARGET\n'
         return g + 'VAULT_TARGET: ' + ' | '.join(tuple(f'"{t}"i' for t in _TARGETS))
 

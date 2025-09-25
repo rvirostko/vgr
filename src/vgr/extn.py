@@ -2,11 +2,13 @@
 Prototype for an extension system
 """
 
-from pathlib import Path
 from typing import Dict, Callable
 import configparser
 import importlib
+import pathlib
 import re
+import zipfile
+from importlib import resources
 
 from .data_dict import DataDictionary
 
@@ -56,11 +58,17 @@ class VgrExtension:
     #pylint: enable=unused-argument
 
     @staticmethod
-    def _to_snake_case(s: str) -> str:
-        # TODO copied from "functions"
-        s = re.sub(r'(?<=[a-z0-9])([A-Z])', r'_\1', s)  # insert _ before A-Z if preceded by lowercase or digit
-        s = re.sub(r'(?<=[A-Z])([A-Z][a-z])', r'_\1', s)  # handle acronym boundary: XMLParser -> XML_Parser
-        return s.lower()
+    def read_resource_text(package: str, resource_name: str) -> str:
+        resource = resources.files(package).joinpath(resource_name)
+        # Something on the file system
+        if isinstance(resource, pathlib.PosixPath):
+            return resource.read_text('utf-8')
+        # Something inside a zip-like file
+        if isinstance(resource, zipfile.Path):
+            path, internal_path = VgrExtension._split_archive_path(str(resource))
+            with zipfile.ZipFile(path) as zf:
+                return zf.read(internal_path).decode("utf-8")
+        raise TypeError(f'Don\'t know how to read resource {str(resource)!r} of type {type(resource)!r}')
 
     @staticmethod
     def expand_names(text: str) -> str:
@@ -81,6 +89,19 @@ class VgrExtension:
             return f'("{name}"i | "{snake}"i)'
         return re.sub(r'\{\{([A-Za-z][A-Za-z0-9]*)\}\}', repl, text)
 
+    @staticmethod
+    def _to_snake_case(s: str) -> str:
+        # TODO copied from "functions"
+        s = re.sub(r'(?<=[a-z0-9])([A-Z])', r'_\1', s)  # insert _ before A-Z if preceded by lowercase or digit
+        s = re.sub(r'(?<=[A-Z])([A-Z][a-z])', r'_\1', s)  # handle acronym boundary: XMLParser -> XML_Parser
+        return s.lower()
+
+    @staticmethod
+    def _split_archive_path(path: str):
+        m = re.search(r'(.+\.(?:whl|pyz|zip))/+(.*)', path)
+        if not m: return None, None
+        return m.group(1).rstrip('/'), m.group(2)
+
 class VgrExtensionRegistry:
     """
     Reads extensions from ini files and creates and manages
@@ -89,16 +110,9 @@ class VgrExtensionRegistry:
     def __init__(self):
         self._registry = {}
 
-    def load(self, dd: DataDictionary, extn_file: str) -> None:
-        if extn_file is None or extn_file.isspace():
-            return
-        if not isinstance(extn_file, Path):
-            extn_file = Path(extn_file)
-        if not extn_file.exists():
-            print(f'Warning: {extn_file!r} does not exist')
-            return
+    def load(self, dd: DataDictionary, package: str, resource_name: str) -> None:
         config = configparser.ConfigParser()
-        config.read(extn_file)
+        config.read_string(VgrExtension.read_resource_text(package, resource_name), resource_name)
         for section in config.sections():
             class_path = config[section].get('class')
             if not class_path:

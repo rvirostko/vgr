@@ -8,7 +8,6 @@ from typing import Any
 import base64
 import json
 import os
-import pathlib
 import re
 import shutil
 import sys
@@ -18,8 +17,9 @@ import tty
 from lark import Tree
 
 from ..app_exceptions import VgrRuntimeError
-from ..exec_context import ExecContext
 from ..data_dict import DataDictionary
+from ..exec_context import ExecContext
+from ..extn import VgrExtension
 from ..mathpak import bound_ops
 from ..redir import stdout
 
@@ -305,8 +305,8 @@ class TermConsts:
     COLOR_NAMES = TERM_COLORS
 
 _COLOR_NAME_MAP = { }
-_DUMB_TERM = os.getenv("TERM", "").lower() == "dumb"
-_NO_COLOR = bool(os.getenv("NO_COLOR"))
+_DUMB_TERM = os.getenv('TERM', '').lower() == 'dumb'
+_NO_COLOR = bool(os.getenv('NO_COLOR'))
 
 def add_dd_constants(dd: DataDictionary, prefix: str) -> None:
     for name, value in vars(TermConsts).items():
@@ -317,8 +317,8 @@ def add_dd_constants(dd: DataDictionary, prefix: str) -> None:
         _COLOR_NAME_MAP[_canonical_color_name(name)] = val
     dd.set_var(_DUMB_TERM, prefix, 'dumb_term')
     dd.set_var(_NO_COLOR, prefix, 'no_color')
-    dd.set_var(json.load(open(pathlib.Path(__file__).parent / "spinners.json", encoding="utf-8")), prefix, 'spinner')
-    dd.set_var('https://github.com/sindresorhus/cli-spinners/blob/main/spinners.json', prefix, "spinners_source")
+    dd.set_var(json.loads(VgrExtension.read_resource_text(__package__, 'spinners.json')), prefix, 'spinner')
+    dd.set_var('https://github.com/sindresorhus/cli-spinners/blob/main/spinners.json', prefix, 'spinners_source')
 
 def _print(*args: Any) -> None:
     if not _DUMB_TERM:

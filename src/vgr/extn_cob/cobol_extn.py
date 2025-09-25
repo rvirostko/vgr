@@ -3,7 +3,6 @@ Defines the COBOL extension
 """
 
 from typing import Dict, Callable
-from pathlib import Path
 
 from ..extn import VgrExtension
 from .stmts import (
@@ -67,9 +66,7 @@ class CobolExtension(VgrExtension):
         return True
 
     def grammar(self) -> str:
-        extn_grammar = Path(__file__).parent / 'cobol.ebnf'
-        with extn_grammar.open('r', encoding='utf-8-sig') as f:
-            return f.read()
+        return self.read_resource_text(__package__, 'cobol.ebnf')
 
     def statement_handlers(self) -> Dict[str, Callable]:
         return _HANDLERS

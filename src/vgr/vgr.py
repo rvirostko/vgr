@@ -13,7 +13,7 @@ from .app_exceptions import VgrExitingException, VgrStatementAssert, VgrExceptio
 from .data_dict import DataDictionary
 from .dd_config import dd_init, dd_parse_user_args
 from .doc_help import print_md, search_entries, is_probably, print_doc, unique_by_func
-from .extn import VgrExtensionRegistry, VER
+from .extn import VgrExtension, VgrExtensionRegistry, VER
 from .functions import get_function_defs, add_builtin_functions, add_function, get_function_entries, get_operator_entries
 from .interactive import CmdLine, ArgumentParser, ParserBuilder
 from .log_config import init_logging, set_logging_level
@@ -215,11 +215,10 @@ For example `help Add` with return informtion for the `Add()` while
             print_md('\n'.join(lines))
             print()
 
-def load_extensions(dd: DataDictionary, extn_file: str, debug: bool, verbose: bool) -> VgrExtensionRegistry:
+def load_extensions(dd: DataDictionary, verbose: bool) -> VgrExtensionRegistry:
     if verbose: print_stderr('Loading extensions...')
-    print_debug(debug, 'Extension file is', extn_file)
-    VER.load(dd, extn_file)
-    extns=[]
+    VER.load(dd, __package__, 'extensions.ini')
+    extns = []
     for extn_name, extn in VER:
         extns.append((extn_name, f'{extn.__class__.__module__}.{extn.__class__.__qualname__}',extn.adds_statements(), extn.extends_select(), ))
         if extn.adds_statements():
@@ -232,7 +231,7 @@ def load_extensions(dd: DataDictionary, extn_file: str, debug: bool, verbose: bo
     dd.set_var(extns, *('vgr', 'extensions'))
     return VER
 
-def create_parser(grammar_file: str, extn_registry: VgrExtensionRegistry, debug: bool, verbose: bool) -> Lark:
+def create_parser(extn_registry: VgrExtensionRegistry, debug: bool, verbose: bool) -> Lark:
     if verbose: print_stderr('Creating parser...')
     extn_from = ''
     extn_statements = ''
@@ -247,9 +246,7 @@ def create_parser(grammar_file: str, extn_registry: VgrExtensionRegistry, debug:
     print_debug(debug, 'EXTN_STATMENTS =', extn_statements)
     print_debug(debug, 'EXTN_FROM =', extn_from)
     print_debug(debug, 'EXTN_GRAMMAR =', extn_grammar)
-    print_debug(debug, 'Grammar file is', grammar_file)
-    with open(grammar_file, 'r', encoding='utf-8-sig') as file:
-        grammar = file.read()
+    grammar = VgrExtension.read_resource_text(__package__, 'vgr.ebnf')
     # NB: we can't just use str.format() because the grammar
     #     contains "{" and "}"
     for tag, value in (('{EXTN_STATEMENTS}', extn_statements),
@@ -342,12 +339,8 @@ Environment variables:
     dd = DataDictionary()
     dd_init(dd)
     add_builtin_functions() # Done prior to loading extensions to prevent them overwriting
-    extensions = load_extensions(dd,
-                                 os.path.join(os.path.dirname(os.path.abspath(__file__)), 'extensions.ini'),
-                                 args.debug, args.verbose)
-    parser = create_parser(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'vgr.ebnf'),
-                           extensions,
-                           args.debug, args.verbose)
+    extensions = load_extensions(dd, args.verbose)
+    parser = create_parser(extensions, args.debug, args.verbose)
 
     if args.gen_vsc_extn:
         create_vscode_extension(parser, ["abs"]) # # TODO get the names
