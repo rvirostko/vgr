@@ -8,15 +8,11 @@ if [[ -z "${VIRTUAL_ENV:-}" ]]; then
         # source in current shell
         # Must use: source setup_dev.sh instead of ./setup_dev.sh
         source "$PROJECT_ROOT/.venv/bin/activate"
+        export PYTHONPATH="$PROJECT_ROOT/src${PYTHONPATH:+:$PYTHONPATH}"
+        echo "Development environment ready"
+        echo "Use: python -m vgr"
     else
-        echo "No virtualenv found. Run: python3 -m venv .venv"
-        exit 1
+        echo "No virtualenv found"
+        echo "Use: python3 -m venv .venv && pip install -r requirements.txt"
     fi
 fi
-
-# Set PYTHONPATH
-export PYTHONPATH="$PROJECT_ROOT/src${PYTHONPATH:+:$PYTHONPATH}"
-echo "PYTHONPATH=$PYTHONPATH"
-
-echo "Development environment ready."
-echo "Run: python -m vgr"
