@@ -11,8 +11,6 @@ import os
 import re
 import shutil
 import sys
-import termios
-import tty
 
 from lark import Tree
 
@@ -599,10 +597,20 @@ def _parse_dsr_response(seq: str, terminator: str) -> list[int]:
     if _DUMB_TERM: return None
     ascii_zero = ord('0')
     ascii_nine = ord('9')
-    fd = sys.stdin.fileno()
-    old_settings = termios.tcgetattr(fd)
+    old_settings = None
+    fd = None
     try:
-        tty.setcbreak(fd)
+        import termios
+        fd = sys.stdin.fileno()
+        old_settings = termios.tcgetattr(fd)
+    except Exception:
+        return None
+    try:
+        try:
+            import tty
+            tty.setcbreak(fd)
+        except Exception:
+            return None
         _print(seq)
         state = 'ESCAPE'
         acc = 0
@@ -634,7 +642,11 @@ def _parse_dsr_response(seq: str, terminator: str) -> list[int]:
                 raise ValueError()
         return None
     finally:
-        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+        try:
+            import termios
+            termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
+        except Exception:
+            return None
 
 _CMD_DISPATCH = {
     "box":            _term_draw_box,
