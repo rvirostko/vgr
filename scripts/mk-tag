@@ -1,0 +1,16 @@
+#!/bin/sh
+set -e
+
+VERSION=$(python3 - <<'EOF'
+import tomli
+with open("pyproject.toml","rb") as f:
+    data = tomli.load(f)
+print(data["project"]["version"])
+EOF
+)
+echo "Version: $VERSION"
+
+TAG="v$VERSION"
+
+git tag -a "$TAG" -m "Release $TAG"
+git push origin --tags
