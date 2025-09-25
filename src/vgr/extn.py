@@ -59,10 +59,15 @@ class VgrExtension:
 
     @staticmethod
     def read_resource_text(package: str, resource_name: str) -> str:
+        """Reads in the resource as a text file"""
         resource = resources.files(package).joinpath(resource_name)
+        # This exists because under macOS Python 3.9
+        # reading from a PYZ was failing to find the resources
         # Something on the file system
-        if isinstance(resource, pathlib.PosixPath):
+        if isinstance(resource, (pathlib.PosixPath, pathlib.PurePosixPath)):
             return resource.read_text('utf-8')
+        if isinstance(resource, (pathlib.WindowsPath, pathlib.PureWindowsPath)):
+            return resource.read_text('utf-8-sig')
         # Something inside a zip-like file
         if isinstance(resource, zipfile.Path):
             path, internal_path = VgrExtension._split_archive_path(str(resource))
