@@ -195,6 +195,7 @@ class DataDictionary():
             raise ValueError(f'Cannot alter {".".join(path)!r} - {prefix!r} is immutable')
         return path
 
+    # TODO deprecated? If everything uses DynamicValue we should not need this
     def value_for(self, data: Any) -> Any:
         """
         Allows us to dereferce executable items stored in the dictionary.
@@ -202,6 +203,23 @@ class DataDictionary():
         contents of the directory directly.
         """
         return data() if callable(data) and not isinstance(data, type) else data
+
+
+class DynamicValue:
+    """
+    Wrapper around a lambda (or other no-args function) that can be
+    added to the DataDictionary.
+    This causes str() and repr() of the value outside of the context
+    of lookup where value_for() is used on it to behave in a
+    non-astonishing manner.
+    """
+    def __init__(self, func):
+        if not callable(func): raise TypeError("Expected a callable")
+        self._func = func
+
+    def __call__(self, *args, **kwargs): return self._func(*args, **kwargs)
+    def __str__(self): return str(self._func())
+    def __repr__(self): return repr(self._func())
 
 class Frame:
     """

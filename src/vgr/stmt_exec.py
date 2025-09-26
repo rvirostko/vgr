@@ -14,7 +14,7 @@ from .app_exceptions import (
     VgrStatementBreak,
     VgrStatementContinue,
 )
-from .data_dict import DataDictionary
+from .data_dict import DataDictionary, DynamicValue
 from .dbg import print_tree
 from .dd_config import VGR_PREFIX
 from .evaluate import (
@@ -593,10 +593,10 @@ class DefaultExecContext(ExecContext):
         self._source_stack = []
         # We maintain the state, but the user can still
         # read the values, which are global.
-        self.set_var(lambda: self.source_stack, VGR_PREFIX,  'source')
-        self.set_var(lambda: self.debug, VGR_PREFIX,  'debug')
-        self.set_var(lambda: self.echo, VGR_PREFIX, 'echo')
-        self.set_var(lambda: self.verbose, VGR_PREFIX, 'verbose')
+        self.set_var(DynamicValue(lambda: self.source_stack), VGR_PREFIX,  'source')
+        self.set_var(DynamicValue(lambda: self.debug), VGR_PREFIX,  'debug')
+        self.set_var(DynamicValue(lambda: self.echo), VGR_PREFIX, 'echo')
+        self.set_var(DynamicValue(lambda: self.verbose), VGR_PREFIX, 'verbose')
 
     def get_var(self, *path: str) -> Any: return self.dd.get_var(*path)
     def set_var(self, data: Any, /, *path: str) -> Any: return self.dd.set_var(data, *path)

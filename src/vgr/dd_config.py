@@ -17,7 +17,7 @@ import sys
 import time
 import uuid
 
-from .data_dict import DataDictionary
+from .data_dict import DataDictionary, DynamicValue
 from .mathpak import str_to_number, str_to_bool
 from .version import __version__, __version_date__
 
@@ -46,23 +46,23 @@ _COMPACT = "compact"
 _FORMAT = "format"
 _TODAY = "today"
 _TIME_ENTRIES = {
-    ("dst",):                       lambda: bool(datetime.now().astimezone().dst()),
-    ("now",):                       lambda: int(time.time()), # Unix Epoch time
+    ("dst",):                       DynamicValue(lambda: bool(datetime.now().astimezone().dst())),
+    ("now",):                       DynamicValue(lambda: int(time.time())), # Unix Epoch time
     ("sec_per_day",):               60 * 60 * 24,
     ("sec_per_hr",):                60 * 60,
-    ("tz_name", ):                  lambda: datetime.now().astimezone().tzname(),
-    ("utc_offset",):                lambda: int(datetime.now().astimezone().utcoffset().total_seconds()),
+    ("tz_name", ):                  DynamicValue(lambda: datetime.now().astimezone().tzname()),
+    ("utc_offset",):                DynamicValue(lambda: int(datetime.now().astimezone().utcoffset().total_seconds())),
     # "today" is a composite object
-    (_TODAY, "day"):                lambda: datetime.now().day,                 # 21
-    (_TODAY, "dow_abbr"):           lambda: datetime.now().strftime("%a"),      # Sat
-    (_TODAY, "dow"):                lambda: datetime.now().strftime("%A"),      # Saturday
-    (_TODAY, "hour"):               lambda: datetime.now().hour,                # 14
-    (_TODAY, "minute"):             lambda: datetime.now().minute,              # 23
-    (_TODAY, "month"):              lambda: datetime.now().month,               # 6
-    (_TODAY, "second"):             lambda: datetime.now().second,              # 45
-    (_TODAY, "weekday"):            lambda: datetime.now().weekday(),           # 5 (Monday=0)
-    (_TODAY, "yday"):               lambda: datetime.now().timetuple().tm_yday, # 172
-    (_TODAY, "year"):               lambda: datetime.now().year,                # 2025
+    (_TODAY, "day"):                DynamicValue(lambda: datetime.now().day),                 # 21
+    (_TODAY, "dow_abbr"):           DynamicValue(lambda: datetime.now().strftime("%a")),      # Sat
+    (_TODAY, "dow"):                DynamicValue(lambda: datetime.now().strftime("%A")),      # Saturday
+    (_TODAY, "hour"):               DynamicValue(lambda: datetime.now().hour),                # 14
+    (_TODAY, "minute"):             DynamicValue(lambda: datetime.now().minute),              # 23
+    (_TODAY, "month"):              DynamicValue(lambda: datetime.now().month),               # 6
+    (_TODAY, "second"):             DynamicValue(lambda: datetime.now().second),              # 45
+    (_TODAY, "weekday"):            DynamicValue(lambda: datetime.now().weekday()),           # 5 (Monday=0)
+    (_TODAY, "yday"):               DynamicValue(lambda: datetime.now().timetuple().tm_yday), # 172
+    (_TODAY, "year"):               DynamicValue(lambda: datetime.now().year),                # 2025
     # Formats for timestamps et al
     (_FORMAT, "dmy"):               "%d-%m-%Y",                  # 21-06-2025
     (_FORMAT, "dt"):                "%Y-%m-%d %H:%M:%S",         # 2025-06-21 14:23:45
@@ -100,8 +100,8 @@ _MATH_ENTRIES = {
     ("neg_inf",):     -math.inf,
     ("float", "max"): sys.float_info.max,
     ("float", "min"): sys.float_info.min,
-    ("random",):      random.random,
-    ("random100",):   lambda: random.randrange(1, 100)
+    ("random",):      DynamicValue(random.random),
+    ("random100",):   DynamicValue(lambda: random.randrange(1, 100))
 }
 
 def _get_machine_uuid() -> str:
@@ -125,8 +125,8 @@ _UUID_PREFIX = 'uuid'
 
 _UUID_ENTRIES = {
     ("machine",):     _get_machine_uuid(),
-    ("random_time",): lambda: str(uuid.uuid1()),
-    ("random",):      lambda: str(uuid.uuid4()),
+    ("random_time",): DynamicValue(lambda: str(uuid.uuid1())),
+    ("random",):      DynamicValue(lambda: str(uuid.uuid4())),
 }
 
 def dd_init(dd: DataDictionary) -> None:
@@ -190,9 +190,9 @@ def dd_parse_user_args(dd: DataDictionary, user_args: list) -> None:
 
 def _get_os_consts() -> dict:
     rc = { key: value for key, value in _get_consts(os).items() if key in _OS_CONSTS }
-    rc['login'] = lambda: getpass.getuser() or 'unknown'
-    rc['pid'] = os.getpid
-    rc['cwd'] = os.getcwd
+    rc['login'] = DynamicValue(lambda: getpass.getuser() or 'unknown')
+    rc['pid'] = DynamicValue(os.getpid)
+    rc['cwd'] = DynamicValue(os.getcwd)
     rc['system'] = platform.system()
     rc['node'] = platform.node()
     rc['hostname'] = socket.gethostname()
