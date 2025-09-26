@@ -1,5 +1,10 @@
 #!/bin/bash
 
+if [ ! -d "./src/vgr" ]; then
+    echo "You are not in the project root" >&2
+    exit 1
+fi
+
 PROJECT_ROOT=$(pwd)
 
 OUTPUT_DIR="${PROJECT_ROOT}/dist"
@@ -7,16 +12,9 @@ OUTPUT_DIR="${PROJECT_ROOT}/dist"
 rm -rf "$OUTPUT_DIR"
 mkdir -p "$OUTPUT_DIR"
 
-# Activate venv if not already
 if [[ -z "${VIRTUAL_ENV:-}" ]]; then
-    if [[ -f "$PROJECT_ROOT/.venv/bin/activate" ]]; then
-        # source in current shell
-        # Must use: source setup_dev.sh instead of ./setup_dev.sh
-        source "$PROJECT_ROOT/.venv/bin/activate"
-    else
-        echo "No virtualenv found. Run: python3 -m venv .venv"
-        exit 1
-    fi
+    echo "Run: source scripts/dev-setup" >&2
+    exit 1
 fi
 
 # Upgrade build tools
@@ -28,10 +26,13 @@ python3 -m build
 WHEEL_FILE=$(ls -t "$OUTPUT_DIR"/*.whl | head -n1)
 echo "Created wheel $WHEEL_FILE"
 
-## Building a .pyz
+## Use the wheel to build a pyz with all the dependencies
 
 ENTRY_POINT=$(python3 - <<'EOF'
-import tomli
+try:
+    import tomllib as tomli  # Python 3.11+
+except ImportError:
+    import tomli  # fallback for older versions
 with open("pyproject.toml","rb") as f:
     data = tomli.load(f)
 print(data["project"]["scripts"]["vgr"])
@@ -40,7 +41,10 @@ EOF
 echo "Entry point: $ENTRY_POINT"
 
 VERSION=$(python3 - <<'EOF'
-import tomli
+try:
+    import tomllib as tomli  # Python 3.11+
+except ImportError:
+    import tomli  # fallback for older versions
 with open("pyproject.toml","rb") as f:
     data = tomli.load(f)
 print(data["project"]["version"])
@@ -75,19 +79,19 @@ python -m zipapp "$BUILD_DIR" \
     --output="$PYZ_PATH" \
     --main="$ENTRY_POINT"
 
-# Create Bash wrapper
-BASH_WRAPPER="$OUTPUT_DIR/vgr"
+# Create *nix wrapper for pyz
+SH_WRAPPER="$OUTPUT_DIR/vgr"
 echo "#!/bin/sh
 for cmd in python3.12 python3.11 python3.10 python3.9 python3.8 python3 python; do
   if command -v \"\$cmd\" >/dev/null 2>&1; then
     exec \"\$cmd\" \"\$(dirname \"\$0\")/$PYZ_NAME\" \"\$@\"
   fi
 done
-echo \"Error: No suitable Python interpreter found in PATH\" >&2
-exit 1" > "$BASH_WRAPPER"
-chmod u+x "$BASH_WRAPPER"
+echo \"Error: No suitable Python interpreter found\" >&2
+exit 1" > "$SH_WRAPPER"
+chmod u+x "$SH_WRAPPER"
 
-# Create Windows batch
+# Create Windows wrapper for pyz
 BAT_WRAPPER="$OUTPUT_DIR/vgr.bat"
 echo "@echo off
 python3 \"%~dp0\\$PYZ_NAME\" %*" > "$BAT_WRAPPER"
@@ -95,6 +99,7 @@ python3 \"%~dp0\\$PYZ_NAME\" %*" > "$BAT_WRAPPER"
 # Zip up the samples
 SAMPLES_DIR="samples"
 SAMPLES_ZIP="$OUTPUT_DIR/vgr-samples.zip"
+echo "Building $SAMPLES_ZIP..."
 cd "$SAMPLES_DIR"
 zip -r "$SAMPLES_ZIP" ./*
 cd - >/dev/null
