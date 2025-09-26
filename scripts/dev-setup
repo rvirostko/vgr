@@ -4,14 +4,14 @@
 if [ -n "${BASH_SOURCE[0]+set}" ]; then
     # Bash provides BASH_SOURCE array
     if [ "${BASH_SOURCE[0]}" == "$0" ]; then
-        echo "Use: source $0"
+        echo "Use: source $0" >&2
         exit 1
     fi
 elif [ -n "${ZSH_VERSION:-}" ]; then
     # zsh provides $ZSH_EVAL_CONTEXT
     if [ -n "${ZSH_VERSION:-}" ]; then
         if [[ $ZSH_EVAL_CONTEXT != *:file ]]; then
-            echo "Use: source $0"
+            echo "Use: source $0" >&2
             exit 1
         fi
     fi
