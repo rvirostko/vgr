@@ -11,7 +11,14 @@ from lark import Lark
 
 from .app_exceptions import VgrExitingException, VgrStatementAssert, VgrException
 from .data_dict import DataDictionary
-from .dd_config import dd_init, dd_parse_user_args
+from .dd_config import (
+    dd_init,
+    dd_parse_user_args,
+    EXEC_NAME_PATH,
+    EXEC_VER_PATH,
+    VER_DATE_PATH,
+    VER_PATH,
+)
 from .doc_help import print_md, search_entries, is_probably, print_doc, unique_by_func
 from .extn import VgrExtension, VgrExtensionRegistry, VER
 from .functions import get_function_defs, add_builtin_functions, add_function, get_function_entries, get_operator_entries
@@ -353,7 +360,20 @@ Environment variables:
     if args.user_args:
         ctx.print_verbose('Parsing user args...')
         dd_parse_user_args(dd, args.user_args)
-
+    # Dump some basics for diagnostic purposes
+    for path in [EXEC_NAME_PATH, EXEC_VER_PATH, VER_PATH, VER_DATE_PATH]:
+        value = ctx.get_var(*path)
+        var = '.'.join(path)
+        ctx.print_verbose(var, '=', repr(value))
+        LOG.info('%s = %s', var, repr(value))
+    # These control how some requests are made, so
+    # it is good to know their values when there are
+    # issues with certificates
+    for var in ['REQUESTS_CA_BUNDLE', 'CURL_CA_BUNDLE']:
+        value = os.environ.get(var)
+        if value:
+            ctx.print_verbose(var, '=', repr(value))
+            LOG.info('%s = %s', var, repr(value))
     LOG.info('Ready')
 
     # NB: args.execute and args.file will always be None
