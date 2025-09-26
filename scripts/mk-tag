@@ -1,8 +1,16 @@
 #!/bin/sh
 set -e
 
+if [ ! -d "./src/vgr" ]; then
+    echo "You are not in the project root" >&2
+    exit 1
+fi
+
 VERSION=$(python3 - <<'EOF'
-import tomli
+try:
+    import tomllib as tomli  # Python 3.11+
+except ImportError:
+    import tomli  # fallback for older versions
 with open("pyproject.toml","rb") as f:
     data = tomli.load(f)
 print(data["project"]["version"])
@@ -12,5 +20,28 @@ echo "Version: $VERSION"
 
 TAG="v$VERSION"
 
-git tag -a "$TAG" -m "Release $TAG"
-git push origin --tags
+TMPFILE=$(mktemp /tmp/git_tag_msg.XXXXXX)
+echo "Release $TAG" > "$TMPFILE"
+"${EDITOR:-vi}" "$TMPFILE"
+
+BAR="------------------------------------------"
+echo
+echo "$BAR"
+echo "Tag: ${TAG}"
+echo "$BAR"
+cat "$TMPFILE"
+echo "$BAR"
+echo
+
+read -r -p "Proceed [y/N]: " CONFIRM
+case "$CONFIRM" in
+    [yY][eE][sS]|[yY])
+        git tag -a "$TAG" -F "$TMPFILE"
+        git push origin --tags
+        ;;
+    *)
+        echo "Tag not set"
+        ;;
+esac
+
+rm -f "$TMPFILE"
