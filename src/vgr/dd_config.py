@@ -22,9 +22,11 @@ from .mathpak import str_to_number, str_to_bool
 from .version import __version__, __version_date__
 
 VGR_PREFIX = 'vgr'
-_VER_PATH = (VGR_PREFIX, 'version')
-_VER_DATE_PATH = (VGR_PREFIX, 'version_date')
+VER_PATH = (VGR_PREFIX, 'version')
+VER_DATE_PATH = (VGR_PREFIX, 'version_date')
 LOG_LEVEL_PATH = (VGR_PREFIX, 'log_level')
+EXEC_NAME_PATH = (VGR_PREFIX, 'python', 'executable')
+EXEC_VER_PATH = (VGR_PREFIX, 'python', 'version')
 
 _TIME_PREFIX = 'time'
 
@@ -34,6 +36,8 @@ ORS_PATH = (_ARG_PREFIX, 'ors')
 
 _ENV_EXCLUDE = tuple(re.compile(pattern, re.IGNORECASE) for pattern in ('^VSCODE', '^_$', '^(OLD)?PWD$', '^__CF'))
 _OS_CONSTS = ( 'defpath',  'devnull', 'extsep', 'linesep', 'name', 'pardir', 'pathsep', 'sep' )
+_SYS_CONSTS = ( 'api_version', 'builtin_module_names', 'byteorder', 'exec_prefix', 'executable', 'maxsize',
+    'maxunicode', 'platform', 'platlibdir', 'prefix', 'pycache_prefix', 'version',)
 
 _RE_PREFIX = 're'
 _RE_FLAGS = ('ASCII', 'IGNORECASE', 'LOCALE', 'MULTILINE', 'DOTALL', 'UNICODE', 'VERBOSE')
@@ -131,8 +135,11 @@ def dd_init(dd: DataDictionary) -> None:
     dd_init_args(dd)
     # Set up app area
     dd.add_immutable_prefix(VGR_PREFIX)
-    dd.set_var(__version__, *_VER_PATH)
-    dd.set_var(__version_date__, *_VER_DATE_PATH)
+    dd.set_var(__version__, *VER_PATH)
+    dd.set_var(__version_date__, *VER_DATE_PATH)
+    dd.set_var(sys.executable, *EXEC_NAME_PATH)
+    dd.set_var(f'{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}',
+               *EXEC_VER_PATH)
     # ... reg ex values
     dd.add_immutable_prefix(_RE_PREFIX)
     for flag in _RE_FLAGS:
@@ -152,8 +159,8 @@ def dd_init(dd: DataDictionary) -> None:
     dd.add_immutable_prefix(_UUID_PREFIX)
     for path, value in _UUID_ENTRIES.items():
         dd.set_var(value, _UUID_PREFIX, *path)
-    # .. and OS and environment values
-    for func, name in ((_get_os_consts, 'os'), (_get_environment, 'env')):
+    # .. and OS, Sys, and environment values
+    for func, name in ((_get_os_consts, 'os'), (_get_environment, 'env'), (_get_sys_consts, 'sys')):
         dd.add_immutable_prefix(name)
         dd.set_var(func(), name)
 
@@ -186,11 +193,13 @@ def _get_os_consts() -> dict:
     rc['login'] = lambda: getpass.getuser() or 'unknown'
     rc['pid'] = os.getpid
     rc['cwd'] = os.getcwd
-    rc['platform'] = sys.platform
-    rc['version'] = sys.version
     rc['system'] = platform.system()
     rc['node'] = platform.node()
     rc['hostname'] = socket.gethostname()
+    return rc
+
+def _get_sys_consts() -> dict:
+    rc = { key: value for key, value in _get_consts(sys).items() if key in _SYS_CONSTS}
     return rc
 
 def _get_environment() -> dict:
