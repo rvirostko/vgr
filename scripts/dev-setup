@@ -1,18 +1,67 @@
-#!/bin/bash
-
-PROJECT_ROOT=$(pwd)
-
-# Activate venv if not already
-if [[ -z "${VIRTUAL_ENV:-}" ]]; then
-    if [[ -f "$PROJECT_ROOT/.venv/bin/activate" ]]; then
-        # source in current shell
-        # Must use: source setup_dev.sh instead of ./setup_dev.sh
-        source "$PROJECT_ROOT/.venv/bin/activate"
-        export PYTHONPATH="$PROJECT_ROOT/src${PYTHONPATH:+:$PYTHONPATH}"
-        echo "Development environment ready"
-        echo "Use: python -m vgr"
-    else
-        echo "No virtualenv found"
-        echo "Use: python3 -m venv .venv && pip install -r requirements.txt"
+# Must use 'source dev-setup' instead of just running it
+# We can check in bash and zsh
+# NB: zsh execution will sometimes emulate bash
+if [ -n "${BASH_SOURCE[0]+set}" ]; then
+    # Bash provides BASH_SOURCE array
+    if [ "${BASH_SOURCE[0]}" == "$0" ]; then
+        echo "Use: source $0"
+        exit 1
     fi
+elif [ -n "${ZSH_VERSION:-}" ]; then
+    # zsh provides $ZSH_EVAL_CONTEXT
+    if [ -n "${ZSH_VERSION:-}" ]; then
+        if [[ $ZSH_EVAL_CONTEXT != *:file ]]; then
+            echo "Use: source $0"
+            exit 1
+        fi
+    fi
+fi
+
+OKAY=1
+if [ ! -d "./src/vgr" ]; then
+    echo "You are not in the project root" >&2
+    OKAY=0
+else
+    # Activate venv if not already
+    if [ "${VIRTUAL_ENV:-}" = "" ]; then
+        if [ -d "./.venv/bin" ]; then
+            source "./.venv/bin/activate"
+        elif [ -d "./.venv/Scripts" ]; then
+            source "./.venv/Scripts/activate"
+        else
+            # try to build it
+            python3 -m venv .venv
+            pip install -r requirements.txt
+            echo "venv built : rerun to complete setup" >&2
+            OKAY=0
+        fi
+    fi
+    if [ "${VIRTUAL_ENV:-}" != "" ]; then
+        echo "VIRTUAL_ENV=${VIRTUAL_ENV}"
+    fi
+fi
+
+# NB: This assumes that the Python is a "native" application
+#     meaning that the path elements follow the OS conventions,
+#     not the conventions of an environment like Cygwin or WSL.
+#     Generally, "it should just work", but...
+if [ "$OKAY" -eq 1 ]; then
+    export PYTHONPATH=$(python3 - <<'EOF'
+import os
+src = os.path.abspath(os.path.join(os.getcwd(), 'src'))
+existing = os.environ.get('PYTHONPATH', '')
+if existing:
+    if src in existing.split(os.pathsep):
+        print(existing)
+    else:
+        print(src + os.pathsep + existing)
+else:
+    print(src)
+EOF
+)
+    echo "PYTHONPATH=${PYTHONPATH}"
+fi
+
+if [ "$OKAY" -eq 1 ]; then
+    echo "Use: python3 -m vgr"
 fi
