@@ -160,7 +160,7 @@ class DataDictionary():
         data = self._current_frame
         for key in path:
             if not isinstance(data, (Frame, dict)) or key not in data: return None
-            data = self.value_for(data[key])
+            data = self._value_for(data[key])
         return data
 
     def var_exists(self, *path: str) -> tuple[bool, Any]:
@@ -173,7 +173,7 @@ class DataDictionary():
         for key in path:
             if not isinstance(data, (Frame, dict)) or key not in data: return (False, None)
             data = data[key]
-        return (True, self.value_for(data))
+        return (True, self._value_for(data))
 
     @staticmethod
     def valid_path_step(step: str) -> str:
@@ -195,15 +195,11 @@ class DataDictionary():
             raise ValueError(f'Cannot alter {".".join(path)!r} - {prefix!r} is immutable')
         return path
 
-    # TODO deprecated? If everything uses DynamicValue we should not need this
-    def value_for(self, data: Any) -> Any:
+    def _value_for(self, data: Any) -> Any:
         """
         Allows us to dereferce executable items stored in the dictionary.
-        This is (typically) handled by default, but not if you traverse the
-        contents of the directory directly.
         """
         return data() if callable(data) and not isinstance(data, type) else data
-
 
 class DynamicValue:
     """
@@ -218,8 +214,30 @@ class DynamicValue:
         self._func = func
 
     def __call__(self, *args, **kwargs): return self._func(*args, **kwargs)
-    def __str__(self): return str(self._func())
+
+    def __add__(self, other): return self._func() + other
+    def __bool__(self): return bool(self._func())
+    def __complex__(self): return complex(self._func())
+    def __eq__(self, other): return self._func() == other
+    def __float__(self): return float(self._func())
+    def __ge__(self, other): return self._func() >= other
+    def __getitem__(self, key): return self._func()[key]
+    def __gt__(self, other): return self._func() > other
+    def __int__(self): return int(self._func())
+    def __iter__(self): return iter(self._func())
+    def __le__(self, other): return self._func() <= other
+    def __len__(self): return len(self._func())
+    def __lt__(self, other): return self._func() < other
+    def __mul__(self, other): return self._func() * other
+    def __ne__(self, other): return self._func() != other
+    def __radd__(self, other): return other + self._func()
     def __repr__(self): return repr(self._func())
+    def __rmul__(self, other): return other * self._func()
+    def __rsub__(self, other): return other - self._func()
+    def __rtruediv__(self, other): return other / self._func()
+    def __str__(self): return str(self._func())
+    def __sub__(self, other): return self._func() - other
+    def __truediv__(self, other): return self._func() / other
 
 class Frame:
     """

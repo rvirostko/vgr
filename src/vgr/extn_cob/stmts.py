@@ -408,7 +408,7 @@ see control characters.
             else:
                 print_stdout(name, '= -empty-')
         else:
-            print_stdout(name, '=', repr(ctx.dd.value_for(value)))
+            print_stdout(name, '=', repr(value))
     children = statement.children
     if children:
         for var_name in children:
