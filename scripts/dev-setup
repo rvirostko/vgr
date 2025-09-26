@@ -17,11 +17,36 @@ elif [ -n "${ZSH_VERSION:-}" ]; then
     fi
 fi
 
+# Now that we know we are being sourced, we want
+# to avoid "exit". Each step is now protected
+# with the OKAY check so that it is skipped
+# if a previous step didn't work.
+
 OKAY=1
 if [ ! -d "./src/vgr" ]; then
     echo "You are not in the project root" >&2
     OKAY=0
-else
+fi
+
+if [ "$OKAY" -eq 1 ]; then
+    # Cygwin-specific fix for pip/requests SSL issues
+    if uname -o 2>/dev/null | grep -qi "Cygwin"; then
+        if [ -n "${CURL_CA_BUNDLE:-}" ]; then
+            echo "Unsetting CURL_CA_BUNDLE"
+            unset CURL_CA_BUNDLE
+        fi
+    fi
+fi
+
+# Do we have the venv created?
+if [ "$OKAY" -eq 1 ]; then
+    if [ ! -d "./.venv" ]; then
+        python3 -m venv .venv
+        pip install -r requirements.txt
+    fi
+fi
+
+if [ "$OKAY" -eq 1 ]; then
     # Activate venv if not already
     if [ "${VIRTUAL_ENV:-}" = "" ]; then
         if [ -d "./.venv/bin" ]; then
@@ -29,15 +54,22 @@ else
         elif [ -d "./.venv/Scripts" ]; then
             source "./.venv/Scripts/activate"
         else
-            # try to build it
-            python3 -m venv .venv
-            pip install -r requirements.txt
-            echo "venv built : rerun to complete setup" >&2
+            echo "Don't know how to activate virtual environment" >&2
             OKAY=0
         fi
     fi
     if [ "${VIRTUAL_ENV:-}" != "" ]; then
         echo "VIRTUAL_ENV=${VIRTUAL_ENV}"
+    fi
+fi
+
+if [ "$OKAY" -eq 1 ]; then
+    # Check which CA bundle would be in effect
+    # Commentary/reminder only...
+    if [ -n "${REQUESTS_CA_BUNDLE:-}" ]; then
+        echo "REQUESTS_CA_BUNDLE=${REQUESTS_CA_BUNDLE}"
+    elif [ -n "${CURL_CA_BUNDLE:-}" ]; then
+        echo "CURL_CA_BUNDLE=${CURL_CA_BUNDLE}"
     fi
 fi
 
