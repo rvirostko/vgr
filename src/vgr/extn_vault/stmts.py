@@ -7,9 +7,10 @@ from typing import Any
 from lark import Tree
 
 from ..app_exceptions import VgrRuntimeError
-from ..exec_context import ExecContext
-from ..vault_api.client_mgr import VaultClientManager
 from ..evaluate import do_set, _var_name_path
+from ..exec_context import ExecContext
+from ..mathpak import bound_ops
+from ..vault_api.client_mgr import VaultClientManager
 
 from .dd_consts import DEFAULT_NS_PATH, DEFAULT_RESULT_PATH, DEFAULT_CONN_PATH
 from .functions import extract_kv_data, extract_kv_metadata, add_kv_cas
@@ -74,19 +75,19 @@ def _get_default_conn(ctx: ExecContext, args: dict) -> str:
     """If the args doesn't contain the connection, use the default one"""
     return _get_arg(args, _USING_ARG, str, True) or ctx.get_var(*DEFAULT_CONN_PATH) or _DEFAULT_CONN_NAME
 
-#-------------------------------------------------------------------------------
-# Connection management
-#
-# Vault Connect -- values from env, default name
-# Vault Connect To "http://127.0.0.1"
-# Vault Connect To "http://127.0.0.1" With "<token>"
-# Vault Connect To "http://127.0.0.1" With "<token>" As "Source"
-# Vault Connect As "Source" To "http://127.0.0.1", Token="<token>"
-# Vault Disconnect
-# Vault Disconnect "Source"
-#-------------------------------------------------------------------------------
-
+@bound_ops("Vault-Connect")
 def execute_connect(ctx: ExecContext, statement: Tree) -> None:
+    """
+**Establish a connection to Vault
+
+* Vault Connect -- values from env, default conneciton name
+* Vault Connect To _host_
+* Vault Connect To _host_ With _token_
+* Vault Connect To _host_ With _token_ As _connection_name_
+* Vault Connect As _connection_name_ To _host_, Token=_token_
+
+See also Vault-Disconnect.
+"""
     addr = token = conn_name = None
     for child in statement.children:
         if isinstance(child, Tree):
@@ -106,7 +107,16 @@ def execute_connect(ctx: ExecContext, statement: Tree) -> None:
     _set_default_conn(ctx, conn_name)
     _set_result(ctx, {}, None)
 
+@bound_ops("Vault-Disconnect")
 def execute_disconnect(ctx: ExecContext, statement: Tree) -> None:
+    """
+**Close a connection to Vault**
+
+* Vault Disconnect
+* Vault Disconnect _connection_name_
+
+See also Vault-Connect
+"""
     if statement.children:
         name = _resolve_str_arg(ctx, statement.children[0], 'Vault Connection Name')
     else:
@@ -355,14 +365,28 @@ def execute_delete_mount(ctx: ExecContext, statement: Tree) -> None:
                 args,
                 _CONNECTIONS.get_connection(using).delete_mount(mount_point, namespace))
 
+@bound_ops("Vault-ListMounts")
 def execute_list_mounts(ctx: ExecContext, statement: Tree) -> None:
-    args = _extract_args(ctx, statement)
-    _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    """
+**List the mounts in a namespace**
+
+* Vault ListMounts
+* Vault ListMounts _namespace_
+* Vault ListMounts Namspace Is _namespace_
+* Vault ListMounts _namespace_ Namspace is _parent_namespace_
+
+If no namespace name is provided, the default namespace name is used.
+
+See also Vault-DefaultNamespace.
+"""
     namespace: str = _resolve_str_arg(ctx, statement.children[0], 'Namespace', True) if len(statement.children) > 1 else ""
+    args: dict = _extract_args(ctx, statement)
+    _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    parent_namespace: str = _get_default_ns(ctx, args)
     using = _set_default_conn(ctx, _get_default_conn(ctx, args))
     _set_result(ctx,
                 args,
-                _CONNECTIONS.get_connection(using).list_mounts(namespace))
+                _CONNECTIONS.get_connection(using).list_mounts(_combine_ns(parent_namespace, namespace)))
 
 #-------------------------------------------------------------------------------
 # KV2 secrets and metadata
@@ -728,6 +752,8 @@ def _type_str(o: Any) -> str:
 
 def _extract_args(ctx: ExecContext, statement: Tree) -> dict:
     args = {}
+    # Last child will be the "vault_args"
+    # and its children will all be prefixed with "vopt_"
     for child in statement.children[-1].children:
         if isinstance(child, Tree) and child.data.startswith('vopt_'):
             arg_name = child.data[5:]
