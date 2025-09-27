@@ -124,12 +124,12 @@ class ArrowFunction(_AbstractUserFunction):
     """
 **Arrow Functions - lightweight functions**
 
-#### Definition
+_*Definition*_
 * Set _variable_ = () -> _expression_
 * Set _variable_ = (_arg_ [, _arg_]...) -> _expression_
 * Set _variable_ = (...) -> Compile( _expression_ )
 
-#### Invocation
+_*Invocation*_
 * @_variable_(_arg_...) - Stand-alone
 * _value_.@_variable_(_arg_...) - Inline
 
@@ -139,38 +139,38 @@ are a single name, not a dotted path.
 The arrow operator separates the parameter list from the body.
 The body is either an expression or a dynamic expression using _Compile_(...).
 
-### Special Rules
+_*Special Rules*_
 * Inside the function, the variable `self` is the same function for recursive calls
 * If a parameter is `Unset` inside a function it exposes a global value if one exists
 * When invoked inline, the preceeding _value_ is the first argument passed to the function
 * Arrow Functions can read but not change global state except by acting on arguments that are
   passed by reference, such as lists and dictionaries
 
-### Examples
+**Examples**
 
-Missing and extra arguments
-```
+_*Missing and extra arguments*_
+```vgr
     Set add = (x, y) -> x + y
     Print @add(5) → None     // x defaults to None
     Print @add(5, 6) → 11
     Print @add(5, 6, 7) → 11 // Extra arg ignored
 ```
 
-Recursive function using compact notation
-```
+_*Recursive function using compact notation*_
+```vgr
     fact(n) -> (n <= 1 ? 1 : n * @self(n - 1))
     Print @fact(5) → 120
 ```
 
-Dynamically compiled expression
-```
+_*Dynamically compiled expression*_
+```vgr
     Accept op From stdin
     Assert op in ["+", "-", "*", "/"]
     Set dyn = (x, y) -> Compile("(x {} y) + 10".Format(op))
 ```
 
-Invocation of variables which are _not_ functions
-```
+_*Invocation of variables which are _not_ functions*_
+```vgr
     Unset a
     Print @a() → None
     Set a = "Hello"

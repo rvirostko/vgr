@@ -36,9 +36,9 @@ def execute_choose(ctx: ExecContext, statement: Tree) -> None:
     """
 **Choose from a set of statements based on a series of tests**
 
-* Choose [All]:
-    When _expression_ : _statement_...
-    Otherwise : _statement_...
+* Choose [All]: <br>
+  <em>When _expression_ : _statement_... <br>
+  <em>Otherwise : _statement_... <br>
   End [;]
 
 The values in `When` clauses are examined in order, and the first to
@@ -50,8 +50,8 @@ causes, and that at least one `When` must be specified.
 
 Both `Break` and `Continue` can be used within blocks of statements.
 
-Example:
-```
+**Examples**
+```vgr
 Set month To time.today.month
 Choose :
     When month In [1, 2, 12]:      Set season To "winter"
@@ -114,17 +114,17 @@ def execute_choose_using(ctx: ExecContext, statement: Tree) -> None:
     """
 **Choose from a set of statements based on a value**
 
-* Choose [All] Using _expression_ :
-    When [Not] Empty : _statement_...
-    When [Not] _expression_ [, _expression_]... : _statement_...
-    When [Not] _expression_ [To | Through | Thru] _expression_ : _statement_...
-    When [< | Less Than] _expression_: _statement_...
-    When [>= | Not Less Than] _expression_: _statement_...
-    When [> | Greater Than] _expression_: _statement_...
-    When [<= | Not Greater Than] _expression_: _statement_...
-    When [Not] Matches _expression_ [, _expression_]... : _statement_...
-    When [Not] Contains _expression_ [, _expression_]... : _statement_...
-    Otherwise : _statement_...
+* Choose [All] Using _expression_ :<br>
+  <em>When [Not] Empty : _statement_...<br>
+  <em>When [Not] _expression_ [, _expression_]... : _statement_...<br>
+  <em>When [Not] _expression_ [To | Through | Thru] _expression_ : _statement_...<br>
+  <em>When [< | Less Than] _expression_: _statement_...<br>
+  <em>When [>= | Not Less Than] _expression_: _statement_...<br>
+  <em>When [> | Greater Than] _expression_: _statement_...<br>
+  <em>When [<= | Not Greater Than] _expression_: _statement_...<br>
+  <em>When [Not] Matches _expression_ [, _expression_]... : _statement_...<br>
+  <em>When [Not] Contains _expression_ [, _expression_]... : _statement_...<br>
+  <em>Otherwise : _statement_...<br>
   End [;]
 
 The expression in the Choose statement is evaluated and it becomes the
@@ -147,8 +147,8 @@ Both `Break` and `Continue` can be used within blocks of statements.
 While complicated expressions can be used as the values in `When` it is recommended
 that constant or references to constants be used.
 
-Examples:
-```
+**Examples**
+```vgr
 Set month To time.today.month
 Choose Using month:
     When 1, 2, 12:  Set season To "winter"

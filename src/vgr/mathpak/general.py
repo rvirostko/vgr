@@ -46,24 +46,24 @@ collections. This operation clones the container: if the
 values within it are complex objects, their values will
 still be shared.
 
-### Examples
+**Examples**
 
-Simple types return the same object
-```
+_*Simple types return the same object*_
+```vgr
 Set x = 5
 Print x.Id(), x.Clone().Id()
 4335020464 4335020464
 ```
 
-Cloning a complex object
-```
+_*Cloning a complex object*_
+```vgr
 Set y = [1,2,3]
 Print y.Id(), y.Clone().Id()
 4808334400 4807906688
 ```
 
-Container is cloned, but complex objects are shared
-```
+_*Container is cloned, but complex objects are shared*_
+```vgr
 Set z = [ {"a" : 1} ]
 Set z′ = z.Clone()
 Print z.Id(), z′.Id()
@@ -81,7 +81,8 @@ def poly_repr(x: Any) -> str:
 
 Differs slightly from ToStr() as it quotes string values.
 See the Python [repr() function][https://docs.python.org/3/library/functions.html#repr]
-Also see Ascii()
+
+Also see `Ascii()`
 """
     return repr(x)
 

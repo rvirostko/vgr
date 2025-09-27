@@ -63,7 +63,7 @@ def poly_exact_eq(x: Any, y: Any) -> bool:
 While similar to a regular equals comparison, it requires that
 types of the two values match. No conversion are performed.
 
-```
+```vgr
 5 == "5" -> True
 Print 5 === "5" -> False
 ```

@@ -24,7 +24,7 @@ def _exec_x_op(x: Any, name: str, op: Callable[[Any], Any], string_op, op_table)
     if operation is None: raise ValueError(f'{name}() on {type_str(x)} not possible')
     return operation(op, x, string_op)
 
-####
+#---------------------------------------------
 
 # For no-args string methods that return a string, e.q. "x.Upper()"
 # These are transformational on string items, but idempotent on others
@@ -56,7 +56,7 @@ If _value_ is of any type except string, _None_ is returned.
 
 `["cat", "kitten"].StrLen()` -> `[3, 6]`
 
-Also see *Len()*
+Also see `Len()`
 """
     return _exec_str_op(x, 'StrLen', poly_strlen, str.__len__) if isinstance(x, (str, list, tuple, dict)) else None
 
@@ -102,7 +102,7 @@ def poly_upper(x: Any) -> Any:
 """
     return _exec_str_op(x, 'Upper', poly_upper, str.upper)
 
-####
+#---------------------------------------------
 
 # For no-args string method that returns a bool, e.g. "x.IsUpper()"
 _bool_operations = {
@@ -136,7 +136,7 @@ character-by-character basis.
 
 `"Foo 123".IsAlphaNumeric()` → `False`
 
-Also see *IsAlpha()* and *IsNumeric()*
+Also see `IsAlpha()` and `IsNumeric()`
 """
     return _exec_bool_op(x, 'IsAlphaNnumeric', poly_isalnum, str.isalnum)
 
@@ -174,7 +174,7 @@ Additionally, an empty string considers ASCII.
 
 `["Hello", "Gruezi", "Olá"].IsAscii()` → `[True, True, False]`
 
-Also see *IsPrintable()*
+Also see `IsPrintable()`
 """
     return _exec_bool_op(x, 'IsAscii', poly_isascii, str.isascii)
 
@@ -197,7 +197,7 @@ This is the most restrictive of the number related tests.
 
 `["", None].IsDecimal()` → `[False, False]`
 
-Also see *IsDigit()* and *IsNumeric()*
+Also see `IsDigit()` and `IsNumeric()`
 """
     return _exec_bool_op(x, 'IsDecimal', poly_isdecimal, str.isdecimal)
 
@@ -218,7 +218,7 @@ characters such as circled numbers.
 
 `["", None].IsDigit()` → `[False, False]`
 
-Also see *IsDecimal()* and *IsNumeric()*
+Also see `IsDecimal()` and `IsNumeric()`
 
 """
     return _exec_bool_op(x, 'IsDigit', poly_isdigit, str.isdigit)
@@ -260,7 +260,7 @@ This is the most permissive of the number related tests.
 
 `["", None].IsNumeric()` → `[False, False]`
 
-Also see *IsDecimal()* and *IsDigit()*
+Also see `IsDecimal()` and `IsDigit()`
 """
     return _exec_bool_op(x, 'IsNumeric', poly_isnumeric, str.isnumeric)
 
@@ -332,7 +332,7 @@ and there is at least one cased character in the string.
 """
     return _exec_bool_op(x, 'IsUpper', poly_isupper, str.isupper)
 
-####
+#---------------------------------------------
 
 # For two arg functions : e.g. x.Strip(y)/(None)
 # [" xFoo ", None, 27, True].strip() -> ["xFoo", None, 27, True]
@@ -367,7 +367,7 @@ def _exec_str_str_op(x: Any, y: Any, name: str, op: Callable[[Any, Any], Any], s
     if isinstance(x, (NoneType, bool, int, float)): return x
     return _exec_x_y_op(x, y, name, op, string_op, _str_str_operations)
 
-####
+#---------------------------------------------
 
 def poly_strip(x: Any, *args) -> Any:
     """
@@ -412,7 +412,7 @@ def poly_removesuffix(x: Any, *args) -> Any:
         return x if suffix is None else _exec_str_str_op(x, suffix, 'RemoveSuffix', _removesuffix, str.removesuffix)
     return x if not args or isinstance(x, (NoneType, bool, int, float)) else reduce(_removesuffix, args, x)
 
-####
+#---------------------------------------------
 
 def _exec_bool_str_op(x: Any, y: Any, name: str, op: Callable[[Any, Any], Any], string_op) -> Any:
     """For str/str functions that return a bool"""
@@ -448,7 +448,7 @@ If _value_ is neither a list, dictionary, or string, _False_ is returned.
 
 `{"one": "a", "two": "d", "three": 3}.StartsWith("a", "b", "c")` → `{"one": True, "two": False}`
 
-Also see *EndsWith()*
+Also see `EndsWith()`
 """
     return _exec_bool_str_op(x, prefixes, "StartsWith", poly_startswith, str.startswith)
 
@@ -468,7 +468,7 @@ If _value_ is neither a list, dictionary, or string, _False_ is returned.
 
 `"foo".EndsWith("oo")` → `True`
 
-Also see *StartsWith()*
+Also see `StartsWith()`
 """
     return _exec_bool_str_op(x, suffixes, "EndsWith", poly_endswith, str.endswith)
 
@@ -505,7 +505,7 @@ def poly_rightstr(x: Any, length: Any) -> Any:
 """
     return exec_str_int_op(x, max(0, int_arg(length, 'Length')), "RightStr", poly_rightstr, lambda x, length: x[-length:])
 
-####
+#---------------------------------------------
 
 def poly_substr(x: Any, start: Any, length: Any=1) -> Any:
     """
@@ -571,7 +571,7 @@ def poly_rfind(x: Any, sub: Any=None) -> Any:
     sub = str_arg(sub, 'Sub')
     return _exec_x_y_op(x, sub, 'RFind', poly_rfind, str.rfind, _string_loc_ops)
 
-###
+#---------------------------------------------
 
 def _layout_opt(x: Any, width: int, fillchar: str, op, str_op) -> Any:
     width = 0 if width is None else min(max(0, int_arg(width, "Width")), 256)
@@ -593,7 +593,7 @@ The _width_ argument is interpreted as a numeric value. If _None_, zero is assum
 The _pad_ argument, if provided, is interpreted as a string value. Only the first character is used.
 If not provided, the default is a space.
 
-Also see *JustifyLeft()* and *JustifyRight()*
+Also see `JustifyLeft()` and `JustifyRight()`
 """
     return _layout_opt(x, width, fillchar, poly_center, str.center)
 
@@ -609,7 +609,7 @@ The _width_ argument is interpreted as a numeric value. If _None_, zero is assum
 The _pad_ argument, if provided, is interpreted as a string value. Only the first character is used.
 If not provided, the default is a space.
 
-Also see *Center()* and *JustifyRight()*
+Also see `Center()` and `JustifyRight()`
 """
     return _layout_opt(x, width, fillchar, poly_ljust, str.ljust)
 
@@ -625,7 +625,7 @@ The _width_ argument is interpreted as a numeric value. If _None_, zero is assum
 The _pad_ argument, if provided, is interpreted as a string value. Only the first character is used.
 If not provided, the default is a space.
 
-Also see *Center()* and *JustifyLeft()*
+Also see `Center()` and `JustifyLeft()`
 """
     return _layout_opt(x, width, fillchar, poly_rjust, str.rjust)
 
@@ -638,11 +638,11 @@ def poly_zfill(x: Any, width: int) -> Any:
 If the _value_ to be centered is _None_, it is treated as an empty string.
 The _width_ argument is interpreted as a numeric value. If _None_, zero is assumed.
 
-Also see *JustifyRight()*
+Also see `JustifyRight()`
 """
     return poly_rjust(x, width, '0')
 
-###
+#---------------------------------------------
 
 def poly_shorten(x: str, length: int, placeholder: str="\u2026") -> str:
     """
@@ -671,7 +671,7 @@ is truncated. A value of _None_ omits the placeholder.
     # Truncate to length, adjusting for the addition of the placeholder
     return x[:length - pl_len] + placeholder
 
-###
+#---------------------------------------------
 
 def poly_append(x: Any, *args) -> Any:
     """
@@ -836,7 +836,7 @@ def poly_translate(x: Any, from_str: Any, to_str: Any=None) -> Any:
             if isinstance(x, tuple): return (poly_translate(x1, from_str, to_str) for x1 in x)
     return x
 
-####
+#---------------------------------------------
 
 def poly_ord(x:Any) -> Any:
     """
@@ -848,7 +848,7 @@ If _value_ is a single character, the ordinal is returned; for an multi-characte
 string, an array of ordinals are returned.
 The operation is distributed across lists and dictionaries.
 
-Also see *Chr()*
+Also see `Chr()`
 """
     if x is None: return None
     if isinstance(x, (int, float)): return int(x) if 0 <= x <= 0x10FFFF else x
@@ -857,7 +857,6 @@ Also see *Chr()*
     if isinstance(x, (list, tuple)): return type(x)(poly_ord(el) for el in x)
     if isinstance(x, dict): return {k: poly_ord(v) for k, v in x.items()}
     return x
-
 
 def poly_chr(x: Any ) -> Any:
     """
@@ -869,7 +868,7 @@ If _value_ is a value for a Unicode character a single character string
 is returned.
 The operation is distributed across lists and dictionaries.
 
-Also see *Ord()*
+Also see `Ord()`
 """
     if x is None: return None
     if isinstance(x, (int, float)): return chr(int(x)) if 0 <= x <= 0x10FFFF else x
@@ -878,7 +877,7 @@ Also see *Ord()*
     if isinstance(x, dict): return {k: poly_chr(v) for k, v in x.items()}
     return x
 
-####
+#---------------------------------------------
 
 def _maketrans(from_str: str, to_str: str=''):
     return str.maketrans({from_str[i]: to_str[i] if i < len(to_str) else None for i in range(len(from_str))})

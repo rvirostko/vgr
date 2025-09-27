@@ -480,8 +480,8 @@ cause, and that at least one other `When` must be specified.
 
 In addition to `Next Sentence`, `Break` and `Continue` can be used within blocks of statements.
 
-Examples:
-```
+**Examples**
+```vgr
 Move time.today.month To month
 Evaluate month
     When 1 Thru 2   Move "a Winter" To season

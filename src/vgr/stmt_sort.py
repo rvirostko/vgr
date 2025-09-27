@@ -165,8 +165,7 @@ The _file_type_ option
 * If no file type is given it is guessed from the extension
 
 **Examples**
-
-```
+```vgr
 # Sort the contents of a variable and write to a file
 Sort persons On Key fname, lname Into File "persons.sorted" As Json
 

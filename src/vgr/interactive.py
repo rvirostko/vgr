@@ -148,8 +148,8 @@ class CmdLine:
         """
 **REPL: Change the current working directory**
 
-* `cd` : changes to the user's home directory
-* `cd` _dir_ : changes to the given directory
+* **cd** : changes to the user's home directory
+* **cd _dir_** : changes to the given directory
 
 Execution of statements are sandboxed to the current directory, so if you
 need to change location after starting a session you can use this command.
@@ -169,7 +169,7 @@ need to change location after starting a session you can use this command.
         """
 **REPL: Print the current working directory**
 
-* `pwd` : prints the name of the current directory
+* **pwd** : prints the name of the current directory
 """
         values = self._parse(self._NO_ARGS_PARSER, *args)
         if values is not None: print(os.getcwd())
@@ -178,9 +178,9 @@ need to change location after starting a session you can use this command.
         """
 **REPL: Command History**
 
-* `history` : display recent history
-* `history --clear` : clear history
-* `history --max ` _n_ : set the maximum commands saved
+* **history** : display recent history
+* **history --clear** : clear history
+* **history --max _n_** : set the maximum commands saved
 """
         values = self._parse(self._HISTORY_PARSER, *args)
         if values is not None:
@@ -201,12 +201,12 @@ need to change location after starting a session you can use this command.
         """
 **REPL: Multiline Editing Mode**
 
-* `multiline` : display the current setting
-* `multiline [True | False]` : set multiline editing mode
+* **multiline** : display the current setting
+* **multiline [True | False]** : set multiline editing mode
 
 When multiline editing mode is on, you can create multiple line statements to be executed;
 Return starts a new line rather than executing the command.
-To execute commands in multiline editing mode, use `META-Return` instead.
+To execute commands in multiline editing mode, use **META-Return** instead.
 """
         values = self._parse(self._MULTILINE_PARSER, *args)
         if values is not None:
@@ -218,23 +218,23 @@ To execute commands in multiline editing mode, use `META-Return` instead.
         r"""
 **REPL: Change the Prompt**
 
-* `prompt` : print the template used to generate the interactive prompt
-* `prompt` _template_ : set the prompt to the template
+* **prompt** : print the template used to generate the interactive prompt
+* **prompt _template_** : set the prompt to the template
 
 The template supports a limited set of values that are defined by the
 Bash Shell:
 
-* `\d` - the date
-* `\e` - the escape character
-* `\h` - host name, short
-* `\H` - host name, full
-* `\n` - a new line
-* `\t` - the time
-* `\u` - user name
-* `\w` - current directory
-* `\W` - current directory, name only
+* **\d** - the date
+* **\e** - the escape character
+* **\h** - host name, short
+* **\H** - host name, full
+* **\n** - a new line
+* **\t** - the time
+* **\u** - user name
+* **\w** - current directory
+* **\W** - current directory, name only
 
-On start up, the prompt template comes from `VGR_PROMPT` in the environment.
+On start up, the prompt template comes from **VGR_PROMPT** in the environment.
 Changes made at runtime are not persistent.
 """
         values = self._parse(self._PROMPT_PARSER, *args)
@@ -249,10 +249,10 @@ Changes made at runtime are not persistent.
         """
 **REPL: Open an OS sub-shell**
 
-* `shell` : open an interactive sub-shell
-* `shell` _command_: run the command in a sub-shell
+* **shell** : open an interactive sub-shell
+* **shell** _command_: run the command in a sub-shell
 
-You can use `!` as an alias for `shell`
+You can use **!** as an alias for **shell**
 """
         if os.name == "nt":
             # Prefer MSYS2 / Git Bash / Cygwin if they set SHELL

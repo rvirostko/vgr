@@ -48,7 +48,7 @@ Otherwise, if *Overwrite* is used or no mode is given the contents of existing f
 
 All redirection is closed at program termination.
 
-Also see *Close*
+Also see `Close`
 """
     stream = _eval_stream_name(statement.children[0])
     filename = ctx.eval_filename_expr(statement.children[1])
@@ -81,7 +81,7 @@ Once closed, command output and errors resumes their default destinations.
 
 All redirection is closed at program termination.
 
-Also see *Open*
+Also see `Open`
 """
     stream = _eval_stream_name(statement.children[0])
     getattr(_REDIRECTOR, stream)(None)

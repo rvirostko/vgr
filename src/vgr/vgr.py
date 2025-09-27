@@ -58,7 +58,7 @@ class VGRCmdLine(CmdLine):
         super().__init__()
 
     def run(self):
-        print_md('_Type `exit` to exit_')
+        print_md('_Type **exit** to exit_')
         return super().run()
 
     def execute_statements(self, text: str) -> bool:
@@ -96,28 +96,28 @@ class VGRCmdLine(CmdLine):
         """
 **Language Topics**
 
-* `function` : Search functions only for help
-* `operator` : Search operators only for help
-* `statement` : Search statements only for help
+* **function** : Search functions only for help
+* **operator** : Search operators only for help
+* **statement** : Search statements only for help
 
-If no value provided with `function`, `operator`, or `statement` search, a list
+If no value provided with **function**, **operator**, or **statement** search, a list
 the associated items is displayed.
 
-`help` used with any other value searches through
+**help** used with any other value searches through
 language features looking for an exact match.
 
-For example `help Add` with return informtion for the `Add()` while
-`help statement Add` is required to get information for the like-named statement.
+For example **help Add** with return informtion for `Add()` while
+**help statement Add** is required to get information for the like-named statement.
 
 **REPL Topics**
 
-* `cd` : Change the current working directory
-* `history` : Display or control command line history
-* `multiline` : Turn on multiline editing mode
-* `prompt` : Define the input input prompt
-* `pwd` : Print the current working directory
-* `shell` : Work with the OS sub-shell
-* `version` : Display version information
+* **cd** : Change the current working directory
+* **history** : Display or control command line history
+* **multiline** : Turn on multiline editing mode
+* **prompt** : Define the input input prompt
+* **pwd** : Print the current working directory
+* **shell** : Work with the OS sub-shell
+* **version** : Display version information
 
 """
         if len(args) < 1:

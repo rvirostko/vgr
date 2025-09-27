@@ -3,11 +3,38 @@ The help system
 """
 
 from typing import Callable
+import re
 
+from pygments.lexer import RegexLexer
+from pygments.style import Style
+from pygments.styles import STYLE_MAP
+from pygments.token import (
+    Comment,
+    Error,
+    Escape,
+    Generic,
+    Keyword,
+    Literal,
+    Name,
+    Number,
+    Operator,
+    Other,
+    Punctuation,
+    String,
+    Text,
+    Token,
+    Whitespace,
+)
 from rapidfuzz import fuzz
 from rapidfuzz.fuzz import ratio
 from rich.console import Console, Theme
 from rich.markdown import Markdown
+from rich.syntax import Syntax
+
+_CODE_BG = "#f8f8f8"
+_ON_BG = "on " + _CODE_BG
+
+_BASE_THEME = Theme({}, inherit=True)
 
 _THEME = Theme({
     "markdown.text": "",  # Default terminal style
@@ -28,12 +55,13 @@ _THEME = Theme({
     "markdown.block_quote": "",
     #"markdown.bold": "bold",
     #"markdown.italic": "italic",
-    "markdown.code": "bold",
-    "markdown.code_block": "bold",
+    "markdown.code": str(_BASE_THEME.styles["markdown.item.bullet"]),
     "markdown.hr": "bold",
     "markdown.link": "underline",
     "markdown.image": "underline",
 }, inherit=True)
+
+_VGR_CODE_BLOCK_PATTERN = re.compile(r"```vgr\s*\n(.*?)```", re.DOTALL | re.IGNORECASE)
 
 # Pull out weights etc for better tuning
 _FULL_SCORE_WEIGHT = 1.5
@@ -82,11 +110,137 @@ def unique_by_func(entries: list, limit: int=None) -> list:
             if limit and len(rc) >= limit: break
     return rc
 
+_NBSP = "\u00A0"
+_REPLACER = re.compile(r"[.]{3}|[ \t]*<br>[ \t]*\n|<sp>|<en>|<em>", re.IGNORECASE)
+_EN = _NBSP * 2
+_EM = _NBSP * 4
+_ELLIPSIS = "…"
+def _text_replace(match):
+    tag = match.group(0).lower()
+    if tag == "...": return _ELLIPSIS
+    if tag == "<sp>": return _NBSP
+    if tag == "<en>": return _EN
+    if tag == "<em>": return _EM
+    return '  \n'
+
 def print_doc(func: Callable) -> None:
     doc = (func.__doc__ or "").strip()
-    print()
-    print_md(doc if doc else '_Sorry, no documentation available_')
-    print()
+    console = Console(theme=_THEME)
+    console.print("")
+    if doc:
+        doc = _REPLACER.sub(_text_replace, doc)
+        last_pos = 0
+        for match in _VGR_CODE_BLOCK_PATTERN.finditer(doc):
+            start, end = match.span()
+            if start > last_pos: console.print(Markdown(doc[last_pos:start]))
+            _print_code_block(console, match.group(1))
+            last_pos = end
+        # Add remaining text
+        if last_pos < len(doc): console.print(Markdown(doc[last_pos:]))
+    else:
+        console.print(Markdown('_Sorry, no documentation available_'))
+    console.print("")
+
+def _print_code_block(console: Console, code_block: str) -> None:
+    console.print("")  # outside blank line above
+    console.print(Syntax(
+        code=code_block.strip('\n'),
+        lexer=VgrLexer(),
+        theme=VGRCodeStyle,
+        line_numbers=False,
+        padding=(1,2),
+        background_color=_CODE_BG,
+        tab_size=4,
+        dedent=True
+    ))
+    console.print("")  # outside blank line below
+
+# Initially based on "default" style
+class VGRCodeStyle(Style):
+    background_color = _CODE_BG
+
+    styles = {
+        Text: "",
+        Token: "",
+        Escape: "",
+        Literal: "",
+        Other: "",
+        Punctuation: "",
+        Operator: "",
+
+        Whitespace:                "#bbbbbb",
+        Comment:                   "italic " + "#0a5301",
+        Comment.Preproc:           "",
+
+        Keyword:                   "bold " + "#6b0041",
+        Keyword.Pseudo:            "nobold",
+        Keyword.Type:              "nobold",
+
+        Operator:                  "",
+        Operator.Word:             "bold",
+
+        Name.Builtin:              "",
+        Name.Function:             "",
+        Name.Class:                "bold",
+        Name.Namespace:            "bold",
+        Name.Exception:            "bold",
+        Name.Variable:             "",
+        Name.Constant:             "",
+        Name.Label:                "",
+        Name.Entity:               "bold",
+        Name.Attribute:            "",
+        Name.Tag:                  "",
+        Name.Decorator:            "",
+
+        String:                    "#2D0BF2",
+        String.Doc:                "italic",
+        String.Interpol:           "bold",
+        String.Escape:             "bold",
+        String.Regex:              "#2D0BF2",
+        String.Symbol:             "#2D0BF2",
+        String.Other:              "#2D0BF2",
+        Number:                    "",
+
+        Generic.Heading:           "bold",
+        Generic.Subheading:        "bold",
+        Generic.Deleted:           "",
+        Generic.Inserted:          "",
+        Generic.Error:             "",
+        Generic.Emph:              "italic",
+        Generic.Strong:            "bold",
+        Generic.EmphStrong:        "bold italic",
+        Generic.Prompt:            "bold",
+        Generic.Output:            "",
+        Generic.Traceback:         "",
+
+        Error:                     "border:#FF0000"
+    }
+
+STYLE_MAP["vgr"] = f"{VGRCodeStyle.__module__}.{VGRCodeStyle.__qualname__}"
+
+class VgrLexer(RegexLexer):
+    name = "vgr"
+    aliases = ["vgr"]
+    tokens = {
+        # This is NOT a full highlighter: we'll only support our uppercase keywords
+        # and limited syntax elements
+        "root": [
+            # Comments
+            (r"--.*?$", Comment.Single),   # em-dash style
+            (r"//.*?$", Comment.Single),   # double-slash
+            (r"#.*?$", Comment.Single),    # hash style
+            (r"/\*.*?\*/", Comment.Multiline),
+
+            (r'\\(x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8}|N\{[^}]+\}|.)', String.Escape),
+
+            # Single-quoted or double-quoted strings
+            (r'[Rr]?("(?!"").*?(?<!\\)(\\\\)*?"|\'(?!\'\').*?(?<!\\)(\\\\)*?\')', String),
+            # Triple-quoted strings (long strings, can be multi-line)
+            (r'[Rr]?("""(.*?)(?<!\\)(\\\\)*?"""|\'\'\'(.*?)(?<!\\)(\\\\)*?\'\'\')', String),
+
+            (r"(?i)(?:(?<=^)|(?<=\s)|(?<=[^\w.-]))(Contains|Is|Not|Greater|Less|Than|All|For|Next|Move|Evaluate|Sort|On|Key|File|Asc|Des|Unique|Printf|End|Otherwise|Assert|True|False|None|Choose|Print|Using|When|Matches|Set|To)(?:(?=$)|(?=\s)|(?=[^\w(]))", Keyword),
+        ]
+    }
 
 def print_md(s: str) -> None:
     if s: Console(theme=_THEME).print(Markdown(s))

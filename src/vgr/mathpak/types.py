@@ -6,7 +6,7 @@ from typing import Any
 import json
 import math
 
-from .common import str_to_number, str_to_bool, str_to_int
+from .common import str_to_number, str_to_bool
 
 def poly_bool(x: Any) -> Any:
     """
