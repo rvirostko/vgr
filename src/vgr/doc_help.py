@@ -190,12 +190,12 @@ class VGRCodeStyle(Style):
         Name.Entity:               "bold",
         Name.Attribute:            "",
         Name.Tag:                  "",
-        Name.Decorator:            "",
+        Name.Decorator:            "bold italic " + "#ff8051",
 
         String:                    "#2D0BF2",
         String.Doc:                "italic",
         String.Interpol:           "bold",
-        String.Escape:             "bold",
+        String.Escape:             "bold " + "#000000",
         String.Regex:              "#2D0BF2",
         String.Symbol:             "#2D0BF2",
         String.Other:              "#2D0BF2",
@@ -230,6 +230,8 @@ class VgrLexer(RegexLexer):
             (r"//.*?$", Comment.Single),   # double-slash
             (r"#.*?$", Comment.Single),    # hash style
             (r"/\*.*?\*/", Comment.Multiline),
+
+            (r" → ", Name.Decorator), # This is used with functional output examples
 
             (r'\\(x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8}|N\{[^}]+\}|.)', String.Escape),
 
