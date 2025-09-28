@@ -9,12 +9,10 @@
 
   or a matching equivalent, such as an empty collection
 
-* If an operation is commutative, None as the secondary input should creturn None
+* If an operation is commutative, None as the secondary input should return _None_
 
   ```_Any_ + None   → None```
 
 
 * Arithmetic operations can work with strings, which are cast compatibly
-*
 * Operations should be distributive over list and tuple
-*
