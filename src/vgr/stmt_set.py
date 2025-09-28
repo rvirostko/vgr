@@ -37,20 +37,46 @@ def execute_set(ctx: ExecContext, statement: Tree) -> None:
 **Assign a value to a variable or modify a variable's existing value**
 
 * Set _variable_ [= | To] _expression_ [;]
-* Set _variable_ [= | To] (_arg_...) -> _expression_ -- Arrow Function
-* Set _variable_ [= | To] (_arg_...) -> Compile(_expression_) -- Dynamic Arrow Function
-* Set _variable_ += _expression_ [;] -- Addition
-* Set _variable_ -= _expression_ [;] -- Subtraction
-* Set _variable_ *= _expression_ [;] -- Multiplication
-* Set _variable_ /= _expression_ [;] -- Division
-* Set _variable_ %= _expression_ [;] -- Modulo
-* Set _variable_ **= _expression_ [;] -- Power
-* Set _variable_ &= _expression_ [;] -- Bit And
-* Set _variable_ |= _expression_ [;] -- Bit Or
-* Set _variable_ ^= _expression_ [;] -- Bit Xor
-* Set _variable_ <<= _expression_ [;] -- Bit Shift Left
-* Set _variable_ >>= _expression_ [;] -- Bit Shift Right
+* Set _variable_ [= | To] (_arg_...) -> _expression_ _Arrow_ _Function_
+* Set _variable_ [= | To] (_arg_...) -> Compile(_expression_) _Dynamic_ _Arrow_ _Function_
+* Set _variable_ += _expression_ [;] _Addition_
+* Set _variable_ -= _expression_ [;] _Subtraction_
+* Set _variable_ *= _expression_ [;] _Multiplication_
+* Set _variable_ /= _expression_ [;] _Division_
+* Set _variable_ %= _expression_ [;] _Modulo_
+* Set _variable_ **= _expression_ [;] _Power_
+* Set _variable_ &= _expression_ [;] _Bit And_
+* Set _variable_ |= _expression_ [;] _Bit Or_
+* Set _variable_ ^= _expression_ [;] _Bit Xor_
+* Set _variable_ <<= _expression_ [;] _Bit Shift Left_
+* Set _variable_ >>= _expression_ [;] _Bit Shift Right_
 
+Arrow Functions may define zero or more arguments, but unlike those
+defined with `Function` are composed entirely in an expression.
+
+When `+=` is used with two lists, the lists are concatenated.
+
+**Examples**
+```vgr
+Set a To 5
+Set b To 3
+Set a *= b
+Exhibit a b
+a = 15
+b = 3
+```
+```vgr
+Set fn(a,b) -> a * b
+Exhibit fn
+fn = (a,b)→a * b
+Print fn
+a * b
+Print @fn(5,3)
+15
+Set c = fn
+Print @c(5,3)
+15
+```
 """
     var_path = get_writable_var_path(ctx, statement.children[0])
     expr = statement.children[1]
@@ -69,7 +95,7 @@ def execute_unset(ctx: ExecContext, statement: Tree) -> None:
 @bound_ops("Reset")
 def execute_reset(ctx: ExecContext, statement: Tree) -> None:
     """
-**Reset global state to initial conditions
+**Reset global state to initial conditions**
 
 * Reset _option_ [, _option_]... [;]
 
@@ -154,7 +180,7 @@ def execute_swap(ctx: ExecContext, statement: Tree) -> None:
 * Swap [Varaible] _x_ With _y_ [;]
 * Swap [Variables] _x_ And _y_ [;]
 
-Both variables must _not_ be immutable
+Both variables must be mutable
 """
     path1 = get_writable_var_path(ctx, statement.children[0])
     path2 = get_writable_var_path(ctx, statement.children[1])
@@ -174,10 +200,10 @@ def execute_load_from(ctx: ExecContext, statement: Tree) -> None:
 * Load _variable_ From [File] _expression_ Text [;]
 * Load _variable_ From [File] _expression_ Text Lines [;]
 
-The _expression_ is resolved to string as file to be loaded
+The _expression_ is resolved to a string as file to be loaded
 
-If no type is included, the type is inferred from the extension of the file
-name with Text as the default.
+If no type is included, the type is inferred from the file's extension
+with _Text_ as the default.
 """
     var_path = get_writable_var_path(ctx, statement.children[0])
     fn_child = statement.children[1]

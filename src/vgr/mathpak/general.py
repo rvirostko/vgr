@@ -30,7 +30,9 @@ See the Python [ascii() function](https://docs.python.org/3/library/functions.ht
 
 def poly_hash(x: Any) -> int:
     """
-**TODO**
+**Returns the internal hashcode for an object**
+
+* _value_.Hash()
 """
     return hash(x)
 

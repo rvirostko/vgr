@@ -23,24 +23,30 @@ If _value_ is a collection, then _all_ values in it must match _pattern_
 for the expression to be _True_. If _pattern_ is a collection, then one or
 more of its contents must match for the expression to be _True_.
 
-* `"aaa" Matches "^(a|b)+$"` → `True`
-* `["aaa", "abba"] Matches "^(a|b)+$"` → `True`
-* `["aaa", "abba", "bad"] Matches "^(a|b)+$"` → `False`
+```vgr
+"aaa" Matches "^(a|b)+$" → True
+["aaa", "abba"] Matches "^(a|b)+$" → True
+["aaa", "abba", "bad"] Matches "^(a|b)+$" → False
+```
 
 In its functional form, one or values for _pattern_ may be specified, acting as
 if it was a collection of patterns.
 
-* `"aaa".Matches("^a+$", "^b+$")` → `True`
-* `"bbb".Matches("^a+$", "^b+$")` → `True`
-* `"abba".Matches("^a+$", "^b+$")` → `False`
+```vgr
+"aaa".Matches("^a+$", "^b+$") → True
+"bbb".Matches("^a+$", "^b+$") → True
+"abba".Matches("^a+$", "^b+$") → False
+```
 
 While fundamentally a string/regular expression operation, it will
 work with ordinals, but only if the _pattern_ is also an ordinal, performing an
 equality comparison.
 
-* `5 ~ 5` → `True`
-* `5 ~ 10` → `False`
-* `5 ~ [5, 10]` → _error_
+```vgr
+5 ~ 5 → True
+5 ~ 10 → False
+5 ~ [5, 10] → Cannot perform Match on 'int'
+```
 
 Also see operators `!~` and `~*`
 """
@@ -58,9 +64,11 @@ def poly_imatches(x: Any, y: Any) -> Any:
 Operates identically to `Matches` except matching is performed independent
 of case. This applies to characters in both the _value_ and the _pattern_.
 
-* `"aaa" ~* "^(a|b)+$"` → `True`
-* `"Aaa" ~* "^(a|b)+$"` → `True`
-* `"aaa" ~* "^(A|b)+$"` → `True`
+```vgr
+"aaa" ~* "^(a|b)+$" → True
+"Aaa" ~* "^(a|b)+$" → True
+"aaa" ~* "^(A|b)+$" → True
+```
 
 Also see operators `~` and `!~*`
 """
@@ -80,8 +88,10 @@ patterns. When _pattern_ is a single value, or a collection with exactly one
 value, it operates identically to `Matches`. When a colleciton of patterns
 of is provided, _all_ must match.
 
-* `"aaa".MatchesAll("^a+$")` → `True`
-* `"aaa".MatchesAll("^a+$", "^b+$")` → `False`
+```vgr
+"aaa".MatchesAll("^a+$") → True
+"aaa".MatchesAll("^a+$", "^b+$") → False
+```
 """
     if not args: args = [None]
     return _do_match(x, args[0] if len(args) == 0 else [*args], False, True)
@@ -97,9 +107,11 @@ def poly_not_matches(x: Any, y: Any) -> Any:
 Operates identically to `Matches` except that it requires that _value_
 does _not_ match any of the patterns.
 
-* `"aaa" !~ "^b+$"` → `True`
-* `"aaa" !~ ["^a+$", "^b+$"]` → `False`
-* `"abba" !~ ["^a+$", "^b+$"]` → `True`
+```vgr
+"aaa" !~ "^b+$" → True
+"aaa" !~ ["^a+$", "^b+$"] → False
+"abba" !~ ["^a+$", "^b+$"] → True
+```
 
 Also see operators `~` and `!~*`
 """
@@ -116,9 +128,11 @@ def poly_not_imatches(x: Any, y: Any) -> Any:
 Operates identically to `Matches` except that the match is performed independent
 of case and it request that _value_ does _not_ match any of the patterns.
 
-* `"Aaa" !~* "^b+$"` → `True`
-* `"aaa" !~* ["^A+$", "^B+$"]` → `False`
-* `"Abba" !~* ["^a+$", "^b+$"]` → `True`
+```vgr
+"Aaa" !~* "^b+$" → True
+"aaa" !~* ["^A+$", "^B+$"] → False
+"Abba" !~* ["^a+$", "^b+$"] → True
+```
 
 Also see operators `~*` and `!~`
 """

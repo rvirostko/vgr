@@ -40,11 +40,12 @@ def execute_print(ctx: ExecContext, statement: Tree) -> None:
     """
 **Print values, similar to AWK's print statement**
 
-* Print [Output | Error | Markdown] ; -- semicolon is required
+* Print [Output | Error | Markdown] ; _semicolon_ _is_ _required_
 * Print [Output | Error | Markdown] _expression_ [, _expression_]... [;]
 
 If no expressions are given, a new line is printed (see below).
 Default destination is `Output`. `Markdown` always goes to the current console.
+If the console is redirected to a file `Markdown` output written as text.
 
 The results of the expressions are separated by the string defined in _arg.ofs_.
 Lines are ended by with the _arg.ors_ string. The defaults are space and new line and
@@ -68,6 +69,7 @@ def execute_printf(ctx: ExecContext, statement: Tree) -> None:
 
 If no expressions are given, nothing is printed.
 Default destination is `Output`. `Markdown` always goes to the current console.
+If the console is redirected to a file `Markdown` output written as text.
 
 The first expression is resolved to a string used to format the other values.
 

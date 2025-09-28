@@ -159,7 +159,9 @@ def execute_block(ctx: ExecContext, statement: Tree) -> None:
     """
 **Defines a group of statements with local variable scoping**
 
-* Begin [:] _statement_... End [;]
+* Begin [:]<br>
+  <em>_statement_...<br>
+  End [;]
 
 Also see `Declare`
 """
@@ -179,6 +181,7 @@ def execute_declare_local(ctx: ExecContext, statement: Tree) -> None:
 * Declare _name_,... [As] Local [;]
 * Declare _name_,... [As] Global [;]
 
+Without an argument, the variables are declared local.
 """
     _declare(ctx, statement)
 
@@ -201,9 +204,9 @@ def execute_forever(ctx: ExecContext, statement: Tree) -> None:
     """
 **Predicate-less loop**
 
-* Do Forever [:]
-    _statement_...
-    End [;]
+* Do Forever [:]<br>
+  <em>_statement_...<br>
+  End [;]
 
 The statements are repeatedly executed until a `Break` statement is
 encountered. A `Continue` causes the statements to loop.
@@ -239,17 +242,21 @@ def execute_if(ctx: ExecContext, statement: Tree) -> None:
     """
 **Conditionally execute a block of statements**
 
-* If _expression_ [Then | Do | :]
-    _statement_...
+* If _expression_ [Then | Do | :]<br>
+  <em>_statement_...<br>
   End [;]
-* If _expression_ [Then | Do | :]
-    _statement_...
-  Else [Do | :]
-    _statement_...
+* If _expression_ [Then | Do | :]<br>
+  <em>_statement_...<br>
+  Else [Do | :]<br>
+  <em>_statement_...<br>
   End [;]
 
 If the expression evaluates to _True_ the first block of statements is executed.
 If it evaluates to _False_, the second block of statements—if provided—is executed.
+If `Break` or `Continue` is encountered, statements
+following it are skipped. Execution resumes after the `End`.
+
+See also `Break` and `Continue`
 """
     exec_if_else(ctx, statement, True)
 
@@ -259,9 +266,16 @@ def execute_unless(ctx: ExecContext, statement: Tree) -> None:
     """
 **Conditionally execute a block of statements**
 
-* Unless _expression_ [Then | :] _statement_... End [;]
+* Unless _expression_ [Then | :]<br>
+  <em>_statement_...<br>
+  End [;]
 
 If the expression evaluates to _False_ the block of statements is executed.
+If `Break` is encountered, looping ends regardless of the
+expression's value. If `Continue` is encountered, statements
+following it are skipped, and the expression is checked again.
+
+See also `Break` and `Continue`
 """
     exec_if_else(ctx, statement, False)
 
@@ -308,15 +322,17 @@ def execute_while(ctx: ExecContext, statement: Tree) -> None:
     """
 **Repeatedly execute a block of statements while a condition exists**
 
-* While _expression_ [Do | :]
-    _statement_...
+* While _expression_ [Do | :]<br>
+  <em>_statement_...<br>
   End [;]
 
 As long as the expression evaluates to _True_, the block of statements is
 repeatedly executed.
-If a Break statement is encountered, looping ends regardless of the
-expression's value. If a Continue statement is encountered, statements
+If `Break` is encountered, looping ends regardless of the
+expression's value. If `Continue` is encountered, statements
 following it are skipped, and the expression is checked again.
+
+See also `Break` and `Continue`
 """
     exec_loop(ctx, statement, True)
 
@@ -326,14 +342,16 @@ def execute_until(ctx: ExecContext, statement: Tree) -> None:
     """
 **Repeatedly execute a block of statements until a condition is reached**
 
-* Until _expression_ [Do | :]
-    _statement_...
+* Until _expression_ [Do | :]<br>
+  <em>_statement_...<br>
   End [;]
 
 The block of statements is executed until the expression evaluates to _True_.
-If a Break statement is encountered, looping ends regardless of the
-expression's value. If a Continue statement is encountered, statements
+If `Break` is encountered, looping ends regardless of the
+expression's value. If `Continue` is encountered, statements
 following it are skipped, and the expression is checked again.
+
+See also `Break` and `Continue`
 """
     exec_loop(ctx, statement, False)
 
@@ -343,15 +361,15 @@ def execute_repeat(ctx: ExecContext, statement: Tree) -> None:
     """
 **Execute a block of statements a fixed number of times**
 
-* Repeat _expression_ [Do | :]
-    _statement_...
+* Repeat _expression_ [Do | :]<br>
+  <em>_statement_...<br>
   End [;]
 
 The block of statements is executed the given number of times.
 The expression is evaluated an converted to an integer, rounding down.
 For any statements to execute, the value must be greater than or equal to one.
-If a Break statement is encountered, looping ends regardless of the
-expression's value. If a Continue statement is encountered, statements
+If `Break` is encountered, looping ends regardless of the
+expression's value. If `Continue` is encountered, statements
 following it are skipped, and looping continues.
 """
     exec_repeat(ctx, statement)
@@ -362,8 +380,8 @@ def execute_foreach(ctx: ExecContext, statement: Tree) -> None:
     """
 **Iterate over a list of values**
 
-* ForEach _variable_ In _expression_ [Do | :]
-    _statement_...
+* ForEach _variable_ In _expression_ [Do | :]<br>
+  <em>_statement_...<br>
   End [;]
 
 If expression is a single value, non-_None_ value, the statements are executed
@@ -371,9 +389,11 @@ exactly once. If a list, the statements are executed once for each item,
 including items that are _None_, and if a dictionary, the statements
 are executed once for each key/value pair.
 
-If a Break statement is encountered, iteration ends regardless of the
-number of items remaining. If a Continue statement is encountered, statements
+If `Break` is encountered, iteration ends regardless of the
+number of items remaining. If `Continue` is encountered, statements
 following it are skipped, and the loop continues with the next item.
+
+See also `Break` and `Continue`
 """
     ctx.echo_source(statement, statement.children[2])
     var_path = get_writable_var_path(ctx, statement.children[0])
@@ -487,7 +507,6 @@ class ConstantsNormalizer(Transformer):
                      meta.start_pos, meta.line, meta.column,
                      meta.end_line, meta.end_column, meta.end_pos)
 
-
     def normalize_outer_quotes(self, s: str) -> str:
         """Fixes up typographic quotes from text pasted in from MS products like Word"""
         if s[0] in 'Rr':
@@ -504,6 +523,7 @@ class ConstantsNormalizer(Transformer):
         if open_quote == '\u2018' and close_quote == '\u2019': return prefix + "'" + s[1:-1] + "'"
         # Typographic double quotes
         if open_quote == '\u201C' and close_quote == '\u201D': return prefix + '"' + s[1:-1] + '"'
+        # TODO Need to handle triple-quotes in a similar manner
         return prefix + s
 # pylint: enable=invalid-name
 

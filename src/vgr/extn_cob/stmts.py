@@ -80,6 +80,8 @@ def execute_exit(_: ExecContext, statement: Tree) -> None:
 * Stop Run [;]
 
 Ends the program with an exit code of zero.
+
+See also `Exit`
 """
     raise VgrExitingException(VgrExitingException.EXIT_SUCCESS, statement)
 
@@ -89,8 +91,8 @@ def execute_perform_until(ctx: ExecContext, statement: Tree) -> None:
     """
 **Repeatedly execute a block of statements until a condition is reached**
 
-* Perform Until _expression_
-    _statement_...
+* Perform Until _expression_<br>
+  <em>_statement_...<br>
   End-Perform [;]
 
 The block of statements is executed until the expression evaluates to True.
@@ -106,8 +108,8 @@ def execute_perform_times(ctx: ExecContext, statement: Tree) -> None:
     """
 **Execute a block of statements a fixed number of times**
 
-* Perform _expression_ Times
-    _statement_...
+* Perform _expression_ Times<br>
+  <em>_statement_...<br>
   End-Perform [;]
 
 The block of statements is executed the given number of times.
@@ -125,14 +127,14 @@ def execute_perform_varying(ctx: ExecContext, statement: Tree) -> None:
     """
 **Execute a block of statements while increasing or decreasing a variable's value**
 
-* Perform Varying _variable_ From _expression_ By _expressions_ Until _expression_
-    _statement_...
+* Perform Varying _variable_ From _expression_ By _expressions_ Until _expression_<br>
+  <em>_statement_...<br>
   End-Perform [;]
-* Perform With Test Before Varying _variable_ From _expression_ By _expressions_ Until _expression_
-    _statement_...
+* Perform With Test Before Varying _variable_ From _expression_ By _expressions_ Until _expression_<br>
+  <em>_statement_...<br>
   End-Perform [;]
-* Perform With Test After Varying _variable_ From _expression_ By _expressions_ Until _expression_
-    _statement_...
+* Perform With Test After Varying _variable_ From _expression_ By _expressions_ Until _expression_<br>
+  <em>_statement_...<br>
   End-Perform [;]
 
 If a Break or Next Sentence statement is encountered, looping ends regardless of the
@@ -204,17 +206,19 @@ def execute_if(ctx: ExecContext, statement: Tree) -> None:
     """
 **Conditionally execute a block of statements**
 
-* If _expression_
-    _statement_...
+* If _expression_<br>
+  <em>_statement_...<br>
   End-If [;]
-* If _expression_
-    _statement_...
-  Else
-    _statement_...
+* If _expression_<br>
+  <em>_statement_...<br>
+  Else<br>
+  <em>_statement_...<br>
   End-If [;]
 
 If the expression evaluates to True the first block of statements is executed.
-If it evaluates to False, the second block of statements, if provided, is executed.
+If it evaluates to _False_, the second block of statements, if provided, is executed.
+
+See also `If-Then`, `Break` and `Continue`
 """
     exec_if_else(ctx, statement, True)
 
@@ -226,7 +230,7 @@ def execute_inc(ctx: ExecContext, statement: Tree) -> None:
 * Set _variable_ Up By _expression_ [;]
 
 If the variable does not exist, it is created and initialized to zero.
-This is fundamentally an arithmetic, scalar opertion.
+This is fundamentally an arithmetic, scalar operation.
 """
     var_path = get_writable_var_path(ctx, statement.children[0])
     x = poly_number(ctx.get_var(*var_path)) or 0
@@ -241,7 +245,7 @@ def execute_dec(ctx: ExecContext, statement: Tree) -> None:
 * Set _variable_ Down By _expression_ [;]
 
 If the variable does not exist, it is created and initialized to zero.
-This is fundamentally an arithmetic, scalar opertion.
+This is fundamentally an arithmetic, scalar operation.
 """
     var_path = get_writable_var_path(ctx, statement.children[0])
     x = poly_number(ctx.get_var(*var_path)) or 0
@@ -251,7 +255,7 @@ This is fundamentally an arithmetic, scalar opertion.
 @bound_ops("Move")
 def execute_move_to(ctx: ExecContext, statement: Tree) -> None:
     """
-**Assign a value to a variable
+**Assign a value to a variable**
 
 * Move _expression_ To _variable_ [;]
 * Move Corresponding _expression_ To _variable_ [;]
@@ -387,16 +391,16 @@ def execute_exhibit(ctx: ExecContext, statement: Tree) -> None:
     """
 **Display the names and values of variables**
 
-* Exhibit ; -- display all, semicolon required
-* Exhibit * [;] -- display all
+* Exhibit ; _display_ _all,_ _semicolon_ _required_
+* Exhibit * [;] _display_ _all_
 * Exhibit _variable_ [, _variable_]... [;]
 
-The values are displayed on individual lines. If a variable has sub values, each
+The values are displayed on individual lines. If a variable has sub-values, each
 portion is displayed on its own line.
 
 Without arguments, or a single argument of _*_ all variables are displayed.
 
-Unlike Print and Printf, the values display are the _representation_ of the data, not
+Unlike `Print` and `Printf`, the values display are the _representation_ of the data, not
 its printable value. This lets you diferentiate between an integer and a string, and
 see control characters.
 """
@@ -435,7 +439,7 @@ def execute_display_on(ctx: ExecContext, statement: Tree) -> None:
 
 The default is to print to the output stream.
 While similar to `Print`, `Display` does not use _arg.ofs_ or _arg.ors_, instead using
-with no separator between items and always ending with a newline.
+no separator between items and always ending with a newline.
 """
     dest_stdout = True
     args = tuple()
@@ -459,10 +463,10 @@ def execute_evaluate(ctx: ExecContext, statement: Tree) -> None:
     """
 **Choose from a set of statements based on a value**
 
-* Evaluate _expression_
-    When [Not] _expression_ _statement_...
-    When [Not] _expression_ [Through | Thru] _expression_ _statement_...
-    When Other _statement_...
+* Evaluate _expression_<br>
+  <em>When [Not] _expression_ _statement_...<br>
+  <em>When [Not] _expression_ [Through | Thru] _expression_ _statement_...<br>
+  <em>When Other _statement_...<br>
   End-Evaluate [;]
 
 The expression in the statement is evaluated and it becomes the

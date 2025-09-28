@@ -51,16 +51,16 @@ def execute_for_next(ctx: ExecContext, statement: Tree) -> None:
     """
 **A BASIC-style For-Next Loop**
 
-* For _variable_ = _expressions_ To _expression_ [:]
-    _statement_...
+* For _variable_ = _expressions_ To _expression_ [:]<br>
+  <em>_statement_...<br>
   Next [;]
-* For _variable_ = _expressions_ To _expression_ By _expression_ [:]
-    _statement_...
+* For _variable_ = _expressions_ To _expression_ By _expression_ [:]<br>
+  <em>_statement_...<br>
   Next [;]
 
 The block of statements is executed until the limit is exceeded.
-If a _Break_ statement is encountered, looping ends regardless of the
-limit's value. If a _Continue_ statement is encountered, statements
+If `Break` is encountered, looping ends regardless of the
+limit's value. If `Continue` is encountered, statements
 following it are skipped and looping proceeds.
 """
     # Echo the control portion, not the statements
@@ -108,8 +108,8 @@ def execute_exit(_: ExecContext, statement: Tree) -> None:
 * Exit For [;]
 * Exit While [;]
 
-BASIC variants of _Break_.
-Note that the scope portion of the command not respected; the _current_
+BASIC variants of `Break`.
+Note that the scope portion of the statement not respected; the _current_
 block is exited without regards to type.
 """
     raise VgrStatementBreak(statement)
@@ -123,8 +123,8 @@ def execute_continue(_: ExecContext, statement: Tree) -> None:
 * Continue For [;]
 * Continue While [;]
 
-BASIC variants of _Continue_.
-Note that the scope portion of the command not respected; the _current_
+BASIC variants of `Continue`.
+Note that the scope portion of the statement not respected; the _current_
 block is restarted without regards to type.
 """
     raise VgrStatementContinue(statement)
@@ -136,7 +136,7 @@ def execute_let(ctx: ExecContext, statement: Tree) -> None:
 
 * Let _variable_ = _expression_ [;]
 
-BASIC equivalent of _Set_
+BASIC equivalent of `Set`
 """
     execute_set(ctx, statement)
 
@@ -148,7 +148,7 @@ def execute_troff(ctx: ExecContext, _: Tree) -> None:
 
 * Troff [;]
 
-BASIC equivalent of _Echo False_
+BASIC equivalent of `Echo False`
 """
     ctx.echo = False
     ctx.print_verbose('Trace Off')
@@ -161,7 +161,7 @@ def execute_tron(ctx: ExecContext, _: Tree) -> None:
 
 * Tron [;]
 
-BASIC equivalent of _Echo True_
+BASIC equivalent of `Echo True`
 """
     ctx.echo = True
     ctx.print_verbose('Trace On')

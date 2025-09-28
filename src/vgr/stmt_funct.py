@@ -16,11 +16,11 @@ def execute_def_function(ctx: ExecContext, statement: Tree) -> None:
     """
 **Define a function**
 
-* [Define] Function _variable_ [:]
-    _statement_...
+* [Define] Function _variable_ [:]<br>
+  <em>_statement_...<br>
   End [;]
-* [Define] Function _variable_(_param_...) [:]
-    _statement_...
+* [Define] Function _variable_(_param_...) [:]<br>
+  <em>_statement_...<br>
   End [;]
 
 TODO

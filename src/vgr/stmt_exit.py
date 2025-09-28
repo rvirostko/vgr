@@ -33,7 +33,9 @@ def execute_exit(ctx: ExecContext, statement: Tree) -> None:
 
 The _expression_ is a numeric the code returned to the operating system.
 The default return code is zero.
-Note that in this specific case "True" returns zero and "False" returns one.
+Note that in this specific case _True_ returns zero and _False_ returns one.
+
+Also see `Assert`
 """
     rc = VgrExitingException.EXIT_SUCCESS
     msg = 'Exiting'
@@ -59,12 +61,16 @@ def execute_assert(ctx: ExecContext, statement: Tree) -> None:
 The first expression is evaluated as a boolean value which must be true for execution to continue.
 
 The optional expressions following the colon compose a a string message printed if the first expression
-is not true. It is composed in the same manner as Printf, with the first one being a string containing
+is not true. It is composed in the same manner as `Printf`, with the first one being a string containing
 formatting syntax as used in [Python's str.format()](https://docs.python.org/3/library/string.html#formatstrings)
+
+See `Printf` for more formatting information.
 
 If no message is given the the failing expression is used as the message
 
 Execution ends with an exit code of 1 indicating failure
+
+Also see `Exit`
 """
     exprs = statement.children
     v: bool = poly_true(ctx.eval_expr(exprs[0])) if len(exprs) else False
@@ -85,11 +91,13 @@ Execution ends with an exit code of 1 indicating failure
 @bound_ops("Return")
 def execute_return(ctx: ExecContext, statement: Tree) -> None:
     """
-**Return a value from a function or exit a procedure**
+**Return a value from a function**
 
 * Return [;]
 * Return _expression_ [;]
 
+If _expression_ is not provided, or if a function does not contain a return,
+the return values is always _None_.
 """
     rc = ctx.eval_expr(statement.children[0]) if statement.children else None
     raise VgrStatementReturn(rc, statement)

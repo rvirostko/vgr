@@ -49,9 +49,10 @@ def execute_log(ctx: ExecContext, statement: Tree) -> None:
 
 The logging level must be one of _Debug_, _Info_, _Warn_, or _Error_
 
-The first expression is resolved to a string used to format the other values
-
+The first expression is resolved to a string and used to format the other values.
 Formatting syntax is that used in [Python's str.format()](https://docs.python.org/3/library/string.html#formatstrings)
+
+See `Printf` for formatting details.
 
 """
     log_level = statement.children[0].data.title()

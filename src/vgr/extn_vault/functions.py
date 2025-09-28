@@ -40,8 +40,9 @@ def duration_to_ms(duration: Any) -> int:
 Numeric values are assumed to be in seconds.
 String values are converted as per the Vault specification for duration strings.
 
-`"15d5h".DurationToMs()` → `1_314_000_000`
-
+```vgr
+"15d5h".DurationToMs() → 1314000000
+```
 """
     if duration is None:
         return None
@@ -81,14 +82,16 @@ must be in _milliseconds_ not seconds. Numeric values returned from Vault
 are most likely in seconds, so use `DurationToMs()` to convert them to
 milliseconds.
 
-`1_314_000_000.MsToDuration()` → `15d5h`
+```vgr
+1_314_000_000.MsToDuration() → "15d5h"
+```
 """
     if ms is None:
         return None
     if not isinstance(ms, (int, float)):
         raise ValueError(f'Unsupported duration type {type_str(ms)}')
     if ms == 0:
-        return "0"
+        return '0'
     result = []
     remaining_ms = float(ms)
     for unit, factor in _TIME_UNITS_FACTOR:
