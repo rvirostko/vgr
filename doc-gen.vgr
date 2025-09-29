@@ -1,0 +1,59 @@
+//-----------------------------------------------------------------------------
+// Generates examples for function documentation
+//-----------------------------------------------------------------------------
+
+// Results of examples go to this file
+Open Output File "o.txt"
+// The echo output goes to this file
+Open Error File "e.txt"
+Tron
+//-----------------------------------------------------------------------------
+// Behavior tests go here
+//-----------------------------------------------------------------------------
+Print None.CountOf("a").Repr()
+Print "aaaBc".CountOf("").Repr()
+Print "aaaBc".CountOf("a").Repr()
+Print "aaaBc".CountOf("aa").Repr()
+#Print "The title".SubStr(4, 5).Repr()
+#Print "the TITLE".RightStrip("aeiou", "AEIOU").Repr()
+Print ["A.b.c", "X.y.z"].CountOf(".").Repr()
+Print 123.CountOf("1").Repr()
+//-----------------------------------------------------------------------------
+Troff
+Close Error File
+Close Output File
+
+// Load in the generated data and convert
+Load o_in With File "o.txt" Text Lines
+Set o_in To o_in.ReplaceStr("'", '"')
+Load o_err With File "e.txt" Text Lines
+Set o_err To o_err.RemovePrefix("Print ").RemoveSuffix(".Repr()")
+
+//-----------------------------------------------------------------------------
+// Prototype for a "distribute a function" feature
+//-----------------------------------------------------------------------------
+Define Function dist(lst, fn):
+    If lst.IsList():
+        Declare t Local
+        Set t To []
+        ForEach x in lst:
+            Set t += @fn(x)
+        End
+        Return t
+    End
+    Return @fn(lst)
+End
+//-----------------------------------------------------------------------------
+
+Set arrow_join(x) -> x.Join(" → ")
+Set example To
+    o_err.CombineWith(o_in). // Combine the data sources
+    @dist(arrow_join).       // Join the statement and its output
+    MdCodeBlock("vgr")       // Make into a code example
+// See it as a preview for editing
+Print As Markdown example
+// And have it ready to paste
+// NB: You probably need to install pyperclip for this to work
+// We need to double up backslashes because the example will
+// be pasted into docstrings
+Terminal SetClipboard example.ReplaceStr("\\", "\\\\").AppendStr("\n")
