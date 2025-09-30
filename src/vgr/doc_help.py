@@ -115,6 +115,7 @@ _REPLACER = re.compile(r"[.]{3}|[ \t]*<br>[ \t]*\n|<sp>|<en>|<em>", re.IGNORECAS
 _EN = _NBSP * 2
 _EM = _NBSP * 4
 _ELLIPSIS = "…"
+
 def _text_replace(match):
     tag = match.group(0).lower()
     if tag == "...": return _ELLIPSIS
@@ -123,23 +124,33 @@ def _text_replace(match):
     if tag == "<em>": return _EM
     return '  \n'
 
+def print_md(s: str) -> None:
+    if s: _print(Console(theme=_THEME), s)
+
+def is_probably(word: str, s: str, threshold: float = 65.0) -> bool:
+    """Return True if s is close enough to the word using a fuzzy match."""
+    return ratio((s or "").strip().lower(), word) >= threshold
+
 def print_doc(func: Callable) -> None:
     doc = (func.__doc__ or "").strip()
     console = Console(theme=_THEME)
     console.print("")
     if doc:
-        doc = _REPLACER.sub(_text_replace, doc)
-        last_pos = 0
-        for match in _VGR_CODE_BLOCK_PATTERN.finditer(doc):
-            start, end = match.span()
-            if start > last_pos: console.print(Markdown(doc[last_pos:start]))
-            _print_code_block(console, match.group(1))
-            last_pos = end
-        # Add remaining text
-        if last_pos < len(doc): console.print(Markdown(doc[last_pos:]))
+        _print(console, doc)
     else:
         console.print(Markdown('_Sorry, no documentation available_'))
     console.print("")
+
+def _print(console: Console, s: str) -> None:
+    s = _REPLACER.sub(_text_replace, s)
+    last_pos = 0
+    for match in _VGR_CODE_BLOCK_PATTERN.finditer(s):
+        start, end = match.span()
+        if start > last_pos: console.print(Markdown(s[last_pos:start]))
+        _print_code_block(console, match.group(1))
+        last_pos = end
+    # Add remaining text
+    if last_pos < len(s): console.print(Markdown(s[last_pos:]))
 
 def _print_code_block(console: Console, code_block: str) -> None:
     console.print("")  # outside blank line above
@@ -243,10 +254,3 @@ class VgrLexer(RegexLexer):
             (r"(?i)(?:(?<=^)|(?<=\s)|(?<=[^\w.-]))(Contains|Is|Not|Greater|Less|Than|All|For|Next|Move|Evaluate|Sort|On|Key|File|Asc|Des|Unique|Printf|End|Otherwise|Assert|True|False|None|Choose|Print|Using|When|Matches|Set|To)(?:(?=$)|(?=\s)|(?=[^\w(]))", Keyword),
         ]
     }
-
-def print_md(s: str) -> None:
-    if s: Console(theme=_THEME).print(Markdown(s))
-
-def is_probably(word: str, s: str, threshold: float = 65.0) -> bool:
-    """Return True if s is close enough to the word using a fuzzy match."""
-    return ratio((s or "").strip().lower(), word) >= threshold
