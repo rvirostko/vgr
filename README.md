@@ -348,16 +348,6 @@ vgr> print x * y + +2, x * y - -2
 
 There are also `IMatch` versions that performs comparisons indepent of case
 
-_**THESE OPERATORS ARE UNDER DEVELOPMENT**_
-
-### Polymorphic Operations
-
-TODO
-
-### Fluent Functions
-
-TODO
-
 ## Comments
 
 True to its polyglot nature, three different commenting styles are available and may be freely intermixed.
