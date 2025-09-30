@@ -301,38 +301,66 @@ performed between corresponding elements.
     override = _overrides.get((type(x), type(y)))
     return override(poly_ge, x, y) if override else x >= y
 
-def poly_between(x: Any, y: Any, z: Any) -> bool:
+def poly_between(x: Any, y: Any=None, z: Any=None) -> bool:
     """
 **Determine if a value is within an inclusive range**
 
 * _value_.IsBetween(_low_, _high_)
 * _value_.IsBetween(_high_, _low_)
 
+If _low_ and/or _high_ are omitted, _None_ is assumed.
+
 When comparing mixed types, the type of the value,
 not the constraints, determines conversions.
-See _NotLessThan()_ and _NotGreaterThan()_ for
-conversion details.
+See `LessThan()` and `GreaterThan()` for conversion details
+
+```vgr
+None.IsBetween() → True
+5.IsBetween(10) → True
+5.IsBetween(4) → False
+5.IsBetween(4, 10) → True
+"dog".IsBetween("cat", "fish") → True
+5.IsBetween(" 7", 3.2) → True
+
+// An exclusive numeric range
+4.IsBetween(4.0.Succ(), 5.0.Pred()) → False
+```
+
+Also see `Succ()` and `Pred()`
 """
     low, high = (y, z) if poly_lt(y, z) else (z, y)
     # We always want to use x as a base as it influences conversions
     return poly_ge(x, low) and poly_le(x, high)
 
-def poly_clamp(x: Any, y: Any, z: Any) -> Any:
+def poly_clamp(x: Any, y: Any=None, z: Any=None) -> Any:
     """
-**Constrain a value within a range**
+**Constrain a value within an inclusive range**
 
 * _value_.Clamp(_low_, _high_)
 * _value_.Clamp(_high_, _low_)
 
+If _low_ and/or _high_ are omitted, _None_ is assumed.
+
 When working with mixed types, the type of the value,
 not the constraints, determines conversions.
+See `LessThan()` and `GreaterThan()` for conversion details
+
 
 ```vgr
-**TODO**
+None.Clamp() → None
+11.Clamp() → None
+11.Clamp(5) → 5
+11.Clamp(19) → 11
+2.Clamp(5, 11) → 5
+"dog".Clamp("cat", "fish") → "dog"
+"horse".Clamp("cat", "fish") → "fish"
+5.Clamp(" 7", 3.2) → 5
+
+// An exclusive numeric range
+4.Clamp(4.0.Succ(), 5.0.Pred()) → 4.000000000000001
 ```
 
-Also see `LessThan()` and `GreaterThan()` for
-conversion details.
+Also see `Succ()` and `Pred()`
 """
     low, high = (y, z) if poly_lt(y, z) else (z, y)
     # We always want to use x as a base as it influences conversions
