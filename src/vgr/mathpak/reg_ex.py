@@ -9,6 +9,12 @@ import re
 from .common import NoneType, type_str
 
 def compile_pattern(x: Any, flags: int=0) -> Any:
+    """
+```vgr
+**TODO**
+```
+
+"""
     if isinstance(x, (NoneType, re.Pattern)): return x
     if isinstance(x, str):
         try:
@@ -30,6 +36,10 @@ applied in order, all using the same replacement.
 Replacement must be a string, but can be empty or _None_, which results in deletion.
 The pattern can start with _(?i)_ for case indepenent replacement, _(?m)_ for multiline replacement,
 or combined as _(?im)_ for both. Capture groups can be referenced in the replacement.
+
+```vgr
+**TODO**
+```
 """
     if not args: return x
     if len(args) == 1: return _regex_replace(x, args[0], '')

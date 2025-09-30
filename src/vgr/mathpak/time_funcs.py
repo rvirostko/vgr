@@ -7,6 +7,8 @@ from typing import Any
 
 from .common import int_arg, str_arg, dist_x, type_str
 
+_DEFAULT_TS_FORMAT = '%FT%T'
+
 def format_duration(x: Any, y: Any=0) -> Any:
     """
 **Format the duration between two timestamps**
@@ -17,6 +19,11 @@ def format_duration(x: Any, y: Any=0) -> Any:
 
 Returns a string in the form of _n_**d** _n_**h** _n_**m** _n_**s** using the shortest
 possible representation.
+
+```vgr
+**TODO**
+```
+
 """
     if x is None: x = 0
     if y is None: y = 0
@@ -36,8 +43,6 @@ possible representation.
     if isinstance(x, (list, tuple)): return dist_x(format_duration, x, y)
     raise TypeError(f'Unsupported type for timestamp: {type_str(x)}')
 
-_DEFAULT_TS_FORMAT = '%FT%T'
-
 def format_timestamp(x: Any, y: Any=None) -> Any:
     """
 **Format a timestamp value**
@@ -52,6 +57,9 @@ Time is separated by a **T** and uses a 24-hour format, with resolution down to 
 The format follows Python's
 [strftime() format codes](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes).
 
+```vgr
+**TODO**
+```
 """
     if x is None: x = datetime.now()
     if y is None: y = _DEFAULT_TS_FORMAT

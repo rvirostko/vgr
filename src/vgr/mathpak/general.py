@@ -12,6 +12,10 @@ def poly_reverse(x: Any) -> Any:
 
 If _value_ is an ordinal rather than a list, it is returned unchanged.
 See the Python [reversed() function](https://docs.python.org/3/library/functions.html#reversed)
+
+```vgr
+**TODO**
+```
 """
     if isinstance(x, (list, tuple)):
         return type(x)(reversed(x))
@@ -25,6 +29,10 @@ def poly_ascii(x: Any) -> str:
 
 Similar to both Repr() and ToStr().
 See the Python [ascii() function](https://docs.python.org/3/library/functions.html#ascii)
+
+```vgr
+**TODO**
+```
 """
     return ascii(x)
 
@@ -36,6 +44,9 @@ def poly_hash(x: Any) -> int:
 
 This can be used in debugging but is of limited values in scripts.
 
+```vgr
+**TODO**
+```
 """
     return hash(x)
 
@@ -88,6 +99,10 @@ Differs slightly from `ToStr()` as it surrounds string values with single quotes
 See the Python [repr() function][https://docs.python.org/3/library/functions.html#repr]
 
 Also see `Ascii()`
+
+```vgr
+**TODO**
+```
 """
     return repr(x)
 
@@ -96,6 +111,11 @@ def poly_type(x: Any) -> str:
 **Return the data type of an item**
 
 For _None_ the value _NoneType_ is returned.
+
+```vgr
+**TODO**
+```
+
 """
     return type(x).__name__
 
@@ -114,6 +134,11 @@ def poly_sort(x: Any, unique: bool=False, reverse: bool=False) -> Any:
 def poly_sizeof(x: Any) -> int:
     """
 **Recursively calculates the size of an item and all its contents**
+
+```vgr
+**TODO**
+```
+
 """
     base: int = sys.getsizeof(x)
     if isinstance(x, (list, tuple, set, dict)): return base + sum(poly_sizeof(x1) for x1 in x)
@@ -131,6 +156,11 @@ For all other types the value is returned unchanged.
 If the expression itself is a list, the corresponding items
 will be returned in an array.
 Requests for items outside the list's bounds results in _None_.
+
+```vgr
+**TODO**
+```
+
 """
     if not isinstance(x, (list, tuple)): return x
     if isinstance(index, (list, tuple)): return dist_x(poly_getitem, x, index)
@@ -145,6 +175,10 @@ def poly_firstitem(x: Any) -> Any:
 
 If the list is empty then _None_ is returned.
 For all other types the value is returned unchanged.
+
+```vgr
+**TODO**
+```
 """
     return poly_getitem(x, 0)
 
@@ -156,6 +190,10 @@ def poly_lastitem(x: Any) -> Any:
 
 If the list is empty then _None_ is returned.
 For all other types the value is returned unchanged.
+
+```vgr
+**TODO**
+```
 """
     if not isinstance(x, (list, tuple)): return x
     return x[-1] if len(x) > 0 else None
@@ -170,6 +208,10 @@ For strings, a string containing all the unique characters in
 the string is returned.
 For lists, a list of unique values is returned.
 For all other types the value is returned unchanged.
+
+```vgr
+**TODO**
+```
 """
     if isinstance(x, str): return poly_unique(x.encode()).decode()
     if isinstance(x, (list, tuple)):

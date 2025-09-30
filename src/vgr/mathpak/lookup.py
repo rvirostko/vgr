@@ -16,6 +16,10 @@ For the value argument, it may be a single value or a list of values.
 
 The result is always a list, which may be empty. A lookup performed on None or a non-list
 always returns an empty list of results.
+
+```vgr
+**TODO**
+```
 """
     if not isinstance(x, (list, tuple)): return []
     if not isinstance(attr, (str, int, float, tuple)):

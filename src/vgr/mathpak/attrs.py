@@ -18,6 +18,10 @@ The _value_ must either be a dictionary or _None_.
 Path parts can be:
 * A _None_, str, bool, int, or float
 * A list composed of path components
+
+```vgr
+**TODO**
+```
 """
     if data is None: return data
     if not isinstance(data, dict): raise TypeError(f'Digging into {type_str(data)} not supported')

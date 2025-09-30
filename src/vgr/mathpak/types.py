@@ -30,6 +30,11 @@ If it is a non-convertable type then _True_ is returned, as any
 non-_None_ value is consider _True_.
 
 Conversion is distributed over lists.
+
+```vgr
+**TODO**
+```
+
 """
     if x is None: return False
     if poly_isbool(x): return x
@@ -49,6 +54,9 @@ def poly_isbool(x: Any) -> bool:
 
 * _value_.IsBool()
 
+```vgr
+**TODO**
+```
 """
     return isinstance(x, bool)
 
@@ -68,6 +76,10 @@ If _value_ is _None_ or is a non-convertable type then _None_ is returned.
 Strings that cannot be converted may result in a value error.
 The optional _default_ value is returned if the value cannot be converted
 to a number. It can be any value, including _None_.
+
+```vgr
+**TODO**
+```
 """
     if poly_isnumber(x): return float(x)
     if poly_isstr(x):
@@ -84,6 +96,10 @@ def poly_isfloat(x: Any) -> bool:
 **Returns _True_ if the value is a floating point number**
 
 * _value_.IsFloat()
+
+```vgr
+**TODO**
+```
 """
     return isinstance(x, float)
 
@@ -100,6 +116,10 @@ If _value_ is _None_ or is a non-convertable type then _None_ is returned.
 Strings that cannot be converted may result in a value error.
 The optional _default_ value is returned if the value cannot be converted
 to a number. It can be any value, including _None_.
+
+```vgr
+**TODO**
+```
 """
     if poly_isnumber(x): return int(x)
     if poly_isstr(x):
@@ -116,6 +136,10 @@ def poly_isint(x: Any) -> bool:
 **Returns _True_ if the value is an integer**
 
 * _value_.IsInt()
+
+```vgr
+**TODO**
+```
 """
     return isinstance(x, int)
 
@@ -132,6 +156,10 @@ If _value_ is _None_ or is a non-convertable type then _None_ is returned.
 Strings that cannot be converted may result in a value error.
 The optional _default_ value is returned if the value cannot be converted
 to a number. It can be any value, including _None_.
+
+```vgr
+**TODO**
+```
 """
     if poly_isnumber(x): return x
     if poly_isstr(x):
@@ -150,6 +178,10 @@ def poly_isnumber(x: Any) -> bool:
 * _value_.IsNumber()
 
 Only _float_ and _int_ items are considered numbers.
+
+```vgr
+**TODO**
+```
 """
     return isinstance(x, (int, float))
 
@@ -163,6 +195,10 @@ If _value_ is greater than zero, _1_ is returned.
 If less than zero, _-1_ is returned. Zero is returned for zero.
 Distributed across lists, and strings are converted to numbers.
 For all other types, _None_ is returned.
+
+```vgr
+**TODO**
+```
 """
     if isinstance(x, (list, tuple)): return type(x)(poly_sign(x1) for x1 in x)
     if isinstance(x, str): x = str_to_number(x)
@@ -174,6 +210,9 @@ def poly_isinf(x: Any) -> bool:
 
 * _value_.IsInf()
 
+```vgr
+**TODO**
+```
 """
     return math.isinf(x) if isinstance(x, (int, float)) else False
 
@@ -183,6 +222,9 @@ def poly_isfinite(x: Any) -> bool:
 
 * _value_.IsFinite()
 
+```vgr
+**TODO**
+```
 """
     return math.isfinite(x) if isinstance(x, (int, float)) else False
 
@@ -192,6 +234,9 @@ def poly_isnan(x: Any) -> bool:
 
 * _value_.IsNan()
 
+```vgr
+**TODO**
+```
 """
     return math.isnan(x) if isinstance(x, (int, float)) else False
 
@@ -217,6 +262,10 @@ def poly_str(x: Any) -> Any:
 * _value_.Str()
 
 If _value_ is _None_ it is left as _None_, not converted to the string _"None"_.
+
+```vgr
+**TODO**
+```
 """
     if x is None: return None
     if isinstance(x, bytes): return x.decode('utf-8')
@@ -231,6 +280,9 @@ def poly_isstr(x: Any) -> bool:
 
 * _value_.IsStr()
 
+```vgr
+**TODO**
+```
 """
     return isinstance(x, str)
 
@@ -240,6 +292,9 @@ def poly_isdict(x: Any) -> bool:
 
 * _value_.IsDictionary()
 
+```vgr
+**TODO**
+```
 """
     return isinstance(x, dict)
 
@@ -250,6 +305,10 @@ def poly_islist(x: Any) -> bool:
 * _value_.IsList()
 
 The Python _tuple_ and _list_ types are both considered lists.
+
+```vgr
+**TODO**
+```
 """
     return isinstance(x, (list, tuple))
 
@@ -262,6 +321,10 @@ def poly_list(x: Any) -> Any:
 
 Dictionaries are converted to a list of key/value pairs.
 If _value_ is _None_ an empty list is returned.
+
+```vgr
+**TODO**
+```
 """
     if x is None: return []
     if isinstance(x, (list, tuple)): return x
@@ -282,6 +345,10 @@ A value is considered empty if:
   consists of only space characters
 * It is a number that is zero
 * It is the boolean _False_
+
+```vgr
+**TODO**
+```
 """
     if isinstance(x, (list, tuple, dict)): return len(x) == 0
     if isinstance(x, str): return len(x) == 0 or x.isspace()
@@ -300,6 +367,10 @@ A value is considered empty if:
 * It is a string that consists of more than just space characters
 * It is a number that is not zero
 * It is the boolean _True_
+
+```vgr
+**TODO**
+```
 """
     if isinstance(x, (list, tuple, dict)): return len(x) > 0
     if isinstance(x, str): return len(x) > 0 and not x.isspace()

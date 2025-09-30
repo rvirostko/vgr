@@ -11,11 +11,16 @@ from .types import poly_bool
 
 def parse_url(url: Any, remove_nulls: bool=True) -> Any:
     """
-    Decompose a URL as a string and return a dictionary of its components.
-    In addition, the result will contain _error_ indicating if there was an error,
-    _error_msg_ describing the error, and will always include the URL itself.
-    Distributive over lists and tuples, but not dictionaries.
-    """
+Decompose a URL as a string and return a dictionary of its components.
+
+In addition, the result will contain _error_ indicating if there was an error,
+_error_msg_ describing the error, and will always include the URL itself.
+Distributive over lists and tuples, but not dictionaries.
+
+```vgr
+**TODO**
+```
+"""
     if url is None: return None
     remove_nulls = poly_bool(remove_nulls)
     if isinstance(url, (list, tuple)): return dist_x(parse_url, url, remove_nulls)
@@ -36,7 +41,7 @@ def parse_url(url: Any, remove_nulls: bool=True) -> Any:
             "fragment": _empty_to_none(parsed.fragment),
             "port": parsed.port,
             "username": _empty_to_none(parsed.username),
-            "password": _obscure(_empty_to_none(parsed.password)),
+            "password": _empty_to_none(parsed.password),
         }
         return {key: value for key, value in components.items() if value is not None} if remove_nulls else components
     except (ValueError, URLError, TypeError) as e:
@@ -47,15 +52,14 @@ def parse_url(url: Any, remove_nulls: bool=True) -> Any:
         }
 
 def encode_url(url: str) -> str:
+    """
+```vgr
+**TODO**
+```
+"""
     if url is None: return None
     if isinstance(url, (list, tuple)): return type(url)(encode_url(x1) for x1 in url)
     return quote(url, errors='strict', encoding='utf-8') if isinstance(url, str) else None
 
 def _empty_to_none(s:str) -> str:
     return None if s is None or len(s) == 0 else s
-
-# TODO candidate for a "real function"
-def _obscure(s: str) -> str:
-    if s is None: return None
-    if len(s) <= 2: return '\u2026'
-    return s[0] + '\u2026' + s[-1]

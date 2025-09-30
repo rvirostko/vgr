@@ -65,7 +65,7 @@ types of the two values match. No conversion are performed.
 
 ```vgr
 5 == "5" -> True
-Print 5 === "5" -> False
+5 === "5" -> False
 ```
 """
     # None is only equal to itself
@@ -326,7 +326,12 @@ def poly_clamp(x: Any, y: Any, z: Any) -> Any:
 
 When working with mixed types, the type of the value,
 not the constraints, determines conversions.
-See _LessThan()_ and _GreaterThan()_ for
+
+```vgr
+**TODO**
+```
+
+Also see `LessThan()` and `GreaterThan()` for
 conversion details.
 """
     low, high = (y, z) if poly_lt(y, z) else (z, y)

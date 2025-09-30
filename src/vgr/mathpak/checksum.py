@@ -29,6 +29,10 @@ If the value is a dictionary, it is formated as compact JSON with
 sorted keys to create a string for computation.
 Other non-string types are converted to a string before computation.
 
+```vgr
+**TODO**
+```
+
 """
     if x is None: return None
     hasher = None
