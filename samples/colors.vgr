@@ -116,7 +116,7 @@ Perform iter Times
         If !((i + 1) % 4)
             # Need resume default background in case we scroll
             Term BG, CR, LF
-        End-If
+        End
     Next
     Term Reset
     Sleep sleep_time Seconds

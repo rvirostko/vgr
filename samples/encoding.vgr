@@ -9,7 +9,7 @@ Define Function test_hex_encodings(data, charsets):
         ForEach d In data:
             Printf "    {!r} → {!r}\n", d, d.HexEncode(charset)
         End
-        Print
+        Print ""
     End
 End
 
@@ -31,7 +31,7 @@ Define Function test_b64(data):
     ForEach d In data:
         Printf "    {!r} → {!r}\n", d, d.Base64Encode()
     End
-    Print
+    Print ""
 End
 
 Define Function b64_round_trip_test(s):

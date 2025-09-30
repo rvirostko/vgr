@@ -1,4 +1,4 @@
-Echo on
+Echo On
 
 // Basic ASCII Latin letters
 Set abc To 5
@@ -76,4 +76,4 @@ Assert (num₁ + 1) == 10
 Set $α-𝐵_3′ To 20
 Assert ($α-𝐵_3′ * 2) == 40
 
-Echo off
+Echo Off

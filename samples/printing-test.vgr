@@ -1,28 +1,27 @@
-Reset All
+ReSet All
 Echo False
 Verbose False
 Debug False
 
-set a = 5
-set b = 10
-set c = 15
+Set a = 5
+Set b = 10
+Set c = 15
 
 # Generates nothing
 Print "---Nothing between these lines---"
-Printf;
 Printf ""
 Printf "", a
 Printf "", a, b
 Print "---Nothing between these lines---"
 
-Print;
+Print ""
 
 Print "---Two blank lines---"
 Printf "\n"
 Printf "{}", "\n"
 Print "---Two blank lines---"
 
-Print;
+Print ""
 
 Print "---Two identical lines---"
 Printf "{} > {}", a, b
@@ -32,21 +31,18 @@ Printf "{}", arg.ors
 Printf "{0} > {1} && {1} < {2}\n", a, b, c
 Print "---Two identical lines---"
 
-set rs_fmt = "\n---{}\n---OFS={}, ORS={}\n"
-Printf rs_fmt, "Defaults:", arg.ofs.repr(), arg.ors.repr()
+Set rs_fmt = "\n---{}\n---OFS={}, ORS={}\n"
+Printf rs_fmt, "Defaults:", arg.ofs.Repr(), arg.ors.Repr()
 Print a, b, c
-Printf "\n"
+Print ""
 
-set arg.ofs = " | "
-set arg.ors = " |\n"
-
-Printf rs_fmt, "Overrides:", arg.ofs.repr(), arg.ors.repr()
+Set arg.ofs = " | "
+Set arg.ors = " |\n"
+Printf rs_fmt, "Overrides:", arg.ofs.Repr(), arg.ors.Repr()
 Print a, b, c
-Printf "\n"
+Unset arg.ofs, arg.ors
+Print ""
 
-set arg.ofs = NONE
-set arg.ors = NONE
-
-Printf rs_fmt, "Unset:", arg.ofs.repr(), arg.ors.repr()
+Printf rs_fmt, "Unset:", arg.ofs.Repr(), arg.ors.Repr()
 Print a, b, c
-Printf "\n"
+Print ""

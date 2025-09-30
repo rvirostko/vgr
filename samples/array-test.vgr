@@ -1,84 +1,84 @@
 Reset All
 
-set a to [1,2,3]
-set b to a
+Set a To [1,2,3]
+Set b To a
 
-echo on
-set c to a + 2
-echo off
-exhibit a, c
-assert a == b && a != c && b != c
+Echo On
+Set c To a + 2
+Echo Off
+Exhibit a, c
+Assert a == b && a != c && b != c
 Print;
 
-echo on
-set c to a + b
-echo off
-exhibit a, b, c
-assert a == b && a != c && b != c
+Echo On
+Set c To a + b
+Echo Off
+Exhibit a, b, c
+Assert a == b && a != c && b != c
 Print;
 
-echo on
-set c to a - 2
-echo off
-exhibit a, c
-assert a == b && a != c && b != c
+Echo On
+Set c To a - 2
+Echo Off
+Exhibit a, c
+Assert a == b && a != c && b != c
 Print;
 
-echo on
-set c to a * b
-echo off
-exhibit a, b, c
-assert a == b && a != c && b != c
+Echo On
+Set c To a * b
+Echo Off
+Exhibit a, b, c
+Assert a == b && a != c && b != c
 Print;
 
-echo on
-set c to a / 2
-echo off
-exhibit a, c
-assert a == b && a != c && b != c
+Echo On
+Set c To a / 2
+Echo Off
+Exhibit a, c
+Assert a == b && a != c && b != c
 Print;
 
-echo on
-set c to a.floor_div(2)
-echo off
-exhibit a, c
-assert a == b && a != c && b != c
+Echo On
+Set c To a.FloorDiv(2)
+Echo Off
+Exhibit a, c
+Assert a == b && a != c && b != c
 Print;
 
-echo on
-set c to a.div_mod(2)
-echo off
-exhibit a, c
-assert a == b && a != c && b != c
+Echo On
+Set c To a.DivMod(2)
+Echo Off
+Exhibit a, c
+Assert a == b && a != c && b != c
 Print;
 
-echo on
-set c to a % 2
-echo off
-exhibit a, c
-assert a == b && a != c && b != c
+Echo On
+Set c To a % 2
+Echo Off
+Exhibit a, c
+Assert a == b && a != c && b != c
 Print;
 
-echo on
-set c to a ** 2
-echo off
-exhibit a, c
-assert a == b && a != c && b != c
+Echo On
+Set c To a ** 2
+Echo Off
+Exhibit a, c
+Assert a == b && a != c && b != c
 Print;
 
-echo on
-set c to a.sum()
-echo off
-exhibit a, c
-assert a == b && a != c && b != c
+Echo On
+Set c To a.Sum()
+Echo Off
+Exhibit a, c
+Assert a == b && a != c && b != c
 Print;
 
-echo on
-set b to a * 2 * math.random100.div(10)
-set c to [b.min(), b.mean(), b.max()]
-set d to b.variance()
-set e to b.pvariance()
-set f to b.stdev()
-echo off
-exhibit a, b, c, d, e, f
+Echo On
+Set b To a * 2 * math.random100.Div(10)
+Set c To [b.Min(), b.Mean(), b.Max()]
+Set d To b.Variance()
+Set e To b.PVariance()
+Set f To b.StDev()
+Echo Off
+Exhibit a, b, c, d, e, f
 Print;
