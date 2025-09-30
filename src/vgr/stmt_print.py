@@ -40,10 +40,8 @@ def execute_print(ctx: ExecContext, statement: Tree) -> None:
     """
 **Print values, similar to AWK's print statement**
 
-* Print [Output | Error | Markdown] ; _semicolon_ _is_ _required_
 * Print [Output | Error | Markdown] _expression_ [, _expression_]... [;]
 
-If no expressions are given, a new line is printed (see below).
 Default destination is `Output`. `Markdown` always goes to the current console.
 If the console is redirected to a file `Markdown` output written as text.
 
