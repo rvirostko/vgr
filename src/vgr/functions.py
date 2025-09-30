@@ -406,7 +406,6 @@ _BUILT_IN_FUNCS = {
     "Clone":          poly_clone,
     "CombineWith":    _combine_with,
     "CompilePattern": compile_pattern,
-    "Contains":       poly_contains_any,
     "ContainsAll":    poly_contains_all,
     "ContainsAny":    poly_contains_any,
     "CountOf":        poly_count,
@@ -435,7 +434,6 @@ _BUILT_IN_FUNCS = {
     "HexDecode":      poly_hex_decode,
     "HexEncode":      poly_hex_encode,
     "Id":             _id,
-    "In":             poly_in,
     "IndexOf":        poly_index,
     "Int":            poly_int,
     "IsAlpha":        poly_isalpha,
@@ -593,11 +591,6 @@ _FUNC_OPS = {}
 # It's also used to generate the big regex to identify function names
 _FUNC_INDEX = {}
 
-def _to_snake_case(s: str) -> str:
-    s = re.sub(r'(?<=[a-z0-9])([A-Z])', r'_\1', s)  # insert _ before A-Z if preceded by lowercase or digit
-    s = re.sub(r'(?<=[A-Z])([A-Z][a-z])', r'_\1', s)  # handle acronym boundary: XMLParser -> XML_Parser
-    return s.lower()
-
 @lru_cache
 def get_function_entries():
     return {
@@ -664,7 +657,6 @@ def add_function(extn_name: str, name: str, function: Callable) -> None:
         raise ValueError(f'Extension {extn_name!r} tried to redefine {name!r}')
     _FUNC_OPS[name] = function
     _FUNC_INDEX[lc] = name
-    _FUNC_INDEX[_to_snake_case(name)] = name
 
 # The max value of an arg range when we have variable arguments
 _IS_VARARGS = float('inf')
