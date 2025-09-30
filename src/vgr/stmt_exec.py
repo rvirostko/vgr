@@ -211,7 +211,7 @@ def execute_forever(ctx: ExecContext, statement: Tree) -> None:
 The statements are repeatedly executed until a `Break` statement is
 encountered. A `Continue` causes the statements to loop.
 
-See also `Break` and `Continue`
+Also see `Break` and `Continue`
 """
     ctx.dd.push_frame()
     try:
@@ -256,7 +256,7 @@ If it evaluates to _False_, the second block of statements—if provided—is ex
 If `Break` or `Continue` is encountered, statements
 following it are skipped. Execution resumes after the `End`.
 
-See also `Break` and `Continue`
+Also see `Break` and `Continue`
 """
     exec_if_else(ctx, statement, True)
 
@@ -275,7 +275,7 @@ If `Break` is encountered, looping ends regardless of the
 expression's value. If `Continue` is encountered, statements
 following it are skipped, and the expression is checked again.
 
-See also `Break` and `Continue`
+Also see `Break` and `Continue`
 """
     exec_if_else(ctx, statement, False)
 
@@ -332,7 +332,7 @@ If `Break` is encountered, looping ends regardless of the
 expression's value. If `Continue` is encountered, statements
 following it are skipped, and the expression is checked again.
 
-See also `Break` and `Continue`
+Also see `Break` and `Continue`
 """
     exec_loop(ctx, statement, True)
 
@@ -351,7 +351,7 @@ If `Break` is encountered, looping ends regardless of the
 expression's value. If `Continue` is encountered, statements
 following it are skipped, and the expression is checked again.
 
-See also `Break` and `Continue`
+Also see `Break` and `Continue`
 """
     exec_loop(ctx, statement, False)
 
@@ -393,7 +393,7 @@ If `Break` is encountered, iteration ends regardless of the
 number of items remaining. If `Continue` is encountered, statements
 following it are skipped, and the loop continues with the next item.
 
-See also `Break` and `Continue`
+Also see `Break` and `Continue`
 """
     ctx.echo_source(statement, statement.children[2])
     var_path = get_writable_var_path(ctx, statement.children[0])

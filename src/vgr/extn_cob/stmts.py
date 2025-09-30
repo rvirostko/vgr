@@ -81,7 +81,7 @@ def execute_exit(_: ExecContext, statement: Tree) -> None:
 
 Ends the program with an exit code of zero.
 
-See also `Exit`
+Also see `Exit`
 """
     raise VgrExitingException(VgrExitingException.EXIT_SUCCESS, statement)
 
@@ -183,7 +183,7 @@ def execute_compute(ctx: ExecContext, statement: Tree) -> None:
 
 * Compute _variable_ = _expression_ [;]
 
-See also `Set`
+Also see `Set`
 """
     execute_set(ctx, statement)
 
@@ -196,7 +196,7 @@ def execute_next_sentence(_: ExecContext, statement: Tree) -> None:
 
 Can be used with conditional and looping statements
 
-See also `Break`
+Also see `Break`
 """
     raise VgrStatementBreak(statement)
 
@@ -218,7 +218,7 @@ def execute_if(ctx: ExecContext, statement: Tree) -> None:
 If the expression evaluates to True the first block of statements is executed.
 If it evaluates to _False_, the second block of statements, if provided, is executed.
 
-See also `If-Then`, `Break` and `Continue`
+Also see `If-Then`, `Break`, and `Continue`
 """
     exec_if_else(ctx, statement, True)
 
@@ -394,6 +394,9 @@ def execute_exhibit(ctx: ExecContext, statement: Tree) -> None:
 * Exhibit ; _display_ _all,_ _semicolon_ _required_
 * Exhibit * [;] _display_ _all_
 * Exhibit _variable_ [, _variable_]... [;]
+
+`Exhibit` is not typically used in scripts, but is useful for debugging
+and for working in the REPL.
 
 The values are displayed on individual lines. If a variable has sub-values, each
 portion is displayed on its own line.

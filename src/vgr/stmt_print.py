@@ -75,55 +75,8 @@ The first expression is resolved to a string used to format the other values.
 
 Formatting syntax is that used in [Python's str.format()](https://docs.python.org/3/library/string.html#formatstrings)
 
-**Formatting Cheat Sheet**
+Also see `Format()`
 
-_*Basic usage*_
-```vgr
-Printf "Hello, {}", "world"     # "Hello, world"
-Printf "{0} + {0} = {1}", 2, 4) # "2 + 2 = 4"
-```
-
-_*Number formatting*_
-```vgr
-Printf "{:d}", 42       # "42" (decimal)
-Printf "{:b}", 42       # "101010" (binary)
-Printf "{:x}", 42       # "2a" (hex, lowercase)
-Printf "{:X}", 42       # "2A" (hex, uppercase)
-Printf "{:o}", 42       # "52" (octal)
-Printf "{:e}", 3.14     # "3.140000e+00" (scientific)
-Printf "{:.2f}", 3.1415 # "3.14" (fixed-point, 2 decimals)
-```
-
-_*Alignment & width*_
-```vgr
-Printf "{:<10}", "hi"   # "hi        " (left align)
-Printf "{:>10}", "hi"   # "        hi" (right align)
-Printf "{:^10}", "hi"   # "    hi    " (center)
-Printf "{:*^10}", "hi"  # "***hi*****" (custom fill)
-```
-
-_*Signs & numbers*_
-```vgr
-Printf "{:+d}", 42      # "+42"
-Printf "{:+d}", -42     # "-42"
-Printf "{: d}", 42      # " 42" (space for positive)
-Printf "{:,}", 1234567  # "1,234,567" (thousands sep)
-Printf "{:_}", 1234567  # "1_234_567" (underscore sep)
-```
-
-_*Accessing elements*_
-```vgr
-Set person To {"name": "Alice", "age": 25}
-Printf "{0[name]} is {0[age]}", person # "Alice is 25"
-Set p = {"x": 1, "y": 2}
-Printf "({0.x}, {0.y})", p  # "(1, 2)"
-```
-
-_*Reuse and nesting*_
-```vgr
-Printf "{0} {0!r} {0!s}", "hi" # "hi 'hi' hi" (raw vs str formatting)
-Printf "{0:.{1}f}", 3.14159, 2 # "3.14" (precision via argument)
-```
 """
     channel, args = _extract_args(statement)
     if args:

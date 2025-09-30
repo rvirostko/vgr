@@ -33,6 +33,9 @@ def poly_hash(x: Any) -> int:
 **Returns the internal hashcode for an object**
 
 * _value_.Hash()
+
+This can be used in debugging but is of limited values in scripts.
+
 """
     return hash(x)
 
@@ -43,7 +46,7 @@ def poly_clone(x: Any) -> Any:
 * _value_.Clone()
 
 Only lists and dictionaries are cloned, as other
-data types do not mutable in the same sense as these
+data types are not mutable in the same sense as
 collections. This operation clones the container: if the
 values within it are complex objects, their values will
 still be shared.
@@ -54,14 +57,14 @@ _*Simple types return the same object*_
 ```vgr
 Set x = 5
 Print x.Id(), x.Clone().Id()
-4335020464 4335020464
+4335020464 4335020464 // same object
 ```
 
 _*Cloning a complex object*_
 ```vgr
 Set y = [1,2,3]
 Print y.Id(), y.Clone().Id()
-4808334400 4807906688
+4808334400 4807906688 // different objects
 ```
 
 _*Container is cloned, but complex objects are shared*_
@@ -69,9 +72,9 @@ _*Container is cloned, but complex objects are shared*_
 Set z = [ {"a" : 1} ]
 Set z′ = z.Clone()
 Print z.Id(), z′.Id()
-4810281856 4708798208
+4810281856 4708798208 // different lists
 Print z.FirstItem().Id(), z′.FirstItem().Id()
-4502192256 4502192256
+4502192256 4502192256 // same contents
 ```
 """
     if isinstance(x, (list, dict)): return copy(x)
@@ -81,7 +84,7 @@ def poly_repr(x: Any) -> str:
     """
 **Returns a string representation of an item
 
-Differs slightly from ToStr() as it quotes string values.
+Differs slightly from `ToStr()` as it surrounds string values with single quotes.
 See the Python [repr() function][https://docs.python.org/3/library/functions.html#repr]
 
 Also see `Ascii()`

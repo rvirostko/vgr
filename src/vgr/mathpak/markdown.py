@@ -32,6 +32,10 @@ def md_bold(text: Any) -> Any:
 **Format the text in Markdown as bold**
 
 * _value_.MdBold()
+
+```vgr
+**TODO**
+```
 """
     if isinstance(text, (list, type)): return type(text)(md_bold(item) for item in text)
     return _fmt(_to_str(text), _MD_BOLD)
@@ -41,6 +45,10 @@ def md_italics(text: Any) -> Any:
 **Format the text in Markdown as italics**
 
 * _value_.MdItalics()
+
+```vgr
+**TODO**
+```
 """
     if isinstance(text, (list, type)): return type(text)(md_italics(item) for item in text)
     return _fmt(_to_str(text), _MD_ITALICS)
@@ -59,6 +67,10 @@ def md_code(text: Any) -> Any:
 **Format the text in Markdown as code**
 
 * _value_.MdCode()
+
+```vgr
+**TODO**
+```
 """
     if isinstance(text, (list, type)): return type(text)(md_code(item) for item in text)
     return _fmt(_to_str(text), _MD_CODE)
@@ -68,6 +80,10 @@ def md_link(text: Any, url: Any) -> Any:
 **Format the text in Markdown as a link**
 
 * _value_.MdLink(_url_)
+
+```vgr
+**TODO**
+```
 """
     if isinstance(text, (list, tuple)) and isinstance(url, (list, tuple)):
         return _meld(md_link, text, url)
@@ -81,6 +97,10 @@ def md_heading(text: Any, level: int=1) -> Any:
 
 * _value_.MdHeading() _level_ _1_
 * _value_.MdHeading(_level_) _range_ _1_ _to_ _6_
+
+```vgr
+**TODO**
+```
 """
     level = poly_int(level)
     # NB: Markdown only goes to 6, not 11
@@ -96,6 +116,10 @@ def md_blockquote(text: Any) -> Any:
 * _value_.MdBlockQuote()
 
 If _value_ is a list, each element in it is formatted as part of the block.
+
+```vgr
+**TODO**
+```
 """
     if isinstance(text, (list, tuple)):
         if not text: return _BLANK
@@ -110,6 +134,10 @@ def md_unordered_list(text: Any) -> Any:
 * _value_.MdUnorderedList()
 
 If _value_ is a list, each element in it is formated as a list item.
+
+```vgr
+**TODO**
+```
 """
     if isinstance(text, (list, tuple)):
         if not text: return _BLANK
@@ -124,6 +152,10 @@ def md_ordered_list(text: Any) -> Any:
 * _value_.MdOrderedList()
 
 If _value_ is a list, each element in it is formated as a list item.
+
+```vgr
+**TODO**
+```
 """
     if isinstance(text, (list, tuple)):
         if not text: return _BLANK
@@ -140,12 +172,17 @@ def md_code_block(text: Any, lang: str=None) -> Any:
 **Format the text in Markdown as a code block**
 
 * _value_.MdCodeBlock()
+* _value_.MdCodeBlock(_language_)
 
 If _value_ is a list, each element in it is formatted as part of the block.
+
+```vgr
+**TODO**
+```
 """
     lang = _to_str(lang)
     if isinstance(text, (list, tuple)):
         if not text: return _BLANK
-        return md_code_block("\n".join(item for item in text if item is not None))
+        return md_code_block("\n".join(item for item in text if item is not None), lang)
     text = _to_str(text)
     return _BLANK if len(text) == 0 else f"{_MD_CODE_BLOCK}{lang}\n{text}\n{_MD_CODE_BLOCK}\n"

@@ -64,7 +64,7 @@ The optional expressions following the colon compose a a string message printed 
 is not true. It is composed in the same manner as `Printf`, with the first one being a string containing
 formatting syntax as used in [Python's str.format()](https://docs.python.org/3/library/string.html#formatstrings)
 
-See `Printf` for more formatting information.
+See `Format()` for more formatting information.
 
 If no message is given the the failing expression is used as the message
 

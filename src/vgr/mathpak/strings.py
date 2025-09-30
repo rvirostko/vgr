@@ -50,11 +50,11 @@ def poly_strlen(x: Any) -> Any:
 
 If _value_ is of any type except string, _None_ is returned.
 
-`"foo".StrLen()` → `3`
-
-`7.StrLen()` → `None`
-
-`["cat", "kitten"].StrLen()` -> `[3, 6]`
+```vgr
+"foo".StrLen() → 3
+7.StrLen() → None
+["cat", "kitten"].StrLen() → [3, 6]
+```
 
 Also see `Len()`
 """
@@ -62,43 +62,118 @@ Also see `Len()`
 
 def poly_strrev(x: Any) -> Any:
     """
-**TODO**
+**Returns the characters of the string in reverse order**
+
+* _value_.StrRev()
+
+```vgr
+None.StrRev() → None
+123.StrRev() → 123
+"abc".StrRev() → cba
+["abc", "xyz"].StrRev() → ["cba", "zyx"]
+```
 """
-    return _exec_str_op(x, 'StringRev', poly_strrev, lambda s: s[::-1])
+    return _exec_str_op(x, 'StrRev', poly_strrev, lambda s: s[::-1])
 
 def poly_capitalize(x: Any) -> Any:
     """
-**TODO**
+**Return the capitalized version of a string**
+
+* _value_.Capitalize()
+
+```vgr
+None.Capitalize() → None
+"abc".Capitalize() → "Abc"
+"the title".Capitalize() → "The title"
+"the TITLE".Capitalize() → "The title"
+["abc", "xyz"].Capitalize() → ["Abc", "Xyz"]
+123.Capitalize() → 123
+```
 """
     return _exec_str_op(x, 'Capitalize', poly_capitalize, str.capitalize)
 
 def poly_casefold(x: Any) -> Any:
     """
-**TODO**
+**Return a caseless version of a string**
+
+* _value_.Casefold()
+
+```vgr
+None.Casefold() → None
+"aBc".Casefold() → "abc"
+"The Title".Casefold() → "the title"
+"the TITLE".Casefold() → "the title"
+["Abc", "Xyz"].Casefold() → ["abc", "xyz"]
+123.Casefold() → 123
+```
 """
     return _exec_str_op(x, 'Casefold', poly_casefold, str.casefold)
 
 def poly_lower(x: Any) -> Any:
     """
-**TODO**
+**Return a lowercase version of a string**
+
+* _value_.Lower()
+
+```vgr
+None.Lower() → None
+"aBc".Lower() → "abc"
+"The Title".Lower() → "the title"
+"the TITLE".Lower() → "the title"
+["Abc", "Xyz"].Lower() → ["abc", "xyz"]
+123.Lower() → 123
+```
 """
     return _exec_str_op(x, 'Lower', poly_lower, str.lower)
 
 def poly_swapcase(x: Any) -> Any:
     """
-**TODO**
+**Return a string with upper and lower case characters swapped**
+
+* _value_.SwapCase()
+
+```vgr
+None.SwapCase() → None
+"aBc".SwapCase() → "AbC"
+"The Title".SwapCase() → "tHE tITLE"
+"the TITLE".SwapCase() → "THE title"
+["Abc", "Xyz"].SwapCase() → ["aBC", "xYZ"]
+123.SwapCase() → 123
+```
 """
     return _exec_str_op(x, 'SwapCase', poly_swapcase, str.swapcase)
 
 def poly_title(x: Any) -> Any:
     """
-**TODO**
+**Title-case words in a string**
+
+* _value_.TitleCase()
+
+```vgr
+None.TitleCase() → None
+"aBc".TitleCase() → "Abc"
+"The title".TitleCase() → "The Title"
+"the TITLE".TitleCase() → "The Title"
+["Abc", "Xyz"].TitleCase() → ["Abc", "Xyz"]
+123.TitleCase() → 123
+```
 """
-    return _exec_str_op(x, 'Title', poly_title, str.title)
+    return _exec_str_op(x, 'TitleCase', poly_title, str.title)
 
 def poly_upper(x: Any) -> Any:
     """
-**TODO**
+**Return an upper case version of a string**
+
+* _value_.Upper()
+
+```vgr
+None.Upper() → None
+"aBc".Upper() → "ABC"
+"The title".Upper() → "THE TITLE"
+"the TITLE".Upper() → "THE TITLE"
+["Abc", "Xyz"].Upper() → ["ABC", "XYZ"]
+123.Upper() → 123
+```
 """
     return _exec_str_op(x, 'Upper', poly_upper, str.upper)
 
@@ -127,15 +202,14 @@ def poly_isalnum(x: Any) -> Any:
 
 A string is alpha-numeric if all characters in the string are
 alpha-numeric and there is at least one character in the string.
-This is equivalent to *IsAlpha()* or-ed with *IsDigit()* on a
+This is equivalent to `IsAlpha()` or-ed with `IsDigit()` on a
 character-by-character basis.
 
-`"FooBar".IsAlphaNumeric()` → `True`
-
-`"Foo123".IsAlphaNumeric()` → `True`
-
-`"Foo 123".IsAlphaNumeric()` → `False`
-
+```vgr
+"FooBar".IsAlphaNumeric() → True
+"Foo123".IsAlphaNumeric() → True
+"Foo 123".IsAlphaNumeric() → False
+```
 Also see `IsAlpha()` and `IsNumeric()`
 """
     return _exec_bool_op(x, 'IsAlphaNnumeric', poly_isalnum, str.isalnum)
@@ -149,11 +223,11 @@ def poly_isalpha(x: Any) -> Any:
 A string is alphabetic if all characters in the string
 are alphabetic and there is at least one character in the string.
 
-`"FooBar".IsAlpha()` → `True`
-
-`"Foo Bar".IsAlpha()` → `False`
-
-`["Hello", "Gruezi", "Olá"].IsAlpha()` → `[True, True, True]`
+```vgr
+"FooBar".IsAlpha() → True
+"Foo Bar".IsAlpha() → False
+["Hello", "Gruezi", "Olá"].IsAlpha() → [True, True, True]
+```
 """
     return _exec_bool_op(x, 'IsAlpha', poly_isalpha, str.isalpha)
 
@@ -166,13 +240,12 @@ def poly_isascii(x: Any) -> Any:
 ASCII characters are those in the range U+0000 to U+007F.
 Additionally, an empty string considers ASCII.
 
-`"Foo\nBar".IsAscii()` → `True`
-
-`"".IsAscii()` → `True`
-
-`None.IsAscii()` → `False`
-
-`["Hello", "Gruezi", "Olá"].IsAscii()` → `[True, True, False]`
+```vgr
+"Foo\nBar".IsAscii() → True
+"".IsAscii() → True
+None.IsAscii() → False
+["Hello", "Gruezi", "Olá"].IsAscii() → [True, True, False]
+```
 
 Also see `IsPrintable()`
 """
@@ -191,11 +264,11 @@ from the _Nd_ (Decimal Number) category.
 
 This is the most restrictive of the number related tests.
 
-`"123".IsDecimal()` → `True`
-
-`"1 2 3".IsDecimal()` → `False`
-
-`["", None].IsDecimal()` → `[False, False]`
+```vgr
+"123".IsDecimal() → True
+"1 2 3".IsDecimal() → False
+["", None].IsDecimal() → [False, False]
+```
 
 Also see `IsDigit()` and `IsNumeric()`
 """
@@ -212,14 +285,13 @@ are digits and there is at least one character in the string.
 Digit characters include non-ASCII digits, but not special
 characters such as circled numbers.
 
-`"123".IsDigit()` → `True`
-
-`"1 2 3".IsDigit()` → `False`
-
-`["", None].IsDigit()` → `[False, False]`
+```vgr
+"123".IsDigit() → True
+"1 2 3".IsDigit() → False
+["", None].IsDigit() → [False, False]
+```
 
 Also see `IsDecimal()` and `IsNumeric()`
-
 """
     return _exec_bool_op(x, 'IsDigit', poly_isdigit, str.isdigit)
 
@@ -232,13 +304,12 @@ def poly_islower(x: Any) -> Any:
 A string is lowercase if all cased characters in the string
 are lowercase and there is at least one cased character in the string.
 
-`"foo-bar".IsLower()` → `True`
-
-`"Foo-Bar".IsLower()` → `False`
-
-`["3.1415", ""].IsLower()` → `[False, False]`
+```vgr
+"foo-bar".IsLower() → True
+"Foo-Bar".IsLower() → False
+["3.1415", ""].IsLower() → [False, False]
+```
 """
-    "".islower()
     return _exec_bool_op(x, 'IsLower', poly_islower, str.islower)
 
 def poly_isnumeric(x: Any) -> Any:
@@ -254,11 +325,11 @@ Roman numerals and super/subscripted numbers.
 
 This is the most permissive of the number related tests.
 
-`"17".IsNumeric()` → `True`
-
-`"17.2".IsNumeric()` → `False`
-
-`["", None].IsNumeric()` → `[False, False]`
+```vgr
+"17".IsNumeric() → True
+"17.2".IsNumeric() → False
+["", None].IsNumeric() → [False, False]
+```
 
 Also see `IsDecimal()` and `IsDigit()`
 """
@@ -274,11 +345,11 @@ A string is printable if all of its characters are considered printable
 –generally characters which are not control characters or undefined–
 or if it is empty.
 
-`"foo bar".IsPrintable()` → `True`
-
-`"foo\nbar".IsPrintable()` → `False`
+```vgr
+"foo bar".IsPrintable() → True
+"foo\nbar".IsPrintable() → False
+```
 """
-    "".isprintable()
     return _exec_bool_op(x, 'IsPrintable', poly_isprintable, str.isprintable)
 
 def poly_isspace(x: Any) -> Any:
@@ -290,11 +361,11 @@ def poly_isspace(x: Any) -> Any:
 A string is whitespace if all characters in the string are whitespace
 and there is at least one character in the string.
 
-`"".IsSpace()` → `False`
-
-`"Foo".IsSpace()` → `False`
-
-`["\\t\\n ", None].IsSpace()` → `[True, False]`
+```vgr
+"".IsSpace() → False
+"Foo".IsSpace() → False
+["\\t\\n ", None].IsSpace() → [True, False]
+```
 """
     return _exec_bool_op(x, 'IsSpace', poly_isspace, str.isspace)
 
@@ -307,11 +378,11 @@ def poly_istitle(x: Any) -> Any:
 In a title-cased string, upper- and title-case characters may only
 follow uncased characters and lowercase characters only cased ones.
 
-`"Foo".IsTitle()` → `True`
-
-`"foo".IsTitle()` → `False`
-
-`["aA","Bb"].IsTitle()` → `[False, True]`
+```vgr
+"Foo".IsTitle() → True
+"foo".IsTitle() → False
+["aA","Bb"].IsTitle() → [False, True]
+```
 """
     return _exec_bool_op(x, 'IsTitle', poly_istitle, str.istitle)
 
@@ -324,11 +395,11 @@ def poly_isupper(x: Any) -> Any:
 A string is uppercase if all cased characters in the string are uppercase
 and there is at least one cased character in the string.
 
-`"foo".IsUpper()` → `False`
-
-`"FOO".IsUpper()` → `True`
-
-`["FOO-BAR", "Foo Bar"].IsUpper()` → `[True, False]`
+```vgr
+"foo".IsUpper() → False
+"FOO".IsUpper() → True
+["FOO-BAR", "Foo Bar"].IsUpper() → [True, False]
+```
 """
     return _exec_bool_op(x, 'IsUpper', poly_isupper, str.isupper)
 
@@ -371,7 +442,25 @@ def _exec_str_str_op(x: Any, y: Any, name: str, op: Callable[[Any, Any], Any], s
 
 def poly_strip(x: Any, *args) -> Any:
     """
-**TODO**
+**Remove leading and trailing characters from a string**
+
+* _value_.Strip()
+* _value_.Strip(_expression_...)
+
+Without an argument, whitespace is removed. When arguments are provided
+they specify the characters to be removed. Note that the removal is
+performed in the order provided.
+
+```vgr
+None.Strip() → None
+" aBc ".Strip() → "aBc"
+"The title".Strip("Tt") → "he title"
+"the TITLE".Strip("aeiou", "AEIOU") → "the TITL"
+["Abc", "Xyz"].Strip(string.ascii_uppercase) → ["bc", "yz"]
+123.Strip() → 123
+```
+
+Also see `LeftStrip()` and `RightStrip()`
 """
     def _strip(x: Any, chars: Any=None) -> Any:
         return _exec_str_str_op(x, chars, 'Strip', _strip, str.strip)
@@ -380,7 +469,21 @@ def poly_strip(x: Any, *args) -> Any:
 
 def poly_lstrip(x: Any, *args) -> Any:
     """
-**TODO**
+**Remove leading characters from a string**
+
+* _value_.LeftStrip()
+* _value_.LeftStrip(_expression_...)
+
+```vgr
+None.LeftStrip() → None
+" aBc ".LeftStrip() → "aBc "
+"The title".LeftStrip("Tt") → "he title"
+"the TITLE".LeftStrip("aeiou", "AEIOU") → "the TITLE"
+["Abc", "Xyz"].LeftStrip(string.ascii_uppercase) → ["bc", "yz"]
+123.LeftStrip() → 123
+```
+
+Also see `Strip()` and `RightStrip()`
 """
     def _lstrip(x: Any, chars: Any=None) -> Any:
         return _exec_str_str_op(x, chars, 'LeftStrip', _lstrip, str.lstrip)
@@ -389,7 +492,21 @@ def poly_lstrip(x: Any, *args) -> Any:
 
 def poly_rstrip(x: Any, *args) -> Any:
     """
-**TODO**
+**Remove trailing characters from a string**
+
+* _value_.RightStrip()
+* _value_.RightStrip(_expression_...)
+
+```vgr
+None.RightStrip() → None
+" aBc ".RightStrip() → " aBc"
+"The title".RightStrip("Tt") → "The title"
+"the TITLE".RightStrip("aeiou", "AEIOU") → "the TITL"
+["Abc", "Xyz"].RightStrip(string.ascii_uppercase) → ["Abc", "Xyz"]
+123.RightStrip() → 123
+```
+
+Also see `Strip()` and `LeftStrip()`
 """
     def _rstrip(x: Any, chars: Any=None) -> Any:
         return _exec_str_str_op(x, chars, 'RightStrip', _rstrip, str.rstrip)
@@ -398,19 +515,59 @@ def poly_rstrip(x: Any, *args) -> Any:
 
 def poly_removeprefix(x: Any, *args) -> Any:
     """
-**TODO**
+**Remove a prefix from a string if present**
+
+* _value_.RemovePrefix()
+* _value_.RemovePrefix(_prefix_...)
+
+```vgr
+None.RemovePrefix() → None
+"http://example.com".RemovePrefix() → "http://example.com"
+"http://example.com".RemovePrefix("http://") → "example.com"
+"http://example.com".RemovePrefix("http://", "https://") → "example.com"
+"http://example.com".RemovePrefix(["http://", "https://"]) → "example.com"
+["a/file.txt","b/file.txt"].RemovePrefix("a/", "b/") → ["file.txt", "file.txt"]
+1234.RemovePrefix(12) → "34"
+```
+
+Also see `RemoveSuffix()`
 """
     def _removeprefix(x: Any, prefix: Any) -> Any:
-        return x if prefix is None else _exec_str_str_op(x, prefix, 'RemovePrefix', _removeprefix, str.removeprefix)
-    return x if not args or isinstance(x, (NoneType, bool, int, float)) else reduce(_removeprefix, args, x)
+        if prefix is None: return x
+        if isinstance(prefix, (bool, int, float)): prefix = str(prefix)
+        return _exec_str_str_op(x, prefix, 'RemovePrefix', _removeprefix, str.removeprefix)
+    if x is None: return None
+    if not args: return x
+    if isinstance(x, (bool, int, float)): x = str(x)
+    return reduce(_removeprefix, args, x)
 
 def poly_removesuffix(x: Any, *args) -> Any:
     """
-**TODO**
+**Remvoe a suffix from a string if present**
+
+* _value_.RemoveSuffix()
+* _value_.RemoveSuffix(_prefix_...)
+
+```vgr
+None.RemoveSuffix() → None
+"http://example.com".RemoveSuffix() → "http://example.com"
+"http://example.com".RemoveSuffix(".com") → "http://example"
+"http://example.com".RemoveSuffix(".net", ".com") → "http://example"
+"http://example.com".RemoveSuffix([".net", ".com"]) → "http://example"
+["file.txt","file.md"].RemoveSuffix(".md", ".txt") → ["file", "file"]
+1234.RemoveSuffix(34) → "12"
+```
+
+Also see `RemovePrefix()`
 """
     def _removesuffix(x: Any, suffix: Any) -> Any:
-        return x if suffix is None else _exec_str_str_op(x, suffix, 'RemoveSuffix', _removesuffix, str.removesuffix)
-    return x if not args or isinstance(x, (NoneType, bool, int, float)) else reduce(_removesuffix, args, x)
+        if suffix is None: return x
+        if isinstance(suffix, (bool, int, float)): suffix = str(suffix)
+        return _exec_str_str_op(x, suffix, 'RemoveSuffix', _removesuffix, str.removesuffix)
+    if x is None: return None
+    if not args: return x
+    if isinstance(x, (bool, int, float)): x = str(x)
+    return reduce(_removesuffix, args, x)
 
 #---------------------------------------------
 
@@ -442,11 +599,11 @@ If _value_ is a list, the operation is distributed over the values in the list.
 If _value_ is a dictionary, the operation is distributed over all keys that are strings.
 If _value_ is neither a list, dictionary, or string, _False_ is returned.
 
-`"foo".StartsWith("f")` → `True`
-
-`["foo", "bar", "cat", 7].StartsWith("a", ["b", "c"])` → `[False, True, True, False]`
-
-`{"one": "a", "two": "d", "three": 3}.StartsWith("a", "b", "c")` → `{"one": True, "two": False}`
+```vgr
+"foo".StartsWith("f") → True
+["foo", "bar", "cat", 7].StartsWith("a", ["b", "c"]) → [False, True, True, False]
+{"one": "a", "two": "d", "three": 3}.StartsWith("a", "b", "c") → {"one": True, "two": False}
+```
 
 Also see `EndsWith()`
 """
@@ -466,7 +623,12 @@ If _value_ is a list, the operation is distributed over the values in the list.
 If _value_ is a dictionary, the operation is distributed over all keys that are strings.
 If _value_ is neither a list, dictionary, or string, _False_ is returned.
 
-`"foo".EndsWith("oo")` → `True`
+```vgr
+"foo".EndsWith("oo") → True
+"foo".EndsWith("a", "e", "i", "o", "u") → True
+["foo", "bar"].EndsWith("o") → [True, False]
+"foo".EndsWith(["a", "e"], ["i", "o", "u"]) → True
+```
 
 Also see `StartsWith()`
 """
@@ -487,29 +649,92 @@ def exec_str_int_op(x: Any, y: Any, name: str, op: Callable[[Any, Any], Any], st
     if isinstance(x, (NoneType, bool, int, float)): return x
     return _exec_x_y_op(x, y, name, op, string_op, _string_int_ops)
 
-def poly_expandtabs(x: Any, tabsize: Any=None) -> Any:
+def poly_expandtabs(x: Any, tabsize: Any=8) -> Any:
     """
-**TODO**
-"""
-    return exec_str_int_op(x, min(max(1, int_arg(tabsize, 'Tabsize')), 16), "ExpandTabs", poly_expandtabs, str.expandtabs)
+**Converts tabs in a string into spaces**
 
-def poly_leftstr(x: Any, length: Any) -> Any:
-    """
-**TODO**
-"""
-    return exec_str_int_op(x, max(0, int_arg(length, 'Length')), "LeftStr", poly_leftstr, lambda x, length: x[:length])
+* _value_.ExpandTabs()
+* _value_.ExpandTabs(_tabsize_)
 
-def poly_rightstr(x: Any, length: Any) -> Any:
+Tabsize defaults to 8 and is limited from 0 to 64.
+
+```vgr
+None.ExpandTabs() → None
+"\\taBc\\t".ExpandTabs() → "        aBc     "
+"\\taBc\\t".ExpandTabs(2) → "  aBc "
+["A\\tbc", "X\\tyz"].ExpandTabs(0) → ["Abc", "Xyz"]
+123.ExpandTabs() → 123
+```
+"""
+    return exec_str_int_op(x, min(max(0, int_arg(tabsize, 'Tabsize')), 64), "ExpandTabs", poly_expandtabs, str.expandtabs)
+
+def poly_leftstr(x: Any, length: Any=1) -> Any:
     """
-**TODO**
+**Returns the leftmost characters of a string**
+
+* _value_.LeftStr()
+* _value_.LeftStr(_length_)
+
+Without a length argument a single character is returned.
+
+```vgr
+None.LeftStr() → None
+"aBc".LeftStr() → "a"
+"aBc".LeftStr(2) → "aB"
+"The title".LeftStr(3) → "The"
+["Abc", "Xyz"].LeftStr(2) → ["Ab", "Xy"]
+123.LeftStr(2) → 123
+```
+
+Also see `RightStr()` and `SubStr()`
+"""
+    return exec_str_int_op(x, max(1, int_arg(length, 'Length')), "LeftStr", poly_leftstr, lambda x, length: x[:length])
+
+def poly_rightstr(x: Any, length: Any=1) -> Any:
+    """
+**Retunrs the rightmost characters of a string**
+
+* _value_.RightStr()
+* _value_.RightStr(_length_)
+
+Without a length argument a single character is returned.
+
+```vgr
+None.RightStr() → None
+"aBc".RightStr() → "c"
+"aBc".RightStr(2) → "Bc"
+"The title".RightStr(5) → "title"
+["Abc", "Xyz"].RightStr(2) → ["bc", "yz"]
+123.RightStr(2) → 123
+```
+
+Also see `LeftStr()` and `SubStr()`
 """
     return exec_str_int_op(x, max(0, int_arg(length, 'Length')), "RightStr", poly_rightstr, lambda x, length: x[-length:])
 
 #---------------------------------------------
 
-def poly_substr(x: Any, start: Any, length: Any=1) -> Any:
+def poly_substr(x: Any, start: Any=0, length: Any=1) -> Any:
     """
-**TODO**
+**Return a portion of a string**
+
+* _value.SubStr()
+* _value.SubStr(_start_)
+* _value.SubStr(_start_, _length_)
+
+If not provided, _start_ defaults to zero and _length_ to one.
+The _start_ index is zero based.
+
+```vgr
+None.SubStr() → None
+"aBc".SubStr() → "a"
+"aBc".SubStr(1, 2) → "Bc"
+"The title".SubStr(4, 5) → "title"
+["Abc", "Xyz"].SubStr(1) → ["b", "y"]
+123.SubStr(2, 1) → 123
+```
+
+Also see `LeftStr()` and `RightStr()`
 """
     # For these types, the operation is idempotent
     if isinstance(x, (NoneType, bool, int, float)): return x
@@ -529,47 +754,118 @@ _string_loc_ops = {
 
 def poly_count(x: Any, sub: Any=None) -> Any:
     """
-**TODO**
+**Return the count of non-overlapping occurrences of one string in another**
+
+* _value_.CountOf(_substr_)
+
+```vgr
+None.CountOf("a") → None
+"aaaBc".CountOf("") → 6
+"aaaBc".CountOf("a") → 3
+"aaaBc".CountOf("aa") → 1
+["A.b.c", "X.y.z"].CountOf(".") → [2, 2]
+123.CountOf("1") → 123
+```
 """
-    # For these types, the operation is indeterminant
-    if isinstance(x, (NoneType, bool, int, float)): return None
-    return _exec_x_y_op(x, str_arg(sub, 'Sub'), 'Count', poly_count, str.count, _string_loc_ops)
+    if isinstance(x, (NoneType, bool, int, float)): return x
+    return _exec_x_y_op(x, str_arg(sub, 'Substr', False) or '', 'CountOf', poly_count, str.count, _string_loc_ops)
 
 def poly_index(x: Any, sub: Any=None) -> Any:
     """
-**TODO**
+**Returns the _lowest_ index of one string in another**
+
+* _value_.IndexOf(_substr_)
+
+The returned index is zero based.
+
+If _substr_ cannot be found, an error is raised: use `FindStr()`
+as an alternative that returns -1 on an error.
+
+```vgr
+None.IndexOf("a") → None
+"aaaBc".IndexOf("") → 0
+"aaaBc".IndexOf("z") → Substring not found
+"aaaBc".IndexOf("aB") → 2
+["Abc.", ".Xyz"].IndexOf(".") → [3, 0]
+123.IndexOf("1") → 123
+```
+
+Also see `RIndexOf()` and `FindStr()`
 """
-    # For these types, the operation is indeterminant
-    if isinstance(x, (NoneType, bool, int, float)): return None
-    sub = str_arg(sub, 'Sub')
-    return _exec_x_y_op(x, sub, 'Index', poly_index, str.index, _string_loc_ops)
+    if isinstance(x, (NoneType, bool, int, float)): return x
+    return _exec_x_y_op(x, str_arg(sub, 'Substr', False) or '', 'IndexOf', poly_index, str.index, _string_loc_ops)
 
 def poly_rindex(x: Any, sub: Any=None) -> Any:
     """
-**TODO**
+**Returns the _highest_ index of one string in another**
+
+* _value_.RIndexOf(_substr_)
+
+The returned index is zero based.
+
+If _substr_ cannot be found, an error is raised: use `RFindStr()`
+as an alternative that returns -1 on an error.
+
+```vgr
+None.RIndexOf("a") → None
+"aaaBc".RIndexOf("") → 5
+"aaaBc".RIndexOf("z") → Substring not found
+"aaaBc".RIndexOf("a") → 2
+["A.b.c", "X.y.z"].RIndexOf(".") → [3, 3]
+123.RIndexOf("1") → 123
+```
+
+Also see `IndexOf()` and `RFindStr()`
 """
-    # For these types, the operation is indeterminant
-    if isinstance(x, (NoneType, bool, int, float)): return None
-    sub = str_arg(sub, 'Sub')
-    return _exec_x_y_op(x, sub, 'RIndex', poly_rindex, str.rindex, _string_loc_ops)
+    if isinstance(x, (NoneType, bool, int, float)): return x
+    return _exec_x_y_op(x, str_arg(sub, 'Substr', False) or '', 'RIndexOf', poly_rindex, str.rindex, _string_loc_ops)
 
 def poly_find(x: Any, sub: Any=None) -> Any:
     """
-**TODO**
+**Returns the _lowest_ index of one string in another**
+
+* _value_.FindStr(_substr_)
+
+The returned index is zero based.
+
+If _substr_ cannot be found, -1 is returned.
+
+```vgr
+None.FindStr("a") → None
+"aaaBc".FindStr("") → 0
+"aaaBc".FindStr("z") → -1
+"aaaBc".FindStr("a") → 0
+["A.b.c", "X.y.z"].FindStr(".") → [1, 1]
+123.FindStr("1") → 123
+```
+
+Also see `RFindStr()` and `IndexOf()`
 """
-    # For these types, the operation is indeterminant
-    if isinstance(x, (NoneType, bool, int, float)): return None
-    sub = str_arg(sub, 'Sub')
-    return _exec_x_y_op(x, sub, 'Find', poly_find, str.find, _string_loc_ops)
+    if isinstance(x, (NoneType, bool, int, float)): return x
+    return _exec_x_y_op(x, str_arg(sub, 'Substr', False) or '', 'FindStr', poly_find, str.find, _string_loc_ops)
 
 def poly_rfind(x: Any, sub: Any=None) -> Any:
     """
-**TODO**
+**Returns the _highest_ index of one string in another**
+
+* _value_.RFindStr(_substr_)
+
+The returned index is zero based.
+
+If _substr_ cannot be found, -1 is returned.
+
+```vgr
+None.RFindStr("a") → None
+"aaaBc".RFindStr("") → 5
+"aaaBc".RFindStr("z") → -1
+"aaaBc".RFindStr("a") → 2
+["A.b.c", "X.y.z"].RFindStr(".") → [3, 3]
+123.RFindStr("1") → 123
+```
+Also see `FindStr()` and `RIndexOf()`
 """
-    # For these types, the operation is indeterminant
-    if isinstance(x, (NoneType, bool, int, float)): return None
-    sub = str_arg(sub, 'Sub')
-    return _exec_x_y_op(x, sub, 'RFind', poly_rfind, str.rfind, _string_loc_ops)
+    if isinstance(x, (NoneType, bool, int, float)): return x
+    return _exec_x_y_op(x, str_arg(sub, 'Substr', False) or '', 'RFindStr', poly_rfind, str.rfind, _string_loc_ops)
 
 #---------------------------------------------
 
@@ -581,7 +877,7 @@ def _layout_opt(x: Any, width: int, fillchar: str, op, str_op) -> Any:
     if isinstance(x, (bool, int, float, dict)): x = poly_str(x)
     return str_op(x, width, fillchar)
 
-def poly_center(x: Any, width: int, fillchar: str=' ') -> Any:
+def poly_center(x: Any, width: int=0, fillchar: str=' ') -> Any:
     """
 **Create a centered string of the given width**
 
@@ -593,11 +889,22 @@ The _width_ argument is interpreted as a numeric value. If _None_, zero is assum
 The _pad_ argument, if provided, is interpreted as a string value. Only the first character is used.
 If not provided, the default is a space.
 
-Also see `JustifyLeft()` and `JustifyRight()`
+```vgr
+None.Center(3) → "   "
+"aaaBc".Center(3) → "aaaBc"
+"aaaBc".Center(7) → " aaaBc "
+"aaaBc".Center(8) → " aaaBc  "
+"aaaBc".Center(7, "-") → "-aaaBc-"
+"aaaBc".Center(9, "-=") → "--aaaBc--"
+["A.b.c", "X.y.z"].Center(7, ".") → [".A.b.c.", ".X.y.z."]
+123.Center(5, "0") → "01230"
+```
+
+Also see `LeftJustify()` and `RightJustify()`
 """
     return _layout_opt(x, width, fillchar, poly_center, str.center)
 
-def poly_ljust(x: Any, width: int, fillchar: str=' ') -> Any:
+def poly_ljust(x: Any, width: int=0, fillchar: str=' ') -> Any:
     """
 **Create a string of the given width with contents left aligned**
 
@@ -609,11 +916,22 @@ The _width_ argument is interpreted as a numeric value. If _None_, zero is assum
 The _pad_ argument, if provided, is interpreted as a string value. Only the first character is used.
 If not provided, the default is a space.
 
-Also see `Center()` and `JustifyRight()`
+```vgr
+None.LeftJustify(3) → "   "
+"aaaBc".LeftJustify(3) → "aaaBc"
+"aaaBc".LeftJustify(7) → "aaaBc  "
+"aaaBc".LeftJustify(8) → "aaaBc   "
+"aaaBc".LeftJustify(7, "-") → "aaaBc--"
+"aaaBc".LeftJustify(9, "-=") → "aaaBc----"
+["A.b.c", "X.y.z"].LeftJustify(7, ".") → ["A.b.c..", "X.y.z.."]
+123.LeftJustify(5, "0") → "12300"
+```
+
+Also see `Center()` and `RightJustify()`
 """
     return _layout_opt(x, width, fillchar, poly_ljust, str.ljust)
 
-def poly_rjust(x: Any, width: int, fillchar: str=' ') -> Any:
+def poly_rjust(x: Any, width: int=0, fillchar: str=' ') -> Any:
     """
 **Create a string of the given width with contents right aligned**
 
@@ -625,11 +943,22 @@ The _width_ argument is interpreted as a numeric value. If _None_, zero is assum
 The _pad_ argument, if provided, is interpreted as a string value. Only the first character is used.
 If not provided, the default is a space.
 
-Also see `Center()` and `JustifyLeft()`
+```vgr
+None.RightJustify(3) → "   "
+"aaaBc".RightJustify(3) → "aaaBc"
+"aaaBc".RightJustify(7) → "  aaaBc"
+"aaaBc".RightJustify(8) → "   aaaBc"
+"aaaBc".RightJustify(7, "-") → "--aaaBc"
+"aaaBc".RightJustify(9, "-=") → "----aaaBc"
+["A.b.c", "X.y.z"].RightJustify(7, ".") → ["..A.b.c", "..X.y.z"]
+123.RightJustify(5, "0") → "00123"
+```
+
+Also see `Center()` and `LeftJustify()`
 """
     return _layout_opt(x, width, fillchar, poly_rjust, str.rjust)
 
-def poly_zfill(x: Any, width: int) -> Any:
+def poly_zfill(x: Any, width: int=0) -> Any:
     """
 **Create a string of the given width with contents right aligned, padded with zeroes**
 
@@ -638,13 +967,22 @@ def poly_zfill(x: Any, width: int) -> Any:
 If the _value_ to be centered is _None_, it is treated as an empty string.
 The _width_ argument is interpreted as a numeric value. If _None_, zero is assumed.
 
-Also see `JustifyRight()`
+```vgr
+None.ZeroFill(3) → "000"
+"aaaBc".ZeroFill(3) → "aaaBc"
+"aaaBc".ZeroFill(7) → "00aaaBc"
+"aaaBc".ZeroFill(8) → "000aaaBc"
+["A.b.c", "X.y.z"].ZeroFill(7) → ["00A.b.c", "00X.y.z"]
+123.ZeroFill(5) → "00123"
+```
+
+Also see `RightJustify()`
 """
     return poly_rjust(x, width, '0')
 
 #---------------------------------------------
 
-def poly_shorten(x: str, length: int, placeholder: str="\u2026") -> str:
+def poly_shorten(x: str, length: int=32, placeholder: str="\u2026") -> str:
     """
 **Shorten a string's length, optionally adding a placeholder**
 
@@ -652,11 +990,20 @@ def poly_shorten(x: str, length: int, placeholder: str="\u2026") -> str:
 * _value_.ShortenStr(_length_, _placeholder_)
 
 If the _value_ is _None_, it is treated as an empty string.
-The _length_ argument is interpreted as a numeric value. If _None_, zero is assumed.
+The _length_ argument is interpreted as a numeric value. If _None_, 32 is assumed.
 The default _placeholder_ is an ellipses, and is added when the string
 is truncated. A value of _None_ omits the placeholder.
+
+```vgr
+None.ShortenStr(3) → ""
+string.digits.ShortenStr(3) → "01…"
+string.digits.ShortenStr(7) → "012345…"
+string.digits.ShortenStr(7, " etc") → "012 etc"
+[string.octdigits, string.hexdigits].ShortenStr(7) → ["012345…", "012345…"]
+123.ShortenStr(5) → "123"
+```
 """
-    length = 0 if length is None else max(0, int_arg(length, "Length"))
+    length = 32 if length is None else max(0, int_arg(length, "Length"))
     placeholder = '' if placeholder is None else str_arg(placeholder, "Placeholder")
     if x is None: return ''
     if isinstance(x, (list, tuple)): return type(x)(poly_shorten(x1, length, placeholder) for x1 in x)
@@ -675,36 +1022,87 @@ is truncated. A value of _None_ omits the placeholder.
 
 def poly_append(x: Any, *args) -> Any:
     """
-**TODO**
+**Concatenate strings**
+
+* _value_.AppendStr()
+* _value_.AppendStr(_arg_...)
+
+The argument values are concatenated to end of _value_.
+
+```vgr
+None.AppendStr() → None
+None.AppendStr("") → ""
+"left".AppendStr(":right") → "left:right"
+"left".AppendStr(":", "right") → "left:right"
+"L".AppendStr(["-", "R"], " end") → "L-R end"
+["L", "R"].AppendStr("-end") → ["L-end", "R-end"]
+123.AppendStr("5") → "1235"
+```
+
+Also see `PrependStr()`
 """
     return reduce(_append, args, x)
 
 def poly_prepend(x: Any, *args) -> Any:
     """
-**TODO**
+**Concatenate string placing values at the beginning of the string**
+
+* _value_.PrependStr()
+* _value_.PrependStr(_arg_...)
+
+The argument values are concatenated to end of _value_.
+
+```vgr
+None.PrependStr() → None
+None.PrependStr("") → ""
+"right".PrependStr("left:") → "left:right"
+"right".PrependStr(":", "left") → "left:right"
+"R".PrependStr(["L", "-"], "start") → "start-LR"
+["L", "R"].PrependStr("start-") → ["start-L", "start-R"]
+123.PrependStr("5") → "5123"
+```
+
+Also see `AppendStr()`
 """
     return reduce(_prepend, args, x)
 
 def poly_replace(x: Any, *args) -> Any:
     """
-**TODO**
-The operation is skipped if x is None or a non-string scalar.
-The operation is skipped in old in None, otherwise it must be a non-empty string, a list, or a tuple.
-If old is a list/tuple, it specifies multiple values to be replaced, but always with
-the same new value.
-Simple stringification is performed on scalars used for old and new.
+**Replace or delete values in a string**
+
+* _value_.ReplaceStr()
+* _value_.ReplaceStr(_old_)
+* _value_.ReplaceStr(_old_, _new_)
+* _value_.ReplaceStr(_old_... _new_)
+
+String conversion is performed on _value_, _old_, and _new_ as
+required. The value for _old_ may be a compiled regular expression.
+
+```vgr
+None.ReplaceStr() → None
+None.ReplaceStr("") → ""
+"Hello".ReplaceStr("") → "Hello"
+"Hello".ReplaceStr("e", "o") → "Hollo"
+"Hello".ReplaceStr("e", "o", "*") → "H*ll*"
+"Hello".ReplaceStr(["e", "o"], "-*-") → "H-*-ll-*-"
+["Hello", "Goodbye"].ReplaceStr("e", "o", "*") → ["H*ll*", "G**dby*"]
+"Goodbye".ReplaceStr("[aeiou]+".CompilePattern(), "*") → "G*dby*"
+print 1234.ReplaceStr(2, 4, 0) → "1030"
+```
+
+Also see `RegexReplace()` and `CompilePattern()`
 """
     if not args: return x
-    if isinstance(args[0], re.Pattern): return poly_regex_replace(x, args)
     if len(args) == 1: return _replace(x, args[0]) # old, default new
     if len(args) == 2: return _replace(x, args[0], args[1]) # old and new
     return _replace(x, args[:-1], args[-1]) # old is a list, single new
 
 def _append(x: Any, y: Any) -> Any:
-    # For these types, the operation is idempotent
-    if isinstance(x, (NoneType, bool, int, float)) or y is None: return x
+    if y is None: return x
     if isinstance(x, (list, tuple)): return type(x)(_append(x1, y) for x1 in x)
     if isinstance(x, dict): return  {key: _append(value, y) for key, value in x.items()}
+    if x is None: x = ''
+    if isinstance(x, (bool, int, float)): x = str(x)
     if isinstance(x, str):
         if isinstance(y, (list, tuple)): return reduce(_append, y, x)
         if isinstance(y, (bool, int, float)): return x + str(y)
@@ -712,10 +1110,11 @@ def _append(x: Any, y: Any) -> Any:
     raise TypeError(f'Concatenation between {type_str(x)} and {type_str(y)} not supported')
 
 def _prepend(x: Any, y: Any) -> Any:
-    # For these types, the operation is idempotent
-    if isinstance(x, (NoneType, bool, int, float)) or y is None: return x
+    if y is None: return x
     if isinstance(x, (list, tuple)): return type(x)(_prepend(x1, y) for x1 in x)
     if isinstance(x, dict): return  {key: _prepend(value, y) for key, value in x.items()}
+    if x is None: x = ''
+    if isinstance(x, (bool, int, float)): x = str(x)
     if isinstance(x, str):
         if isinstance(y, (list, tuple)): return reduce(_prepend, y, x)
         if isinstance(y, (bool, int, float)): return str(y) + x
@@ -723,10 +1122,11 @@ def _prepend(x: Any, y: Any) -> Any:
     raise TypeError(f'Concatenation between {type_str(x)} and {type_str(y)} not supported')
 
 def _replace(x: Any, old: Any, new: Any=None) -> Any:
-    # For these types, the operation is idempotent
-    if isinstance(x, (NoneType, bool, int, float)): return x
-    if isinstance(x, re.Pattern): return poly_regex_replace(x, old, new)
+    if isinstance(old, re.Pattern): return poly_regex_replace(x, old, new)
     if old is None: return x
+    if x is None: x = ''
+    if isinstance(x, (bool, int, float)): x = str(x)
+
     if not isinstance(new, str):
         if new is None:
             new = ''
@@ -737,96 +1137,234 @@ def _replace(x: Any, old: Any, new: Any=None) -> Any:
                 # at this point, it is just going to raise an error
                 str_arg(new, 'New')
     # In this case, old is a list of items to be replaced
-    # e.g. poly_replace(my_string, ["a", "e", "i", "o", "u"], "-") to replace all vowels
+    # e.g. poly_replace(my_string, ["a", "e", "i", "o", "u"], "-")
     if isinstance(old, (list, tuple)): return reduce(lambda x, old1: _replace(x, old1, new), old, x)
-    # old needs to be a non-empty, non-None string
-    old = str(old) if isinstance(old, (bool, int, float)) else str_arg(old, 'Old')
+    old = str(old) if isinstance(old, (bool, int, float)) else str_arg(old, 'Old', False) or ''
     if isinstance(x, str): return x.replace(old, new)
     if isinstance(x, (list, tuple)): return type(x)(_replace(x1, old, new) for x1 in x)
     if isinstance(x, dict): return {key: _replace(value, old, new) for key, value in x.items()}
     raise TypeError(f'Replacement of {type_str(x)} not supported')
 
-def poly_split(x: Any, sep:str =None, maxsplit: int=-1) -> Any:
+def poly_split(x: Any, sep: str=None, maxsplit: int=-1) -> Any:
     """
-**TODO**
-"""
-    # For these types, the operation is idempotent
-    if isinstance(x, (NoneType, bool, int, float)): return x
-    sep = None if sep is None else str_arg(sep, 'Sep')
-    maxsplit = -1 if maxsplit is None else max(-1, int_arg(maxsplit, 'Maxsplit'))
-    if isinstance(x, str): return x.split(sep, maxsplit)
-    if isinstance(x, (list, tuple)): return type(x)(poly_split(x1, sep, maxsplit) for x1 in x)
-    if isinstance(x, dict): return {key: poly_split(value, sep, maxsplit) for key, value in x.items()}
-    raise TypeError(f'Split of {type_str(x)} not supported')
+**Split a string based on a separator string**
 
-def poly_rsplit(x: Any, sep:str =None, maxsplit: int=-1) -> Any:
-    """
-**TODO**
+* _value_.Split()
+* _value_.Split(_sep_)
+* _value_.Split(_sep_, _maxsplit_)
+
+If _sep_ is not specified, or is _None_ or a blank string, the
+split is performed on any whitespace character, and empty entries
+are omitted.
+
+The _maxsplit_ argument is the maximum number of times a split will
+occur. If less than zero then there is no limit.
+
+```vgr
+None.Split() → []
+"a  b \\t c".Split() → ["a", "b", "c"]
+"a".Split(",") → ["a"]
+",".Split(",") → ["", ""]
+"a,b".Split(",") → ["a", "b"]
+"a,b,c".Split(",", 1) → ["a", "b,c"]
+["Hello", "Goodbye"].Split("oo") → [["Hello"], ["G", "dbye"]]
+1234.Split(2) → ["1", "34"]
+```
+
+Also see `RSplit()`
 """
-    # For these types, the operation is idempotent
-    if isinstance(x, (NoneType, bool, int, float)): return x
-    sep = None if sep is None else str_arg(sep, 'Sep')
+    return _split('Split', poly_split, str.split, x, sep, maxsplit)
+
+def poly_rsplit(x: Any, sep: str=None, maxsplit: int=-1) -> Any:
+    """
+**Split a string based on a separator string**
+
+* _value_.RSplit()
+* _value_.RSplit(_sep_)
+* _value_.RSplit(_sep_, _maxsplit_)
+
+`RSplit()` is identical to `Split()` except that the splitting of
+_value_ starts from the end of the string.
+
+```vgr
+None.RSplit() → []
+"a  b \\t c".RSplit() → ["a", "b", "c"]
+"a".RSplit(",") → ["a"]
+",".RSplit(",") → ["", ""]
+"a,b".RSplit(",") → ["a", "b"]
+"a,b,c".RSplit(",", 1) → ["a,b", "c"] // different from Split()
+["Hello", "Goodbye"].RSplit("oo") → [["Hello"], ["G", "dbye"]]
+1234.RSplit(2) → ["1", "34"]
+```
+
+Also see `Split()`
+"""
+    return _split('RSplit', poly_rsplit, str.rsplit, x, sep, maxsplit)
+
+def _split(name: str, p_op, str_op, x: Any, sep: str=None, maxsplit: int=-1):
+    if sep is not None:
+        if isinstance(sep, (bool, int, float)):
+            sep = str(sep)
+        else:
+            sep = str_arg(sep, 'Sep', False)
+            sep = None if sep is None or len(sep) == 0 else sep
     maxsplit = -1 if maxsplit is None else max(-1, int_arg(maxsplit, 'Maxsplit'))
-    if isinstance(x, str): return x.rsplit(sep, maxsplit)
-    if isinstance(x, (list, tuple)): return type(x)(poly_rsplit(x1, sep, maxsplit) for x1 in x)
-    if isinstance(x, dict): return {key: poly_rsplit(value, sep, maxsplit) for key, value in x.items()}
-    raise TypeError(f'Split of {type_str(x)} not supported')
+    if isinstance(x, (bool, int, float)): x = str(x)
+    if x is None: x = ''
+    if isinstance(x, str): return str_op(x, sep, maxsplit)
+    if isinstance(x, (list, tuple)): return type(x)(p_op(x1, sep, maxsplit) for x1 in x)
+    if isinstance(x, dict): return {key: p_op(value, sep, maxsplit) for key, value in x.items()}
+    raise TypeError(f'{name} of {type_str(x)} not supported')
+
 
 def poly_splitlines(x: Any, keepends: bool=False) -> Any:
     """
-**TODO**
+**Split a string into multiple lines**
+
+* _value_.SplitLines()
+* _value_.SplitLines(_keepends_)
+
+```vgr
+None.SplitLines() → None
+"".SplitLines() → []
+"One\\nTwo".SplitLines() → ["One", "Two"]
+"One\\nTwo".SplitLines(True) → ["One\\n", "Two"]
+```
 """
-    if isinstance(x, (NoneType, bool, int, float)): return x
+    if x is None: return None
     keepends = bool_arg(keepends, "KeepEnds")
+    if isinstance(x, (bool, int, float)): return str(x).splitlines(keepends)
     if isinstance(x, str): return x.splitlines(keepends)
     if isinstance(x, (list, tuple)): return type(x)(poly_splitlines(x1, keepends) for x1 in x)
     raise TypeError(f'Splitlines with {type_str(x)} not supported')
 
-def poly_join(x: Any, separator: str=None) -> Any:
+def poly_join(x: Any, sep: str=None) -> Any:
     """
 **Join together the elements of a list as strings**
 
 * _value_.Join()
-* _value_.Join(_seperator_)
+* _value_.Join(_sep_)
 
-The _separator_ argument is the separator between the strings.
+The _sep_ argument is the separator between the strings.
 It defaults to an empty string.
 
 If _value_ is a list, the items in it are converted to strings and concatenated
-using _separator_. Items in the list that are _None_ are ignored.
+using _sep_. Items in the list that are _None_ are ignored.
 
 If _value_ is an ordinal, it is converted to a string, and
-_separator_ is not used. With a _value_ of _None_ or for an empty list an
+_sep_ is not used. With a _value_ of _None_ or for an empty list an
 empty string is returned.
+
+```vgr
+None.Join() → ""
+"a".Join() → "a"
+[].Join() → ""
+["a", "b"].Join(", ") → "a, b"
+["a", ["b", "c"]].Join("-") → "a-b-c"
+1234.Join(0) → "1234"
+123.ToString().Ord().Chr().Join(0).ToInt() → 10203
+```
+
+Also see `Split()` and `RSplit()`
 """
-    if x is None: return ""
-    if isinstance(x, (bool, int, float, str)): return poly_str(x)
-    separator = '' if separator is None else str_arg(separator, 'Separator', False)
-    if isinstance(x, (list, tuple)): return separator.join([poly_str(x1) for x1 in x if x1 is not None])
+    if x is None: return ''
+    if isinstance(x, (bool, int, float, str)): return str(x)
+    if isinstance(sep, (bool, int, float, str)): sep = str(sep)
+    sep = '' if sep is None else str_arg(sep, 'Sep', False)
+    if isinstance(x, (list, tuple)): return sep.join([poly_join(x1, sep) for x1 in x if x1 is not None])
     raise TypeError(f'Join of {type_str(x)} not supported')
 
 def poly_format(format_string: Any, *args) -> str:
     """
 **Format values into a string**
 
+* _format_.Format(_expression_...)
+
 Formatting syntax is that used in [Python's str.format()](https://docs.python.org/3/library/string.html#formatstrings)
-    """
+
+**Formatting Cheat Sheet**
+
+_*Basic usage*_
+```vgr
+"Hello, {}".Format("world")    → "Hello, world"
+"{0} + {0} = {1}".Format(2, 4) → "2 + 2 = 4"
+```
+
+_*Number formatting*_
+```vgr
+"{:d}".Format(42)       → "42" // decimal
+"{:b}".Format(42)       → "101010" // binary
+"{:x}".Format(42)       → "2a" // hex, lowercase
+"{:X}".Format(42)       → "2A" // hex, uppercase
+"{:o}".Format(42)       → "52" // octal
+"{:e}".Format(3.14)     → "3.140000e+00" // scientific
+"{:.2f}".Format(3.1415) → "3.14" // fixed-point, 2 decimals
+```
+
+_*Alignment & width*_
+```vgr
+"{:<10}".Format("hi")  →  "hi        " // left align
+"{:>10}".Format("hi")  →  "        hi" // right align
+"{:^10}".Format("hi")  →  "    hi    " // center
+"{:*^10}".Format("hi") →  "****hi****" // custom fill
+```
+
+_*Signs & numbers*_
+```vgr
+"{:+d}".Format(42)     → "+42"
+"{:+d}".Format(-42)    → "-42"
+"{: d}".Format(42)     → " 42" // space for positive
+"{:,}".Format(1234567) → "1,234,567" // thousands sep
+"{:_}".Format(1234567) → "1_234_567"
+```
+
+_*Accessing elements*_
+```vgr
+Set person To {"name": "Alice", "age": 25}
+"{0[name]} is {0[age]}".Format(person) → "Alice is 25"
+```
+
+_*Format control*_
+```vgr
+"{0} {0!r} {0!s}".Format("hi") → "hi 'hi' hi" // raw vs str formatting
+"{0:.{1}f}".Format(3.14159, 2) → "3.14" // precision via argument
+```
+"""
+    # TODO: the syntax {0.x} is also defined, but when tested it can't seem to find the attribute
     if format_string is None: return None
-    format_string = str(format_string)
-    return format_string.format(*args)
+    if isinstance(format_string, (bool, int, float)): return str(format_string)
+    if isinstance(format_string, (list, tuple)):
+        return ''.join(poly_format(f, *args) for f in format_string)
+    if isinstance(format_string, str): return format_string.format(*args)
+    raise TypeError(f'Format with {type_str(format_string)} not supported')
 
 def poly_translate(x: Any, from_str: Any, to_str: Any=None) -> Any:
     """
-**TODO**
+**Perform character-by-character conversion or deletion**
+
+* _value_.Translate(_expression_, _expression_)
+* _value_.Translate(_expression_)
+
+If the second form is used, or the replacement string is empty or _None_
+the characters are deleted.
+
+```vgr
+"abc".Translate("b") → "ac"
+"abc".Translate("b","*") → "a*c"
+"dog".Translate(string.ascii_lowercase, string.ascii_uppercase) → "DOG"
+["cat", "dog"].Translate("ao", "40") → ["c4t", "d0g"]
+"cat".Translate({"c".Ord(): "r".Ord()}) → "rat"
+```
 """
     if x is not None and from_str is not None:
         if isinstance(x, str):
             # A lot of assumptions here, but we'll try to use it as requested
             # This would be a good case for somebody to make a JSON object (or save it)
             # and do a Load-From into a top-level object
+            # NB: this works ordinal-to-ordinal
             if isinstance(from_str, dict): return x.translate(from_str)
             if isinstance(from_str, (int, float)): return poly_translate(x, str(from_str), to_str)
-            if isinstance(from_str, str):
+            if isinstance(from_str, str) and len(from_str) > 0:
                 if to_str is None: to_str = ''
                 if isinstance(to_str, (int, float)): return str(to_str)
                 if isinstance(to_str, str): return x.translate(_maketrans(from_str, to_str))
@@ -848,6 +1386,13 @@ If _value_ is a single character, the ordinal is returned; for an multi-characte
 string, an array of ordinals are returned.
 The operation is distributed across lists and dictionaries.
 
+```vgr
+"5".Ord() → 53
+5.Ord() → 5
+"cat".Ord() → [99, 97, 116]
+["cat", "dog"].Ord() → [[99, 97, 116], [100, 111, 103]]
+```
+
 Also see `Chr()`
 """
     if x is None: return None
@@ -867,6 +1412,11 @@ def poly_chr(x: Any ) -> Any:
 If _value_ is a value for a Unicode character a single character string
 is returned.
 The operation is distributed across lists and dictionaries.
+
+```vgr
+99.Chr() → "c"
+print [99, 97, 116].Chr() → ["c", "a", "t"]
+```
 
 Also see `Ord()`
 """

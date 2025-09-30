@@ -13,6 +13,10 @@ def poly_bin(x: Any) -> Any:
 **Convert an integer number to a binary string prefixed with “0b”**
 
 Distributed across all collections except dictionaries.
+
+```vgr
+**TODO**
+```
 """
     if x is None: return None
     if isinstance(x, (bool, int, float)): return bin(int(x))
@@ -25,6 +29,10 @@ def poly_oct(x: Any) -> Any:
 **Convert an integer number to an octal string prefixed with “0o”**
 
 Distributed across all collections except dictionaries.
+
+```vgr
+**TODO**
+```
 """
     if x is None: return None
     if isinstance(x, (bool, int, float)): return oct(int(x))
@@ -37,6 +45,10 @@ def poly_hex(x: Any) -> Any:
 **Convert an integer number to a hexadecimal string prefixed with “0x”**
 
 Distributed across all collections except dictionaries.
+
+```vgr
+**TODO**
+```
 """
     if x is None: return None
     if isinstance(x, (bool, int, float)): return hex(int(x))
@@ -45,6 +57,13 @@ Distributed across all collections except dictionaries.
     raise TypeError(f'Hexadecimal format with {type_str(x)} not supported')
 
 def poly_parse_int(x: Any, base: Any=10) -> Any:
+    """
+**TODO**
+
+```vgr
+**TODO**
+```
+"""
     if x is None: return None
     if isinstance(x, (bool, int, float)): return int(x)
     if isinstance(x, str):
@@ -56,12 +75,33 @@ def poly_parse_int(x: Any, base: Any=10) -> Any:
     raise TypeError(f'Parsing from {type_str(x)} not supported')
 
 def poly_parse_bin(x: Any) -> Any:
+    """
+**TODO**
+
+```vgr
+**TODO**
+```
+"""
     return poly_parse_int(x, 2)
 
 def poly_parse_oct(x: Any) -> Any:
+    """
+**TODO**
+
+```vgr
+**TODO**
+```
+"""
     return poly_parse_int(x, 8)
 
 def poly_parse_hex(x: Any) -> Any:
+    """
+**TODO**
+
+```vgr
+**TODO**
+```
+"""
     return poly_parse_int(x, 16)
 
 def _check_charset(charset: str) -> str:
@@ -88,6 +128,10 @@ def poly_base64_encode(x: Any, charset: str = "utf-8") -> Any:
 * _value_.Base64Encode(_charset_)
 
 The default _charset_ is UTF-8.
+
+```vgr
+**TODO**
+```
 """
     # Idempotentent for these types
     if isinstance(x, (NoneType, bool, int, float)): return x
@@ -103,6 +147,10 @@ def poly_base64_decode(x: Any, charset: str = "utf-8") -> Any:
 * _value_.Base64Decode(_charset_)
 
 The default _charset_ is UTF-8.
+
+```vgr
+**TODO**
+```
 """
     # Idempotentent for these types
     if isinstance(x, (NoneType, bool, int, float)): return x
@@ -120,6 +168,10 @@ def poly_hex_encode(x: Any, charset: str = "utf-8") -> str:
 * _value_.HexEncode(_charset_)
 
 The default _charset_ is UTF-8.
+
+```vgr
+**TODO**
+```
 """
     # Idempotentent for these types
     if isinstance(x, (NoneType, bool, int, float)): return x
@@ -135,6 +187,10 @@ def poly_hex_decode(x: Any, charset: str = "utf-8") -> str:
 * _value_.HexDecode(_charset_)
 
 The default _charset_ is UTF-8.
+
+```vgr
+**TODO**
+```
 """
     # Idempotentent for these types
     if isinstance(x, (NoneType, bool, int, float)): return x

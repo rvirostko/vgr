@@ -86,7 +86,7 @@ def execute_connect(ctx: ExecContext, statement: Tree) -> None:
 * Vault Connect To _host_ With _token_ As _connection_name_
 * Vault Connect As _connection_name_ To _host_, Token=_token_
 
-See also Vault-Disconnect.
+Also see `Vault-Disconnect`
 """
     addr = token = conn_name = None
     for child in statement.children:
@@ -115,7 +115,7 @@ def execute_disconnect(ctx: ExecContext, statement: Tree) -> None:
 * Vault Disconnect
 * Vault Disconnect _connection_name_
 
-See also Vault-Connect
+Also see `Vault-Connect`
 """
     if statement.children:
         name = _resolve_str_arg(ctx, statement.children[0], 'Vault Connection Name')
@@ -377,7 +377,7 @@ def execute_list_mounts(ctx: ExecContext, statement: Tree) -> None:
 
 If no namespace name is provided, the default namespace name is used.
 
-See also Vault-DefaultNamespace.
+Also see `Vault-DefaultNamespace`
 """
     namespace: str = _resolve_str_arg(ctx, statement.children[0], 'Namespace', True) if len(statement.children) > 1 else ""
     args: dict = _extract_args(ctx, statement)

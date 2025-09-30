@@ -315,7 +315,7 @@ def _var_name_path(node: Tree) -> tuple[str]:
     The path is partially validate: steps are checked, but we
     can't check for valid write because we don't know the context.
 
-    See also get_writable_var_path()
+    See get_writable_var_path()
     """
     def _step_name(token: Token) -> str:
         # extracts and validates the parts of the path

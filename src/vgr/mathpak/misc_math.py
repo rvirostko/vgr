@@ -13,6 +13,10 @@ def poly_abs(x: Any) -> Any:
 Strings will be converted to numbers.
 Distributed over lists.
 Idempotent for None and dictionaries.
+
+```vgr
+**TODO**
+```
 """
     if x is None: return None
     if isinstance(x, str): return poly_abs(str_to_number(x))
@@ -30,12 +34,19 @@ def poly_ceil(x: Any) -> Any:
 Strings will be converted to numbers.
 Distributed over lists.
 Idempotent for None and dictionaries.
+
+```vgr
+**TODO**
+```
 """
     if x is None: return None
     if isinstance(x, str): return poly_ceil(str_to_number(x))
     return math.ceil(x) if hasattr(x, '__ceil__') else _dist(poly_ceil, x)
 
 def poly_trunc(x: Any) -> Any:
+    """
+**TODO**
+"""
     if x is None: return None
     if isinstance(x, str): return poly_trunc(str_to_number(x))
     return math.trunc(x) if hasattr(x, '__trunc__') else _dist(poly_trunc, x)
@@ -56,6 +67,10 @@ def poly_floor(x: Any, precision: float=0) -> Any:
 Strings will be converted to numbers.
 Distributed over lists.
 Idempotent for None and dictionaries.
+
+```vgr
+**TODO**
+```
 """
     if isinstance(x, str):
         x = str_to_number(x)
@@ -85,6 +100,9 @@ Idempotent for None and dictionaries.
     raise TypeError(f'Unsupported type for floor: {type_str(x)}')
 
 def poly_round(x: Any, ndigits: int=0) -> Any:
+    """
+**TODO**
+"""
     if x is None: return None
     if isinstance(x, str):
         x = str_to_number(x)
@@ -99,6 +117,9 @@ def poly_round(x: Any, ndigits: int=0) -> Any:
     return x
 
 def poly_round_multiple(x: Any, multiple) -> Any:
+    """
+**TODO**
+"""
     if isinstance(x, str): x = str_to_number(x)
     if not isinstance(multiple, (int, float)):
         if isinstance(multiple, str): return poly_round_multiple(x, str_to_number(multiple))
@@ -109,6 +130,9 @@ def poly_round_multiple(x: Any, multiple) -> Any:
     return None
 
 def poly_floor_multiple(x: Any, multiple) -> Any:
+    """
+**TODO**
+"""
     if isinstance(x, str): x = str_to_number(x)
     if not isinstance(multiple, (int, float)):
         if isinstance(multiple, str): return poly_floor_multiple(x, str_to_number(multiple))
@@ -119,6 +143,9 @@ def poly_floor_multiple(x: Any, multiple) -> Any:
     return None
 
 def poly_ceil_multiple(x: Any, multiple) -> Any:
+    """
+**TODO**
+"""
     if isinstance(x, str): x = str_to_number(x)
     if not isinstance(multiple, (int, float)):
         if isinstance(multiple, str): return poly_ceil_multiple(x, str_to_number(multiple))
@@ -139,6 +166,9 @@ def poly_pred(x: Any) -> Any:
 
 * _value_.Pred()
 
+```vgr
+**TODO**
+```
 """
     if x is None: return None
     if isinstance(x, str): x = str_to_number(x)
@@ -153,6 +183,9 @@ def poly_succ(x: Any) -> Any:
 
 * _value_.Succ()
 
+```vgr
+**TODO**
+```
 """
     if x is None: return None
     if isinstance(x, str): x = str_to_number(x)

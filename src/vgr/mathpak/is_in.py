@@ -28,10 +28,16 @@ from .common import NoneType, bound_ops, type_str
 
 @bound_ops("In", "Is-In")
 def poly_in(x: Any, y: Any) -> Any:
+    """
+**TODO**
+"""
     return _is_in(x, y, False)
 
 @bound_ops("Not-In", "Is-Not-In")
 def poly_not_in(x: Any, y: Any) -> Any:
+    """
+**TODO**
+"""
     if isinstance(x, (list, tuple)):
         return all(poly_not_in(x1, y) for x1 in x)
     if not isinstance(x, (NoneType, bool, int, str, float)):
@@ -47,10 +53,16 @@ def poly_not_in(x: Any, y: Any) -> Any:
 
 @bound_ops("Contains")
 def poly_contains_any(x: Any, y: Any) -> Any:
+    """
+**TODO**
+"""
     return _is_in(y, x, False)
 
 @bound_ops("Contains-All")
 def poly_contains_all(x: Any, y: Any) -> Any:
+    """
+**TODO**
+"""
     return _is_in(y, x, True)
 
 def _is_in(x: Any, y: Any, do_all: bool) -> Any:
