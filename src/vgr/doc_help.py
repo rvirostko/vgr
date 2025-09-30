@@ -251,6 +251,6 @@ class VgrLexer(RegexLexer):
             # Triple-quoted strings (long strings, can be multi-line)
             (r'[Rr]?("""(.*?)(?<!\\)(\\\\)*?"""|\'\'\'(.*?)(?<!\\)(\\\\)*?\'\'\')', String),
 
-            (r"(?i)(?:(?<=^)|(?<=\s)|(?<=[^\w.-]))(Contains|Is|Not|Greater|Less|Than|All|For|Next|Move|Evaluate|Sort|On|Key|File|Asc|Des|Unique|Printf|End|Otherwise|Assert|True|False|None|Choose|Print|Using|When|Matches|Set|To)(?:(?=$)|(?=\s)|(?=[^\w(]))", Keyword),
+            (r"(?i)(?:(?<=^)|(?<=\s)|(?<=[^\w.-]))(Contains|Is|In|Not|Greater|Less|Than|Any|All|For|Next|Move|Evaluate|Sort|On|Key|File|Asc|Des|Unique|Printf|End|Otherwise|Assert|True|False|None|Choose|Print|Using|When|Matches|Set|To)(?:(?=$)|(?=\s)|(?=[^\w(]))", Keyword),
         ]
     }
