@@ -6,19 +6,36 @@ from typing import Any
 from urllib.parse import urlparse, quote
 from urllib.error import URLError
 
-from .common import dist_x
+from .common import dist_x, str_arg
 from .types import poly_bool
 
 def parse_url(url: Any, remove_nulls: bool=True) -> Any:
     """
-Decompose a URL as a string and return a dictionary of its components.
+**Decompose a URL string and return a dictionary of its components**
 
-In addition, the result will contain _error_ indicating if there was an error,
-_error_msg_ describing the error, and will always include the URL itself.
+* _value_.ParseUrl()
+
+In addition, the result will contain _error_ indicating if there was an error
+and _error_msg_ describing the error. It always include the URL itself.
+
 Distributive over lists and tuples, but not dictionaries.
 
 ```vgr
-**TODO**
+Set url to "https://user:pass@example.com:8080/path/to/page?x=1&y=2#frag"
+Set parsed To url.ParseUrl()
+parsed.url → "https://user:pass@example.com:8080/path/to/page?x=1&y=2#frag"
+parsed.error → False
+parsed.error_msg → None
+parsed.scheme → "https"
+parsed.hostname → "example.com"
+parsed.port → 8080
+parsed.netloc → "user:pass@example.com:8080"
+parsed.username → "user"
+parsed.password → "pass"
+parsed.params → None
+parsed.path → "/path/to/page"
+parsed.query → "x=1&y=2"
+parsed.fragment → "frag"
 ```
 """
     if url is None: return None
@@ -33,6 +50,7 @@ Distributive over lists and tuples, but not dictionaries.
             "url": url,
             "error": False,
             "error_msg": None,
+            "netloc": _empty_to_none(parsed.netloc),
             "scheme": _empty_to_none(parsed.scheme),
             "hostname": _empty_to_none(parsed.hostname),
             "path": _empty_to_none(parsed.path),
@@ -51,15 +69,37 @@ Distributive over lists and tuples, but not dictionaries.
             "error_msg": str(e),
         }
 
-def encode_url(url: str) -> str:
+def encode_url(url: str, safe: str="/") -> str:
     """
+**Encode reserved characters in a full or partial URL**
+
+* _value_.EncodeURL()
+* _value_.EncodeURL(_safe_)
+
+The _safe_ argument is string which lists reserved characters that need
+not be encoded. When omitted, it defaults to "/".
+
 ```vgr
-**TODO**
+None.EncodeURL() → None
+5.EncodeURL() → "5"
+"hello world".EncodeURL() → "hello%20world"
+"a/b/c".EncodeURL() → "a/b/c"
+"a/b/c".EncodeURL("") → "a%2Fb%2Fc"
+"role=admin".EncodeURL() → "role%3Dadmin"
+"Café Münster".EncodeURL() → "Caf%C3%A9%20M%C3%BCnster"
+
+// NB: use care when quoting an entire URL
+"http://example.com?q=lst".EncodeURL() → "http%3A//example.com%3Fq%3Dlst"
 ```
+
 """
     if url is None: return None
-    if isinstance(url, (list, tuple)): return type(url)(encode_url(x1) for x1 in url)
-    return quote(url, errors='strict', encoding='utf-8') if isinstance(url, str) else None
+    safe = str_arg(safe, "Safe", False)
+    if safe is None: safe = ''
+    if isinstance(url, (list, tuple)): return type(url)(encode_url(x1, safe) for x1 in url)
+    if isinstance(url, (int, float)): url = str(url)
+    if isinstance(url, str): return quote(url, safe=safe, errors='strict', encoding='utf-8')
+    return url
 
 def _empty_to_none(s:str) -> str:
     return None if s is None or len(s) == 0 else s
