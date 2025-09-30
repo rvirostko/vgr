@@ -2,9 +2,9 @@
 
 Working/transfer area for "Vault Generic Reporting"
 
-## Getting started
+## DEPRECATED : this text is being integrated into the REPL help command
 
-But first, this important note: **Nothing is yet really hooked up to Vault, so if you expect output... yeah, no.**
+## Getting started
 
 There are four ways to run VGR:
 
@@ -433,10 +433,6 @@ vgr> Assert Limit Less Than (64 * 1024) : "The Limit was set to {}, which is too
 Line 1: The Limit was set to inf, which is too high!
 ```
 
-### Load From
-
-TODO
-
 ### Open and Close
 
 `Open` and `Close` are used to direct the output of statements to files. While you can always use standard I/O redirection, these statements allow you to, for example, run multiple `Selects` and place the results in multiple files.
@@ -519,49 +515,6 @@ If none of the `Include` patterns match, or if an `Exclude` removes everything, 
 > Don't forget that there are predefined variables with information that you can
 > access: use `Exhibit` to see what's available!
 
-### The Select Statement
-
-TODO
-
-#### From Clause - The Source for Data
-
-TODO
-
-#### Outputs - Data selection
-
-TODO
-
-#### Where Clause - Limiting Data
-
-TODO
-
-#### Product Clause - Expanding Rows
-
-TODO
-
-#### Limit Clause - Limiting Output
-
-TODO
-
-#### For Clause - Defining the Output
-
-TODO
-
-##### JSON Output
-
-TODO
-
-##### CSV Output
-
-TODO
-
-##### Markdown Output
-
-TODO
-
-##### Template Output with Jinja2
-
-TODO
 
 ### `SetVar()`
 
