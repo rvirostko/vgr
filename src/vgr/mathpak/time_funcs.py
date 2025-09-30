@@ -21,7 +21,13 @@ Returns a string in the form of _n_**d** _n_**h** _n_**m** _n_**s** using the sh
 possible representation.
 
 ```vgr
-**TODO**
+Set now To time.now
+None.FormatDuration() → "0s"
+now.FormatDuration(now + time.sec_per_hr) → "1h"
+now.FormatDuration(now + time.sec_per_day) → "1d"
+now.FormatDuration(now + 1_024) → "17m 4s"
+now.FormatDuration(now + 8_192) → "2h 16m 32s"
+(now + 32_768).FormatDuration(now) → "9h 6m 8s"
 ```
 
 """
@@ -45,21 +51,31 @@ possible representation.
 
 def format_timestamp(x: Any, y: Any=None) -> Any:
     """
-**Format a timestamp value**
+**Format a value as a timestamp**
 
 * _timestamp_.FormatTimestamp()
 * _timestamp_.FormatTimestamp(_format_)
 
-If the timestamp is _none_ then the current date and time are used.
+If the timestamp is _None_ then the current date and time are used.
 If the _format_ is omitted, the results is a ISO 8601 extended format, using a 4-digit year.
 Time is separated by a **T** and uses a 24-hour format, with resolution down to the second.
 
 The format follows Python's
 [strftime() format codes](https://docs.python.org/3/library/datetime.html#strftime-and-strptime-format-codes).
 
+Use `Exhibit time.format` for predefined formats.
+
 ```vgr
-**TODO**
+Set now To time.now
+Set earlier To now - time.sec_per_hr
+Set later To now + time.sec_per_hr
+None.FormatTimestamp() → "2025-09-30T17:01:22"
+now.FormatTimestamp() → "2025-09-30T17:01:22"
+now.FormatTimestamp(time.format.hms) → "17:01:22"
+[earlier, now].FormatTimestamp(time.format.hms) → ["16:01:22", "17:01:22"]
+later.FormatTimestamp(time.format.compact.hm) → "1801"
 ```
+
 """
     if x is None: x = datetime.now()
     if y is None: y = _DEFAULT_TS_FORMAT
