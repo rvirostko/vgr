@@ -9,7 +9,6 @@ from functools import lru_cache
 from itertools import zip_longest
 from typing import Any, Callable
 import inspect
-import re
 
 from .mathpak import (
     base_name,
@@ -415,7 +414,7 @@ _BUILT_IN_FUNCS = {
     "DirName":        dir_name,
     "Div":            poly_div,
     "DivMod":         poly_divmod,
-    "EncodeURL":      encode_url,
+    "EncodeUrl":      encode_url,
     "EndsWith":       poly_endswith,
     "Enumerate":      _enumerate,
     "ExpandTabs":     poly_expandtabs,
