@@ -18,8 +18,8 @@ from ..mathpak import bound_ops
 def execute_do_while(ctx: ExecContext, statement: Tree) -> None:
     """A BASIC-style Do-While Loop
 
-* Do While _expression_
-    _statement_...
+* Do While _expression_<br>
+  <em>_statement_...<br>
   Loop [;]
 
 As long as the expression evaluates to True, the block of statements is
@@ -34,8 +34,8 @@ following it are skipped, and the expression is checked again."""
 def execute_do_until(ctx: ExecContext, statement: Tree) -> None:
     """A BASIC-style Do-Until Loop
 
-* Do Until _expression_
-    _statement_...
+* Do Until _expression_<br>
+  <em>_statement_...<br>
   Loop [;]
 
 The block of statements is executed until the expression evaluates to True.
