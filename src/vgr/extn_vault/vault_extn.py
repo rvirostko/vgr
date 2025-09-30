@@ -146,7 +146,7 @@ class VaultExtension(VgrExtension):
         return True
 
     def grammar(self) -> str:
-        g = self.expand_names(self.read_resource_text(__package__, 'vault.ebnf'))
+        g = self.read_resource_text(__package__, 'vault.ebnf')
         g += 'vault_from: "Vault"i VAULT_TARGET\n'
         return g + 'VAULT_TARGET: ' + ' | '.join(tuple(f'"{t}"i' for t in _TARGETS))
 
