@@ -27,7 +27,7 @@ from ..mathpak import (
     poly_true,
 )
 from ..redir import print_stderr, print_stdout
-from ..stmt_exec import exec_if_else, exec_loop, exec_repeat
+from ..stmt_exec import exec_if_else, exec_loop, exec_repeat, LOOP_META_PATH, set_loop_meta
 from ..stmt_set import execute_set
 from ..tags import control_statement
 
@@ -44,7 +44,7 @@ _DT_FUNCS = {
 @bound_ops("Accept")
 def execute_accept(ctx: ExecContext, statement: Tree) -> None:
     """
-**Get user input or Retrieve date and time values**
+**Get user input or retrieve date and time values**
 
 * Accept _variable_ From [Console | Stdin | Sysin | Sysinp] [;]
 * Accept _variable_ From [Unix] Epoch [;]
@@ -113,11 +113,13 @@ def execute_perform_times(ctx: ExecContext, statement: Tree) -> None:
   End-Perform [;]
 
 The block of statements is executed the given number of times.
-The expression is evaluated an converted to an integer, rounding down.
+The expression is evaluated and converted to an integer, rounding down.
 For any statements to execute, the value must be greater than or equal to one.
-If a Break or Next Sentence statement is encountered, looping ends regardless of the
-expression's value. If a Continue statement is encountered, statements
-following it are skipped, and looping continues.
+If `Break` or `Next Sentence` is encountered, looping ends regardless of the
+expression's value. If `Continue` is encountered, statements
+following it are skipped and looping continues.
+
+Also see `Repeat`
 """
     exec_repeat(ctx, statement)
 
@@ -130,17 +132,29 @@ def execute_perform_varying(ctx: ExecContext, statement: Tree) -> None:
 * Perform Varying _variable_ From _expression_ By _expressions_ Until _expression_<br>
   <em>_statement_...<br>
   End-Perform [;]
-* Perform With Test Before Varying _variable_ From _expression_ By _expressions_ Until _expression_<br>
-  <em>_statement_...<br>
-  End-Perform [;]
-* Perform With Test After Varying _variable_ From _expression_ By _expressions_ Until _expression_<br>
+* Perform With Test [Before | After] Varying _variable_ From _expression_ By _expressions_ Until _expression_<br>
   <em>_statement_...<br>
   End-Perform [;]
 
-If a Break or Next Sentence statement is encountered, looping ends regardless of the
-expression's value. If a Continue statement is encountered, statements
-following it are skipped, and looping continues.
+If a `Break` or `Next Sentence` is encountered, looping ends regardless of the
+expression's value. If `Continue` is encountered, statements
+following it are skipped and looping continues.
+
 If not specified, the test expression is performed before the block of statements.
+
+Inside the body of the loop, the _$loop_ variable is available.
+
+```vgr
+Perform Varying x From 2 By 2 Until x > 10:
+    Print x, $loop
+End-Perform
+
+2 {'index': 1, 'first': True}
+4 {'index': 2, 'first': False}
+6 {'index': 3, 'first': False}
+8 {'index': 4, 'first': False}
+10 {'index': 5, 'first': False}
+```
 """
     # Echo the control portion, not the statements
     ctx.echo_source(statement, statement.children[-1])
@@ -160,9 +174,12 @@ If not specified, the test expression is performed before the block of statement
     cindex += 1
     predicate = bind_operations(statement.children[cindex])
     cindex += 1
+    meta = { }
+    ctx.dd.push_frame([(var_path, None), (LOOP_META_PATH, meta)])
     try:
-        ctx.dd.push_frame([(var_path, None)])
+        i = 1
         while True:
+            set_loop_meta(meta, i)
             ctx.set_var(value, *var_path)
             if test_before and poly_true(ctx.eval_expr(predicate)): return
             try:
@@ -173,6 +190,7 @@ If not specified, the test expression is performed before the block of statement
                 pass
             value += inc
             if not test_before and poly_true(ctx.eval_expr(predicate)): return
+            i += 1
     finally:
         ctx.dd.pop_frame()
 

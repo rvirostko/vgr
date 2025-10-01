@@ -2,12 +2,14 @@
 BASIC extension statements
 """
 
+import math
+
 from lark import Tree
 
 from ..app_exceptions import VgrStatementBreak, VgrStatementContinue
 from ..evaluate import get_writable_var_path
 from ..exec_context import ExecContext
-from ..stmt_exec import bind_operations, exec_loop
+from ..stmt_exec import bind_operations, exec_loop, LOOP_META_PATH, set_loop_meta
 from ..stmt_set import execute_set
 from ..tags import control_statement
 
@@ -62,6 +64,22 @@ The block of statements is executed until the limit is exceeded.
 If `Break` is encountered, looping ends regardless of the
 limit's value. If `Continue` is encountered, statements
 following it are skipped and looping proceeds.
+
+Statements have access to a _$loop_ local variable
+which provides information such as _$loop.index_, _$loop.first_,
+and _$loop.last_.
+
+```vgr
+For x = 2.0 To 4.0 By .5
+    Print x, $loop
+Next
+
+2.0 {'index': 1, 'first': True, 'last': False, 'length': 5}
+2.5 {'index': 2, 'first': False, 'last': False, 'length': 5}
+3.0 {'index': 3, 'first': False, 'last': False, 'length': 5}
+3.5 {'index': 4, 'first': False, 'last': False, 'length': 5}
+4.0 {'index': 5, 'first': False, 'last': True, 'length': 5}
+```
 """
     # Echo the control portion, not the statements
     ctx.echo_source(statement, statement.children[-1])
@@ -84,10 +102,14 @@ following it are skipped and looping proceeds.
         # NB: if end and value are the same, we don't care about the sign
         raise ValueError('Sign of For-Next increment results in infinite loop')
     try:
-        ctx.dd.push_frame([(var_path, None)])
+        meta = { }
+        ctx.dd.push_frame([(var_path, None), (LOOP_META_PATH, meta)])
         # NB: if start/end are the same, the loop executes once,
         #     which is typical for Basic implementations
+        length = int(max(0, math.floor((end - value) / inc) + 1))
+        i = 1
         while (inc > 0 and value <= end) or (inc < 0 and value >= end):
+            set_loop_meta(meta, i, length)
             ctx.set_var(value, *var_path)
             try:
                 ctx.dispatch_statements(statement.children[cindex:])
@@ -96,6 +118,7 @@ following it are skipped and looping proceeds.
             except VgrStatementContinue:
                 pass
             value += inc
+            i += 1
     finally:
         ctx.dd.pop_frame()
 

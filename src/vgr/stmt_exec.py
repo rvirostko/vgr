@@ -92,6 +92,25 @@ from .stmt_sort import execute_sort
 from .stmt_zip import execute_zip
 from .tags import control_statement
 
+LOOP_META_PATH = ('$loop',)
+_LOOP_META_LENGTH = 'length'
+_LOOP_META_INDEX = 'index'
+_LOOP_META_FIRST = 'first'
+_LOOP_META_LAST = 'last'
+
+def set_loop_meta(meta: dict, index: int, length: int=None) -> dict:
+    """
+    This sets the structure used inside the body of the loop
+    reflecting the iteration count etc.
+    Based on Jinja's behavior.
+    """
+    meta[_LOOP_META_INDEX] = index
+    meta[_LOOP_META_FIRST] = index == 1
+    if length is not None:
+        meta[_LOOP_META_LAST] = index == length
+        meta[_LOOP_META_LENGTH] = length
+    return meta
+
 @bound_ops("Source")
 def execute_source(ctx: ExecContext, statement: Tree) -> None:
     """
@@ -166,13 +185,15 @@ def execute_block(ctx: ExecContext, statement: Tree) -> None:
 Also see `Declare`
 """
     # NB: no source to echo
+    # NB: No loop meta here so we don't shadow
+    #     when used inside a loop
     ctx.dd.push_frame()
     try:
         ctx.dispatch_statements(statement.children)
     finally:
         ctx.dd.pop_frame()
 
-@bound_ops("Declare", "DCL")
+@bound_ops("Declare")
 def execute_declare_local(ctx: ExecContext, statement: Tree) -> None:
     """
 **Establishes a name as a variable; used for establishing scope**
@@ -211,17 +232,39 @@ def execute_forever(ctx: ExecContext, statement: Tree) -> None:
 The statements are repeatedly executed until a `Break` statement is
 encountered. A `Continue` causes the statements to loop.
 
+Inside the body of the loop, the _$loop_ variable is available.
+
+```vgr
+Set x To 5
+Do Forever:
+    Print x, $loop
+    Add 5 to x
+    If x > 20:
+        Break
+    End
+End
+
+5 {'index': 1, 'first': True}
+10 {'index': 2, 'first': False}
+15 {'index': 3, 'first': False}
+20 {'index': 4, 'first': False}
+```
+
 Also see `Break` and `Continue`
 """
-    ctx.dd.push_frame()
+    meta = { }
+    ctx.dd.push_frame([(LOOP_META_PATH, meta)])
     try:
+        i = 1
         while True:
+            set_loop_meta(meta, i)
             try:
                 ctx.dispatch_statements(statement.children)
             except VgrStatementBreak:
                 return
             except VgrStatementContinue:
                 continue
+            i += 1
     finally:
         ctx.dd.pop_frame()
 
@@ -283,16 +326,20 @@ def exec_loop(ctx: ExecContext, statement: Tree, desired_value: bool) -> None:
     """Internal implemenation for loops with a predicate"""
     ctx.echo_source(statement, statement.children[1])
     predicate = bind_operations(statement.children[0])
-    ctx.dd.push_frame()
+    meta = { }
+    ctx.dd.push_frame([(LOOP_META_PATH, meta)])
     try:
+        i = 1
         while True:
             if poly_true(ctx.eval_expr(predicate)) != desired_value: return
+            set_loop_meta(meta, i)
             try:
                 ctx.dispatch_statements(statement.children[1:])
             except VgrStatementBreak:
                 return
             except VgrStatementContinue:
                 continue
+            i += 1
     finally:
         ctx.dd.pop_frame()
 
@@ -303,9 +350,15 @@ def exec_repeat(ctx: ExecContext, statement: Tree) -> None:
     if isinstance(counter, (int, float)):
         counter = math.floor(counter)
         if counter > 0:
-            ctx.dd.push_frame()
+            meta = { }
+            # Meta information is local to the loop
+            ctx.dd.push_frame([(LOOP_META_PATH, meta)])
             try:
+                length = counter
+                i = 1
                 while counter > 0:
+                    # Update the meta information
+                    set_loop_meta(meta, i, length)
                     try:
                         ctx.dispatch_statements(statement.children[1:])
                     except VgrStatementBreak:
@@ -313,6 +366,7 @@ def exec_repeat(ctx: ExecContext, statement: Tree) -> None:
                     except VgrStatementContinue:
                         pass
                     counter -= 1
+                    i += 1
             finally:
                 ctx.dd.pop_frame()
 
@@ -370,7 +424,21 @@ The expression is evaluated an converted to an integer, rounding down.
 For any statements to execute, the value must be greater than or equal to one.
 If `Break` is encountered, looping ends regardless of the
 expression's value. If `Continue` is encountered, statements
-following it are skipped, and looping continues.
+following it are skipped and looping continues.
+
+Statements have access to a _$loop_ local variable
+which provides information such as _$loop.index_, _$loop.first_,
+and _$loop.last_.
+
+```vgr
+Repeat 3:
+   Print $loop
+End
+
+{'index': 1, 'first': True, 'last': False, 'length': 3}
+{'index': 2, 'first': False, 'last': False, 'length': 3}
+{'index': 3, 'first': False, 'last': True, 'length': 3}
+```
 """
     exec_repeat(ctx, statement)
 
@@ -393,16 +461,36 @@ If `Break` is encountered, iteration ends regardless of the
 number of items remaining. If `Continue` is encountered, statements
 following it are skipped, and the loop continues with the next item.
 
+Statements have access to a _$loop_ local variable
+which provides information such as _$loop.index_, _$loop.first_,
+and _$loop.last_.
+
+```vgr
+ForEach a In ["A", "B", "C"]:
+    Print a, $loop
+End
+
+A {'index': 1, 'first': True, 'last': False, 'length': 3}
+B {'index': 2, 'first': False, 'last': False, 'length': 3}
+C {'index': 3, 'first': False, 'last': True, 'length': 3}
+```
+
 Also see `Break` and `Continue`
 """
     ctx.echo_source(statement, statement.children[2])
     var_path = get_writable_var_path(ctx, statement.children[0])
     collection = poly_list(ctx.eval_expr(bind_operations(statement.children[1])))
     if collection is not None and len(collection) > 0:
-        # The value is local to the loop
-        ctx.dd.push_frame([(var_path, None)])
+        length = len(collection)
+        meta = { }
+        # The value and meta information are local to the loop
+        ctx.dd.push_frame([(var_path, None), (LOOP_META_PATH, meta)])
         try:
-            for value in collection:
+            # The list is copied to allow mutation within the loop
+            for i, value in enumerate(collection.copy()):
+                # Update the meta information
+                set_loop_meta(meta, i + 1, length)
+                # And the value itself
                 ctx.set_var(value, *var_path)
                 try:
                     ctx.dispatch_statements(statement.children[2:])
