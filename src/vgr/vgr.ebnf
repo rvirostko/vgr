@@ -96,8 +96,8 @@ statements: statement+
 block_statement: "Begin"i ":"? statement+ "End"i _SEMICOLON? -> block
 call: "Call"i "Function"i? var_name ("(" (expr (_COMMA expr)*)? ")")? _SEMICOLON?
     | "Call"i "Function"i? var_name ("(" (expr (_COMMA expr)*)? ")")? "Giving"i var_name _SEMICOLON? -> call_giving
-declare: ("Declare"i | "DCL"i) var_name (_COMMA var_name)* "As"i? "Local"i? _SEMICOLON? -> declare_local
-    | ("Declare"i | "DCL"i) var_name (_COMMA var_name)* "As"i? "Global"i _SEMICOLON? -> declare_global
+declare: "Declare"i var_name (_COMMA var_name)* "As"i? "Local"i? _SEMICOLON? -> declare_local
+    | "Declare"i var_name (_COMMA var_name)* "As"i? "Global"i _SEMICOLON? -> declare_global
 def_statements: "Define"i? "Function"i var_name def_params? ":"? def_body "End"i _SEMICOLON? -> def_function
 def_params: "(" (NAME (_COMMA NAME)*)? ")" -> params
 def_body: statement+ -> body
