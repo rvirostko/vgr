@@ -68,7 +68,7 @@ For n = 1 To 15:
         When (n % 5) == 0: Printf "Buzz"
         Otherwise:         Printf "{}", n
     End
-    Print;
+    Print ""
 Next
 ```
 

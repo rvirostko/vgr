@@ -8,70 +8,70 @@ Set c To a + 2
 Echo Off
 Exhibit a, c
 Assert a == b && a != c && b != c
-Print;
+Print ""
 
 Echo On
 Set c To a + b
 Echo Off
 Exhibit a, b, c
 Assert a == b && a != c && b != c
-Print;
+Print ""
 
 Echo On
 Set c To a - 2
 Echo Off
 Exhibit a, c
 Assert a == b && a != c && b != c
-Print;
+Print ""
 
 Echo On
 Set c To a * b
 Echo Off
 Exhibit a, b, c
 Assert a == b && a != c && b != c
-Print;
+Print ""
 
 Echo On
 Set c To a / 2
 Echo Off
 Exhibit a, c
 Assert a == b && a != c && b != c
-Print;
+Print ""
 
 Echo On
 Set c To a.FloorDiv(2)
 Echo Off
 Exhibit a, c
 Assert a == b && a != c && b != c
-Print;
+Print ""
 
 Echo On
 Set c To a.DivMod(2)
 Echo Off
 Exhibit a, c
 Assert a == b && a != c && b != c
-Print;
+Print ""
 
 Echo On
 Set c To a % 2
 Echo Off
 Exhibit a, c
 Assert a == b && a != c && b != c
-Print;
+Print ""
 
 Echo On
 Set c To a ** 2
 Echo Off
 Exhibit a, c
 Assert a == b && a != c && b != c
-Print;
+Print ""
 
 Echo On
 Set c To a.Sum()
 Echo Off
 Exhibit a, c
 Assert a == b && a != c && b != c
-Print;
+Print ""
 
 Echo On
 Set b To a * 2 * math.random100.Div(10)
@@ -81,4 +81,4 @@ Set e To b.PVariance()
 Set f To b.StDev()
 Echo Off
 Exhibit a, b, c, d, e, f
-Print;
+Print ""
