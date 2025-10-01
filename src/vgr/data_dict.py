@@ -12,6 +12,10 @@ from typing import (
     Optional,
 )
 
+# These values are INTENTIALLY omitted from keys()!
+GOBAL_KEY = '$global'
+CALLER_KEY = '$caller'
+
 class DataDictionary():
     """
     A hierachical data store
@@ -25,6 +29,8 @@ class DataDictionary():
         self._frames: list[Frame] = [Frame()]
         self._immutable_prefixes: set = set()
         self._protected_prefixes: set = set()
+        self.add_immutable_prefix('$global')
+        self.add_immutable_prefix('$caller')
 
     def add_immutable_prefix(self, prefix: str) -> None:
         """Immutable prefixes means you can't change any part of them"""
@@ -130,7 +136,7 @@ class DataDictionary():
 
     def declare_var(self, as_local: bool, *path: str) -> bool:
         """
-        Declares a variable in the appropriat frame.
+        Declares a variable in the appropriate frame.
         Returns _True_ if the declaration was local.
         The value at the path will be set to _None_ if
         nothing already exists; existing values are never
@@ -150,6 +156,19 @@ class DataDictionary():
         if rc is not None: self.set_var(None, *path)
         return rc
 
+    def _get_starting_point(self, frame: "Frame", *path: str) -> tuple:
+        """
+        Handles initial deref of $global/$caller in paths for reads.
+        Writes are prohibited, so not used there.
+        """
+        if frame is None or not path: return (frame, path)
+        first: str = path[0]
+        if first == GOBAL_KEY:
+            return self._get_starting_point(self._global_frame, *path[1:])
+        if first == CALLER_KEY:
+            return self._get_starting_point(frame.caller_frame(), *path[1:])
+        return (frame, path)
+
     def get_var(self, *path: str) -> Any:
         """
         Called with vetted user args or can be called directly.
@@ -157,10 +176,11 @@ class DataDictionary():
         path does not lead to a dictionary.
         Note that "None" is not a definitive "not found" statement.
         """
-        data = self._current_frame
-        for key in path:
-            if not isinstance(data, (Frame, dict)) or key not in data: return None
-            data = self._value_for(data[key])
+        data, path = self._get_starting_point(self._current_frame, *path)
+        if data is not None:
+            for key in path:
+                if not isinstance(data, (Frame, dict)) or key not in data: return None
+                data = self._value_for(data[key])
         return data
 
     def var_exists(self, *path: str) -> tuple[bool, Any]:
@@ -169,7 +189,8 @@ class DataDictionary():
         if it does, what that value is.
         """
         if not path: return (False, None)
-        data = self._current_frame
+        data, path = self._get_starting_point(self._current_frame, *path)
+        if data is None: return (False, None)
         for key in path:
             if not isinstance(data, (Frame, dict)) or key not in data: return (False, None)
             data = data[key]
@@ -256,6 +277,9 @@ class Frame:
             for prefix in [local[0][0] for local in locals_list]:
                 self.declare(prefix)
 
+    def caller_frame(self) -> "Frame":
+        return None
+
     def declare(self, prefix: str) -> bool:
         """
         Idempotent if already present.
@@ -310,6 +334,9 @@ class LocalsFrame(Frame):
     def __init__(self, caller_frame: Frame, locals_list: list=None) -> None:
         super().__init__(locals_list)
         self._caller_frame: Frame = caller_frame
+
+    def caller_frame(self) -> Frame:
+        return self._caller_frame
 
     def declare(self, prefix: str) -> bool:
         rc = super().declare(prefix)
