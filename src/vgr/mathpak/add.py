@@ -16,7 +16,7 @@ def poly_add(x: Any, *args):
 |-------|-------|-----------|-----------------------|
 | int   | int   | int       | x + y                 |
 | int   | float | float     | x + y                 |
-| int   | str   | in/float  | x + ToNumber(y)       |
+| int   | str   | int/float | x + ToNumber(y)       |
 | int   | list  | list      | distributive          |
 | int   | tuple | tuple     | distributive          |
 | float | int   | int/float | x + ToFloat(y)        |
@@ -43,7 +43,7 @@ def poly_add(x: Any, *args):
 
 TypeError raised on all other combinations
 
-See _ToNumber()_ and _ToStr()_ for conversion details
+See `ToNumber()` and `ToStr()` for conversion details
 """
     return reduce(_add, args, x)
 
@@ -80,8 +80,21 @@ def poly_sum(x: Any, *args) -> Any:
 If a value is _None_ it is treated as a zero.
 String values are converted to numbers when possible.
 
-While similar to *Add()*, *Sum()* is not distributed over
+While similar to `Add()`, `Sum()` is not distributed over
 lists, but instead sums their content.
+Additionally, if strings cannot be converted to a number
+they are ignored.
+
+```vgr
+None.Sum() → 0
+5.Sum(None) → 5
+5.Sum(7) → 12
+5.Sum(" 7.0") → 12
+[1, 2, 3, 5].Sum() → 11
+0.Sum([1, 2], [3, 5]) → 11
+True.Sum(True, None, True) → 3
+["cat", "dog", "fish"].Sum() → 0
+```
 """
     return _sum(x) + sum(_sum(arg) for arg in args)
 
