@@ -12,14 +12,25 @@ def poly_lookup(x: Any, attr: Any, *args) -> Any:
 
 The _attr_ argument can be an int or float but more typically is a string. Lists and dictionaries cannot be used.
 The attributes named in the list must be an exact match.
-For the value argument, it may be a single value or a list of values.
+For _value_ argument, it may be a single value or a list of values.
 
-The result is always a list, which may be empty. A lookup performed on None or a non-list
+The result is always a list, which may be empty. A Lookup() performed on _None_ or a non-list
 always returns an empty list of results.
 
 ```vgr
-**TODO**
+Set point1 To {"x": 5, "y": 7, "space": 2, "name": "p1"}
+Set point2 To {"x": 7, "y":29, "space": 2, "name": "p2"}
+Set point3 To {"x": 9, "y":31, "z": -7, "space": 3, "name": "p3"}
+Set point4 To {"x":11, "y":37, "z": None, "space": 3, "name": "p4"}
+Set points To [point1, point2, point3, point4]
+points.Lookup("x", 5) → [{"x": 5, "y": 7, "space": 2, "name": "p1"}]
+points.Lookup("z", None).Dig("name") → ["p4"]
+points.Lookup("space", 1).Dig("name") → []
+points.Lookup("space", 1, 2).Dig("name") → ["p1", "p2"]
+points.Lookup("space", 3).Lookup("z", None).Dig("name") → ["p4"]
 ```
+
+Also see `Dig()`
 """
     if not isinstance(x, (list, tuple)): return []
     if not isinstance(attr, (str, int, float, tuple)):
