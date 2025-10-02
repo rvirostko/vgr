@@ -27,7 +27,8 @@ from .tags import control_statement
 from .xtract_memory import InMemoryExtractor
 from .xtract_vault import VAULT_TARGETS, VaultDataExtractor
 
-_ROWID_VAR = '$rowid'
+_ROWID_PATH = ('$rowid', )
+_DEFAULT_TARGET_NAME = '$record'
 
 _VAR_OPT = 'var'
 
@@ -37,7 +38,6 @@ class SelectAnalyzer(Visitor):
     # TODO it is out of sync...
     _VAR_NAME = re.compile(r'[A-Za-z_](?:[A-Za-z0-9_]|-+[A-Za-z])*(?:\u2032+|[\u2033\u2034\u2057\u2080-\u2089])?')
 
-    _DEFAUL_TARGET_NAME = '_record'
 
     _BOOL_OPTS = (
         'array_wrapper',
@@ -224,7 +224,7 @@ class SelectAnalyzer(Visitor):
         node = bind_operations(node)
         self.from_opts['type'] = 'memory'
         self.from_opts[_VAR_OPT] = _var_name_path(node.children[0])
-        self.from_opts['target'] = self._get_target_name(node.children[1]) if len(node.children) > 1 else self._DEFAUL_TARGET_NAME
+        self.from_opts['target'] = self._get_target_name(node.children[1]) if len(node.children) > 1 else _DEFAULT_TARGET_NAME
 
     def file_from(self, node: Tree):
         """... From File <filename> [As <target>] ..."""
@@ -233,7 +233,7 @@ class SelectAnalyzer(Visitor):
         filename = self.ctx.eval_filename_expr(bind_operations(node.children[0]))
         self.from_opts['file'] = filename
         self.from_opts['dtype'] = load_data_type(filename, None)
-        self.from_opts['target'] = self._get_target_name(node.children[1]) if len(node.children) > 1 else self._DEFAUL_TARGET_NAME
+        self.from_opts['target'] = self._get_target_name(node.children[1]) if len(node.children) > 1 else _DEFAULT_TARGET_NAME
 
     def file_from_typed(self, node: Tree):
         """... From File <filename> <source_type> [As <target>] ..."""
@@ -242,11 +242,11 @@ class SelectAnalyzer(Visitor):
         filename = self.ctx.eval_filename_expr(bind_operations(node.children[0]))
         self.from_opts['file'] = filename
         self.from_opts['dtype'] = load_data_type(filename, node.children[1])
-        self.from_opts['target'] = self._get_target_name(node.children[2]) if len(node.children) > 2 else self._DEFAUL_TARGET_NAME
+        self.from_opts['target'] = self._get_target_name(node.children[2]) if len(node.children) > 2 else _DEFAULT_TARGET_NAME
 
     def _get_target_name(self, node: Tree) -> str:
         target = self.ctx.eval_expr_or_const(bind_operations(node))
-        if target is None: return self._DEFAUL_TARGET_NAME
+        if target is None: return _DEFAULT_TARGET_NAME
         if not isinstance(target, str):
             raise VgrRuntimeError(node, TypeError(f"Value for 'As' must be a string; found {type_str(target)}"))
         target = target.strip()
@@ -411,19 +411,25 @@ def execute_select(ctx: ExecContext, statement: Tree):
 
 TODO
 """
-    select = SelectAnalyzer(ctx).analyze(statement)
-    # NB: at this point not all operations will show as bound
-    # (notably in the outputs and the predicates) and
-    # that is by design, so don't panic
-    ctx.print_tree(statement)
-    output_opts = select.output_opts
-    # If the type was not set, we use the default
-    output_opts['type'] = output_opts.get('type', 'csv')
-    writer = create_writer(output_opts, select.output_controls)
-    if ctx.debug: ctx.print_debug(repr(writer))
-    extractor = create_extractor(ctx, select.from_opts)
-    if ctx.debug: ctx.print_debug(repr(extractor))
-    QueryRunner(ctx, select, writer).run_extraction(extractor)
+    ctx.dd.push_frame([(_ROWID_PATH, 0)])
+    try:
+        select = SelectAnalyzer(ctx).analyze(statement)
+        # NB: at this point not all operations will show as bound
+        # (notably in the outputs and the predicates) and
+        # that is by design, so don't panic
+        ctx.print_tree(statement)
+        output_opts = select.output_opts
+        from_opts = select.from_opts
+        ctx.dd.declare_var(True, (from_opts['target'],))
+        # If the type was not set, we use the default
+        output_opts['type'] = output_opts.get('type', 'csv')
+        writer = create_writer(output_opts, select.output_controls)
+        if ctx.debug: ctx.print_debug(repr(writer))
+        extractor = create_extractor(ctx, from_opts)
+        if ctx.debug: ctx.print_debug(repr(extractor))
+        QueryRunner(ctx, select, writer).run_extraction(extractor)
+    finally:
+        ctx.dd.pop_frame()
 
 class QueryRunner(QueryFilter, InfoOutput):
     def __init__(self, ctx: ExecContext, select: SelectAnalyzer, writer: RecordWriter):
@@ -443,7 +449,7 @@ class QueryRunner(QueryFilter, InfoOutput):
     @rowid.setter
     def rowid(self, value: int) -> int:
         self._rowid = int(value)
-        self.ctx.set_var(self._rowid, _ROWID_VAR)
+        self.ctx.set_var(self._rowid, *_ROWID_PATH)
 
     def inc_rowid(self):
         self.rowid += 1
@@ -456,10 +462,10 @@ class QueryRunner(QueryFilter, InfoOutput):
         a DataLimitExceededException: this is the only place where
         this should be caught.
         """
-        self.rowid = 0
         extractor.start(self)
         if self._writer.start():
             try:
+                self.rowid = 0
                 try:
                     extractor.extract(self, self)
                 except EndExtractException:
@@ -510,12 +516,11 @@ class QueryRunner(QueryFilter, InfoOutput):
             # NB: The JSON writer has special handling for this
             record = [ data ]
         try:
-            if  not self._writer.write(record):
+            if not self._writer.write(record):
                 raise EndExtractException()
             return True
         finally:
             pass
-            # TODO should this get its own frame?
 
     def set_data(self, key: str, data: Any) -> None:
         """
