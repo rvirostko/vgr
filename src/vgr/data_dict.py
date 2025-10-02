@@ -16,6 +16,8 @@ from typing import (
 GOBAL_KEY = '$global'
 OUTER_KEY = '$outer'
 
+MAX_FRAMES = 64
+
 class DataDictionary():
     """
     A hierachical data store
@@ -41,7 +43,7 @@ class DataDictionary():
         return prefix
 
     def push_frame(self, locals_list: list=None) -> None:
-        if len(self._frames) >= 8192: raise RecursionError()
+        if len(self._frames) > MAX_FRAMES: raise RecursionError(f'Too many Frames: {MAX_FRAMES}')
         new_frame = LocalsFrame(self._current_frame, locals_list)
         self._frames.append(new_frame)
         try:
