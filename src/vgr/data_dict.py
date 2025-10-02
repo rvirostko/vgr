@@ -28,17 +28,12 @@ class DataDictionary():
         # Populate the stack of frames with our "global" frame
         self._frames: list[Frame] = [Frame()]
         self._immutable_prefixes: set = set()
-        self._protected_prefixes: set = set()
         self.add_immutable_prefix(GOBAL_KEY)
         self.add_immutable_prefix(OUTER_KEY)
 
     def add_immutable_prefix(self, prefix: str) -> None:
         """Immutable prefixes means you can't change any part of them"""
         self._immutable_prefixes.add(self._assert_valid_prefix(prefix))
-
-    def add_protected_prefix(self, prefix: str) -> None:
-        """Protected prefixes means you can change any part of them, but not at the top-level"""
-        self._protected_prefixes.add(self._assert_valid_prefix(prefix))
 
     def _assert_valid_prefix(self, prefix: str) -> str:
         """Prefixes cannot contain "." or be a reserved word"""
@@ -79,11 +74,9 @@ class DataDictionary():
 
     def reset(self) -> None:
         """
-        Removes:
-        * Everything outside of immutable and protected prefixes
-        * Contents of protected prefixes
+        Removes everything outside of immutable prefixes
         """
-        self._current_frame.reset(self._protected_prefixes, self._immutable_prefixes)
+        self._current_frame.reset(self._immutable_prefixes)
 
     def set_var_user(self, value: Any, /, *path: str) -> Any:
         """
@@ -206,13 +199,10 @@ overwritten.
         return step
 
     def validate_user_set_path(self, *path: str) -> tuple:
-        """Check the path for validity in setting, preventing alterations of protected and immutable areas"""
+        """
+        Check the path for validity in setting, preventing alterations immutable areas
+        """
         prefix: str = path[0]
-        # protected means you can't change at the top level, but
-        # you can change its properties
-        if len(path) == 1 and prefix in self._protected_prefixes:
-            raise ValueError(f'Cannot alter protected prefix {prefix!r}')
-        # immutable means just that
         if prefix in self._immutable_prefixes:
             raise ValueError(f'Cannot alter {".".join(path)!r} - {prefix!r} is immutable')
         return path
@@ -300,13 +290,9 @@ class Frame:
         self._data.clear()
         self._data = None
 
-    def reset(self, protected_prefixes: tuple, immutable_prefixes: tuple) -> None:
+    def reset(self, immutable_prefixes: tuple) -> None:
         for key in list(self._data):  # list() to avoid dict size change during iteration
-            if key in protected_prefixes:
-                self._data[key] = {}
-            else:
-                if key not in immutable_prefixes:
-                    del self._data[key]
+            if key not in immutable_prefixes: del self._data[key]
 
     def __iter__(self): return iter(self._data)
     def __getitem__(self, key: str) -> Any: return self._data[key]
@@ -349,11 +335,11 @@ class LocalsFrame(Frame):
         finally:
             self._outer_frame = None
 
-    def reset(self, protected_prefixes: tuple, immutable_prefixes: tuple) -> None:
+    def reset(self, immutable_prefixes: tuple) -> None:
         # First the locals
-        super().reset(protected_prefixes, immutable_prefixes)
+        super().reset(immutable_prefixes)
         # then everything else
-        self._outer_frame.reset(protected_prefixes, immutable_prefixes)
+        self._outer_frame.reset(immutable_prefixes)
 
     def __iter__(self) -> Iterator:
         seen = set()

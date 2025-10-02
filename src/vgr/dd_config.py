@@ -165,8 +165,6 @@ def dd_init(dd: DataDictionary) -> None:
         dd.set_var(func(), name)
 
 def dd_init_args(dd: DataDictionary) -> None:
-    # User arguments are empty
-    dd.add_protected_prefix(_ARG_PREFIX)
     dd.set_var({}, _ARG_PREFIX)
     # ... except for the awk settings
     # Pick up the defaults AWK would use
