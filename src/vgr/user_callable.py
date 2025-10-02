@@ -37,18 +37,13 @@ class _VgrCallable(ABC):
         return list(zip(self._param_paths, arg_values))
 
 class _AbstractUserFunction(_VgrCallable):
-    _SELF_PATH = ('self',)
+    _SELF_PATH = ('$self',)
+    _ARGS_PATH = ('$args',)
 
     def __str__(self): return '<function>'
 
     def evaluate(self, ctx: ExecContext, arg_values: list) -> Any:
-        try:
-            # Needs to be copy-on-write
-            ctx.dd.push_frame(self._create_locals_list(arg_values))
-        except Exception as e:
-            # Push did not work, so we not only skip
-            # evaluation, but also the pop
-            raise e
+        ctx.dd.push_frame(self._create_locals_list(arg_values))
         try:
             return self._evaluate(ctx)
         except (VgrStatementContinue, VgrStatementBreak) as e:
@@ -62,9 +57,10 @@ class _AbstractUserFunction(_VgrCallable):
     def _evaluate(self, ctx: ExecContext) -> Any: pass
 
     def _create_locals_list(self, arg_values: list) -> list:
-        # Adds the "self" after the named parameters
+        # Adds the "self" and "args" after the named parameters
         rc = super()._create_locals_list(arg_values)
         rc.append((self._SELF_PATH, self))
+        rc.append((self._ARGS_PATH, arg_values))
         return rc
 
 class UserFunction(_AbstractUserFunction):
@@ -140,43 +136,47 @@ The arrow operator separates the parameter list from the body.
 The body is either an expression or a dynamic expression using _Compile_(...).
 
 _*Special Rules*_
-* Inside the function, the variable `self` is the same function for recursive calls
+* Inside the function, the variable `$self` is the same function for recursive calls
+* Also, there is a `$args` variable which contins the arguments as passed by the caller.
+  This may contain more or less than the named arguments.
 * If a parameter is `Unset` inside a function it exposes a global value if one exists
 * When invoked inline, the preceeding _value_ is the first argument passed to the function
 * Arrow Functions can read but not change global state except by acting on arguments that are
   passed by reference, such as lists and dictionaries
+* The `$global` and `$outer` prefixes may be used to resolve variables defined outside of
+  the function: both should be used sparingly
 
 **Examples**
 
 _*Missing and extra arguments*_
 ```vgr
-    Set add = (x, y) -> x + y
-    Print @add(5) → None     // x defaults to None
-    Print @add(5, 6) → 11
-    Print @add(5, 6, 7) → 11 // Extra arg ignored
+Set add = (x, y) -> x + y
+Print @add(5) → None     // x defaults to None
+Print @add(5, 6) → 11
+Print @add(5, 6, 7) → 11 // Extra arg ignored
 ```
 
 _*Recursive function using compact notation*_
 ```vgr
-    fact(n) -> (n <= 1 ? 1 : n * @self(n - 1))
-    Print @fact(5) → 120
+fact(n) -> (n <= 1 ? 1 : n * @$self(n - 1))
+Print @fact(5) → 120
 ```
 
 _*Dynamically compiled expression*_
 ```vgr
-    Accept op From stdin
-    Assert op in ["+", "-", "*", "/"]
-    Set dyn = (x, y) -> Compile("(x {} y) + 10".Format(op))
+Accept op From stdin
+Assert op in ["+", "-", "*", "/"]
+Set dyn = (x, y) -> Compile("(x {} y) + 10".Format(op))
 ```
 
 _*Invocation of variables which are _not_ functions*_
 ```vgr
-    Unset a
-    Print @a() → None
-    Set a = "Hello"
-    Print @a(1, 2) → "Hello"
+Unset a
+Print @a() → None
+Set a = "Hello"
+Print @a(1, 2) → "Hello"
 ```
-    """
+"""
 
     def __init__(self, source: str, expr: Tree, param_paths: list[tuple[str]]):
         super().__init__(param_paths)
