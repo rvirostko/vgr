@@ -1,25 +1,30 @@
-#! /bin/bash
+#! /bin/sh
 
-cat <<< "
+# Example of passing in values via the command line
+today=`date +"%Y-%m-%d"`
+subj="Hello Again!"
+
+python3 -m vgr \
+    "today=${today}" \
+    "subj=${subj}" \
+<<EOF || echo "FAILED"
+
+Set data_file To "people.json"
+Assert data_file.FileExists() :
+    "Please run from the same directory where {} is stored", data_file
+
+Set form_file To "form.txt"
+Open Output File form_file
+Print """
 -- TO : {1}
 -- SUBJ: {2}
 -- BODY
 Dear {0},
 
 Just wanted to say hello.
--- END " >form.txt
-
-today=`date +"%Y-%m-%d"`
-subj="Hello Again!"
-
-# NOTE!
-# If you use one of the flags (--debug et al) without an arg following it
-# make sure you do so AFTER any user arguments. Otherwise it will eat the
-# argument folliwing it.
-python -m vgr \
-    "today=${today}" \
-    "subj=${subj}" \
-<<EOF || echo "FAILED"
+-- END
+"""
+Close Output
 
 -- Check prereqs
 -- Is empty checks for None, an empty string, or one composed only of spaces
@@ -30,22 +35,24 @@ Assert arg.subj.IsNotEmpty() : "You need to pass in the email subject"
 -- but no harm in explicitly defining the type
 Printf "Loading template..."
 Load mail_template
-    With "form.txt"
+    With form_file
     As Text
+Set mail_template = mail_template.Strip()
 Print " done."
 
 -- The file is actually an array of JSON objects, which is itself an object.
 -- To use with Select, it has to be an array.
 Printf "Loading data..."
 Load People
-    With "people.json"
+    With data_file
     As Json Object
 Print " done."
 Printf "{} total records\n", People.Length()
 
 Printf "Sorting..."
-Sort Var People
-    By Asc Key last_name, Asc Key first_name
+Sort People
+    By Asc Key last_name,
+       Asc Key first_name
     Unique
 Print " done."
 
@@ -58,22 +65,22 @@ Open Output File arg.today + " - mail-output.txt" Overwrite
 -- Positionally args are first name, email, and the email subject.
 -- We exclude people with incomplete information
 Select mail_template.Format(first_name, email, "Hello Again!")
-    From Var People As person
+    From People As person
     Where first_name Is Not Null
-            And email Is Not Null
+           And email Is Not Null
     For Text Unicode
 Close Output
 
 Open Output File arg.today + " - skipped.csv" Overwrite
-Select $rowid as "ROW", first_name As "FNAME", last_name As "LNAME", email as "EMAIL"
-    From Var People as person
+Select \$rowid as "ROW", first_name As "FNAME", last_name As "LNAME", email as "EMAIL"
+    From People as person
     Where first_name Is Null
             Or email Is Null
     For CSV
 Close Output
 
+Assert form_file.RemoveFile().FirstItem() : "Could not delete {}", form_file
+
 Print "Done."
 
 EOF
-
-rm form.txt
