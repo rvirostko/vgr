@@ -198,6 +198,10 @@ def _default_to(value: Any, default: Any) -> Any:
 **Returns the default if a value is _None_**
 
 * _value_.DefaultTo(_default_)
+
+```vgr
+**TODO**
+```
 """
     return default if value is None else value
 
@@ -206,6 +210,10 @@ def _id(obj: Any) -> Any:
 **Returns the internal, unique ID used by the value**
 
 * _value_.Id()
+
+```vgr
+**TODO**
+```
 """
     return id(obj)
 
@@ -220,6 +228,10 @@ The _start_at_ argument defines the number used in the enumerated tuple.
 The default value for _start_at_ is zero.
 Enumeration of values that are not collections produces an enumeration of a single entry.
 Enumerating _None_ returns an empty list.
+
+```vgr
+**TODO**
+```
 """
     if obj is None: return []
     start_at = int_arg(start_at, "StartAt")
@@ -239,6 +251,10 @@ The _value_'s type determines what is returned:
 * Boolean : returns the logical negation
 * Int and Float : return the arithmetic negation
 * Lists and Dictionaries : distributed negation
+
+```vgr
+**TODO**
+```
 """
     if x is None: return True
     if isinstance(x, bool): return not x
@@ -255,6 +271,10 @@ def _slice(x: Any, start: int=None, stop: int=None, step: int=None) -> Any:
 * _value_.Slice(_start_)
 * _value_.Slice(_start_, _stop_)
 * _value_.Slice(_start_, _stop_, _step_)
+
+```vgr
+**TODO**
+```
 """
     start = int_arg(start, "Start") if start is not None else None
     stop = int_arg(stop, "Stop") if stop is not None else None
@@ -280,6 +300,9 @@ Each element will have the _N_th matching values joined together.
 If the lists are of unequal length, _None_ values are used for the
 missing items.
 
+```vgr
+**TODO**
+```
 """
     def normalize(x):
         return x if isinstance(x, Iterable) and not isinstance(x, (str, bytes, bytearray)) else [x]
@@ -295,6 +318,10 @@ def _length(x: Any) -> bool:
 Returns the length of lists and strings.
 For dictionaries, the number of attributes is returned.
 For all other values _None_ is returned.
+
+```vgr
+**TODO**
+```
 """
     return len(x) if hasattr(x, '__len__') else None
 
@@ -312,6 +339,9 @@ Otherwise, the _singular_ value is returned.
 The defaults arguments are _s_ and an empty string respectively.
 The values for _plural_ and _signular_ can be any any values.
 
+```vgr
+**TODO**
+```
 """
     if isinstance(x, (int, float)):
         is_one = x == 1
@@ -328,6 +358,10 @@ def build_list(*values: Any) -> list[Any]:
 * **[** _expression_ [, _expression_]... **]** _an_ _initialized_ _list_
 
 Lists can contain any type including _None_, other lists, and dictionaries.
+
+```vgr
+**TODO**
+```
 """
     return [] if values is None else list(values)
 
@@ -342,6 +376,10 @@ def build_dict(*values: Any) -> dict:
 Keys can be any ordinal type: int, float, string. _None_ cannot be a key.
 
 Values can be any type including _None_, other lists, and dictionaries.
+
+```vgr
+**TODO**
+```
 """
     # Values is alternating pairs of key/values
     # so we use a "stride" of two to form two groups
@@ -358,6 +396,10 @@ def logical_or(eval_arg, args: list) -> Any:
 * _x_ ∨ _y_
 
 The values for _x_ and _y_  are evaluated as booleans.
+
+```vgr
+**TODO**
+```
 """
     # NOTE! args is from the parse tree,
     #       not the evaluated expressions
@@ -375,7 +417,13 @@ def logical_and(eval_arg, args: list) -> Any:
 * _x_ ∧ _y_
 
 The values for _x_ and _y_  are evaluated as booleans.
+
+```vgr
+**TODO**
+```
 """
+    # NOTE! args is from the parse tree,
+    #       not the evaluated expressions
     for arg in args:
         if not eval_arg(arg): return False
     return True
@@ -392,7 +440,6 @@ _BUILT_IN_FUNCS = {
     "BitNot":         poly_bit_not,
     "BitOr":          poly_bit_or,
     "BitXor":         poly_bit_xor,
-    "Bool":           poly_bool,
     "Capitalize":     poly_capitalize,
     "CaseFold":       poly_casefold,
     "Ceil":           poly_ceil,
@@ -411,7 +458,6 @@ _BUILT_IN_FUNCS = {
     "DefaultTo":      _default_to,
     "Dig":            poly_dig,
     "DirectoryName":  dir_name,
-    "DirName":        dir_name,
     "Div":            poly_div,
     "DivMod":         poly_divmod,
     "EncodeUrl":      encode_url,
@@ -421,7 +467,6 @@ _BUILT_IN_FUNCS = {
     "FileExists":     file_exists,
     "FindStr":        poly_find,
     "FirstItem":      poly_firstitem,
-    "Float":          poly_float,
     "Floor":          poly_floor,
     "FloorDiv":       poly_fdiv,
     "FloorMultiple":  poly_floor_multiple,
@@ -434,7 +479,6 @@ _BUILT_IN_FUNCS = {
     "HexEncode":      poly_hex_encode,
     "Id":             _id,
     "IndexOf":        poly_index,
-    "Int":            poly_int,
     "IsAlpha":        poly_isalpha,
     "IsAlphaNumeric": poly_isalnum,
     "IsAscii":        poly_isascii,
@@ -479,9 +523,7 @@ _BUILT_IN_FUNCS = {
     "LeftShift":      poly_shl,
     "LeftStr":        poly_leftstr,
     "LeftStrip":      poly_lstrip,
-    "Len":            _length,
     "Length":         _length,
-    "List":           poly_list,
     "Lookup":         poly_lookup,
     "Lower":          poly_lower,
     "Matches":        poly_matches,
@@ -546,8 +588,6 @@ _BUILT_IN_FUNCS = {
     "SplitLines":     poly_splitlines,
     "StartsWith":     poly_startswith,
     "Stdev":          poly_stdev,
-    "Str":            poly_str,
-    "String":         poly_str,
     "StringLen":      poly_strlen,
     "Strip":          poly_strip,
     "StripNulls":     strip_nulls,
@@ -593,7 +633,7 @@ _FUNC_INDEX = {}
 @lru_cache
 def get_function_entries():
     return {
-        name: (func, name.lower().replace('_', ''), (func.__doc__ or '').lower()) for name, func in _FUNC_OPS.items()
+        name: (func, name.lower(), (func.__doc__ or '').lower()) for name, func in _FUNC_OPS.items()
     }
 
 # Needs to include all items bound to operators
