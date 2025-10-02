@@ -17,7 +17,7 @@ import sys
 import time
 import uuid
 
-from .data_dict import DataDictionary, DynamicValue
+from .data_dict import DataDictionary, DynamicValue, MAX_FRAMES
 from .mathpak import str_to_number, str_to_bool
 from .version import __version__, __version_date__
 
@@ -27,6 +27,7 @@ VER_DATE_PATH = (VGR_PREFIX, 'version_date')
 LOG_LEVEL_PATH = (VGR_PREFIX, 'log_level')
 EXEC_NAME_PATH = (VGR_PREFIX, 'python', 'executable')
 EXEC_VER_PATH = (VGR_PREFIX, 'python', 'version')
+MAX_FRAMES_PATH = (VGR_PREFIX, 'max_frames')
 
 _TIME_PREFIX = 'time'
 
@@ -140,6 +141,7 @@ def dd_init(dd: DataDictionary) -> None:
     dd.set_var(sys.executable, *EXEC_NAME_PATH)
     dd.set_var(f'{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}',
                *EXEC_VER_PATH)
+    dd.set_var(MAX_FRAMES, *MAX_FRAMES_PATH)
     # ... reg ex values
     dd.add_immutable_prefix(_RE_PREFIX)
     for flag in _RE_FLAGS:
