@@ -426,10 +426,11 @@ its printable value. This lets you diferentiate between an integer and a string,
 see control characters.
 """
     def _exhibit_value(name: str, value: Any) -> None:
-        if isinstance(value, dict):
-            if value:
-                for key in sorted(value.keys()):
-                    _exhibit_value(name + '.' + key, value[key])
+        if hasattr(value, 'keys') and callable(value.keys):
+            keys = value.keys()
+            if len(keys):
+                for key in sorted(keys):
+                    _exhibit_value(name + '.' + key if len(name) > 0 else key, value[key])
             else:
                 print_stdout(name, '= -empty-')
         else:
@@ -438,12 +439,11 @@ see control characters.
     if children:
         for var_name in children:
             var_path = _var_name_path(var_name)
-            name = '.'.join(var_path)
-            exists, value = ctx.var_exists(*var_path)
+            exists, true_name, value = ctx.var_exists(*var_path)
             if exists:
-                _exhibit_value(name, value)
+                _exhibit_value(true_name, value)
             else:
-                print_stdout(name, '= -not set-')
+                print_stdout(true_name, '= -not set-')
     else:
         # No arguments dumps the entire dictionary
         for key in sorted(ctx.dd.keys()):

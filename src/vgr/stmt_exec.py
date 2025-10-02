@@ -713,7 +713,7 @@ class DefaultExecContext(ExecContext):
 
     def get_var(self, *path: str) -> Any: return self.dd.get_var(*path)
     def set_var(self, data: Any, /, *path: str) -> Any: return self.dd.set_var(data, *path)
-    def var_exists(self, *path: str) -> tuple[bool, Any]: return self.dd.var_exists(*path)
+    def var_exists(self, *path: str) -> tuple[bool, str, Any]: return self.dd.var_exists(*path)
 
     def set_var_user(self, data: Any, /, *path: str):
         """*deprecated*"""

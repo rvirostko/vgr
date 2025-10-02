@@ -172,23 +172,29 @@ overwritten.
         """
         data, path = self._get_starting_point(self._current_frame, *path)
         if data is not None:
-            for key in path:
-                if not isinstance(data, (Frame, dict)) or key not in data: return None
-                data = self._value_for(data[key])
+            if path:
+                for key in path:
+                    if not isinstance(data, (Frame, dict)) or key not in data: return None
+                    data = self._value_for(data[key])
+            else:
+                data = self._value_for(data)
         return data
 
-    def var_exists(self, *path: str) -> tuple[bool, Any]:
+    def var_exists(self, *path: str) -> tuple[bool, str, Any]:
         """
         Returns a tuple that says if the value exists and,
         if it does, what that value is.
         """
-        if not path: return (False, None)
         data, path = self._get_starting_point(self._current_frame, *path)
-        if data is None: return (False, None)
-        for key in path:
-            if not isinstance(data, (Frame, dict)) or key not in data: return (False, None)
-            data = data[key]
-        return (True, self._value_for(data))
+        true_name = '.'.join(path)
+        if data is None: return (False, true_name, None)
+        if path:
+            for key in path:
+                if not isinstance(data, (Frame, dict)) or key not in data: return (False, true_name, None)
+                data = self._value_for(data[key])
+        else:
+            data = self._value_for(data)
+        return (True, true_name, data)
 
     @staticmethod
     def valid_path_step(step: str) -> str:

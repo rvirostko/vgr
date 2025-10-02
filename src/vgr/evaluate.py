@@ -360,7 +360,7 @@ def eval_expr_or_const(ctx: ExecContext, expr: Any) -> Any:
         # and its value is not known in the data dictionary
         if _is_var_ref(expr) and len(expr.children) == 1 and _is_name_token(expr.children[0]):
             name = expr.children[0].value
-            exists, value = ctx.var_exists(name)
+            exists, _, value = ctx.var_exists(name)
             return value if exists else name
     # If not one of the special cases, treat this as an expression
     return ctx.eval_expr(expr)

@@ -44,7 +44,7 @@ class ExecContext(ABC):
     def set_var(self, data: Any, /, *path: str) -> Any: pass
 
     @abstractmethod
-    def var_exists(self, *path: str) -> tuple[bool, Any]: pass
+    def var_exists(self, *path: str) -> tuple[bool, str, Any]: pass
 
     @abstractmethod
     def set_var_user(self, data: Any, /, *path: str) -> Any:
