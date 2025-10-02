@@ -8,6 +8,7 @@ import sys
 import traceback
 
 from lark import Lark
+from rapidfuzz.fuzz import ratio
 
 from .app_exceptions import VgrExitingException, VgrStatementAssert, VgrException
 from .data_dict import DataDictionary
@@ -19,7 +20,7 @@ from .dd_config import (
     VER_DATE_PATH,
     VER_PATH,
 )
-from .doc_help import print_md, search_entries, is_probably, print_doc, unique_by_func
+from .doc_help import print_md, search_entries, print_doc, unique_by_func
 from .extn import VgrExtension, VgrExtensionRegistry, VER
 from .functions import get_function_defs, add_builtin_functions, add_function, get_function_entries, get_operator_entries
 from .interactive import CmdLine, ArgumentParser, ParserBuilder
@@ -56,6 +57,19 @@ class VGRCmdLine(CmdLine):
         self._history_filename = self._get_vgr_default('history', self._DEFAULT_HISTORY)
         self._max_history_entries = self._get_vgr_default('history_size', CmdLine._DEFAULT_HISTORY_SIZE)
         super().__init__()
+        self._help_topics = {
+            ("cd",):               lambda _topic, _q: print_doc(self._exec_cd),
+            ("function",):         self._print_function_help,
+            ("help", "topics", "?", "/h", "/?") : lambda _topic, _q: print_doc(self._exec_help),
+            ("history",):          lambda _topic, _q: print_doc(self._exec_history),
+            ("multiline",):        lambda _topic, _q: print_doc(self._exec_multiline),
+            ("operator", "ops", "op"):  self._print_operator_help,
+            ("prompt",):           lambda _topic, _q: print_doc(self._exec_prompt),
+            ("pwd",):              lambda _topic, _q: print_doc(self._exec_pwd),
+            ("shell",):            lambda _topic, _q: print_doc(self._exec_subshell),
+            ("statement", "stmt"): self._print_statement_help,
+            ("version", "ver"):    self._print_version,
+        }
 
     def run(self):
         print_md('_Type **exit** to exit_')
@@ -96,12 +110,12 @@ class VGRCmdLine(CmdLine):
         """
 **Language Topics**
 
-* **function** : Search functions only for help
-* **operator** : Search operators only for help
-* **statement** : Search statements only for help
+* **function** : Search functions for help
+* **operator** : Search operators for help
+* **statement** : Search statements for help
 
-If no value provided with **function**, **operator**, or **statement** search, a list
-the associated items is displayed.
+If no value is provided with **function**, **operator**, or **statement**, a list
+of the associated items is displayed.
 
 **help** used with any other value searches through
 language features looking for an exact match.
@@ -117,61 +131,62 @@ For example **help Add** with return informtion for `Add()` while
 * **prompt** : Define the input input prompt
 * **pwd** : Print the current working directory
 * **shell** : Work with the OS sub-shell
-* **version** : Display version information
+* **topics** : This help information
+* **version** : Print version informtion
 
 """
         if len(args) < 1:
-            print_doc(self._exec_help)
+            topic = "help"
+            q = ""
         else:
-            topic = args[0]
+            topic = args[0].strip().lower()
             targs = args[1:]
             q = (' '.join(targs) if targs else '').strip()
-            if is_probably("version", topic) or topic in ("ver", "v"):
-                print()
-                print_md(f'**{__version__} {__version_date__}**')
-                print()
-            elif is_probably("cd", topic):
-                print_doc(self._exec_cd)
-            elif is_probably("help", topic) or is_probably("topics", topic) or topic in ("?", "/h", "/?"):
-                print_doc(self._exec_help)
-            elif is_probably("pwd", topic) :
-                print_doc(self._exec_pwd)
-            elif is_probably("history", topic):
-                print_doc(self._exec_history)
-            elif is_probably("multiline", topic):
-                print_doc(self._exec_multiline)
-            elif is_probably("prompt", topic):
-                print_doc(self._exec_prompt)
-            elif is_probably("shell", topic):
-                print_doc(self._exec_subshell)
-            elif is_probably("function", topic):
-                results = self._get_function_help(q) if q else self._all_help(get_function_entries())
-                self._display_function_help(q, results)
-            elif is_probably("operator", topic) or topic in ("ops", "op"):
-                results = self._get_operator_help(q) if q else self._all_help(get_operator_entries())
-                self._display_operator_help(q, results)
-            elif is_probably("statement", topic) or is_probably("stmt", topic):
-                results = self._get_statement_help(q) if q else self._all_help(get_statement_entries())
-                self._display_statement_help(q, results)
+        if bool(re.search(r"\([^)]*\)$", topic)):
+            self._print_function_help("", topic + ' ' + q)
+            return
+        for key in sorted(self._help_topics.keys()):
+            for topic_key in key:
+                # short topics need to be an exact match, longer ones can be fuzzy
+                if topic_key == topic  if len(topic) <= 4 else ratio(topic_key, topic) >= 70.0:
+                    self._help_topics[key](topic, q)
+                    return
+        self._default_help_action(topic, q)
+
+    def _default_help_action(self, topic: str, q: str) -> None:
+        # If no explicit topic that matches, then see what we can find
+        # in statements, functions, and operators
+        q = topic + ' ' + q
+        func_help = self._get_function_help(q)
+        if len(func_help) == 1:
+            self._display_function_help(q, func_help)
+        else:
+            op_help = self._get_operator_help(q)
+            if len(op_help) == 1:
+                self._display_operator_help(q, op_help)
             else:
-                # If no explicit topic that matches, then see what we can find
-                # in statements, functions, and operators
-                q = topic + ' ' + q
-                func_help = self._get_function_help(q)
-                if len(func_help) == 1:
-                    self._display_function_help(q, func_help)
+                stmt_help = self._get_statement_help(q)
+                if stmt_help:
+                    self._display_statement_help(q, stmt_help)
                 else:
-                    op_help = self._get_operator_help(q)
-                    if len(op_help) == 1:
-                        self._display_operator_help(q, op_help)
-                    else:
-                        stmt_help = self._get_statement_help(q)
-                        if stmt_help:
-                            self._display_statement_help(q, stmt_help)
-                        else:
-                            print()
-                            print_md('_Use **help topics** to list topics_')
-                            print()
+                    print()
+                    print_md('_Use **help topics** to list topics_')
+                    print()
+
+    def _print_statement_help(self, topic: str, q: str) -> None:
+        results = self._get_statement_help(q) if q else self._all_help(get_statement_entries())
+        self._display_statement_help(q, results)
+
+    def _print_function_help(self, topic: str, q: str) -> None:
+        results = self._get_function_help(q) if q else self._all_help(get_function_entries())
+        self._display_function_help(q, results)
+
+    def _print_operator_help(self, topic: str, q: str) -> None:
+        results = self._get_operator_help(q) if q else self._all_help(get_operator_entries())
+        self._display_operator_help(q, results)
+
+    def _print_version(self, topic: str, q: str) -> None:
+        print_md(f'**{__version__} {__version_date__}**')
 
     def _all_help(self, entries: list) -> list:
         return unique_by_func([(name, entries[name][0]) for name in sorted(entries.keys())])

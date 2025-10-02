@@ -26,7 +26,6 @@ from pygments.token import (
     Whitespace,
 )
 from rapidfuzz import fuzz
-from rapidfuzz.fuzz import ratio
 from rich.console import Console, Theme
 from rich.markdown import Markdown
 from rich.syntax import Syntax
@@ -126,10 +125,6 @@ def _text_replace(match):
 
 def print_md(s: str) -> None:
     if s: _print(Console(theme=_THEME), s)
-
-def is_probably(word: str, s: str, threshold: float = 65.0) -> bool:
-    """Return True if s is close enough to the word using a fuzzy match."""
-    return ratio((s or "").strip().lower(), word) >= threshold
 
 def print_doc(func: Callable) -> None:
     doc = (func.__doc__ or "").strip()
