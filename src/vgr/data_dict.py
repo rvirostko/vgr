@@ -14,7 +14,7 @@ from typing import (
 
 # These values are INTENTIALLY omitted from keys()!
 GOBAL_KEY = '$global'
-CALLER_KEY = '$caller'
+OUTER_KEY = '$outer'
 
 class DataDictionary():
     """
@@ -29,8 +29,8 @@ class DataDictionary():
         self._frames: list[Frame] = [Frame()]
         self._immutable_prefixes: set = set()
         self._protected_prefixes: set = set()
-        self.add_immutable_prefix('$global')
-        self.add_immutable_prefix('$caller')
+        self.add_immutable_prefix(GOBAL_KEY)
+        self.add_immutable_prefix(OUTER_KEY)
 
     def add_immutable_prefix(self, prefix: str) -> None:
         """Immutable prefixes means you can't change any part of them"""
@@ -136,20 +136,21 @@ class DataDictionary():
 
     def declare_var(self, as_local: bool, *path: str) -> bool:
         """
-        Declares a variable in the appropriate frame.
-        Returns _True_ if the declaration was local.
-        The value at the path will be set to _None_ if
-        nothing already exists; existing values are never
-        overwritten.
-        """
-        target_frame = self._current_frame
-        # If global and more than the global frame
-        if not as_local and len(self._frames) > 1:
-            # Remove prefix from the current frame if it exists
-            # which clears the way for global access
-            target_frame.remove(path[0])
-            # Switch over to the global frame for the declaration
-            target_frame = self._frames[0]
+Declares a variable in the appropriate frame.
+
+Returns :
+* _True_ if variable established as local
+* _False_ if variable established as global
+* _None_ if variable pre-existing
+
+The value at the path will be set to _None_ if
+nothing already exists; existing values are never
+overwritten.
+"""
+        if len(self._frames) == 1 and as_local:
+            raise ValueError('Local is invalid in this context')
+        # Use current frame if local required or no preference
+        target_frame = self._current_frame if as_local is None or as_local else self._global_frame
         # We anchor the path in the frame
         rc = target_frame.declare(path[0])
         # Then we can set its value if it was not already present
@@ -158,15 +159,15 @@ class DataDictionary():
 
     def _get_starting_point(self, frame: "Frame", *path: str) -> tuple:
         """
-        Handles initial deref of $global/$caller in paths for reads.
+        Handles initial deref of $global/$outer in paths for reads.
         Writes are prohibited, so not used there.
         """
         if frame is None or not path: return (frame, path)
         first: str = path[0]
         if first == GOBAL_KEY:
             return self._get_starting_point(self._global_frame, *path[1:])
-        if first == CALLER_KEY:
-            return self._get_starting_point(frame.caller_frame(), *path[1:])
+        if first == OUTER_KEY:
+            return self._get_starting_point(frame.outer_frame(), *path[1:])
         return (frame, path)
 
     def get_var(self, *path: str) -> Any:
@@ -277,7 +278,7 @@ class Frame:
             for prefix in [local[0][0] for local in locals_list]:
                 self.declare(prefix)
 
-    def caller_frame(self) -> "Frame":
+    def outer_frame(self) -> "Frame":
         return None
 
     def declare(self, prefix: str) -> bool:
@@ -331,12 +332,12 @@ class LocalsFrame(Frame):
     This type of frame has _local_ variables which show others
     in the calling chain. Newly created variables are created as locals.
     """
-    def __init__(self, caller_frame: Frame, locals_list: list=None) -> None:
+    def __init__(self, outer_frame: Frame, locals_list: list=None) -> None:
         super().__init__(locals_list)
-        self._caller_frame: Frame = caller_frame
+        self._outer_frame: Frame = outer_frame
 
-    def caller_frame(self) -> Frame:
-        return self._caller_frame
+    def outer_frame(self) -> Frame:
+        return self._outer_frame
 
     def declare(self, prefix: str) -> bool:
         rc = super().declare(prefix)
@@ -346,13 +347,13 @@ class LocalsFrame(Frame):
         try:
             super().drop()
         finally:
-            self._caller_frame = None
+            self._outer_frame = None
 
     def reset(self, protected_prefixes: tuple, immutable_prefixes: tuple) -> None:
         # First the locals
         super().reset(protected_prefixes, immutable_prefixes)
         # then everything else
-        self._caller_frame.reset(protected_prefixes, immutable_prefixes)
+        self._outer_frame.reset(protected_prefixes, immutable_prefixes)
 
     def __iter__(self) -> Iterator:
         seen = set()
@@ -361,40 +362,40 @@ class LocalsFrame(Frame):
             yield key
             seen.add(key)
         # then everything else
-        for key in self._caller_frame:
+        for key in self._outer_frame:
             if key not in seen:
                 yield key
 
     def __getitem__(self, key: str) -> Any:
-        # locals shadow caller frames' variables
-        return self._data[key] if key in self._data else self._caller_frame[key]
+        # locals shadow outer frames' variables
+        return self._data[key] if key in self._data else self._outer_frame[key]
 
     def __setitem__(self, key: str, value: Any) -> None:
-        if key in self._data or key not in self._caller_frame:
-            # already a local or not in caller frames (a new local)
+        if key in self._data or key not in self._outer_frame:
+            # already a local or not in outer frames (a new local)
             self._data[key] = value
         else:
-            self._caller_frame[key] = value
+            self._outer_frame[key] = value
 
     def __delitem__(self, key: str) -> None:
-        # NB: unsetting a local can expose variables in the callers
+        # NB: unsetting a local can expose variables in the outer frames
         if key in self._data:
             del self._data[key]
         else:
-            del self._caller_frame[key]
+            del self._outer_frame[key]
 
     def __contains__(self, key: str) -> bool:
-        # First locals, then the callers's
-        return key in self._data or key in self._caller_frame
+        # First locals, then the outer frames
+        return key in self._data or key in self._outer_frame
 
     def setdefault(self, key: str, default: Optional[Any] = None) -> Any:
         """
         This is called when we are looking for the root of a path for modification.
         """
-        # If we dont have it, we need to see if callers have it
+        # If we dont have it, we need to see if outer frames have it
         if key not in self._data:
-            # If a caller frame has it, let them handle it
-            if key in self._caller_frame: return self._caller_frame.setdefault(key, default)
+            # If a outer frame has it, let them handle it
+            if key in self._outer_frame: return self._outer_frame.setdefault(key, default)
             # A new variable, so it becomes a local
             self._data[key] = default
         return self._data[key]
@@ -402,9 +403,9 @@ class LocalsFrame(Frame):
     def get(self, key: str, default: Optional[Any] = None) -> Any:
         if key in self._data:
             return self._data.get(key, default)
-        return self._caller_frame.get(key, default)
+        return self._outer_frame.get(key, default)
 
     def pop(self, key: str, default: Optional[Any] = None) -> Any:
         if key in self._data:
             return self._data.pop(key, default)
-        return self._caller_frame.pop(key, default)
+        return self._outer_frame.pop(key, default)

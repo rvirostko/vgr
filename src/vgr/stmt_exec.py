@@ -202,22 +202,26 @@ def execute_declare_local(ctx: ExecContext, statement: Tree) -> None:
 * Declare _name_,... [As] Local [;]
 * Declare _name_,... [As] Global [;]
 
-Without an argument, the variables are declared local.
 """
-    _declare(ctx, statement)
+    _declare(ctx, statement, True)
 
 def execute_declare_global(ctx: ExecContext, statement: Tree) -> None:
     """*documentation combined with local*"""
     _declare(ctx, statement, False)
 
-def _declare(ctx: ExecContext, statement: Tree, as_local: bool=True) -> None:
+def execute_declare(ctx: ExecContext, statement: Tree) -> None:
+    """*documentation combined with local*"""
+    _declare(ctx, statement, None)
+
+def _declare(ctx: ExecContext, statement: Tree, as_local: bool) -> None:
     var_paths = []
     for child in statement.children:
         var_paths.append(get_writable_var_path(ctx, child))
     # Now declare them and produce verbose output
     for var_path in var_paths:
         rc = ctx.dd.declare_var(as_local, *var_path)
-        if ctx.verbose and rc is not None: ctx.print_verbose('.'.join(var_path), 'declared as', 'Local' if rc else 'Global')
+        if ctx.verbose and rc is not None:
+            ctx.print_verbose('.'.join(var_path), 'declared as', 'Local' if rc else 'Global')
 
 @control_statement
 @bound_ops("Do-Forever", "Forever")
@@ -644,6 +648,7 @@ STATEMENT_HANDLERS = {
     'compile_arrow':     execute_compile_arrow,
     'continue':          execute_continue,
     'debug':             execute_debug,
+    'declare':           execute_declare,
     'declare_local':     execute_declare_local,
     'declare_global':    execute_declare_global,
     'def_function':      execute_def_function,
