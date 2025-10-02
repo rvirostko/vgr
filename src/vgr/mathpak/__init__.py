@@ -26,7 +26,14 @@ from .common import (
     type_str,
 )
 from .div import poly_div, poly_fdiv, poly_divmod
-from .files import base_name, dir_name, is_dir, is_file, file_exists
+from .files import (
+    base_name,
+    dir_name,
+    file_exists,
+    is_dir,
+    is_file,
+    remove_file,
+    )
 from .general import (
     dsort,
     poly_ascii,
