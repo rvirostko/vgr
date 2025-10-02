@@ -13,7 +13,6 @@ def poly_bool(x: Any) -> Any:
 **Converts the value to a boolean**
 
 * _value_.ToBool()
-* _value_.Bool()
 
 If _value_ is _None_ then _False_ is returned.
 Numbers that are zero return _False_ while all others return _True_.
@@ -69,8 +68,6 @@ def poly_float(x: Any, default: Any = _SENTINEL) -> Any:
 
 * _value_.ToFloat()
 * _value_.ToFloat(_default_)
-* _value_.Float()
-* _value_.Float(_default_)
 
 If _value_ is _None_ or is a non-convertable type then _None_ is returned.
 Strings that cannot be converted may result in a value error.
@@ -109,8 +106,6 @@ def poly_int(x: Any, default: Any = _SENTINEL) -> Any:
 
 * _value_.ToInt()
 * _value_.ToInt(_default_)
-* _value_.Int()
-* _value_.Int(_default_)
 
 If _value_ is _None_ or is a non-convertable type then _None_ is returned.
 Strings that cannot be converted may result in a value error.
@@ -259,7 +254,7 @@ def poly_str(x: Any) -> Any:
 **Converts the value to its string representation**
 
 * _value_.ToStr()
-* _value_.Str()
+* _value_.ToString()
 
 If _value_ is _None_ it is left as _None_, not converted to the string _"None"_.
 
@@ -317,7 +312,6 @@ def poly_list(x: Any) -> Any:
 **Converts a value to a list**
 
 * _x_.ToList()
-* _x_.List()
 
 Dictionaries are converted to a list of key/value pairs.
 If _value_ is _None_ an empty list is returned.
