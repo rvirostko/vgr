@@ -16,7 +16,7 @@ subj="Hello Again!"
 # If you use one of the flags (--debug et al) without an arg following it
 # make sure you do so AFTER any user arguments. Otherwise it will eat the
 # argument folliwing it.
-../vgr.py \
+python -m vgr \
     "today=${today}" \
     "subj=${subj}" \
 <<EOF || echo "FAILED"
@@ -65,7 +65,7 @@ Select mail_template.Format(first_name, email, "Hello Again!")
 Close Output
 
 Open Output File arg.today + " - skipped.csv" Overwrite
-Select _.rowid as "ROW", first_name As "FNAME", last_name As "LNAME", email as "EMAIL"
+Select $rowid as "ROW", first_name As "FNAME", last_name As "LNAME", email as "EMAIL"
     From Var People as person
     Where first_name Is Null
             Or email Is Null

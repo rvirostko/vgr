@@ -27,7 +27,7 @@ from .tags import control_statement
 from .xtract_memory import InMemoryExtractor
 from .xtract_vault import VAULT_TARGETS, VaultDataExtractor
 
-_ROWID_PATH = ('_', 'rowid')
+_ROWID_VAR = '$rowid'
 
 _VAR_OPT = 'var'
 
@@ -443,7 +443,7 @@ class QueryRunner(QueryFilter, InfoOutput):
     @rowid.setter
     def rowid(self, value: int) -> int:
         self._rowid = int(value)
-        self.ctx.set_var(self._rowid, *_ROWID_PATH)
+        self.ctx.set_var(self._rowid, _ROWID_VAR)
 
     def inc_rowid(self):
         self.rowid += 1
