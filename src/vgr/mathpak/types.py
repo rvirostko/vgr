@@ -321,8 +321,9 @@ If _value_ is _None_ an empty list is returned.
 ```
 """
     if x is None: return []
-    if isinstance(x, (list, tuple)): return x
-    if isinstance(x, dict): return [(key, x[key]) for key in sorted(x)]
+    if isinstance(x, list): return x
+    if isinstance(x, tuple): return [*x] if x else []
+    if isinstance(x, dict): return [(key, x[key]) for key in sorted(x)] if x else []
     return [x]
 
 def poly_isempty(x: Any) -> bool:
