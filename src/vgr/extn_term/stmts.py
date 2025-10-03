@@ -181,7 +181,7 @@ class TermConsts:
 
     # NB: These are for user reference.
     #     Use the globals in the code.
-    BSTYLES = tuple(style.name for style in BoxStyle)
+    BOX_STYLES = tuple(style.name for style in BoxStyle)
     BOX = _boxes()
 
     SOS = "\x1bX" # Start of String (SOS is 0x98)
@@ -474,7 +474,9 @@ def _term_draw_box(ctx: ExecContext, cmd: Tree) -> None:
         style = BoxStyle.Single
     height = int(args[arg_ind])
     width = int(args[arg_ind + 1])
-    start_row, start_col = _get_cursor_pos()
+    cur_rsp = _get_cursor_pos()
+    if cur_rsp is None: return
+    start_row, start_col = cur_rsp
     screen_cols, screen_rows = shutil.get_terminal_size()
     # Vertical adjustment
     if height >= 0:
@@ -570,31 +572,49 @@ def _term_with_count(ctx: ExecContext, cmd: Tree, control_seq: str) -> None:
     _print(control_seq.format(count))
 
 def _term_get_terminal_size(ctx: ExecContext, _: Tree) -> None:
+    """
+    Get the window size in term.size.rows/cols
+    If not available, term.size will be empty
+    """
+    response = None
     if not _DUMB_TERM:
         try:
             response =  shutil.get_terminal_size()
-            if response is not None and len(response) >= 2:
-                ctx.set_var(response[0], 'term', 'size', 'cols')
-                ctx.set_var(response[1], 'term', 'size', 'rows')
-                return
         except (OSError, ValueError):
             pass
-    ctx.set_var(None, 'term', 'size')
-
-def _get_cursor_pos():
-    return _parse_dsr_response(TermConsts.DSR_CURSOR, 'R')
+    if response is None or len(response) < 2:
+        ctx.set_var({}, 'term', 'size')
+    else:
+        ctx.set_var(response[0], 'term', 'size', 'cols')
+        ctx.set_var(response[1], 'term', 'size', 'rows')
 
 def _term_get_cursor_pos(ctx: ExecContext, _: Tree) -> None:
-    if not _DUMB_TERM:
-        response = _get_cursor_pos()
-        if response is None or len(response) < 2:
-            ctx.set_var(None, 'term', 'cursor')
-        else:
-            ctx.set_var(response[0], 'term', 'cursor', 'row')
-            ctx.set_var(response[1], 'term', 'cursor', 'col')
+    """
+    Get the cursor position in term.cursor.row/col (1 based)
+    If not available, term.cursor will be empty
+    """
+    response = None if _DUMB_TERM else _get_cursor_pos()
+    if response is None or len(response) < 2:
+        ctx.set_var({}, 'term', 'cursor')
+    else:
+        ctx.set_var(response[0], 'term', 'cursor', 'row')
+        ctx.set_var(response[1], 'term', 'cursor', 'col')
+
+def _get_cursor_pos() -> list:
+    """
+    Internal call to get and return the row & col in a list.
+    May return None.
+    """
+    if sys.platform.startswith("win"):
+        from .win_api import win_get_cursor_pos
+        return win_get_cursor_pos()
+    return _parse_dsr_response(TermConsts.DSR_CURSOR, 'R')
 
 def _parse_dsr_response(seq: str, terminator: str) -> list[int]:
-    if _DUMB_TERM: return None
+    """
+    Internal call to make a DSR request and return the integer results in a list.
+    Unix only!
+    """
     ascii_zero = ord('0')
     ascii_nine = ord('9')
     old_settings = None
