@@ -209,7 +209,7 @@ def _get_environment() -> dict:
             }
     for name, value in rc.items():
         if isinstance(value, str) and re.search(r'(_)?PATH$', name, re.IGNORECASE):
-            rc[name] = tuple(value.split(os.pathsep))
+            rc[name] = [value.split(os.pathsep)]
     return rc
 
 def _get_consts(source_mod) -> dict:
