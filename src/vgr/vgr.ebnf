@@ -22,8 +22,7 @@ _DECIMAL: "." _SPECIAL_DEC | _SPECIAL_DEC "." _SPECIAL_DEC
 FLOAT_NUMBER: "-"? (_SPECIAL_DEC _EXP_PART | _DECIMAL _EXP_PART?)
 
 // This becomes either a FLOAT or INT (when no decimal referenced) at runtime
-SUPERSCRIPT_FLOAT: /⁽[⁺⁻]?[⁰¹²³⁴⁵⁶⁷⁸⁹]+(·[⁰¹²³⁴⁵⁶⁷⁸⁹]+)?⁾/
-                 | /[⁺⁻]?[⁰¹²³⁴⁵⁶⁷⁸⁹]+(·[⁰¹²³⁴⁵⁶⁷⁸⁹]+)?/
+SUPERSCRIPT_FLOAT: /⁽[⁺⁻]?(?:[⁰¹²³⁴⁵⁶⁷⁸⁹]+(·[⁰¹²³⁴⁵⁶⁷⁸⁹]+)?|·[⁰¹²³⁴⁵⁶⁷⁸⁹]+)⁾|[⁺⁻]?(?:[⁰¹²³⁴⁵⁶⁷⁸⁹]+(·[⁰¹²³⁴⁵⁶⁷⁸⁹]+)?|·[⁰¹²³⁴⁵⁶⁷⁸⁹]+)/
 
 // TODO needs to be moved to code and injected here...
 // NAMEs are generally "snake case", "kabab case", and mixed version of the two, with some limitations.
