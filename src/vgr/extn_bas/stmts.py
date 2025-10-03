@@ -65,9 +65,7 @@ If `Break` is encountered, looping ends regardless of the
 limit's value. If `Continue` is encountered, statements
 following it are skipped and looping proceeds.
 
-Statements have access to a _$loop_ local variable
-which provides information such as _$loop.index_, _$loop.first_,
-and _$loop.last_.
+Statements have access to the _$loop_ variable, including _index_, _length_, _first_, and _last_.
 
 ```vgr
 For x = 2.0 To 4.0 By .5
