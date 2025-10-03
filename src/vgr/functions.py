@@ -218,27 +218,33 @@ def _id(obj: Any) -> Any:
 """
     return id(obj)
 
-def _enumerate(obj: Any, start_at: int=0) -> Any:
+def _enumerate(obj: Any, start_at: int=1) -> Any:
     """
 **Create an enumeration for a collection**
 
 * _value_.Enumerate()
 * _value_.Enumerate(_start_at_)
 
-The _start_at_ argument defines the number used in the enumerated tuple.
-The default value for _start_at_ is zero.
+The _start_at_ argument defines the number used in the enumerated value.
+The default value for _start_at_ is one.
 Enumeration of values that are not collections produces an enumeration of a single entry.
 Enumerating _None_ returns an empty list.
 
 ```vgr
-**TODO**
+None.Enumerate() → []
+5.Enumerate() → [[1, 5]]
+[5].Enumerate() → [[1, 5]]
+[5].Enumerate(-3) → [[-3, 5]]
+math.float.Enumerate() → [[1, "max", 1.7976931348623157e+308], [2, "min", 2.2250738585072014e-308]]
 ```
 """
     if obj is None: return []
     start_at = int_arg(start_at, "StartAt")
-    if isinstance(obj, Iterable) and not isinstance(obj, (str, bytes, bytearray)):
-        return list(enumerate(obj, start=start_at))
-    return [(start_at, obj)]
+    if isinstance(obj, dict):
+        return [[i, k, v] for i, (k, v) in enumerate(obj.items(), start=start_at)]
+    if isinstance(obj, list):
+        return [[i, x] for i, x in enumerate(obj, start=start_at)]
+    return [[start_at, obj]]
 
 def _negate(x: Any) -> Any:
     """
