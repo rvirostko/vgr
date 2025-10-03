@@ -236,7 +236,7 @@ def execute_forever(ctx: ExecContext, statement: Tree) -> None:
 The statements are repeatedly executed until a `Break` statement is
 encountered. A `Continue` causes the statements to loop.
 
-Inside the body of the loop, the _$loop_ variable is available.
+Statements have access to the _$loop_ variable, but only _index_ and _first_.
 
 ```vgr
 Set x To 5
@@ -430,9 +430,7 @@ If `Break` is encountered, looping ends regardless of the
 expression's value. If `Continue` is encountered, statements
 following it are skipped and looping continues.
 
-Statements have access to a _$loop_ local variable
-which provides information such as _$loop.index_, _$loop.first_,
-and _$loop.last_.
+Statements have access to the _$loop_ variable, including _index_, _length_, _first_, and _last_.
 
 ```vgr
 Repeat 3:
@@ -465,9 +463,7 @@ If `Break` is encountered, iteration ends regardless of the
 number of items remaining. If `Continue` is encountered, statements
 following it are skipped, and the loop continues with the next item.
 
-Statements have access to a _$loop_ local variable
-which provides information such as _$loop.index_, _$loop.first_,
-and _$loop.last_.
+Statements have access to the _$loop_ variable, including _index_, _length_, _first_, and _last_.
 
 ```vgr
 ForEach a In ["A", "B", "C"]:
