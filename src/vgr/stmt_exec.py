@@ -477,23 +477,53 @@ End
 A {'index': 1, 'first': True, 'last': False, 'length': 3}
 B {'index': 2, 'first': False, 'last': False, 'length': 3}
 C {'index': 3, 'first': False, 'last': True, 'length': 3}
+
+ForEach kv_pair in math:
+    If $loop.first: Print "-" * 60; End
+    Print kv_pair
+    If $loop.last: Print "-" * 60; End
+End
+
+------------------------------------------------------------
+['e', 2.718281828459045]
+['float', {'max': 1.7976931348623157e+308, 'min': 2.2250738585072014e-308}]
+['inf', inf]
+['nan', nan]
+['neg_inf', -inf]
+['pi', 3.141592653589793]
+['random', 0.30365351264499363]
+['random100', 7]
+['tau', 6.283185307179586]
+------------------------------------------------------------
 ```
 
 Also see `Break` and `Continue`
 """
     ctx.echo_source(statement, statement.children[2])
     var_path = get_writable_var_path(ctx, statement.children[0])
-    collection = poly_list(ctx.eval_expr(bind_operations(statement.children[1])))
-    if collection is not None and len(collection) > 0:
-        length = len(collection)
+    collection = ctx.eval_expr(bind_operations(statement.children[1]))
+    if collection is None: return # very fast fail
+    if isinstance(collection, list):
+        if not collection: return # fast fail
+        # Lists are copied to allow mutation within the loop
+        collection = collection.copy()
+    else:
+        # poly_list() converts
+        #   - Single values to an list of one
+        #   - Tuples to mutable arrays
+        #   - Dictionaries into name/value list
+        # The user does not have access to these collections
+        # so they can't mutate them, so there is no need to copy
+        collection = poly_list(collection)
+    length = len(collection)
+    if length:
         meta = { }
         # The value and meta information are local to the loop
         ctx.dd.push_frame([(var_path, None), (LOOP_META_PATH, meta)])
         try:
-            # The list is copied to allow mutation within the loop
-            for i, value in enumerate(collection.copy()):
+            for i, value in enumerate(collection.copy() if isinstance(collection, list) else collection, start=1):
                 # Update the meta information
-                set_loop_meta(meta, i + 1, length)
+                set_loop_meta(meta, i, length)
                 # And the value itself
                 ctx.set_var(value, *var_path)
                 try:
