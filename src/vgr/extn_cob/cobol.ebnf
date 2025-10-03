@@ -30,7 +30,10 @@ cobol_accept: "Accept"i var_name "From"i ("Console"i | "Stdin"i | "Sysin"i | "Sy
     | "Accept"i var_name "From"i "Day-Of-Week"i _SEMICOLON? -> cobol_accept_dow
     | "Accept"i var_name "From"i "Time"i _SEMICOLON? -> cobol_accept_time
     | "Accept"i var_name "From"i ("Unix"i? "Epoch"i | "Timestamp"i) _SEMICOLON? -> cobol_accept_epoch
-cobol_compute: "Compute"i var_name ("=" | "Equals"i) expr "End-Compute"i? _SEMICOLON?
+
+// NB: Equal is in the spec, Equals is not
+//     Does not support Rounded or On Size Error clauses
+cobol_compute: "Compute"i var_name ("=" | "Equal"i) expr "End-Compute"i? _SEMICOLON?
 
 // NB: Var/Variable are not present in COBOL, but their presence allows this to match the general set statement
 cobol_inc: "Set"i "Variable"i? var_name "Up"i "By"i expr _SEMICOLON?
@@ -44,26 +47,33 @@ cobol_perform_until: "Perform"i "Until"i expr ":"? statement+ "End-Perform"i _SE
 cobol_perform_varying: "Perform"i varying_test_type? "Varying"i var_name "From"i expr "By"i expr "Until"i expr ":"? statement+ "End-Perform"i _SEMICOLON?
 ?varying_test_type: "With"i? "Test"i "Before"i -> test_before
     | "With"i? "Test"i "After"i -> test_after
+
 cobol_if: "If"i expr ":"? statement+ cobol_else_clause? "End-If"i _SEMICOLON?
 cobol_else_clause: "Else"i ":"? statement+ -> else
+
 cobol_next_sentence: "Next"i "Sentence"i _SEMICOLON?
 
-cobol_exhibit: "Exhibit"i ("*" _SEMICOLON? | _SEMICOLON)
+cobol_exhibit: "Exhibit"i "*" _SEMICOLON?
     | "Exhibit"i var_name (_COMMA? var_name)* _SEMICOLON?
 cobol_display_on: "Display"i expr (_COMMA? expr)* (("Upon"i | "On"i) io_type)? _SEMICOLON?
 
-cobol_add_to: "Add"i expr (_COMMA expr)* "To"i var_name "End-Add"i? _SEMICOLON?
-cobol_add_giving: "Add"i expr (_COMMA expr)* "To"i expr "Giving"i var_name "End-Add"i? _SEMICOLON?
+cobol_add_to: "Add"i expr (_COMMA? expr)* "To"i var_name "End-Add"i? _SEMICOLON?
+cobol_add_giving: "Add"i expr (_COMMA? expr)* "To"i expr "Giving"i var_name "End-Add"i? _SEMICOLON?
 
-cobol_sub_from: "Subtract"i expr (_COMMA expr)* "From"i var_name "End-Subtract"i? _SEMICOLON?
-cobol_sub_giving: "Subtract"i expr (_COMMA expr)* "From"i expr "Giving"i var_name "End-Subtract"i? _SEMICOLON?
-cobol_mul_by: "Multiply"i expr "By"i (expr "Giving"i)? var_name "End-Multiply"i? _SEMICOLON?
+cobol_sub_from: "Subtract"i expr (_COMMA? expr)* "From"i var_name "End-Subtract"i? _SEMICOLON?
+cobol_sub_giving: "Subtract"i expr (_COMMA? expr)* "From"i expr "Giving"i var_name "End-Subtract"i? _SEMICOLON?
+
+# Notes:
+#   * Only one var_name can be specified
+#   * Accepts but ignores "rounded"
+#   * Does not support "[Not] On Size Error" (entirely N/A here)
+# See https://www.ibm.com/docs/en/cobol-zos/6.3.0?topic=statements-multiply-statement
+cobol_mul_by: "Multiply"i expr "By"i (expr "Giving"i)? var_name "Rounded"i? "End-Multiply"i? _SEMICOLON?
 
 # Notes :
 #   * Does not support multiple receivers
 #   * Accepts but ignores "rounded"
 #   * Does not support "remainder"
-#     Could become divmod op, but inputs need to be ints
 #   * Does not support "[Not] On Size Error" (entirely N/A here)
 # See https://www.ibm.com/docs/en/cobol-zos/6.3.0?topic=statements-divide-statement
 cobol_div_into: "Divide"i expr "Into"i (expr "Giving"i)? var_name "Rounded"i? "End-Divide"i? _SEMICOLON?
