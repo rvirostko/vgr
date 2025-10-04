@@ -763,9 +763,13 @@ class DefaultExecContext(ExecContext):
     def eval_to_int(self, expr: Tree, name: str, allow_none: bool=False) -> int:
         rc = self.eval_expr(expr)
         if rc is None and allow_none: return None
-        if not isinstance(rc, (bool, int, float, str)):
-            raise VgrRuntimeError(expr, TypeError(f'{name} must be an integer; found {type_str(rc)}'))
-        return poly_int(rc)
+        if isinstance(rc, (bool, int, float)): return int(rc)
+        if isinstance(rc, str):
+            try:
+                return poly_int(rc)
+            except ValueError as e:
+                raise VgrRuntimeError(expr, str(e)) from e
+        raise VgrRuntimeError(expr, TypeError(f'{name} must be an integer; found {type_str(rc)}'))
 
     def eval_to_number(self, expr: Tree, name: str, allow_none: bool=False):
         rc = self.eval_expr(expr)
