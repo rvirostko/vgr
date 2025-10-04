@@ -27,7 +27,7 @@ from .tags import control_statement
 from .xtract_memory import InMemoryExtractor
 from .xtract_vault import VAULT_TARGETS, VaultDataExtractor
 
-_ROWID_PATH = ('$rowid', )
+_ROWID_PATH = ('$rowid', ) # NB: zero based
 _DEFAULT_TARGET_NAME = '$record'
 
 _VAR_OPT = 'var'
@@ -37,7 +37,6 @@ class SelectAnalyzer(Visitor):
     # NB: Need to keep in sync with grammar
     # TODO it is out of sync...
     _VAR_NAME = re.compile(r'[A-Za-z_](?:[A-Za-z0-9_]|-+[A-Za-z])*(?:\u2032+|[\u2033\u2034\u2057\u2080-\u2089])?')
-
 
     _BOOL_OPTS = (
         'array_wrapper',
@@ -436,7 +435,7 @@ class QueryRunner(QueryFilter, InfoOutput):
         self._ctx = ctx
         self._select = select
         self._writer = writer
-        self._rowid = 0
+        self._rowid = -1
 
     @property
     def ctx(self) -> ExecContext:
@@ -465,7 +464,7 @@ class QueryRunner(QueryFilter, InfoOutput):
         extractor.start(self)
         if self._writer.start():
             try:
-                self.rowid = 0
+                self.rowid = -1
                 try:
                     extractor.extract(self, self)
                 except EndExtractException:
