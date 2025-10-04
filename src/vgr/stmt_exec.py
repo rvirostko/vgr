@@ -95,7 +95,7 @@ from .tags import control_statement
 
 LOOP_META_PATH = ('$loop',)
 _LOOP_META_LENGTH = 'length'
-_LOOP_META_INDEX = 'index'
+_LOOP_META_INDEX = 'index' # NB: this is zero based!
 _LOOP_META_FIRST = 'first'
 _LOOP_META_LAST = 'last'
 
@@ -106,9 +106,9 @@ def set_loop_meta(meta: dict, index: int, length: int=None) -> dict:
     Based on Jinja's behavior.
     """
     meta[_LOOP_META_INDEX] = index
-    meta[_LOOP_META_FIRST] = index == 1
+    meta[_LOOP_META_FIRST] = index == 0
     if length is not None:
-        meta[_LOOP_META_LAST] = index == length
+        meta[_LOOP_META_LAST] = index == (length-1)
         meta[_LOOP_META_LENGTH] = length
     return meta
 
@@ -249,10 +249,10 @@ Do Forever:
     End
 End
 
-5 {'index': 1, 'first': True}
-10 {'index': 2, 'first': False}
-15 {'index': 3, 'first': False}
-20 {'index': 4, 'first': False}
+5 {'index': 0, 'first': True}
+10 {'index': 1, 'first': False}
+15 {'index': 2, 'first': False}
+20 {'index': 3, 'first': False}
 ```
 
 Also see `Break` and `Continue`
@@ -260,7 +260,7 @@ Also see `Break` and `Continue`
     meta = { }
     ctx.dd.push_frame([(LOOP_META_PATH, meta)])
     try:
-        i = 1
+        i = 0
         while True:
             set_loop_meta(meta, i)
             try:
@@ -334,7 +334,7 @@ def exec_loop(ctx: ExecContext, statement: Tree, desired_value: bool) -> None:
     meta = { }
     ctx.dd.push_frame([(LOOP_META_PATH, meta)])
     try:
-        i = 1
+        i = 0
         while True:
             if poly_true(ctx.eval_expr(predicate)) != desired_value: return
             set_loop_meta(meta, i)
@@ -360,7 +360,7 @@ def exec_repeat(ctx: ExecContext, statement: Tree) -> None:
             ctx.dd.push_frame([(LOOP_META_PATH, meta)])
             try:
                 length = counter
-                i = 1
+                i = 0
                 while counter > 0:
                     # Update the meta information
                     set_loop_meta(meta, i, length)
@@ -391,6 +391,20 @@ If `Break` is encountered, looping ends regardless of the
 expression's value. If `Continue` is encountered, statements
 following it are skipped, and the expression is checked again.
 
+```vgr
+Set x To 0
+While x < 50 Do
+    Print x, ":", x.Pow(2), $loop
+    Set x += 10
+End
+
+0 : 0 {'index': 0, 'first': True}
+10 : 100 {'index': 1, 'first': False}
+20 : 400 {'index': 2, 'first': False}
+30 : 900 {'index': 3, 'first': False}
+40 : 1600 {'index': 4, 'first': False}
+```
+
 Also see `Break` and `Continue`
 """
     exec_loop(ctx, statement, True)
@@ -409,6 +423,20 @@ The block of statements is executed until the expression evaluates to _True_.
 If `Break` is encountered, looping ends regardless of the
 expression's value. If `Continue` is encountered, statements
 following it are skipped, and the expression is checked again.
+
+```vgr
+Set x To 0
+Until x >= 50 Do
+    Print x, ":", x.Pow(2), $loop
+    Set x += 10
+End
+
+0 : 0 {'index': 0, 'first': True}
+10 : 100 {'index': 1, 'first': False}
+20 : 400 {'index': 2, 'first': False}
+30 : 900 {'index': 3, 'first': False}
+40 : 1600 {'index': 4, 'first': False}
+```
 
 Also see `Break` and `Continue`
 """
@@ -438,9 +466,9 @@ Repeat 3:
    Print $loop
 End
 
-{'index': 1, 'first': True, 'last': False, 'length': 3}
-{'index': 2, 'first': False, 'last': False, 'length': 3}
-{'index': 3, 'first': False, 'last': True, 'length': 3}
+{'index': 0, 'first': True, 'last': False, 'length': 3}
+{'index': 1, 'first': False, 'last': False, 'length': 3}
+{'index': 2, 'first': False, 'last': True, 'length': 3}
 ```
 """
     exec_repeat(ctx, statement)
@@ -471,9 +499,9 @@ ForEach a In ["A", "B", "C"]:
     Print a, $loop
 End
 
-A {'index': 1, 'first': True, 'last': False, 'length': 3}
-B {'index': 2, 'first': False, 'last': False, 'length': 3}
-C {'index': 3, 'first': False, 'last': True, 'length': 3}
+A {'index': 0, 'first': True, 'last': False, 'length': 3}
+B {'index': 1, 'first': False, 'last': False, 'length': 3}
+C {'index': 2, 'first': False, 'last': True, 'length': 3}
 
 ForEach kv_pair in math:
     If $loop.first: Print "-" * 60; End
@@ -518,7 +546,7 @@ Also see `Break` and `Continue`
         # The value and meta information are local to the loop
         ctx.dd.push_frame([(var_path, None), (LOOP_META_PATH, meta)])
         try:
-            for i, value in enumerate(collection.copy() if isinstance(collection, list) else collection, start=1):
+            for i, value in enumerate(collection.copy() if isinstance(collection, list) else collection):
                 # Update the meta information
                 set_loop_meta(meta, i, length)
                 # And the value itself

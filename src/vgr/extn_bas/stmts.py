@@ -72,11 +72,11 @@ For x = 2.0 To 4.0 By .5
     Print x, $loop
 Next
 
-2.0 {'index': 1, 'first': True, 'last': False, 'length': 5}
-2.5 {'index': 2, 'first': False, 'last': False, 'length': 5}
-3.0 {'index': 3, 'first': False, 'last': False, 'length': 5}
-3.5 {'index': 4, 'first': False, 'last': False, 'length': 5}
-4.0 {'index': 5, 'first': False, 'last': True, 'length': 5}
+2.0 {'index': 0, 'first': True, 'last': False, 'length': 5}
+2.5 {'index': 1, 'first': False, 'last': False, 'length': 5}
+3.0 {'index': 2, 'first': False, 'last': False, 'length': 5}
+3.5 {'index': 3, 'first': False, 'last': False, 'length': 5}
+4.0 {'index': 4, 'first': False, 'last': True, 'length': 5}
 ```
 """
     # Echo the control portion, not the statements
@@ -105,7 +105,7 @@ Next
         # NB: if start/end are the same, the loop executes once,
         #     which is typical for Basic implementations
         length = int(max(0, math.floor((end - value) / inc) + 1))
-        i = 1
+        i = 0
         while (inc > 0 and value <= end) or (inc < 0 and value >= end):
             set_loop_meta(meta, i, length)
             ctx.set_var(value, *var_path)

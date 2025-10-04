@@ -218,7 +218,7 @@ def _id(obj: Any) -> Any:
 """
     return id(obj)
 
-def _enumerate(obj: Any, start_at: int=1) -> Any:
+def _enumerate(obj: Any, start_at: int=0) -> Any:
     """
 **Create an enumeration for a collection**
 
@@ -226,16 +226,17 @@ def _enumerate(obj: Any, start_at: int=1) -> Any:
 * _value_.Enumerate(_start_at_)
 
 The _start_at_ argument defines the number used in the enumerated value.
-The default value for _start_at_ is one.
+The default value for _start_at_ is zero.
 Enumeration of values that are not collections produces an enumeration of a single entry.
 Enumerating _None_ returns an empty list.
 
 ```vgr
 None.Enumerate() → []
-5.Enumerate() → [[1, 5]]
-[5].Enumerate() → [[1, 5]]
+5.Enumerate() → [[0, 5]]
+[5].Enumerate() → [[0, 5]]
 [5].Enumerate(-3) → [[-3, 5]]
-math.float.Enumerate() → [[1, "max", 1.7976931348623157e+308], [2, "min", 2.2250738585072014e-308]]
+math.float.Enumerate() → [[0, "max", 1.7976931348623157e+308],
+    [1, "min", 2.2250738585072014e-308]]
 ```
 """
     if obj is None: return []

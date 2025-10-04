@@ -200,11 +200,11 @@ Perform Varying x From 2 By 2 Until x > 10:
     Print x, $loop
 End-Perform
 
-2 {'index': 1, 'first': True}
-4 {'index': 2, 'first': False}
-6 {'index': 3, 'first': False}
-8 {'index': 4, 'first': False}
-10 {'index': 5, 'first': False}
+2 {'index': 0, 'first': True}
+4 {'index': 1, 'first': False}
+6 {'index': 2, 'first': False}
+8 {'index': 3, 'first': False}
+10 {'index': 4, 'first': False}
 ```
 
 Also see `For-Next`
@@ -230,7 +230,7 @@ Also see `For-Next`
     meta = { }
     ctx.dd.push_frame([(var_path, None), (LOOP_META_PATH, meta)])
     try:
-        i = 1
+        i = 0
         while True:
             set_loop_meta(meta, i)
             ctx.set_var(value, *var_path)
