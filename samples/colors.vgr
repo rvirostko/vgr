@@ -14,10 +14,7 @@ Perform iter Times
     Term FG="bright white", BG="bright red"
     For i = 1 To 7
         Term Pos 2+i,0, HLine i*10
-    Next
-    # TODO why not start at 1?
-    For i = 2 To 7
-        Term Pos 3,(i*10), VLine i
+        Term Pos 3,(i*10)+1, VLine i
     Next
     For i = 2 To 8
         Term Pos 10,(i - 2)*10, Box i,i
