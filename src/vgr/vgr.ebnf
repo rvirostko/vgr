@@ -228,7 +228,7 @@ unique_clause: "Unique"i ("On"i expr (_COMMA expr)*)? -> unique
 
 list_append: "Append"i list_all? expr "To"i "List"i? var_name _SEMICOLON?
 list_prepend: "Prepend"i list_all? expr "To"i "List"i? var_name _SEMICOLON?
-list_insert: "Insert"i list_all? expr "Into"i "List"i? var_name "At"i ("Pos"i | "Position"i | "Index"i)? expr _SEMICOLON?
+list_insert: "Insert"i list_all? expr "Into"i "List"i? var_name "At"i ("Position"i | "Index"i)? expr _SEMICOLON?
 list_remove: "Remove"i expr "From"i "List"i? var_name list_giving? _SEMICOLON?
 list_remove_first: "Remove"i "First"i "Item"i? "From"i "List"i? var_name list_giving? _SEMICOLON?
 list_remove_last: "Remove"i "Last"i "Item"i? "From"i "List"i? var_name list_giving? _SEMICOLON?

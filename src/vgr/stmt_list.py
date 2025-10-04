@@ -11,46 +11,10 @@ from .evaluate import get_writable_var_path
 from .exec_context import ExecContext
 from .mathpak import bound_ops
 
-def _extract_list_all(statement: Tree, idx: int=0) -> tuple[int, bool]:
-    if isinstance(statement.children[idx], Tree) and statement.children[0].data == "list_all":
-        return idx + 1, True
-    return idx, False
-
-def _eval_and_advance(ctx: ExecContext, statement: Tree, idx: int) -> tuple[int, Any]:
-    return idx + 1, ctx.eval_expr(statement.children[idx])
-
-def _eval_list_src(ctx: ExecContext, statement: Tree, idx: int, do_all: bool) -> tuple[int, Any]:
-    idx, src = _eval_and_advance(ctx, statement, idx)
-    if do_all and isinstance(src, (list, tuple)): return idx, src
-    return idx, [src]
-
-def _eval_list_target(ctx: ExecContext, statement: Tree, idx: int) -> tuple[int, tuple[str], list]:
-    var_path = get_writable_var_path(ctx, statement.children[idx])
-    idx += 1
-    value = ctx.get_var(*var_path)
-    if value is None: return idx, var_path, ctx.set_var([], *var_path)
-    if isinstance(value, tuple): return idx, var_path, ctx.set_var([*value], *var_path)
-    if not isinstance(value, list): return idx, var_path, ctx.set_var([value], *var_path)
-    return idx, var_path, value
-
-def _eval_list_giving(ctx: ExecContext, statement: Tree, idx: int) -> tuple[Tree, tuple[str]]:
-    """Returned path is vetted so that is valid and writable"""
-    # NB: since this relies on length alone, it can be fragile
-    giving_expr = statement.children[idx] if idx < len(statement.children) else None
-    return giving_expr, get_writable_var_path(ctx, giving_expr) if giving_expr else None
-
-def _set_list_giving(ctx: ExecContext, path: tuple[str], value: Any, expr: Tree) -> None:
-    # TODO: if of length one, should we unpack
-    # TODO is value always going to be an array
-    try:
-        ctx.set_var(value, *path)
-    except Exception as e:
-        raise VgrRuntimeError(expr, e) from e
-
 @bound_ops("Append")
 def execute_list_append(ctx: ExecContext, statement: Tree) -> None:
     """
-**Add items to the end of a list**
+**Add one or more items to the end of a list**
 
 * Append _item_ To [List] _variable_ [;]
 * Append All _item_ To [List] _variable_ [;]
@@ -63,6 +27,22 @@ second forms.
 
 If _variable_ is not defined it is created as an empty list.
 If _variable_ is not a list, it is converted to a list.
+
+```vgr
+// Assume animals is ["cat", "dog", "fish"]
+
+Append None To animals  → ["cat", "dog", "fish", None]
+
+Append "rabbit" To animals → ["cat", "dog", "fish", "rabbit"]
+
+Append ["bird"] To animals → ["cat", "dog", "fish", ["bird"]]
+
+Append ["mouse", "rat"] To animals → ["cat", "dog", "fish", ["mouse", "rat"]]
+
+Append All ["mouse", "rat"] To animals → ["cat", "dog", "fish", "mouse", "rat"]
+```
+
+Also see `Prepend` and `Insert`
 """
     idx, do_all = _extract_list_all(statement)
     idx, src = _eval_list_src(ctx, statement, idx, do_all)
@@ -76,7 +56,7 @@ If _variable_ is not a list, it is converted to a list.
 @bound_ops("Prepend")
 def execute_list_prepend(ctx: ExecContext, statement: Tree) -> None:
     """
-**Add items to the beginning of a list**
+**Add one or more items to the beginning of a list**
 
 * Prepend _item_ To [List] _variable_ [;]
 * Prepend All _item_ To [List] _variable_ [;]
@@ -89,6 +69,22 @@ second forms.
 
 If _variable_ is not defined it is created as an empty list.
 If _variable_ is not a list, it is converted to a list.
+
+```vgr
+// Assume animals is ["cat", "dog", "fish"]
+
+Prepend None To animals → [None, "cat", "dog", "fish"]
+
+Prepend "rabbit" To animals → ["rabbit", "cat", "dog", "fish"]
+
+Prepend ["bird"] To animals → [["bird"], "cat", "dog", "fish"]
+
+Prepend ["mouse", "rat"] To animals → [["mouse", "rat"], "cat", "dog", "fish"]
+
+Prepend All ["mouse", "rat"] To animals → ["mouse", "rat", "cat", "dog", "fish"]
+```
+
+Also see `Append` and `Insert`
 """
     idx, do_all = _extract_list_all(statement)
     idx, src = _eval_list_src(ctx, statement, idx, do_all)
@@ -102,10 +98,10 @@ If _variable_ is not a list, it is converted to a list.
 @bound_ops("Insert")
 def execute_list_insert(ctx: ExecContext, statement: Tree) -> None:
     """
-**Add items to the beginning of a list**
+**Insert one or more items into a list**
 
-* Insert _item_ Into [List] _variable_ At [Pos | Position | Index] _position_ [;]
-* Insert All _item_ Into [List] _variable_ At [Pos | Position | Index] _position_ [;]
+* Insert _item_ Into [List] _variable_ At [Position | Index] _position_ [;]
+* Insert All _item_ Into [List] _variable_ At [Position | Index] _position_ [;]
 
 In the first form _item_ is inserted to the specified list, regardless of its type.
 In the second form when _All_ is specified, if _item_ is a list, all of its
@@ -114,20 +110,32 @@ If _item_ is not a list itself, there is no difference between the first and
 second forms.
 
 The _position_ argument must be a number and be greater than or equal to zero
-and less than the length of the existing array.
+and less than the length of the existing list.
 
 If _variable_ is not defined it is created as an empty list.
 If _variable_ is not a list, it is converted to a list.
+
+```vgr
+// Assume animals is ["cat", "dog", "fish"]
+
+Insert None Into animals At 1 → ["cat", None, "dog", "fish"]
+
+Insert "rabbit" Into animals At 1 → ["cat", "rabbit", "dog", "fish"]
+
+Insert ["bird"] Into animals At 1 → ["cat", ["bird"], "dog", "fish"]
+
+Insert ["mouse", "rat"] Into animals At 1 → ["cat", ["mouse", "rat"], "dog", "fish"]
+
+Insert All ["mouse", "rat"] Into animals At 1 → ["cat", "mouse", "rat", "dog", "fish"]
+```
+
+Also see `Append` and `Prepend`
 """
     idx, do_all = _extract_list_all(statement)
     idx, src = _eval_list_src(ctx, statement, idx, do_all)
     idx, path, dst = _eval_list_target(ctx, statement, idx)
-    try:
-        pos_expr = statement.children[idx]
-    except (ValueError, TypeError) as e:
-        raise VgrRuntimeError(statement.children[idx], e) from e
-    pos = ctx.eval_to_int(ctx.dd, pos_expr, 'Position')
-    # TODO why do we not normalize?
+    pos_expr = statement.children[idx]
+    pos = ctx.eval_to_int(pos_expr, 'Position')
     if pos < 0 or pos > len(dst):
         raise VgrRuntimeError(pos_expr, ValueError(f'Position {pos} is invalid'))
     if src:
@@ -175,22 +183,20 @@ def execute_list_remove(ctx: ExecContext, statement: Tree) -> None:
 * Remove Last [Item] From [List] _variable_ [Giving _removed_var_] [;]
 * Remove _position_ From [List] _variable_ [Giving _removed_var_ ] [;]
 
-In the first form _item_ is inserted to the specified list, regardless of its type.
-In the second form when _All_ is specified, if _item_ is a list, all of its
-members are inserted to the specified list.
-If _item_ is not a list itself, there is no difference between the first and
-second forms.
-
-The _position_ argument must be a number and be greater than or equal to zero
-and less than the length of the existing array.
+The _position_ argument must be a number, or a list of numbers,
+which are greater than or equal to zero
+and less than the length of the existing list.
 
 If _variable_ is not defined it is created as an empty list.
 If _variable_ is not a list, it is converted to a list.
+
+The _removed_var_ receives a list of the items removed from the list.
+
+```vgr
+**TODO**
+```
 """
-    # While we allow "all" it is not in the grammar
-    # and does not change behavior
-    idx, _do_all = _extract_list_all(statement)
-    idx, positions = _eval_and_advance(ctx, statement, idx)
+    idx, positions = _eval_and_advance(ctx, statement, 0)
     idx, path, dst = _eval_list_target(ctx, statement, idx)
     gexpr, giving_path = _eval_list_giving(ctx, statement, idx)
     rcount, removed = _remove_items(dst, _normalize_positions(positions))
@@ -205,33 +211,71 @@ If _variable_ is not a list, it is converted to a list.
             _set_list_giving(ctx, giving_path, None, gexpr)
         if ctx.verbose: ctx.print_verbose('List', '.'.join(path), 'unchanged')
 
-# All means treat as separate entities
-# 1) Replace 5 in item with "a" -- item[5] = "a"
-# 2) Replace 5 in item with All "a" -- item[5] = "a", All superflous because on single index
-# 3) Replace [5, 6] in item with "a" -- replaces both 5 and 6 with "a"
-# 4) Replace [5, 6] in item with All "a" -- Same as #3, following reasoning of #2
-# 5) Replace 5 in item with ["a", "b"] -- item[5] = ["a", "b"]; effectively the same as #1
-# 6) Replace 5 in item with All ["a", "b"] -- same as #1 and "b" is unused
-# 7) Replace [5, 6] in item with ["a", "b"] -- same as #3
-# 8) Replace [5, 6] in item with All ["a", "b"] -- item[5] = "a", item[6] = "b"
-# 8a) ...All ["a"] -- item[6] is either skipped or set to None
-# 8b) ...All ["a", "b", "c"] -- "c" is ignored
+# 1) Replace 5 in lst with "a" -- item[5] = "a"
+# 2) Replace 5 in lst with ["a", "b"] -- item[5] = ["a", "b"]
+# 3) Replace [5, 6] in lst with "a" -- replaces both 5 and 6 with "a"
+# 4) Replace [5, 6] in lst with ["a", "b"] -- replaces both 5 and 6 with ["a", "b"]
 
-# The general logic seems to be to create a zip longest between indicies values
-# But, for the source is shorter than the indicies, and you have a single value, you repeat it
-#    expr - indicies
-#    var_name - target
-#    list_all? - do_all
-#    expr - source
-#    list_giving?
-
+#list_replace: "Replace"i expr "In"i "List"i? var_name "With"i expr list_giving? _SEMICOLON?
 @bound_ops("Replace")
 def execute_list_replace(ctx: ExecContext, statement: Tree) -> None:
-    idx, positions = _eval_and_advance(ctx, statement, 0)
-    idx, path, dst = _eval_list_target(ctx, statement, idx)
-    idx, do_all = _extract_list_all(statement, idx)
-    gexpr, giving_path = _eval_list_giving(ctx, statement, idx)
-    # TODO unfinished!
+    """
+**Replace one or more items in a list by position**
+
+* Replace _position_ In [List] _variable_ [Giving _replaced_var_ ] [;]
+
+The _position_ argument must be a number, or a list of numbers,
+which are greater than or equal to zero
+and less than the length of the existing list.
+
+If _variable_ is not defined it is created as an empty list.
+If _variable_ is not a list, it is converted to a list.
+
+The _replaced_var_ receives a list of the items removed from the list.
+
+```vgr
+**TODO**
+```
+"""
+    # finish!
+
+#-----------------------------------------------------------
+
+def _extract_list_all(statement: Tree, idx: int=0) -> tuple[int, bool]:
+    if isinstance(statement.children[idx], Tree) and statement.children[0].data == "list_all":
+        return idx + 1, True
+    return idx, False
+
+def _eval_and_advance(ctx: ExecContext, statement: Tree, idx: int) -> tuple[int, Any]:
+    return idx + 1, ctx.eval_expr(statement.children[idx])
+
+def _eval_list_src(ctx: ExecContext, statement: Tree, idx: int, do_all: bool) -> tuple[int, Any]:
+    idx, src = _eval_and_advance(ctx, statement, idx)
+    if do_all and isinstance(src, (list, tuple)): return idx, src
+    return idx, [src]
+
+def _eval_list_target(ctx: ExecContext, statement: Tree, idx: int) -> tuple[int, tuple[str], list]:
+    var_path = get_writable_var_path(ctx, statement.children[idx])
+    idx += 1
+    value = ctx.get_var(*var_path)
+    if value is None: return idx, var_path, ctx.set_var([], *var_path)
+    if isinstance(value, tuple): return idx, var_path, ctx.set_var([*value], *var_path)
+    if not isinstance(value, list): return idx, var_path, ctx.set_var([value], *var_path)
+    return idx, var_path, value
+
+def _eval_list_giving(ctx: ExecContext, statement: Tree, idx: int) -> tuple[Tree, tuple[str]]:
+    """Returned path is vetted so that is valid and writable"""
+    # NB: since this relies on length alone, it can be fragile
+    giving_expr = statement.children[idx] if idx < len(statement.children) else None
+    return giving_expr, get_writable_var_path(ctx, giving_expr) if giving_expr else None
+
+def _set_list_giving(ctx: ExecContext, path: tuple[str], value: Any, expr: Tree) -> None:
+    # TODO: if of length one, should we unpack
+    # TODO is value always going to be an list
+    try:
+        ctx.set_var(value, *path)
+    except Exception as e:
+        raise VgrRuntimeError(expr, e) from e
 
 def _normalize_positions(positions) -> list:
     """By the end, we should have a list filled with ints or Nones"""
