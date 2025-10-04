@@ -13,8 +13,11 @@ from typing import (
 )
 
 # These values are INTENTIALLY omitted from keys()!
-GOBAL_KEY = '$global'
-OUTER_KEY = '$outer'
+GOBAL_CONTEXT = '$global'
+OUTER_CONTEXT = '$outer'
+LOCAL_CONTEXT = '$local'
+STATIC_CONTEXT = '$static'
+_CONTEXT_KEYS = [GOBAL_CONTEXT, OUTER_CONTEXT, LOCAL_CONTEXT, STATIC_CONTEXT]
 
 MAX_FRAMES = 64
 
@@ -30,8 +33,7 @@ class DataDictionary():
         # Populate the stack of frames with our "global" frame
         self._frames: list[Frame] = [Frame()]
         self._immutable_prefixes: set = set()
-        self.add_immutable_prefix(GOBAL_KEY)
-        self.add_immutable_prefix(OUTER_KEY)
+        for context in _CONTEXT_KEYS: self.add_immutable_prefix(context)
 
     def add_immutable_prefix(self, prefix: str) -> None:
         """Immutable prefixes means you can't change any part of them"""
@@ -100,6 +102,8 @@ class DataDictionary():
         # when working in a local frame
         if len(path) > 1:
             for step in path[:-1]:
+                if step in _CONTEXT_KEYS:
+                    raise ValueError(f'Improper use of {step!r} variable context')
                 # If the next step doesn't exist, create it as a dictionary
                 next_step = current.setdefault(step, {})
                 # If it isn't a dictionary, it has to become one
@@ -120,6 +124,8 @@ class DataDictionary():
         current = self._current_frame
         if len(path) > 1:
             for step in path[:-1]:
+                if step in _CONTEXT_KEYS:
+                    raise ValueError(f'Improper use of {step!r} variable context')
                 # If the next step doesn't exist, or is
                 # not a dictionary, we can't go anywhere
                 # to unset something
@@ -143,7 +149,7 @@ nothing already exists; existing values are never
 overwritten.
 """
         if len(self._frames) == 1 and as_local:
-            raise ValueError('Local is invalid in this context')
+            raise ValueError('Local is invalid used in this context')
         # Use current frame if local required or no preference
         target_frame = self._current_frame if as_local is None or as_local else self._global_frame
         # We anchor the path in the frame
@@ -152,17 +158,24 @@ overwritten.
         if rc is not None: self.set_var(None, *path)
         return rc
 
-    def _get_starting_point(self, frame: "Frame", *path: str) -> tuple:
+    def _resolve_context(self, frame: "Frame", *path: str) -> tuple:
         """
-        Handles initial deref of $global/$outer in paths for reads.
+        Handles initial deref of $global/$outer/$local/$static in paths for reads.
         Writes are prohibited, so not used there.
         """
-        if frame is None or not path: return (frame, path)
-        first: str = path[0]
-        if first == GOBAL_KEY:
-            return self._get_starting_point(self._global_frame, *path[1:])
-        if first == OUTER_KEY:
-            return self._get_starting_point(frame.outer_frame(), *path[1:])
+        context: str = path[0]
+        # $static is TBD/reserved; always None
+        if context == STATIC_CONTEXT: return (None, path[1:])
+        # $local means data rooted in a non-global frame
+        if context == LOCAL_CONTEXT:
+            return (frame.data if frame != self._global_frame else None, path[1:])
+        # $global means data only available in the global frame
+        if context == GOBAL_CONTEXT: return (self._global_frame.data, path[1:])
+        # $outer is contextual and not always available
+        if context == OUTER_CONTEXT:
+            outer = frame.outer_frame()
+            return ((outer.data if outer is not None else None), path[1:])
+        # No context, so we let the Frame's logic handle it
         return (frame, path)
 
     def get_var(self, *path: str) -> Any:
@@ -172,12 +185,14 @@ overwritten.
         path does not lead to a dictionary.
         Note that "None" is not a definitive "not found" statement.
         """
-        data, path = self._get_starting_point(self._current_frame, *path)
+        data, path = self._resolve_context(self._current_frame, *path)
         if data is not None:
             if path:
-                for key in path:
-                    if not isinstance(data, (Frame, dict)) or key not in data: return None
-                    data = self._value_for(data[key])
+                for step in path:
+                    if step in _CONTEXT_KEYS:
+                        raise ValueError(f'Improper use of {step!r} variable context')
+                    if not isinstance(data, (Frame, dict)) or step not in data: return None
+                    data = self._value_for(data[step])
             else:
                 data = self._value_for(data)
         return data
@@ -187,13 +202,15 @@ overwritten.
         Returns a tuple that says if the value exists and,
         if it does, what that value is.
         """
-        data, path = self._get_starting_point(self._current_frame, *path)
+        data, path = self._resolve_context(self._current_frame, *path)
         true_name = '.'.join(path)
         if data is None: return (False, true_name, None)
         if path:
-            for key in path:
-                if not isinstance(data, (Frame, dict)) or key not in data: return (False, true_name, None)
-                data = self._value_for(data[key])
+            for step in path:
+                if step in _CONTEXT_KEYS:
+                    raise ValueError(f'Improper use of {step!r} variable context')
+                if not isinstance(data, (Frame, dict)) or step not in data: return (False, true_name, None)
+                data = self._value_for(data[step])
         else:
             data = self._value_for(data)
         return (True, true_name, data)
@@ -278,6 +295,10 @@ class Frame:
 
     def outer_frame(self) -> "Frame":
         return None
+
+    @property
+    def data(self) -> dict:
+        return self._data
 
     def declare(self, prefix: str) -> bool:
         """

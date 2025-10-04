@@ -180,7 +180,7 @@ class SetVarOperation(Operation):
         return 'set_var'
 
 def get_function(ctx: ExecContext, statement: Tree):
-    fn = ctx.get_var(*_var_name_path(statement.children[0]))
+    fn = ctx.get_var(*_var_name_path(statement))
     if fn is None:
         raise VgrRuntimeError(statement.children[0], ValueError('Function is not defined'))
     return fn

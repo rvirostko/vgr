@@ -1,0 +1,48 @@
+
+Define Function fn(bob):
+    Return [bob, $global.bob, $outer.bob, $local.bob, $static.bob];
+End
+
+Define Function o_fn(a):
+    # we want to make sure that we make a local
+    # rather than getting the global reference
+    Declare bob Local
+    bob = a + a;
+    Return @$global.fn(a);
+End
+
+Declare bob, v Global
+Set bob = "global_bob"
+Set v = "mark"
+
+# Outside of a function, all the "bob"s are the global
+# and there is no "$outer" or "$local" scopes to refrence
+r0 = [bob, $global.bob, $outer.bob, $local.bob, $static.bob]
+Assert r0 == [bob, bob, None, None, None]
+
+# From inside the function with "bob" as an parameter
+# we get what we passed in, the global, and the global
+# for the "$outer" scope
+r1 = @fn(v)
+Assert r1 == [v, bob, bob, v, None]
+
+# From nested function call, the only thing that
+# changes is the "$outer.bob" in the inner function
+r2 = @o_fn(v)
+Assert r2 == [v, bob, v + v, v, None]
+
+Define Function strify(a):
+    Declare rc Local
+    rc = []
+    ForEach v in a:
+        rc += v.DefaultTo('None')
+    End
+    return rc
+End
+
+ForEach r in [
+              ["-default-", "$global", "$outer", "$local", "$static"],
+              r0, r1, r2
+             ]:
+    Printf "| {0[0]:<{1}} | {0[1]:<{1}} | {0[2]:<{1}} | {0[3]:<{1}} | {0[4]:<{1}} |\n", @strify(r), 12
+End
