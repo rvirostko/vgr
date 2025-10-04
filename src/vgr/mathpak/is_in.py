@@ -15,7 +15,7 @@ def poly_in(x: Any, y: Any) -> bool:
 **Is a value contained in another value or collection**
 
 * _value_.IsIn(_expression_)
-* _value_ [Is] In _expression_
+* _value_ Is In _expression_
 * _value_ ∈ _expression_
 
 ```vgr
@@ -48,7 +48,7 @@ def poly_not_in(x: Any, y: Any) -> Any:
 **Is a value _not_ contained in another value or collection**
 
 * _value_.IsNotIn(_expression_)
-* _value_ [Is] Not In _expression_
+* _value_ Is Not In _expression_
 * _value_ ∉ _expression_
 
 ```vgr

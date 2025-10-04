@@ -144,7 +144,7 @@ Also see `Append` and `Prepend`
     else:
         if ctx.verbose: ctx.print_verbose('List', '.'.join(path), 'unchanged')
 
-# Combine doc with list_remove
+# Combined doc with list_remove
 def execute_list_remove_first(ctx: ExecContext, statement: Tree) -> None:
     idx, path, dst = _eval_list_target(ctx, statement, 0)
     gexpr, giving_path = _eval_list_giving(ctx, statement, idx)
@@ -159,7 +159,7 @@ def execute_list_remove_first(ctx: ExecContext, statement: Tree) -> None:
             _set_list_giving(ctx, giving_path, None, gexpr)
         if ctx.verbose: ctx.print_verbose('List', '.'.join(path), 'unchanged')
 
-# Combine doc with list_remove
+# Combined doc with list_remove
 def execute_list_remove_last(ctx: ExecContext, statement: Tree) -> None:
     idx, path, dst = _eval_list_target(ctx, statement, 0)
     gexpr, giving_path = _eval_list_giving(ctx, statement, idx)
@@ -181,7 +181,7 @@ def execute_list_remove(ctx: ExecContext, statement: Tree) -> None:
 
 * Remove First [Item] From [List] _variable_ [Giving _removed_var_] [;]
 * Remove Last [Item] From [List] _variable_ [Giving _removed_var_] [;]
-* Remove _position_ From [List] _variable_ [Giving _removed_var_ ] [;]
+* Remove [Position | Index] _position_ From [List] _variable_ [Giving _removed_var_ ] [;]
 
 The _position_ argument must be a number, or a list of numbers,
 which are greater than or equal to zero
@@ -190,16 +190,30 @@ and less than the length of the existing list.
 If _variable_ is not defined it is created as an empty list.
 If _variable_ is not a list, it is converted to a list.
 
-The _removed_var_ receives a list of the items removed from the list.
+The _removed_var_ receives the items removed from the list.
 
 ```vgr
-**TODO**
+// Assume animals is ["cat", "dog", "fish"]
+
+Remove First From animals → ['dog', 'fish']
+
+Remove Last From animals → ['cat', 'dog']
+
+Remove 1 From animals → ['cat', 'fish']
+
+Remove [0, 2] From animals → ['dog']
+
+Remove [2, 0] From animals  → ['dog']
+    Giving others → ['cat', 'fish']
 ```
+
+Also see `Append`, `Prepend`, and `Insert`
 """
+    pos_exp = statement.children[0]
     idx, positions = _eval_and_advance(ctx, statement, 0)
     idx, path, dst = _eval_list_target(ctx, statement, idx)
     gexpr, giving_path = _eval_list_giving(ctx, statement, idx)
-    rcount, removed = _remove_items(dst, _normalize_positions(positions))
+    rcount, removed = _remove_items(dst, _normalize_positions(pos_exp, len(dst), positions))
     if rcount:
         if giving_path:
             # if caller only asked for one item, return one item
@@ -211,18 +225,12 @@ The _removed_var_ receives a list of the items removed from the list.
             _set_list_giving(ctx, giving_path, None, gexpr)
         if ctx.verbose: ctx.print_verbose('List', '.'.join(path), 'unchanged')
 
-# 1) Replace 5 in lst with "a" -- item[5] = "a"
-# 2) Replace 5 in lst with ["a", "b"] -- item[5] = ["a", "b"]
-# 3) Replace [5, 6] in lst with "a" -- replaces both 5 and 6 with "a"
-# 4) Replace [5, 6] in lst with ["a", "b"] -- replaces both 5 and 6 with ["a", "b"]
-
-#list_replace: "Replace"i expr "In"i "List"i? var_name "With"i expr list_giving? _SEMICOLON?
 @bound_ops("Replace")
 def execute_list_replace(ctx: ExecContext, statement: Tree) -> None:
     """
 **Replace one or more items in a list by position**
 
-* Replace _position_ In [List] _variable_ [Giving _replaced_var_ ] [;]
+* Replace [Position | Index] _position_ In [List] _variable_ [Giving _replaced_var_ ] [;]
 
 The _position_ argument must be a number, or a list of numbers,
 which are greater than or equal to zero
@@ -231,13 +239,35 @@ and less than the length of the existing list.
 If _variable_ is not defined it is created as an empty list.
 If _variable_ is not a list, it is converted to a list.
 
-The _replaced_var_ receives a list of the items removed from the list.
+The _replaced_var_ receives the items replaced in the list.
 
 ```vgr
-**TODO**
+// Assume animals is ["cat", "dog", "fish"]
+
+Replace 0 In animals With "bat" → ['bat', 'dog', 'fish']
+
+Replace [2, 0] In animals With None  → [None, 'dog', None]
+    Giving others → ['fish', 'cat']
 ```
+
+Also see `Append`, `Prepend`, and `Insert`
 """
-    # finish!
+    pos_exp = statement.children[0]
+    idx, positions = _eval_and_advance(ctx, statement, 0)
+    idx, path, dst = _eval_list_target(ctx, statement, idx)
+    idx, src = _eval_list_src(ctx, statement, idx, False)
+    gexpr, giving_path = _eval_list_giving(ctx, statement, idx)
+    rcount, replaced = _replace_items(dst, _normalize_positions(pos_exp, len(dst), positions), src[0])
+    if rcount:
+        if giving_path:
+            # if caller only asked for one item, return one item
+            if not isinstance(positions, (list, tuple)): replaced = replaced[0]
+            _set_list_giving(ctx, giving_path, replaced, gexpr)
+        if ctx.verbose: ctx.print_verbose('Replaced', rcount, f'item{"s" if rcount != 1 else ""} From', '.'.join(path))
+    else:
+        if giving_path:
+            _set_list_giving(ctx, giving_path, None, gexpr)
+        if ctx.verbose: ctx.print_verbose('List', '.'.join(path), 'unchanged')
 
 #-----------------------------------------------------------
 
@@ -270,48 +300,69 @@ def _eval_list_giving(ctx: ExecContext, statement: Tree, idx: int) -> tuple[Tree
     return giving_expr, get_writable_var_path(ctx, giving_expr) if giving_expr else None
 
 def _set_list_giving(ctx: ExecContext, path: tuple[str], value: Any, expr: Tree) -> None:
-    # TODO: if of length one, should we unpack
-    # TODO is value always going to be an list
     try:
         ctx.set_var(value, *path)
     except Exception as e:
         raise VgrRuntimeError(expr, e) from e
 
-def _normalize_positions(positions) -> list:
-    """By the end, we should have a list filled with ints or Nones"""
+def _normalize_positions(pos_expr, list_len: int, positions) -> list:
+    """By the end, we should have a list filled with ints"""
     if positions is None: return []
     if isinstance(positions, tuple): positions = [*positions]
     if not isinstance(positions, list): positions = [positions]
-    return [_to_int(pos) for pos in positions]
+    try:
+        # convert to integers
+        rc = [_to_int(pos) for pos in positions]
+        # validate them
+        for pos in rc:
+            if 0 <= pos < list_len:
+                pass
+            else:
+                raise ValueError(f'Position {pos} is invalid')
+        return rc
+    except ValueError as e:
+        raise VgrRuntimeError(pos_expr, e) from e
 
+from .mathpak import poly_int, type_str
 def _to_int(item: Any) -> int:
     if isinstance(item, int): return item
     if isinstance(item, float): return int(item)
-    if isinstance(item, str):
-        try:
-            return int(float(item.strip()))
-        except ValueError:
-            return None
-    return None
+    if isinstance(item, str): return poly_int(item)
+    raise ValueError(f'Cannot use {type_str(item)} as a list position')
 
 def _remove_items(dst: list, removals: list) -> list:
     removal_mapping = {}
     for index, pos in enumerate(removals):
-        if pos is not None: removal_mapping.setdefault(pos, []).append(index)
+        removal_mapping.setdefault(pos, []).append(index)
     count = 0
     removed = [None] * len(removals)
     # For each, remove the item at pos, and update result
     # using indicies where the removal was requested
     # Sort positions in descending order
     for pos, indices in sorted(removal_mapping.items(), key=lambda mapping: mapping[0], reverse=True):
-        # Invalid positions are ignored
-        # TODO should generate an error
-        if 0 <= pos < len(dst):
-            removed_value = dst[pos]
-            del dst[pos]
-            count += 1
-            # If we pulled out a None, no need to update removed[]
-            if removed_value is not None:
-                for index in indices:
-                    removed[index] = removed_value
+        removed_value = dst[pos]
+        del dst[pos]
+        count += 1
+        # If we pulled out a None, no need to update removed[]
+        if removed_value is not None:
+            for index in indices:
+                removed[index] = removed_value
     return count, removed
+
+def _replace_items(dst: list, replacements: list, value: Any) -> list:
+    replacement_mapping = {}
+    for index, pos in enumerate(replacements):
+        replacement_mapping.setdefault(pos, []).append(index)
+    count = 0
+    replaced = [None] * len(replacements)
+    # For each, replacement the item at pos, and update result
+    # using indicies where the replacement was requested
+    for pos, indices in replacement_mapping.items():
+        replaced_value = dst[pos]
+        dst[pos] = value
+        count += 1
+        # If we pulled out a None, no need to update replaced[]
+        if replaced_value is not None:
+            for index in indices:
+                replaced[index] = replaced_value
+    return count, replaced

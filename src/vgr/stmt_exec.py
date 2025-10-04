@@ -67,6 +67,7 @@ from .stmt_list import (
     execute_list_remove_first,
     execute_list_remove_last,
     execute_list_remove,
+    execute_list_replace,
 )
 from .stmt_log import (
     execute_log,
@@ -689,6 +690,7 @@ STATEMENT_HANDLERS = {
     'list_remove_first': execute_list_remove_first,
     'list_remove_last':  execute_list_remove_last,
     'list_remove':       execute_list_remove,
+    'list_replace':      execute_list_replace,
     'load_from':         execute_load_from,
     'log_setlevel':      execute_log_setlevel,
     'log':               execute_log,
@@ -752,18 +754,21 @@ class DefaultExecContext(ExecContext):
         """Helper that makes sure you got a string back from an expression"""
         rc = self.eval_expr(expr)
         if rc is None and allow_none: return None
+        # TODO should we not convert numbers to a string?
         if not isinstance(rc, str):
             raise VgrRuntimeError(expr, TypeError(f'{name} must be a string; found {type_str(rc)}'))
         return rc
 
     def eval_filename_expr(self, expr: Any, allow_none: bool=False) -> str:
         """Helper that gets a string that should be a relative filename"""
+        # TODO better error handling?
         return verify_relative_path(self.eval_to_str(expr, 'File name', allow_none))
 
     def eval_to_int(self, expr: Tree, name: str, allow_none: bool=False) -> int:
         rc = self.eval_expr(expr)
         if rc is None and allow_none: return None
         if isinstance(rc, (bool, int, float)): return int(rc)
+        # TODO still a problem with None?
         if isinstance(rc, str):
             try:
                 return poly_int(rc)
@@ -773,13 +778,15 @@ class DefaultExecContext(ExecContext):
 
     def eval_to_number(self, expr: Tree, name: str, allow_none: bool=False):
         rc = self.eval_expr(expr)
+        # TODO better error handling including None check
+        if isinstance(rc, str): return poly_number(rc)
         if rc is None and allow_none: return None
         if isinstance(rc, bool): return int(rc)
         if isinstance(rc, (int, float)): return rc
-        if isinstance(rc, str): return poly_number(rc)
         raise VgrRuntimeError(expr, TypeError(f'{name} must be an integer; found {type_str(rc)}'))
 
     def eval_to_bool(self, expr: Tree, name: str, allow_none: bool=False) -> bool:
+        # TODO see other conv routines
         rc = self.eval_expr(expr)
         if rc is None and allow_none: return None
         if not isinstance(rc, (bool, int, float, str)):
