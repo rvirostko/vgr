@@ -12,6 +12,7 @@ def poly_bin(x: Any) -> Any:
     """
 **Convert an integer number to a binary string prefixed with “0b”**
 
+* ToBinary(_value_)
 * _value_.ToBinary()
 
 Distributed across all collections except dictionaries.
@@ -37,6 +38,7 @@ def poly_oct(x: Any) -> Any:
     """
 **Convert an integer number to an octal string prefixed with “0o”**
 
+* ToOctal(_value_)
 * _value_.ToOctal()
 
 Distributed across all collections except dictionaries.
@@ -62,6 +64,7 @@ def poly_hex(x: Any) -> Any:
     """
 **Convert an integer number to a hexadecimal string prefixed with “0x”**
 
+* ToHex(_value_)
 * _value_.ToHex()
 
 Distributed across all collections except dictionaries.
@@ -87,6 +90,8 @@ def poly_parse_int(x: Any, base: Any=10) -> Any:
     """
 **Convert a non-numeric value into an integer**
 
+* ParseInt(_value_)
+* ParseInt(_value_, _base_)
 * _value_.ParseInt()
 * _value_.ParseInt(_base_)
 
@@ -124,6 +129,7 @@ def poly_parse_bin(x: Any) -> Any:
     """
 **A specialized version of `ParseInt()` for base 2**
 
+* ParseBinary(_value_)
 * _value_.ParseBinary()
 
 ```vgr
@@ -146,6 +152,7 @@ def poly_parse_oct(x: Any) -> Any:
     """
 **A specialized version of `ParseInt()` for base 8**
 
+* ParseOctal(_value_)
 * _value_.ParseOctal()
 
 ```vgr
@@ -169,6 +176,7 @@ def poly_parse_hex(x: Any) -> Any:
     """
 **A specialized version of `ParseInt()` for base 16**
 
+* ParseHex(_value_)
 * _value_.ParseHex()
 
 ```vgr
@@ -192,6 +200,8 @@ def poly_base64_encode(x: Any, charset: str = "utf-8") -> Any:
     """
 **Encode a string using base 64 encoding**
 
+* Base64Encode(_value_)
+* Base64Encode(_value_, _charset_)
 * _value_.Base64Encode()
 * _value_.Base64Encode(_charset_)
 
@@ -221,6 +231,8 @@ def poly_base64_decode(x: Any, charset: str = "utf-8") -> Any:
     """
 **Decode a string using base 64 encoding**
 
+* Base64Decode(_value_)
+* Base64Decode(_value_, _charset_)
 * _value_.Base64Decode()
 * _value_.Base64Decode(_charset_)
 
@@ -251,6 +263,8 @@ def poly_hex_encode(x: Any, charset: str = "utf-8") -> str:
     """
 **Encode a string as a series of hexidecimal characters**
 
+* HexEncode(_value_)
+* HexEncode(_value_, _charset_)
 * _value_.HexEncode()
 * _value_.HexEncode(_charset_)
 
@@ -279,6 +293,8 @@ def poly_hex_decode(x: Any, charset: str = "utf-8") -> str:
     """
 **Decode a string of hexidecimal characters into a string**
 
+* HexDecode(_value_)
+* HexDecode(_value_, _charset_)
 * _value_.HexDecode()
 * _value_.HexDecode(_charset_)
 
