@@ -10,6 +10,7 @@ def poly_true(x: Any) -> bool:
     """
 **Check for logical True**
 
+* IsTrue(_value_)
 * _value_.IsTrue()
 
 Numbers are evaluated as _False_ for zero and True for non-zero.
@@ -42,6 +43,7 @@ def poly_false(x: Any) -> bool:
 * ! _x_
 * ！_x_
 * ¬ _x_
+* IsFalse(_value_)
 * _value_.IsFalse()
 
 Numbers are evaluated as _False_ for zero and _True_ for non-zero.
