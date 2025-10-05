@@ -46,6 +46,7 @@ def poly_strlen(x: Any) -> Any:
     """
 **Return the length of a string**
 
+* StrLen(_value_)
 * _value_.StrLen()
 
 If _value_ is of any type except string, _None_ is returned.
@@ -56,7 +57,7 @@ If _value_ is of any type except string, _None_ is returned.
 ["cat", "kitten"].StrLen() → [3, 6]
 ```
 
-Also see `Len()`
+Also see `Length()`
 """
     return _exec_str_op(x, 'StrLen', poly_strlen, str.__len__) if isinstance(x, (str, list, tuple, dict)) else None
 
@@ -64,6 +65,7 @@ def poly_strrev(x: Any) -> Any:
     """
 **Returns the characters of the string in reverse order**
 
+* StrRev(_value_)
 * _value_.StrRev()
 
 ```vgr
@@ -79,6 +81,7 @@ def poly_capitalize(x: Any) -> Any:
     """
 **Return the capitalized version of a string**
 
+* Capitalize(_value_)
 * _value_.Capitalize()
 
 ```vgr
@@ -96,6 +99,7 @@ def poly_casefold(x: Any) -> Any:
     """
 **Return a caseless version of a string**
 
+* Casefold(_value_)
 * _value_.Casefold()
 
 ```vgr
@@ -113,6 +117,7 @@ def poly_lower(x: Any) -> Any:
     """
 **Return a lowercase version of a string**
 
+* Lower(_value_)
 * _value_.Lower()
 
 ```vgr
@@ -130,6 +135,7 @@ def poly_swapcase(x: Any) -> Any:
     """
 **Return a string with upper and lower case characters swapped**
 
+* SwapCase(_value_)
 * _value_.SwapCase()
 
 ```vgr
@@ -147,6 +153,7 @@ def poly_title(x: Any) -> Any:
     """
 **Title-case words in a string**
 
+* TitleCase(_value_)
 * _value_.TitleCase()
 
 ```vgr
@@ -164,6 +171,7 @@ def poly_upper(x: Any) -> Any:
     """
 **Return an upper case version of a string**
 
+* Upper(_value_)
 * _value_.Upper()
 
 ```vgr
@@ -198,6 +206,7 @@ def poly_isalnum(x: Any) -> Any:
     """
 **Returns _True_ if the value is an alpha-numeric string**
 
+* IsAlphaNumeric(_value_)
 * _value_.IsAlphaNumeric()
 
 A string is alpha-numeric if all characters in the string are
@@ -218,6 +227,7 @@ def poly_isalpha(x: Any) -> Any:
     """
 **Returns _True_ if value is an alphabetic string**
 
+* IsAlpha(_value_)
 * _value_.IsAlpha()
 
 A string is alphabetic if all characters in the string
@@ -235,6 +245,7 @@ def poly_isascii(x: Any) -> Any:
     """
 **Returns _True_ if value is a string composed of all ASCII character**
 
+* IsAscii(_value_)
 * _value_.IsAscii()
 
 ASCII characters are those in the range U+0000 to U+007F.
@@ -255,6 +266,7 @@ def poly_isdecimal(x: Any) -> Any:
     """
 **Returns _True_ if the value is a decimal string**
 
+* IsDecimal(_value_)
 * _value_.IsDecimal()
 
 A string is a decimal string if all characters in the string
@@ -278,6 +290,7 @@ def poly_isdigit(x: Any) -> Any:
     """
 **Returns _True_ if the value is a digit string**
 
+* IsDigit(_value_)
 * _value_.IsDigit()
 
 A string is a digit string if all characters in the string
@@ -299,6 +312,7 @@ def poly_islower(x: Any) -> Any:
     """
 **Returns _True_ if the value is a lowercase string**
 
+* IsLower(_value_)
 * _value_.IsLower()
 
 A string is lowercase if all cased characters in the string
@@ -316,6 +330,7 @@ def poly_isnumeric(x: Any) -> Any:
     """
 **Returns _True_ if the value is a numeric string**
 
+* IsNumeric(_value_)
 * _value_.IsNumeric()
 
 A string is numeric if all characters in the string are
@@ -339,6 +354,7 @@ def poly_isprintable(x: Any) -> Any:
     """
 **Returns _True_ if the value is a string and is printable**
 
+* IsPrintable(_value_)
 * _value_.IsPrintable()
 
 A string is printable if all of its characters are considered printable
@@ -356,6 +372,7 @@ def poly_isspace(x: Any) -> Any:
     """
 **Returns _True_ if the value is a whitespace string**
 
+* IsSpace(_value_)
 * _value_.IsSpace()
 
 A string is whitespace if all characters in the string are whitespace
@@ -373,6 +390,7 @@ def poly_istitle(x: Any) -> Any:
     """
 **Returns _True_ if the value is a title-case string**
 
+* IsTitle(_value_)
 * _value_.IsTitle()
 
 In a title-cased string, upper- and title-case characters may only
@@ -390,6 +408,7 @@ def poly_isupper(x: Any) -> Any:
     """
 **Returns _True_ if the value is an uppercase string**
 
+* IsUpper(_value_)
 * _value_.IsUpper()
 
 A string is uppercase if all cased characters in the string are uppercase
@@ -444,6 +463,8 @@ def poly_strip(x: Any, *args) -> Any:
     """
 **Remove leading and trailing characters from a string**
 
+* Strip(_value_)
+* Strip(_value_, _expression_...)
 * _value_.Strip()
 * _value_.Strip(_expression_...)
 
@@ -471,6 +492,8 @@ def poly_lstrip(x: Any, *args) -> Any:
     """
 **Remove leading characters from a string**
 
+* LeftStrip(_value_)
+* LeftStrip(_value_, _expression_...)
 * _value_.LeftStrip()
 * _value_.LeftStrip(_expression_...)
 
@@ -494,6 +517,8 @@ def poly_rstrip(x: Any, *args) -> Any:
     """
 **Remove trailing characters from a string**
 
+* RightStrip(_value_)
+* RightStrip(_value_, _expression_...)
 * _value_.RightStrip()
 * _value_.RightStrip(_expression_...)
 
@@ -517,6 +542,8 @@ def poly_removeprefix(x: Any, *args) -> Any:
     """
 **Remove a prefix from a string if present**
 
+* RemovePrefix(_value_)
+* RemovePrefix(_value_, _prefix_...)
 * _value_.RemovePrefix()
 * _value_.RemovePrefix(_prefix_...)
 
@@ -545,6 +572,8 @@ def poly_removesuffix(x: Any, *args) -> Any:
     """
 **Remvoe a suffix from a string if present**
 
+* RemoveSuffix(_value_)
+* RemoveSuffix(_value_, _prefix_...)
 * _value_.RemoveSuffix()
 * _value_.RemoveSuffix(_prefix_...)
 
@@ -589,8 +618,8 @@ def poly_startswith(x: Any, *prefixes: Any) -> Any:
     """
 **Returns _True_ if a string value starts with the specified prefix**
 
-* _value_.StartsWith(_prefix_)
-* _value_.StartsWith(_prefix_, ...)
+* StartsWith(_value_, _prefix_...)
+* _value_.StartsWith(_prefix_...)
 
 The _prefix_ argument must be either a string or a list of strings. Lists and individual strings
 may be intermixed.
@@ -613,8 +642,8 @@ def poly_endswith(x: Any, *suffixes: Any) -> bool:
     """
 **Returns _True_ if a string value ends with the specified suffix**
 
-* _value_.EndsWith(_suffix_)
-* _value_.EndsWith(_suffix_, ...)
+* EndsWith(_value_, _suffix_...)
+* _value_.EndsWith(_suffix_...)
 
 The _suffix_ argument must be either a string or a list of strings. Lists and individual strings
 may be intermixed.
@@ -634,9 +663,6 @@ Also see `StartsWith()`
 """
     return _exec_bool_str_op(x, suffixes, "EndsWith", poly_endswith, str.endswith)
 
-# "abc".LeftStr(2) -> "ab"
-# 2.LeftStr(2).LeftStr(2) -> 2
-# ["abc", 2].LeftStr(2) -> ["ab", 2]
 _string_int_ops = {
     (str, int)   : lambda _op, x, y,  sm: sm(x, y),
     (list, int)  : lambda  op, x, y, _sm: [op(x1, y) for x1 in x],
@@ -653,6 +679,8 @@ def poly_expandtabs(x: Any, tabsize: Any=8) -> Any:
     """
 **Converts tabs in a string into spaces**
 
+* ExpandTabs(_value_)
+* ExpandTabs(_value_, _tabsize_)
 * _value_.ExpandTabs()
 * _value_.ExpandTabs(_tabsize_)
 
@@ -672,10 +700,12 @@ def poly_leftstr(x: Any, length: Any=1) -> Any:
     """
 **Returns the leftmost characters of a string**
 
+* LeftStr(_value_)
+* LeftStr(_value_, _length_)
 * _value_.LeftStr()
 * _value_.LeftStr(_length_)
 
-Without a length argument a single character is returned.
+Without a _length_ argument a single character is returned.
 
 ```vgr
 None.LeftStr() → None
@@ -694,10 +724,12 @@ def poly_rightstr(x: Any, length: Any=1) -> Any:
     """
 **Retunrs the rightmost characters of a string**
 
+* RightStr(_value_)
+* RightStr(_value_, _length_)
 * _value_.RightStr()
 * _value_.RightStr(_length_)
 
-Without a length argument a single character is returned.
+Without a _length_ argument a single character is returned.
 
 ```vgr
 None.RightStr() → None
@@ -718,9 +750,12 @@ def poly_substr(x: Any, start: Any=0, length: Any=1) -> Any:
     """
 **Return a portion of a string**
 
-* _value.SubStr()
-* _value.SubStr(_start_)
-* _value.SubStr(_start_, _length_)
+* SubStr(_value_)
+* SubStr(_value_, _start_)
+* SubStr(_value_, _start_, _length_)
+* _value_.SubStr()
+* _value_.SubStr(_start_)
+* _value_.SubStr(_start_, _length_)
 
 If not provided, _start_ defaults to zero and _length_ to one.
 The _start_ index is zero based.
@@ -756,6 +791,7 @@ def poly_count(x: Any, sub: Any=None) -> Any:
     """
 **Return the count of non-overlapping occurrences of one string in another**
 
+* CountOf(_value_, _substr_)
 * _value_.CountOf(_substr_)
 
 ```vgr
@@ -774,6 +810,7 @@ def poly_index(x: Any, sub: Any=None) -> Any:
     """
 **Returns the _lowest_ index of one string in another**
 
+* IndexOf(_value_, _substr_)
 * _value_.IndexOf(_substr_)
 
 The returned index is zero based.
@@ -799,6 +836,7 @@ def poly_rindex(x: Any, sub: Any=None) -> Any:
     """
 **Returns the _highest_ index of one string in another**
 
+* RIndexOf(_value_, _substr_)
 * _value_.RIndexOf(_substr_)
 
 The returned index is zero based.
@@ -824,6 +862,7 @@ def poly_find(x: Any, sub: Any=None) -> Any:
     """
 **Returns the _lowest_ index of one string in another**
 
+* FindStr(_value_, _substr_)
 * _value_.FindStr(_substr_)
 
 The returned index is zero based.
@@ -848,6 +887,7 @@ def poly_rfind(x: Any, sub: Any=None) -> Any:
     """
 **Returns the _highest_ index of one string in another**
 
+* RFindStr(_value_, _substr_)
 * _value_.RFindStr(_substr_)
 
 The returned index is zero based.
@@ -881,6 +921,8 @@ def poly_center(x: Any, width: int=0, fillchar: str=' ') -> Any:
     """
 **Create a centered string of the given width**
 
+* Center(_value_, _width_)
+* Center(_value_, _width_, _pad_)
 * _value_.Center(_width_)
 * _value_.Center(_width_, _pad_)
 
@@ -908,6 +950,8 @@ def poly_ljust(x: Any, width: int=0, fillchar: str=' ') -> Any:
     """
 **Create a string of the given width with contents left aligned**
 
+* LeftJustify(_value_, _width_)
+* LeftJustify(_value_, _width_, _pad_)
 * _value_.LeftJustify(_width_)
 * _value_.LeftJustify(_width_, _pad_)
 
@@ -935,6 +979,8 @@ def poly_rjust(x: Any, width: int=0, fillchar: str=' ') -> Any:
     """
 **Create a string of the given width with contents right aligned**
 
+* RightJustify(_value_, _width_)
+* RightJustify(_value_, _width_, _pad_)
 * _value_.RightJustify(_width_)
 * _value_.RightJustify(_width_, _pad_)
 
@@ -962,6 +1008,7 @@ def poly_zfill(x: Any, width: int=0) -> Any:
     """
 **Create a string of the given width with contents right aligned, padded with zeroes**
 
+* ZeroFill(_value_, _width_)
 * _value_.ZeroFill(_width_)
 
 If the _value_ to be centered is _None_, it is treated as an empty string.
@@ -986,6 +1033,8 @@ def poly_shorten(x: str, length: int=32, placeholder: str="\u2026") -> str:
     """
 **Shorten a string's length, optionally adding a placeholder**
 
+* ShortenStr(_value_, _length_)
+* ShortenStr(_value_, _length_, _placeholder_)
 * _value_.ShortenStr(_length_)
 * _value_.ShortenStr(_length_, _placeholder_)
 
@@ -1024,6 +1073,8 @@ def poly_append(x: Any, *args) -> Any:
     """
 **Concatenate strings**
 
+* AppendStr(_value_)
+* AppendStr(_value_, _arg_...)
 * _value_.AppendStr()
 * _value_.AppendStr(_arg_...)
 
@@ -1047,6 +1098,8 @@ def poly_prepend(x: Any, *args) -> Any:
     """
 **Concatenate string placing values at the beginning of the string**
 
+* PrependStr(_value_)
+* PrependStr(_value_, _arg_...)
 * _value_.PrependStr()
 * _value_.PrependStr(_arg_...)
 
@@ -1070,10 +1123,14 @@ def poly_replace(x: Any, *args) -> Any:
     """
 **Replace or delete values in a string**
 
+* ReplaceStr(_value_)
+* ReplaceStr(_value_, _old_)
+* ReplaceStr(_value_, _old_, _new_)
+* ReplaceStr(_value_, _old_..., _new_)
 * _value_.ReplaceStr()
 * _value_.ReplaceStr(_old_)
 * _value_.ReplaceStr(_old_, _new_)
-* _value_.ReplaceStr(_old_... _new_)
+* _value_.ReplaceStr(_old_..., _new_)
 
 String conversion is performed on _value_, _old_, and _new_ as
 required. The value for _old_ may be a compiled regular expression.
@@ -1149,6 +1206,9 @@ def poly_split(x: Any, sep: str=None, maxsplit: int=-1) -> Any:
     """
 **Split a string based on a separator string**
 
+* Split(_value_)
+* Split(_value_, _sep_)
+* Split(_value_, _sep_, _maxsplit_)
 * _value_.Split()
 * _value_.Split(_sep_)
 * _value_.Split(_sep_, _maxsplit_)
@@ -1179,6 +1239,9 @@ def poly_rsplit(x: Any, sep: str=None, maxsplit: int=-1) -> Any:
     """
 **Split a string based on a separator string**
 
+* RSplit(_value_)
+* RSplit(_value_, _sep_)
+* RSplit(_value_, _sep_, _maxsplit_)
 * _value_.RSplit()
 * _value_.RSplit(_sep_)
 * _value_.RSplit(_sep_, _maxsplit_)
@@ -1221,6 +1284,8 @@ def poly_splitlines(x: Any, keepends: bool=False) -> Any:
     """
 **Split a string into multiple lines**
 
+* SplitLines(_value_)
+* SplitLines(_value_, _keepends_)
 * _value_.SplitLines()
 * _value_.SplitLines(_keepends_)
 
@@ -1242,6 +1307,8 @@ def poly_join(x: Any, sep: str=None) -> Any:
     """
 **Join together the elements of a list as strings**
 
+* Join(_value_, )
+* Join(_value_, _sep_)
 * _value_.Join()
 * _value_.Join(_sep_)
 
@@ -1278,6 +1345,9 @@ def poly_format(format_string: Any, *args) -> str:
     """
 **Format values into a string**
 
+* Format(_format_, _expression_...)
+* Format(format_, _expression_...)
+* _format_.Format(_expression_...)
 * _format_.Format(_expression_...)
 
 Formatting syntax is that used in [Python's str.format()](https://docs.python.org/3/library/string.html#formatstrings)
@@ -1342,10 +1412,12 @@ def poly_translate(x: Any, from_str: Any, to_str: Any=None) -> Any:
     """
 **Perform character-by-character conversion or deletion**
 
-* _value_.Translate(_expression_, _expression_)
+* Translate(_value_, _expression_)
+* Translate(_value_, _expression_, _expression_)
 * _value_.Translate(_expression_)
+* _value_.Translate(_expression_, _expression_)
 
-If the second form is used, or the replacement string is empty or _None_
+If the two-arguments form is used, or the replacement string is empty or _None_,
 the characters are deleted.
 
 ```vgr
@@ -1380,6 +1452,7 @@ def poly_ord(x:Any) -> Any:
     """
 **Convert a string to its ordinal values**
 
+* Ord(_value_)
 * _value_.Ord()
 
 If _value_ is a single character, the ordinal is returned; for an multi-character
@@ -1407,6 +1480,7 @@ def poly_chr(x: Any ) -> Any:
     """
 **Convert a number to single character string**
 
+* Chr(_value_)
 * _value_.Chr()
 
 If _value_ is a value for a Unicode character a single character string
