@@ -195,8 +195,8 @@ class SelectAnalyzer(Visitor):
         if isinstance(node, Tree):
             # For variable names, we just make that into a string
             if node.data == 'var_ref': return '.'.join(name.value for name in node.children)
-            # We'll inherit the name for <name>.func(), but not other ops
-            if node.data == 'function_call': return cls.get_default_col_name(node.children[0])
+            # We'll inherit the name for function calls, but not other ops
+            if node.data in ['function_call', 'dotfunction_call']: return cls.get_default_col_name(node.children[0])
         # We'll figure out the default later
         return None
 

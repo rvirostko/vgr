@@ -342,10 +342,11 @@ ternary: expr "?" expr ":" expr -> c_ternary
     // must be expr2 not expr else it binds across and/or
     | ("!" | "\uFF01" | "\u00AC") expr2 -> unary_not // Unicode ！(fullwidth excl) and ¬ (logical not)
     | expr2 "." "SetVar"i "(" var_name ")" -> set_var
-    | expr2 "." function -> function_call
+    | expr2 "." dotfunction -> dotfunction_call
     | expr2 "." NAME -> deref
     | expr2 "." "@" var_name "(" (expr (_COMMA expr)*)? ")" -> invoke_func_inline
     | "@" var_name "(" (expr (_COMMA expr)*)? ")" -> invoke_func
+    | function -> function_call
     // Polymorphic operations than *could* be chained
     | expr2 ("+" | "\uFF0B") expr2 -> add_op // Unicode ＋ (fullwidth plus)
     | expr2 ("-" | "\u2212" | "\uFF0D") expr2 -> sub_op // Unicode − (minus sign) and － (fullwidth minus)

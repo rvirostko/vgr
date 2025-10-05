@@ -423,13 +423,21 @@ class OperationBinder(Transformer):
     def set_var(self, tree): return SetVarOperation(tree)
     def invoke_func(self, tree): return InvokeFunctionOperation(tree)
     def invoke_func_inline(self, tree): return InvokeInlineFunctionOperation(tree)
-    def function_call(self, tree):
+
+    # method-style invocation: "foo".Upper()
+    def dotfunction_call(self, tree):
         # The expression becomes the first argument to the function,
         # and it takes the place of the wrapper from parsing
         expr, func = tree.children
         rc = SimpleOperation(func, get_function_op(func.children.pop(0).value))
         rc.children.insert(0, expr)
         return rc
+
+    # functional-style invocation: Upper("foo")
+    def function_call(self, tree):
+        func = tree.children[0]
+        return SimpleOperation(func, get_function_op(func.children.pop(0).value))
+
 # pylint: enable=too-many-public-methods
 
 # NB: Changes to OperationBinder() may fix issues

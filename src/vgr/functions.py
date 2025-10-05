@@ -436,7 +436,7 @@ The values for _x_ and _y_  are evaluated as booleans.
         if not eval_arg(arg): return False
     return True
 
-_BUILT_IN_FUNCS = {
+_BUILT_IN_FUNCS: dict[str, Callable[..., Any]] = {
     "Abs":            poly_abs,
     "Add":            poly_add,
     "AppendStr":      poly_append,
@@ -636,17 +636,22 @@ _FUNC_OPS = {}
 
 # This index provides a way to find functions independent of case.
 # Use get_function_op() to find entries.
-# It's also used to generate the big regex to identify function names
 _FUNC_INDEX = {}
 
 @lru_cache
-def get_function_entries():
+def get_function_entries() -> dict[str, tuple[Callable[..., Any], str, str]]:
+    """
+    key: function name
+    value: function, name (lc), documentation
+    """
     return {
-        name: (func, name.lower(), (func.__doc__ or '').lower()) for name, func in _FUNC_OPS.items()
+        name: (func, name.lower(), (func.__doc__ or '').lower())
+        for name, func in _FUNC_OPS.items()
     }
 
 # Needs to include all items bound to operators
-_OP_FUNCS = [
+_OP_FUNCS: list[Callable[..., Any]] = [
+    # TODO why is this turned off?
     #    def unary_not(self, tree): return NotOperation(tree)
     build_dict, # dict
     build_list, # array
@@ -709,51 +714,56 @@ def add_function(extn_name: str, name: str, function: Callable) -> None:
 # The max value of an arg range when we have variable arguments
 _IS_VARARGS = float('inf')
 
-def get_function(name: str) -> tuple:
+def get_function(name: str) -> tuple[str, Callable[..., Any]]:
     """Get the entry for the named function: (canonical_name, function)"""
     canonical_name = _FUNC_INDEX.get(name.lower(), None)
-    if canonical_name: return (canonical_name, _FUNC_OPS.get(canonical_name))
-    return None
+    if canonical_name is None: return None
+    return (canonical_name, _FUNC_OPS.get(canonical_name))
 
-def get_function_op(name: str):
+def get_function_op(name: str) -> Callable[..., Any]:
     """Given a function name get the function that implements it"""
     function = get_function(name)
-    if function: return function[1]
-    raise NotImplementedError(f'Function {name!r} not implemented') # SNO
+    if not function: raise NotImplementedError(f'Function {name!r} not implemented') # SNO
+    return function[1]
 
-def get_function_defs(w: int=99) -> str:
+def get_function_defs(weight: int=99) -> str:
     """Dynamically generate the LARK patterns for functions based on our dictionary"""
-    w = str(w)
+    weight = str(weight)
+    return (
+                '// function-style invocation\n' +
+                _gen_function_defs(weight, 'function', 'FNAME', False) +
+                "\n\n" +
+                '// method-style invocation\n' +
+                _gen_function_defs(weight, 'dotfunction', 'DFNAME', True)
+           )
+
+def _gen_function_defs(weight: str, rule_name, group_label, dot_invocation: bool=False) -> str:
     # Group the functions acording to their argument counts
     # Take into account alias found in _FUNC_INDEX
     func_groups = defaultdict(list)
-    for name, op in _FUNC_OPS.items():
-        arg_range = get_arg_range(op)
-        func_groups[arg_range].append(name)
-        for alias in [k for k, v in _FUNC_INDEX.items() if v == name]:
-            if alias != name.lower():
-                func_groups[arg_range].append(alias)
+    for operation in _FUNC_OPS.values():
+        arg_range = _get_arg_range(operation, dot_invocation)
+        if arg_range is not None:
+            func_groups[arg_range].extend(k for k, v in _FUNC_OPS.items() if v is operation)
     fnames = {}
     rc = ''
     # Generate the list of function names per arg count group
     for (min_args, max_args) in sorted(func_groups):
-        label = 'FNAME'
-        if min_args == max_args:
-            label += str(min_args)
-        else:
-            label += f'{min_args}_{"N" if max_args == _IS_VARARGS else max_args}'
+        label = f'{group_label}{min_args}'
+        if min_args != max_args:
+            label += f'_{"N" if max_args == _IS_VARARGS else max_args}'
         fnames[(min_args, max_args)] = label
         # We emit each by-arg-length group as a regex designed to eliminate
         # "prefix" problems. First we order the names longest to shortest, then end
         # the pattern in such as way that we look ahead for the open paren, but don't capture it.
-        rc += '\n' + label + '.' + w + ': ' + '/('
+        rc += '\n' + f'\n{label}.{weight}: /('
         rc += '|'.join(key for key in sorted(func_groups[(min_args, max_args)], key=lambda x: (-len(x), x)))
         rc += ')\\s*(?=[(])/i'
     first = True
     # The function rule is a combination of the by-arg-length names and a pattern for their argument count
     for (min_args, max_args), label in fnames.items():
         if first:
-            rc += '\nfunction.' + w + ': '
+            rc += f'\n{rule_name}.{weight}: '
             first = False
         else:
             rc += '    | '
@@ -781,7 +791,7 @@ def get_function_defs(w: int=99) -> str:
         rc +=  ' ")"\n'
     return rc.strip()
 
-def get_arg_range(op) -> tuple:
+def _get_arg_range(op, dot_invocation: bool) -> tuple:
     """Get the argument range for the function definition in the grammar"""
     if op is None: raise ValueError('Expected a function, but got None')
     # Get the signature of the function
@@ -797,8 +807,9 @@ def get_arg_range(op) -> tuple:
                 req_args += 1
             else:
                 opt_args += 1
-    # because our functions are applied to something
-    # and we want the grammar signature
-    req_args -= 1
-    if req_args < 0: raise ValueError(f'{op} : {req_args}') # SNO
+    if dot_invocation:
+        # Because the function is applied to something, we adjust
+        req_args -= 1
+        # If the function can't be used in this manner, ignore it
+        if req_args < 0: return None
     return (req_args, _IS_VARARGS if positional else (req_args + opt_args))
