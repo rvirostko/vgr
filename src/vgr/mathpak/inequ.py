@@ -16,6 +16,7 @@ def poly_eq(x: Any, y: Any) -> bool:
 * _x_ Equals _y_
 * _x_ Is _y_
 * _x_ [Is] Equal To _y_
+* IsEqualTo(_x_, _y_)
 * _x_.IsEqualTo(_y_)
 
 | x     | y          | operation           |
@@ -61,7 +62,7 @@ def poly_exact_eq(x: Any, y: Any) -> bool:
 * _x_ === _y_
 
 While similar to a regular equals comparison, it requires that
-types of the two values match. No conversion are performed.
+types of the two values match. No conversions are performed.
 
 ```vgr
 5 == "5" -> True
@@ -88,6 +89,7 @@ def poly_ne(x: Any, y: Any) -> bool:
 * _x_ ¬= _y_
 * _x_ Is Not _y_
 * _x_ [Is] Not Equal To _y_
+* NotEqualTo(_x_, _y_)
 * _x_.NotEqualTo(_y_)
 
 | x     | y          | operation           |
@@ -129,6 +131,7 @@ def poly_lt(x: Any, y: Any) -> bool:
 * _x_ < _y_
 * _x_ ＜ _y_
 * _x_ [Is] Less Than _y_
+* IsLessThan(_x_, _y_)
 * _x_.IsLessThan(_y_)
 
 | x     | y          | operation          |
@@ -173,6 +176,7 @@ def poly_gt(x: Any, y: Any) -> Any:
 * _x_ > _y_
 * _x_ ＞ _y_
 * _x_ [Is] Greater Than _y_
+* IsGreaterThan(_x_, _y_)
 * _x_.IsGreaterThan(_y_)
 
 | x     | y          | operation          |
@@ -219,6 +223,7 @@ def poly_le(x: Any, y: Any) -> bool:
 * _x_ ¬> _y_
 * _x_ !> _y_
 * _x_ [Is] Not Greater Than _y_
+* NotGreaterThan(_x_, _y_)
 * _x_.NotGreaterThan(_y_)
 
 | x     | y          | operation          |
@@ -265,6 +270,7 @@ def poly_ge(x: Any, y: Any) -> bool:
 * _x_ ¬< _y_
 * _x_ !< _y_
 * _x_ [Is] Not Less Than _y_
+* NotLessThan(_x_, _y_)
 * _x_.NotLessThan(_y_)
 
 | x     | y          | operation          |
@@ -305,6 +311,8 @@ def poly_between(x: Any, y: Any=None, z: Any=None) -> bool:
     """
 **Determine if a value is within an inclusive range**
 
+* IsBetween(_value_, _low_, _high_)
+* IsBetween(_value_, _high_, _low_)
 * _value_.IsBetween(_low_, _high_)
 * _value_.IsBetween(_high_, _low_)
 
@@ -336,6 +344,8 @@ def poly_clamp(x: Any, y: Any=None, z: Any=None) -> Any:
     """
 **Constrain a value within an inclusive range**
 
+* Clamp(_value_, _low_, _high_)
+* Clamp(_value_, _high_, _low_)
 * _value_.Clamp(_low_, _high_)
 * _value_.Clamp(_high_, _low_)
 
@@ -344,7 +354,6 @@ If _low_ and/or _high_ are omitted, _None_ is assumed.
 When working with mixed types, the type of the value,
 not the constraints, determines conversions.
 See `LessThan()` and `GreaterThan()` for conversion details
-
 
 ```vgr
 None.Clamp() → None
