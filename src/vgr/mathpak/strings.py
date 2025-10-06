@@ -604,7 +604,7 @@ def _exec_bool_str_op(x: Any, y: Any, name: str, op: Callable[[Any, Any], Any], 
     """For str/str functions that return a bool"""
     def flatten(arg):
         return (y for a in arg for y in (flatten(a) if isinstance(a, (list, tuple)) else (a,)))
-    if isinstance(x, (list, tuple)): return type(x)(op(x1, y) for x1 in x)
+    if isinstance(x, (list, tuple)): return list(op(x1, y) for x1 in x)
     if isinstance(x, dict): return {key: op(value, y) for key, value in x.items() if isinstance(value, str)}
     if isinstance(x, str):
         for y1 in flatten(y):
@@ -776,7 +776,7 @@ Also see `LeftStr()` and `RightStr()`
     start = max(0, int_arg(start, 'Start'))
     length = 1 if length is None else max(0, int_arg(length, 'Length'))
     if isinstance(x, str): return x[start:start + length]
-    if isinstance(x, (list, tuple)): return type(x)(poly_substr(x1, start, length) for x1 in x)
+    if isinstance(x, (list, tuple)): return list(poly_substr(x1, start, length) for x1 in x)
     if isinstance(x, dict): return {key: poly_substr(value, start, length) for key, value in x.items()}
     raise ValueError(f'SubStr() on {type_str(x)} not possible')
 
@@ -913,7 +913,7 @@ def _layout_opt(x: Any, width: int, fillchar: str, op, str_op) -> Any:
     width = 0 if width is None else min(max(0, int_arg(width, "Width")), 256)
     fillchar = ' ' if fillchar is None else str_arg(fillchar, "Fillchar")[0]
     if x is None: return fillchar * width
-    if isinstance(x, (list, tuple)): return type(x)(op(x1, width, fillchar) for x1 in x)
+    if isinstance(x, (list, tuple)): return list(op(x1, width, fillchar) for x1 in x)
     if isinstance(x, (bool, int, float, dict)): x = poly_str(x)
     return str_op(x, width, fillchar)
 
@@ -1055,7 +1055,7 @@ string.digits.ShortenStr(7, " etc") → "012 etc"
     length = 32 if length is None else max(0, int_arg(length, "Length"))
     placeholder = '' if placeholder is None else str_arg(placeholder, "Placeholder")
     if x is None: return ''
-    if isinstance(x, (list, tuple)): return type(x)(poly_shorten(x1, length, placeholder) for x1 in x)
+    if isinstance(x, (list, tuple)): return list(poly_shorten(x1, length, placeholder) for x1 in x)
     if isinstance(x, (bool, int, float, dict)): x = poly_str(x)
     # No adjustment required
     if len(x) <= length: return x
@@ -1156,7 +1156,7 @@ Also see `RegexReplace()` and `CompilePattern()`
 
 def _append(x: Any, y: Any) -> Any:
     if y is None: return x
-    if isinstance(x, (list, tuple)): return type(x)(_append(x1, y) for x1 in x)
+    if isinstance(x, (list, tuple)): return list(_append(x1, y) for x1 in x)
     if isinstance(x, dict): return  {key: _append(value, y) for key, value in x.items()}
     if x is None: x = ''
     if isinstance(x, (bool, int, float)): x = str(x)
@@ -1168,7 +1168,7 @@ def _append(x: Any, y: Any) -> Any:
 
 def _prepend(x: Any, y: Any) -> Any:
     if y is None: return x
-    if isinstance(x, (list, tuple)): return type(x)(_prepend(x1, y) for x1 in x)
+    if isinstance(x, (list, tuple)): return list(_prepend(x1, y) for x1 in x)
     if isinstance(x, dict): return  {key: _prepend(value, y) for key, value in x.items()}
     if x is None: x = ''
     if isinstance(x, (bool, int, float)): x = str(x)
@@ -1198,7 +1198,7 @@ def _replace(x: Any, old: Any, new: Any=None) -> Any:
     if isinstance(old, (list, tuple)): return reduce(lambda x, old1: _replace(x, old1, new), old, x)
     old = str(old) if isinstance(old, (bool, int, float)) else str_arg(old, 'Old', False) or ''
     if isinstance(x, str): return x.replace(old, new)
-    if isinstance(x, (list, tuple)): return type(x)(_replace(x1, old, new) for x1 in x)
+    if isinstance(x, (list, tuple)): return list(_replace(x1, old, new) for x1 in x)
     if isinstance(x, dict): return {key: _replace(value, old, new) for key, value in x.items()}
     raise TypeError(f'Replacement of {type_str(x)} not supported')
 
@@ -1275,7 +1275,7 @@ def _split(name: str, p_op, str_op, x: Any, sep: str=None, maxsplit: int=-1):
     if isinstance(x, (bool, int, float)): x = str(x)
     if x is None: x = ''
     if isinstance(x, str): return str_op(x, sep, maxsplit)
-    if isinstance(x, (list, tuple)): return type(x)(p_op(x1, sep, maxsplit) for x1 in x)
+    if isinstance(x, (list, tuple)): return list(p_op(x1, sep, maxsplit) for x1 in x)
     if isinstance(x, dict): return {key: p_op(value, sep, maxsplit) for key, value in x.items()}
     raise TypeError(f'{name} of {type_str(x)} not supported')
 
@@ -1300,7 +1300,7 @@ None.SplitLines() → None
     keepends = bool_arg(keepends, "KeepEnds")
     if isinstance(x, (bool, int, float)): return str(x).splitlines(keepends)
     if isinstance(x, str): return x.splitlines(keepends)
-    if isinstance(x, (list, tuple)): return type(x)(poly_splitlines(x1, keepends) for x1 in x)
+    if isinstance(x, (list, tuple)): return list(poly_splitlines(x1, keepends) for x1 in x)
     raise TypeError(f'Splitlines with {type_str(x)} not supported')
 
 def poly_join(x: Any, sep: str=None) -> Any:
@@ -1472,7 +1472,7 @@ Also see `Chr()`
     if isinstance(x, (int, float)): return int(x) if 0 <= x <= 0x10FFFF else x
     if isinstance(x, str): return ord(x) if len(x) == 1 else [poly_ord(x1) for x1 in x]
     if isinstance(x, (bytes, bytearray)): return list(x)
-    if isinstance(x, (list, tuple)): return type(x)(poly_ord(el) for el in x)
+    if isinstance(x, (list, tuple)): return list(poly_ord(el) for el in x)
     if isinstance(x, dict): return {k: poly_ord(v) for k, v in x.items()}
     return x
 
@@ -1497,7 +1497,7 @@ Also see `Ord()`
     if x is None: return None
     if isinstance(x, (int, float)): return chr(int(x)) if 0 <= x <= 0x10FFFF else x
     if isinstance(x, (bytes, bytearray)): return ''.join(chr(b) for b in x)
-    if isinstance(x, (list, tuple)): return type(x)(poly_chr(x1) for x1 in x)
+    if isinstance(x, (list, tuple)): return list(poly_chr(x1) for x1 in x)
     if isinstance(x, dict): return {k: poly_chr(v) for k, v in x.items()}
     return x
 

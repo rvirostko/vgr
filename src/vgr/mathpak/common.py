@@ -120,20 +120,20 @@ def str_arg(arg: Any, name: str, req_value: bool=True) -> str:
         return arg
     raise ValueError(f'{name} argument must be a string, found {type_str(arg)}')
 
-def dist_x(op: Callable[[Any, Any], Any], x: list, y: Any) -> Any:
+def dist_x(op: Callable[[Any, Any], Any], x: list, y: Any) -> list:
     """
     Distribute op over the colleciton: op(<list>, y)
     See dist_y()
     """
-    return type(x)(op(x1, y) for x1 in x)
+    return list(op(x1, y) for x1 in x)
 
-def dist_y(op: Callable[[Any, Any], Any], x: Any, y: list) -> Any:
+def dist_y(op: Callable[[Any, Any], Any], x: Any, y: list) -> list:
     """
     Distribute op over the collection: op(x, <list>)
     Used by commutative operations with a scalar x and list y
     See dist_x()
     """
-    return type(y)(op(x, y1) for y1 in y)
+    return list(op(x, y1) for y1 in y)
 
 def matching_default(x: Any) -> Any:
     """Given an object, return a _default_ value that matches its type"""

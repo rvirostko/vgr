@@ -22,7 +22,7 @@ def compile_pattern(x: Any, flags: int=0) -> Any:
         except Exception as e:
             raise ValueError(f'Pattern error: {x!r}') from e
     if isinstance(x, (list, tuple)):
-        return type(x)(compile_pattern(x1, flags) for x1 in x)
+        return list(compile_pattern(x1, flags) for x1 in x)
     raise ValueError(f'Cannot Compile {type_str(x)} to a Pattern')
 
 def poly_regex_replace(x: Any, *args) -> Any:
@@ -62,6 +62,6 @@ def _regex_replace(x: Any, pattern: Any, replacement: Any=None) -> Any:
             raise TypeError(f'Unexpected type for RegEx pattern {type_str(pattern)}')
         pattern = re.compile(pattern)
     if isinstance(x, str): return re.sub(pattern, replacement, x)
-    if isinstance(x, (list, tuple)): return type(x)(_regex_replace(x1, pattern, replacement) for x1 in x)
+    if isinstance(x, (list, tuple)): return list(_regex_replace(x1, pattern, replacement) for x1 in x)
     if isinstance(x, dict): return {key: _regex_replace(value, pattern, replacement) for key, value in x.items() }
     raise TypeError(f'RegEx replacement on {type_str(x)} not supported')

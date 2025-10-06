@@ -267,7 +267,7 @@ The _value_'s type determines what is returned:
     if x is None: return True
     if isinstance(x, bool): return not x
     if isinstance(x, (int, float)): return -x
-    if isinstance(x, (list, tuple)): return type(x)(_negate(x1) for x1 in x)
+    if isinstance(x, (list, tuple)): return list(_negate(x1) for x1 in x)
     if isinstance(x, dict): return {k: _negate(v) for k, v in x.items()}
     return x
 

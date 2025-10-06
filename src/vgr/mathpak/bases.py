@@ -31,7 +31,7 @@ Also see `ToOctal()` and `ToHex()`
     if x is None: return None
     if isinstance(x, (bool, int, float)): return bin(int(x))
     if isinstance(x, str): return bin(poly_int(x))
-    if isinstance(x, (list, tuple)): return type(x)(poly_bin(x1) for x1 in x)
+    if isinstance(x, (list, tuple)): return list(poly_bin(x1) for x1 in x)
     raise TypeError(f'Binary format with {type_str(x)} not supported')
 
 def poly_oct(x: Any) -> Any:
@@ -57,7 +57,7 @@ Also see `ToBinary()` and `ToHex()`
     if x is None: return None
     if isinstance(x, (bool, int, float)): return oct(int(x))
     if isinstance(x, str): return oct(poly_int(x))
-    if isinstance(x, (list, tuple)): return type(x)(poly_oct(x1) for x1 in x)
+    if isinstance(x, (list, tuple)): return list(poly_oct(x1) for x1 in x)
     raise TypeError(f'Octal format with {type_str(x)} not supported')
 
 def poly_hex(x: Any) -> Any:
@@ -83,7 +83,7 @@ Also see `ToBinary()` and `ToOctal()`
     if x is None: return None
     if isinstance(x, (bool, int, float)): return hex(int(x))
     if isinstance(x, str): return hex(poly_int(x))
-    if isinstance(x, (list, tuple)): return type(x)(poly_hex(x1) for x1 in x)
+    if isinstance(x, (list, tuple)): return list(poly_hex(x1) for x1 in x)
     raise TypeError(f'Hexadecimal format with {type_str(x)} not supported')
 
 def poly_parse_int(x: Any, base: Any=10) -> Any:
@@ -122,7 +122,7 @@ Also see `ParseBinary()`, `ParseOctal()`, `ParseHex()`
             return None if len(x) == 0 or x.isspace() else int(x.strip(), base)
         except ValueError as e:
             raise ValueError(f'Invalid value for use with base {base}: {x!r}') from e
-    if isinstance(x, (list, tuple)): return type(x)(poly_parse_int(x1, base) for x1 in x)
+    if isinstance(x, (list, tuple)): return list(poly_parse_int(x1, base) for x1 in x)
     raise TypeError(f'Parsing from {type_str(x)} not supported')
 
 def poly_parse_bin(x: Any) -> Any:
@@ -221,7 +221,7 @@ None.Base64Encode() → None
 Also see `Base64Decode()`
 """
     if x is None: return None
-    if isinstance(x, (list, tuple)): return type(x)(poly_base64_encode(x1, charset) for x1 in x)
+    if isinstance(x, (list, tuple)): return list(poly_base64_encode(x1, charset) for x1 in x)
     if isinstance(x, bool): x = str(int(x))
     if isinstance(x, (int, float)): x = str(x)
     if isinstance(x, str): return base64.b64encode(x.encode()).decode(_check_charset(charset))
@@ -253,7 +253,7 @@ Also see `Base64Encode()`
 """
     if x is None: return None
     if isinstance(x, (bool, int, float)): return x
-    if isinstance(x, (list, tuple)): return type(x)(poly_base64_decode(x1, charset) for x1 in x)
+    if isinstance(x, (list, tuple)): return list(poly_base64_decode(x1, charset) for x1 in x)
     if isinstance(x, str):
         x = x.strip()
         return '' if not x else base64.b64decode(x).decode(_check_charset(charset))
@@ -283,7 +283,7 @@ None.HexEncode() → None
 Also see `HexDecode()`
 """
     if x is None: return None
-    if isinstance(x, (list, tuple)): return type(x)(poly_hex_encode(x1, charset) for x1 in x)
+    if isinstance(x, (list, tuple)): return list(poly_hex_encode(x1, charset) for x1 in x)
     if isinstance(x, bool): x = str(int(x))
     if isinstance(x, (int, float)): x = str(x)
     if isinstance(x, str): return x.encode(_check_charset(charset)).hex()
@@ -315,7 +315,7 @@ Also see `HexEncode()`
 """
     # Idempotentent for these types
     if isinstance(x, (NoneType, bool, int, float)): return x
-    if isinstance(x, (list, tuple)): return type(x)(poly_hex_decode(x1, charset) for x1 in x)
+    if isinstance(x, (list, tuple)): return list(poly_hex_decode(x1, charset) for x1 in x)
     if isinstance(x, str):
         x = x.strip()
         return '' if not x else bytes.fromhex(x).decode(_check_charset(charset))

@@ -156,7 +156,7 @@ def _normalize_key(k: Any) -> str:
     return None if not s else s.replace(' ', '_')
 
 def _normalize_value(v: Any) -> str:
-    if isinstance(v, (tuple, list)): return _normalize_value(v[0] if len(v) == 1 else None)
+    if isinstance(v, (list, tuple)): return _normalize_value(v[0] if len(v) == 1 else None)
     if isinstance(v, bool): return str(v).casefold()
     if isinstance(v, (int, float)): return str(v)
     return v if isinstance(v, str) else None

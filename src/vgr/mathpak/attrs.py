@@ -40,7 +40,7 @@ Also see `Lookup()`
 """
     if data is None: return data
     if isinstance(data, (list, tuple)):
-        return type(data)(poly_dig(d1, *args) for d1 in data)
+        return list(poly_dig(d1, *args) for d1 in data)
     if not isinstance(data, dict):
         raise TypeError(f'Digging into {type_str(data)} not supported')
     # Always go through the path parts just to validate their types
@@ -52,7 +52,7 @@ def _dig(data: dict, path: Any) -> Any:
         if isinstance(path, (str, bool, int, float)):
             # NB: don't str() as dictionaries can have non-string keys
             path = [path]
-        elif not isinstance(path, (tuple, list)):
+        elif not isinstance(path, (list, tuple)):
             raise TypeError(f'Digging with a {type_str(path)} not supported')
         if data is not None:
             for key in path:

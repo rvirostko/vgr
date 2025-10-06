@@ -98,7 +98,7 @@ None.EncodeURL() → None
     if url is None: return None
     safe = str_arg(safe, "Safe", False)
     if safe is None: safe = ''
-    if isinstance(url, (list, tuple)): return type(url)(encode_url(x1, safe) for x1 in url)
+    if isinstance(url, (list, tuple)): return list(encode_url(x1, safe) for x1 in url)
     if isinstance(url, (int, float)): url = str(url)
     if isinstance(url, str): return quote(url, safe=safe, errors='strict', encoding='utf-8')
     return url

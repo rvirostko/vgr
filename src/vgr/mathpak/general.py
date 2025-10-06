@@ -17,10 +17,8 @@ See the Python [reversed() function](https://docs.python.org/3/library/functions
 **TODO**
 ```
 """
-    if isinstance(x, (list, tuple)):
-        return type(x)(reversed(x))
-    if isinstance(x, str):
-        return x[::-1]
+    if isinstance(x, (list, tuple)): return list(reversed(x))
+    if isinstance(x, str): return x[::-1]
     return x
 
 def poly_ascii(x: Any) -> str:
@@ -127,7 +125,7 @@ def poly_sort(x: Any, unique: bool=False, reverse: bool=False) -> Any:
     reverse = False if reverse is None else bool_arg(reverse, 'Reverse')
     if isinstance(x, str): return poly_sort(x.encode(), unique, reverse).decode()
     if isinstance(x, (list, tuple)):
-        rc = type(x)(sorted(x, key=cmp_to_key(_cmp_to_key_asc), reverse=reverse))
+        rc = list(sorted(x, key=cmp_to_key(_cmp_to_key_asc), reverse=reverse))
         return _unique_sorted(rc) if unique else rc
     return x
 
@@ -280,7 +278,7 @@ def _unique_sorted(x: list):
     for curr in x[1:]:
         if poly_ne(curr, unique[-1]):
             unique.append(curr)
-    return unique if isinstance(x, list) else type(x)(unique)
+    return unique if isinstance(x, list) else list(unique)
 
 def _unique_sorted_dict(x: list, keys: list) -> list:
     """Special pupose unique for a sorted iterable or dictionaries"""

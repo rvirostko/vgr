@@ -49,7 +49,7 @@ None.Checksum() → None
         else:
             hasher = hashlib.new(str_arg(algo, 'Algorithm'))
     if isinstance(x, (list, tuple)):
-        return type(x)(poly_checksum(x1, algo) for x1 in x)
+        return list(poly_checksum(x1, algo) for x1 in x)
     if isinstance(x, dict):
         x = json.dumps(x, sort_keys=True, indent=None, separators=(',', ':'))
     if not isinstance(x, str): x = str(x)

@@ -28,7 +28,7 @@ Recursively remove None values from dictionaries and lists.
     if isinstance(obj, dict):
         return {k: strip_nulls(v) for k, v in obj.items() if v is not None}
     if isinstance(obj, (list, tuple)):
-        return type(obj)(strip_nulls(v) for v in obj if v is not None)
+        return list(strip_nulls(v) for v in obj if v is not None)
     return obj
 
 def format_json(obj, indent: int=2, sort_keys: bool=True):

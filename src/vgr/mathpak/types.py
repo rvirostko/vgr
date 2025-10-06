@@ -45,7 +45,8 @@ Conversion is distributed over lists.
         except ValueError:
             # Not, null, and not empty, so Python truthy
             return True
-    if isinstance(x, (list, tuple)): return type(x)(poly_bool(x1) for x1 in x)
+    if isinstance(x, (list, tuple)):
+        return list(poly_bool(x1) for x1 in x)
     return True
 
 def poly_isbool(x: Any) -> bool:
@@ -89,7 +90,7 @@ to a number. It can be any value, including _None_.
         except ValueError as e:
             if default is _SENTINEL: raise e
             return default
-    if isinstance(x, (list, tuple)): return type(x)(poly_float(x1, default) for x1 in x)
+    if isinstance(x, (list, tuple)): return list(poly_float(x1, default) for x1 in x)
     return None if default is _SENTINEL else default
 
 def poly_isfloat(x: Any) -> bool:
@@ -130,7 +131,7 @@ to a number. It can be any value, including _None_.
         except ValueError as e:
             if default is _SENTINEL: raise e
             return default
-    if isinstance(x, (list, tuple)): return type(x)(poly_int(x1, default) for x1 in x)
+    if isinstance(x, (list, tuple)): return list(poly_int(x1, default) for x1 in x)
     return None if default is _SENTINEL else default
 
 def poly_isint(x: Any) -> bool:
@@ -171,7 +172,7 @@ to a number. It can be any value, including _None_.
         except ValueError as e:
             if default is _SENTINEL: raise e
             return default
-    if isinstance(x, (list, tuple)): return type(x)(poly_number(x1, default) for x1 in x)
+    if isinstance(x, (list, tuple)): return list(poly_number(x1, default) for x1 in x)
     return None if default is _SENTINEL else default
 
 def poly_isnumber(x: Any) -> bool:
@@ -205,7 +206,7 @@ For all other types, _None_ is returned.
 **TODO**
 ```
 """
-    if isinstance(x, (list, tuple)): return type(x)(poly_sign(x1) for x1 in x)
+    if isinstance(x, (list, tuple)): return list(poly_sign(x1) for x1 in x)
     if isinstance(x, str): x = str_to_number(x)
     return (x > 0) - (x < 0) if isinstance(x, (int, float)) else None
 
@@ -279,7 +280,7 @@ If _value_ is _None_ it is left as _None_, not converted to the string _"None"_.
     if x is None: return None
     if isinstance(x, bytes): return x.decode('utf-8')
     if isinstance(x, str): return x
-    if isinstance(x, (list, tuple)): return type(x)(poly_str(x1) for x1 in x)
+    if isinstance(x, (list, tuple)): return list(poly_str(x1) for x1 in x)
     if isinstance(x, dict): return json.dumps(x)
     return str(x)
 

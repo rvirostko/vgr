@@ -302,7 +302,7 @@ Also see `Ceil()` and `FloorMultiple()`
 def _dist(op: Callable[[Any], Any], x: Any) -> Any:
     if x is None: return None
     # Distribute the operation over the collection
-    return type(x)(op(x1) for x1 in x) if isinstance(x, (list, tuple)) else x
+    return list(op(x1) for x1 in x) if isinstance(x, (list, tuple)) else x
 
 def poly_pred(x: Any) -> Any:
     """
@@ -329,7 +329,7 @@ Also see `Succ()`
     if isinstance(x, bool): return False
     if isinstance(x, int): return x - 1
     if isinstance(x, float): return math.nextafter(x, -math.inf)
-    if isinstance(x, (list, tuple)): return type(x)(poly_pred(x1) for x1 in x)
+    if isinstance(x, (list, tuple)): return list(poly_pred(x1) for x1 in x)
     return x
 
 def poly_succ(x: Any) -> Any:
@@ -357,5 +357,5 @@ Also see `Pred()`
     if isinstance(x, bool): return True
     if isinstance(x, int): return x + 1
     if isinstance(x, float): return math.nextafter(x, math.inf)
-    if isinstance(x, (list, tuple)): return type(x)(poly_succ(x1) for x1 in x)
+    if isinstance(x, (list, tuple)): return list(poly_succ(x1) for x1 in x)
     return x
