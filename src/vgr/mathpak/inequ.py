@@ -25,21 +25,21 @@ def poly_eq(x: Any, y: Any) -> bool:
 | _any_ | None       | False               |
 | int   | int/float  | x == y              |
 | int   | str        | x == ToNumber(y)†   |
-| int   | list/tuple | [x] == y‡           |
+| int   | list       | [x] == y‡           |
 | float | int/float  | x == y              |
 | float | str        | x == ToNumber(y)    |
-| float | list/tuple | [x] == y            |
+| float | list       | [x] == y            |
 | str   | int/float  | ToNumber(x) == y    |
 | str   | str        | x == y              |
-| str   | list/tuple | [x] == y            |
-| list  | list/tuple | x == y              |
+| str   | list       | [x] == y            |
+| list  | list       | x == y              |
 | list  | _any_      | x == [y]            |
-| tuple | list/tuple | x == y              |
-| tuple | _any_      | x == [y]            |
 | dict  | dict       | x == y by attr      |
-| dict  | _any_      | False               |
 
 TypeError raised on all other combinations
+
+Dictionary comparisons do not perform any type
+conversions.
 
 † If the string value cannot be converted to a number
 the corresponding non-string value is converted to
@@ -47,6 +47,18 @@ a string.
 
 ‡ After conversion to an array the comparison is
 performed between corresponding elements.
+
+```vgr
+None == None → True
+None == 5 → False
+None == "5" → False
+5 == " 5.0" → True
+"5" == "5.0" → False
+5 == [5] → True
+[5, 7] == [5, "7"] → True
+{"a": 5, "b": 7} == {"b": 7, "a": 5} → True
+{"a": 5, "b": 7, "c": 11} == {"c": 13, "b": 7, "a": 5} → False
+```
 """
     # None is only equal to itself
     if x is None: return y is None
@@ -98,21 +110,21 @@ def poly_ne(x: Any, y: Any) -> bool:
 | _any_ | None       | True                |
 | int   | int/float  | x != y              |
 | int   | str        | x != ToNumber(y)†   |
-| int   | list/tuple | [x] != y‡           |
+| int   | list       | [x] != y‡           |
 | float | int/float  | x != y              |
 | float | str        | x != ToNumber(y)    |
-| float | list/tuple | [x] != y            |
+| float | list       | [x] != y            |
 | str   | int/float  | ToNumber(x) != y    |
 | str   | str        | x != y              |
-| str   | list/tuple | [x] != y            |
-| list  | list/tuple | x != y              |
+| str   | list       | [x] != y            |
+| list  | list       | x != y              |
 | list  | _any_      | x != [y]            |
-| tuple | list/tuple | x != y              |
-| tuple | _any_      | x != [y]            |
 | dict  | dict       | x != y by attr      |
-| dict  | _any_      | True                |
 
 TypeError raised on all other combinations
+
+Dictionary comparisons do not perform any type
+conversions.
 
 † If the string value cannot be converted to a number
 the corresponding non-string value is converted to
@@ -120,6 +132,18 @@ a string.
 
 ‡ After conversion to an array the comparison is
 performed between corresponding elements.
+
+```vgr
+None != None → False
+None != 5 → True
+None != "5" → True
+5 != " 5.0" → False
+"5" != "5.0" → True
+5 != [5] → False
+[5, 7] != [5, "7"] → False
+{"a": 5, "b": 7} != {"b": 7, "a": 5} → False
+{"a": 5, "b": 7, "c": 11} != {"c": 13, "b": 7, "a": 5} → True
+```
 """
     return not poly_eq(x, y)
 
@@ -140,18 +164,15 @@ def poly_lt(x: Any, y: Any) -> bool:
 | _any_ | None       | False              |
 | int   | int/float  | x < y              |
 | int   | str        | x < ToNumber(y)†   |
-| int   | list/tuple | [x] < y‡           |
+| int   | list       | [x] < y‡           |
 | float | int/float  | x < y              |
 | float | str        | x < ToNumber(y)    |
-| float | list/tuple | [x] < y            |
+| float | list       | [x] < y            |
 | str   | int/float  | ToNumber(x) < y    |
 | str   | str        | x < y              |
-| str   | list/tuple | [x] < y            |
-| list  | list/tuple | x < y              |
+| str   | list       | [x] < y            |
+| list  | list       | x < y              |
 | list  | _any_      | x < [y]            |
-| tuple | list/tuple | x < y              |
-| tuple | _any_      | x < [y]            |
-| dict  | dict       | x < y by attr      |
 
 TypeError raised on all other combinations
 
@@ -185,18 +206,15 @@ def poly_gt(x: Any, y: Any) -> Any:
 | _any_ | None       | True               |
 | int   | int/float  | x > y              |
 | int   | str        | x > ToNumber(y)†   |
-| int   | list/tuple | [x] > y‡           |
+| int   | list       | [x] > y‡           |
 | float | int/float  | x > y              |
 | float | str        | x > ToNumber(y)    |
-| float | list/tuple | [x] > y            |
+| float | list       | [x] > y            |
 | str   | int/float  | ToNumber(x) > y    |
 | str   | str        | x > y              |
-| str   | list/tuple | [x] > y            |
-| list  | list/tuple | x > y              |
+| str   | list       | [x] > y            |
+| list  | list       | x > y              |
 | list  | _any_      | x > [y]            |
-| tuple | list/tuple | x > y              |
-| tuple | _any_      | x > [y]            |
-| dict  | dict       | x > y by attr      |
 
 TypeError raised on all other combinations
 
@@ -206,6 +224,17 @@ a string.
 
 ‡ After conversion to an array the comparison is
 performed between corresponding elements.
+
+```vgr
+None > None → False
+None > 5 → True
+None > "5" → True
+5 > " 5.0" → False
+"5" > "5.0" → False
+5 > [5] → False
+[5, 7] > [5, "7"] → False
+[5, 8] > [5, "7"] → True
+```
 """
     # Everything is greater than None (except itself which is just equal)
     if x is None: return y is not None
@@ -232,18 +261,15 @@ def poly_le(x: Any, y: Any) -> bool:
 | _any_ | None       | False              |
 | int   | int/float  | x <= y             |
 | int   | str        | x <= ToNumber(y)†  |
-| int   | list/tuple | [x] <= y‡          |
+| int   | list       | [x] <= y‡          |
 | float | int/float  | x <= y             |
 | float | str        | x <= ToNumber(y)   |
-| float | list/tuple | [x] <= y           |
+| float | list       | [x] <= y           |
 | str   | int/float  | ToNumber(x) <= y   |
 | str   | str        | x <= y             |
-| str   | list/tuple | [x] <= y           |
-| list  | list/tuple | x <= y             |
+| str   | list       | [x] <= y           |
+| list  | list       | x <= y             |
 | list  | _any_      | x <= [y]           |
-| tuple | list/tuple | x <= y             |
-| tuple | _any_      | x <= [y]           |
-| dict  | dict       | x <= y by attr     |
 
 TypeError raised on all other combinations
 
@@ -253,6 +279,17 @@ a string.
 
 ‡ After conversion to an array the comparison is
 performed between corresponding elements.
+
+```vgr
+None <= None → True
+None <= 5 → True
+None <= "5" → True
+5 <= " 5.0" → True
+"5" <= "5.0" → True
+5 <= [5] → True
+[5, 7] <= [5, "7"] → True
+[5, 8] <= [5, "7"] → False
+```
 """
     # None is less than everything or equal to itself
     if x is None: return True
@@ -279,18 +316,15 @@ def poly_ge(x: Any, y: Any) -> bool:
 | _any_ | None       | True               |
 | int   | int/float  | x >= y             |
 | int   | str        | x >= ToNumber(y)†  |
-| int   | list/tuple | [x] >= y‡          |
+| int   | list       | [x] >= y‡          |
 | float | int/float  | x >= y             |
 | float | str        | x >= ToNumber(y)   |
-| float | list/tuple | [x] >= y           |
+| float | list       | [x] >= y           |
 | str   | int/float  | ToNumber(x) >= y   |
 | str   | str        | x >= y             |
-| str   | list/tuple | [x] >= y           |
-| list  | list/tuple | x >= y             |
+| str   | list       | [x] >= y           |
+| list  | list       | x >= y             |
 | list  | _any_      | x >= [y]           |
-| tuple | list/tuple | x >= y             |
-| tuple | _any_      | x >= [y]           |
-| dict  | dict       | x >= y by attr     |
 
 TypeError raised on all other combinations
 
@@ -300,6 +334,17 @@ a string.
 
 ‡ After conversion to an array the comparison is
 performed between corresponding elements.
+
+```vgr
+None >= None → True
+None >= 5 → False
+None >= "5" → False
+5 >= " 5.0" → True
+"5" >= "5.0" → False
+5 >= [5] → True
+[5, 7] >= [5, "7"] → True
+[5, 7] >= [5, "8"] → False
+```
 """
     # Everything is greater than None and it is equal to itself
     if x is None: return y is None
