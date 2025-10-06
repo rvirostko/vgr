@@ -8,6 +8,7 @@ def poly_lookup(x: Any, attr: Any, *args) -> Any:
     """
 **Find a matching entry in a list by value**
 
+* Lookup(_list_, _attr_, _value_...)
 * _list_.Lookup(_attr_, _value_...)
 
 The _attr_ argument can be an int or float but more typically is a string. Lists and dictionaries cannot be used.

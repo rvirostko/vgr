@@ -13,6 +13,7 @@ def poly_shl(x: Any, *args) -> Any:
 **Bitwise Shift Left operation**
 
 * _x_ << _y_
+* LeftShift(_x_, _y_...)
 * _x_.LeftShift(_y_...)
 
 The values of both _x_ and _y_ are converted to
@@ -37,6 +38,12 @@ integers to perform the operation.
 | tuple | str   | tuple   | distributed          |
 
 TypeError raised on all other combinations
+
+```vgr
+**TODO**
+```
+
+Also see `RightShift()`
 """
     return reduce(_shl, args, x)
 
@@ -46,6 +53,7 @@ def poly_shr(x: Any, *args):
 **Bitwise Shift Right operation**
 
 * _x_ >> _y_
+* RightShift(_x_, _y_...)
 * _x_.RightShift(_y_...)
 
 The values of both _x_ and _y_ are converted to
@@ -70,7 +78,13 @@ integers to perform the operation.
 | tuple | str   | tuple   | distributed          |
 
 TypeError raised on all other combinations
-    """
+
+```vgr
+**TODO**
+```
+
+Also see `LeftShift()`
+"""
     return reduce(_shr, args, x)
 
 def _shl(x: Any, y: Any) -> Any:

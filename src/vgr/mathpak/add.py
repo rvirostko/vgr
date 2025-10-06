@@ -10,6 +10,7 @@ def poly_add(x: Any, *args):
 
 * _x_ + _y_
 * _x_ ＋ _y_
+* Add(_x_, _y_...)
 * _x_.Add(_y_...)
 
 | x     | y     | returns   | operation             |
@@ -44,6 +45,10 @@ def poly_add(x: Any, *args):
 TypeError raised on all other combinations
 
 See `ToNumber()` and `ToStr()` for conversion details
+
+```vgr
+**TODO**
+```
 """
     return reduce(_add, args, x)
 
@@ -74,6 +79,7 @@ def poly_sum(x: Any, *args) -> Any:
     """
 **Recursively sum lists of numbers**
 
+* Sum(_values_...)
 * _value_.Sum()
 * _value_.Sum(_values_...)
 

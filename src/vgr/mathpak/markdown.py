@@ -31,6 +31,7 @@ def md_bold(text: Any) -> Any:
     """
 **Format the text in Markdown as bold**
 
+* MdBold(_value_)
 * _value_.MdBold()
 
 ```vgr
@@ -44,6 +45,7 @@ def md_italics(text: Any) -> Any:
     """
 **Format the text in Markdown as italics**
 
+* MdItalics(_value_)
 * _value_.MdItalics()
 
 ```vgr
@@ -57,7 +59,12 @@ def md_strikethrough(text: Any) -> Any:
     """
 **Format the text in Markdown as strike-through**
 
+* MdStrikeThrough(_value_)
 * _value_.MdStrikeThrough()
+
+```vgr
+**TODO**
+```
 """
     if isinstance(text, (list, type)): return type(text)(md_strikethrough(item) for item in text)
     return _fmt(_to_str(text), _MD_STRIKETHROUGH)
@@ -66,6 +73,7 @@ def md_code(text: Any) -> Any:
     """
 **Format the text in Markdown as code**
 
+* MdCode(_value_)
 * _value_.MdCode()
 
 ```vgr
@@ -79,6 +87,7 @@ def md_link(text: Any, url: Any) -> Any:
     """
 **Format the text in Markdown as a link**
 
+* MdLink(_value_, _url_)
 * _value_.MdLink(_url_)
 
 ```vgr
@@ -95,8 +104,10 @@ def md_heading(text: Any, level: int=1) -> Any:
     """
 **Format the text in Markdown as a heading**
 
-* _value_.MdHeading() _level_ _1_
-* _value_.MdHeading(_level_) _range_ _1_ _to_ _6_
+* MdHeading(_value_)
+* MdHeading(_value_, _level_)
+* _value_.MdHeading()
+* _value_.MdHeading(_level_)
 
 ```vgr
 **TODO**
@@ -113,6 +124,7 @@ def md_blockquote(text: Any) -> Any:
     """
 **Format the text in Markdown as a block quote**
 
+* MdBlockQuote(_value_)
 * _value_.MdBlockQuote()
 
 If _value_ is a list, each element in it is formatted as part of the block.
@@ -131,6 +143,7 @@ def md_unordered_list(text: Any) -> Any:
     """
 **Format the text in Markdown as an unordered list item**
 
+* MdUnorderedList(_value_)
 * _value_.MdUnorderedList()
 
 If _value_ is a list, each element in it is formated as a list item.
@@ -149,6 +162,7 @@ def md_ordered_list(text: Any) -> Any:
     """
 **Format the text in Markdown as an ordered list item**
 
+* MdOrderedList(_value_)
 * _value_.MdOrderedList()
 
 If _value_ is a list, each element in it is formated as a list item.
@@ -171,6 +185,8 @@ def md_code_block(text: Any, lang: str=None) -> Any:
     """
 **Format the text in Markdown as a code block**
 
+* MdCodeBlock(_value_)
+* MdCodeBlock(_value_, _language_)
 * _value_.MdCodeBlock()
 * _value_.MdCodeBlock(_language_)
 

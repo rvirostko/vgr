@@ -13,6 +13,7 @@ def poly_mod(x: Any, *args):
 **Modulo operation**
 
 * _x_ % _y_
+* Mod(_x_, _y_...)
 * _x_.Mod(_y_...)
 
 | x     | y     | returns | operation           |
@@ -34,6 +35,10 @@ def poly_mod(x: Any, *args):
 | tuple | str   | tuple   | distributive        |
 
 TypeError raised on all other combinations
+
+```vgr
+**TODO**
+```
 """
     return reduce(_mod, args, x)
 

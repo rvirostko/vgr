@@ -12,6 +12,7 @@ def poly_bool(x: Any) -> Any:
     """
 **Converts the value to a boolean**
 
+* ToBool(_value_)
 * _value_.ToBool()
 
 If _value_ is _None_ then _False_ is returned.
@@ -51,6 +52,7 @@ def poly_isbool(x: Any) -> bool:
     """
 **Returns _True_ if the value is a boolean**
 
+* IsBool(_value_)
 * _value_.IsBool()
 
 ```vgr
@@ -66,6 +68,8 @@ def poly_float(x: Any, default: Any = _SENTINEL) -> Any:
     """
 **Converts the value to a floating point number**
 
+* ToFloat(_value_)
+* ToFloat(_value_, _default_)
 * _value_.ToFloat()
 * _value_.ToFloat(_default_)
 
@@ -92,6 +96,7 @@ def poly_isfloat(x: Any) -> bool:
     """
 **Returns _True_ if the value is a floating point number**
 
+* IsFloat(_value_)
 * _value_.IsFloat()
 
 ```vgr
@@ -104,6 +109,8 @@ def poly_int(x: Any, default: Any = _SENTINEL) -> Any:
     """
 **Converts the value to an integer**
 
+* ToInt(_value_)
+* ToInt(_value_, _default_)
 * _value_.ToInt()
 * _value_.ToInt(_default_)
 
@@ -130,6 +137,7 @@ def poly_isint(x: Any) -> bool:
     """
 **Returns _True_ if the value is an integer**
 
+* IsInt(_value_)
 * _value_.IsInt()
 
 ```vgr
@@ -142,10 +150,10 @@ def poly_number(x: Any, default: Any = _SENTINEL) -> Any:
     """
 **Converts the value to a number, which may be an integer or floating point number**
 
+* ToNumber(_value_)
+* ToNumber(_value_, _default_)
 * _value_.ToNumber()
 * _value_.ToNumber(_default_)
-* _value_.Number()
-* _value_.Number(_default_)
 
 If _value_ is _None_ or is a non-convertable type then _None_ is returned.
 Strings that cannot be converted may result in a value error.
@@ -170,6 +178,7 @@ def poly_isnumber(x: Any) -> bool:
     """
 **Returns _True_ if the value is a number**
 
+* IsNumber(_value_)
 * _value_.IsNumber()
 
 Only _float_ and _int_ items are considered numbers.
@@ -184,6 +193,7 @@ def poly_sign(x: Any) -> Any:
     """
 **Return an integer value indicating the sign of a number**
 
+* Sign(_value_)
 * _value_.Sign()
 
 If _value_ is greater than zero, _1_ is returned.
@@ -203,6 +213,7 @@ def poly_isinf(x: Any) -> bool:
     """
 **Returns _True_ if the value is infinity**
 
+* IsInf(_value_)
 * _value_.IsInf()
 
 ```vgr
@@ -215,6 +226,7 @@ def poly_isfinite(x: Any) -> bool:
     """
 **Returns _True_ if the value is finite**
 
+* IsFinite(_value_)
 * _value_.IsFinite()
 
 ```vgr
@@ -227,6 +239,7 @@ def poly_isnan(x: Any) -> bool:
     """
 **Returns _True_ if the value is the special _not a number_ constant**
 
+* IsNan(_value_)
 * _value_.IsNan()
 
 ```vgr
@@ -239,6 +252,7 @@ def poly_iszero(x: Any) -> bool:
     """
 **Returns _True_ if the value is zero**
 
+* IsZero(_value_)
 * _value_.IsZero()
 
 """
@@ -253,7 +267,7 @@ def poly_str(x: Any) -> Any:
     """
 **Converts the value to its string representation**
 
-* _value_.ToStr()
+* ToString(_value_)
 * _value_.ToString()
 
 If _value_ is _None_ it is left as _None_, not converted to the string _"None"_.
@@ -273,7 +287,8 @@ def poly_isstr(x: Any) -> bool:
     """
 **Returns _True_ if the value is a string**
 
-* _value_.IsStr()
+* IsString(_value_)
+* _value_.IsString()
 
 ```vgr
 **TODO**
@@ -285,6 +300,7 @@ def poly_isdict(x: Any) -> bool:
     """
 **Returns _True_ if the value is a dictionary**
 
+* IsDictionary(_value_)
 * _value_.IsDictionary()
 
 ```vgr
@@ -297,6 +313,7 @@ def poly_islist(x: Any) -> bool:
     """
 **Returns _True_ if the value is a list**
 
+* IsList(_value_)
 * _value_.IsList()
 
 The Python _tuple_ and _list_ types are both considered lists.
@@ -311,7 +328,8 @@ def poly_list(x: Any) -> Any:
     """
 **Converts a value to a list**
 
-* _x_.ToList()
+* ToList(_value_)
+* _value_.ToList()
 
 Dictionaries are converted to a list of key/value pairs.
 If _value_ is _None_ an empty list is returned.
@@ -330,6 +348,7 @@ def poly_isempty(x: Any) -> bool:
     """
 **Test a value to see if it is _empty_**
 
+* IsEmpty(_value_)
 * _value_.IsEmpty()
 
 A value is considered empty if:
@@ -354,6 +373,7 @@ def poly_notempty(x: Any) -> bool:
     """
 **Test a value to see if it is _not empty_**
 
+* NotEmpty(_value_)
 * _value_.NotEmpty()
 
 A value is considered empty if:

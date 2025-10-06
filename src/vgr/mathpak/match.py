@@ -17,6 +17,7 @@ def poly_matches(x: Any, *args) -> Any:
 * _value_ ~ [ _pattern_... ]
 * _value_ Matches [Any] _pattern_
 * _value_ Matches [Any] [ _pattern_... ]
+* Matches(_value_, _pattern_...)
 * _value_.Matches(_pattern_...)
 
 If _value_ is a collection, then _all_ values in it must match _pattern_
@@ -81,6 +82,7 @@ def poly_matches_all(x: Any, *args) -> Any:
 
 * _value_ Matches All _pattern_
 * _value_ Matches All [_pattern_...]
+* MatchesAll(_value_, _pattern_...)
 * _value_.MatchesAll(_pattern_...)
 
 Operates indentically to `Matches` except _value_ must match _all_ of the

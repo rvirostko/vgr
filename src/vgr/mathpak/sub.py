@@ -10,6 +10,7 @@ def poly_sub(x: Any, *args):
 
 * _x_ - _y_
 * _x_ － _y_
+* Sub(_x_, _y_...)
 * _x_.Sub(_y_...)
 
 | x     | y     | returns   | operation                 |
@@ -35,6 +36,10 @@ def poly_sub(x: Any, *args):
 | dict  | dict  | dict      | remove keys in y from x   |
 
 TypeError raised on all other combinations
+
+```vgr
+**TODO**
+```
 """
     return reduce(_sub, args, x)
 

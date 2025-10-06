@@ -4,15 +4,15 @@ import itertools
 
 from .common import bound_ops, dist_x, dist_y, X_None_Op, Y_None_Op, get_operation, str_to_int
 
-@bound_ops("*", "×", "∏")
+@bound_ops("*", "×")
 def poly_mul(x: Any, *args):
     """
 **Multiplication operation**
 
 * _x_ * _y_
 * _x_ × _y_
+* Mul(_x_, _y_...)
 * _x_.Mul(_y_...)
-* ∏(_x_, _y_...)
 
 | x     | y     | returns | operation           |
 |-------|-------|---------|---------------------|
@@ -43,6 +43,10 @@ def poly_mul(x: Any, *args):
 | tuple | tuple | tuple   | cartesian product   |
 
 TypeError raised on all other combinations
+
+```vgr
+**TODO**
+```
 """
     return reduce(_mul, args, x)
 

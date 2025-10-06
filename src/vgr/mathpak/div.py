@@ -10,6 +10,7 @@ def poly_div(x: Any, *args):
 
 * _x_ / _y_
 * _x_ ÷ _y_
+* Div(_x_, _y_...)
 * _x_.Div(_y_...)
 
 | x     | y     | returns | operation                 |
@@ -42,6 +43,7 @@ def poly_fdiv(x: Any, *args):
     """
 **Floor division operation**
 
+* FloorDiv(_x_, _y_...)
 * _x_.FloorDiv(_y_...)
 
 Floor division returns the largest integer less than
@@ -66,6 +68,10 @@ or equal to the result of the division.
 | tuple | str   | tuple     | distributive                 |
 
 TypeError raised on all other combinations
+
+```vgr
+**TODO**
+```
 """
     return reduce(_fdiv, args, x)
 
@@ -77,6 +83,7 @@ def poly_divmod(x: Any, y: Any) -> Any:
     """
 **Division/modulo operation**
 
+* DivMod(_x_, _y_)
 * _x_.DivMod(_y_)
 
 Returns a tuple of (_x_ fdiv _y_, _x_ % _y_)
@@ -101,6 +108,10 @@ Returns a tuple of (_x_ fdiv _y_, _x_ % _y_)
 
 TypeError raised on all other combinations
 
+```vgr
+**TODO**
+```
 """
     operation = get_operation(x, y, numeric_operations)
+    # TODO return an array, not a tuple
     return operation(poly_divmod, x, y) if operation else divmod(x, y)

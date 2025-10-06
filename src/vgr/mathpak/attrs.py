@@ -10,8 +10,10 @@ def poly_dig(data: Any, *args) -> Any:
     """
 **Traverse a path in a dictionary object**
 
+* Dig(_value_)
+* Dig(_value_, _path_...)
 * _value_.Dig()
-* _value_.Dig(_path_ [, _path_]...)
+* _value_.Dig(_path_...)
 
 The _value_ must either be a dictionary, a list, or _None_.
 

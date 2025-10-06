@@ -9,6 +9,7 @@ def poly_bit_and(x: Any, *args) -> Any:
 **Bitwise And operation**
 
 * _x_ & _y_
+* BitAnd(_x_, _y_...)
 * _x_.BitAnd(_y_...)
 
 | x     | y     | returns   | operation             |
@@ -49,6 +50,7 @@ def poly_bit_or(x: Any, *args) -> Any:
 **Bitwise Or operation**
 
 * _x_ | _y_
+* BitOr(_x_, _y_...)
 * _x_.BitOr(_y_...)
 
 | x     | y     | returns   | operation             |
@@ -89,6 +91,7 @@ def poly_bit_xor(x: Any, *args) -> Any:
 **Bitwise exclusive Or (Xor) operation**
 
 * _x_ ^ _y_
+* BitXor(_x_, _y_...)
 * _x_.BitXor(_y_...)
 
 | x     | y     | returns   | operation             |
@@ -127,6 +130,7 @@ def poly_bit_not(x: Any) -> Any:
     """
 **Bitwise invert (negation) operation**
 
+* BitNot(_value_)
 * _value_.BitNot()
 
 Returns the shortest length bitwise negation, in multiples of eight bits,

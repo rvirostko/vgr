@@ -13,6 +13,7 @@ def poly_pow(x: Any, *args):
 **Raise a value to a power**
 
 * _x_ ** _y_
+* Pow(_x_, _y_...)
 * _x_.Pow(_y_...)
 
 | x     | y     | returns   | operation                  |
@@ -34,6 +35,10 @@ def poly_pow(x: Any, *args):
 | tuple | str   | tuple     | distributed                |
 
 TypeError raised on all other combinations
+
+```vgr
+**TODO**
+```
 """
     return reduce(_pow, args, x)
 

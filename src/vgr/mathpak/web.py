@@ -13,6 +13,7 @@ def parse_url(url: Any, remove_nulls: bool=True) -> Any:
     """
 **Decompose a URL string and return a dictionary of its components**
 
+* ParseUrl(_value_)
 * _value_.ParseUrl()
 
 In addition, the result will contain _error_ indicating if there was an error
@@ -73,6 +74,8 @@ def encode_url(url: str, safe: str="/") -> str:
     """
 **Encode reserved characters in a full or partial URL**
 
+* EncodeURL(_value_)
+* EncodeURL(_value_, _safe_)
 * _value_.EncodeURL()
 * _value_.EncodeURL(_safe_)
 
@@ -91,7 +94,6 @@ None.EncodeURL() → None
 // NB: use care when quoting an entire URL
 "http://example.com?q=lst".EncodeURL() → "http%3A//example.com%3Fq%3Dlst"
 ```
-
 """
     if url is None: return None
     safe = str_arg(safe, "Safe", False)

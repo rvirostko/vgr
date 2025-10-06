@@ -14,9 +14,10 @@ def poly_in(x: Any, y: Any) -> bool:
     """
 **Is a value contained in another value or collection**
 
-* _value_.IsIn(_expression_)
 * _value_ Is In _expression_
 * _value_ ∈ _expression_
+* IsIn(_value_, _expression_)
+* _value_.IsIn(_expression_)
 
 ```vgr
 None.IsIn(None) → True
@@ -47,9 +48,10 @@ def poly_not_in(x: Any, y: Any) -> Any:
     """
 **Is a value _not_ contained in another value or collection**
 
-* _value_.IsNotIn(_expression_)
 * _value_ Is Not In _expression_
 * _value_ ∉ _expression_
+* IsNotIn(_value_, _expression_)
+* _value_.IsNotIn(_expression_)
 
 ```vgr
 None.IsNotIn(None) → False
@@ -80,8 +82,9 @@ def poly_contains_any(x: Any, y: Any) -> Any:
     """
 **Is a value contained in another value or collection**
 
-* _value_.ContainsAny(_expression_)
 * _value_ Contains [Any] _expression_
+* ContainsAny(_value_, _expression_)
+* _value_.ContainsAny(_expression_)
 
 Functions identically to `IsIn()` except that the sense of the
 operands are reverse.
@@ -115,8 +118,9 @@ def poly_contains_all(x: Any, y: Any) -> Any:
     """
 **Is a value contained in another value or collection**
 
-* _value_.ContainsAll(_expression_)
 * _value_ Contains All _expression_
+* ContainsAll(_value_, _expression_)
+* _value_.ContainsAll(_expression_)
 
 Functions identically to `ContainsAny()` except that when working with lists,
 all tests are satisfied.

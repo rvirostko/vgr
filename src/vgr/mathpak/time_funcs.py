@@ -13,9 +13,12 @@ def format_duration(x: Any, y: Any=0) -> Any:
     """
 **Format the duration between two timestamps**
 
+* FormatDuration(_value_)
+* FormatDuration(_start_, _end_)
+* FormatDuration(_end_, _start_)
+* _value_.FormatDuration()
 * _start_.FormatDuration(_end_)
 * _end_.FormatDuration(_start_)
-* _value_.FormatDuration()
 
 Returns a string in the form of _n_**d** _n_**h** _n_**m** _n_**s** using the shortest
 possible representation.
@@ -29,7 +32,6 @@ now.FormatDuration(now + 1_024) → "17m 4s"
 now.FormatDuration(now + 8_192) → "2h 16m 32s"
 (now + 32_768).FormatDuration(now) → "9h 6m 8s"
 ```
-
 """
     if x is None: x = 0
     if y is None: y = 0
@@ -75,7 +77,6 @@ now.FormatTimestamp(time.format.hms) → "17:01:22"
 [earlier, now].FormatTimestamp(time.format.hms) → ["16:01:22", "17:01:22"]
 later.FormatTimestamp(time.format.compact.hm) → "1801"
 ```
-
 """
     if x is None: x = datetime.now()
     if y is None: y = _DEFAULT_TS_FORMAT
