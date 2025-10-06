@@ -10,7 +10,11 @@ import traceback
 from lark import Lark
 from rapidfuzz.fuzz import ratio
 
-from .app_exceptions import VgrExitingException, VgrStatementAssert, VgrException
+from .app_exceptions import (
+    VgrException,
+    VgrExitingException,
+    VgrStatementAssert,
+)
 from .data_dict import DataDictionary
 from .dd_config import (
     dd_init,
@@ -20,9 +24,22 @@ from .dd_config import (
     VER_DATE_PATH,
     VER_PATH,
 )
-from .doc_help import print_md, search_entries, print_doc, unique_by_func
+from .doc_help import (
+    keyword_pattern,
+    print_doc,
+    print_md,
+    search_entries,
+    unique_by_func,
+)
 from .extn import VgrExtension, VgrExtensionRegistry, VER
-from .functions import get_function_defs, add_builtin_functions, add_function, get_function_entries, get_operator_entries
+from .functions import (
+    add_builtin_functions,
+    add_function,
+    function_names_pattern,
+    get_function_defs,
+    get_function_entries,
+    get_operator_entries,
+)
 from .interactive import CmdLine, ArgumentParser, ParserBuilder
 from .log_config import init_logging, set_logging_level
 from .mathpak import poly_bool, type_str
@@ -365,7 +382,7 @@ Environment variables:
     parser = create_parser(extensions, args.debug, args.verbose)
 
     if args.gen_vsc_extn:
-        create_vscode_extension(parser, ["abs"]) # # TODO get the names
+        create_vscode_extension(keyword_pattern(parser), function_names_pattern())
         sys.exit(VgrExitingException.EXIT_SUCCESS)
 
     ctx = create_exec_context(parser, dd)

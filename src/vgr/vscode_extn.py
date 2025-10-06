@@ -1,16 +1,13 @@
 
 import json
-import re
 import os
 
-from lark import Lark
-
-# package.json
+# Written to package.json
 _PACKAGE = {
     "name": "vgr-syntax",
     "displayName": "VGR Syntax Highlighting",
     "description": "Syntax highlighting for the VGR DSL",
-    "version": "0.0.1",
+    "version": "0.0.2",
     "publisher": "localdev",
     "engines": {
         "vscode": "^1.50.0"
@@ -34,7 +31,7 @@ _PACKAGE = {
     }
 }
 
-# language-configuration.json
+# Written to language-configuration.json
 _LANG_CONFIG = {
     "comments": {
         "lineComment": "#",
@@ -58,20 +55,7 @@ _LANG_CONFIG = {
     ]
 }
 
-def _extract_keywords(parser: Lark):
-    """
-    Return a list of all literal keywords defined in the parser's terminals.
-    Only includes terminals defined as literal strings, not regexes.
-    """
-    keywords = []
-    for t in parser.terminals:
-        # Lark >=1.0 uses t.pattern.value for literals
-        value = getattr(t.pattern, "value", None)
-        if value is not None and re.fullmatch(r"[A-Za-z0-9_]+", value):
-            keywords.append(value)
-    return keywords
-
-def _vscode_syntax_highlighting(keywords, functions):
+def _vscode_syntax_highlighting(keyword_pattern: str, function_pattern: str):
     """
     Generate a VS Code TextMate grammar JSON for a DSL.
     - keywords: list of reserved words
@@ -85,12 +69,12 @@ def _vscode_syntax_highlighting(keywords, functions):
             # Keywords
             {
                 "name": "keyword.control.vgr",
-                "match": r"(?i)\b(" + "|".join(map(re.escape, keywords)) + r")\b"
+                "match": keyword_pattern,
             },
             # Functions (only highlight listed functions)
             {
                 "name": "entity.name.function.vgr",
-                "match": r"(?i)\b(" + "|".join(map(re.escape, functions)) + r")(?=\s*\()"
+                "match": function_pattern,
             },
             # Single-line comments "#"
             {
@@ -163,7 +147,11 @@ def _vscode_syntax_highlighting(keywords, functions):
     }
     return json.dumps(grammar, indent=4)
 
-def create_vscode_extension(parser: Lark, functions):
+def create_vscode_extension(keyword_pattern: str, function_pattern: str) -> None:
+    """
+    Creates a directory with the required structure and files
+    to be a Visual Studion Code extension.
+    """
     out_dir = "vgr-syntax"
     # Ensure base folder structure
     os.makedirs(out_dir, exist_ok=True)
@@ -173,6 +161,6 @@ def create_vscode_extension(parser: Lark, functions):
         json.dump(_LANG_CONFIG, f, indent=4)
     syntaxes_dir = os.path.join(out_dir, "syntaxes")
     os.makedirs(syntaxes_dir, exist_ok=True)
-    grammar_json = _vscode_syntax_highlighting(_extract_keywords(parser), functions)
+    grammar_json = _vscode_syntax_highlighting(keyword_pattern, function_pattern)
     with open(os.path.join(syntaxes_dir, "vgr.tmLanguage.json"), "w", encoding="utf-8") as f:
         f.write(grammar_json)

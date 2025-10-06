@@ -630,11 +630,11 @@ _BUILT_IN_FUNCS: dict[str, Callable[..., Any]] = {
 # Binds a (pretty) name to the function to be executed
 # Additionally, we should use functions here rather than lambdas
 # so we can grab the __DOC__ for help functions.
-_FUNC_OPS = {}
+_FUNC_OPS: dict[str, Callable[..., Any]] = {}
 
 # This index provides a way to find functions independent of case.
 # Use get_function_op() to find entries.
-_FUNC_INDEX = {}
+_FUNC_INDEX: list[str] = {}
 
 @lru_cache
 def get_function_entries() -> dict[str, tuple[Callable[..., Any], str, str]]:
@@ -688,6 +688,14 @@ _OP_FUNCS: list[Callable[..., Any]] = [
     # def py_ternary(self, tree): return Ternary(tree, (1, 0, 2))
     # def set_var(self, tree): return SetVarOperation(tree)
 ]
+
+def function_names_pattern() -> str:
+    """
+    Return a regex string that will match built-in
+    function names.
+    """
+    functions = sorted(_FUNC_OPS.keys(), key=len, reverse=True)
+    return r"(?i)\b(" + "|".join(functions) + r")(?=\s*\()"
 
 @lru_cache
 def get_operator_entries():

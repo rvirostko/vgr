@@ -5,6 +5,7 @@ The help system
 from typing import Callable
 import re
 
+from lark import Lark
 from pygments.lexer import RegexLexer
 from pygments.style import Style
 from pygments.styles import STYLE_MAP
@@ -65,6 +66,22 @@ _VGR_CODE_BLOCK_PATTERN = re.compile(r"```vgr\s*\n(.*?)```", re.DOTALL | re.IGNO
 # Pull out weights etc for better tuning
 _FULL_SCORE_WEIGHT = 1.5
 _WEAK_SCORE_RATIO = 0.7
+
+_KEYWORD_PATTERN = re.compile("[A-Z][A-Za-z]+")
+
+def keyword_pattern(parser: Lark) -> str:
+    """
+    Returns a regex pattern that will match a keyword.
+    Only includes terminals defined as literal strings, not regexes.
+    """
+    keywords = []
+    for t in parser.terminals:
+        # Lark >=1.0 uses t.pattern.value for literals
+        value = getattr(t.pattern, "value", None)
+        if value is not None and re.fullmatch(_KEYWORD_PATTERN, value):
+            if not value.isupper() or value in ["CSV", "JSON"]: keywords.append(value)
+    # Pattern assures that it is a stand-alone word
+    return r"(?i)\b(" + "|".join(sorted(keywords, key=len, reverse=True)) + r")\b"
 
 def search_entries(entries: dict, query: str="", limit: int = 10) -> list[tuple[str, Callable]]:
     """
