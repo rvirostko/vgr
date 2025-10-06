@@ -32,7 +32,6 @@ from rich.markdown import Markdown
 from rich.syntax import Syntax
 
 _CODE_BG = "#f8f8f8"
-_ON_BG = "on " + _CODE_BG
 
 _BASE_THEME = Theme({}, inherit=True)
 
@@ -140,6 +139,17 @@ def _text_replace(match):
     if tag == "<em>": return _EM
     return '  \n'
 
+class MdLexerState:
+    lexer: "VgrLexer" = None
+
+_STATE = MdLexerState()
+
+def create_md_lexer(parser: Lark) -> None:
+    # TODO future : figure out how to get
+    # dynamic values into that class: they
+    # way that you think would work doesn't
+    _STATE.lexer = VgrLexer()
+
 def print_md(s: str) -> None:
     if s: _print(Console(theme=_THEME), s)
 
@@ -168,7 +178,7 @@ def _print_code_block(console: Console, code_block: str) -> None:
     console.print("")  # outside blank line above
     console.print(Syntax(
         code=code_block.strip('\n'),
-        lexer=VgrLexer(),
+        lexer=_STATE.lexer,
         theme=VGRCodeStyle,
         line_numbers=False,
         padding=(1,2),
@@ -202,7 +212,7 @@ class VGRCodeStyle(Style):
         Operator:                  "",
         Operator.Word:             "bold",
 
-        Name.Builtin:              "",
+        Name.Builtin:              "italic",
         Name.Function:             "",
         Name.Class:                "bold",
         Name.Namespace:            "bold",

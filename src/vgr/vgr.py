@@ -25,6 +25,7 @@ from .dd_config import (
     VER_PATH,
 )
 from .doc_help import (
+    create_md_lexer,
     keyword_pattern,
     print_doc,
     print_md,
@@ -384,6 +385,7 @@ Environment variables:
     if args.gen_vsc_extn:
         create_vscode_extension(keyword_pattern(parser), function_names_pattern())
         sys.exit(VgrExitingException.EXIT_SUCCESS)
+    create_md_lexer(parser)
 
     ctx = create_exec_context(parser, dd)
     ctx.debug = args.debug
