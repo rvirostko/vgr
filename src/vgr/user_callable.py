@@ -87,7 +87,7 @@ class UserFunction(_AbstractUserFunction):
         if isinstance(fn, _AbstractUserFunction): return fn.evaluate(ctx, arg_values)
         # Recursively process lists and dictionaries
         if isinstance(fn, (list, tuple)):
-            return type(fn)(UserFunction.invoke(ctx, f1, arg_values) for f1 in fn)
+            return list(UserFunction.invoke(ctx, f1, arg_values) for f1 in fn)
         if isinstance(fn, dict):
             return {key: UserFunction.invoke(ctx, value, arg_values) for key, value in fn.items()}
         # This allows the user to be sloppy and for us to work through lists and dicts
@@ -110,7 +110,7 @@ class UserFunction(_AbstractUserFunction):
             return UserFunction.compile(ctx, source._source, param_paths)
         if isinstance(source, (list, tuple)):
             # Create a list of Arrow Functions
-            return type(source)(UserFunction.compile(ctx, s1, param_paths) for s1 in source)
+            return list(UserFunction.compile(ctx, s1, param_paths) for s1 in source)
         if isinstance(source, (int, float, bool)):
             # These should end up being functions returning constants
             return UserFunction.compile(ctx, str(source), param_paths)
