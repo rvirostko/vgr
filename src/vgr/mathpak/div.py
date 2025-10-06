@@ -1,7 +1,12 @@
 from functools import reduce
 from typing import Any
 
-from .common import bound_ops, numeric_operations, get_operation
+from .common import (
+    bound_ops,
+    empty_is_zero,
+    numeric_operations,
+    get_operation,
+)
 
 @bound_ops("/", "÷")
 def poly_div(x: Any, *args):
@@ -27,16 +32,24 @@ def poly_div(x: Any, *args):
 | list  | int   | list    | distributive              |
 | list  | float | list    | distributive              |
 | list  | str   | list    | distributive              |
-| tuple | int   | tuple   | distributive              |
-| tuple | float | tuple   | distributive              |
-| tuple | str   | tuple   | distributive              |
 
 TypeError raised on all other combinations
+
+```vgr
+None / None → None
+None / 2 → 0.0
+None / "2" → 0.0
+5 / " 2" → 2.5
+"5" / "2.0" → 2.5
+[5, 7] / 2 → [2.5, 3.5]
+```
+
+Also see `FloorDiv()` and `DivMod()`
 """
     return reduce(_div, args, x)
 
 def _div(x: Any, y: Any) -> Any:
-    operation = get_operation(x, y, numeric_operations)
+    operation = get_operation(x, y, div_operations, numeric_operations)
     return operation(_div, x, y) if operation else x / y
 
 def poly_fdiv(x: Any, *args):
@@ -63,20 +76,24 @@ or equal to the result of the division.
 | list  | int   | list      | distributive                 |
 | list  | float | list      | distributive                 |
 | list  | str   | list      | distributive                 |
-| tuple | int   | tuple     | distributive                 |
-| tuple | float | tuple     | distributive                 |
-| tuple | str   | tuple     | distributive                 |
 
 TypeError raised on all other combinations
 
 ```vgr
-**TODO**
+None.FloorDiv(None) → None
+None.FloorDiv(2) → 0
+None.FloorDiv("2") → 0
+5.FloorDiv(" 2") → 2
+"5".FloorDiv("2.0") → 2
+[5, 7].FloorDiv(2) → [2, 3]
 ```
+
+Also `Div()` and `DivMod()`
 """
     return reduce(_fdiv, args, x)
 
 def _fdiv(x: Any, y: Any) -> Any:
-    operation = get_operation(x, y, numeric_operations)
+    operation = get_operation(x, y, div_operations, numeric_operations)
     return operation(_fdiv, x, y) if operation else x // y
 
 def poly_divmod(x: Any, y: Any) -> Any:
@@ -86,32 +103,39 @@ def poly_divmod(x: Any, y: Any) -> Any:
 * DivMod(_x_, _y_)
 * _x_.DivMod(_y_)
 
-Returns a tuple of (_x_ fdiv _y_, _x_ % _y_)
+Returns a two item list of [_x_ fdiv _y_, _x_ % _y_]
 
 | x     | y     | returns | operation                         |
 |-------|-------|---------|-----------------------------------|
-| int   | int   | tuple   | x divmod by y                     |
-| int   | float | tuple   | x divmod by y                     |
-| int   | str   | tuple   | x divmod by ToNumber(y)           |
-| float | int   | tuple   | x divmod by y                     |
-| float | float | tuple   | x divmod by y                     |
-| float | str   | tuple   | x divmod by ToNumber(y)           |
-| str   | int   | tuple   | ToNumber(x) divmod by y           |
-| str   | float | tuple   | ToNumber(x) divmod by y           |
-| str   | str   | tuple   | ToNumber(x) divmod by ToNumber(y) |
+| int   | int   | list    | x divmod by y                     |
+| int   | float | list    | x divmod by y                     |
+| int   | str   | list    | x divmod by ToNumber(y)           |
+| float | int   | list    | x divmod by y                     |
+| float | float | list    | x divmod by y                     |
+| float | str   | list    | x divmod by ToNumber(y)           |
+| str   | int   | list    | ToNumber(x) divmod by y           |
+| str   | float | list    | ToNumber(x) divmod by y           |
+| str   | str   | list    | ToNumber(x) divmod by ToNumber(y) |
 | list  | int   | list    | distributive                      |
 | list  | float | list    | distributive                      |
 | list  | str   | list    | distributive                      |
-| tuple | int   | tuple   | distributive                      |
-| tuple | float | tuple   | distributive                      |
-| tuple | str   | tuple   | distributive                      |
 
 TypeError raised on all other combinations
 
 ```vgr
-**TODO**
+None.DivMod(None) → None
+None.DivMod(2) → [0, 0]
+None.DivMod("2") → [0, 0]
+5.DivMod(" 2") → [2, 1]
+"5".DivMod("2.0") → [2, 1]
+[5, 7].DivMod(2) → [[2, 1], [3, 1]]
 ```
+
+Also `Div()` and `Mod()`
 """
-    operation = get_operation(x, y, numeric_operations)
-    # TODO return an array, not a tuple
-    return operation(poly_divmod, x, y) if operation else divmod(x, y)
+    operation = get_operation(x, y, div_operations, numeric_operations)
+    return operation(poly_divmod, x, y) if operation else list(divmod(x, y))
+
+div_operations = {
+    (str, str): lambda op, x, y: op(empty_is_zero(x), empty_is_zero(y)),
+}
