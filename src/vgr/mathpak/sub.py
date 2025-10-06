@@ -1,7 +1,12 @@
 from functools import reduce
 from typing import Any
 
-from .common import bound_ops, get_operation, numeric_operations
+from .common import (
+    bound_ops,
+    get_operation,
+    numeric_operations,
+    str_to_number,
+)
 
 @bound_ops("-", "－")
 def poly_sub(x: Any, *args):
@@ -27,18 +32,22 @@ def poly_sub(x: Any, *args):
 | list  | int   | list      | distributed               |
 | list  | float | list      | distributed               |
 | list  | str   | list      | distributed               |
-| tuple | int   | tuple     | distributed               |
-| tuple | float | tuple     | distributed               |
-| tuple | str   | tuple     | distributed               |
 | dict  | str   | dict      | remove key y from x       |
 | dict  | list  | dict      | remove keys in y from x   |
-| dict  | tuple | dict      | remove keys in y from x   |
 | dict  | dict  | dict      | remove keys in y from x   |
 
 TypeError raised on all other combinations
 
 ```vgr
-**TODO**
+None - None → None
+None - 5 → -5
+None - "5" → -5
+5 - "7" → -2
+"5" - 7 → -2
+[1, 2] - 5 → [-4, -3]
+{"a": 5, "b": 7, "c": 11} - "a" → {"b": 7, "c": 11}
+{"a": 5, "b": 7, "c": 11} - ["a", "c"] → {"b": 7}
+{"a": 5, "b": 7, "c": 11} - {"a": None, "b": None} → {"c": 11}
 ```
 """
     return reduce(_sub, args, x)
@@ -50,7 +59,11 @@ def _sub(x: Any, y: Any) -> Any:
 def remove_keys(x: dict, y: Any) -> dict:
     return {k:v for k, v in x.items() if k not in y}
 
+def _empty_is_zero(v: str) -> Any:
+    return 0 if len(v) == 0 else str_to_number(v)
+
 sub_operations = {
+    (str, str): lambda op, x, y: op(_empty_is_zero(x), _empty_is_zero(y)),
     (dict, int): lambda _, x, y: remove_keys(x, [y]),
     (dict, float): lambda _, x, y: remove_keys(x, [y]),
     (dict, str): lambda _, x, y:  remove_keys(x, [y]),
