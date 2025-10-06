@@ -3,9 +3,9 @@ from typing import Any
 
 from .common import (
     bound_ops,
+    empty_is_zero,
     get_operation,
     numeric_operations,
-    str_to_number,
 )
 
 @bound_ops("-", "－")
@@ -59,11 +59,8 @@ def _sub(x: Any, y: Any) -> Any:
 def remove_keys(x: dict, y: Any) -> dict:
     return {k:v for k, v in x.items() if k not in y}
 
-def _empty_is_zero(v: str) -> Any:
-    return 0 if len(v) == 0 else str_to_number(v)
-
 sub_operations = {
-    (str, str): lambda op, x, y: op(_empty_is_zero(x), _empty_is_zero(y)),
+    (str, str): lambda op, x, y: op(empty_is_zero(x), empty_is_zero(y)),
     (dict, int): lambda _, x, y: remove_keys(x, [y]),
     (dict, float): lambda _, x, y: remove_keys(x, [y]),
     (dict, str): lambda _, x, y:  remove_keys(x, [y]),

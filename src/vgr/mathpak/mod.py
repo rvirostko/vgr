@@ -5,7 +5,12 @@ Modulo operation.
 from functools import reduce
 from typing import Any
 
-from .common import bound_ops, numeric_operations, get_operation
+from .common import (
+    bound_ops,
+    empty_is_zero,
+    get_operation,
+    numeric_operations,
+)
 
 @bound_ops("%")
 def poly_mod(x: Any, *args):
@@ -30,18 +35,25 @@ def poly_mod(x: Any, *args):
 | list  | int   | list    | distributive        |
 | list  | float | list    | distributive        |
 | list  | str   | list    | distributive        |
-| tuple | int   | tuple   | distributive        |
-| tuple | float | tuple   | distributive        |
-| tuple | str   | tuple   | distributive        |
 
 TypeError raised on all other combinations
 
 ```vgr
-**TODO**
+None % None → None
+None % 5 → 0
+None % "5" → 0
+5 % 2 → 1
+5 % "2" → 1
+"5" % 2 → 1
+[5, 7] % 3 → [2, 1]
 ```
 """
     return reduce(_mod, args, x)
 
 def _mod(x: Any, y: Any) -> Any:
-    operation = get_operation(x, y, numeric_operations)
+    operation = get_operation(x, y, mod_operations, numeric_operations)
     return operation(_mod, x, y) if operation else x % y
+
+mod_operations = {
+    (str, str): lambda op, x, y: op(empty_is_zero(x), empty_is_zero(y)),
+}

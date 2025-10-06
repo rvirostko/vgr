@@ -120,6 +120,9 @@ def str_arg(arg: Any, name: str, req_value: bool=True) -> str:
         return arg
     raise ValueError(f'{name} argument must be a string, found {type_str(arg)}')
 
+def empty_is_zero(v: str) -> Any:
+    return 0 if len(v) == 0 else str_to_number(v)
+
 def dist_x(op: Callable[[Any, Any], Any], x: list, y: Any) -> list:
     """
     Distribute op over the colleciton: op(<list>, y)
