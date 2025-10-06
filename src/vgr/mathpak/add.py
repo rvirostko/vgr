@@ -19,27 +19,18 @@ def poly_add(x: Any, *args):
 | int   | float | float     | x + y                 |
 | int   | str   | int/float | x + ToNumber(y)       |
 | int   | list  | list      | distributive          |
-| int   | tuple | tuple     | distributive          |
 | float | int   | int/float | x + ToFloat(y)        |
 | float | float | float     | x + y                 |
 | float | str   | int/float | x + ToNumber(y)       |
 | float | list  | list      | distributive          |
-| float | tuple | tuple     | distributive          |
 | str   | int   | str       | concat x and ToStr(y) |
 | str   | float | str       | concat x and ToStr(y) |
 | str   | str   | str       | concat x and y        |
 | str   | list  | list      | distributive          |
-| str   | tuple | tuple     | distributive          |
 | list  | int   | list      | distributive          |
 | list  | float | list      | distributive          |
 | list  | str   | list      | distributive          |
 | list  | list  | list      | union of lists        |
-| list  | tuple | list      | union of lists        |
-| tuple | int   | tuple     | distributive          |
-| tuple | float | tuple     | distributive          |
-| tuple | str   | tuple     | distributive          |
-| tuple | list  | tuple     | union of lists        |
-| tuple | tuple | tuple     | union of lists        |
 | dict  | dict  | dict      | union of dicts        |
 
 TypeError raised on all other combinations
@@ -47,7 +38,15 @@ TypeError raised on all other combinations
 See `ToNumber()` and `ToStr()` for conversion details
 
 ```vgr
-**TODO**
+None + None → None
+None + 5 → 5
+None + "5" → "5"
+5 + "7" → 12
+"5" + 7 → "57"
+[1, 2] + 5 → [6, 7]
+5 + [1, 2] → [6, 7]
+[1, 2] + [5] → [1, 2, 5]
+{"a": 5} + {"b": 6} → {"a": 5, "b": 6}
 ```
 """
     return reduce(_add, args, x)
