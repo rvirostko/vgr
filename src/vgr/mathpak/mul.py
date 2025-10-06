@@ -20,32 +20,31 @@ def poly_mul(x: Any, *args):
 | int   | float | float   | x * y               |
 | int   | str   | str     | string repetition   |
 | int   | list  | list    | distributive        |
-| int   | tuple | tuple   | distributive        |
 | float | int   | float   | x * y               |
 | float | float | float   | x * y               |
 | float | str   | str     | string repetition   |
 | float | list  | list    | distributive        |
-| float | tuple | tuple   | distributive        |
 | str   | int   | str     | string repetition   |
 | str   | float | str     | string repetition   |
 | str   | str   | str     | string repetition   |
 | str   | list  | list    | distributive        |
-| str   | tuple | tuple   | distributive        |
 | list  | int   | list    | distributive        |
 | list  | float | list    | distributive        |
 | list  | str   | list    | distributive        |
 | list  | list  | list    | cartesian product   |
-| list  | tuple | list    | cartesian product   |
-| tuple | int   | tuple   | distributive        |
-| tuple | float | tuple   | distributive        |
-| tuple | str   | tuple   | distributive        |
-| tuple | list  | tuple   | cartesian product   |
-| tuple | tuple | tuple   | cartesian product   |
 
 TypeError raised on all other combinations
 
 ```vgr
-**TODO**
+None * None → None
+None * 5 → None
+None * "5" → None
+5 * 5 → 25
+5 * "7" → "77777"
+"5" * 7 → "5555555"
+[1, 2] * 5 → [5, 10]
+5 * [1, 2] → [5, 10]
+[1, 2] * [5, 7] → [[1, 5], [1, 7], [2, 5], [2, 7]]
 ```
 """
     return reduce(_mul, args, x)
@@ -55,14 +54,13 @@ def _mul(x: Any, y: Any) -> Any:
     return operation(_mul, x, y) if operation else x * y
 
 def product_list(_, x: list, y: Any) -> list:
-    return list(itertools.product(iter(x), iter(y)))
-
-def product_tuple(_, x: tuple, y: Any) -> tuple:
-    return tuple(itertools.product(iter(x), iter(y)))
+    return [list(p) for p in itertools.product(iter(x), iter(y))]
 
 mul_operations = {
-    X_None_Op: lambda _, x, y: None,
-    Y_None_Op: lambda _, x, y: None,
+    X_None_Op: lambda _, _x, _y: None,
+    Y_None_Op: lambda _, _x, _y: None,
+    (int, list): dist_y,
+    (int, tuple): dist_y,
     (float, str): lambda _, x, y: int(x) * y,
     (float, list): dist_y,
     (float, tuple): dist_y,
@@ -78,6 +76,6 @@ mul_operations = {
     (tuple, int): dist_x,
     (tuple, float): dist_x,
     (tuple, str): dist_x,
-    (tuple, list): product_tuple,
-    (tuple, tuple): product_tuple,
+    (tuple, list): product_list,
+    (tuple, tuple): product_list,
 }
