@@ -5,7 +5,12 @@ The pow() function
 from functools import reduce
 from typing import Any
 
-from .common import bound_ops, numeric_operations, get_operation
+from .common import (
+    bound_ops,
+    empty_is_zero,
+    numeric_operations,
+    get_operation,
+)
 
 @bound_ops("**")
 def poly_pow(x: Any, *args):
@@ -30,18 +35,26 @@ def poly_pow(x: Any, *args):
 | list  | int   | list      | distributed                |
 | list  | float | list      | distributed                |
 | list  | str   | list      | distributed                |
-| tuple | int   | tuple     | distributed                |
-| tuple | float | tuple     | distributed                |
-| tuple | str   | tuple     | distributed                |
 
 TypeError raised on all other combinations
 
 ```vgr
-**TODO**
+None ** None → None
+None ** 5 → 0
+None ** "5" → 0
+5 ** 2 → 25
+5 ** "2" → 25
+"5" ** 2 → 25
+[3, 5] ** 3 → [27, 125]
+25 ** .5 → 5.0
 ```
 """
     return reduce(_pow, args, x)
 
 def _pow(x: Any, y: Any) -> Any:
-    operation = get_operation(x, y, numeric_operations)
+    operation = get_operation(x, y, pow_operations, numeric_operations)
     return operation(_pow, x, y) if operation else x ** y
+
+pow_operations = {
+    (str, str): lambda op, x, y: op(empty_is_zero(x), empty_is_zero(y)),
+}
