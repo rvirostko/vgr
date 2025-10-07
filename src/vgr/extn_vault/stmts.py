@@ -80,7 +80,7 @@ def execute_connect(ctx: ExecContext, statement: Tree) -> None:
     """
 **Establish a connection to Vault
 
-* Vault Connect -- values from env, default conneciton name
+* Vault Connect
 * Vault Connect To _host_
 * Vault Connect To _host_ With _token_
 * Vault Connect To _host_ With _token_ As _connection_name_
@@ -128,7 +128,20 @@ Also see `Vault-Connect`
 # Generic API execution
 #-------------------------------------------------------------------------------
 
+@bound_ops("Vault-ApiDelete")
 def execute_api_delete(ctx: ExecContext, statement: Tree) -> None:
+    """
+**Send a DELETE to a Vault API**
+
+* Vault ApiDelete _path_ [_options_]...
+
+_Options_
+
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Results In _variable_
+
+"""
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     url: str = _normalize_path(_resolve_str_arg(ctx, statement.children[0], 'Path'))
@@ -139,7 +152,20 @@ def execute_api_delete(ctx: ExecContext, statement: Tree) -> None:
                 _CONNECTIONS.get_connection(using).do_delete(url, namespace)
                )
 
+@bound_ops("Vault-ApiGet")
 def execute_api_get(ctx: ExecContext, statement: Tree) -> None:
+    """
+**Send a GET to a Vault API**
+
+* Vault ApiGet _path_ [_options_]...
+
+_Options_
+
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Results In _variable_
+
+"""
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     url: str = _normalize_path(_resolve_str_arg(ctx, statement.children[0], 'Path'))
@@ -150,7 +176,20 @@ def execute_api_get(ctx: ExecContext, statement: Tree) -> None:
                 _CONNECTIONS.get_connection(using).do_get(url, namespace)
                )
 
+@bound_ops("Vault-ApiList")
 def execute_api_list(ctx: ExecContext, statement: Tree) -> None:
+    """
+**Send a LIST to a Vault API**
+
+* Vault ApiList _path_ [_options_]...
+
+_Options_
+
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Results In _variable_
+
+"""
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     url: str = _normalize_path(_resolve_str_arg(ctx, statement.children[0], 'Path'))
@@ -161,7 +200,21 @@ def execute_api_list(ctx: ExecContext, statement: Tree) -> None:
                 _CONNECTIONS.get_connection(using).do_list(url, namespace)
                )
 
+@bound_ops("Vault-ApiPatch")
 def execute_api_patch(ctx: ExecContext, statement: Tree) -> None:
+    """
+**Send a PATCH to a Vault API**
+
+* Vault ApiPatch _path_ [_options_]...
+
+_Options_
+
+* Data Is _data_
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Results In _variable_
+
+"""
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _DATA_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
     url: str = _normalize_path(_resolve_str_arg(ctx, statement.children[0], 'Path'))
@@ -173,7 +226,21 @@ def execute_api_patch(ctx: ExecContext, statement: Tree) -> None:
                 _CONNECTIONS.get_connection(using).do_patch(url, data, namespace)
                )
 
+@bound_ops("Vault-ApiPost")
 def execute_api_post(ctx: ExecContext, statement: Tree) -> None:
+    """
+**Send a POST to a Vault API**
+
+* Vault ApiPost _path_ [_options_]...
+
+_Options_
+
+* Data Is _data_
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Results In _variable_
+
+"""
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _DATA_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
     url: str = _normalize_path(_resolve_str_arg(ctx, statement.children[0], 'Path'))
@@ -185,31 +252,17 @@ def execute_api_post(ctx: ExecContext, statement: Tree) -> None:
                 _CONNECTIONS.get_connection(using).do_post(url, data, namespace)
                )
 
-#-------------------------------------------------------------------------------
-# Namespaces
-#
-# Vault DefaultNamespace ""
-# Vault DefaultNamespace "D111382"
-# Vault DefaultNamespace "D111382/One"
-# -- Need to check handling of leading and trailing /s
-# Vault CreateNamespace "D111382"
-# Vault CreateNamespace "D111382", Namespace=""
-# Vault CreateNamespace "One", Namespace="D111382"
-# Vault CreateNamespace "SubOne", Namespace="D111382/One"
-# Vault CreateNamespace "D111382/One/SubOne" -- Allowed if only the parents exist
-# NB: for testing, need to be able to list the root as well
-#     a top-level NS, and a child NS
-# Vault ListNamespaces
-# Vault ListNamespaces ""
-# Vault ListNamespaces "D111382"
-# Vault ListNamespaces Namespace="D111382"
-# Vault ListNamespaces "D111382", Namspace=""
-# Vault ListNamespaces "One", Namspace="D111382"
-# Vault ListNamespaces "SubOne", Namspace="D111382/One"
-# Vault ListNamespaces "D111382/One/SubOne" -- allowed?
-#-------------------------------------------------------------------------------
-
 def execute_default_ns(ctx: ExecContext, statement: Tree) -> None:
+    """
+**Set the namespace to be used by subsequent requests**
+
+* Vault DefaultNamespace _namespace_
+
+_Options_
+
+* Results In _variable_
+
+"""
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _RESULT_ARG)
     ns: str = _resolve_str_arg(ctx, statement.children[0], 'Default Namespace', True)
@@ -217,6 +270,19 @@ def execute_default_ns(ctx: ExecContext, statement: Tree) -> None:
     _set_result(ctx, args, None)
 
 def execute_create_ns(ctx: ExecContext, statement: Tree) -> None:
+    """
+**Create a new namesapce**
+
+* Vault CreateNamespace _namespace_
+
+_Options_
+
+* Metadata Is _meta_
+* Namespace Is _parent_
+* Using [Connection] _name_
+* Results In _variable_
+
+"""
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _META_ARG, _RESULT_ARG, _USING_ARG)
     new_namespace: str = _resolve_str_arg(ctx, statement.children[0], 'New Namespace')
@@ -229,6 +295,18 @@ def execute_create_ns(ctx: ExecContext, statement: Tree) -> None:
                )
 
 def execute_read_ns(ctx: ExecContext, statement: Tree) -> None:
+    """
+**Update a namespace**
+
+* Vault ReadNamespace _namespace_
+
+_Options_
+
+* Namespace Is _parent_
+* Using [Connection] _name_
+* Results In _variable_
+
+"""
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     ns: str = _resolve_str_arg(ctx, statement.children[0], 'Namespace')
@@ -240,6 +318,18 @@ def execute_read_ns(ctx: ExecContext, statement: Tree) -> None:
                )
 
 def execute_update_ns(ctx: ExecContext, statement: Tree) -> None:
+    """
+**Update a namespace**
+
+* Vault UpdateNamespace _namespace_ Metadata Is _meta_
+
+_Options_
+
+* Namespace Is _parent_
+* Using [Connection] _name_
+* Results In _variable_
+
+"""
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _META_ARG, _RESULT_ARG, _USING_ARG)
     ns: str = _resolve_str_arg(ctx, statement.children[0], 'Namespace')
@@ -252,6 +342,18 @@ def execute_update_ns(ctx: ExecContext, statement: Tree) -> None:
                )
 
 def execute_delete_ns(ctx: ExecContext, statement: Tree) -> None:
+    """
+**Delete a namespace**
+
+* Vault DeleteNamespace _namespace_
+
+_Options_
+
+* Namespace Is _parent_
+* Using [Connection] _name_
+* Results In _variable_
+
+"""
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     ns: str = _resolve_str_arg(ctx, statement.children[0], 'Namespace')
@@ -263,6 +365,20 @@ def execute_delete_ns(ctx: ExecContext, statement: Tree) -> None:
                )
 
 def execute_list_ns(ctx: ExecContext, statement: Tree) -> None:
+    """
+**List namespaces**
+
+* Vault ListNamespaces
+* Vault ListNamespaces _parent_
+* Vault ListNamespaces Namespace Is _parent_
+
+_Options_
+
+* Namespace Is _parent_
+* Using [Connection] _name_
+* Results In _variable_
+
+"""
     namespace: str = _resolve_str_arg(ctx, statement.children[0], 'Namespace', True) if len(statement.children) > 1 else ""
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -274,6 +390,18 @@ def execute_list_ns(ctx: ExecContext, statement: Tree) -> None:
                 )
 
 def execute_lock_ns(ctx: ExecContext, statement: Tree) -> None:
+    """
+**Lock a namespace**
+
+* Vault LockNamespace _namespace_
+
+_Options_
+
+* Namespace Is _parent_
+* Using [Connection] _name_
+* Results In _variable_
+
+"""
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     namespace: str = _resolve_str_arg(ctx, statement.children[0], 'Namespace')
@@ -285,6 +413,18 @@ def execute_lock_ns(ctx: ExecContext, statement: Tree) -> None:
                 )
 
 def execute_unlock_ns(ctx: ExecContext, statement: Tree) -> None:
+    """
+**Unlock a namespace**
+
+* Vault UnlockNamespace _namespace_ Key is _key_
+
+_Options_
+
+* Namespace Is _parent_
+* Using [Connection] _name_
+* Results In _variable_
+
+"""
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG, _KEY_ARG)
     namespace: str = _resolve_str_arg(ctx, statement.children[0], 'Namespace')
