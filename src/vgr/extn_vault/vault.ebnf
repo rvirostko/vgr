@@ -41,7 +41,7 @@
 vault_connect   : "Vault"i "Connect"i (_COMMA? vault_conn_arg)* _SEMICOLON?
 vault_disconnect: "Vault"i "Disconnect"i ("From"i? expr)? _SEMICOLON?
 vault_conn_arg: "To"i "Host"i? expr -> conn_addr
-    | ("With"i "Token"i? | "Token"i ("=" | "Is"i)) expr -> conn_token
+    | ("With"i "Token"i? | "Token"i "Is"i) expr -> conn_token
     | "As"i expr -> conn_name
 
 // Generic Vault API interactions
@@ -118,26 +118,16 @@ vault_rotate_db_role_creds : "Vault"i "RotateDbRoleCredentials"i expr vault_args
 # NB: Expression are treated like tokens iff they are a single name component
 #     and are undefined in the data dictionary
 vault_args: (_COMMA? vault_option (_COMMA? vault_option)*)?
-vault_option: "CAS"i ("=" | "Is"i)? expr -> vopt_cas
-    | "CAS"i "From"i var_name -> vopt_cas
-    | "Config"i ("=" | "Is"i)? expr -> vopt_config
-    | "Config"i "From"i var_name -> vopt_config
-    | "Data"i ("=" | "Is"i)? expr -> vopt_data
-    | "Data"i "From"i var_name -> vopt_data
-    | "Description"i ("=" | "Is"i)? expr -> vopt_description
-    | "Description"i "From"i var_name -> vopt_description
-    | "Key"i ("=" | "Is"i)? expr -> vopt_key
-    | "Key"i "From" var_name -> vopt_key
-    | ("Meta"i | "Metadata"i) ("=" | "Is"i)? expr -> vopt_metadata
-    | ("Meta"i | "Metadata"i) "From"i var_name -> vopt_metadata
-    | "Namespace"i ("=" | "Is"i)? expr -> vopt_namespace
-    | "Namespace"i "From"i var_name -> vopt_namespace
-    | ("Result"i | "Results"i) ("=" | "Is"i | "In"i)? var_name -> vopt_result
+vault_option: "CAS"i "Is"i? expr -> vopt_cas
+    | "Config"i "Is"i? expr -> vopt_config
+    | "Data"i "Is"i? expr -> vopt_data
+    | "Description"i "Is"i? expr -> vopt_description
+    | "Key"i "Is"i? expr -> vopt_key
+    | ("Meta"i | "Metadata"i) "Is"i? expr -> vopt_metadata
+    | "Namespace"i "Is"i? expr -> vopt_namespace
+    | ("Result"i | "Results"i) "In"i? var_name -> vopt_result
     | "Giving"i var_name -> vopt_result
-    | ("Secret"i | "Secrets"i) ("=" | "Is"i | "Are"i)? expr -> vopt_data # Alias for data
-    | ("Secret"i | "Secrets"i) "From"i var_name -> vopt_data             # Alias for data
-    | "Type"i ("=" | "Is"i)? expr -> vopt_type
-    | "Type"i "From"i var_name -> vopt_type
+    | ("Secret"i | "Secrets"i) ("Is"i | "Are"i)? expr -> vopt_data # Alias for data
+    | "Type"i "Is"i? expr -> vopt_type
     | "Using"i "Connection"i? expr -> vopt_using
-    | ("Version"i | "Ver"i) ("=" | "Is"i)? expr -> vopt_version
-    | ("Version"i | "Ver"i) "From"i var_name -> vopt_version
+    | ("Version"i | "Ver"i) "Is"i? expr -> vopt_version
