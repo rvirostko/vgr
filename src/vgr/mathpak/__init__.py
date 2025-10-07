@@ -44,7 +44,6 @@ from .general import (
     poly_lastitem,
     poly_repr,
     poly_reverse,
-    poly_sizeof,
     poly_sort,
     poly_type,
     poly_unique,
