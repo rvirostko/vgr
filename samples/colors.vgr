@@ -11,20 +11,20 @@ Perform iter Times
 
     #-------------------------------------------------------------------------
     Term Reset, Clear, DHPrint "Boxes and Lines"
-    Term FG="bright white", BG="bright red"
+    Term FG "bright white", BG "bright red"
     For i = 1 To 7
         Term Pos 2+i,0, HLine i*10
         Term Pos 3,(i*10)+1, VLine i
     Next
     For i = 2 To 8
         Term Pos 10,(i - 2)*10, Box i,i
-        Term Bold, Print "{0}x{0}".Format(i), Bold=False
+        Term Bold, Print "{0}x{0}".Format(i), Bold False
     Next
     Set line = 19
     Set col = 1
     Set bwidth = term.box_styles.StrLen().Max() + 2
     Set bheight = 3
-    Term FG="bright white", BG="bright green"
+    Term FG "bright white", BG "bright green"
     ForEach style In term.box_styles:
         Term Pos line,col, DrawBox style,bheight,bwidth, Print style
         Add bwidth To col
@@ -53,12 +53,12 @@ Perform iter Times
         ["bold blue rev", "Combined Settings"]
     ]
     ForEach style In styles:
-        Term Style=style.FirstItem(),
+        Term Style style.FirstItem(),
             Print style.LastItem().Center(20),
-            Style="Normal", FG=None, BG=None,
+            Style "Normal", FG None, BG None,
             Print " {}\n".Format(style.FirstItem())
     End
-    Term Print "\n", Style="Reset wide", Print "Double Width Text\n"
+    Term Print "\n", Style "Reset wide", Print "Double Width Text\n"
     Term Reset
     Sleep sleep_time Seconds
     #-------------------------------------------------------------------------
@@ -66,22 +66,22 @@ Perform iter Times
     #-------------------------------------------------------------------------
     Term Reset, Clear, DHPrint "Numbered Colors"
     Term Pos 3,1
-    Term BG, FG="bright white", Print "Standard "
+    Term BG, FG "bright white", Print "Standard "
     For color = 0 To 15:
-        Term BG=color, Print color.RightJustify(4).LeftJustify(5)
+        Term BG color, Print color.RightJustify(4).LeftJustify(5)
         If color == 7:
-            Term FG, BG, Print "\n Intense ", FG="black"
+            Term FG, BG, Print "\n Intense ", FG "black"
         End
     Next
-    Term BG, FG="bright white", Print "\n\n   Grays "
+    Term BG, FG "bright white", Print "\n\n   Grays "
     For gray = 0 To 23:
         Set color = 232 + gray
-        Term BG=color, Print color.RightJustify(4).LeftJustify(5)
+        Term BG color, Print color.RightJustify(4).LeftJustify(5)
         If !((gray + 1) % 12):
-            Term BG, FG="black", Print "\n         "
+            Term BG, FG "black", Print "\n         "
         End
     Next
-    Term BG, FG="bright white", Print "\n  Colors"
+    Term BG, FG "bright white", Print "\n  Colors"
     Set start_line = 9
     Set line = start_line
     Set col = 10;
@@ -89,13 +89,13 @@ Perform iter Times
         If green == 18:
             Set line = start_line
             Add 35 to col
-            Term FG="black"
+            Term FG "black"
         End
         For red = 0 To (5 * 36) By 36:
             Term Pos line, col
             For blue = 0 to 5 By 1:
                 Set color = 16 + red + green + blue
-                Term BG=color, Print color.RightJustify(4).LeftJustify(5)
+                Term BG color, Print color.RightJustify(4).LeftJustify(5)
             Next
             Add 1 to line
         Next
@@ -110,7 +110,7 @@ Perform iter Times
     Term Pos 3,1
     For i = 0 to named_colors.Length() - 1
         Let color_name = named_colors.Item(i)
-        Term BG=color_name, Print " ", Print color_name.ShortenStr(max_len).LeftJustify(max_len), Print " "
+        Term BG color_name, Print " ", Print color_name.ShortenStr(max_len).LeftJustify(max_len), Print " "
         If !((i + 1) % 4)
             # Need resume default background in case we scroll
             Term BG, CR, LF

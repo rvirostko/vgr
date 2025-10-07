@@ -11,7 +11,7 @@ Reset Data
 Assert vgr.source.FirstItem() is not None
 # ASCII art file should be stored in the same dir as this script
 # so use the source name's directory to always find it
-Load sse from vgr.source.FirstItem().DirName() + "/NCC-1701A.txt" As Text Lines
+Load sse from vgr.source.FirstItem().DirectoryName() + "/NCC-1701A.txt" As Text Lines
 Set sse_max To sse.StringLen().Max()
 Set sse To sse.LeftJustify(sse_max)
 
@@ -21,7 +21,7 @@ Set fps To arg.fps.DefaultTo(30).Max(1).Min(60)
 Set loops To arg.loops.DefaultTo(32).Max(1).Min(128)
 
 # Clear the screen and start!
-Term BG="Gray15", FG="Green3", Clear, CursorHide
+Term BG "Gray15", FG "Green3", Clear, CursorHide
 For scene = 0 To loops:
     # We recalc line on every scene in case for when the window is resized
     Term GetTermSize
@@ -35,7 +35,7 @@ For scene = 0 To loops:
         # Pause for six frames
         Sleep 1 / (fps / 6) Second
     End
-    Term Home, Print "Delay: 1/{}s".Format(fps), EraseEOS
+    Term Home, Print "Delay: 1/{}s".Format(fps.ToInt()), EraseEOS
     If scene.Mod(2):
         # Right-to-Left movement
         For frame = 1 To (sse.FirstItem().Length() + term.size.cols):
@@ -65,4 +65,4 @@ For scene = 0 To loops:
     End
 Next
 
-Term BG=None, FG=None, Clear, CursorShow
+Term BG None, FG None, Clear, CursorShow
