@@ -10,10 +10,20 @@ from .common import NoneType, type_str
 
 def compile_pattern(x: Any, flags: int=0) -> Any:
     """
+**Create a pre-compiled regular expression pattern**
+
+* CompilePattern(_pattern_)
+* _pattern_.CompilePattern()
+
+The compiled pattern can be used with `RegexReplace()`
+If the _pattern_ argument is a list, all the patterns
+in the list are compiled.
+
 ```vgr
-**TODO**
+Set alpha To "^[A-Z][A-Za-z]*".CompilePattern()
 ```
 
+Also see `RegexReplace()`
 """
     if isinstance(x, (NoneType, re.Pattern)): return x
     if isinstance(x, str):
@@ -29,17 +39,31 @@ def poly_regex_replace(x: Any, *args) -> Any:
     """
 **Regular Expression replacement**
 
-The input value can be a string, list, tuple, or dictionary.
-Replacement is distributed over list and tuple, and the values of the dictionary.
-The pattern can be a string or a colleciton of strings. For the latter, the patterns are
-applied in order, all using the same replacement.
-Replacement must be a string, but can be empty or _None_, which results in deletion.
-The pattern can start with _(?i)_ for case indepenent replacement, _(?m)_ for multiline replacement,
-or combined as _(?im)_ for both. Capture groups can be referenced in the replacement.
+* RegexReplace(_value_, _pattern_)
+* RegexReplace(_value_, _pattern_... _replacement_)
+* _value_.RegexReplace(_pattern_)
+* _value_.RegexReplace(_pattern_... _replacement_)
+
+The input value can be a string, list, or a dictionary.
+Replacement is distributed over the contents of a list or dictionary.
+The pattern can be a single string or pattern a list of either.
+All _pattern_ values are applied in order, all using the same _replacement_ value.
+
+The _replacement_ must be a string, but can be empty or _None_, which results in deletion of
+the matched patterns.
+
+The pattern can start with _(?i)_ for case indepenent replacement,
+_(?m)_ for multiline replacement, or combined as _(?im)_ for both.
+Capture groups can be referenced in the replacement.
 
 ```vgr
-**TODO**
+"catalogue".RegexReplace("at.*") → "c"
+"catalogue".RegexReplace("at.*", "at") → "cat"
+"cAt".RegexReplace("[AEIOU]", "[^A-Z]", "-") → "---"
+["cat", "dog"].RegexReplace("[aeiou]", "-") → ["c-t", "d-g"]
 ```
+
+Also see `CompilePattern()`
 """
     if not args: return x
     if len(args) == 1: return _regex_replace(x, args[0], '')
