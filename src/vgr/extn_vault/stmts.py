@@ -440,6 +440,19 @@ _Options_
 #-------------------------------------------------------------------------------
 
 def execute_create_mount(ctx: ExecContext, statement: Tree) -> None:
+    """
+**Create and configure a secrets engine**
+
+* Vault CreateMount _mount_point_ Data Is _data_
+* Vault CreateMount _mount_point_ Type Is _type_ Config Is _config_ Description Is _desc_
+
+_Options_
+
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Results In _variable_
+
+"""
     mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
     args = _extract_args(ctx, statement)
     data = {}
@@ -469,6 +482,18 @@ def execute_create_mount(ctx: ExecContext, statement: Tree) -> None:
                 _CONNECTIONS.get_connection(using).create_mount(mount_point, data, namespace))
 
 def execute_read_mount(ctx: ExecContext, statement: Tree) -> None:
+    """
+**Read the configuration of a secrets engine mount**
+
+* Vault ReadMount _mount_point_
+
+_Options_
+
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Results In _variable_
+
+"""
     mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
     args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -479,6 +504,19 @@ def execute_read_mount(ctx: ExecContext, statement: Tree) -> None:
                 _CONNECTIONS.get_connection(using).read_mount(mount_point, namespace))
 
 def execute_update_mount(ctx: ExecContext, statement: Tree) -> None:
+    """
+**Update the configuration of a secrets engine**
+
+* Vault UpdateMount _mount_point_ Data Is _data_
+* Vault UpdateMount _mount_point_ Config Is _config_
+
+_Options_
+
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Results In _variable_
+
+"""
     mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
     args = _extract_args(ctx, statement)
     data = {}
@@ -495,7 +533,20 @@ def execute_update_mount(ctx: ExecContext, statement: Tree) -> None:
                 args,
                 _CONNECTIONS.get_connection(using).update_mount(mount_point, data, namespace))
 
+#vault_delete_mount : "Vault"i "DeleteMount"i expr vault_args _SEMICOLON?
 def execute_delete_mount(ctx: ExecContext, statement: Tree) -> None:
+    """
+**Remove a secrets engine mount**
+
+* Vault DeleteMount _mount_point_
+
+_Options_
+
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Results In _variable_
+
+"""
     mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
     args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -508,7 +559,7 @@ def execute_delete_mount(ctx: ExecContext, statement: Tree) -> None:
 @bound_ops("Vault-ListMounts")
 def execute_list_mounts(ctx: ExecContext, statement: Tree) -> None:
     """
-**List the mounts in a namespace**
+**List the mount points in a namespace**
 
 * Vault ListMounts
 * Vault ListMounts _namespace_
@@ -516,6 +567,11 @@ def execute_list_mounts(ctx: ExecContext, statement: Tree) -> None:
 * Vault ListMounts _namespace_ Namspace is _parent_namespace_
 
 If no namespace name is provided, the default namespace name is used.
+
+_Options_
+
+* Using [Connection] _name_
+* Results In _variable_
 
 Also see `Vault-DefaultNamespace`
 """
@@ -533,15 +589,26 @@ Also see `Vault-DefaultNamespace`
 #-------------------------------------------------------------------------------
 
 def execute_create_kv_secret(ctx: ExecContext, statement: Tree) -> None:
-    """For create, Data is required but Metadata is optional"""
+    """
+**Create or update the KV secrets**
+
+* Vault CreateKvSecret _mount_and_path_ Data Is _data_
+* Vault CreateKvSecret _mount_and_path_ Data Is _data_ Metadata is _meta_
+
+_Options_
+
+* CAS Is _version_
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Results In _variable_
+
+"""
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
     args = _extract_args(ctx, statement)
     _allowed_args(args, _DATA_ARG, _META_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG, _CAS_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
     cas: int = _get_arg(args, _CAS_ARG, int, True)
     using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    # TODO doesn't CAS always need to be zero here?
-    # TODO can you really create it w/o Any secrets?
     data = add_kv_cas(extract_kv_data(_get_arg(args, _DATA_ARG, dict)) if _DATA_ARG in args else {}, cas)
     result = _set_result(ctx,
                 args,
@@ -556,6 +623,19 @@ def execute_create_kv_secret(ctx: ExecContext, statement: Tree) -> None:
                     _CONNECTIONS.get_connection(using).create_kv2_metadata(mount_point, path, metadata, namespace))
 
 def execute_read_kv_secret(ctx: ExecContext, statement: Tree) -> None:
+    """
+**Read the KV secrets**
+
+* Vault ReadKvSecret _mount_and_path_
+* Vault ReadKvSecret _mount_and_path_ Version Is _version_
+
+_Options_
+
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Results In _variable_
+
+"""
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
     args = _extract_args(ctx, statement)
     _allowed_args(args, _VERSION_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -567,6 +647,18 @@ def execute_read_kv_secret(ctx: ExecContext, statement: Tree) -> None:
                 _CONNECTIONS.get_connection(using).read_kv2_secret(mount_point, path, version, namespace))
 
 def execute_read_kv_metadata(ctx: ExecContext, statement: Tree) -> None:
+    """
+**Read the KV metadata**
+
+* Vault ReadKvMetadata _mount_and_path_
+
+_Options_
+
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Results In _variable_
+
+"""
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
     args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -577,7 +669,21 @@ def execute_read_kv_metadata(ctx: ExecContext, statement: Tree) -> None:
                 _CONNECTIONS.get_connection(using).read_kv2_metadata(mount_point, path, namespace))
 
 def execute_update_kv_secret(ctx: ExecContext, statement: Tree) -> None:
-    """Data and Metadata are optional"""
+    """
+**Update the KV secrets**
+
+* Vault UpdateKvSecret _mount_and_path_ Data Is _data_
+* Vault UpdateKvSecret _mount_and_path_ Data Is _data_ Metadata is _meta_
+* Vault UpdateKvSecret _mount_and_path_ Metadata is _meta_
+
+_Options_
+
+* CAS Is _version_
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Results In _variable_
+
+"""
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
     args = _extract_args(ctx, statement)
     _allowed_args(args, _DATA_ARG, _META_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG, _CAS_ARG)
@@ -600,7 +706,21 @@ def execute_update_kv_secret(ctx: ExecContext, statement: Tree) -> None:
                     _CONNECTIONS.get_connection(using).update_kv2_metadata(mount_point, path, metadata, namespace))
 
 def execute_patch_kv_secret(ctx: ExecContext, statement: Tree) -> None:
-    """Data and Metadata are optional"""
+    """
+**Patch the KV secrets**
+
+* Vault PatchKvSecret _mount_and_path_ Data Is _data_
+* Vault PatchKvSecret _mount_and_path_ Data Is _data_ Metadata is _meta_
+* Vault PatchKvSecret _mount_and_path_ Metadata is _meta_
+
+_Options_
+
+* CAS Is _version_
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Results In _variable_
+
+"""
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
     args = _extract_args(ctx, statement)
     _allowed_args(args, _DATA_ARG, _META_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG, _CAS_ARG)
@@ -622,28 +742,121 @@ def execute_patch_kv_secret(ctx: ExecContext, statement: Tree) -> None:
                     args,
                     _CONNECTIONS.get_connection(using).patch_kv2_metadata(mount_point, path, metadata, namespace))
 
+def _get_version_data(args: dict) -> dict:
+    # Use _DATA to allow direct use of "versions"
+    if _DATA_ARG in args: return _get_arg(args, _DATA_ARG, dict)
+    # Use _VERSION_ARG for target version
+    rc = {"versions": [] }
+    if _VERSION_ARG in args:
+        rc["versions"].append(_get_arg(args, _VERSION_ARG, int))
+    return rc
+
 def execute_delete_kv_secret(ctx: ExecContext, statement: Tree) -> None:
+    """
+**Delete a KV secret**
+
+* Vault DeleteKvSecret _mount_and_path_ Version Is _version_
+* Vault DeleteKvSecret _mount_and_path_ Data Is _data_
+
+_Options_
+
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Results In _variable_
+
+"""
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
     args = _extract_args(ctx, statement)
-    _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
-    # TODO use _VERSIONS_ARG for target version(s) Sent as an array
-    # TODO use _DATA to allow direct use of "versions"
+    _allowed_args(args, _VERSION_ARG, _DATA_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    data = _get_version_data(args)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
     using = _set_default_conn(ctx, _get_default_conn(ctx, args))
     _set_result(ctx,
                 args,
-                _CONNECTIONS.get_connection(using).delete_kv2_secret(mount_point, path, namespace))
+                _CONNECTIONS.get_connection(using).delete_kv2_secret(mount_point, path, data, namespace))
 
 def execute_undelete_kv_secret(ctx: ExecContext, statement: Tree) -> None:
-    raise NotImplementedError() # TODO
+    """
+*Undelete a KV secret**
+
+* Vault UndeleteKvSecret _mount_and_path_
+
+_Options_
+
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Results In _variable_
+
+"""
+    mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
+    args = _extract_args(ctx, statement)
+    _allowed_args(args, _VERSION_ARG, _DATA_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    data = _get_version_data(args)
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
+                args,
+                _CONNECTIONS.get_connection(using).undelete_kv2_secret(mount_point, path, data, namespace))
 
 def execute_destroy_kv_secret(ctx: ExecContext, statement: Tree) -> None:
-    raise NotImplementedError() # TODO
+    """
+**Destroy a KV secret**
+
+* Vault DestoryKvSecret _mount_and_path_
+
+_Options_
+
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Results In _variable_
+
+"""
+    mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
+    args = _extract_args(ctx, statement)
+    _allowed_args(args, _VERSION_ARG, _DATA_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    data = _get_version_data(args)
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
+                args,
+                _CONNECTIONS.get_connection(using).destroy_kv2_secret(mount_point, path, data, namespace))
 
 def execute_delete_kv_metadata(ctx: ExecContext, statement: Tree) -> None:
-    raise NotImplementedError() # TODO
+    """
+**Delete KV secret metadata**
 
+* Vault DeleteKvMetadata _mount_and_path_
+
+_Options_
+
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Results In _variable_
+
+"""
+    mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
+    args = _extract_args(ctx, statement)
+    _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    _set_result(ctx,
+                args,
+                _CONNECTIONS.get_connection(using).delete_kv2_metadata(mount_point, path, namespace))
+
+# vault_list_kv_secrets  : "Vault"i "ListKvSecrets"i expr vault_args _SEMICOLON?
 def execute_list_kv_secrets(ctx: ExecContext, statement: Tree) -> None:
+    """
+**List Kv secrets at a path location**
+
+* Vault DeleteKvMetadata _mount_and_path_
+
+_Options_
+
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Results In _variable_
+
+"""
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
     args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
