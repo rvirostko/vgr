@@ -782,24 +782,136 @@ def execute_term_statement(ctx: ExecContext, statement: Tree) -> None:
 * Terminal _command_ [, _command_]... [;]
 * Term _command_ [, _command_]... [;]
 
-**Cursor Control**
+_Cursor Control Commands_
 
-* [CursorPos | Pos | cup] _expression_, _expression_ - Move cursor to line,column, ones based
-* [GetCursorPos | GetPos | dsr_cursor] - Read cursposition into _term.cursor_
-* [Line | vpa] [_expression_] - Move cursor position to line
-* [Col | hpa] [_expression_] - Move cursor position to column
-* [CursorHome | Home] -> Move cursor to 1,1
-* [CursorSave | CSave | decsc) -> Save the cursor location
-* [CursorRestore | CRestore | decrc) -> Reposition cursor to last saved location
-* [CursorShow | CShow) - Make the cursor visiable
-* [CursorHide | CHide) -> Hide the cursor
-* [CursorVisible | dectcem) [= _expression_] - Change cursor visibility
-* [CursorUp | cuu) [_expression_] -> Move the cursor up one or more lines
-* [CursorDown | cud) [_expression_] -> Move the cursor down one or more lines
-* [CursorLeft | CursorBack | cub) [_expression_] -> Move the cursor left one or more columns
-* [CursorRight | CursorForward | cuf) [_expression_] -> Move the cursor right one or more columns
+* [CursorPos | Pos] _line_, _column_ - Move cursor to line,column, ones based
+* [GetCursorPos | GetPos] - Read cursposition into _term.cursor_
+* Line [_line_] - Move cursor position to line
+* Col [_column_] - Move cursor position to column
+* [CursorHome | Home] - Move cursor to 1,1
+* [CursorSave | CSave] - Save the cursor location
+* [CursorRestore | CRestore] - Reposition cursor to last saved location
+* [CursorShow | CShow] - Make the cursor visiable
+* [CursorHide | CHide] - Hide the cursor
+* CursorVisible [_visible_] - Change cursor visibility
+* CursorUp [_lines_] - Move the cursor up one or more lines
+* CursorDown [_lines_] - Move the cursor down one or more lines
+* [CursorLeft | CursorBack] [_columns_] - Move the cursor left one or more columns
+* [CursorRight | CursorForward] [_columns_] - Move the cursor right one or more columns
 
-TODO
+_Screen Editing Commands_
+
+* [InsertLine | InsertLines] [_count_] - Insert one or more lines
+* [DeleteLine | DeleteLines] [_count_] - Delete one or more lines
+* [InsertChar | InsertChars] [_count_] - Insert one or more characters at cursor
+* [DeleteChar | DeleteChars] [_count_] - Delete one or more characters at cursor
+* [EraseChar | EraseChars] [_count_] - Erase one or more characters at cursor
+* EraseLine - Erase the current line
+* EraseEOL - Erase from cursor to end of the line
+* EraseBOL - Erase from cursor to begining of the line
+* [EraseDisplay | EraseScreen] - Erase the screen
+* EraseEOS - Erase from cursor to end of the screen
+* EraseBOS - Erase from cursor to begining of the screen
+* [Clear | CLS] - Erase the screen and home the cursor
+
+_Scrolling Commands_
+
+* ScrollUp - Scroll up one line
+* ScrollDown - Scroll down one line
+* ScrollRegion _start_line_, _end_line_ - Scroll text in the given region
+
+_Options Commands_
+
+* S7C1 [_on_off_] - Change between 7 and 8-bit control sequences
+* S8C1 [_on_off_] - Change between 7 and 8-bit control sequences
+* DECSCNM [expr] - Switch between normal and reverse mode
+* SmoothScroll [_on_off_] - Turn smooth scrolling on/off
+* OriginMode [_on_off_] - Turn origin mode on/off
+* AutoWrap [_on_off_] - Turn auto wrap on/off
+* InsertMode [_on_off_] - Toggle between insert and overwrite mode
+* SoftReset - Perform a sort reset on the terminal's settings
+* HardReset - Perform a hard reset on the terminal's settings
+* AlignmentTest - Display an alignment test pattern
+* TabSet - Set a tab stop at the cursor's column
+* TabClear - Clear a tab stop at the cursor's column
+* TabClearAll - Clear all tab stops
+
+_Printing Commands_
+
+* Print _text_ - Print the text starting at the cursor's position
+* DHPrint _text_ - Print text in double-high mode
+* RepeatChar [_count_] - Repeat the last character a number of times
+
+_Windowing Commands_
+
+* SetClipboard _text_ - Set the system clipboard to _text_
+* DeIconify - De-iconify the terminal window
+* RaiseWindow - Raise the terminal window to the front
+* IconName _text_ - Set the icon name for the terminal window
+* WindowTitle _text_ - Set the terminal window's title
+* [GetWindowSize | GetTerminalSize | GetTermSize] - Retrieve the window's size; stored in _term.size_
+
+_Sending Control Characters_
+
+* NUL
+* SOH
+* STX
+* ETX
+* EOT
+* ENQ
+* ACK
+* BEL
+* BS
+* HT
+* LF
+* VT
+* FF
+* CR
+* SO
+* SP
+* SI
+* DLE
+* DC1
+* DC2
+* DC3
+* DC4
+* NAK
+* SYN
+* ETB
+* CAN
+* EM
+* SUB
+* ESC
+* FS
+* GS
+* RS
+* US
+
+_Colors and Attrribute Commands_
+
+* Reset - Reset the colors and attributes
+* Style _style_ - Intepret _style_ as colors and attributes
+* Bold [_on_off_] - Turn bold on/off
+* Dim [_on_off_] - Turn dim on/off
+* Blink [_on_off_] - Turn blink on/off
+* [Italic | Italics] [_on_off_] - Turn italics on/off
+* [Underline | UL] [_on_off_] - Turn underline on/off
+* [Foreground | FG] [_color_] - Set the foreground color
+* [Background | BG] [_color_] - Set the background color
+* [Reverse | Rev] [_on_off_] - Turn reverse on/off
+* [Hidden | Hide] [_on_off_] - Turn hidden text on/off
+* [Strikethrough | Strikethru | Strikeout ] [_on_off_] - Turn strikethrough text on/off
+* [Double | Wide] [_on_off_] - Change between double and single wide characters
+* Single [_on_off_] - Change between double and single wide characters
+* HighTop [_on_off_] - change the double-high setting of the cursor's line
+* HighBottom | HighBot [_on_off_] - change the double-high setting of the cursor's line
+
+_Box and Line Drawing Commands_
+
+* [DrawBox | Box] expr, expr[, expr]
+* [DrawHLine | HLine] expr[, expr]
+* [DrawVLine | VLine] expr[, expr]
+
 """
     for cmd in statement.children:
         try:
