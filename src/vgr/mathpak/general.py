@@ -110,13 +110,14 @@ def poly_repr(x: Any) -> str:
     """
 **Returns a string representation of an item
 
-Differs slightly from `ToStr()` as it surrounds string values with single quotes.
+Differs slightly from `ToStr()` as it surrounds string values with quotes
+and escapes non-printable characters.
 
 ```vgr
-"five".Repr() → "five"
+"five".Repr() → 'five'
 5.Repr() → 5
 5.0.Repr() → 5.0
-["five", 5, 5.0].Repr() → ["five", 5, 5.0]
+["five", 5, 5.0].Repr() → ['five', 5, 5.0]
 ```
 
 Also see `Ascii()`

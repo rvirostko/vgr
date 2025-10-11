@@ -23,6 +23,7 @@ from ..mathpak import (
     poly_mul,
     poly_ne,
     poly_number,
+    poly_repr,
     poly_sub,
     poly_true,
 )
@@ -658,7 +659,7 @@ Also see `Display`, `Print`, `Printf`, and `Repr()`
             else:
                 print_stdout(name, '= -empty-')
         else:
-            print_stdout(name, '=', repr(value))
+            print_stdout(name, '=', poly_repr(value))
     children = statement.children
     if children:
         for var_name in children:
