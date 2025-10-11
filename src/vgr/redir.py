@@ -5,6 +5,7 @@ Handles the stdout/stderr redirection used by statements.
 """
 
 from io import IOBase
+import re
 
 from lark import Tree
 
@@ -21,13 +22,17 @@ def stdout() -> IOBase:
 def stderr() -> IOBase:
     return _REDIRECTOR.stderr()
 
+def _p_xform(*args):
+    """Little hack to override this special case data type"""
+    return (a.pattern if isinstance(a, re.Pattern) else a for a in args)
+
 def print_stdout(*args, **kwargs) -> None:
     """Same as print() except that it can redirect to an output file"""
-    print(*args, file=_REDIRECTOR.stdout(), **kwargs)
+    print(*_p_xform(*args), file=_REDIRECTOR.stdout(), **kwargs)
 
 def print_stderr(*args, **kwargs) -> None:
     """Same as print() except that it can redirect to an output file"""
-    print(*args, file=_REDIRECTOR.stderr(), **kwargs)
+    print(*_p_xform(*args), file=_REDIRECTOR.stderr(), **kwargs)
 
 @bound_ops("Open")
 def execute_open(ctx: ExecContext, statement: Tree) -> None:

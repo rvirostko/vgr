@@ -2,9 +2,10 @@
 Implementations of Print, PrintF, and MdPrint
 """
 
-import os
-import sys
 from io import StringIO
+import os
+import re
+import sys
 
 from lark import Tree
 
@@ -79,4 +80,8 @@ Also see `Format()`
     channel, args = _extract_args(statement)
     if args:
         format_string = ctx.eval_to_str(args[0], 'Format string', True)
-        _CHANNEL_MAP[channel](poly_format(format_string, *tuple(ctx.eval_expr(expr) for expr in args[1:])), end='', flush=True)
+        _CHANNEL_MAP[channel](poly_format(format_string, *tuple(_p_xform(ctx.eval_expr(expr)) for expr in args[1:])), end='', flush=True)
+
+def _p_xform(arg):
+    """Little hack to override this special case data type"""
+    return arg.pattern if isinstance(arg, re.Pattern) else arg
