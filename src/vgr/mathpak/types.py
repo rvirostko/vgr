@@ -5,6 +5,7 @@ Functions to check or change types
 from typing import Any
 import json
 import math
+import re
 
 from .common import str_to_number, str_to_bool
 
@@ -280,6 +281,7 @@ If _value_ is _None_ it is left as _None_, not converted to the string _"None"_.
     if x is None: return None
     if isinstance(x, bytes): return x.decode('utf-8')
     if isinstance(x, str): return x
+    if isinstance(x, re.Pattern): return x.pattern
     if isinstance(x, (list, tuple)): return list(poly_str(x1) for x1 in x)
     if isinstance(x, dict): return json.dumps(x)
     return str(x)
