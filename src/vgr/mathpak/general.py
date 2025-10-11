@@ -31,7 +31,7 @@ def poly_ascii(x: Any) -> str:
     """
 **Returns a printable ASCII string for an item**
 
-Similar to both `Repr()` and `ToStr()`.
+Similar to both `Repr()` and `ToString()`.
 Characters outside of ASCII printables are encoded
 with backslash sequences.
 
@@ -111,7 +111,7 @@ def poly_repr(x: Any) -> str:
     """
 **Returns a string representation of an item
 
-Differs slightly from `ToStr()` as it surrounds string values with quotes
+Differs slightly from `ToString()` as it surrounds string values with quotes
 and escapes non-printable characters.
 
 ```vgr
