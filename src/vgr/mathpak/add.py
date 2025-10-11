@@ -13,29 +13,29 @@ def poly_add(x: Any, *args):
 * Add(_x_, _y_...)
 * _x_.Add(_y_...)
 
-| x     | y     | returns   | operation             |
-|-------|-------|-----------|-----------------------|
-| int   | int   | int       | x + y                 |
-| int   | float | float     | x + y                 |
-| int   | str   | int/float | x + ToNumber(y)       |
-| int   | list  | list      | distributive          |
-| float | int   | int/float | x + ToFloat(y)        |
-| float | float | float     | x + y                 |
-| float | str   | int/float | x + ToNumber(y)       |
-| float | list  | list      | distributive          |
-| str   | int   | str       | concat x and ToStr(y) |
-| str   | float | str       | concat x and ToStr(y) |
-| str   | str   | str       | concat x and y        |
-| str   | list  | list      | distributive          |
-| list  | int   | list      | distributive          |
-| list  | float | list      | distributive          |
-| list  | str   | list      | distributive          |
-| list  | list  | list      | union of lists        |
-| dict  | dict  | dict      | union of dicts        |
+| x     | y     | returns   | operation                |
+|-------|-------|-----------|--------------------------|
+| int   | int   | int       | x + y                    |
+| int   | float | float     | x + y                    |
+| int   | str   | int/float | x + ToNumber(y)          |
+| int   | list  | list      | distributive             |
+| float | int   | int/float | x + ToFloat(y)           |
+| float | float | float     | x + y                    |
+| float | str   | int/float | x + ToNumber(y)          |
+| float | list  | list      | distributive             |
+| str   | int   | str       | concat x and ToString(y) |
+| str   | float | str       | concat x and ToString(y) |
+| str   | str   | str       | concat x and y           |
+| str   | list  | list      | distributive             |
+| list  | int   | list      | distributive             |
+| list  | float | list      | distributive             |
+| list  | str   | list      | distributive             |
+| list  | list  | list      | union of lists           |
+| dict  | dict  | dict      | union of dicts           |
 
 TypeError raised on all other combinations
 
-See `ToNumber()` and `ToStr()` for conversion details
+See `ToNumber()` and `ToString()` for conversion details
 
 ```vgr
 None + None → None
