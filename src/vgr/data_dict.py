@@ -12,6 +12,9 @@ from typing import (
     Optional,
 )
 
+# NB: this indicates the dynamic stuff doesn't belong here...
+from .mathpak import poly_repr
+
 # These values are INTENTIALLY omitted from keys()!
 GOBAL_CONTEXT = '$global'
 OUTER_CONTEXT = '$outer'
@@ -268,7 +271,7 @@ class DynamicValue:
     def __mul__(self, other): return self._func() * other
     def __ne__(self, other): return self._func() != other
     def __radd__(self, other): return other + self._func()
-    def __repr__(self): return repr(self._func())
+    def __repr__(self): return poly_repr(self._func())
     def __rmul__(self, other): return other * self._func()
     def __rsub__(self, other): return other - self._func()
     def __rtruediv__(self, other): return other / self._func()

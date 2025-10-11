@@ -1,6 +1,7 @@
 from copy import copy
 from functools import cmp_to_key
 from typing import Any
+import re
 
 from .common import str_to_number, type_str, bool_arg, dist_x
 from .inequ import poly_lt, poly_gt, poly_eq, poly_ne
@@ -122,6 +123,10 @@ and escapes non-printable characters.
 
 Also see `Ascii()`
 """
+    # These are of limited aesthetic value
+    if isinstance(x, str) and '"' not in x: return repr(x).replace("'", '"')
+    if isinstance(x, re.Pattern): return poly_repr(x.pattern)
+    if isinstance(x, list): return '[ ' + ', '.join(poly_repr(x1) for x1 in x) + ' ]'
     return repr(x)
 
 def poly_type(x: Any) -> str:
