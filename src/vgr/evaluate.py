@@ -44,6 +44,7 @@ from .mathpak import (
     poly_not_in,
     poly_not_matches,
     poly_pow,
+    poly_repr,
     poly_shl,
     poly_shr,
     poly_sub,
@@ -54,7 +55,7 @@ from .mathpak import (
 def shorten(s: str, width: int=64) -> str:
     """
     Limits output that can appear in debug/verbose content.
-    Should be used with repr(...) when you don't know the object size.
+    Should be used with poly_repr(...) when you don't know the object size.
     """
     return textwrap.shorten(s, width=width, placeholder="\u2026")
 
@@ -275,7 +276,7 @@ class Ternary(Operation):
         return ctx.eval_expr(args[self._seq[2]])
 
     def op_name(self) -> str:
-        return 'ternary' + repr(self._seq)
+        return 'ternary' + poly_repr(self._seq)
 
 # TODO needs to be replaced with a more sophisticated
 # sig: path is a set of strings now, not the tokens

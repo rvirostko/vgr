@@ -25,6 +25,7 @@ from .mathpak import (
     poly_mod,
     poly_mul,
     poly_pow,
+    poly_repr,
     poly_shl,
     poly_shr,
     poly_sub,
@@ -120,7 +121,7 @@ Where _option_ is-
             dd_init(ctx.dd)
             ctx.set_var(t_args, _ARG_PREFIX)
         if s in ('all', 'args'):
-            if ctx.debug: ctx.print_verbose('Resetting', repr(_ARG_PREFIX), 'settings')
+            if ctx.debug: ctx.print_verbose('Resetting', poly_repr(_ARG_PREFIX), 'settings')
             dd_init_args(ctx.dd)
         if s in ('all'):
             ctx.print_verbose('Resetting Debug, Echo, and Verbose settings')
@@ -222,8 +223,8 @@ with _Text_ as the default.
             length = len(data)
             if ctx.verbose: ctx.print_verbose('Loaded', '.'.join(var_path), 'With', length, 'Records' if length != 1 else 'Record')
         else:
-            if ctx.verbose: ctx.print_verbose('Loaded', '.'.join(var_path), 'With', shorten(repr(data)))
-        if fieldnames and ctx.verbose: ctx.print_verbose('Fieldnames :', '', ', '.join(repr(f) for f in fieldnames))
+            if ctx.verbose: ctx.print_verbose('Loaded', '.'.join(var_path), 'With', shorten(poly_repr(data)))
+        if fieldnames and ctx.verbose: ctx.print_verbose('Fieldnames :', '', ', '.join(poly_repr(f) for f in fieldnames))
 
 def load_data_type(filename: str, token: Token) -> str:
     """Returns one of:

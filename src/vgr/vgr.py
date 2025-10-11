@@ -43,7 +43,11 @@ from .functions import (
 )
 from .interactive import CmdLine, ArgumentParser, ParserBuilder
 from .log_config import init_logging, set_logging_level
-from .mathpak import poly_bool, type_str
+from .mathpak import (
+    poly_bool,
+    poly_repr,
+    type_str,
+)
 from .output import expand_filename
 from .redir import print_stderr
 from .exec_context import ExecContext
@@ -398,16 +402,16 @@ Environment variables:
     for path in [EXEC_NAME_PATH, EXEC_VER_PATH, VER_PATH, VER_DATE_PATH]:
         value = ctx.get_var(*path)
         var = '.'.join(path)
-        ctx.print_verbose(var, '=', repr(value))
-        LOG.info('%s = %s', var, repr(value))
+        ctx.print_verbose(var, '=', poly_repr(value))
+        LOG.info('%s = %s', var, poly_repr(value))
     # These control how some requests are made, so
     # it is good to know their values when there are
     # issues with certificates
     for var in ['REQUESTS_CA_BUNDLE', 'CURL_CA_BUNDLE']:
         value = os.environ.get(var)
         if value:
-            ctx.print_verbose(var, '=', repr(value))
-            LOG.info('%s = %s', var, repr(value))
+            ctx.print_verbose(var, '=', poly_repr(value))
+            LOG.info('%s = %s', var, poly_repr(value))
     LOG.info('Ready')
 
     # NB: args.execute and args.file will always be None
@@ -432,7 +436,7 @@ Environment variables:
                 for filename in svalue:
                     # NB: we don't "sandbox" these files like we do with others
                     filepath = expand_filename(filename)
-                    if ctx.verbose: ctx.print_verbose('Executing statements from ', repr(filepath), '...')
+                    if ctx.verbose: ctx.print_verbose('Executing statements from ', poly_repr(filepath), '...')
                     statements = None
                     with open(filepath, 'r', encoding='utf-8-sig') as f:
                         statements = f.read()
