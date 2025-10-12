@@ -757,6 +757,8 @@ def get_statement_entries() -> list:
 
 class DefaultExecContext(ExecContext):
 
+    _DEFAULT_PARSE_START = 'opt_statements'
+
     def __init__(self, parser: Lark, dd: DataDictionary):
         super().__init__(parser, dd)
         self._source_stack = []
@@ -869,7 +871,7 @@ class DefaultExecContext(ExecContext):
             return expr
         return None
 
-    def execute_statements(self, statement_text: str, origin: str) -> None:
+    def execute_statements(self, statement_text: str, origin: str, start: str=None) -> None:
         """Parse the text and execute the resulting statements"""
         if statement_text and not statement_text.isspace():
             SSM.push(origin, statement_text)
@@ -878,7 +880,7 @@ class DefaultExecContext(ExecContext):
             # the source stack is strictly for file name context
             self._source_stack.insert(0, '' if origin.startswith('<') and origin.endswith('>') else origin)
             try:
-                self.dispatch_statements(self._parser.parse(statement_text, start='opt_statements').children)
+                self.dispatch_statements(self._parser.parse(statement_text, start=start or self._DEFAULT_PARSE_START).children)
             except exceptions.UnexpectedInput as e:
                 raise VgrException(e, e, *SSM.current) from e
             finally:

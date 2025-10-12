@@ -10,6 +10,8 @@ from lark import Lark, Tree
 from .data_dict import DataDictionary
 
 class ExecContext(ABC):
+
+
     def __init__(self, parser: Lark, dd: DataDictionary):
         super().__init__()
         assert parser is not None
@@ -32,7 +34,7 @@ class ExecContext(ABC):
     def parse_expression(self, expr_text: str) -> Tree: pass
 
     @abstractmethod
-    def execute_statements(self, statement_text: str, origin: str) -> None: pass
+    def execute_statements(self, statement_text: str, origin: str, start: str=None) -> None: pass
 
     @abstractmethod
     def dispatch_statements(self, statements: Iterable[Tree]) -> None: pass
