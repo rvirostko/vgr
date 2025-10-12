@@ -878,13 +878,14 @@ class DefaultExecContext(ExecContext):
             # the <...> notation is used to indicate cmd line, stdin, etc
             # which don't really have a file name.
             # the source stack is strictly for file name context
-            self._source_stack.insert(0, '' if origin.startswith('<') and origin.endswith('>') else origin)
+            origin = '' if origin.startswith('<') and origin.endswith('>') else origin
+            if origin: self.source_stack.insert(0, origin)
             try:
                 self.dispatch_statements(self._parser.parse(statement_text, start=start or self._DEFAULT_PARSE_START).children)
             except exceptions.UnexpectedInput as e:
                 raise VgrException(e, e, *SSM.current) from e
             finally:
-                self._source_stack.pop(0)
+                if origin: self.source_stack.pop(0)
                 SSM.pop()
 
     def dispatch_statements(self, statements: Iterable[Tree]) -> None:
