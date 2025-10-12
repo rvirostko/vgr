@@ -88,9 +88,6 @@ class BoxStyle(IntEnum):
         # include CSS-like names
         return {
             '':        cls.Single,
-            '()':      cls.Parens,
-            '[]':      cls.Brackets,
-            '{}':      cls.Braces,
             'a':       cls.ASCII,
             'b':       cls.Blank,
             'bracket': cls.Brackets,
@@ -133,7 +130,7 @@ class BoxStyle(IntEnum):
         if isinstance(val, (int, float)):
             return max(0, min(BoxStyle.max_index(), int(val)))
         if isinstance(val, str):
-            s = re.sub(r'[^a-z0-9\(\)\{\}\[\]]', '', val.strip().casefold())
+            s = re.sub(r'[^a-z0-9]', '', val.strip().casefold())
             for style in BoxStyle:
                 if style.iname == s: return style
             return cls._abbrev_map().get(s, BoxStyle.Single)
@@ -143,33 +140,27 @@ class BoxStyle(IntEnum):
 
 # NB: See https://unicodeplus.com/category/Sm/4 for details on multi part characters
 BOXES = {
-    BoxStyle.Blank:        (' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', None, None),
-    BoxStyle.ASCII:        ('-', '|', '+', '+', '+', '+', '+', '+', '+', '+', '+', '|', None, None),
-    BoxStyle.Single:       ('─', '│', '┌', '┐', '└', '┘', '├', '┤', '┬', '┴', '┼', '│', None, None),
-    BoxStyle.Double:       ('═', '║', '╔', '╗', '╚', '╝', '╠', '╣', '╦', '╩', '╬', '║', None, None),
-    BoxStyle.SingleDouble: ('─', '║', '╓', '╖', '╙', '╜', '╟', '╢', '╥', '╨', '╫', '║', None, None),
-    BoxStyle.DoubleSingle: ('═', '│', '╒', '╕', '╘', '╛', '╞', '╡', '╤', '╧', '╪', '│', None, None),
-    BoxStyle.Brackets:     (' ', '⎢', '⎡', '⎤', '⎣', '⎦', ' ', ' ', ' ', ' ', ' ', '⎥', None, None),
-    BoxStyle.Parens:       (' ', '⎜', '⎛', '⎞', '⎝', '⎠', ' ', ' ', ' ', ' ', ' ', '⎟', None, None),
-    BoxStyle.Braces:       (' ', '⎪', '⎧', '⎫', '⎩', '⎭', ' ', ' ', ' ', ' ', ' ', '⎪',  '⎨',  '⎬'),
-    BoxStyle.Light:        ('─', '│', '┌', '┐', '└', '┘', '├', '┤', '┬', '┴', '┼', '│', None, None),
-    BoxStyle.LightRounded: ('─', '│', '╭', '╮', '╰', '╯', '├', '┤', '┬', '┴', '┼', '│', None, None),
-    BoxStyle.LightDash2:   ('╌', '╎', '┌', '┐', '└', '┘', '├', '┤', '┬', '┴', '┼', '╎', None, None),
-    BoxStyle.LightDash3:   ('┄', '┆', '┌', '┐', '└', '┘', '├', '┤', '┬', '┴', '┼', '┆', None, None),
-    BoxStyle.LightDash4:   ('┈', '┊', '┌', '┐', '└', '┘', '├', '┤', '┬', '┴', '┼', '┊', None, None),
-    BoxStyle.Heavy:        ('━', '┃', '┏', '┓', '┗', '┛', '┣', '┫', '┳', '┻', '╋', '┃', None, None),
-    BoxStyle.HeavyDash2:   ('╍', '╏', '┏', '┓', '┗', '┛', '┣', '┫', '┳', '┻', '╋', '╏', None, None),
-    BoxStyle.HeavyDash3:   ('┅', '┇', '┏', '┓', '┗', '┛', '┣', '┫', '┳', '┻', '╋', '┇', None, None),
-    BoxStyle.HeavyDash4:   ('┉', '┋', '┏', '┓', '┗', '┛', '┣', '┫', '┳', '┻', '╋', '┋', None, None),
-    BoxStyle.LightHeavy:   ('─', '┃', '┎', '┒', '┖', '┚', '┠', '┨', '┰', '┸', '╂', '┃', None, None),
-    BoxStyle.HeavyLight:   ('━', '│', '┍', '┑', '┕', '┙', '┝', '┥', '┯', '┷', '┿', '│', None, None),
+    BoxStyle.Blank:        (' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' ', ' '),
+    BoxStyle.ASCII:        ('-', '|', '+', '+', '+', '+', '+', '+', '+', '+', '+', '|', '|', '|'),
+    BoxStyle.Single:       ('─', '│', '┌', '┐', '└', '┘', '├', '┤', '┬', '┴', '┼', '│', '│', '│'),
+    BoxStyle.Double:       ('═', '║', '╔', '╗', '╚', '╝', '╠', '╣', '╦', '╩', '╬', '║', '║', '║'),
+    BoxStyle.SingleDouble: ('─', '║', '╓', '╖', '╙', '╜', '╟', '╢', '╥', '╨', '╫', '║', '║', '║'),
+    BoxStyle.DoubleSingle: ('═', '│', '╒', '╕', '╘', '╛', '╞', '╡', '╤', '╧', '╪', '│', '│', '│'),
+    BoxStyle.Brackets:     (' ', '⎢', '⎡', '⎤', '⎣', '⎦', ' ', ' ', ' ', ' ', ' ', '⎥', '⎢', '⎥'),
+    BoxStyle.Parens:       (' ', '⎜', '⎛', '⎞', '⎝', '⎠', ' ', ' ', ' ', ' ', ' ', '⎟', '⎜', '⎟'),
+    BoxStyle.Braces:       (' ', '⎪', '⎧', '⎫', '⎩', '⎭', ' ', ' ', ' ', ' ', ' ', '⎪', '⎨', '⎬'),
+    BoxStyle.Light:        ('─', '│', '┌', '┐', '└', '┘', '├', '┤', '┬', '┴', '┼', '│', '│', '│'),
+    BoxStyle.LightRounded: ('─', '│', '╭', '╮', '╰', '╯', '├', '┤', '┬', '┴', '┼', '│', '│', '│'),
+    BoxStyle.LightDash2:   ('╌', '╎', '┌', '┐', '└', '┘', '├', '┤', '┬', '┴', '┼', '╎', '╎', '╎'),
+    BoxStyle.LightDash3:   ('┄', '┆', '┌', '┐', '└', '┘', '├', '┤', '┬', '┴', '┼', '┆', '┆', '┆'),
+    BoxStyle.LightDash4:   ('┈', '┊', '┌', '┐', '└', '┘', '├', '┤', '┬', '┴', '┼', '┊', '┊', '┊'),
+    BoxStyle.Heavy:        ('━', '┃', '┏', '┓', '┗', '┛', '┣', '┫', '┳', '┻', '╋', '┃', '┃', '┃'),
+    BoxStyle.HeavyDash2:   ('╍', '╏', '┏', '┓', '┗', '┛', '┣', '┫', '┳', '┻', '╋', '╏', '╏', '╏'),
+    BoxStyle.HeavyDash3:   ('┅', '┇', '┏', '┓', '┗', '┛', '┣', '┫', '┳', '┻', '╋', '┇', '┇', '┇'),
+    BoxStyle.HeavyDash4:   ('┉', '┋', '┏', '┓', '┗', '┛', '┣', '┫', '┳', '┻', '╋', '┋', '┋', '┋'),
+    BoxStyle.LightHeavy:   ('─', '┃', '┎', '┒', '┖', '┚', '┠', '┨', '┰', '┸', '╂', '┃', '┃', '┃'),
+    BoxStyle.HeavyLight:   ('━', '│', '┍', '┑', '┕', '┙', '┝', '┥', '┯', '┷', '┿', '│', '│', '│'),
 }
-
-def _boxes():
-    boxes = {}
-    for style, parts in BOXES.items():
-        boxes[style.iname] = {part.iname: parts[part.value] for part in BoxPart}
-    return boxes
 
 class TermConsts:
     """
@@ -178,11 +169,6 @@ class TermConsts:
         https://www.xfree86.org/current/ctlseqs.html
         https://invisible-island.net/xterm/ctlseqs/ctlseqs.html
     """
-
-    # NB: These are for user reference.
-    #     Use the globals in the code.
-    BOX_STYLES = tuple(style.name for style in BoxStyle)
-    BOX = _boxes()
 
     SOS = "\x1bX" # Start of String (SOS is 0x98)
     CSI = "\x1b[" # Control Sequence Introducer (CSI is 0x9b)
@@ -298,21 +284,25 @@ class TermConsts:
     ICON_NAME = OSC + "1;{}" + ST # Change Icon Name
     WINDOW_TITLE = OSC + "2;{}" + ST # Change Window Title
 
-    # "Pretty" names for the colors
-    # Index is the color number
-    COLOR_NAMES = TERM_COLORS
-
 _COLOR_NAME_MAP = { }
 _DUMB_TERM = os.getenv('TERM', '').lower() == 'dumb'
 _NO_COLOR = bool(os.getenv('NO_COLOR'))
 
 def add_dd_constants(dd: DataDictionary, prefix: str) -> None:
-    for name, value in vars(TermConsts).items():
-        if not name.startswith("__"): dd.set_var(value, prefix, name.lower())
-    for val, name in enumerate(TermConsts.COLOR_NAMES):
+    def _boxes():
+        boxes = {}
+        for style, parts in BOXES.items():
+            boxes[style.iname] = {part.iname: parts[part.value] for part in BoxPart}
+        return boxes
+    dd.set_var(_boxes(), prefix, 'box')
+    dd.set_var([style.name for style in BoxStyle], prefix, 'box_styles')
+    dd.set_var(TERM_COLORS, prefix, 'color_names')
+    # TODO this block seems misplaced...
+    for val, name in enumerate(TERM_COLORS):
         _COLOR_NAME_MAP[_canonical_color_name(name)] = val
     for name, val in AUX_COLORS.items():
         _COLOR_NAME_MAP[_canonical_color_name(name)] = val
+    #####
     dd.set_var(_DUMB_TERM, prefix, 'dumb_term')
     dd.set_var(_NO_COLOR, prefix, 'no_color')
     dd.set_var(json.loads(VgrExtension.read_resource_text(__package__, 'spinners.json')), prefix, 'spinner')
