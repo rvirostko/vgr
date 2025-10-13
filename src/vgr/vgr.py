@@ -44,7 +44,6 @@ from .functions import (
 from .interactive import CmdLine, ArgumentParser, ParserBuilder
 from .log_config import init_logging, set_logging_level
 from .mathpak import (
-    poly_bool,
     poly_repr,
     type_str,
 )
@@ -355,14 +354,10 @@ Environment variables:
                     help='Execute the given statements')
     clp.add_argument('-f', '--file', nargs='*', metavar='FILE', action=SaveOrderedSources,
                      help="Execute statements stored in a file")
-    clp.add_argument('--verbose', metavar='BOOL', type=poly_bool,
-                    help='Enable/disable verbose mode')
-    clp.add_argument('--debug', metavar='BOOL', type=poly_bool,
-                    help='Enable/disable debug mode')
-    clp.add_argument('--echo', metavar='BOOL', type=poly_bool,
-                    help='Enable/disable statement echo')
-    clp.add_argument('--repl', metavar='BOOL', type=poly_bool,
-                    help='Request/prohibit the REPL. REPL automatically starts if --execute/--file are not used')
+    clp.add_argument('--verbose', action='store_true', help='Enable/disable verbose mode')
+    clp.add_argument('--debug', action='store_true', help='Enable/disable debug mode')
+    clp.add_argument('--echo', action='store_true', help='Enable/disable statement echo')
+    clp.add_argument('--repl', action='store_true', help='Request REPL. REPL automatically starts if --execute/--file are not used')
     clp.add_argument('--logfile', type=str, default=None,
                     help='Path to the log file')
     clp.add_argument('--loglevel', type=str, default='info',
@@ -444,10 +439,7 @@ Environment variables:
                 continue
             raise NotImplementedError(f'Statement source {stype!r} not implemented') # SNO
         if sys.stdin.isatty():
-            # "--repl" forces opening a REPL
-            # "--repl false" prevents opening it
-            # when not given, we look to having previously executed -e/f commands
-            if args.repl is True or (args.repl is None and not ordered_args):
+            if args.repl is True or not ordered_args:
                 ctx.print_verbose('Starting the REPL...')
                 VGRCmdLine(ctx).run()
                 ctx.print_verbose('REPL exited')
