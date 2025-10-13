@@ -183,18 +183,19 @@ vgr> Print h, w
 Hello World
 ```
 
-Invoking `Print` without argument will just create a blank line... but not always. `Print` works like AWK, which means that items separated by commas get a _output field separator_ (OFS) placed between them and and an _output record separator_ (ORS) at the end. In VGR, these values are stored in `arg.ofs` and `arg.ors`. They are initially set from the environment, just like with AWK, but you can change them on the command line:
+Invoking `Print` without argument will just create a blank line... but not always. `Print` works like AWK, which means that items separated by commas get a _output field separator_ (OFS) placed between them and and an _output record separator_ (ORS) at the end. In VGR, as with awk, these values are stored in `env.OFS` and `env.ORS`:
 
 ```Bash
-vgr.py 'ofs= | ' -e 'Set a to 5; Set b to 6; Print a, b'
+export OFS=" | "
+vgr -e 'Set a to 5; Set b to 6; Print a, b'
 5 | 6
 ```
 
 Or you can change them at runtime:
 
 ```Text
-vgr> Set arg.ofs = " | "
-vgr> Set arg.ors = " |\n"
+vgr> Set env.OFS = " | "
+vgr> Set env.ORS = " |\n"
 vgr> Print "Hello", "World"
 Hello | World |
  ```

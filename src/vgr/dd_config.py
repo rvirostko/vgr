@@ -32,8 +32,9 @@ MAX_FRAMES_PATH = (VGR_PREFIX, 'max_frames')
 _TIME_PREFIX = 'time'
 
 _ARG_PREFIX = 'arg'
-OFS_PATH = (_ARG_PREFIX, 'ofs')
-ORS_PATH = (_ARG_PREFIX, 'ors')
+
+OFS_PATH = ('env', 'OFS')
+ORS_PATH = ('env', 'ORS')
 
 _ENV_EXCLUDE = tuple(re.compile(pattern, re.IGNORECASE) for pattern in ('^VSCODE', '^_$', '^(OLD)?PWD$', '^__CF'))
 _OS_CONSTS = ( 'defpath',  'devnull', 'extsep', 'linesep', 'name', 'pardir', 'pathsep', 'sep' )
@@ -133,7 +134,6 @@ _UUID_ENTRIES = {
 def dd_init(dd: DataDictionary) -> None:
     # Clear the whole thing out and have it set its defaults
     dd.reset()
-    dd_init_args(dd)
     # Set up app area
     dd.add_immutable_prefix(VGR_PREFIX)
     dd.set_var(__version__, *VER_PATH)
@@ -161,18 +161,12 @@ def dd_init(dd: DataDictionary) -> None:
     dd.add_immutable_prefix(_UUID_PREFIX)
     for path, value in _UUID_ENTRIES.items():
         dd.set_var(value, _UUID_PREFIX, *path)
-    # .. and OS, Sys, and environment values
-    for func, name in ((_get_os_consts, 'os'), (_get_environment, 'env'), (_get_sys_consts, 'sys')):
+    # .. and OS and Sys
+    for func, name in ((_get_os_consts, 'os'), (_get_sys_consts, 'sys')):
         dd.add_immutable_prefix(name)
         dd.set_var(func(), name)
-
-def dd_init_args(dd: DataDictionary) -> None:
-    dd.set_var({}, _ARG_PREFIX)
-    # ... except for the awk settings
-    # Pick up the defaults AWK would use
-    # Since we don't allow the env space to be changed,
-    # we have to keep our own copies for the user to change with
-    # either Set or command line arguments
+    # env as a mutable dict
+    dd.set_var(_get_environment(), 'env')
     dd.set_var(os.getenv('OFS', ' '), *OFS_PATH)
     dd.set_var(os.getenv('ORS', '\n'), *ORS_PATH)
 
@@ -209,7 +203,7 @@ def _get_environment() -> dict:
             }
     for name, value in rc.items():
         if isinstance(value, str) and re.search(r'(_)?PATH$', name, re.IGNORECASE):
-            rc[name] = [value.split(os.pathsep)]
+            rc[name] = value.split(os.pathsep)
     return rc
 
 def _get_consts(source_mod) -> dict:

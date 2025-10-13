@@ -1,4 +1,4 @@
-ReSet All
+Reset All
 Echo False
 Verbose False
 Debug False
@@ -27,22 +27,22 @@ Print "---Two identical lines---"
 Printf "{} > {}", a, b
 Printf " && "
 Printf "{} < {}", b, c
-Printf "{}", arg.ors
+Printf "{}", env.ORS
 Printf "{0} > {1} && {1} < {2}\n", a, b, c
 Print "---Two identical lines---"
 
 Set rs_fmt = "\n---{}\n---OFS={}, ORS={}\n"
-Printf rs_fmt, "Defaults:", arg.ofs.Repr(), arg.ors.Repr()
+Printf rs_fmt, "Defaults:", env.OFS.Repr(), env.ORS.Repr()
 Print a, b, c
 Print ""
 
-Set arg.ofs = " | "
-Set arg.ors = " |\n"
-Printf rs_fmt, "Overrides:", arg.ofs.Repr(), arg.ors.Repr()
+Set env.OFS = " | "
+Set env.ORS = " |\n"
+Printf rs_fmt, "Overrides:", env.OFS.Repr(), env.ORS.Repr()
 Print a, b, c
-Unset arg.ofs, arg.ors
+Unset env.OFS, env.ORS
 Print ""
 
-Printf rs_fmt, "Unset:", arg.ofs.Repr(), arg.ors.Repr()
+Printf rs_fmt, "Unset:", env.OFS.Repr(), env.ORS.Repr()
 Print a, b, c
 Print ""

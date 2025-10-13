@@ -12,7 +12,7 @@ from lark import Tree, Token
 
 from .app_exceptions import VgrRuntimeError
 from .user_callable import UserFunction
-from .dd_config import dd_init, dd_init_args, _ARG_PREFIX
+from .dd_config import dd_init, _ARG_PREFIX
 from .evaluate import do_set, do_unset, shorten, get_writable_var_path, create_param_list
 from .exec_context import ExecContext
 from .mathpak import (
@@ -122,7 +122,7 @@ Where _option_ is-
             ctx.set_var(t_args, _ARG_PREFIX)
         if s in ('all', 'args'):
             if ctx.debug: ctx.print_verbose('Resetting', poly_repr(_ARG_PREFIX), 'settings')
-            dd_init_args(ctx.dd)
+            ctx.set_var({}, _ARG_PREFIX)
         if s in ('all'):
             ctx.print_verbose('Resetting Debug, Echo, and Verbose settings')
             ctx.debug = False
