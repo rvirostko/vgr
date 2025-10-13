@@ -17,8 +17,8 @@ Set sse To sse.LeftJustify(sse_max)
 
 # Command line controllable options
 # Apply default and contstrain range
-Set fps To arg.fps.DefaultTo(30).Max(1).Min(60)
-Set loops To arg.loops.DefaultTo(32).Max(1).Min(128)
+Set fps To args.Item(0).DefaultTo(30).Max(1).Min(60)
+Set loops To args.Item(1).DefaultTo(32).Max(1).Min(128)
 
 # Clear the screen and start!
 Term BG "Gray15", FG "Green3", Clear, CursorHide

@@ -78,14 +78,12 @@ For more details on the command line options, send in the `--help` option to get
 
 VGR has a hierarchical, global data model, viewed as variables. Some variables are created and _owned_ by the program, but much of the space belongs to you for use in procedures. These parts of the data model are pre-created, and mostly immutable.
 
-* `arg` : user arguments from the command line and some internal variables like `arg.debug`, `arg.echo`, `arg.verbose`, and a few borrowed from AWK (`arg.ofs` and `arg.ors`). These are all read-write, but you can't modify `arg` itself : `Set arg = "foo"` will fail
-* `env` : an imported view of the environment. These are strictly read-only.
+* `args` : list of positional user arguments from the command line
+* `env` : an imported view of the environment including `env.OFS` and `env.ORS` used by `Print`.
 * `math` : Python math constants such as `math.e` and `math.inf`. Read-only.
 * `os` : Operating system constants such as `os.linesep` and `os.extsep`. Read-only.
 * `string` : More constants that can be used with string functions, like `string.hexdigits` and `string.ascii_letters`. Read-only.
-* `_vgr` : Read-only internals, some dynamic, other changed by REPL commands.
-
-Another set of variable are used by VGR `Select` statements and are used by their target data. For example, querying for Key-Value stores will cause ns, mount, and kv variable set with information from Vault. These are not read-only, but values you set will be overwritten by `Select`.
+* `vgr` : Read-only internals, some dynamic, other changed by commands.
 
 Variables are case sensitive.
 
@@ -233,14 +231,19 @@ h = 'Hello'
 You can see a bigger difference when printing variables that are dictionaries:
 
 ```Text
-vgr> Print arg
-{'debug': False, 'echo': False, 'verbose': False, 'ofs': ' ', 'ors': '\n'}
-vgr> Exhibit arg
-arg.debug = False
-arg.echo = False
-arg.ofs = ' '
-arg.ors = '\n'
-arg.verbose = False
+Print math
+{'pi': 3.141592653589793, 'e': 2.718281828459045, 'tau': 6.283185307179586, 'inf': inf, 'nan': nan, 'neg_inf': -inf, 'float': {'max': 1.7976931348623157e+308, 'min': 2.2250738585072014e-308}, 'random': 0.8042746395530653, 'random100': 97}
+vgr> Exhibit math
+math.e = 2.718281828459045
+math.float.max = 1.7976931348623157e+308
+math.float.min = 2.2250738585072014e-308
+math.inf = inf
+math.nan = nan
+math.neg_inf = -inf
+math.pi = 3.141592653589793
+math.random = 0.9730055215356191
+math.random100 = 81
+math.tau = 6.283185307179586
 ```
 
 The purpose of `Exhibit` is to aid in debugging.
@@ -286,7 +289,7 @@ The basic arithmetic operations are:
 ```Text
 vgr> set x = 5
 vgr> set y = 3
-vgr> set arg.ofs=" | "
+vgr> set env.OFS=" | "
 vgr> print x + y, x - y, x / y, x // y, x % y
 8 | 2 | 1.6666666666666667 | 1 | 2
 vgr> printf "x={:b}, y={:b} : {:b} | {:b} | {:b} |\n", x, y, x & y, x | y, x ^ y
@@ -309,7 +312,7 @@ In the longer text versions, the `Is` is optional, and in all words can be in an
 ```Text
 vgr> set x = 5
 vgr> set y = 3
-vgr> set arg.ofs=" | "
+vgr> set env.OFS=" | "
 vgr> print x == y, x != y, x < y, x > y, x <= y, x >= y
 False | True | False | True | False | True
 ```
@@ -321,7 +324,7 @@ Use parentheses if explicit order of evaluations is required.
 ```Text
 vgr> set x = 5
 vgr> set y = 3
-vgr> set arg.ofs=" | "
+vgr> set env.OFS=" | "
 vgr> print x * y + 2, (x * y) + 2, x * (y + 2)
 25 | 17 | 25
 ```
@@ -383,7 +386,7 @@ These statements take an optional expression which is evaluated as a boolean. If
 vgr> Echo; Verbose;
 Verbose;
 Verbose = True
-vgr> Print arg.echo, arg.verbose
+vgr> Print vgr.echo, vgr.verbose
 Print vgr.echo, vgr.verbose
 True True
 vgr> Verbose False; Echo 0;
@@ -457,7 +460,7 @@ When VGR exits, all opened files are closed automatically.
 > Additionally you can use the Python file mode shorthands `A`, `W`, and `X` for the file mode.
 >
 > ```Text
-> Open stdout arg.out_name + ".dat" X
+> Open stdout out_name + ".dat" X
 > ```
 >
 > These are keywords and should not to be quoted.

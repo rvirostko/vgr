@@ -18,7 +18,7 @@ from .app_exceptions import (
 from .data_dict import DataDictionary
 from .dd_config import (
     dd_init,
-    dd_parse_user_args,
+    set_user_args,
     EXEC_NAME_PATH,
     EXEC_VER_PATH,
     VER_DATE_PATH,
@@ -391,8 +391,8 @@ Environment variables:
     ctx.verbose = args.verbose
     ctx.echo = args.echo
     if args.user_args:
-        ctx.print_verbose('Parsing user args...')
-        dd_parse_user_args(dd, args.user_args)
+        ctx.print_verbose('Setting user args...')
+        set_user_args(ctx, args.user_args)
     # Dump some basics for diagnostic purposes
     for path in [EXEC_NAME_PATH, EXEC_VER_PATH, VER_PATH, VER_DATE_PATH]:
         value = ctx.get_var(*path)

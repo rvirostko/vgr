@@ -12,7 +12,7 @@ from lark import Tree, Token
 
 from .app_exceptions import VgrRuntimeError
 from .user_callable import UserFunction
-from .dd_config import dd_init, _ARG_PREFIX
+from .dd_config import dd_init, get_user_args, set_user_args
 from .evaluate import do_set, do_unset, shorten, get_writable_var_path, create_param_list
 from .exec_context import ExecContext
 from .mathpak import (
@@ -103,8 +103,7 @@ def execute_reset(ctx: ExecContext, statement: Tree) -> None:
 Where _option_ is-
 * Data - Resets all user set data except for user arguments
   and the settings for Debug, Verbose, and Echo
-* Args - Resets user arguments and the settings
-  for Debug, Verbose, and Echo
+* Args - Resets user arguments stored in _args_ list
 * Output - Resets all output redirection
 * All - Resets all of the above plus `Debug`, `Echo`, and `Verbose` settings
 
@@ -117,12 +116,12 @@ Where _option_ is-
         if s in ('all', 'data'):
             ctx.print_verbose('Resetting all user data')
             # We preserve args but reset everything else
-            t_args = ctx.get_var(_ARG_PREFIX)
+            t_args = get_user_args(ctx)
             dd_init(ctx.dd)
-            ctx.set_var(t_args, _ARG_PREFIX)
+            set_user_args(ctx, t_args)
         if s in ('all', 'args'):
-            if ctx.debug: ctx.print_verbose('Resetting', poly_repr(_ARG_PREFIX), 'settings')
-            ctx.set_var({}, _ARG_PREFIX)
+            ctx.print_verbose('Resetting user args')
+            set_user_args(ctx, None)
         if s in ('all'):
             ctx.print_verbose('Resetting Debug, Echo, and Verbose settings')
             ctx.debug = False

@@ -4,7 +4,6 @@ Utility routines for working with the global Data Dictionary
 """
 
 from datetime import datetime
-from typing import Any
 import getpass
 import math
 import os
@@ -18,7 +17,7 @@ import time
 import uuid
 
 from .data_dict import DataDictionary, DynamicValue, MAX_FRAMES
-from .mathpak import str_to_number, str_to_bool
+from .exec_context import ExecContext
 from .version import __version__, __version_date__
 
 VGR_PREFIX = 'vgr'
@@ -31,7 +30,7 @@ MAX_FRAMES_PATH = (VGR_PREFIX, 'max_frames')
 
 _TIME_PREFIX = 'time'
 
-_ARG_PREFIX = 'arg'
+_USER_ARGS = 'args'
 
 OFS_PATH = ('env', 'OFS')
 ORS_PATH = ('env', 'ORS')
@@ -170,17 +169,12 @@ def dd_init(dd: DataDictionary) -> None:
     dd.set_var(os.getenv('OFS', ' '), *OFS_PATH)
     dd.set_var(os.getenv('ORS', '\n'), *ORS_PATH)
 
-def dd_parse_user_args(dd: DataDictionary, user_args: list) -> None:
-    # NB: User args can override debug/echo/verbose...
-    for arg in user_args:
-        if '=' in arg:
-            name, value = re.split(r'\s*=', arg, 1)
-            path = tuple(step for step in re.split(r'\s*[.]\s*', name.strip()))
-            if path:
-                # Strip off the quotes
-                match = re.fullmatch(r'\s*"([^"]*)"\s*', value)
-                path = (_ARG_PREFIX,) + path
-                dd.set_var(match.group(1) if match else _coerce_value(value), *path)
+def set_user_args(ctx: ExecContext, data: list) -> None:
+    assert data is None or isinstance(data, list)
+    ctx.set_var(data or [], _USER_ARGS)
+
+def get_user_args(ctx: ExecContext) -> list:
+    return ctx.get_var(_USER_ARGS)
 
 def _get_os_consts() -> dict:
     rc = { key: value for key, value in _get_consts(os).items() if key in _OS_CONSTS }
@@ -198,9 +192,9 @@ def _get_sys_consts() -> dict:
 
 def _get_environment() -> dict:
     rc = {
-            name: _coerce_value(value) for name, value in os.environ.items()
+            name: value for name, value in os.environ.items()
                 if not any(pattern.search(name) for pattern in _ENV_EXCLUDE)
-            }
+        }
     for name, value in rc.items():
         if isinstance(value, str) and re.search(r'(_)?PATH$', name, re.IGNORECASE):
             rc[name] = value.split(os.pathsep)
@@ -210,20 +204,3 @@ def _get_consts(source_mod) -> dict:
     return { key: value for key, value in vars(source_mod).items()
                 if isinstance(value, (int, float, str, dict, list, tuple)) and not key.startswith("_")
             }
-
-def _coerce_value(value: Any) -> Any:
-    """
-    Coerce a string value to None, int, float, or bool.
-    Falls back to the original string.
-    This is for only the most naive of conversions.
-    """
-    if not isinstance(value, str) or not value: return value
-    if value.isspace(): return value
-    if value.strip().casefold() == 'none': return None
-    try:
-        return str_to_number(value)
-    except ValueError:
-        try:
-            return str_to_bool(value)
-        except ValueError:
-            return value

@@ -684,12 +684,12 @@ def execute_display_on(ctx: ExecContext, statement: Tree) -> None:
 * Display _expression_... On Error [;]
 
 The default is to print to the output stream.
-While similar to `Print`, `Display` does not use _arg.ofs_ or _arg.ors_, instead using
+While similar to `Print`, `Display` does not use _env.OFS_ or _env.ORS_, instead using
 no separator between items and always ending with a newline.
 
 ```vgr
 Move "Hello" To Greeting
- Move "World" to Whom
+Move "World" to Whom
 Print Greeting, Whom
 Hello World
 Display Greeting Whom

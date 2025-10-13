@@ -3,7 +3,7 @@
 # Since we don't use ";" between print params to
 # indicate "no space", it has been converted to
 # "," and ofs is set to nothing.
-Set arg.ofs = ""
+Set env.OFS = ""
 #----------------------------------------------------------------------
 
 LET fib0 = 0
