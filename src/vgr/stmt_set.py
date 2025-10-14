@@ -12,7 +12,12 @@ from lark import Tree, Token
 
 from .app_exceptions import VgrRuntimeError
 from .user_callable import UserFunction
-from .dd_config import dd_init, get_user_args, set_user_args
+from .dd_config import (
+    clear_includes,
+    dd_init,
+    get_user_args,
+    set_user_args,
+)
 from .evaluate import do_set, do_unset, shorten, get_writable_var_path, create_param_list
 from .exec_context import ExecContext
 from .mathpak import (
@@ -103,6 +108,7 @@ def execute_reset(ctx: ExecContext, statement: Tree) -> None:
 Where _option_ is-
 * Data - Resets all user set data except for user arguments
   and the settings for Debug, Verbose, and Echo
+* Includes - Clears the list of `@Include` files
 * Args - Resets user arguments stored in _args_ list
 * Output - Resets all output redirection
 * All - Resets all of the above plus `Debug`, `Echo`, and `Verbose` settings
@@ -119,6 +125,9 @@ Where _option_ is-
             t_args = get_user_args(ctx)
             dd_init(ctx.dd)
             set_user_args(ctx, t_args)
+        if s in ('all', 'includes'):
+            ctx.print_verbose('Clearing includes')
+            clear_includes()
         if s in ('all', 'args'):
             ctx.print_verbose('Resetting user args')
             set_user_args(ctx, None)
