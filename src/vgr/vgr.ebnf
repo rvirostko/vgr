@@ -58,6 +58,7 @@ statements: statement+
     | declare
     | echo
     | exit
+    | include
     | list_append
     | list_insert
     | list_prepend
@@ -170,8 +171,8 @@ reset: "Reset"i reset_opt (_COMMA? reset_opt)* _SEMICOLON?
     | "Args"i -> args
     | "Output"i -> output
 
-source: "Source"i _SEMICOLON
-    | "Source"i "From"i? ("File"i | "Files"i)? expr (_COMMA expr)* _SEMICOLON?
+source: "Source"i ("File"i | "Files"i)? expr (_COMMA expr)* _SEMICOLON?
+include: "@Include"i ("File"i | "Files"i)? expr (_COMMA expr)* _SEMICOLON?
 
 // TODO needs to have an encoding value (defaults to utf-8-sig)
 load_from: "Load"i "Variable"i? var_name ("From"i | "With"i) "File"i? expr ("As"i? load_source_type)? _SEMICOLON?
