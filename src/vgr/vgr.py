@@ -52,6 +52,8 @@ from .redir import print_stderr
 from .exec_context import ExecContext
 from .stmt_exec import (
     create_exec_context,
+    do_source,
+    do_include,
     get_statement_entries,
     STATEMENT_HANDLERS,
 )
@@ -332,15 +334,15 @@ def main():
     clp = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description=f'Version {__version__} ({__version_date__})',
-        epilog="""Statements added with --execute and --file are executed in the order they are given.
+        epilog="""Statements added with --source and --file are executed in the order they are given.
 
 Following that, statements are read from stdin if they are available.
 
-If no --execute and --file arguments are given, and stdin is interactive, by default the REPL is started. Using --repl false prevents it from opening.
+If no --source and --file arguments are given, and stdin is interactive, by default the REPL is started. Using --repl false prevents it from opening.
 
 Additional arguments are added to the "arg" variable. Only simple data types can be set. Quotes are not required for strings.
 
---verbose, --debug, and --echo control only the initial settings. Commands in --execute and --file arguments can still change them when running.
+--verbose, --debug, and --echo control only the initial settings. Commands in --source and --file arguments can still change them when running.
 
 Environment variables:
   - OFS/ORS - output field and record separators as defined by AWK
@@ -349,15 +351,17 @@ Environment variables:
   - VGR_HISTORY_SIZE - max number of lines stored in history
 """
     )
-    clp.add_argument('-v', '--version', action='version', version=f'{__version__} {__version_date__}')
-    clp.add_argument('-e', '--execute', nargs='*', metavar='STATEMENTS', action=SaveOrderedSources,
+    clp.add_argument('--version', '-V', action='version', version=f'{__version__} {__version_date__}')
+    clp.add_argument('--source', '-e', metavar='STATEMENTS', action=SaveOrderedSources,
                     help='Execute the given statements')
-    clp.add_argument('-f', '--file', nargs='*', metavar='FILE', action=SaveOrderedSources,
+    clp.add_argument('--file', '-f', metavar='FILE', action=SaveOrderedSources,
                      help="Execute statements stored in a file")
+    clp.add_argument('--include', '-i', metavar='FILE', action=SaveOrderedSources,
+                     help="Load statements stored in a file once")
     clp.add_argument('--verbose', action='store_true', help='Enable/disable verbose mode')
-    clp.add_argument('--debug', action='store_true', help='Enable/disable debug mode')
+    clp.add_argument('--debug', '-D', action='store_true', help='Enable/disable debug mode')
     clp.add_argument('--echo', action='store_true', help='Enable/disable statement echo')
-    clp.add_argument('--repl', action='store_true', help='Request REPL. REPL automatically starts if --execute/--file are not used')
+    clp.add_argument('--repl', action='store_true', help='Request REPL. REPL automatically starts if --source/--file are not used')
     clp.add_argument('--logfile', type=str, default=None,
                     help='Path to the log file')
     clp.add_argument('--loglevel', type=str, default='info',
@@ -365,8 +369,8 @@ Environment variables:
     clp.add_argument('--logoverwrite', action='store_true',
                     help='Overwrite log file instead of appending')
     clp.add_argument('--gen-vsc-extn', action='store_true',
-                     help='Generate a VSCode extension of syntax highlighting')
-    clp.add_argument('user_args', nargs='*', metavar='NAME=VALUE',
+                     help='Generate a VSCode extension for syntax highlighting')
+    clp.add_argument('args', nargs='*', metavar='arg',
                     default=[], help='Additional arguments. Values maybe booleans, numbers, or strings')
     args = clp.parse_args()
 
@@ -390,9 +394,8 @@ Environment variables:
     ctx.debug = args.debug
     ctx.verbose = args.verbose
     ctx.echo = args.echo
-    if args.user_args:
-        ctx.print_verbose('Setting user args...')
-        set_user_args(ctx, args.user_args)
+    ctx.print_verbose('Setting user args...')
+    set_user_args(ctx, args.args)
     # Dump some basics for diagnostic purposes
     for path in [EXEC_NAME_PATH, EXEC_VER_PATH, VER_PATH, VER_DATE_PATH]:
         value = ctx.get_var(*path)
@@ -420,22 +423,18 @@ Environment variables:
         # Accumulated -e/-f options, stored in the order given
         for opt in ordered_args:
             stype, svalue = opt
-            if stype == 'e':
+            if stype in ['e', 's']: # -e or --source
                 # Simple statements directly on the command line
-                for statements in svalue:
-                    ctx.print_verbose('Executing statements from command line...')
-                    ctx.execute_statements(statements, '<cmd-line>')
+                ctx.print_verbose('Executing statements from command line...')
+                ctx.execute_statements(svalue, '<cmd-line>')
                 continue
-            if stype == 'f':
-                # Statements stored in a file
-                for filename in svalue:
-                    # NB: we don't "sandbox" these files like we do with others
-                    filepath = expand_filename(filename)
-                    if ctx.verbose: ctx.print_verbose('Executing statements from ', poly_repr(filepath), '...')
-                    statements = None
-                    with open(filepath, 'r', encoding='utf-8-sig') as f:
-                        statements = f.read()
-                    ctx.execute_statements(statements, filename)
+            if stype == 'f': # -f or --file
+                # NB: we don't "sandbox" these files like we do with others
+                do_source(ctx, expand_filename(svalue))
+                continue
+            if stype == 'i': # -i or --include
+                # Files to be included once
+                do_include(ctx, expand_filename(svalue))
                 continue
             raise NotImplementedError(f'Statement source {stype!r} not implemented') # SNO
         if sys.stdin.isatty():
