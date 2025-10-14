@@ -4,8 +4,10 @@
 Source vgr.source.FirstItem().DirectoryName() + os.sep + "main-2.vgr"
 
 // Length() == 0 : run from REPL, -e on command line, or read from stdin
-// Length() == 1 : sourced from REPL or -f on command line
-// Length() > 1 : sourced from another file
-If Length(vgr.source) <= 1
+// Length() == 1 : sourced or included from REPL or command line
+// Length() > 1 : sourced or included from another file
+// vgr.included indicates if execution came from a source or an include
+// Also see vgr.includes for a list of files which have be loaded with @Include
+If Length(vgr.source) <= 1 && !vgr.included
     Print vgr.source.FirstItem(), "is main"
 End
