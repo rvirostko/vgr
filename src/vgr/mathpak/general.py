@@ -126,7 +126,7 @@ Also see `Ascii()`
     # These are of limited aesthetic value
     if isinstance(x, str) and '"' not in x: return repr(x).replace("'", '"')
     if isinstance(x, re.Pattern): return poly_repr(x.pattern)
-    if isinstance(x, list): return '[ ' + ', '.join(poly_repr(x1) for x1 in x) + ' ]'
+    if isinstance(x, list): return '[' + ', '.join(poly_repr(x1) for x1 in x) + ']'
     return repr(x)
 
 def poly_type(x: Any) -> str:
