@@ -16,7 +16,12 @@ from .app_exceptions import (
 )
 from .data_dict import DataDictionary, DynamicValue
 from .dbg import print_tree
-from .dd_config import VGR_PREFIX
+from .dd_config import (
+    add_include,
+    INCLUDED_PATH,
+    is_included,
+    VGR_PREFIX,
+)
 from .evaluate import (
     bind_operations,
     eval_expr,
@@ -31,6 +36,7 @@ from .mathpak import (
     poly_int,
     poly_list,
     poly_number,
+    poly_repr,
     poly_true,
     type_str,
 )
@@ -122,24 +128,63 @@ def execute_source(ctx: ExecContext, statement: Tree) -> None:
 Each _expression_ is evaluated to a file name. Statements in the file
 are executed, inheriting the current state of all variable and
 input/output redirection.
+
+Also see `@Include`
 """
     for child in statement.children:
         file = ctx.eval_filename_expr(child, True)
-        if file is None or len(file) == 0: continue
-        path = Path(file)
-        if not path.exists():
-            raise VgrRuntimeError(child, FileNotFoundError(f'File {file!r} not found'))
-        if not path.is_file():
-            raise VgrRuntimeError(child, PermissionError(f'{file!r} does not reference a file'))
-        if not os.access(path, os.R_OK):
-            raise VgrRuntimeError(child, Exception(f'File {file!r} not readable'))
         try:
-            statements = None
-            with open(path, 'r', encoding='utf-8-sig') as f:
-                statements = f.read()
-            ctx.execute_statements(statements, file)
-        except (OSError, IOError) as e:
+            do_source(ctx, file)
+        except Exception as e:
             raise VgrRuntimeError(child, e) from e
+
+@bound_ops("@Include")
+def execute_include(ctx: ExecContext, statement: Tree) -> None:
+    """
+**Execute statements stored in a file once per run**
+
+* @Include _expression_ [, _expression_]... [;]
+
+Similar to `Source` but files are only included once per run, unless
+cleared by `Reset`.
+
+Also see `Source` and `Reset`
+"""
+    for child in statement.children:
+        file = ctx.eval_filename_expr(child, True)
+        try:
+            do_include(ctx, file)
+        except Exception as e:
+            raise VgrRuntimeError(child, e) from e
+
+def do_include(ctx: ExecContext, file: str) -> None:
+    if file is None or len(file) == 0: return
+    path = Path(file)
+    if is_included(path):
+        if ctx.verbose: ctx.print_verbose('Skipping ', poly_repr(file), ': previously included')
+    else:
+        do_source(ctx, file, True)
+        add_include(path)
+
+def do_source(ctx: ExecContext, file: str, included: bool=False) -> None:
+    if file is None or len(file) == 0: return
+    path = Path(file)
+    if not path.exists():
+        raise FileNotFoundError(f'File {file!r} not found')
+    if not path.is_file():
+        raise IsADirectoryError(f'{file!r} does not reference a file')
+    if not os.access(path, os.R_OK):
+        raise PermissionError(f'File {file!r} not readable')
+    statements = None
+    if ctx.verbose: ctx.print_verbose('Executing statements from ', poly_repr(file), '...')
+    with open(path, 'r', encoding='utf-8-sig') as f:
+        statements = f.read()
+    tval = ctx.get_var(*INCLUDED_PATH)
+    try:
+        ctx.set_var(included, *INCLUDED_PATH)
+        ctx.execute_statements(statements, file)
+    finally:
+        ctx.set_var(tval, *INCLUDED_PATH)
 
 @bound_ops("Break")
 def execute_break(_: ExecContext, statement: Tree) -> None:
@@ -712,6 +757,7 @@ STATEMENT_HANDLERS = {
     'foreach':           execute_foreach,
     'forever':           execute_forever,
     'if':                execute_if,
+    'include':           execute_include,
     'list_append':       execute_list_append,
     'list_insert':       execute_list_insert,
     'list_prepend':      execute_list_prepend,
