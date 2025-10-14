@@ -21,6 +21,7 @@ from .exec_context import ExecContext
 from .version import __version__, __version_date__
 
 VGR_PREFIX = 'vgr'
+INCLUDED_PATH = (VGR_PREFIX, 'included')
 VER_PATH = (VGR_PREFIX, 'version')
 VER_DATE_PATH = (VGR_PREFIX, 'version_date')
 LOG_LEVEL_PATH = (VGR_PREFIX, 'log_level')
@@ -130,11 +131,19 @@ _UUID_ENTRIES = {
     ("random",):      DynamicValue(lambda: str(uuid.uuid4())),
 }
 
+# The files that have been "@Include"d rather than "Source"d
+# NB: Files can look at INCLUDED_PATH to see if they
+#     are being included vs sourced
+_INCLUDES_PATH = (VGR_PREFIX, 'includes')
+_INCLUDED_FILES = []
+
 def dd_init(dd: DataDictionary) -> None:
     # Clear the whole thing out and have it set its defaults
     dd.reset()
     # Set up app area
     dd.add_immutable_prefix(VGR_PREFIX)
+    dd.set_var(False, *INCLUDED_PATH)
+    dd.set_var(DynamicValue(lambda: _INCLUDED_FILES), *_INCLUDES_PATH)
     dd.set_var(__version__, *VER_PATH)
     dd.set_var(__version_date__, *VER_DATE_PATH)
     dd.set_var(sys.executable, *EXEC_NAME_PATH)
@@ -175,6 +184,15 @@ def set_user_args(ctx: ExecContext, data: list) -> None:
 
 def get_user_args(ctx: ExecContext) -> list:
     return ctx.get_var(_USER_ARGS)
+
+def clear_includes() -> None:
+    _INCLUDED_FILES.clear()
+
+def add_include(path) -> None:
+    _INCLUDED_FILES.append(str(path))
+
+def is_included(path) -> bool:
+    return str(path) in _INCLUDED_FILES
 
 def _get_os_consts() -> dict:
     rc = { key: value for key, value in _get_consts(os).items() if key in _OS_CONSTS }
