@@ -9,7 +9,11 @@ from lark import Tree
 from ..app_exceptions import VgrRuntimeError
 from ..evaluate import do_set, _var_name_path
 from ..exec_context import ExecContext
-from ..mathpak import bound_ops
+from ..mathpak import (
+    bound_ops,
+    poly_int,
+    poly_list,
+)
 from ..vault_api.client_mgr import VaultClientManager
 
 from .dd_consts import DEFAULT_NS_PATH, DEFAULT_RESULT_PATH, DEFAULT_CONN_PATH
@@ -41,39 +45,6 @@ _ARG_EXPR = (_DESC_ARG, _KEY_ARG, _NS_ARG, _TYPE_ARG, _CONFIG_ARG, _DATA_ARG, _M
 _DEFAULT_CONN_NAME = 'DefaultConnection'
 
 _CONNECTIONS = VaultClientManager()
-
-def _normalize_path(path: str) -> str:
-    if path.startswith("/v1/"): return path
-    if path.startswith("/"): return "/v1" + path
-    return "/v1/" + path
-
-def _get_default_ns(ctx: ExecContext, args: dict) -> str:
-    """If the args doesn't contain the namespace, use the default one"""
-    return _get_arg(args, _NS_ARG, str, True) or ctx.get_var(*DEFAULT_NS_PATH)
-
-def _set_result(ctx: ExecContext, args: dict, data: Any) -> dict:
-    """Sees if the user wants to put the results in a custom location or store in the default location"""
-    path = DEFAULT_RESULT_PATH
-    if _RESULT_ARG in args:
-        path = args[_RESULT_ARG]
-        # They can always restate the default
-        # and if they do, we dont check immutability/protection
-        # TODO This late check prevents us from doing good error reporting
-        if path != DEFAULT_RESULT_PATH:
-            ctx.dd.validate_user_set_path(*path)
-    do_set(ctx, data, *path)
-    return data
-
-def _set_default_conn(ctx: ExecContext, conn: str) -> str:
-    # Only change the DD value if we have to,
-    # so as to skip a message when verbose is on
-    curr = ctx.get_var(*DEFAULT_CONN_PATH)
-    if curr != conn: do_set(ctx, conn, *DEFAULT_CONN_PATH)
-    return conn
-
-def _get_default_conn(ctx: ExecContext, args: dict) -> str:
-    """If the args doesn't contain the connection, use the default one"""
-    return _get_arg(args, _USING_ARG, str, True) or ctx.get_var(*DEFAULT_CONN_PATH) or _DEFAULT_CONN_NAME
 
 @bound_ops("Vault-Connect")
 def execute_connect(ctx: ExecContext, statement: Tree) -> None:
@@ -252,6 +223,7 @@ _Options_
                 _CONNECTIONS.get_connection(using).do_post(url, data, namespace)
                )
 
+@bound_ops("Vault-DefaultNamespace")
 def execute_default_ns(ctx: ExecContext, statement: Tree) -> None:
     """
 **Set the namespace to be used by subsequent requests**
@@ -269,6 +241,7 @@ _Options_
     do_set(ctx, '' if ns is None or ns.isspace() else ns.strip(), *DEFAULT_NS_PATH)
     _set_result(ctx, args, None)
 
+@bound_ops("Vault-CreateNamespace")
 def execute_create_ns(ctx: ExecContext, statement: Tree) -> None:
     """
 **Create a new namesapce**
@@ -294,6 +267,7 @@ _Options_
                 _CONNECTIONS.get_connection(using).create_namespace(new_namespace, metadata, parent_namespace)
                )
 
+@bound_ops("Vault-ReadNamespace")
 def execute_read_ns(ctx: ExecContext, statement: Tree) -> None:
     """
 **Update a namespace**
@@ -317,6 +291,7 @@ _Options_
                 _CONNECTIONS.get_connection(using).read_namespace(ns, parent_namespace)
                )
 
+@bound_ops("Vault-UpdateNamespace")
 def execute_update_ns(ctx: ExecContext, statement: Tree) -> None:
     """
 **Update a namespace**
@@ -341,6 +316,7 @@ _Options_
                 _CONNECTIONS.get_connection(using).update_namespace(ns, metadata, parent_namespace)
                )
 
+@bound_ops("Vault-DeleteNamespace")
 def execute_delete_ns(ctx: ExecContext, statement: Tree) -> None:
     """
 **Delete a namespace**
@@ -364,6 +340,7 @@ _Options_
                 _CONNECTIONS.get_connection(using).delete_namespace(ns, parent_namespace)
                )
 
+@bound_ops("Vault-ListNamespaces")
 def execute_list_ns(ctx: ExecContext, statement: Tree) -> None:
     """
 **List namespaces**
@@ -389,6 +366,7 @@ _Options_
                 _CONNECTIONS.get_connection(using).list_namespace(_combine_ns(parent_namespace, namespace))
                 )
 
+@bound_ops("Vault-LockNamespace")
 def execute_lock_ns(ctx: ExecContext, statement: Tree) -> None:
     """
 **Lock a namespace**
@@ -412,6 +390,7 @@ _Options_
                 _CONNECTIONS.get_connection(using).lock_namespace(_combine_ns(parent_namespace, namespace))
                 )
 
+@bound_ops("Vault-UnlockNamespace")
 def execute_unlock_ns(ctx: ExecContext, statement: Tree) -> None:
     """
 **Unlock a namespace**
@@ -439,6 +418,7 @@ _Options_
 # Secret Engine mounts
 #-------------------------------------------------------------------------------
 
+@bound_ops("Vault-CreateMount")
 def execute_create_mount(ctx: ExecContext, statement: Tree) -> None:
     """
 **Create and configure a secrets engine**
@@ -481,6 +461,7 @@ _Options_
                 args,
                 _CONNECTIONS.get_connection(using).create_mount(mount_point, data, namespace))
 
+@bound_ops("Vault-ReadMount")
 def execute_read_mount(ctx: ExecContext, statement: Tree) -> None:
     """
 **Read the configuration of a secrets engine mount**
@@ -503,6 +484,7 @@ _Options_
                 args,
                 _CONNECTIONS.get_connection(using).read_mount(mount_point, namespace))
 
+@bound_ops("Vault-UpdateMount")
 def execute_update_mount(ctx: ExecContext, statement: Tree) -> None:
     """
 **Update the configuration of a secrets engine**
@@ -533,7 +515,7 @@ _Options_
                 args,
                 _CONNECTIONS.get_connection(using).update_mount(mount_point, data, namespace))
 
-#vault_delete_mount : "Vault"i "DeleteMount"i expr vault_args _SEMICOLON?
+@bound_ops("Vault-DeleteMount")
 def execute_delete_mount(ctx: ExecContext, statement: Tree) -> None:
     """
 **Remove a secrets engine mount**
@@ -588,6 +570,7 @@ Also see `Vault-DefaultNamespace`
 # KV2 secrets and metadata
 #-------------------------------------------------------------------------------
 
+@bound_ops("Vault-CreateKvSecret")
 def execute_create_kv_secret(ctx: ExecContext, statement: Tree) -> None:
     """
 **Create or update the KV secrets**
@@ -622,6 +605,7 @@ _Options_
                     args,
                     _CONNECTIONS.get_connection(using).create_kv2_metadata(mount_point, path, metadata, namespace))
 
+@bound_ops("Vault-ReadKvSecret")
 def execute_read_kv_secret(ctx: ExecContext, statement: Tree) -> None:
     """
 **Read the KV secrets**
@@ -646,6 +630,7 @@ _Options_
                 args,
                 _CONNECTIONS.get_connection(using).read_kv2_secret(mount_point, path, version, namespace))
 
+@bound_ops("Vault-ReadKvMetadata")
 def execute_read_kv_metadata(ctx: ExecContext, statement: Tree) -> None:
     """
 **Read the KV metadata**
@@ -668,6 +653,7 @@ _Options_
                 args,
                 _CONNECTIONS.get_connection(using).read_kv2_metadata(mount_point, path, namespace))
 
+@bound_ops("Vault-UpdateKvSecret")
 def execute_update_kv_secret(ctx: ExecContext, statement: Tree) -> None:
     """
 **Update the KV secrets**
@@ -705,6 +691,7 @@ _Options_
                     args,
                     _CONNECTIONS.get_connection(using).update_kv2_metadata(mount_point, path, metadata, namespace))
 
+@bound_ops("Vault-PatchKvSecret")
 def execute_patch_kv_secret(ctx: ExecContext, statement: Tree) -> None:
     """
 **Patch the KV secrets**
@@ -742,15 +729,7 @@ _Options_
                     args,
                     _CONNECTIONS.get_connection(using).patch_kv2_metadata(mount_point, path, metadata, namespace))
 
-def _get_version_data(args: dict) -> dict:
-    # Use _DATA to allow direct use of "versions"
-    if _DATA_ARG in args: return _get_arg(args, _DATA_ARG, dict)
-    # Use _VERSION_ARG for target version
-    rc = {"versions": [] }
-    if _VERSION_ARG in args:
-        rc["versions"].append(_get_arg(args, _VERSION_ARG, int))
-    return rc
-
+@bound_ops("Vault-DeleteKvSecret")
 def execute_delete_kv_secret(ctx: ExecContext, statement: Tree) -> None:
     """
 **Delete a KV secret**
@@ -775,6 +754,7 @@ _Options_
                 args,
                 _CONNECTIONS.get_connection(using).delete_kv2_secret(mount_point, path, data, namespace))
 
+@bound_ops("Vault-UndeleteKvSecret")
 def execute_undelete_kv_secret(ctx: ExecContext, statement: Tree) -> None:
     """
 *Undelete a KV secret**
@@ -798,6 +778,7 @@ _Options_
                 args,
                 _CONNECTIONS.get_connection(using).undelete_kv2_secret(mount_point, path, data, namespace))
 
+@bound_ops("Vault-DestroyKvSecret")
 def execute_destroy_kv_secret(ctx: ExecContext, statement: Tree) -> None:
     """
 **Destroy a KV secret**
@@ -821,6 +802,7 @@ _Options_
                 args,
                 _CONNECTIONS.get_connection(using).destroy_kv2_secret(mount_point, path, data, namespace))
 
+@bound_ops("Vault-DeleteKvMetadata")
 def execute_delete_kv_metadata(ctx: ExecContext, statement: Tree) -> None:
     """
 **Delete KV secret metadata**
@@ -843,12 +825,12 @@ _Options_
                 args,
                 _CONNECTIONS.get_connection(using).delete_kv2_metadata(mount_point, path, namespace))
 
-# vault_list_kv_secrets  : "Vault"i "ListKvSecrets"i expr vault_args _SEMICOLON?
+@bound_ops("Vault-ListKvSecrets")
 def execute_list_kv_secrets(ctx: ExecContext, statement: Tree) -> None:
     """
-**List Kv secrets at a path location**
+**List KV secrets at a path location**
 
-* Vault DeleteKvMetadata _mount_and_path_
+* Vault ListKvSecrets _mount_and_path_
 
 _Options_
 
@@ -867,12 +849,16 @@ _Options_
                 _CONNECTIONS.get_connection(using).list_kv2_secrets(mount_point, path, namespace))
 
 #-------------------------------------------------------------------------------
-# LDAP secrets engine
+# LDAP secrets engine : Library
 #-------------------------------------------------------------------------------
 
+@bound_ops("**TODO**")
+# vault_create_ldap_lib : "Vault"i "CreateLdapLibrary"i expr vault_args _SEMICOLON?
 def execute_create_ldap_library(ctx: ExecContext, statement: Tree) -> None:
     raise NotImplementedError() # TODO
 
+@bound_ops("**TODO**")
+# vault_read_ldap_lib   : "Vault"i "ReadLdapLibrary"i expr vault_args _SEMICOLON?
 def execute_read_ldap_library(ctx: ExecContext, statement: Tree) -> None:
     mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
     args = _extract_args(ctx, statement)
@@ -883,12 +869,18 @@ def execute_read_ldap_library(ctx: ExecContext, statement: Tree) -> None:
                 args,
                 _CONNECTIONS.get_connection(using).read_ldap_library(mount_point, name, namespace))
 
+@bound_ops("**TODO**")
+# vault_update_ldap_lib : "Vault"i "UpdateLdapLibrary"i expr vault_args _SEMICOLON?
 def execute_update_ldap_library(ctx: ExecContext, statement: Tree) -> None:
     raise NotImplementedError() # TODO
 
+@bound_ops("**TODO**")
+# vault_delete_ldap_lib : "Vault"i "DeleteLdapLibrary"i expr vault_args _SEMICOLON?
 def execute_delete_ldap_library(ctx: ExecContext, statement: Tree) -> None:
     raise NotImplementedError() # TODO
 
+@bound_ops("**TODO**")
+# vault_list_ldap_libs  : "Vault"i "ListLdapLibraries"i expr vault_args _SEMICOLON?
 def execute_list_ldap_libraries(ctx: ExecContext, statement: Tree) -> None:
     mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
     args = _extract_args(ctx, statement)
@@ -899,9 +891,17 @@ def execute_list_ldap_libraries(ctx: ExecContext, statement: Tree) -> None:
                 args,
                 _CONNECTIONS.get_connection(using).list_ldap_libraries(mount_point, namespace))
 
+#-------------------------------------------------------------------------------
+# LDAP secrets engine : Static
+#-------------------------------------------------------------------------------
+
+@bound_ops("**TODO**")
+# vault_create_ldap_secret : "Vault"i "CreateLdapSecret"i expr vault_args _SEMICOLON?
 def execute_create_ldap_secret(ctx: ExecContext, statement: Tree) -> None:
     raise NotImplementedError() # TODO
 
+@bound_ops("**TODO**")
+# vault_read_ldap_secret   : "Vault"i "ReadLdapSecret"i expr vault_args _SEMICOLON?
 def execute_read_ldap_secret(ctx: ExecContext, statement: Tree) -> None:
     mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
     args = _extract_args(ctx, statement)
@@ -912,12 +912,18 @@ def execute_read_ldap_secret(ctx: ExecContext, statement: Tree) -> None:
                 args,
                 _CONNECTIONS.get_connection(using).read_ldap_secret(mount_point, name, namespace))
 
+@bound_ops("**TODO**")
+# vault_update_ldap_secret : "Vault"i "UpdateLdapSecret"i expr vault_args _SEMICOLON?
 def execute_update_ldap_secret(ctx: ExecContext, statement: Tree) -> None:
     raise NotImplementedError() # TODO
 
+@bound_ops("**TODO**")
+# vault_delete_ldap_secret : "Vault"i "DeleteLdapSecret"i expr vault_args _SEMICOLON?
 def execute_delete_ldap_secret(ctx: ExecContext, statement: Tree) -> None:
     raise NotImplementedError() # TODO
 
+@bound_ops("**TODO**")
+# vault_list_ldap_secrets  : "Vault"i "ListLdapSecrets"i expr vault_args _SEMICOLON?
 def execute_list_ldap_secrets(ctx: ExecContext, statement: Tree) -> None:
     mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
     args = _extract_args(ctx, statement)
@@ -928,13 +934,17 @@ def execute_list_ldap_secrets(ctx: ExecContext, statement: Tree) -> None:
                 args,
                 _CONNECTIONS.get_connection(using).list_ldap_secrets(mount_point, namespace))
 
+@bound_ops("**TODO**")
+# vault_rotate_ldap_secret : "Vault"i "RotateLdapSecret"i expr vault_args _SEMICOLON?
 def execute_rotate_ldap_secret(ctx: ExecContext, statement: Tree) -> None:
     raise NotImplementedError() # TODO
 
 #-------------------------------------------------------------------------------
-# Database secrets engine
+# Database secrets engine : Connections
 #-------------------------------------------------------------------------------
 
+@bound_ops("**TODO**")
+# vault_create_db_conn  : "Vault"i "CreateDbConnection"i expr vault_args _SEMICOLON?
 def execute_create_db_connection(ctx: ExecContext, statement: Tree) -> None:
     mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
     args = _extract_args(ctx, statement)
@@ -946,6 +956,8 @@ def execute_create_db_connection(ctx: ExecContext, statement: Tree) -> None:
                 args,
                 _CONNECTIONS.get_connection(using).create_database_connection(mount_point, name, config, namespace))
 
+@bound_ops("**TODO**")
+# vault_read_db_conn    : "Vault"i "ReadDbConnection"i expr vault_args _SEMICOLON?
 def execute_read_db_connection(ctx: ExecContext, statement: Tree) -> None:
     mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
     args = _extract_args(ctx, statement)
@@ -956,11 +968,15 @@ def execute_read_db_connection(ctx: ExecContext, statement: Tree) -> None:
                 args,
                 _CONNECTIONS.get_connection(using).read_database_connection(mount_point, name, namespace))
 
+@bound_ops("**TODO**")
+# vault_update_db_conn  : "Vault"i "UpdateDbConnection"i expr vault_args _SEMICOLON?
 def execute_update_db_connection(ctx: ExecContext, statement: Tree) -> None:
     # NB: There's no difference in the call, but the ACL may need to be
     #     different depending upon it being a create or update.
     return execute_create_db_connection(ctx, statement)
 
+@bound_ops("**TODO**")
+# vault_delete_db_conn  : "Vault"i "DeleteDbConnection"i expr vault_args _SEMICOLON?
 def execute_delete_db_connection(ctx: ExecContext, statement: Tree) -> None:
     mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
     args = _extract_args(ctx, statement)
@@ -971,6 +987,8 @@ def execute_delete_db_connection(ctx: ExecContext, statement: Tree) -> None:
                 args,
                 _CONNECTIONS.get_connection(using).delete_database_connection(mount_point, name, namespace))
 
+@bound_ops("**TODO**")
+# vault_list_db_conns   : "Vault"i "ListDbConnections"i expr vault_args _SEMICOLON?
 def execute_list_db_connections(ctx: ExecContext, statement: Tree) -> None:
     mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
     args = _extract_args(ctx, statement)
@@ -981,6 +999,8 @@ def execute_list_db_connections(ctx: ExecContext, statement: Tree) -> None:
                 args,
                 _CONNECTIONS.get_connection(using).list_database_connections(mount_point, namespace))
 
+@bound_ops("**TODO**")
+# vault_reset_db_conn   : "Vault"i "ResetDbConnection"i expr vault_args _SEMICOLON?
 def execute_reset_db_connection(ctx: ExecContext, statement: Tree) -> None:
     mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
     args = _extract_args(ctx, statement)
@@ -991,6 +1011,8 @@ def execute_reset_db_connection(ctx: ExecContext, statement: Tree) -> None:
                 args,
                 _CONNECTIONS.get_connection(using).reset_database_connection(mount_point, name, namespace))
 
+@bound_ops("**TODO**")
+# vault_rotate_db_conn  : "Vault"i "RotateDbConnectionCredentials"i expr vault_args _SEMICOLON?
 def execute_rotate_db_connection_creds(ctx: ExecContext, statement: Tree) -> None:
     mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
     args = _extract_args(ctx, statement)
@@ -1001,13 +1023,11 @@ def execute_rotate_db_connection_creds(ctx: ExecContext, statement: Tree) -> Non
                 args,
                 _CONNECTIONS.get_connection(using).rotate_database_connection_creds(mount_point, name, namespace))
 
-#-----
-def _is_static_type(args: dict):
-    """Look at _TYPE_ARG and see if user requested "static" """
-    value: str = _get_arg(args, _TYPE_ARG, str, True)
-    if not value: return False
-    return ''.join(filter(str.isalpha, value)).lower().startswith('stat')
+#-------------------------------------------------------------------------------
+# Database secrets engine : Connections
+#-------------------------------------------------------------------------------
 
+@bound_ops("**TODO**")
 def execute_create_db_role(ctx: ExecContext, statement: Tree) -> None:
     mount_point, role_name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Role Name'))
     args = _extract_args(ctx, statement)
@@ -1020,6 +1040,7 @@ def execute_create_db_role(ctx: ExecContext, statement: Tree) -> None:
                 args,
                 _CONNECTIONS.get_connection(using).create_database_role(mount_point, role_name, is_static, config, namespace))
 
+@bound_ops("**TODO**")
 def execute_read_db_role(ctx: ExecContext, statement: Tree) -> None:
     mount_point, role_name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Role Name'))
     args = _extract_args(ctx, statement)
@@ -1031,11 +1052,13 @@ def execute_read_db_role(ctx: ExecContext, statement: Tree) -> None:
                 args,
                 _CONNECTIONS.get_connection(using).read_database_role(mount_point, role_name, is_static, namespace))
 
+@bound_ops("**TODO**")
 def execute_update_db_role(ctx: ExecContext, statement: Tree) -> None:
     # NB: There's no difference in the call, but the ACL may need to be
     #     different depending upon it being a create or update.
     return execute_create_db_role(ctx, statement)
 
+@bound_ops("**TODO**")
 def execute_delete_db_role(ctx: ExecContext, statement: Tree) -> None:
     mount_point, role_name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Role Name'))
     args = _extract_args(ctx, statement)
@@ -1047,6 +1070,7 @@ def execute_delete_db_role(ctx: ExecContext, statement: Tree) -> None:
                 args,
                 _CONNECTIONS.get_connection(using).delete_database_role(mount_point, role_name, is_static, namespace))
 
+@bound_ops("**TODO**")
 def execute_list_db_roles(ctx: ExecContext, statement: Tree) -> None:
     mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
     args = _extract_args(ctx, statement)
@@ -1058,6 +1082,7 @@ def execute_list_db_roles(ctx: ExecContext, statement: Tree) -> None:
                 args,
                 _CONNECTIONS.get_connection(using).list_database_role(mount_point, is_static, namespace))
 
+@bound_ops("**TODO**")
 def execute_generate_db_role_creds(ctx: ExecContext, statement: Tree) -> None:
     mount_point, role_name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Role Name'))
     args = _extract_args(ctx, statement)
@@ -1069,6 +1094,7 @@ def execute_generate_db_role_creds(ctx: ExecContext, statement: Tree) -> None:
                 args,
                 _CONNECTIONS.get_connection(using).generate_database_role_credentials(mount_point, role_name, is_static, namespace))
 
+@bound_ops("**TODO**")
 def execute_vault_rotate_db_role_creds(ctx: ExecContext, statement: Tree) -> None:
     mount_point, role_name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Role Name'))
     args = _extract_args(ctx, statement)
@@ -1083,6 +1109,41 @@ def execute_vault_rotate_db_role_creds(ctx: ExecContext, statement: Tree) -> Non
     _set_result(ctx,
                 args,
                 _CONNECTIONS.get_connection(using).rotate_database_static_role_credentials(mount_point, role_name, namespace))
+
+#-------------------------------------------------------------------------------
+
+def _normalize_path(path: str) -> str:
+    if path.startswith("/v1/"): return path
+    if path.startswith("/"): return "/v1" + path
+    return "/v1/" + path
+
+def _get_default_ns(ctx: ExecContext, args: dict) -> str:
+    """If the args doesn't contain the namespace, use the default one"""
+    return _get_arg(args, _NS_ARG, str, True) or ctx.get_var(*DEFAULT_NS_PATH)
+
+def _set_result(ctx: ExecContext, args: dict, data: Any) -> dict:
+    """Sees if the user wants to put the results in a custom location or store in the default location"""
+    path = DEFAULT_RESULT_PATH
+    if _RESULT_ARG in args:
+        path = args[_RESULT_ARG]
+        # They can always restate the default
+        # and if they do, we dont check immutability/protection
+        # TODO This late check prevents us from doing good error reporting
+        if path != DEFAULT_RESULT_PATH:
+            ctx.dd.validate_user_set_path(*path)
+    do_set(ctx, data, *path)
+    return data
+
+def _set_default_conn(ctx: ExecContext, conn: str) -> str:
+    # Only change the DD value if we have to,
+    # so as to skip a message when verbose is on
+    curr = ctx.get_var(*DEFAULT_CONN_PATH)
+    if curr != conn: do_set(ctx, conn, *DEFAULT_CONN_PATH)
+    return conn
+
+def _get_default_conn(ctx: ExecContext, args: dict) -> str:
+    """If the args doesn't contain the connection, use the default one"""
+    return _get_arg(args, _USING_ARG, str, True) or ctx.get_var(*DEFAULT_CONN_PATH) or _DEFAULT_CONN_NAME
 
 def _combine_ns(parent: str, child: str) -> str:
     """Combine parent and child namespace paths into a single path."""
@@ -1102,6 +1163,22 @@ def _split_mount_path(s: str) -> tuple:
 
 def _type_str(o: Any) -> str:
     return repr(type(o).__name__)
+
+def _is_static_type(args: dict):
+    """Look at _TYPE_ARG and see if user requested "static" """
+    value: str = _get_arg(args, _TYPE_ARG, str, True)
+    if not value: return False
+    return ''.join(filter(str.isalpha, value)).lower().startswith('stat')
+
+def _get_version_data(args: dict) -> dict:
+    # Use _DATA to allow direct use of "versions"
+    if _DATA_ARG in args: return _get_arg(args, _DATA_ARG, dict)
+    # Use _VERSION_ARG for target version
+    rc = {"versions": [] }
+    if _VERSION_ARG in args:
+        # Convert it to a list of integers
+        rc["versions"] = poly_list(poly_int(args[_VERSION_ARG]))
+    return rc
 
 def _extract_args(ctx: ExecContext, statement: Tree) -> dict:
     args = {}
