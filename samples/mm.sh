@@ -4,10 +4,15 @@
 today=`date +"%Y-%m-%d"`
 subj="Hello Again!"
 
-python3 -m vgr \
-    "today=${today}" \
-    "subj=${subj}" \
-<<EOF || echo "FAILED"
+# NB: In additon to positional arguments, you can
+#     also directly set variable using "-e", although
+#     you will need to quote strings.
+#     vgr -e "Set today='${today}'; Set sub='${subj}'"
+python3 -m vgr "${today}" "${subj}" <<EOF || echo "FAILED"
+
+Assert Length(args) >= 2
+Set today = args.Item(0)
+Set subj = args.Item(1)
 
 Set data_file To "people.json"
 Assert data_file.FileExists() :
@@ -28,8 +33,8 @@ Close Output
 
 -- Check prereqs
 -- Is empty checks for None, an empty string, or one composed only of spaces
-Assert arg.today.IsNotEmpty() : "You need to pass in the date for the output file"
-Assert arg.subj.IsNotEmpty() : "You need to pass in the email subject"
+Assert today.IsNotEmpty() : "You need to pass in the date for the output file"
+Assert subj.IsNotEmpty() : "You need to pass in the email subject"
 
 -- Load can guess the type based on the extension
 -- but no harm in explicitly defining the type
@@ -60,18 +65,19 @@ Printf "First: {0}\n", People.FirstItem().ToJsonStr()
 Printf "Last : {0}\n", People.LastItem().ToJsonStr()
 
 -- Use the passed in date for out output file. The overwrite option is the default.
-Open Output File arg.today + " - mail-output.txt" Overwrite
+Open Output File today + " - mail-output.txt" Overwrite
 -- Use the template as a "printf" per person
 -- Positionally args are first name, email, and the email subject.
 -- We exclude people with incomplete information
-Select mail_template.Format(first_name, email, "Hello Again!")
+# TODO bug: mail_template and subj can't get seen outside the implied select loop
+Select mail_template.Format(first_name, email, subj)
     From People As person
     Where first_name Is Not Null
            And email Is Not Null
     For Text Unicode
 Close Output
 
-Open Output File arg.today + " - skipped.csv" Overwrite
+Open Output File today + " - skipped.csv" Overwrite
 Select \$rowid as "ROW", first_name As "FNAME", last_name As "LNAME", email as "EMAIL"
     From People as person
     Where first_name Is Null
