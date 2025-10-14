@@ -108,9 +108,9 @@ Print ""
 Print bar
 Set jsmith = test.csv.arr.Lookup("lname", "Smith").Lookup("fname", "Justin").FirstItem()
 Printf "{}, {} : ID {}\n", jsmith.lname, jsmith.fname, jsmith.idx
-Set arg.ofs = " | "; Set arg.ors = " |\n"
+Set env.OFS = " | "; Set env.ORS = " |\n"
 Print "| " + jsmith.idx, jsmith.lname, jsmith.fname;
-Set arg.ofs = None; Set arg.ors = None;
+Set env.OFS = None; Set env.ORS = None;
 Printf "Heap's idx={}\n", test.csv.arr.Lookup("lname", "Heap").FirstItem().idx
 Print bar
 
