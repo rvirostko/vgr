@@ -149,13 +149,17 @@ class SelectAnalyzer(Visitor):
         if not self.output_statements:
             self._headers.append(self.from_opts['target'])
         self.output_opts['headers'] = self.make_cols_names_unique(self._headers)
+        self._output_statements = [bind_operations(self.add_implicit(o)) for o in self.output_statements]
+        self._predicates = [bind_operations(self.add_implicit(p)) for p in self.predicates]
+
+    def add_implicit(self, tree: Tree) -> Tree:
+        """Should only be applied to the outputs and predicates after analysis!"""
         from_type = self.from_opts['type']
         target = self.from_opts['target']
-        self._output_statements = [bind_operations(add_implicit(self.ctx.dd, from_type, target, o))
-                                   for o in self.output_statements]
-        # TODO for predicates, this might be premature...
-        self._predicates = [bind_operations(add_implicit(self.ctx.dd, from_type, target, p))
-                            for p in self.predicates]
+        # Expected contents: top level keys for current frame all the way to global
+        valid_contexts = self.ctx.dd.keys()
+        if from_type == 'from_vault': valid_contexts += VAULT_TARGETS
+        return ImplicitContextAdder().add_contexts(tree, target, valid_contexts)
 
     def output(self, node: Tree):
         """
@@ -395,12 +399,6 @@ class ImplicitContextAdder(Transformer):
             # Add the target as an implied context for the name
             tree.children.insert(0, Token("NAME", self._target))
         return tree
-
-def add_implicit(dd, from_type, target, tree) -> Tree:
-    """should only be applied to the outputs and predicates after analysis!"""
-    valid_contexts = [*dd.keys()]
-    if from_type == 'from_vault': valid_contexts += VAULT_TARGETS
-    return ImplicitContextAdder().add_contexts(tree, target, valid_contexts)
 
 @control_statement
 @bound_ops("Select")
