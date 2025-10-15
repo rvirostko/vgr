@@ -2,22 +2,19 @@
 A DataExtractor that iterates over items store in a list
 """
 
-from .data_xtract import DataExtractor, InfoOutput, QueryFilter
-from .mathpak import type_str
+from .data_xtract import (
+    DataExtractor,
+    InfoOutput,
+    QueryFilter,
+)
 
 class InMemoryExtractor(DataExtractor):
     """
-    An extractor that works from a list of data
-    read into memory.
+    An extractor that works from a list of data read into memory
     """
     def __init__(self, data: list, target: str):
         super().__init__()
-        if data is None:
-            data = []
-        else:
-            if not isinstance(data, list):
-                raise ValueError(f'Data for query must be stored in a list, found {type_str(data)}')
-        self._data = data
+        self._data = [] if data is None else data if isinstance(data, list) else [data]
         self._target = target
 
     def start(self, io: InfoOutput):
