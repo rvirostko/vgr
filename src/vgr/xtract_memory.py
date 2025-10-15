@@ -7,14 +7,15 @@ from .data_xtract import (
     InfoOutput,
     QueryFilter,
 )
+from .mathpak import poly_list
 
 class InMemoryExtractor(DataExtractor):
     """
-    An extractor that works from a list of data read into memory
+    An extractor that works from data read into memory
     """
     def __init__(self, data: list, target: str):
         super().__init__()
-        self._data = [] if data is None else data if isinstance(data, list) else [data]
+        self._data = poly_list(data)
         self._target = target
 
     def start(self, io: InfoOutput):
