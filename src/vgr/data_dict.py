@@ -61,7 +61,7 @@ class DataDictionary():
             raise e
 
     def pop_frame(self) -> None:
-        if len(self._frames) <= 1: raise RuntimeError('Frame underflow')
+        assert len(self._frames) > 1
         dropped_frame = self._frames.pop()
         dropped_frame.drop()
 
@@ -75,9 +75,17 @@ class DataDictionary():
         """The frame at the head of the list is the global frame"""
         return self._frames[0]
 
-    def keys(self):
+    def keys(self) -> list[str]:
         """Return all the top-level keys in the dictionary"""
-        return self._current_frame.keys()
+        keys = set()
+        f = self._current_frame
+        while f is not None:
+            keys.update(f.keys())
+            # NB: the fact that I have to ignore this shows that pylint,
+            #     like other "linters" have a limited understanding of
+            #     object oriented models
+            f = f.outer_frame() # pylint: disable=assignment-from-none
+        return [*keys]
 
     def reset(self) -> None:
         """
@@ -334,7 +342,12 @@ class Frame:
     def __repr__(self) -> str: return f'{self.__class__.__name__}({self._data!r})'
     def __str__(self) -> str: return str(self._data)
 
-    def keys(self) -> KeysView[str]: return self._data.keys()
+    def keys(self) -> KeysView[str]:
+        """
+        By design, this returns _only_ the keys defined
+        in this frame, not the chain of outer frames
+        """
+        return self._data.keys()
 
     def setdefault(self, key: str, default: Optional[Any] = None) -> Any:
         return self._data.setdefault(key, default)
