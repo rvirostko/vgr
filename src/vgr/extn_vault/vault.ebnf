@@ -54,7 +54,7 @@ vault_api_post   : "Vault"i "APIPost"i expr vault_args _SEMICOLON?
 vault_api_patch  : "Vault"i "APIPatch"i expr vault_args _SEMICOLON?
 
 // Namespaces
-vault_default_ns : "Vault"i "DefaultNamespace"i expr _SEMICOLON?
+vault_default_ns : "Vault"i "DefaultNamespace"i expr vault_args _SEMICOLON?
 vault_create_ns  : "Vault"i "CreateNamespace"i expr vault_args _SEMICOLON?
 vault_read_ns    : "Vault"i "ReadNamespace"i expr vault_args _SEMICOLON?
 vault_update_ns  : "Vault"i "UpdateNamespace"i expr vault_args _SEMICOLON?

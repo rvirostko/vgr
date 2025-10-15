@@ -7,6 +7,7 @@ from typing import Any
 from lark import Tree
 
 from ..app_exceptions import VgrRuntimeError
+from ..data_dict import DataDictionary, DynamicValue
 from ..evaluate import do_set, _var_name_path
 from ..exec_context import ExecContext
 from ..mathpak import (
@@ -16,7 +17,6 @@ from ..mathpak import (
 )
 from ..vault_api.client_mgr import VaultClientManager
 
-from .dd_consts import DEFAULT_NS_PATH, DEFAULT_RESULT_PATH, DEFAULT_CONN_PATH
 from .functions import extract_kv_data, extract_kv_metadata, add_kv_cas
 
 _CAS_ARG = 'cas'
@@ -43,8 +43,22 @@ _ARG_INT_EXPR = (_VERSION_ARG, _CAS_ARG)
 _ARG_EXPR = (_DESC_ARG, _KEY_ARG, _NS_ARG, _TYPE_ARG, _CONFIG_ARG, _DATA_ARG, _META_ARG, _USING_ARG)
 
 _DEFAULT_CONN_NAME = 'DefaultConnection'
+_VAULT_PREFIX = 'vault'
+_DEFAULT_RESULT_PATH = (_VAULT_PREFIX, 'result')
 
 _CONNECTIONS = VaultClientManager()
+
+class ExtnState():
+    default_namespace = ''
+    default_connection = None
+
+_STATE = ExtnState()
+
+def vault_initialize(dd: DataDictionary) -> None:
+    dd.add_immutable_prefix(_VAULT_PREFIX)
+    dd.set_var(DynamicValue(lambda : _STATE.default_namespace), _VAULT_PREFIX, 'default_ns')
+    dd.set_var(DynamicValue(lambda : _STATE.default_connection), _VAULT_PREFIX, 'connection')
+    dd.set_var(None, *_DEFAULT_RESULT_PATH)
 
 @bound_ops("Vault-Connect")
 def execute_connect(ctx: ExecContext, statement: Tree) -> None:
@@ -73,9 +87,9 @@ Also see `Vault-Disconnect`
                 raise VgrRuntimeError(child, NotImplementedError(f'Argument {name!r} not handled')) # SNO
         else:
             raise VgrRuntimeError(child, ValueError(f'Unexpected Vault argument {child!r}')) # SNO
-    conn_name = conn_name or _DEFAULT_CONN_NAME
+    conn_name = conn_name or _STATE.default_connection
     _CONNECTIONS.connect(conn_name, addr, token)
-    _set_default_conn(ctx, conn_name)
+    _STATE.default_connection = conn_name
     _set_result(ctx, {}, None)
 
 @bound_ops("Vault-Disconnect")
@@ -91,7 +105,7 @@ Also see `Vault-Connect`
     if statement.children:
         name = _resolve_str_arg(ctx, statement.children[0], 'Vault Connection Name')
     else:
-        name = _get_default_conn(ctx, {})
+        name = _get_conn_name({})
     _CONNECTIONS.disconnect(name)
     _set_result(ctx, {}, None)
 
@@ -117,11 +131,8 @@ _Options_
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     url: str = _normalize_path(_resolve_str_arg(ctx, statement.children[0], 'Path'))
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).do_delete(url, namespace)
-               )
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.do_delete(url, namespace))
 
 @bound_ops("Vault-ApiGet")
 def execute_api_get(ctx: ExecContext, statement: Tree) -> None:
@@ -141,11 +152,8 @@ _Options_
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     url: str = _normalize_path(_resolve_str_arg(ctx, statement.children[0], 'Path'))
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).do_get(url, namespace)
-               )
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.do_get(url, namespace))
 
 @bound_ops("Vault-ApiList")
 def execute_api_list(ctx: ExecContext, statement: Tree) -> None:
@@ -165,11 +173,8 @@ _Options_
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     url: str = _normalize_path(_resolve_str_arg(ctx, statement.children[0], 'Path'))
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).do_list(url, namespace)
-               )
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.do_list(url, namespace))
 
 @bound_ops("Vault-ApiPatch")
 def execute_api_patch(ctx: ExecContext, statement: Tree) -> None:
@@ -191,11 +196,8 @@ _Options_
     url: str = _normalize_path(_resolve_str_arg(ctx, statement.children[0], 'Path'))
     data = _get_arg(args, _DATA_ARG, dict, True)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).do_patch(url, data, namespace)
-               )
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.do_patch(url, data, namespace))
 
 @bound_ops("Vault-ApiPost")
 def execute_api_post(ctx: ExecContext, statement: Tree) -> None:
@@ -217,11 +219,8 @@ _Options_
     url: str = _normalize_path(_resolve_str_arg(ctx, statement.children[0], 'Path'))
     data = _get_arg(args, _DATA_ARG, dict, True)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).do_post(url, data, namespace)
-               )
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.do_post(url, data, namespace))
 
 @bound_ops("Vault-DefaultNamespace")
 def execute_default_ns(ctx: ExecContext, statement: Tree) -> None:
@@ -238,7 +237,7 @@ _Options_
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _RESULT_ARG)
     ns: str = _resolve_str_arg(ctx, statement.children[0], 'Default Namespace', True)
-    do_set(ctx, '' if ns is None or ns.isspace() else ns.strip(), *DEFAULT_NS_PATH)
+    _STATE.default_namespace = '' if ns is None or ns.isspace() else ns.strip()
     _set_result(ctx, args, None)
 
 @bound_ops("Vault-CreateNamespace")
@@ -261,11 +260,8 @@ _Options_
     new_namespace: str = _resolve_str_arg(ctx, statement.children[0], 'New Namespace')
     parent_namespace: str = _get_default_ns(ctx, args)
     metadata = args.get(_META_ARG)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).create_namespace(new_namespace, metadata, parent_namespace)
-               )
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.create_namespace(new_namespace, metadata, parent_namespace))
 
 @bound_ops("Vault-ReadNamespace")
 def execute_read_ns(ctx: ExecContext, statement: Tree) -> None:
@@ -285,11 +281,8 @@ _Options_
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     ns: str = _resolve_str_arg(ctx, statement.children[0], 'Namespace')
     parent_namespace: str = _get_default_ns(ctx, args)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).read_namespace(ns, parent_namespace)
-               )
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.read_namespace(ns, parent_namespace))
 
 @bound_ops("Vault-UpdateNamespace")
 def execute_update_ns(ctx: ExecContext, statement: Tree) -> None:
@@ -310,11 +303,8 @@ _Options_
     ns: str = _resolve_str_arg(ctx, statement.children[0], 'Namespace')
     parent_namespace: str = _get_default_ns(ctx, args)
     metadata = args.get(_META_ARG)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).update_namespace(ns, metadata, parent_namespace)
-               )
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.update_namespace(ns, metadata, parent_namespace))
 
 @bound_ops("Vault-DeleteNamespace")
 def execute_delete_ns(ctx: ExecContext, statement: Tree) -> None:
@@ -334,11 +324,8 @@ _Options_
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     ns: str = _resolve_str_arg(ctx, statement.children[0], 'Namespace')
     parent_namespace: str = _get_default_ns(ctx, args)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).delete_namespace(ns, parent_namespace)
-               )
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.delete_namespace(ns, parent_namespace))
 
 @bound_ops("Vault-ListNamespaces")
 def execute_list_ns(ctx: ExecContext, statement: Tree) -> None:
@@ -360,11 +347,8 @@ _Options_
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     parent_namespace: str = _get_default_ns(ctx, args)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).list_namespace(_combine_ns(parent_namespace, namespace))
-                )
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.list_namespace(_combine_ns(parent_namespace, namespace)))
 
 @bound_ops("Vault-LockNamespace")
 def execute_lock_ns(ctx: ExecContext, statement: Tree) -> None:
@@ -384,11 +368,8 @@ _Options_
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     namespace: str = _resolve_str_arg(ctx, statement.children[0], 'Namespace')
     parent_namespace: str = _get_default_ns(ctx, args)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).lock_namespace(_combine_ns(parent_namespace, namespace))
-                )
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.lock_namespace(_combine_ns(parent_namespace, namespace)))
 
 @bound_ops("Vault-UnlockNamespace")
 def execute_unlock_ns(ctx: ExecContext, statement: Tree) -> None:
@@ -408,11 +389,8 @@ _Options_
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG, _KEY_ARG)
     namespace: str = _resolve_str_arg(ctx, statement.children[0], 'Namespace')
     parent_namespace: str = _get_default_ns(ctx, args)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).unlock_namespace(_combine_ns(parent_namespace, namespace), args.get(_KEY_ARG))
-                )
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.unlock_namespace(_combine_ns(parent_namespace, namespace), args.get(_KEY_ARG)))
 
 #-------------------------------------------------------------------------------
 # Secret Engine mounts
@@ -456,10 +434,8 @@ _Options_
         config = _get_arg(args, _CONFIG_ARG, dict, True)
         if config: data['config'] = config
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).create_mount(mount_point, data, namespace))
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.create_mount(mount_point, data, namespace))
 
 @bound_ops("Vault-ReadMount")
 def execute_read_mount(ctx: ExecContext, statement: Tree) -> None:
@@ -479,10 +455,8 @@ _Options_
     args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).read_mount(mount_point, namespace))
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.read_mount(mount_point, namespace))
 
 @bound_ops("Vault-UpdateMount")
 def execute_update_mount(ctx: ExecContext, statement: Tree) -> None:
@@ -510,10 +484,8 @@ _Options_
         _allowed_args(args, _CONFIG_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
         data = _get_arg(args, _CONFIG_ARG, dict)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).update_mount(mount_point, data, namespace))
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.update_mount(mount_point, data, namespace))
 
 @bound_ops("Vault-DeleteMount")
 def execute_delete_mount(ctx: ExecContext, statement: Tree) -> None:
@@ -533,10 +505,8 @@ _Options_
     args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).delete_mount(mount_point, namespace))
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.delete_mount(mount_point, namespace))
 
 @bound_ops("Vault-ListMounts")
 def execute_list_mounts(ctx: ExecContext, statement: Tree) -> None:
@@ -561,10 +531,8 @@ Also see `Vault-DefaultNamespace`
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     parent_namespace: str = _get_default_ns(ctx, args)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).list_mounts(_combine_ns(parent_namespace, namespace)))
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.list_mounts(_combine_ns(parent_namespace, namespace)))
 
 #-------------------------------------------------------------------------------
 # KV2 secrets and metadata
@@ -591,19 +559,15 @@ _Options_
     _allowed_args(args, _DATA_ARG, _META_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG, _CAS_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
     cas: int = _get_arg(args, _CAS_ARG, int, True)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
     data = add_kv_cas(extract_kv_data(_get_arg(args, _DATA_ARG, dict)) if _DATA_ARG in args else {}, cas)
-    result = _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).create_kv2_secret(mount_point, path, data, namespace))
+    result = _set_result(ctx, args, client.create_kv2_secret(mount_point, path, data, namespace))
         # If the data part fails, we'll skip the meta part
         # Caller should be using <result>.status to see if things were okay
     if result['status'] is not None: return
     if _META_ARG in args:
         metadata = extract_kv_metadata(_get_arg(args, _META_ARG, dict))
-        _set_result(ctx,
-                    args,
-                    _CONNECTIONS.get_connection(using).create_kv2_metadata(mount_point, path, metadata, namespace))
+        _set_result(ctx, args, client.create_kv2_metadata(mount_point, path, metadata, namespace))
 
 @bound_ops("Vault-ReadKvSecret")
 def execute_read_kv_secret(ctx: ExecContext, statement: Tree) -> None:
@@ -625,10 +589,8 @@ _Options_
     _allowed_args(args, _VERSION_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
     version: int = _get_arg(args, _VERSION_ARG, int, True)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).read_kv2_secret(mount_point, path, version, namespace))
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.read_kv2_secret(mount_point, path, version, namespace))
 
 @bound_ops("Vault-ReadKvMetadata")
 def execute_read_kv_metadata(ctx: ExecContext, statement: Tree) -> None:
@@ -648,10 +610,8 @@ _Options_
     args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).read_kv2_metadata(mount_point, path, namespace))
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.read_kv2_metadata(mount_point, path, namespace))
 
 @bound_ops("Vault-UpdateKvSecret")
 def execute_update_kv_secret(ctx: ExecContext, statement: Tree) -> None:
@@ -675,21 +635,17 @@ _Options_
     _allowed_args(args, _DATA_ARG, _META_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG, _CAS_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
     cas: int = _get_arg(args, _CAS_ARG, int, True)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, None) # in case neither data or metada is provides
     if _DATA_ARG in args:
         data = add_kv_cas(extract_kv_data(_get_arg(args, _DATA_ARG, dict)), cas)
-        result = _set_result(ctx,
-                    args,
-                    _CONNECTIONS.get_connection(using).update_kv2_secret(mount_point, path, data, namespace))
+        result = _set_result(ctx, args, client.update_kv2_secret(mount_point, path, data, namespace))
         # If the data part fails, we'll skip the meta part
         # Caller should be using <result>.status to see if things were okay
         if result['status'] is not None: return
     if _META_ARG in args:
         metadata = extract_kv_metadata(_get_arg(args, _META_ARG, dict))
-        _set_result(ctx,
-                    args,
-                    _CONNECTIONS.get_connection(using).update_kv2_metadata(mount_point, path, metadata, namespace))
+        _set_result(ctx, args, client.update_kv2_metadata(mount_point, path, metadata, namespace))
 
 @bound_ops("Vault-PatchKvSecret")
 def execute_patch_kv_secret(ctx: ExecContext, statement: Tree) -> None:
@@ -713,21 +669,17 @@ _Options_
     _allowed_args(args, _DATA_ARG, _META_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG, _CAS_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
     cas: int = _get_arg(args, _CAS_ARG, int, True)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, None) # in case neither data or metada is provides
     if _DATA_ARG in args:
         data = add_kv_cas(extract_kv_data(_get_arg(args, _DATA_ARG, dict)), cas)
-        result = _set_result(ctx,
-                    args,
-                    _CONNECTIONS.get_connection(using).patch_kv2_secret(mount_point, path, data, namespace))
+        result = _set_result(ctx, args, client.patch_kv2_secret(mount_point, path, data, namespace))
         # If the data part fails, we'll skip the meta part
         # Caller should be using <result>.status to see if things were okay
         if result['status'] is not None: return
     if _META_ARG in args:
         metadata = extract_kv_metadata(_get_arg(args, _META_ARG, dict))
-        _set_result(ctx,
-                    args,
-                    _CONNECTIONS.get_connection(using).patch_kv2_metadata(mount_point, path, metadata, namespace))
+        _set_result(ctx, args, client.patch_kv2_metadata(mount_point, path, metadata, namespace))
 
 @bound_ops("Vault-DeleteKvSecret")
 def execute_delete_kv_secret(ctx: ExecContext, statement: Tree) -> None:
@@ -749,10 +701,8 @@ _Options_
     _allowed_args(args, _VERSION_ARG, _DATA_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
     data = _get_version_data(args)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).delete_kv2_secret(mount_point, path, data, namespace))
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.delete_kv2_secret(mount_point, path, data, namespace))
 
 @bound_ops("Vault-UndeleteKvSecret")
 def execute_undelete_kv_secret(ctx: ExecContext, statement: Tree) -> None:
@@ -773,10 +723,8 @@ _Options_
     _allowed_args(args, _VERSION_ARG, _DATA_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
     data = _get_version_data(args)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).undelete_kv2_secret(mount_point, path, data, namespace))
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.undelete_kv2_secret(mount_point, path, data, namespace))
 
 @bound_ops("Vault-DestroyKvSecret")
 def execute_destroy_kv_secret(ctx: ExecContext, statement: Tree) -> None:
@@ -797,10 +745,8 @@ _Options_
     _allowed_args(args, _VERSION_ARG, _DATA_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
     data = _get_version_data(args)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).destroy_kv2_secret(mount_point, path, data, namespace))
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.destroy_kv2_secret(mount_point, path, data, namespace))
 
 @bound_ops("Vault-DeleteKvMetadata")
 def execute_delete_kv_metadata(ctx: ExecContext, statement: Tree) -> None:
@@ -820,10 +766,8 @@ _Options_
     args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).delete_kv2_metadata(mount_point, path, namespace))
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.delete_kv2_metadata(mount_point, path, namespace))
 
 @bound_ops("Vault-ListKvSecrets")
 def execute_list_kv_secrets(ctx: ExecContext, statement: Tree) -> None:
@@ -843,10 +787,8 @@ _Options_
     args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).list_kv2_secrets(mount_point, path, namespace))
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.list_kv2_secrets(mount_point, path, namespace))
 
 #-------------------------------------------------------------------------------
 # LDAP secrets engine : Library
@@ -864,10 +806,8 @@ def execute_read_ldap_library(ctx: ExecContext, statement: Tree) -> None:
     args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).read_ldap_library(mount_point, name, namespace))
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.read_ldap_library(mount_point, name, namespace))
 
 @bound_ops("**TODO**")
 # vault_update_ldap_lib : "Vault"i "UpdateLdapLibrary"i expr vault_args _SEMICOLON?
@@ -886,10 +826,8 @@ def execute_list_ldap_libraries(ctx: ExecContext, statement: Tree) -> None:
     args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).list_ldap_libraries(mount_point, namespace))
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.list_ldap_libraries(mount_point, namespace))
 
 #-------------------------------------------------------------------------------
 # LDAP secrets engine : Static
@@ -907,10 +845,8 @@ def execute_read_ldap_secret(ctx: ExecContext, statement: Tree) -> None:
     args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).read_ldap_secret(mount_point, name, namespace))
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.read_ldap_secret(mount_point, name, namespace))
 
 @bound_ops("**TODO**")
 # vault_update_ldap_secret : "Vault"i "UpdateLdapSecret"i expr vault_args _SEMICOLON?
@@ -929,10 +865,8 @@ def execute_list_ldap_secrets(ctx: ExecContext, statement: Tree) -> None:
     args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).list_ldap_secrets(mount_point, namespace))
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.list_ldap_secrets(mount_point, namespace))
 
 @bound_ops("**TODO**")
 # vault_rotate_ldap_secret : "Vault"i "RotateLdapSecret"i expr vault_args _SEMICOLON?
@@ -951,10 +885,8 @@ def execute_create_db_connection(ctx: ExecContext, statement: Tree) -> None:
     _allowed_args(args, _CONFIG_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
     config = _get_arg(args, _CONFIG_ARG, dict)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).create_database_connection(mount_point, name, config, namespace))
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.create_database_connection(mount_point, name, config, namespace))
 
 @bound_ops("**TODO**")
 # vault_read_db_conn    : "Vault"i "ReadDbConnection"i expr vault_args _SEMICOLON?
@@ -963,10 +895,8 @@ def execute_read_db_connection(ctx: ExecContext, statement: Tree) -> None:
     args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).read_database_connection(mount_point, name, namespace))
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.read_database_connection(mount_point, name, namespace))
 
 @bound_ops("**TODO**")
 # vault_update_db_conn  : "Vault"i "UpdateDbConnection"i expr vault_args _SEMICOLON?
@@ -982,10 +912,8 @@ def execute_delete_db_connection(ctx: ExecContext, statement: Tree) -> None:
     args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).delete_database_connection(mount_point, name, namespace))
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.delete_database_connection(mount_point, name, namespace))
 
 @bound_ops("**TODO**")
 # vault_list_db_conns   : "Vault"i "ListDbConnections"i expr vault_args _SEMICOLON?
@@ -994,10 +922,8 @@ def execute_list_db_connections(ctx: ExecContext, statement: Tree) -> None:
     args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).list_database_connections(mount_point, namespace))
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.list_database_connections(mount_point, namespace))
 
 @bound_ops("**TODO**")
 # vault_reset_db_conn   : "Vault"i "ResetDbConnection"i expr vault_args _SEMICOLON?
@@ -1006,10 +932,8 @@ def execute_reset_db_connection(ctx: ExecContext, statement: Tree) -> None:
     args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).reset_database_connection(mount_point, name, namespace))
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.reset_database_connection(mount_point, name, namespace))
 
 @bound_ops("**TODO**")
 # vault_rotate_db_conn  : "Vault"i "RotateDbConnectionCredentials"i expr vault_args _SEMICOLON?
@@ -1018,10 +942,8 @@ def execute_rotate_db_connection_creds(ctx: ExecContext, statement: Tree) -> Non
     args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).rotate_database_connection_creds(mount_point, name, namespace))
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.rotate_database_connection_creds(mount_point, name, namespace))
 
 #-------------------------------------------------------------------------------
 # Database secrets engine : Connections
@@ -1035,10 +957,8 @@ def execute_create_db_role(ctx: ExecContext, statement: Tree) -> None:
     config = _get_arg(args, _CONFIG_ARG, dict)
     is_static = _is_static_type(args)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).create_database_role(mount_point, role_name, is_static, config, namespace))
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.create_database_role(mount_point, role_name, is_static, config, namespace))
 
 @bound_ops("**TODO**")
 def execute_read_db_role(ctx: ExecContext, statement: Tree) -> None:
@@ -1047,10 +967,8 @@ def execute_read_db_role(ctx: ExecContext, statement: Tree) -> None:
     _allowed_args(args, _TYPE_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
     is_static = _is_static_type(args)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).read_database_role(mount_point, role_name, is_static, namespace))
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.read_database_role(mount_point, role_name, is_static, namespace))
 
 @bound_ops("**TODO**")
 def execute_update_db_role(ctx: ExecContext, statement: Tree) -> None:
@@ -1065,10 +983,8 @@ def execute_delete_db_role(ctx: ExecContext, statement: Tree) -> None:
     _allowed_args(args, _TYPE_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
     is_static = _is_static_type(args)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).delete_database_role(mount_point, role_name, is_static, namespace))
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.delete_database_role(mount_point, role_name, is_static, namespace))
 
 @bound_ops("**TODO**")
 def execute_list_db_roles(ctx: ExecContext, statement: Tree) -> None:
@@ -1077,10 +993,8 @@ def execute_list_db_roles(ctx: ExecContext, statement: Tree) -> None:
     _allowed_args(args, _TYPE_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
     is_static = _is_static_type(args)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).list_database_role(mount_point, is_static, namespace))
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.list_database_role(mount_point, is_static, namespace))
 
 @bound_ops("**TODO**")
 def execute_generate_db_role_creds(ctx: ExecContext, statement: Tree) -> None:
@@ -1089,10 +1003,8 @@ def execute_generate_db_role_creds(ctx: ExecContext, statement: Tree) -> None:
     _allowed_args(args, _TYPE_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
     is_static = _is_static_type(args)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).generate_database_role_credentials(mount_point, role_name, is_static, namespace))
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.generate_database_role_credentials(mount_point, role_name, is_static, namespace))
 
 @bound_ops("**TODO**")
 def execute_vault_rotate_db_role_creds(ctx: ExecContext, statement: Tree) -> None:
@@ -1105,45 +1017,38 @@ def execute_vault_rotate_db_role_creds(ctx: ExecContext, statement: Tree) -> Non
     if not is_static:
         raise ValueError(f'{mount_point}/{role_name} : Can only rotate credentials of static roles')
     namespace: str = _get_arg(args, _NS_ARG, str, True)
-    using = _set_default_conn(ctx, _get_default_conn(ctx, args))
-    _set_result(ctx,
-                args,
-                _CONNECTIONS.get_connection(using).rotate_database_static_role_credentials(mount_point, role_name, namespace))
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.rotate_database_static_role_credentials(mount_point, role_name, namespace))
 
 #-------------------------------------------------------------------------------
 
 def _normalize_path(path: str) -> str:
+    """Make sure path points to /v1/<something>"""
     if path.startswith("/v1/"): return path
     if path.startswith("/"): return "/v1" + path
     return "/v1/" + path
 
-def _get_default_ns(ctx: ExecContext, args: dict) -> str:
+def _get_default_ns(_ctx: ExecContext, args: dict) -> str:
     """If the args doesn't contain the namespace, use the default one"""
-    return _get_arg(args, _NS_ARG, str, True) or ctx.get_var(*DEFAULT_NS_PATH)
+    return _get_arg(args, _NS_ARG, str, True) or _STATE.default_namespace
 
 def _set_result(ctx: ExecContext, args: dict, data: Any) -> dict:
     """Sees if the user wants to put the results in a custom location or store in the default location"""
-    path = DEFAULT_RESULT_PATH
+    path = _DEFAULT_RESULT_PATH
     if _RESULT_ARG in args:
         path = args[_RESULT_ARG]
         # They can always restate the default
         # and if they do, we dont check immutability/protection
         # TODO This late check prevents us from doing good error reporting
-        if path != DEFAULT_RESULT_PATH:
+        if path != _DEFAULT_RESULT_PATH:
             ctx.dd.validate_user_set_path(*path)
     do_set(ctx, data, *path)
     return data
 
-def _set_default_conn(ctx: ExecContext, conn: str) -> str:
-    # Only change the DD value if we have to,
-    # so as to skip a message when verbose is on
-    curr = ctx.get_var(*DEFAULT_CONN_PATH)
-    if curr != conn: do_set(ctx, conn, *DEFAULT_CONN_PATH)
-    return conn
-
-def _get_default_conn(ctx: ExecContext, args: dict) -> str:
+def _get_conn_name(args: dict) -> str:
     """If the args doesn't contain the connection, use the default one"""
-    return _get_arg(args, _USING_ARG, str, True) or ctx.get_var(*DEFAULT_CONN_PATH) or _DEFAULT_CONN_NAME
+    _STATE.default_connection =_get_arg(args, _USING_ARG, str, True) or _STATE.default_connection or _DEFAULT_CONN_NAME
+    return _STATE.default_connection
 
 def _combine_ns(parent: str, child: str) -> str:
     """Combine parent and child namespace paths into a single path."""

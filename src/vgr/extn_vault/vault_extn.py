@@ -7,12 +7,6 @@ from typing import Dict, Callable
 from ..extn import VgrExtension
 from ..data_dict import DataDictionary
 
-from .dd_consts import (
-    VAULT_PREFIX,
-    DEFAULT_NS_PATH,
-    DEFAULT_RESULT_PATH,
-    DEFAULT_CONN_PATH,
-)
 from .functions import (
     duration_to_ms,
     extract_kv_data,
@@ -69,6 +63,7 @@ from .stmts import (
     execute_update_ldap_secret,
     execute_update_mount,
     execute_update_ns,
+    vault_initialize,
 )
 
 STATEMENT_HANDLERS = {
@@ -134,10 +129,7 @@ _FUNCTIONS = {
 class VaultExtension(VgrExtension):
 
     def initialize(self, dd: DataDictionary) -> None:
-        dd.add_immutable_prefix(VAULT_PREFIX)
-        dd.set_var('', *DEFAULT_NS_PATH)
-        dd.set_var(None, *DEFAULT_RESULT_PATH)
-        dd.set_var(None, *DEFAULT_CONN_PATH)
+        vault_initialize(dd)
 
     def extends_select(self):
         return True
