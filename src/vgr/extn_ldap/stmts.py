@@ -6,78 +6,84 @@ from typing import Any
 import os
 
 from lark import Tree
+from ldap3 import ANONYMOUS, SIMPLE, NTLM, BASE, LEVEL, SUBTREE
 
 from ..app_exceptions import VgrRuntimeError
+from ..data_dict import DataDictionary, DynamicValue
+from ..evaluate import do_set, _var_name_path
 from ..exec_context import ExecContext
-from ..data_dict import DataDictionary
+from ..mathpak import bound_ops, type_str
 
-from .dd_consts import DEFAULT_CONN_PATH, DEFAULT_RESULT_PATH
 from .ldap_client import LdapClient, LdapClientManager
+
+_BASE_ARG = 'base'
+_SCOPE_ARG = 'scope'
+_QUERY_ARG = 'query'
+_RESULT_ARG = 'result'
+_USING_ARG = 'using'
+
+# These arguments result in a variable name
+_ARG_VAR_NAME = (_RESULT_ARG,)
+
+# These arguments are expressions -OR- they may be unquoted constants
+# treated as strings. This is similar to the way "... AS <name>" is
+# defined for Select statements.
+_ARG_EXPR = (_BASE_ARG, _SCOPE_ARG, _QUERY_ARG, _USING_ARG)
 
 _DEFAULT_CONN_NAME = 'DefaultConnection'
 
 _CONNECTIONS = LdapClientManager()
 
-def _type_str(o: Any) -> str:
-    return repr(type(o).__name__)
+class ExtnState():
+    default_connection = None
 
-def _do_set(dd: DataDictionary, value: Any, *path) -> Any:
-    new_value = dd.set_var(value, *path)
-    ## FUTURE print verbose via ctx
-    return new_value
+_STATE = ExtnState()
 
-def _set_result(dd: DataDictionary, args: dict, data: Any) -> dict:
-    """Sees if the user wants to put the results in a custom location or store in the default location"""
-    path = DEFAULT_RESULT_PATH
-# TODO
-#    if _RESULT_ARG in args:
-#        path = args[_RESULT_ARG]
-        # They can always restate the default
-        # and if they do, we dont check immutability/protection
-#        if path != DEFAULT_RESULT_PATH:
-#            dd.validate_user_set_path(*dd.validate_user_path(*path))
-    return _do_set(dd, data, *path)
+_LDAP_PREFIX = 'ldap'
+_DEFAULT_RESULT_PATH = (_LDAP_PREFIX, 'result')
 
-def _set_default_conn(dd: DataDictionary, conn: str) -> str:
-    # Only change the DD value if we have to,
-    # so as to skip a message when verbose is on
-    curr = dd.get_var(*DEFAULT_CONN_PATH)
-    if curr != conn: _do_set(dd, conn, *DEFAULT_CONN_PATH)
-    return conn
+_SCOPE_MAP = {
+    'base':    BASE,
+    'level':   LEVEL,
+    'subtree': SUBTREE,
+}
 
-def _get_default_conn(dd: DataDictionary) -> str:
-    return dd.get_var(*DEFAULT_CONN_PATH) or _DEFAULT_CONN_NAME
+_AUTH_MAP = {
+    'anonymous': ANONYMOUS,
+    'simple': SIMPLE,
+    'ntlm': NTLM,
+}
 
-def add_dd_constants(dd: DataDictionary, prefix: str) -> None:
-    _do_set(dd, None, *DEFAULT_CONN_PATH)
-    _do_set(dd, None, *DEFAULT_RESULT_PATH)
-# TODO something
-#    for name, value in vars(TermConsts).items():
-#        if not name.startswith("__"): dd.set_var(value, prefix, name.lower())
-    pass
+def ldap_initialize(dd: DataDictionary) -> None:
+    dd.add_immutable_prefix(_LDAP_PREFIX)
+    dd.set_var(DynamicValue(lambda : _STATE.default_connection), _LDAP_PREFIX, 'connection')
+    dd.set_var(None, *_DEFAULT_RESULT_PATH)
+    for name, value in _SCOPE_MAP.items():
+        dd.set_var(value, _LDAP_PREFIX, 'scope', name)
+    for name, value in _AUTH_MAP.items():
+        dd.set_var(value, _LDAP_PREFIX, 'auth', name)
 
-from ldap3 import ANONYMOUS, SIMPLE, NTLM
-
-def _normalize_auth_type(value: str):
-    """
-    Normalize a user-supplied authentication type string to ldap3's canonical constants.
-
-    Accepted synonyms (case-insensitive):
-        - 'anon', 'anonymous'        -> ANONYMOUS
-        - 'simple', 'user', 'bind'   -> SIMPLE
-        - 'ntlm', 'windows', 'sspi'  -> NTLM
-
-    Returns:
-        The ldap3 constant (ANONYMOUS, SIMPLE, NTLM), or None if not recognized.
-    """
-    if value:
-        v = value.strip().lower()
-        if v in ('anon', 'anonymous'): return ANONYMOUS
-        if v in ('simple', 'user', 'bind'): return SIMPLE
-        if v in ('ntlm', 'windows', 'sspi'): return NTLM
-    return SIMPLE
-
+@bound_ops("Ldap-Connect")
 def execute_connect(ctx: ExecContext, statement: Tree) -> None:
+    """
+**Establish an LDAP connection**
+
+* Ldap Connect<br>
+  <em>Host [Is] _host_<br>
+  <em>[Auth | Authentication] [Is] _auth_type_<br>
+  <em>User [Is] _user_<br>
+  <em>Password [Is] _password_<br>
+  <em>Read Only [[Is] _read_only_]<br>
+  <em>[Return] Empty [Attrs | Attributes] [[Is] _empty_attrs_]<br>
+  <em>As _connection_name_<br>
+
+The default for _auth_type_ is _Simple_. The default values for _read_only_
+and _empty_attrs_ are _True_. Connection name is optional.
+
+If _host_ is omitted then _LDAP_URL_, if defined, is used.
+Environment variables _LDAP_BIND_DN_ and _LDAP_PASSWORD_ are used
+if _user_ and _password_ are omitted and _auth_type_ is _Simple_.
+"""
     conn_name = None
     kwargs = {
         'authentication': SIMPLE,
@@ -105,32 +111,118 @@ def execute_connect(ctx: ExecContext, statement: Tree) -> None:
                 raise VgrRuntimeError(child, NotImplementedError(f'Argument {name!r} not handled')) # SNO
         else:
             raise VgrRuntimeError(child, ValueError(f'Unexpected Ldap argument {child!r}')) # SNO
+    # Consult the environment for missing values
     kwargs.setdefault('url', os.environ.get('LDAP_URL'))
     if kwargs['authentication'] == SIMPLE:
         kwargs.setdefault('bind_dn', os.environ.get('LDAP_BIND_DN'))
         kwargs.setdefault('password', os.environ.get('LDAP_PASSWORD'))
     conn_name = conn_name or _DEFAULT_CONN_NAME
     _CONNECTIONS.connect(conn_name, **kwargs)
-    _set_default_conn(ctx.dd, conn_name)
+    _STATE.default_connection = conn_name
     _set_result(ctx.dd, {}, None)
 
+@bound_ops("Ldap-Disconnect")
 def execute_disconnect(ctx: ExecContext, statement: Tree) -> None:
-    default_conn = _get_default_conn(ctx.dd)
+    """
+**Disconnect from LDAP**
+
+* Ldap Disconnect
+* Ldap Disconnect [From] _connection_name_
+
+"""
     if statement.children:
         name = _resolve_str_arg(ctx, statement.children[0], 'Ldap Connection Name')
     else:
-        name = default_conn
+        name = _get_conn_name({})
     try:
         _CONNECTIONS.disconnect(name)
     finally:
-        if name == default_conn: _set_default_conn(ctx.dd, None)
-        _set_result(ctx.dd, {}, None)
+        if name == _STATE.default_connection: _STATE.default_connection = None
 
+@bound_ops("Ldap-Search")
 def execute_search(ctx: ExecContext, statement: Tree) -> None:
-    pass
+    """
+**Perform an LDAP search**
+
+* Ldap Search<br>
+  <em>Base "Is"i? _base_<br>
+  <em>Scope "Is"i? _scope_<br>
+  <em>Query "Is"i? _query_<br>
+  <em>Giving _variable_<br>
+  <em>Using [Connection] _connection_name_<br>
+
+All items are optional except for _query_.
+
+"""
+    # TODO
 
 def _resolve_str_arg(ctx: ExecContext, expr: Tree, name: str, allow_none: bool=False) -> str:
     rc = ctx.eval_expr_or_const(expr)
     if rc is None and allow_none: return None
     if not isinstance(rc, str): raise TypeError(f'{name} must be a string; found {_type_str(rc)}')
     return rc
+
+def _set_result(ctx: ExecContext, args: dict, data: Any) -> dict:
+    """Sees if the user wants to put the results in a custom location or store in the default location"""
+    path = _DEFAULT_RESULT_PATH
+    if _RESULT_ARG in args:
+        path = args[_RESULT_ARG]
+        # They can always restate the default
+        # and if they do, we dont check immutability/protection
+        # TODO This late check prevents us from doing good error reporting
+        if path != _DEFAULT_RESULT_PATH:
+            ctx.dd.validate_user_set_path(*path)
+    do_set(ctx, data, *path)
+    return data
+
+def _get_conn_name(args: dict) -> str:
+    """If the args doesn't contain the connection, use the default one"""
+    _STATE.default_connection =_get_arg(args, _USING_ARG, str, True) or _STATE.default_connection or _DEFAULT_CONN_NAME
+    return _STATE.default_connection
+
+def _get_arg(args: dict, name: str, expected_type: type, optional: bool = False) -> Any:
+    """Retrieve a typed value from args or raise if missing or wrong type."""
+    if name not in args:
+        if optional: return None
+        raise ValueError(f'Missing required argument: {name.title()}')
+    value = args[name]
+    if isinstance(value, expected_type): return value
+    raise TypeError(f'Argument {name.title()} must be of type {type_str(expected_type)}, found {_type_str(value)}')
+
+def _normalize_scope(value: str) -> str:
+    """
+    Normalize a user-supplied scope string to ldap3's canonical constants.
+
+    Accepted synonyms (case-insensitive):
+        - 'base'                  -> BASE
+        - 'level', 'one'          -> LEVEL
+        - 'subtree', 'sub', 'all' -> SUBTREE
+
+    Returns:
+        The ldap3 constant (BASE, LEVEL, SUBTREE)
+    """
+    if value:
+        v = value.strip().lower()
+        if v in ('base',): return BASE
+        if v in ('level', 'one'): return LEVEL
+        if v in ('subtree', 'sub', 'all'): return SUBTREE
+    return BASE
+
+def _normalize_auth_type(value: str) -> str:
+    """
+    Normalize a user-supplied authentication type string to ldap3's canonical constants.
+
+    Accepted synonyms (case-insensitive):
+        - 'anon', 'anonymous'        -> ANONYMOUS
+        - 'simple', 'user', 'bind'   -> SIMPLE
+        - 'ntlm', 'windows', 'sspi'  -> NTLM
+
+    Returns:
+        The ldap3 constant (ANONYMOUS, SIMPLE, NTLM)
+    """
+    if value:
+        v = value.strip().lower()
+        if v in ('anon', 'anonymous'): return ANONYMOUS
+        if v in ('simple', 'user', 'bind'): return SIMPLE
+        if v in ('ntlm', 'windows', 'sspi'): return NTLM
+    return SIMPLE

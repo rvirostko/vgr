@@ -7,15 +7,11 @@ from typing import Dict, Callable
 from ..extn import VgrExtension
 from ..data_dict import DataDictionary
 
-from .dd_consts import (
-    LDAP_PREFIX
-)
-
 from .stmts import (
     execute_connect,
     execute_disconnect,
     execute_search,
-    add_dd_constants
+    ldap_initialize,
 )
 
 from .functions import (
@@ -62,8 +58,7 @@ _HANDLERS = {
 
 class LdapExtension(VgrExtension):
     def initialize(self, dd: DataDictionary) -> None:
-        dd.add_immutable_prefix(LDAP_PREFIX)
-        add_dd_constants(dd, LDAP_PREFIX)
+        ldap_initialize(dd)
 
     def adds_statements(self):
         return True
