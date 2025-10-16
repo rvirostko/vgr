@@ -106,7 +106,10 @@ Also see `Vault-Connect`
         name = _resolve_str_arg(ctx, statement.children[0], 'Vault Connection Name')
     else:
         name = _get_conn_name({})
-    _CONNECTIONS.disconnect(name)
+    try:
+        _CONNECTIONS.disconnect(name)
+    finally:
+        if name == _STATE.default_connection: _STATE.default_connection = None
     _set_result(ctx, {}, None)
 
 #-------------------------------------------------------------------------------
@@ -124,7 +127,7 @@ _Options_
 
 * Namespace Is _namespace_
 * Using [Connection] _name_
-* Results In _variable_
+* Giving _variable_
 
 """
     args: dict = _extract_args(ctx, statement)
@@ -145,7 +148,7 @@ _Options_
 
 * Namespace Is _namespace_
 * Using [Connection] _name_
-* Results In _variable_
+* Giving _variable_
 
 """
     args: dict = _extract_args(ctx, statement)
@@ -166,7 +169,7 @@ _Options_
 
 * Namespace Is _namespace_
 * Using [Connection] _name_
-* Results In _variable_
+* Giving _variable_
 
 """
     args: dict = _extract_args(ctx, statement)
@@ -188,7 +191,7 @@ _Options_
 * Data Is _data_
 * Namespace Is _namespace_
 * Using [Connection] _name_
-* Results In _variable_
+* Giving _variable_
 
 """
     args: dict = _extract_args(ctx, statement)
@@ -211,7 +214,7 @@ _Options_
 * Data Is _data_
 * Namespace Is _namespace_
 * Using [Connection] _name_
-* Results In _variable_
+* Giving _variable_
 
 """
     args: dict = _extract_args(ctx, statement)
@@ -231,7 +234,7 @@ def execute_default_ns(ctx: ExecContext, statement: Tree) -> None:
 
 _Options_
 
-* Results In _variable_
+* Giving _variable_
 
 """
     args: dict = _extract_args(ctx, statement)
@@ -252,7 +255,7 @@ _Options_
 * Metadata Is _meta_
 * Namespace Is _parent_
 * Using [Connection] _name_
-* Results In _variable_
+* Giving _variable_
 
 """
     args: dict = _extract_args(ctx, statement)
@@ -274,7 +277,7 @@ _Options_
 
 * Namespace Is _parent_
 * Using [Connection] _name_
-* Results In _variable_
+* Giving _variable_
 
 """
     args: dict = _extract_args(ctx, statement)
@@ -295,7 +298,7 @@ _Options_
 
 * Namespace Is _parent_
 * Using [Connection] _name_
-* Results In _variable_
+* Giving _variable_
 
 """
     args: dict = _extract_args(ctx, statement)
@@ -317,7 +320,7 @@ _Options_
 
 * Namespace Is _parent_
 * Using [Connection] _name_
-* Results In _variable_
+* Giving _variable_
 
 """
     args: dict = _extract_args(ctx, statement)
@@ -340,7 +343,7 @@ _Options_
 
 * Namespace Is _parent_
 * Using [Connection] _name_
-* Results In _variable_
+* Giving _variable_
 
 """
     namespace: str = _resolve_str_arg(ctx, statement.children[0], 'Namespace', True) if len(statement.children) > 1 else ""
@@ -361,7 +364,7 @@ _Options_
 
 * Namespace Is _parent_
 * Using [Connection] _name_
-* Results In _variable_
+* Giving _variable_
 
 """
     args: dict = _extract_args(ctx, statement)
@@ -382,7 +385,7 @@ _Options_
 
 * Namespace Is _parent_
 * Using [Connection] _name_
-* Results In _variable_
+* Giving _variable_
 
 """
     args: dict = _extract_args(ctx, statement)
@@ -408,7 +411,7 @@ _Options_
 
 * Namespace Is _namespace_
 * Using [Connection] _name_
-* Results In _variable_
+* Giving _variable_
 
 """
     mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
@@ -448,7 +451,7 @@ _Options_
 
 * Namespace Is _namespace_
 * Using [Connection] _name_
-* Results In _variable_
+* Giving _variable_
 
 """
     mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
@@ -470,7 +473,7 @@ _Options_
 
 * Namespace Is _namespace_
 * Using [Connection] _name_
-* Results In _variable_
+* Giving _variable_
 
 """
     mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
@@ -498,7 +501,7 @@ _Options_
 
 * Namespace Is _namespace_
 * Using [Connection] _name_
-* Results In _variable_
+* Giving _variable_
 
 """
     mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
@@ -523,7 +526,7 @@ If no namespace name is provided, the default namespace name is used.
 _Options_
 
 * Using [Connection] _name_
-* Results In _variable_
+* Giving _variable_
 
 Also see `Vault-DefaultNamespace`
 """
@@ -551,7 +554,7 @@ _Options_
 * CAS Is _version_
 * Namespace Is _namespace_
 * Using [Connection] _name_
-* Results In _variable_
+* Giving _variable_
 
 """
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
@@ -581,7 +584,7 @@ _Options_
 
 * Namespace Is _namespace_
 * Using [Connection] _name_
-* Results In _variable_
+* Giving _variable_
 
 """
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
@@ -603,7 +606,7 @@ _Options_
 
 * Namespace Is _namespace_
 * Using [Connection] _name_
-* Results In _variable_
+* Giving _variable_
 
 """
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
@@ -627,7 +630,7 @@ _Options_
 * CAS Is _version_
 * Namespace Is _namespace_
 * Using [Connection] _name_
-* Results In _variable_
+* Giving _variable_
 
 """
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
@@ -661,7 +664,7 @@ _Options_
 * CAS Is _version_
 * Namespace Is _namespace_
 * Using [Connection] _name_
-* Results In _variable_
+* Giving _variable_
 
 """
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
@@ -693,7 +696,7 @@ _Options_
 
 * Namespace Is _namespace_
 * Using [Connection] _name_
-* Results In _variable_
+* Giving _variable_
 
 """
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
@@ -715,7 +718,7 @@ _Options_
 
 * Namespace Is _namespace_
 * Using [Connection] _name_
-* Results In _variable_
+* Giving _variable_
 
 """
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
@@ -737,7 +740,7 @@ _Options_
 
 * Namespace Is _namespace_
 * Using [Connection] _name_
-* Results In _variable_
+* Giving _variable_
 
 """
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
@@ -759,7 +762,7 @@ _Options_
 
 * Namespace Is _namespace_
 * Using [Connection] _name_
-* Results In _variable_
+* Giving _variable_
 
 """
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
@@ -780,7 +783,7 @@ _Options_
 
 * Namespace Is _namespace_
 * Using [Connection] _name_
-* Results In _variable_
+* Giving _variable_
 
 """
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
