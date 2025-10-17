@@ -47,13 +47,13 @@ from .mathpak import (
     poly_repr,
     type_str,
 )
-from .output import expand_filename
 from .redir import print_stderr
 from .exec_context import ExecContext
 from .stmt_exec import (
     create_exec_context,
     do_source,
     do_include,
+    find_vgr_source,
     get_statement_entries,
     STATEMENT_HANDLERS,
 )
@@ -428,14 +428,19 @@ Environment variables:
                 ctx.print_verbose('Executing statements from command line...')
                 ctx.execute_statements(svalue, '<cmd-line>')
                 continue
-            if stype == 'f': # -f or --file
-                # NB: we don't "sandbox" these files like we do with others
-                do_source(ctx, expand_filename(svalue))
-                continue
-            if stype == 'i': # -i or --include
-                # Files to be included once
-                do_include(ctx, expand_filename(svalue))
-                continue
+            try:
+                if stype == 'f': # -f or --file
+                    # NB: we don't "sandbox" these files like we do with others
+                    do_source(ctx, find_vgr_source(svalue))
+                    continue
+                if stype == 'i': # -i or --include
+                    # Files to be included once
+                    do_include(ctx, find_vgr_source(svalue))
+                    continue
+            except VgrException as e:
+                raise e
+            except Exception as e:
+                raise VgrException(None, e, '<cmd-line>', svalue) from e
             raise NotImplementedError(f'Statement source {stype!r} not implemented') # SNO
         if sys.stdin.isatty():
             if args.repl is True or not ordered_args:

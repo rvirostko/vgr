@@ -40,6 +40,7 @@ from .mathpak import (
     poly_true,
     type_str,
 )
+from .output import expand_filename
 from .redir import (
     execute_open,
     execute_close,
@@ -118,6 +119,86 @@ def set_loop_meta(meta: dict, index: int, length: int=None) -> dict:
         meta[_LOOP_META_LENGTH] = length
     return meta
 
+_VGR_PATH: list[Path] = []
+
+def get_vgr_path() -> list[Path]:
+    """
+    Parse VGRPATH into a list of paths.
+    If if not defined in the environment, platform specific defaults
+    are choosen. The parsing is done once, so changing `env.VGRPATH` does not
+    affect this.
+    """
+    if len(_VGR_PATH) == 0:
+        envpath = os.environ.get("VGRPATH")
+        if envpath is not None:
+            entries = [(path.strip() or '.') for path in envpath.split(os.pathsep)]
+        else:
+            # OS-appropriate sensible defaults
+            if os.name == 'posix':
+                entries = ['.', str(Path.home() / '.vgr'), '/usr/local/share/vgr', '/usr/share/vgr']
+            elif os.name == 'nt':
+                entries = ['.', str(Path.home() / 'vgr')]
+                pf = os.environ.get('PROGRAMFILES')
+                if pf: entries.append(str(Path(pf) / 'vgr' / "lib"))
+            else:
+                entries = ['.', str(Path.home() / 'vgr')]
+        for entry in entries:
+            # Don't check for exist() here: user can create after start in repl
+            _VGR_PATH.append(Path(expand_filename(entry)))
+    return _VGR_PATH
+
+def vgrpath_resolve(filename: str) -> Path:
+    """
+    Using get_vgr_path(), try to find a VGR source file.
+    If filename contains any path info, it must be relative to the CWD.
+    Returning None means we didn't find it on the path.
+    It does _NOT_ mean the file doesn't exist.
+    Likewise, returning a non-None value doesn't mean the item is
+    a readable file, only that it exists.
+
+    Behavior is modeled after AWKPATH:
+    https://www.gnu.org/software/gawk/manual/html_node/AWKPATH-Variable.html
+    """
+    # If filename does not include a path component
+    # we consult the path
+    if (os.sep not in filename) and (not os.altsep or os.altsep not in filename):
+        search_dirs = get_vgr_path()
+        def _search(name: str):
+            for d in search_dirs:
+                if d.exists():
+                    candidate = d / name
+                    if candidate.exists(): return candidate.resolve()
+            return None
+        # First pass: exact name
+        found = _search(filename)
+        if found: return found
+        # Second pass: try with extension
+        if not filename.lower().endswith('.vgr'):
+            found = _search(filename + '.vgr')
+            if found: return found
+    return None
+
+def find_vgr_source(filename: str) -> Path:
+    """
+    Find a VGR source file for sourcing or including
+    """
+    filepath = vgrpath_resolve(filename)
+    if filepath is not None: return filepath
+    # Require that it be a local reference
+    full_path = expand_filename(filename)
+    cwd = expand_filename(os.getcwd())
+    if os.path.commonpath([cwd, full_path]) != cwd:
+        raise ValueError(f'File {poly_repr(full_path)} not relative to {poly_repr(cwd)}')
+    return Path(full_path)
+
+def _find_source(ctx: ExecContext, expr: Tree) -> Path:
+    """
+    Internal version of find_vgr_source() that works with values
+    from the parse tree.
+    """
+    filename = ctx.eval_to_str(expr, 'File name', True)
+    return None if filename is None else find_vgr_source(filename)
+
 @bound_ops("Source")
 def execute_source(ctx: ExecContext, statement: Tree) -> None:
     """
@@ -132,9 +213,9 @@ input/output redirection.
 Also see `@Include`
 """
     for child in statement.children:
-        file = ctx.eval_filename_expr(child, True)
         try:
-            do_source(ctx, file)
+            path = _find_source(ctx, child)
+            if path is not None: do_source(ctx, path)
         except Exception as e:
             raise VgrRuntimeError(child, e) from e
 
@@ -151,38 +232,35 @@ cleared by `Reset`.
 Also see `Source` and `Reset`
 """
     for child in statement.children:
-        file = ctx.eval_filename_expr(child, True)
         try:
-            do_include(ctx, file)
+            path = _find_source(ctx, child)
+            if path is not None: do_include(ctx, path)
         except Exception as e:
             raise VgrRuntimeError(child, e) from e
 
-def do_include(ctx: ExecContext, file: str) -> None:
-    if file is None or len(file) == 0: return
-    path = Path(file)
+def do_include(ctx: ExecContext, path: Path) -> None:
     if is_included(path):
-        if ctx.verbose: ctx.print_verbose('Skipping ', poly_repr(file), ': previously included')
+        if ctx.verbose: ctx.print_verbose('Skipping ', poly_repr(path), ': previously included')
     else:
-        do_source(ctx, file, True)
+        do_source(ctx, path, True)
         add_include(path)
 
-def do_source(ctx: ExecContext, file: str, included: bool=False) -> None:
-    if file is None or len(file) == 0: return
-    path = Path(file)
+def do_source(ctx: ExecContext, path: Path, included: bool=False) -> None:
+    filename = str(path)
     if not path.exists():
-        raise FileNotFoundError(f'File {file!r} not found')
+        raise FileNotFoundError(0, f'File {filename!r} not found')
     if not path.is_file():
-        raise IsADirectoryError(f'{file!r} does not reference a file')
+        raise IsADirectoryError(0, f'{filename!r} does not reference a file')
     if not os.access(path, os.R_OK):
-        raise PermissionError(f'File {file!r} not readable')
+        raise PermissionError(0, f'File {filename!r} not readable')
     statements = None
-    if ctx.verbose: ctx.print_verbose('Executing statements from ', poly_repr(file), '...')
+    if ctx.verbose: ctx.print_verbose('Executing statements from ', poly_repr(filename), '...')
     with open(path, 'r', encoding='utf-8-sig') as f:
         statements = f.read()
     tval = ctx.get_var(*INCLUDED_PATH)
     try:
         ctx.set_var(included, *INCLUDED_PATH)
-        ctx.execute_statements(statements, file)
+        ctx.execute_statements(statements, str(path))
     finally:
         ctx.set_var(tval, *INCLUDED_PATH)
 
