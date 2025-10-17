@@ -5,21 +5,23 @@
 // Connections
 ldap_connect   : "Ldap"i "Connect"i (_COMMA? ldap_conn_arg)* _SEMICOLON?
 ldap_disconnect: "Ldap"i "Disconnect"i ("From"i? expr)? _SEMICOLON?
-ldap_conn_arg: "To"i "Host"i? expr -> ldap_conn_addr
-    | "User"i "Is"i? expr -> ldap_user
-    | "Password"i "Is"i? expr -> ldap_password
-    | ("Auth"i | "Authentication"i) "Is"i? expr -> ldap_auth
-    | ("Read"i "Only"i | "Read-Only"i) ("Is"i? expr)? -> ldap_read_only
-    | "Return"i? "Empty"i ("Attributes"i | "Attrs"i) ("Is"i? expr)? -> ldap_empty_attrs
-    | "As"i expr -> ldap_conn_name
+
+ldap_conn_arg: "To"i? "URL"i expr -> ldap_url                                                // string
+    | "User"i "Is"i? expr -> ldap_user                                                       // string
+    | "Password"i "Is"i? expr -> ldap_password                                               // string
+    | ("Authentication"i | "Auth"i) "Is"i? expr -> ldap_auth                                 // constrained string
+    | ("Read"i "Only"i | "Read-Only"i) ("Is"i? expr)? -> ldap_read_only                      // bool
+    | "Return"i? "Empty"i ("Attributes"i | "Attrs"i) ("Is"i? expr)? -> ldap_empty_attrs      // bool
+    | "As"i expr -> ldap_conn_name                                                           // string
 
 // Searching
 ldap_search: "Ldap"i "Search"i (_COMMA? ldap_search_option (_COMMA? ldap_search_option)*)? _SEMICOLON?
 
-?ldap_search_option: "Base"i "Is"i? expr -> lopt_base
-    | "Scope"i "Is"i? expr -> lopt_scope
-    | "Where"i expr -> lopt_query
-    | "Query"i "Is"i? expr -> lopt_query
-    | ("Result"i | "Results"i) "In"i? var_name -> lopt_result
-    | "Giving"i var_name -> lopt_result
-    | "Using"i "Connection"i? expr -> lopt_using
+?ldap_search_option: "Base"i "Is"i? expr -> lopt_search_base                                 // string
+    | "Filter"i "Is"i? expr -> lopt_filter                                                   // string
+    | "Scope"i "Is"i? expr -> lopt_search_scope                                              // constrained string
+    | ("Atrributes"i | "Attrs"i) ("Is"i | "Are"i)? expr -> lopt_attributes                   // list of string
+    | "Dereference"i "Aliases"i ("Is"i? expr)? -> ldap_dereference_aliases                   // bool
+    | "Get"i "Operational"i ("Attributes"i | "Attrs"i) ("Is"i? expr)? -> ldap_get_operational_attributes  // bool
+    | "Giving"i var_name -> lopt_giving                                                      // variable path
+    | "Using"i "Connection"i? expr -> lopt_using                                             // string
