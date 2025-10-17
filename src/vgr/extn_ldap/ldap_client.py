@@ -125,7 +125,7 @@ class LdapClientManager:
         """Remove a named connection. No error if it does not exist."""
         name = self._normalize_name(name)
         if name in self._connections:
-            self._connections.pop(name).close()
+            self._connections.pop(name).disconnect()
 
     def get_connection(self, name: Optional[str] = None) -> LdapClient:
         """Return the LdapClient for the given name."""
