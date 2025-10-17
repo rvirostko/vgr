@@ -12,7 +12,11 @@ from ..app_exceptions import VgrRuntimeError
 from ..data_dict import DataDictionary, DynamicValue
 from ..evaluate import do_set, _var_name_path
 from ..exec_context import ExecContext
-from ..mathpak import bound_ops, type_str
+from ..mathpak import (
+    bound_ops,
+    poly_bool,
+    type_str,
+)
 
 from .ldap_client import LdapClient, LdapClientManager
 
@@ -93,18 +97,18 @@ if _user_ and _password_ are omitted and _auth_type_ is _Simple_.
     for child in statement.children:
         if isinstance(child, Tree):
             name = child.data
-            if name == 'ldap_conn_addr':
-                kwargs['url'] = _resolve_str_arg(ctx, child.children[0], 'Host')
+            if name == 'ldap_url':
+                kwargs['url'] = _resolve_str_arg(ctx, child.children[0], 'URL')
             elif name == 'ldap_user':
                 kwargs['user'] = _resolve_str_arg(ctx, child.children[0], 'User')
             elif name == 'ldap_password':
                 kwargs['password'] = _resolve_str_arg(ctx, child.children[0], 'Password', True)
             elif name == 'ldap_auth':
-                kwargs['authentication'] = _normalize_auth_type(_resolve_str_arg(ctx, child.children[0], 'Authentication'))
+                kwargs['authentication'] = _resolve_auth_arg(ctx, child.children[0])
             elif name == 'ldap_read_only':
-                kwargs['read_only'] = _resolve_str_arg(ctx, child.children[0], 'Read-Only') if child.children else True
+                kwargs['read_only'] = _resolve_bool_arg(ctx, child.children[0], 'Read-Only') if child.children else True
             elif name == 'ldap_empty_attrs':
-                kwargs['return_empty_attributes'] = _resolve_str_arg(ctx, child.children[0], 'Return Empty Attributes') if child.children else True
+                kwargs['return_empty_attributes'] = _resolve_bool_arg(ctx, child.children[0], 'Return Empty Attributes') if child.children else True
             elif child.data == 'ldap_conn_name':
                 conn_name = _resolve_str_arg(ctx, child.children[0], 'Ldap Connection Name')
             else:
@@ -114,12 +118,12 @@ if _user_ and _password_ are omitted and _auth_type_ is _Simple_.
     # Consult the environment for missing values
     kwargs.setdefault('url', os.environ.get('LDAP_URL'))
     if kwargs['authentication'] == SIMPLE:
-        kwargs.setdefault('bind_dn', os.environ.get('LDAP_BIND_DN'))
+        kwargs.setdefault('user', os.environ.get('LDAP_BIND_DN'))
         kwargs.setdefault('password', os.environ.get('LDAP_PASSWORD'))
     conn_name = conn_name or _DEFAULT_CONN_NAME
     _CONNECTIONS.connect(conn_name, **kwargs)
     _STATE.default_connection = conn_name
-    _set_result(ctx.dd, {}, None)
+    _set_result(ctx, {}, None)
 
 @bound_ops("Ldap-Disconnect")
 def execute_disconnect(ctx: ExecContext, statement: Tree) -> None:
@@ -133,7 +137,7 @@ def execute_disconnect(ctx: ExecContext, statement: Tree) -> None:
     if statement.children:
         name = _resolve_str_arg(ctx, statement.children[0], 'Ldap Connection Name')
     else:
-        name = _get_conn_name({})
+        name = _STATE.default_connection or _DEFAULT_CONN_NAME
     try:
         _CONNECTIONS.disconnect(name)
     finally:
@@ -159,8 +163,14 @@ All items are optional except for _query_.
 def _resolve_str_arg(ctx: ExecContext, expr: Tree, name: str, allow_none: bool=False) -> str:
     rc = ctx.eval_expr_or_const(expr)
     if rc is None and allow_none: return None
-    if not isinstance(rc, str): raise TypeError(f'{name} must be a string; found {_type_str(rc)}')
+    if not isinstance(rc, str): raise VgrRuntimeError(expr, TypeError(f'{name} must be a string; found {type_str(rc)}'))
     return rc
+
+def _resolve_bool_arg(ctx: ExecContext, expr: Tree, name: str, allow_none: bool=False) -> str:
+    rc = ctx.eval_expr_or_const(expr)
+    if rc is None and allow_none: return None
+    if isinstance(rc, (list, tuple)): raise VgrRuntimeError(expr, TypeError(f'{name} must be a boolean; found {type_str(rc)}'))
+    return poly_bool(rc)
 
 def _set_result(ctx: ExecContext, args: dict, data: Any) -> dict:
     """Sees if the user wants to put the results in a custom location or store in the default location"""
@@ -175,21 +185,8 @@ def _set_result(ctx: ExecContext, args: dict, data: Any) -> dict:
     do_set(ctx, data, *path)
     return data
 
-def _get_conn_name(args: dict) -> str:
-    """If the args doesn't contain the connection, use the default one"""
-    _STATE.default_connection =_get_arg(args, _USING_ARG, str, True) or _STATE.default_connection or _DEFAULT_CONN_NAME
-    return _STATE.default_connection
 
-def _get_arg(args: dict, name: str, expected_type: type, optional: bool = False) -> Any:
-    """Retrieve a typed value from args or raise if missing or wrong type."""
-    if name not in args:
-        if optional: return None
-        raise ValueError(f'Missing required argument: {name.title()}')
-    value = args[name]
-    if isinstance(value, expected_type): return value
-    raise TypeError(f'Argument {name.title()} must be of type {type_str(expected_type)}, found {_type_str(value)}')
-
-def _normalize_scope(value: str) -> str:
+def _resolve_scope_arg(ctx: ExecContext, expr: Tree) -> str:
     """
     Normalize a user-supplied scope string to ldap3's canonical constants.
 
@@ -201,14 +198,15 @@ def _normalize_scope(value: str) -> str:
     Returns:
         The ldap3 constant (BASE, LEVEL, SUBTREE)
     """
-    if value:
-        v = value.strip().lower()
-        if v in ('base',): return BASE
-        if v in ('level', 'one'): return LEVEL
-        if v in ('subtree', 'sub', 'all'): return SUBTREE
-    return BASE
+    value = _resolve_str_arg(ctx, expr, 'Scope', True)
+    if value is None: return BASE
+    v = value.strip().lower()
+    if v in ('base', ''): return BASE
+    if v in ('level', 'one'): return LEVEL
+    if v in ('subtree', 'sub', 'all'): return SUBTREE
+    raise VgrRuntimeError(expr, ValueError(f'Scope {value!r} is invalid'))
 
-def _normalize_auth_type(value: str) -> str:
+def _resolve_auth_arg(ctx: ExecContext, expr: Tree) -> str:
     """
     Normalize a user-supplied authentication type string to ldap3's canonical constants.
 
@@ -220,9 +218,10 @@ def _normalize_auth_type(value: str) -> str:
     Returns:
         The ldap3 constant (ANONYMOUS, SIMPLE, NTLM)
     """
-    if value:
-        v = value.strip().lower()
-        if v in ('anon', 'anonymous'): return ANONYMOUS
-        if v in ('simple', 'user', 'bind'): return SIMPLE
-        if v in ('ntlm', 'windows', 'sspi'): return NTLM
-    return SIMPLE
+    value = _resolve_str_arg(ctx, expr, 'Authentication', True)
+    if value is None: return SIMPLE
+    v = value.strip().lower()
+    if v in ('simple', 'user', 'bind', ''): return SIMPLE
+    if v in ('anon', 'anonymous'): return ANONYMOUS
+    if v in ('ntlm', 'windows', 'sspi'): return NTLM
+    raise VgrRuntimeError(expr, ValueError(f'Authentication {value!r} is invalid'))
