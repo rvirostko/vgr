@@ -6,8 +6,21 @@ LDAP clients and executing operations
 from typing import Optional, Dict
 import logging
 
-from ldap3 import Server, Connection, ALL, ALL_ATTRIBUTES
-from ldap3.core.exceptions import LDAPException, LDAPExceptionError
+from ldap3 import (
+    ALL_ATTRIBUTES,
+    ALL,
+    Connection,
+    DEREF_NEVER,
+    LEVEL,
+    Server,
+    SIMPLE,
+)
+from ldap3.core.exceptions import (
+    LDAPException,
+    LDAPExceptionError,
+)
+
+from ..mathpak import poly_clamp
 
 # Testing
 # LDAP Server Information (read-only access):
@@ -20,13 +33,23 @@ class LdapClient:
     RC_NO_SUCH_OBJECT = 32
     LOG = logging.getLogger(__name__)
 
-    def __init__(self, *, url: str, user: str, password: str, authentication: str, read_only: bool, return_empty_attributes: bool):
+    def __init__(self, *,
+                 url: str,
+                 user: str,
+                 password: str,
+                 authentication: str=SIMPLE,
+                 read_only: bool=True,
+                 return_empty_attributes: bool=True,
+                 time_limit: int=30,
+                 paged_size: int=500):
         self._url = self._required_string(url, 'url')
-        self._authentication = authentication or "SIMPLE"
+        self._authentication = authentication
         self._user = user
         self._password = password
         self._read_only = bool(read_only)
         self._return_empty_attributes = bool(return_empty_attributes)
+        self._time_limit = poly_clamp(time_limit, 0, 3_600) # unlimited and 1 hour
+        self._paged_size = poly_clamp(paged_size, 0, 1_000)
         self._server = Server(self._url, get_info=ALL)
         self._conn = None
 
@@ -60,17 +83,39 @@ class LdapClient:
             self.LOG.exception(msg, exc_info=True)
             raise RuntimeError(msg) from e
 
-    def search(self, base_dn, search_filter="(objectClass=*)", attributes=ALL_ATTRIBUTES) -> dict:
+    def search(self,
+               search_base: str=None,
+               search_filter="(objectClass=*)",
+               search_scope: str=LEVEL,
+               attributes=ALL_ATTRIBUTES,
+               dereference_aliases=DEREF_NEVER,
+               get_operational_attributes=False,
+               time_limit: int=0,
+               size_limit: int=0) -> dict:
+        """Return a dictionary that describes the result of the operation"""
         connection = self.connection
         try:
-            connection.search(base_dn, search_filter, attributes=attributes)
+            entries = connection.extend.standard.paged_search(
+                self._required_string(search_base, "search base"),
+                search_filter,
+                search_scope=               search_scope,
+                attributes=                 attributes,
+                dereference_aliases=        dereference_aliases,
+                get_operational_attributes= get_operational_attributes,
+                size_limit=                 size_limit or 0,
+                time_limit=                 time_limit or self._time_limit,
+                types_only=                 False,
+                controls=                   None,
+                paged_size=                 self._paged_size,
+                paged_criticality=          True,
+                generator=                  False)
             result_code = connection.result.get("result", -1)
             if result_code in [self.RC_SUCCESS, self.RC_NO_SUCH_OBJECT]:
                 return {
                     "success": True,
                     "result_code": result_code,
                     "error": None,
-                    "entries": [] if result_code == self.RC_NO_SUCH_OBJECT else connection.entries
+                    "entries": [] if result_code == self.RC_NO_SUCH_OBJECT else entries
                 }
             return {
                 "success": False,
