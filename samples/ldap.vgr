@@ -1,0 +1,86 @@
+
+// Public test LDAP server
+// See https://www.forumsys.com/2022/05/10/online-ldap-test-server/
+Set formsys.url To "ldap://ldap.forumsys.com"
+Set formsys.user To "cn=read-only-admin,dc=example,dc=com"
+Set formsys.psw To "password"
+Set formsys.base To "dc=example,dc=com"
+
+Print ""
+
+Echo on
+// Connect to the test server
+Ldap Connect To formsys.url
+    User Is formsys.user
+    Password Is formsys.psw
+Echo off
+
+Print ""
+
+// Simple listing of groups
+// Note that the "dn" is also returned: it is a synthetic attribute
+// and cannot be used in a filter
+Print "Groups"
+Set filter To "objectClass".LdapAttrEquals("groupOfUniqueNames")
+Ldap Search Base Is formsys.base
+    Filter Is filter
+    Attributes Are ["ou", "uniqueMember"]
+    Scope Is ALL
+    Giving groups
+// Check the operation
+Assert groups.success : "Failed to get groups: {} (rc={})", groups.error, groups.result_code
+Sort groups.entries By ou
+Printf As Markdown "Filter: {}\n", filter.MdItalics()
+Select ou.TitleCase() As "Group", uniqueMember.Length() As "Members", dn As "DN"
+    From groups.entries
+    For Batch Template
+Print ""
+
+Define Function PrintPeople(filter):
+    Ldap Search Base Is formsys.base
+        Filter Is filter
+        Scope Is ALL
+        Giving people
+    Assert people.success : "Failed to get people: {} (rc={})", groups.error, groups.result_code
+    Sort people.entries By cn
+    Printf As Markdown "Filter: {}\n", filter.ReplaceStr("*", r"\*").MdItalics()
+    Select cn As "Name", mail.DefaultTo("") As "Email", telephoneNumber.FirstItem().DefaultTo("") As "Phone"
+        From people.entries
+        For Batch Template
+    Print ""
+End
+
+Print "People"
+Call PrintPeople Using "objectClass".LdapAttrEquals("person")
+
+Print "People with both mail and phone numbers"
+Call PrintPeople
+    Using LdapFilterAnd("objectClass".LdapAttrEquals("person"),
+                        "mail".LdapAttrExists(),
+                        "telephoneNumber".LdapAttrExists())
+
+Set qbe = {
+            "objectClass":     "person",
+            "mail":            "*",
+            "telephoneNumber": "*",
+            "cn":              "*past*"
+        }
+Printf "Query-by-example: {}\n",qbe
+Call PrintPeople Using ToLdapFilter(qbe)
+
+// The Size Limit control the number of records returned
+// Additionally, when set to 1, the type of entries changes
+Print "Size Limit behavior"
+ForEach limit In [0, 1, 2]:
+    Ldap Search Base Is "ou=mathematicians," + formsys.base
+        Scope Is ALL
+        Size Limit limit
+    Assert ldap.result.success
+    Print "Limit:", limit,
+          "Type:", ldap.result.entries.Type(),
+          ldap.result.entries.Type() == "list" ? "Len: " + ldap.result.entries.Length() : ""
+End
+
+Print ""
+
+Ldap Disconnect

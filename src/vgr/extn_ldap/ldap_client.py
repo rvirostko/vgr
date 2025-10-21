@@ -4,6 +4,7 @@ LDAP clients and executing operations
 """
 
 from typing import Optional, Dict
+from urllib.parse import urlparse
 import logging
 
 from ldap3 import (
@@ -23,10 +24,13 @@ from ldap3.core.exceptions import (
 from ..mathpak import poly_clamp
 
 # Testing
+# See: https://www.forumsys.com/2022/05/10/online-ldap-test-server/
 # LDAP Server Information (read-only access):
 # Server: ldap.forumsys.com   Port: 389
 # Bind DN: cn=read-only-admin,dc=example,dc=com
 # Bind Password: password
+# ou=mathematicians,dc=example,dc=com
+# ou=scientists,dc=example,dc=com
 
 class LdapClient:
     RC_SUCCESS = 0
@@ -42,7 +46,7 @@ class LdapClient:
                  return_empty_attributes: bool=True,
                  time_limit: int=30,
                  paged_size: int=500):
-        self._url = self._required_string(url, 'url')
+        self._url = validate_ldap_url(self._required_string(url, 'url'), 'URL')
         self._authentication = authentication
         self._user = user
         self._password = password
@@ -95,7 +99,7 @@ class LdapClient:
         """Return a dictionary that describes the result of the operation"""
         connection = self.connection
         try:
-            entries = connection.extend.standard.paged_search(
+            search_results = connection.extend.standard.paged_search(
                 self._required_string(search_base, "search base"),
                 search_filter,
                 search_scope=               search_scope,
@@ -108,27 +112,34 @@ class LdapClient:
                 controls=                   None,
                 paged_size=                 self._paged_size,
                 paged_criticality=          True,
-                generator=                  False)
+                generator=                  True)
             result_code = connection.result.get("result", -1)
+            entries = []
+            for result in search_results:
+                if result.get('type') == 'searchResEntry':
+                    attrs = normalize_ldap_entry(result.get('attributes', {}))
+                    if 'dn' not in attrs and 'distinguishedName' not in attrs:
+                        attrs['dn'] = result.get('dn')
+                    entries.append(attrs)
             if result_code in [self.RC_SUCCESS, self.RC_NO_SUCH_OBJECT]:
                 return {
                     "success": True,
                     "result_code": result_code,
                     "error": None,
-                    "entries": [] if result_code == self.RC_NO_SUCH_OBJECT else entries
+                    "entries": limit_results(size_limit, [] if result_code == self.RC_NO_SUCH_OBJECT else entries)
                 }
             return {
                 "success": False,
                 "result_code": result_code,
                 "error": connection.result,
-                "entries": []
+                "entries": limit_results(size_limit, [])
             }
         except LDAPExceptionError as e:
             return {
                 "success": False,
                 "result_code": -1,
                 "error": str(e),
-                "entries": []
+                "entries": limit_results(size_limit, [])
             }
         except LDAPException as e:
             msg = f'Connection problem with {self._url!r}'
@@ -175,9 +186,95 @@ class LdapClientManager:
     def get_connection(self, name: Optional[str] = None) -> LdapClient:
         """Return the LdapClient for the given name."""
         name = self._normalize_name(name)
-        return self._connections[name] if name in self._connections else self.connect(name)
+        if name not in self._connections:
+            raise ValueError(f'LDAP connection {name!r} does not exist')
+        return self._connections[name]
 
     def _normalize_name(self, name: Optional[str]) -> str:
         if not name or name.isspace() == '':
             raise ValueError('Missing name for LDAP connection')
         return name.strip()
+
+def validate_ldap_url(url: str, name: str) -> str:
+    """
+    Validate an LDAP/LDAPS URL.
+    Must have:
+      - scheme: ldap or ldaps
+      - hostname: present
+    May have:
+      - port
+    Must NOT have:
+      - username/password (embedded credentials)
+      - path, query, or fragment
+    Returns the normalized URL string if valid.
+    Raises ValueError with specific complaint if invalid.
+    """
+    if not isinstance(url, str) or not url.strip(): raise ValueError(f'{name} must be a non-empty string')
+    parsed = urlparse(url.strip())
+    if parsed.scheme not in ('ldap', 'ldaps'): raise ValueError(f'{name} scheme must be ldap or ldaps')
+    if not parsed.hostname: raise ValueError(f'{name} missing hostname')
+    if parsed.username or parsed.password: raise ValueError(f'{name} embedded credentials not allowed')
+    if parsed.path not in ('', '/'): raise ValueError(f'{name} path not allowed')
+    if parsed.query: raise ValueError(f'{name} query parameters not allowed')
+    if parsed.fragment: raise ValueError(f'{name} fragment not allowed')
+    port = f":{parsed.port}" if parsed.port else ''
+    return f"{parsed.scheme}://{parsed.hostname}{port}"
+
+_MULTI_VALUED_ATTRS = {
+    'mailAlternateAddress',
+    'member',
+    'memberOf',
+    'objectClass',
+    'otherMailbox',
+    'otherTelephone',
+    'proxyAddresses',
+    'servicePrincipalName',
+    'telephoneNumber',
+    'uniqueMember',
+}
+
+def normalize_ldap_entry(entry):
+    """
+    Convert LDAP3 entry or dict-like result into a plain Python dict,
+    with all bytes decoded and CaseInsensitiveDict flattened.
+    """
+    # If this is an ldap3 Entry object, use its entry_attributes_as_dict()
+    if hasattr(entry, 'entry_attributes_as_dict'):
+        entry = entry.entry_attributes_as_dict()
+    if isinstance(entry, dict):
+        normalized = {}
+        for key, value in entry.items():
+            # Convert keys to plain strings
+            if not isinstance(key, str): key = str(key)
+            # Convert values
+            if isinstance(value, bytes):
+                value = value.decode('utf-8', errors='replace')
+            elif isinstance(value, (list, tuple)):
+                # Decode bytes elements in lists
+                value = [
+                    v.decode('utf-8', errors='replace') if isinstance(v, bytes) else v
+                    for v in value
+                ]
+            elif isinstance(value, dict):
+                # Recurse for nested dicts (rare, but possible)
+                value = normalize_ldap_entry(value)
+            if key in _MULTI_VALUED_ATTRS:
+                value = value if isinstance(value, list) else [value]
+            else:
+                if value == []:
+                   value = None
+                else:
+                    # Collapse single-value lists
+                    if isinstance(value, list) and len(value) == 1:
+                        value = value[0]
+            normalized[key] = value
+        return normalized
+    elif hasattr(entry, 'items'):
+        return normalize_ldap_entry(dict(entry))
+    return entry
+
+def limit_results(size_limit: int, items: list):
+    if size_limit == 1:
+        if not items: return None
+        if len(items) == 1: return items[0]
+    return items

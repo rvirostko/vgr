@@ -6,7 +6,7 @@
 ldap_connect   : "Ldap"i "Connect"i (_COMMA? ldap_conn_arg)* _SEMICOLON?
 ldap_disconnect: "Ldap"i "Disconnect"i ("From"i? expr)? _SEMICOLON?
 
-ldap_conn_arg: "To"i? "URL"i expr -> lopt_url                                                // string
+ldap_conn_arg: ("To"i | "URL"i "Is"i?) expr -> lopt_url                                                // string
     | "User"i "Is"i? expr -> lopt_user                                                       // string
     | "Password"i "Is"i? expr -> lopt_password                                               // string
     | ("Authentication"i | "Auth"i) "Is"i? expr -> lopt_auth                                 // constrained string
@@ -22,7 +22,7 @@ ldap_search: "Ldap"i "Search"i (_COMMA? ldap_search_option (_COMMA? ldap_search_
 ?ldap_search_option: "Base"i "Is"i? expr -> lopt_search_base                                 // string
     | "Filter"i "Is"i? expr -> lopt_search_filter                                            // string
     | "Scope"i "Is"i? expr -> lopt_search_scope                                              // constrained string
-    | ("Atrributes"i | "Attrs"i) ("Is"i | "Are"i)? expr -> lopt_attributes                   // list of string
+    | ("Attributes"i | "Attrs"i) ("Is"i | "Are"i)? expr -> lopt_attributes                   // list of string
     | "Dereference"i "Aliases"i ("Is"i? expr)? -> lopt_dereference_aliases                   // bool
     | "Get"i "Operational"i ("Attributes"i | "Attrs"i) ("Is"i? expr)? -> lopt_get_operational_attributes  // bool
     | "Time"i "Limit"i "Is"i? expr -> lopt_time_limit                                        // int, seconds
