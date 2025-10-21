@@ -1,3 +1,0 @@
-
-procedure_definition: "procedure"i var "(" (var ("," var)*)? ")" "begin"i? statement* "end"i
-procedure_call: "call"i var "(" (expression ("," expression)*)? ")" -> call
