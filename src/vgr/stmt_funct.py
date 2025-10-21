@@ -42,13 +42,13 @@ def execute_call(ctx: ExecContext, statement: Tree) -> None:
 
 TODO
 """
-    fn = get_function(ctx, statement)
+    fn = get_function(ctx, statement.children[0])
     values = [ctx.eval_expr(arg) for arg in statement.children[1:]]
     UserFunction.invoke(ctx, fn, values)
 
 def execute_call_giving(ctx: ExecContext, statement: Tree) -> None:
     """*doc merged with call*"""
-    fn = get_function(ctx, statement)
+    fn = get_function(ctx, statement.children[0])
     var_path = get_writable_var_path(ctx, statement.children[-1])
     values = [ctx.eval_expr(arg) for arg in statement.children[1:-1]]
     do_set(ctx, UserFunction.invoke(ctx, fn, values), *var_path)

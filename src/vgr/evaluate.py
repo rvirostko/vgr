@@ -183,7 +183,7 @@ class SetVarOperation(Operation):
 def get_function(ctx: ExecContext, statement: Tree):
     fn = ctx.get_var(*_var_name_path(statement))
     if fn is None:
-        raise VgrRuntimeError(statement.children[0], ValueError('Function is not defined'))
+        raise VgrRuntimeError(statement, ValueError('Function is not defined'))
     return fn
 
 class InvokeFunctionOperation(Operation):
