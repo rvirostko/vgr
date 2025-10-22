@@ -6,14 +6,14 @@
 ldap_connect   : "Ldap"i "Connect"i (_COMMA? ldap_conn_arg)* _SEMICOLON?
 ldap_disconnect: "Ldap"i "Disconnect"i ("From"i? expr)? _SEMICOLON?
 
-ldap_conn_arg: ("To"i | "URL"i "Is"i?) expr -> lopt_url                                                // string
+ldap_conn_arg: ("To"i | "URL"i "Is"i?) expr -> lopt_url                                      // string
     | "User"i "Is"i? expr -> lopt_user                                                       // string
     | "Password"i "Is"i? expr -> lopt_password                                               // string
-    | ("Authentication"i | "Auth"i) "Is"i? expr -> lopt_auth                                 // constrained string
+    | ("Authentication"i | "Auth"i) "Is"i? expr -> lopt_authentication                       // constrained string
     | ("Read"i "Only"i | "Read-Only"i) ("Is"i? expr)? -> lopt_read_only                      // bool
     | "Time"i "Limit"i "Is"i? expr -> lopt_time_limit                                        // int, seconds
     | "Page"i "Size"i "Is"i? expr -> lopt_paged_size                                         // int
-    | "Return"i? "Empty"i ("Attributes"i | "Attrs"i) ("Is"i? expr)? -> lopt_empty_attrs      // bool
+    | "Return"i? "Empty"i ("Attributes"i | "Attrs"i) ("Is"i? expr)? -> lopt_return_empty_attributes // bool
     | "As"i expr -> lopt_conn_name                                                           // string
 
 // Searching

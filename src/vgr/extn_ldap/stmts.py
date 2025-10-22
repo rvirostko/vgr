@@ -71,20 +71,44 @@ def execute_connect(ctx: ExecContext, statement: Tree) -> None:
 **Establish an LDAP connection**
 
 * Ldap Connect<br>
-  <em>Host [Is] _host_<br>
+  <em>To _url_<br>
   <em>[Auth | Authentication] [Is] _auth_type_<br>
   <em>User [Is] _user_<br>
   <em>Password [Is] _password_<br>
   <em>Read Only [[Is] _read_only_]<br>
   <em>[Return] Empty [Attrs | Attributes] [[Is] _empty_attrs_]<br>
+  <em>Time Limit [[Is] _time_limit_]<br>
+  <em>Page Size [[Is] _page_size_]<br>
   <em>As _connection_name_<br>
 
-The default for _auth_type_ is _Simple_. The default values for _read_only_
-and _empty_attrs_ are _True_. Connection name is optional.
-
-If _host_ is omitted then _LDAP_URL_, if defined, is used.
+If _url_ is omitted then _LDAP_URL_, if defined, is used.
 Likewise, environment variables _LDAP_BIND_DN_ and _LDAP_PASSWORD_ are used
 if _user_ and _password_ are omitted and _auth_type_ is _Simple_.
+
+The values for _read_only_ and _empty_attrs_ are booleans. If the option
+is present but no value is provided, the default value is _True_.
+
+The values for _time_limit_ and _page_size_ are both integers, reflecting
+the default maximum operation time in seconds and the default blocking
+for retrieved data respectively. Both can be changed on a per operation
+basis when applicable.
+
+The value for _auth_type_ is a string which must be one of
+
+* Anonymous - no authentication required
+* Simple - user/password authentication. This is the default.
+* Ntlm - Uses Windows authentication
+
+If _connection_name_ is omitted, a default name is used.
+This name, or default, becomes the value of _term.connection_.
+
+```vgr
+Connect To "ldaps://main.corp.org"
+    User is corp_dn
+    Password is corp_psw
+    As "ldap_corp"
+Exhibit ldap.connection → ldap.connection = "ldap_corp"
+```
 """
     conn_name = None
     kwargs = {
@@ -112,6 +136,14 @@ def execute_disconnect(ctx: ExecContext, statement: Tree) -> None:
 * Ldap Disconnect
 * Ldap Disconnect [From] _connection_name_
 
+The _connection_name_ must have been created by a previous `Ldap Connect`.
+If no name is provided, the default name is used.
+
+```vgr
+Exhibit ldap.connection → ldap.connection = "ldap_corp"
+Ldap Disconnect
+Exhibit ldap.connection → ldap.connection = None
+```
 """
     if statement.children:
         name = _resolve_str_arg(ctx, statement.children[0], 'Ldap Connection Name')
@@ -131,12 +163,63 @@ def execute_search(ctx: ExecContext, statement: Tree) -> None:
 * Ldap Search<br>
   <em>Base [Is] _base_<br>
   <em>Scope [Is] _scope_<br>
-  <em>Query [Is] _query_<br>
+  <em>Filter [Is] _filter_<br>
   <em>Attributes [Is | Are] _attributes_<br>
+  <em>Time Limit [[Is] _time_limit_]<br>
+  <em>Page Size [[Is] _page_size_]<br>
+  <em>Dereference Aliases [[Is] _deref_aliases_]<br>
+  <em>Get Operational [Attributes | Attrs] [[Is] _op_attrs_]<br>
   <em>Giving _variable_<br>
   <em>Using [Connection] _connection_name_<br>
 
 All items are optional except for _base_.
+
+The _attributes_ to be retrieved are specified as _All_, _None_, or a list of string names.
+If no attributes are defined, all available attributes, as defined by the LDAP server, are returned.
+
+In addition, the _DN_ attribute is added to all retrieved values, even if none of the requested
+attributes had a value.
+
+The values for _time_limit_ and _page_size_ are both integers, reflecting
+the maximum operation time in seconds and the blocking
+for retrieved data respectively. Defaults are inherited from the connection.
+
+The values for _deref_aliases_ and _op_attrs_ are booleans. If a value
+is not provided for the argument, it default to _True_. Setting _deref_aliases_
+cause the search to proceed across aliases in the LDAP tree.
+The _op_attrs_ option must be set to _True_ to retrieve operational
+attributes such as Active Directory's _whenCreated_ or _whenChanged_
+attributes.
+
+The value for _scope_ is a string which must be one of
+
+* Base - the search target is _base_
+* Level or One - the objects that are immediately under _base_ are searched. This is the default.
+* All or Subtree - A full subtree search is performed
+
+If the _Giving_ argument is used, it must reference a user writeable variable.
+On completion, this variable will have the following items set
+
+* _variable_.success - a boolean indicating if the search succeeded or not. Not finding any
+  item _is not_ considered an error.
+* _variable_.result_code - an LDAP specific error code, with zero meaning no errors
+* _variable_.error - a human readable description of an error, if any
+* _variable_.entries - a list of the retrieved values.
+  Note that when _size_limit_ is set to one, the wrapping list is omitted.
+
+If the _Giving_ argument is omited, results are stored in _ldap.result_
+
+Also see-
+
+* `LdapAttrGE()` - Generate a filter for greater-than or equal-to comparison of an attribute
+* `LdapAttrLE()` - Generate a filter for less-than or equal-to comparison of an attribute
+* `LdapEscape()` - Escape special characters in an LDAP filter value
+* `LdapFilterOr()` - Combine two or more LDAP filter expressions with a logical OR
+* `ToLdapFilter()` - Converts a dictionary to a query-by-example filter
+* `LdapFilterAnd()` - Combine two or more LDAP filter expressions with a logical AND
+* `LdapFilterNot()` - Negate an LDAP filter expression
+* `LdapAttrEquals()` - Generate a filter for equality of an attribute with one or more values
+* `LdapAttrExists()` - Generate a filter for an attribute having any value
 
 """
     kwargs = _extract_args(ctx,
@@ -204,14 +287,13 @@ def _resolve_scope_arg(ctx: ExecContext, opt: Tree, name: str) -> str:
     Returns:
         The ldap3 constant (BASE, LEVEL, SUBTREE)
     """
-    expr = opt.children[0]
-    value = _resolve_str_arg(ctx, expr, name, True)
+    value = _resolve_str_arg(ctx, opt, name, True)
     if value is None: return BASE
     v = value.strip().lower()
     if v in ('base', ''): return BASE
     if v in ('level', 'one'): return LEVEL
     if v in ('subtree', 'sub', 'all'): return SUBTREE
-    raise VgrRuntimeError(expr, ValueError(f'{name} {value!r} is invalid'))
+    raise VgrRuntimeError(opt, ValueError(f'{name} {value!r} is invalid'))
 
 def _resolve_auth_arg(ctx: ExecContext, opt: Tree, name: str) -> str:
     """
@@ -225,14 +307,13 @@ def _resolve_auth_arg(ctx: ExecContext, opt: Tree, name: str) -> str:
     Returns:
         The ldap3 constant (ANONYMOUS, SIMPLE, NTLM)
     """
-    expr = opt.children[0]
-    value = _resolve_str_arg(ctx, expr, name, True)
+    value = _resolve_str_arg(ctx, opt, name, True)
     if value is None: return SIMPLE
     v = value.strip().lower()
     if v in ('simple', 'user', 'bind', ''): return SIMPLE
     if v in ('anon', 'anonymous'): return ANONYMOUS
     if v in ('ntlm', 'windows', 'sspi'): return NTLM
-    raise VgrRuntimeError(expr, ValueError(f'{name} {value!r} is invalid'))
+    raise VgrRuntimeError(opt, ValueError(f'{name} {value!r} is invalid'))
 
 def _resolve_attrs_arg(ctx: ExecContext, opt: Tree, name: str) -> Any:
     expr = opt.children[0]
@@ -269,7 +350,7 @@ _OPT_HANDLER = {
     _GIVING_ARG:                ('Giving',                     _resolve_giving_arg),
     _USING_ARG:                 ('Using',                      _resolve_opt_str_arg),
     'attributes':               ('Attributes',                 _resolve_attrs_arg),
-    'auth':                     ('authentication',             _resolve_auth_arg),
+    'authentication':           ('Authentication',             _resolve_auth_arg),
     'dereference_aliases':      ('Derference Aliases',         _resolve_deref_arg),
     'get_operation_attributes': ('Get Operational Attributes', _resolve_opt_bool_arg),
     'paged_size':               ('Page Size',                  _resolve_int_arg),
