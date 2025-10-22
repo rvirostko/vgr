@@ -38,6 +38,7 @@ def execute_call(ctx: ExecContext, statement: Tree) -> None:
 **Invoke a function**
 
 * Call _variable_ [Giving _variable_] [;]
+* Call _variable_ Using _expression_... [Giving _variable_] [;]
 * Call _variable_(_expression_...) [Giving _variable_] [;]
 
 TODO
