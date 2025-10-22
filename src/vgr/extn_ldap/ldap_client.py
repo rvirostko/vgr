@@ -39,8 +39,8 @@ class LdapClient:
 
     def __init__(self, *,
                  url: str,
-                 user: str,
-                 password: str,
+                 user: str=None,
+                 password: str=None,
                  authentication: str=SIMPLE,
                  read_only: bool=True,
                  return_empty_attributes: bool=True,
