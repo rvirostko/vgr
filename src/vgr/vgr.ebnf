@@ -391,6 +391,10 @@ ternary: expr "?" expr ":" expr -> c_ternary
     | ("None"i  | "\u2205" | "Null"i) -> vnone          // Unicode ∅ (Empty set)
     | ("Inf"i   | "\u221E") -> vinf                     // Unicode ∞ (infinity)
     | "Nan"i -> vnan
+    // COBOL "figurative constants", although we only use singular here though
+    | "Space"i -> vspace                                // becomes " "
+    | "Zero"i -> vzero                                  // becomes int 0
+    | "Quote"i -> vquote                                // becomes '"'
     | HEX_NUMBER | BIN_NUMBER | OCT_NUMBER | DEC_NUMBER // becomes INT at runtime
     | FLOAT_NUMBER                                      // becomes FLOAT at runtime
     | STRING

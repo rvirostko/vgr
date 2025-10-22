@@ -756,6 +756,15 @@ class ConstantsNormalizer(Transformer):
     @v_args(tree=True)
     def vnan(self, tree: Tree): return self._const_tree(tree, math.nan)
 
+    @v_args(tree=True)
+    def vspace(self, tree: Tree): return self._const_tree(tree, ' ')
+
+    @v_args(tree=True)
+    def vzero(self, tree: Tree): return self._const_tree(tree, 0)
+
+    @v_args(tree=True)
+    def vquote(self, tree: Tree): return self._const_tree(tree, '"')
+
     def DEC_NUMBER(self, token): return self._to_int(token, 10)
     def HEX_NUMBER(self, token): return self._to_int(token, 16)
     def OCT_NUMBER(self, token): return self._to_int(token, 8)
