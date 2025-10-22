@@ -29,9 +29,6 @@ class DataDictionary():
     A hierachical data store
     """
 
-    # These can't appear in a path name (to prevent confusion)
-    _RESERVED_WORDS = ('true', 'false', 'none', 'null')
-
     def __init__(self):
         # Populate the stack of frames with our "global" frame
         self._frames: list[Frame] = [Frame()]
@@ -44,7 +41,7 @@ class DataDictionary():
 
     def _assert_valid_prefix(self, prefix: str) -> str:
         """Prefixes cannot contain "." or be a reserved word"""
-        assert prefix and '.' not in prefix and prefix not in self._RESERVED_WORDS, "Invalid prefix"
+        assert prefix and '.' not in prefix, "Invalid prefix"
         return prefix
 
     def push_frame(self, locals_list: list=None) -> None:
@@ -230,8 +227,6 @@ overwritten.
     def valid_path_step(step: str) -> str:
         if step is None or not isinstance(step, str) or all(sc.isspace() for sc in step):
             raise ValueError(f'Invalid name component: {step!r}')
-        if step.lower() in DataDictionary._RESERVED_WORDS:
-            raise ValueError(f'{step!r} is a reserved word')
         return step
 
     def validate_user_set_path(self, *path: str) -> tuple:
