@@ -23,7 +23,8 @@
     | cobol_sub_giving
 
 // DATE and TIME should accept either a keyword -or- a pattern
-cobol_accept: "Accept"i var_name "From"i ("Console"i | "Stdin"i | "Sysin"i | "Sysinp"i) _SEMICOLON? -> cobol_accept_input
+cobol_accept: "Accept"i var_name "Upon"i "Console"i cobol_accept_option? _SEMICOLON? -> cobol_accept_input // old standard
+    | "Accept"i var_name ("From"i ("Console"i | "Terminal"i | "Stdin"i | "Sysin"i | "Sysinp"i))? cobol_accept_option? _SEMICOLON? -> cobol_accept_input
     | "Accept"i var_name "From"i "Date"i _SEMICOLON? -> cobol_accept_date
     | "Accept"i var_name "From"i "Date"i "YYYYMMDD"i _SEMICOLON? -> cobol_accept_yyyymmdd
     | "Accept"i var_name "From"i "Day"i _SEMICOLON? -> cobol_accept_day
@@ -31,6 +32,10 @@ cobol_accept: "Accept"i var_name "From"i ("Console"i | "Stdin"i | "Sysin"i | "Sy
     | "Accept"i var_name "From"i "Day-Of-Week"i _SEMICOLON? -> cobol_accept_dow
     | "Accept"i var_name "From"i "Time"i _SEMICOLON? -> cobol_accept_time
     | "Accept"i var_name "From"i ("Unix"i? "Epoch"i | "Timestamp"i) _SEMICOLON? -> cobol_accept_epoch
+cobol_accept_option: "With"i? "Echo"i -> echo // AcuCobol (plus a "with")
+    | "With"i? "No"i "Echo"i -> no_echo // Micro Focus, AcuCobol, and GnuCobol
+    | "No-Echo"i -> no_echo // Micro Focus and GnuCobol
+    | "Secure"i -> secure // Micro Focus and GnuCobol
 
 // NB: Equal is in the spec, Equals is not
 //     Does not support Rounded or On Size Error clauses

@@ -7,6 +7,7 @@ from typing import Any
 import sys
 
 from lark import Tree
+import pwinput
 
 from ..app_exceptions import VgrExitingException, VgrStatementBreak, VgrStatementContinue, VgrRuntimeError
 from ..evaluate import bind_operations, do_set, get_writable_var_path, _var_name_path
@@ -50,7 +51,8 @@ def execute_accept(ctx: ExecContext, statement: Tree) -> None:
     """
 **Get user input or retrieve date and time values**
 
-* Accept _variable_ From [Console | Stdin | Sysin | Sysinp] [;]
+* Accept _variable_ [_option_] [;]
+* Accept _variable_ From [Console | Terminal | Stdin | Sysin | Sysinp] [_option_] [;]
 * Accept _variable_ From [Unix] Epoch [;]
 * Accept _variable_ From Date [;]
 * Accept _variable_ From Date YYYYMMDD [;]
@@ -67,6 +69,18 @@ For user input, when at end-of-file (when not interactive) or if the user hits r
 without entering any information, the contents of _variable_ remains
 unchanged. There is no limit on the length of user input, but it is a single line.
 
+Options are
+* [With] Echo - this is the default
+* [With] No Echo - no output is generated
+* Secure - typing is masked with asterisks
+
+```vgr
+Accept value         // input displayed
+Accept value Echo    // input displayed
+Accept value No Echo // nothing displayed
+Accept value Secure  // asterisks displayed
+```
+
 ```vgr
 Accept value From Date YYYYMMDD
 Print value → "20251003"
@@ -81,7 +95,15 @@ Also see `FormatTimestamp()`
     if name in _DT_FUNCS:
         do_set(ctx, _DT_FUNCS.get(statement.data)(), *var_path)
     else:
-        line = sys.stdin.readline()
+        option = statement.children[-1].data if len(statement.children) > 1 else 'echo'
+        if option == 'echo':
+            line = sys.stdin.readline()
+        elif option == 'no_echo':
+            line = pwinput.pwinput(prompt='', mask='')
+        elif option == 'secure':
+            line = pwinput.pwinput(prompt='', mask='*')
+        else:
+            raise VgrRuntimeError(statement.children[-1], ValueError(f'Accept option {option!r} not implemented')) # SNO
         line = line.rstrip('\n') if line else line
         if line: do_set(ctx, line, *var_path)
 
