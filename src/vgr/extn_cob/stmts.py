@@ -17,6 +17,7 @@ from ..mathpak import (
     poly_div,
     poly_eq,
     poly_false,
+    poly_find,
     poly_ge,
     poly_le,
     poly_lt,
@@ -24,8 +25,10 @@ from ..mathpak import (
     poly_ne,
     poly_number,
     poly_repr,
+    poly_str,
     poly_sub,
     poly_true,
+    type_str,
 )
 from ..redir import print_stderr, print_stdout
 from ..stmt_exec import exec_if_else, exec_loop, exec_repeat, LOOP_META_PATH, set_loop_meta
@@ -612,6 +615,73 @@ def execute_div_by(ctx: ExecContext, statement: Tree) -> None:
     var_path = get_writable_var_path(ctx, statement.children[-1])
     args = tuple(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
     do_set(ctx, poly_div(*args), *var_path)
+
+@bound_ops("String")
+def execute_string(ctx: ExecContext, statement: Tree) -> None:
+    """
+**Concatenate strings**
+
+* String _value_... Into _variable_ [;]
+* String<br>
+  <em>_value_ Delimited By Size<br>
+  <em>_value_ Delimited By _delimiter_<br>
+  <em>Into _variable_<br>
+  End-String [;]
+
+All _value_ arguments may be constants or expressions that yield a string,
+integer, or float. If a _value_ is _None_ it is ignored.
+
+If _variable_ does not exist it is created. If it already exists, its
+value is overwritten.
+
+By default the entirety of each _value_ is added to the result.
+If a delimiter is specified, as in the second form of the syntax, the part of
+the value to the left of _delimiter_ is used. If _value_ does not contain the
+delimiter string, it is added in its entirety. The search for _delimiter_
+uses the same rules as `FindStr()`.
+
+```vgr
+Set h To "Hello"
+Set w To "World"
+String h, w Into s → "HelloWorld"
+String h, ", ", w Into s → "Hello, World"
+```
+
+```vgr
+Set Customer-Name To "Jones, Inc"
+Set Customer-Id To "A104"
+String
+    Customer-Name Delimited By ","
+    Customer-Id   Delimited By Size
+    Into Output-Buffer
+End-String
+Print Output-Buffer → "JonesA104"
+```
+
+Also see `FindStr()`
+"""
+    var_path = get_writable_var_path(ctx, statement.children[-1])
+    value = ''
+    for item in statement.children[:-1]:
+        part_type = item.data
+        expr = item.children[0]
+        part = ctx.eval_expr(expr)
+        if part is None:
+            part = ''
+        elif isinstance(part, (bool, int, float, str)):
+            part = poly_str(part)
+        else:
+            raise VgrRuntimeError(expr, ValueError(f'Cannot String {type_str(part)!r}'))
+        if part_type == 'full':
+            value += part
+        elif part_type == 'delimited':
+            index = -1
+            delimiter = ctx.eval_to_str(item.children[-1], "Delimiter")
+            index = poly_find(part, delimiter) if delimiter else -1
+            value += part[0:index] if index >= 0 else part
+        else:
+            raise NotImplementedError(f'String option {part_type!r} not implemented')
+    do_set(ctx, value, *var_path)
 
 @bound_ops("Exhibit")
 def execute_exhibit(ctx: ExecContext, statement: Tree) -> None:

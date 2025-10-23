@@ -25,6 +25,7 @@ from .stmts import (
     execute_perform_times,
     execute_perform_until,
     execute_perform_varying,
+    execute_string,
     execute_sub_from,
     execute_sub_giving,
 )
@@ -56,6 +57,7 @@ _HANDLERS = {
     'cobol_perform_times':   execute_perform_times,
     'cobol_perform_until':   execute_perform_until,
     'cobol_perform_varying': execute_perform_varying,
+    'cobol_string':          execute_string,
     'cobol_sub_from':        execute_sub_from,
     'cobol_sub_giving':      execute_sub_giving,
 }

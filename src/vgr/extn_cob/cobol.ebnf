@@ -18,6 +18,7 @@
     | cobol_perform_times
     | cobol_perform_until
     | cobol_perform_varying
+    | cobol_string
     | cobol_sub_from
     | cobol_sub_giving
 
@@ -35,7 +36,7 @@ cobol_accept: "Accept"i var_name "From"i ("Console"i | "Stdin"i | "Sysin"i | "Sy
 //     Does not support Rounded or On Size Error clauses
 cobol_compute: "Compute"i var_name ("=" | "Equal"i) expr "End-Compute"i? _SEMICOLON?
 
-// NB: Var/Variable are not present in COBOL, but their presence allows this to match the general set statement
+// NB: Variable are not define in COBOL, but its presence allows this to match the general set statement
 cobol_inc: "Set"i "Variable"i? var_name "Up"i "By"i expr _SEMICOLON?
 cobol_dec: "Set"i "Variable"i? var_name "Down"i "By"i expr _SEMICOLON?
 
@@ -56,6 +57,14 @@ cobol_next_sentence: "Next"i "Sentence"i _SEMICOLON?
 cobol_exhibit: "Exhibit"i "*" _SEMICOLON?
     | "Exhibit"i var_name (_COMMA? var_name)* _SEMICOLON?
 cobol_display_on: "Display"i expr (_COMMA? expr)* (("Upon"i | "On"i) io_type)? _SEMICOLON?
+
+# Notes :
+#   * Does not support "[Not] On Size Error" (entirely N/A here)
+#   * Does not support "Pointer"
+# See https://www.ibm.com/docs/en/cobol-zos/6.3.0?topic=statements-string-statement
+cobol_string: "String"i cobol_string_source (_COMMA? cobol_string_source)* _COMMA? "Into"i var_name "End-String"i? _SEMICOLON?
+cobol_string_source: expr ("Delimited"i "By"i "Size"i)? -> full
+    | expr "Delimited"i "By"i expr -> delimited
 
 cobol_add_to: "Add"i expr (_COMMA? expr)* "To"i var_name "End-Add"i? _SEMICOLON?
 cobol_add_giving: "Add"i expr (_COMMA? expr)* "To"i expr "Giving"i var_name "End-Add"i? _SEMICOLON?
@@ -85,8 +94,7 @@ cobol_move_corr: ("Corresponding"i | "Corr"i)
 # Notes :
 #   * Does not support "Also"
 #   * Muliple (fall-thru) "When" blocks not supported
-#   * "Zero", "Quote", "Space", and "Any" are not supported
-#     These can be simulated using a variable, although this may not be possible for "Any"
+#   * "Any" is not supported
 # NB: Performs contain non-standard ":" separator (optional) to be compatible with other block statements
 # See https://www.ibm.com/docs/en/cobol-zos/6.3.0?topic=statements-evaluate-statement
 cobol_evaluate: "Evaluate"i expr ":"? (cobol_when_block | cobol_when_thru_block)+ cobol_when_other? "End-Evaluate"i _SEMICOLON? -> cobol_evaluate
