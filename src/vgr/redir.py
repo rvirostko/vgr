@@ -39,11 +39,11 @@ def execute_open(ctx: ExecContext, statement: Tree) -> None:
     """
 **Send output to a file**
 
-* Open [Output | Error] [File] _expression_ [Overwrite] [;]
-* Open [Output | Error] [File] _expression_ No Overwrite [;]
-* Open [Output | Error] [File] _expression_ [Extend | Append] [;]
+* Open [Output | Error] [File] _file_ [Overwrite] [;]
+* Open [Output | Error] [File] _file_ No Overwrite [;]
+* Open [Output | Error] [File] _file_ [Extend | Append] [;]
 
-The _expression_ is resolved to a string as the file to be opened.
+The _file_ argument is a string for the file to be opened.
 
 If output is already being sent to another file, it is closed first.
 
@@ -52,6 +52,10 @@ When *No Overwrite* is used, the command will fail if the file already exists.
 Otherwise, if *Overwrite* is used or no mode is given the contents of existing files are truncated.
 
 All redirection is closed at program termination.
+
+`Windows Note`: If you hard code paths, please use the slash as a universal
+directory separator. Since the backslash is an escape character, if you use
+it in a string, you will either need to double it or use a _raw string_.
 
 Also see `Close`
 """

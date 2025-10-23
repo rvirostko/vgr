@@ -20,17 +20,18 @@ def execute_zip(ctx: ExecContext, statement: Tree):
     """
 **Create a ZIP Archive**
 
-* Create ZIP [File] _expression_ [_option_ [, _option_]...] [;]
+* Create ZIP [File] _zip_file_<br>
+  <em>[_option_ [, _option_]...] [;]
 
 Options are
 
-* Include [= | Is] _expression_...
-* Exclude [= | Is] _expression_...
-* Comment [= | Is] _expression_
+* Include [Is] _file_pattern_...
+* Exclude [Is] _file_pattern_...
+* Comment [Is] _comment_
 
-Include and exclude expressions are strings that include files or
+Include and Exclude expressions are strings that include files or
 directories using _glob_ patterns. Both options can specify multiple file
-patterns and can be specify multiple times.
+patterns and can be used multiple times.
 Directories are included recursively and include all file in them.
 
 If the include patterns do not match any files, or the exclude patterns
@@ -39,6 +40,10 @@ remove all added files, then an empty archive is created.
 Both files and directories must be relative to the current directory.
 
 If a comment is specified multiple times, only the last one is used.
+
+`Windows Note`: If you hard code paths, please use the slash as a universal
+directory separator. Since the backslash is an escape character, if you use
+it in a string, you will either need to double it or use a _raw string_.
 """
     zip_name = ctx.eval_filename_expr(statement.children[0])
     include_patterns: list[str] = []

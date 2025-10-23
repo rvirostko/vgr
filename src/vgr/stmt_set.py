@@ -202,17 +202,22 @@ def execute_load_from(ctx: ExecContext, statement: Tree) -> None:
     """
 **Assign a value to a variable from a file**
 
-* Load _variable_ From [File] _expression_ [;]
-* Load _variable_ From [File] _expression_ JSON [Object] [;]
-* Load _variable_ From [File] _expression_ JSON [Object] Per Line [;]
-* Load _variable_ From [File] _expression_ CSV [;]
-* Load _variable_ From [File] _expression_ Text [;]
-* Load _variable_ From [File] _expression_ Text Lines [;]
+* Load _variable_ From [File] _file_ [;]
+* Load _variable_ From [File] _file_ JSON [Object] [;]
+* Load _variable_ From [File] _file_ JSON [Object] Per Line [;]
+* Load _variable_ From [File] _file_ CSV [;]
+* Load _variable_ From [File] _file_ Text [;]
+* Load _variable_ From [File] _file_ Text Lines [;]
 
-The _expression_ is resolved to a string as file to be loaded
+The _file_ argument is a string that is as file to be loaded
 
-If no type is included, the type is inferred from the file's extension
+If no type—_JSON_, _CSV_, etc—is included, the type is inferred from the file's extension
 with _Text_ as the default.
+
+`Windows Note`: If you hard code paths, please use the slash as a universal
+directory separator. Since the backslash is an escape character, if you use
+it in a string, you will either need to double it or use a _raw string_.
+
 """
     var_path = get_writable_var_path(ctx, statement.children[0])
     fn_child = statement.children[1]
