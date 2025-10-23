@@ -5,6 +5,8 @@ from typing import Any, Iterable
 import ast
 import math
 import os
+import re
+import warnings
 
 from lark import Lark, Tree, Token, Transformer, v_args, exceptions
 
@@ -204,11 +206,15 @@ def execute_source(ctx: ExecContext, statement: Tree) -> None:
     """
 **Execute statements stored in a file**
 
-* Source _expression_ [, _expression_]... [;]
+* Source [File | Files] _file_name_ [, _file_name_]... [;]
 
-Each _expression_ is evaluated to a file name. Statements in the file
+Each argument is evaluated to a file name. Statements in the file
 are executed, inheriting the current state of all variable and
 input/output redirection.
+
+`Windows Note`: If you hard code paths, please use the slash as a universal
+directory separator. Since the backslash is an escape character, if you use
+it in a string, you will either need to double it or use a _raw string_.
 
 Also see `@Include`
 """
@@ -224,12 +230,17 @@ def execute_include(ctx: ExecContext, statement: Tree) -> None:
     """
 **Execute statements stored in a file once per run**
 
-* @Include _expression_ [, _expression_]... [;]
+* @Include [File | Files] _file_name_ [, _file_name_]... [;]
 
 Similar to `Source` but files are only included once per run, unless
 cleared by `Reset`.
 
 Also see `Source` and `Reset`
+
+`Windows Note`: If you hard code paths, please use the slash as a universal
+directory separator. Since the backslash is an escape character, if you use
+it in a string, you will either need to double it or use a _raw string_.
+
 """
     for child in statement.children:
         try:
@@ -737,7 +748,9 @@ class ConstantsNormalizer(Transformer):
     def STRING(self, token):
         try:
             # Removes the quoting and interprets escape sequences
-            return self._const_token(token, ast.literal_eval(self.normalize_outer_quotes(token.value)))
+            return self._const_token(token, ConstantsNormalizer.tolerant_literal_eval(ConstantsNormalizer.normalize_outer_quotes(token.value)))
+        except ValueError as e:
+            raise VgrRuntimeError(token, e) from e
         except SyntaxError as e:
             raise VgrRuntimeError(token, ValueError(str(e.msg).strip())) from e
 
@@ -786,7 +799,8 @@ class ConstantsNormalizer(Transformer):
                      meta.start_pos, meta.line, meta.column,
                      meta.end_line, meta.end_column, meta.end_pos)
 
-    def normalize_outer_quotes(self, s: str) -> str:
+    @staticmethod
+    def normalize_outer_quotes(s: str) -> str:
         """Fixes up typographic quotes from text pasted in from MS products like Word"""
         if s[0] in 'Rr':
             prefix = s[0]
@@ -802,8 +816,27 @@ class ConstantsNormalizer(Transformer):
         if open_quote == '\u2018' and close_quote == '\u2019': return prefix + "'" + s[1:-1] + "'"
         # Typographic double quotes
         if open_quote == '\u201C' and close_quote == '\u201D': return prefix + '"' + s[1:-1] + '"'
-        # TODO Need to handle triple-quotes in a similar manner
         return prefix + s
+
+    @staticmethod
+    def tolerant_literal_eval(s: str) -> str:
+        try:
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore", DeprecationWarning)
+                return ast.literal_eval(s)
+        except (SyntaxError, ValueError):
+            # escape stray backslashes not part of valid escape sequences
+            try:
+                safe = re.sub(r'(?<!\\)\\(?![\\abfnrtv\'"xuU0-9])', r'\\\\', s)
+                with warnings.catch_warnings():
+                    warnings.simplefilter("ignore", DeprecationWarning)
+                    return ast.literal_eval(safe)
+            except (SyntaxError, ValueError):
+                # TODO log it? need context
+                # final fallback: remove outer quotes if present
+                if len(s) >= 2 and s[0] in ('"', "'") and s[-1] == s[0]:
+                    return s[1:-1]
+                return s
 # pylint: enable=invalid-name
 
 @v_args(tree=True)
