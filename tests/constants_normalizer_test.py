@@ -2,6 +2,12 @@ import pytest
 
 from vgr.stmt_exec import ConstantsNormalizer
 
+# NB: "input_text" represents what would
+#     be parsed from source. The parser makes
+#     sure we have proper quoting and understands
+#     the embedded/escaped quotes, but it does NOT
+#     attempt to validate backslash sequences, which
+#     is what these tests are about.
 @pytest.mark.parametrize("input_text, expected", [
     # --- Properly quoted strings ---
     ('"hello"', "hello"),
@@ -11,10 +17,17 @@ from vgr.stmt_exec import ConstantsNormalizer
     ('"line1\\nline2"', "line1\nline2"),
     ('"tab\\tend"', "tab\tend"),
     ('"quote: \\" "', 'quote: " '),
+    # retest with triple quotes
+    ('"""line1\\nline2"""', "line1\nline2"),
+    ('"""tab\\tend"""', "tab\tend"),
+    ('"""quote: \\" """', 'quote: " '),
 
     # --- Invalid escape sequences (should survive as literal) ---
     ('"bad\\qescape"', "bad\\qescape"),
     ('"mix\\nvalid\\ybad"', "mix\nvalid\\ybad"),
+    # retest with triple quotes
+    ('"""bad\\qescape"""', "bad\\qescape"),
+    ('"""mix\\nvalid\\ybad"""', "mix\nvalid\\ybad"),
 
     # --- Mixed escapes and fallback logic ---
     (r'"c:\\path\\file"', r"c:\path\file"),        # both \p and \f are fine
@@ -30,13 +43,6 @@ from vgr.stmt_exec import ConstantsNormalizer
 def test_tolerant_literal_eval(input_text, expected):
     result = ConstantsNormalizer.tolerant_literal_eval(input_text)
     assert result == expected
-
-
-def test_returns_str_on_total_failure():
-    # Non-evaluable nonsense should return the same input
-    bad_input = '"""broken\\'
-    assert ConstantsNormalizer.tolerant_literal_eval(bad_input) == bad_input
-
 
 def test_preserves_backslashes_for_invalid_sequences():
     # Ensure \q becomes \\q, not removed or collapsed

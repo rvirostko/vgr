@@ -821,22 +821,26 @@ class ConstantsNormalizer(Transformer):
     @staticmethod
     def tolerant_literal_eval(s: str) -> str:
         try:
-            with warnings.catch_warnings():
-                warnings.simplefilter("ignore", DeprecationWarning)
-                return ast.literal_eval(s)
-        except (SyntaxError, ValueError):
+            return ConstantsNormalizer.quiet_literal_eval(s)
+        except (SyntaxError, ValueError) as e:
+            # Raw string should not have any problems with bad
+            # backslash problems, so must be something we can't fix
+            if s[0].lower() == 'r': raise e
             # escape stray backslashes not part of valid escape sequences
             try:
                 safe = re.sub(r'(?<!\\)\\(?![\\abfnrtv\'"xuU0-9])', r'\\\\', s)
-                with warnings.catch_warnings():
-                    warnings.simplefilter("ignore", DeprecationWarning)
-                    return ast.literal_eval(safe)
+                return ConstantsNormalizer.quiet_literal_eval(safe)
             except (SyntaxError, ValueError):
-                # TODO log it? need context
-                # final fallback: remove outer quotes if present
-                if len(s) >= 2 and s[0] in ('"', "'") and s[-1] == s[0]:
-                    return s[1:-1]
-                return s
+                # that didn't fix it, so treat it as a
+                # raw string and let any problems flow upward
+                return ConstantsNormalizer.quiet_literal_eval('r' + s)
+
+    @staticmethod
+    def quiet_literal_eval(s: str) -> str:
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore", DeprecationWarning)
+            return ast.literal_eval(s)
+
 # pylint: enable=invalid-name
 
 @v_args(tree=True)
