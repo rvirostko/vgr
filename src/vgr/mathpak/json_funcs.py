@@ -41,7 +41,7 @@ Format the object as a "prety" JSON string
 """
     indent = None if indent is None else int_arg(indent, 'Indent')
     sort_keys = bool_arg(sort_keys, "SortKeys")
-    return None if obj is None else json.dumps(to_json(obj), indent=indent, sort_keys=sort_keys)
+    return None if obj is None else json.dumps(to_json(obj), indent=indent, default=str, sort_keys=sort_keys)
 
 def to_json_string(obj):
     """
@@ -52,7 +52,7 @@ Format the object as a "compact" JSON string
 ```
 
 """
-    return None if obj is None else json.dumps(to_json(obj), separators=(',', ':'), ensure_ascii=False)
+    return None if obj is None else json.dumps(to_json(obj), separators=(',', ':'), default=str, ensure_ascii=False)
 
 def to_json(obj):
     """

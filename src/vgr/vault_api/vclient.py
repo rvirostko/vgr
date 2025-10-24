@@ -112,7 +112,7 @@ class VaultClient():
         if data is not None:
             mime_type = _MIME_JSON_PATCH if method == _M_PATCH else _MIME_JSON
             headers['Content-Type'] = f'{mime_type}; charset={_UTF_8}'
-            data_bytes = json.dumps(data).encode(_UTF_8)
+            data_bytes = json.dumps(data, default=str).encode(_UTF_8)
         try:
             self._conn.request(url=url, method=method, headers=headers, body=data_bytes)
             response = self._conn.getresponse()

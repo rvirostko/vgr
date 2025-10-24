@@ -152,7 +152,8 @@ class JSONRecordWriter(FileRecordWriter):
                         indent=self._writer.indent,
                         sort_keys=self._writer.sort_keys,
                         ensure_ascii=self._writer.encode_ascii,
-                        separators=self._separators))
+                        separators=self._separators,
+                        default=str))
             self.flush()
 
     class ObjectModeFormater(JFormater):
@@ -180,7 +181,8 @@ class JSONRecordWriter(FileRecordWriter):
                         indent=self._writer.indent,
                         sort_keys=self._writer.sort_keys,
                         ensure_ascii=self._writer.encode_ascii,
-                        separators=self._separators))
+                        separators=self._separators,
+                        default=str))
             self.flush()
 
     class ListModeFormater(JFormater):
@@ -189,7 +191,8 @@ class JSONRecordWriter(FileRecordWriter):
                         indent=None,
                         sort_keys=self._writer.sort_keys,
                         ensure_ascii=self._writer.encode_ascii,
-                        separators=self._separators))
+                        separators=self._separators,
+                        default=str))
             self.flush()
 
         def finish(self) -> None:

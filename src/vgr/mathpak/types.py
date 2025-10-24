@@ -283,7 +283,7 @@ If _value_ is _None_ it is left as _None_, not converted to the string _"None"_.
     if isinstance(x, str): return x
     if isinstance(x, re.Pattern): return x.pattern
     if isinstance(x, (list, tuple)): return list(poly_str(x1) for x1 in x)
-    if isinstance(x, dict): return json.dumps(x)
+    if isinstance(x, dict): return json.dumps(x, default=str)
     return str(x)
 
 def poly_isstr(x: Any) -> bool:
