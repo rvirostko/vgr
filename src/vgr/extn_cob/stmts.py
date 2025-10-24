@@ -771,19 +771,25 @@ def execute_display_on(ctx: ExecContext, statement: Tree) -> None:
     """
 **Print values to either the output (stdout) or error (stderr) streams**
 
-* Display _expression_... [;]
-* Display _expression_... On Output [;]
-* Display _expression_... On Error [;]
+* Display _expression_... [_option_]... [;]
 
 The default is to print to the output stream.
-While similar to `Print`, `Display` does not use _env.OFS_ or _env.ORS_, instead using
-no separator between items and always ending with a newline.
+While similar to `Print`, `Display` does not use _env.OFS_ or _env.ORS_, instead
+it defaults to no separator between items and always ending with a newline.
+
+*Options*
+
+* Upon [Output | Error] - send the output to stdout or stderr respectively. If this
+  option is not specified, output goes to stdout.
+* [With] No Advancing - do not add a newline at the end of the output
 
 ```vgr
 Move "Hello" To Greeting
-Move "World" to Whom
+Move "World" To Whom
 Print Greeting, Whom
 Hello World
+Printf "{}, {}!", Greeting, Whom
+Hello, World!
 Display Greeting Whom
 HelloWorld
 ```
@@ -791,20 +797,35 @@ HelloWorld
 Also see `Print`, `Printf`, and `Exhibit`
 """
     dest_stdout = True
-    args = tuple()
-    if statement.children:
-        last_child = statement.children[-1]
-        if isinstance(last_child, Tree) and last_child.data in ('stdout', 'stderr', 'stdin'):
-            if last_child.data == 'stdin':
-                raise VgrRuntimeError(last_child, ValueError(f'Cannot send output to {last_child.data}'))
-            dest_stdout = last_child.data == 'stdout'
-            args = tuple(ctx.eval_expr(expr) for expr in statement.children[:-1])
-        else:
-            args = tuple(ctx.eval_expr(expr) for expr in statement.children)
+    ender = None
+    flush = None
+    # Options appear after arguments
+    # We keep looking at the end of the list for known options
+    # and pull then off the list
+    args = list(statement.children)
+    while args:
+        last_child = args[-1]
+        if isinstance(last_child, Tree):
+            if last_child.data == 'upon':
+                where = last_child.children[0].data
+                if where in ['stdout', 'stderr']:
+                    dest_stdout = where == 'stdout'
+                else:
+                    raise VgrRuntimeError(last_child, ValueError(f'Cannot send output to {where!r}'))
+                args.pop()
+                continue
+            if last_child.data == 'no_advance':
+                ender = ''
+                flush = True
+                args.pop()
+                continue
+        # Not an option, so exit loop
+        break
+    args = tuple(ctx.eval_expr(expr) for expr in args)
     if dest_stdout:
-        print_stdout(*args, sep='')
+        print_stdout(*args, sep='', end=ender, flush=flush)
     else:
-        print_stderr(*args, sep='')
+        print_stderr(*args, sep='', end=ender, flush=flush)
 
 @control_statement
 @bound_ops("Evaluate")
