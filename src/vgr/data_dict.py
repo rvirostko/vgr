@@ -11,6 +11,7 @@ from typing import (
     KeysView,
     Optional,
 )
+import copy
 
 # NB: this indicates the dynamic stuff doesn't belong here...
 from .mathpak import poly_repr
@@ -173,18 +174,18 @@ overwritten.
         """
         context: str = path[0]
         # $static is TBD/reserved; always None
-        if context == STATIC_CONTEXT: return (None, path[1:])
+        if context == STATIC_CONTEXT: return (context, None, path[1:])
         # $local means data rooted in a non-global frame
         if context == LOCAL_CONTEXT:
-            return (frame.data if frame != self._global_frame else None, path[1:])
+            return (context, frame.data if frame != self._global_frame else None, path[1:])
         # $global means data only available in the global frame
-        if context == GOBAL_CONTEXT: return (self._global_frame.data, path[1:])
+        if context == GOBAL_CONTEXT: return (context, self._global_frame.data, path[1:])
         # $outer is contextual and not always available
         if context == OUTER_CONTEXT:
             outer = frame.outer_frame()
-            return ((outer.data if outer is not None else None), path[1:])
+            return (context, (outer.data if outer is not None else None), path[1:])
         # No context, so we let the Frame's logic handle it
-        return (frame, path)
+        return (None, frame, path)
 
     def get_var(self, *path: str) -> Any:
         """
@@ -193,17 +194,17 @@ overwritten.
         path does not lead to a dictionary.
         Note that "None" is not a definitive "not found" statement.
         """
-        data, path = self._resolve_context(self._current_frame, *path)
+        is_immutable = False
+        context, data, path = self._resolve_context(self._current_frame, *path)
+        if not path: raise ValueError(f'Missing variable name after {context!r}')
         if data is not None:
-            if path:
-                for step in path:
-                    if step in _CONTEXT_KEYS:
-                        raise ValueError(f'Improper use of {step!r} variable context')
-                    if not isinstance(data, (Frame, dict)) or step not in data: return None
-                    data = self._value_for(data[step])
-            else:
-                data = self._value_for(data)
-        return data
+            is_immutable = path[0] in self._immutable_prefixes
+            for step in path:
+                if step in _CONTEXT_KEYS:
+                    raise ValueError(f'Improper use of {step!r} variable context')
+                if not isinstance(data, (Frame, dict)) or step not in data: return None
+                data = self._value_for(data[step])
+        return copy.deepcopy(data) if is_immutable else data
 
     def var_exists(self, *path: str) -> tuple[bool, str, Any]:
         """

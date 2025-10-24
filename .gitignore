@@ -3,6 +3,7 @@
 * - mail-output.txt
 * - skipped.csv
 vgr-syntax/
+test-log/
 
 # Python bytecode
 __pycache__/

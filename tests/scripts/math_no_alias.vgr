@@ -1,0 +1,17 @@
+
+# Test: when you attempt to get an alias to
+# an immutable variable, you actually get
+# a mutable copy
+
+Print math
+
+Set t To math
+Print t
+
+Set t.inf To 0
+Set t.new_var To "frog"
+Print t
+
+Assert math.inf == INF
+Assert t.inf == 0
+Assert 'new_var' Is In t
