@@ -1,0 +1,19 @@
+# Negative tests
+
+Ldap Connect Url "ldap://foo.com" Auth Is "frog"
+
+Ldap Connect To "ldap://foo.com" Auth Is "anon" Page Size Is "frog"
+
+Ldap Connect To "ldap://foo.com" Auth Is "anon" Time Limit Is "frog"
+
+Ldap Connect To "ldap://foo.com" Auth Is "anon" As None
+
+Ldap Connect To "ldap://foo.com" Auth Is "anon" As ""
+
+Ldap Connect To "ldap://foo.com" Auth Is "anon" As " "
+
+Ldap Disconnect None
+
+Ldap Disconnect ""
+
+Ldap Disconnect " "

@@ -19,6 +19,7 @@ from ..mathpak import (
     bound_ops,
     poly_bool,
     poly_int,
+    poly_isempty,
     poly_list,
     poly_str,
     poly_strip,
@@ -146,7 +147,7 @@ Exhibit ldap.connection → ldap.connection = None
 ```
 """
     if statement.children:
-        name = _resolve_str_arg(ctx, statement.children[0], 'Ldap Connection Name')
+        name = _resolve_str_arg(ctx, statement, 'Connection Name')
     else:
         name = _STATE.default_connection or _DEFAULT_CONN_NAME
     try:
@@ -250,9 +251,12 @@ def _resolve_int_arg(ctx: ExecContext, opt: Tree, name: str) -> str:
 def _resolve_str_arg(ctx: ExecContext, opt: Tree, name: str, allow_none: bool=False) -> str:
     expr = opt.children[0]
     rc = ctx.eval_expr_or_const(expr)
-    if rc is None and allow_none: return None
-    if not isinstance(rc, str): raise VgrRuntimeError(expr, TypeError(f'{name} must be a string; found {type_str(rc)}'))
-    return rc
+    if rc is None and not allow_none: raise VgrRuntimeError(expr, ValueError(f'{name} cannot be None'))
+    if isinstance(rc, str):
+        # NB: if you use "expr" instead of "opt" it can't seem to find the index!
+        if poly_isempty(rc) and not allow_none: raise VgrRuntimeError(opt, ValueError(f'{name} cannot be blank'))
+        return rc
+    raise VgrRuntimeError(expr, TypeError(f'{name} must be a string; found {type_str(rc)}'))
 
 def _resolve_opt_str_arg(ctx: ExecContext, opt: Tree, name: str) -> str:
     """Allows for a None result"""
@@ -346,7 +350,7 @@ def _resolve_giving_arg(ctx: ExecContext, opt: Tree, _name: str) -> tuple:
 
 _OPT_HANDLER = {
     _BASE_ARG:                  ('Base',                       _resolve_str_arg),
-    _CONN_NAME_ARG:             ('Connection Name',            _resolve_opt_str_arg),
+    _CONN_NAME_ARG:             ('Connection Name',            _resolve_str_arg),
     _GIVING_ARG:                ('Giving',                     _resolve_giving_arg),
     _USING_ARG:                 ('Using',                      _resolve_opt_str_arg),
     'attributes':               ('Attributes',                 _resolve_attrs_arg),

@@ -1,6 +1,8 @@
 
 # Just go through the syntax and valid argument permutaitons
 
+Echo On
+
 Ldap Connect Url "ldap://foo.com" Auth Is "anon"
 Ldap Connect Url Is "ldap://foo.com" Auth Is "anon"
 
@@ -42,3 +44,9 @@ Ldap Connect To "ldap://foo.com" Auth Is "anon" Empty Attributes Is True
 Ldap Connect To "ldap://foo.com" Auth Is "anon" Return Empty Attributes Is True
 Ldap Connect To "ldap://foo.com" Auth Is "anon" Return Empty Attributes Is "okay"
 Ldap Connect To "ldap://foo.com" Auth Is "anon" Return Empty Attributes Is None
+
+Ldap Connect To "ldap://foo.com" Auth Is "anon" As "zippy"
+Assert ldap.connection Is "zippy"
+
+Ldap Disconnect "zippy"
+Assert ldap.connection Is None
