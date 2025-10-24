@@ -17,7 +17,7 @@ _PACKAGE = {
             {
                 "id": "vgr",
                 "aliases": ["VGR", "vgr"],
-                "extensions": [".vgr"],
+                "extensions": [".vgr", ".vstatements"],
                 "configuration": "./language-configuration.json"
             }
         ],
