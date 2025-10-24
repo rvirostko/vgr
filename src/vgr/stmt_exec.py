@@ -838,7 +838,8 @@ class ConstantsNormalizer(Transformer):
     @staticmethod
     def quiet_literal_eval(s: str) -> str:
         with warnings.catch_warnings():
-            warnings.simplefilter("ignore", DeprecationWarning)
+            warnings.simplefilter("ignore", DeprecationWarning) # older...
+            warnings.simplefilter("ignore", SyntaxWarning) # newer...
             return ast.literal_eval(s)
 
 # pylint: enable=invalid-name
