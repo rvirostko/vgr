@@ -48,7 +48,6 @@ cobol_dec: "Set"i "Variable"i? var_name "Down"i "By"i expr _SEMICOLON?
 cobol_exit: "Stop"i "Run"i _SEMICOLON?
 
 // NB: Performs contain non-standard ":" separator (optional) to be compatible with other block statements
-cobol_perform: "Perform"i ":"? statement+ "End-Perform"i _SEMICOLON?
 cobol_perform_times: "Perform"i expr "Times"i ":"? statement+ "End-Perform"i _SEMICOLON?
 cobol_perform_until: "Perform"i "Until"i expr ":"? statement+ "End-Perform"i _SEMICOLON?
 cobol_perform_varying: "Perform"i varying_test_type? "Varying"i var_name "From"i expr "By"i expr "Until"i expr ":"? statement+ "End-Perform"i _SEMICOLON?
