@@ -124,7 +124,11 @@ and escapes non-printable characters.
 Also see `Ascii()`
 """
     # These are of limited aesthetic value
-    if isinstance(x, str) and '"' not in x: return repr(x).replace("'", '"')
+    if isinstance(x, str) and '"' not in x:
+        r = repr(x)
+        if r[0] == r[-1] == "'":
+            return '"' + r[1:-1] + '"'
+        return r
     if isinstance(x, re.Pattern): return poly_repr(x.pattern)
     if isinstance(x, list): return '[' + ', '.join(poly_repr(x1) for x1 in x) + ']'
     return repr(x)
