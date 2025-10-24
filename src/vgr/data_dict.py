@@ -211,7 +211,7 @@ overwritten.
         Returns a tuple that says if the value exists and,
         if it does, what that value is.
         """
-        data, path = self._resolve_context(self._current_frame, *path)
+        _, data, path = self._resolve_context(self._current_frame, *path)
         true_name = '.'.join(path)
         if data is None: return (False, true_name, None)
         if path:
