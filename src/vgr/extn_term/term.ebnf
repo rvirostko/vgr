@@ -79,7 +79,6 @@ term_misc_cmd: "Print"i expr -> print
         | "FF"i  -> ctrl_ff
         | "CR"i  -> ctrl_cr
         | "SO"i  -> ctrl_so
-        | "SP"i  -> space
         | "SI"i  -> ctrl_si
         | "DLE"i -> ctrl_dle
         | "DC1"i -> ctrl_dc1
@@ -97,6 +96,8 @@ term_misc_cmd: "Print"i expr -> print
         | "GS"i  -> ctrl_gs
         | "RS"i  -> ctrl_rs
         | "US"i  -> ctrl_us
+        | "SP"i  -> space
+        | "DEL"i -> del
 
 term_set_attr: "Reset"i -> sgr_reset
         | "Style"i expr -> sgr_style

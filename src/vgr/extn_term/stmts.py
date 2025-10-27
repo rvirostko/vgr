@@ -755,6 +755,7 @@ _CMD_DISPATCH = {
     "sgr_style":       _term_sgr_style,
     "sgr_underline":  lambda ctx, cmd: _term_toggle(ctx, cmd, TermConsts.SGR_UNDERLINE_ON, TermConsts.SGR_UNDERLINE_OFF),
     "space":          lambda _ctx, _cmd: _print(" "),
+    "del":            lambda _ctx, _cmd: _print("\x7F"),
     "tbc_all":        lambda _ctx, _cmd: _print(TermConsts.TBC_ALL),
     "tbc":            lambda _ctx, _cmd: _print(TermConsts.TBC),
     "term_size":      _term_get_terminal_size,
@@ -843,39 +844,12 @@ _Windowing Commands_
 
 _Sending Control Characters_
 
-* NUL
-* SOH
-* STX
-* ETX
-* EOT
-* ENQ
-* ACK
-* BEL
-* BS
-* HT
-* LF
-* VT
-* FF
-* CR
-* SO
-* SP
-* SI
-* DLE
-* DC1
-* DC2
-* DC3
-* DC4
-* NAK
-* SYN
-* ETB
-* CAN
-* EM
-* SUB
-* ESC
-* FS
-* GS
-* RS
-* US
+* NUL, SOH, STX, ETX, EOT, ENQ, ACK, BEL - 0x00 through 0x07
+* BS, HT, LF, VT, FF, CR, SO, SI - 0x08 through 0x0F
+* DLE, DC1, DC2, DC3, DC4, NAK, SYN, ETB - 0x10 through 0x17
+* CAN, EM, SUB, ESC, FS, GS, RS, US - 0x18 through 0x1F
+* SP - 0x20 (Space)
+* DEL - 0x7F (Delete)
 
 _Colors and Attrribute Commands_
 
@@ -898,9 +872,13 @@ _Colors and Attrribute Commands_
 
 _Box and Line Drawing Commands_
 
-* [DrawBox | Box] expr, expr[, expr]
-* [DrawHLine | HLine] expr[, expr]
-* [DrawVLine | VLine] expr[, expr]
+* [DrawBox | Box] [_style_,] _height_, _width_
+* [DrawHLine | HLine] [_style_,] _length_
+* [DrawVLine | VLine] [_style_,] _height_
+* Styles - Blank, ASCII, Single Double, SingleDouble, DoubleSingle,
+  Brackets, Parens, Braces, Light, LightRounded, LightDash2,
+  LightDash3, LightDash4, Heavy, HeavyDash2, HeavyDash3, HeavyDash4,
+  LightHeavy, HeavyLight
 
 """
     for cmd in statement.children:
