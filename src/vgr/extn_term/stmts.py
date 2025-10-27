@@ -286,7 +286,7 @@ class TermConsts:
 
 _COLOR_NAME_MAP = { }
 _DUMB_TERM = os.getenv('TERM', '').lower() == 'dumb'
-_NO_COLOR = bool(os.getenv('NO_COLOR'))
+_NO_COLOR = "NO_COLOR" in os.environ
 
 def add_dd_constants(dd: DataDictionary, prefix: str) -> None:
     def _boxes():
