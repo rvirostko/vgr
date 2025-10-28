@@ -308,11 +308,27 @@ def add_dd_constants(dd: DataDictionary, prefix: str) -> None:
     dd.set_var(json.loads(VgrExtension.read_resource_text(__package__, 'spinners.json')), prefix, 'spinner')
     dd.set_var('https://github.com/sindresorhus/cli-spinners/blob/main/spinners.json', prefix, 'spinners_source')
 
-def _print(*args: Any) -> None:
-    if not _DUMB_TERM:
-        out = stdout()
-        if out.isatty():
-            print(*args, file=out, sep='', end='', flush=True)
+import time
+def _print(*args: Any, flush: bool= False, sleep: float= 0.0, **kwargs: Any) -> None:
+    """
+    Print to the terminal, optionally flushing and sleeping after flush.
+
+    Args:
+        *args: Values to print.
+        flush (bool): Whether to flush the output (default False).
+        sleep (float): Time in seconds to sleep after flushing (default 0.0).
+        **kwargs: Additional print() keyword arguments (e.g., end, file, sep).
+    """
+    if _DUMB_TERM: return
+    out = stdout()
+    if out.isatty():
+        flush = sleep > 0 or flush
+        print(*args, file=out, sep='', end='', flush=flush, **kwargs)
+        if sleep > 0: time.sleep(sleep)
+
+def _flush() -> None:
+    out = stdout()
+    if out.isatty(): out.flush()
 
 def _term_cursor_moveto(ctx: ExecContext, cmd: Tree) -> None:
     line = ctx.eval_to_int(cmd.children[0], "Line")
@@ -395,15 +411,16 @@ def _term_sgr_style(ctx: ExecContext, cmd: Tree) -> None:
             _print(TermConsts.SGR_STRIKETHRU_OFF if negate else TermConsts.SGR_STRIKETHRU_ON)
             continue
         if s in ("double", "wide"):
-            _print(TermConsts.DECSWL if negate else TermConsts.DECDWL)
+            _print(TermConsts.DECSWL if negate else TermConsts.DECDWL, sleep=0.01)
             continue
         if s in ("single",):
-            _print(TermConsts.DECDWL if negate else TermConsts.DECSWL)
+            _print(TermConsts.DECDWL if negate else TermConsts.DECSWL, sleep=0.01)
             continue
         # Failed all the keyword tests; see if it is a named
         # color for the foreground
-        c = _resolve_ansi_color(s)
-        if c and not _NO_COLOR: _print(TermConsts.SGR_FG.format(c))
+        if not _NO_COLOR:
+            c = _resolve_ansi_color(s)
+            if c: _print(TermConsts.SGR_FG.format(c))
         # errors ignored
 
 def _term_set_clipboard(ctx: ExecContext, cmd: Tree) -> None:
@@ -523,7 +540,8 @@ def _term_dh_print(ctx: ExecContext, cmd: Tree) -> None:
     s = ctx.eval_expr(cmd.children[0])
     if s is not None:
         # Turn the current and following lines into double high lines
-        _print(TermConsts.DECDHL_TOP, _CUD_1, TermConsts.DECDHL_BOT, _CUU_1)
+        for x in [TermConsts.DECDHL_TOP, _CUD_1, TermConsts.DECDHL_BOT, _CUU_1]:
+            _print(x, sleep=0.01)
         # Paint each char on both lines to form the full text
         for char in str(s):
             _print(char, _CUB_1, _CUD_1, char, _CUU_1)
@@ -590,7 +608,7 @@ def _term_get_cursor_pos(ctx: ExecContext, _: Tree) -> None:
         ctx.set_var(response[0], 'term', 'cursor', 'row')
         ctx.set_var(response[1], 'term', 'cursor', 'col')
 
-def _get_cursor_pos() -> list:
+def _get_cursor_pos() -> list[int]:
     """
     Internal call to get and return the row & col in a list.
     May return None.
@@ -621,7 +639,7 @@ def _parse_dsr_response(seq: str, terminator: str) -> list[int]:
             tty.setcbreak(fd)
         except Exception:
             return None
-        _print(seq)
+        _print(seq, flush=True)
         state = 'ESCAPE'
         acc = 0
         response = []
@@ -714,7 +732,7 @@ _CMD_DISPATCH = {
     "dectcem_reset":  lambda _ctx, _cmd: _print(TermConsts.DECTCEM_RESET),
     "dectcem_set":    lambda _ctx, _cmd: _print(TermConsts.DECTCEM_SET),
     "dectcem":        lambda ctx, cmd: _term_toggle(ctx, cmd, TermConsts.DECTCEM_SET, TermConsts.DECTCEM_RESET),
-    "deiconify":      lambda _ctx, _cmd: _print(TermConsts.DEICONIFY),
+    "deiconify":      lambda _ctx, _cmd: _print(TermConsts.DEICONIFY, flush=True),
     "dh_print":       _term_dh_print,
     "dl":             lambda ctx, cmd: _term_with_count(ctx, cmd, TermConsts.DL),
     "dsr_cursor":     _term_get_cursor_pos,
@@ -734,7 +752,7 @@ _CMD_DISPATCH = {
     "ind":            lambda _ctx, _cmd: _print(TermConsts.IND),
     "irm":            lambda ctx, cmd: _term_toggle(ctx, cmd, TermConsts.IRM_SET, TermConsts.IRM_RESET),
     "print":          lambda ctx, cmd: (val := ctx.eval_expr(cmd.children[0])) is not None and _print(str(val)),
-    "raise_window":   lambda _ctx, _cmd: _print(TermConsts.RAISE_WINDOW),
+    "raise_window":   lambda _ctx, _cmd: _print(TermConsts.RAISE_WINDOW, flush=True),
     "rep":            lambda ctx, cmd: _term_with_count(ctx, cmd, TermConsts.REP),
     "reverse_video":  lambda ctx, cmd: _term_toggle(ctx, cmd, TermConsts.DECSCNM_SET, TermConsts.DECSCNM_RESET),
     "ri":             lambda _ctx, _cmd: _print(TermConsts.RI),
@@ -881,13 +899,16 @@ _Box and Line Drawing Commands_
   LightHeavy, HeavyLight
 
 """
-    for cmd in statement.children:
-        try:
-            handler = _CMD_DISPATCH.get(cmd.data)
-            if handler is None: raise ValueError(f"Unhandled term command: {cmd.data}")
-            handler(ctx, cmd)
-        except KeyboardInterrupt as e:
-            _print('\n')
-            raise VgrRuntimeError(cmd, e) from e
-        except Exception as e:
-            raise VgrRuntimeError(cmd, e) from e
+    try:
+        for cmd in statement.children:
+            try:
+                handler = _CMD_DISPATCH.get(cmd.data)
+                if handler is None: raise ValueError(f"Unhandled term command: {cmd.data}")
+                handler(ctx, cmd)
+            except KeyboardInterrupt as e:
+                _print('\n')
+                raise VgrRuntimeError(cmd, e) from e
+            except Exception as e:
+                raise VgrRuntimeError(cmd, e) from e
+    finally:
+        _flush()
