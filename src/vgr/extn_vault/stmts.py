@@ -65,11 +65,11 @@ def execute_connect(ctx: ExecContext, statement: Tree) -> None:
     """
 **Establish a connection to Vault
 
-* Vault Connect
-* Vault Connect To _host_
-* Vault Connect To _host_ With _token_
-* Vault Connect To _host_ With _token_ As _connection_name_
-* Vault Connect As _connection_name_ To _host_, Token=_token_
+* Vault Connect [;]
+* Vault Connect To _host_ [;]
+* Vault Connect To _host_ With _token_ [;]
+* Vault Connect To _host_ With _token_ As _connection_name_ [;]
+* Vault Connect As _connection_name_ To _host_, Token Is _token_ [;]
 
 Also see `Vault-Disconnect`
 """
@@ -97,8 +97,8 @@ def execute_disconnect(ctx: ExecContext, statement: Tree) -> None:
     """
 **Close a connection to Vault**
 
-* Vault Disconnect
-* Vault Disconnect _connection_name_
+* Vault Disconnect [;]
+* Vault Disconnect _connection_name_ [;]
 
 Also see `Vault-Connect`
 """
@@ -121,7 +121,7 @@ def execute_api_delete(ctx: ExecContext, statement: Tree) -> None:
     """
 **Send a DELETE to a Vault API**
 
-* Vault ApiDelete _path_ [_options_]...
+* Vault ApiDelete _path_ [_options_]... [;]
 
 _Options_
 
@@ -142,7 +142,7 @@ def execute_api_get(ctx: ExecContext, statement: Tree) -> None:
     """
 **Send a GET to a Vault API**
 
-* Vault ApiGet _path_ [_options_]...
+* Vault ApiGet _path_ [_options_]... [;]
 
 _Options_
 
@@ -163,7 +163,7 @@ def execute_api_list(ctx: ExecContext, statement: Tree) -> None:
     """
 **Send a LIST to a Vault API**
 
-* Vault ApiList _path_ [_options_]...
+* Vault ApiList _path_ [_options_]... [;]
 
 _Options_
 
@@ -184,7 +184,7 @@ def execute_api_patch(ctx: ExecContext, statement: Tree) -> None:
     """
 **Send a PATCH to a Vault API**
 
-* Vault ApiPatch _path_ [_options_]...
+* Vault ApiPatch _path_ [_options_]... [;]
 
 _Options_
 
@@ -207,7 +207,7 @@ def execute_api_post(ctx: ExecContext, statement: Tree) -> None:
     """
 **Send a POST to a Vault API**
 
-* Vault ApiPost _path_ [_options_]...
+* Vault ApiPost _path_ [_options_]... [;]
 
 _Options_
 
@@ -230,7 +230,7 @@ def execute_default_ns(ctx: ExecContext, statement: Tree) -> None:
     """
 **Set the namespace to be used by subsequent requests**
 
-* Vault DefaultNamespace _namespace_
+* Vault DefaultNamespace _namespace_ [;]
 
 _Options_
 
@@ -248,7 +248,7 @@ def execute_create_ns(ctx: ExecContext, statement: Tree) -> None:
     """
 **Create a new namesapce**
 
-* Vault CreateNamespace _namespace_
+* Vault CreateNamespace _namespace_ [;]
 
 _Options_
 
@@ -269,9 +269,9 @@ _Options_
 @bound_ops("Vault-ReadNamespace")
 def execute_read_ns(ctx: ExecContext, statement: Tree) -> None:
     """
-**Update a namespace**
+**Read a namespace**
 
-* Vault ReadNamespace _namespace_
+* Vault ReadNamespace _namespace_ [;]
 
 _Options_
 
@@ -292,7 +292,7 @@ def execute_update_ns(ctx: ExecContext, statement: Tree) -> None:
     """
 **Update a namespace**
 
-* Vault UpdateNamespace _namespace_ Metadata Is _meta_
+* Vault UpdateNamespace _namespace_ Metadata Is _meta_ [;]
 
 _Options_
 
@@ -314,7 +314,7 @@ def execute_delete_ns(ctx: ExecContext, statement: Tree) -> None:
     """
 **Delete a namespace**
 
-* Vault DeleteNamespace _namespace_
+* Vault DeleteNamespace _namespace_ [;]
 
 _Options_
 
@@ -333,11 +333,11 @@ _Options_
 @bound_ops("Vault-ListNamespaces")
 def execute_list_ns(ctx: ExecContext, statement: Tree) -> None:
     """
-**List namespaces**
+**List child namespaces**
 
-* Vault ListNamespaces
-* Vault ListNamespaces _parent_
-* Vault ListNamespaces Namespace Is _parent_
+* Vault ListNamespaces [;]
+* Vault ListNamespaces _parent_ [;]
+* Vault ListNamespaces Namespace Is _parent_ [;]
 
 _Options_
 
@@ -358,7 +358,7 @@ def execute_lock_ns(ctx: ExecContext, statement: Tree) -> None:
     """
 **Lock a namespace**
 
-* Vault LockNamespace _namespace_
+* Vault LockNamespace _namespace_ [;]
 
 _Options_
 
@@ -379,7 +379,7 @@ def execute_unlock_ns(ctx: ExecContext, statement: Tree) -> None:
     """
 **Unlock a namespace**
 
-* Vault UnlockNamespace _namespace_ Key is _key_
+* Vault UnlockNamespace _namespace_ Key Is _key_ [;]
 
 _Options_
 
@@ -404,8 +404,8 @@ def execute_create_mount(ctx: ExecContext, statement: Tree) -> None:
     """
 **Create and configure a secrets engine**
 
-* Vault CreateMount _mount_point_ Data Is _data_
-* Vault CreateMount _mount_point_ Type Is _type_ Config Is _config_ Description Is _desc_
+* Vault CreateMount _mount_point_ Data Is _data_ [;]
+* Vault CreateMount _mount_point_ Type Is _type_ Config Is _config_ Description Is _desc_ [;]
 
 _Options_
 
@@ -445,7 +445,7 @@ def execute_read_mount(ctx: ExecContext, statement: Tree) -> None:
     """
 **Read the configuration of a secrets engine mount**
 
-* Vault ReadMount _mount_point_
+* Vault ReadMount _mount_point_ [;]
 
 _Options_
 
@@ -466,8 +466,8 @@ def execute_update_mount(ctx: ExecContext, statement: Tree) -> None:
     """
 **Update the configuration of a secrets engine**
 
-* Vault UpdateMount _mount_point_ Data Is _data_
-* Vault UpdateMount _mount_point_ Config Is _config_
+* Vault UpdateMount _mount_point_ Data Is _data_ [;]
+* Vault UpdateMount _mount_point_ Config Is _config_ [;]
 
 _Options_
 
@@ -495,7 +495,7 @@ def execute_delete_mount(ctx: ExecContext, statement: Tree) -> None:
     """
 **Remove a secrets engine mount**
 
-* Vault DeleteMount _mount_point_
+* Vault DeleteMount _mount_point_ [;]
 
 _Options_
 
@@ -516,10 +516,10 @@ def execute_list_mounts(ctx: ExecContext, statement: Tree) -> None:
     """
 **List the mount points in a namespace**
 
-* Vault ListMounts
-* Vault ListMounts _namespace_
-* Vault ListMounts Namspace Is _namespace_
-* Vault ListMounts _namespace_ Namspace is _parent_namespace_
+* Vault ListMounts [;]
+* Vault ListMounts _namespace_ [;]
+* Vault ListMounts Namspace Is _namespace_ [;]
+* Vault ListMounts _namespace_ Namspace Is _parent_namespace_ [;]
 
 If no namespace name is provided, the default namespace name is used.
 
@@ -546,8 +546,8 @@ def execute_create_kv_secret(ctx: ExecContext, statement: Tree) -> None:
     """
 **Create or update the KV secrets**
 
-* Vault CreateKvSecret _mount_and_path_ Data Is _data_
-* Vault CreateKvSecret _mount_and_path_ Data Is _data_ Metadata is _meta_
+* Vault CreateKvSecret _mount_and_path_ Data Is _data_ [;]
+* Vault CreateKvSecret _mount_and_path_ Data Is _data_ Metadata Is _meta_ [;]
 
 _Options_
 
@@ -577,8 +577,8 @@ def execute_read_kv_secret(ctx: ExecContext, statement: Tree) -> None:
     """
 **Read the KV secrets**
 
-* Vault ReadKvSecret _mount_and_path_
-* Vault ReadKvSecret _mount_and_path_ Version Is _version_
+* Vault ReadKvSecret _mount_and_path_ [;]
+* Vault ReadKvSecret _mount_and_path_ Version Is _version_ [;]
 
 _Options_
 
@@ -600,7 +600,7 @@ def execute_read_kv_metadata(ctx: ExecContext, statement: Tree) -> None:
     """
 **Read the KV metadata**
 
-* Vault ReadKvMetadata _mount_and_path_
+* Vault ReadKvMetadata _mount_and_path_ [;]
 
 _Options_
 
@@ -619,11 +619,11 @@ _Options_
 @bound_ops("Vault-UpdateKvSecret")
 def execute_update_kv_secret(ctx: ExecContext, statement: Tree) -> None:
     """
-**Update the KV secrets**
+**Update the KV secrets data and/or metadata**
 
-* Vault UpdateKvSecret _mount_and_path_ Data Is _data_
-* Vault UpdateKvSecret _mount_and_path_ Data Is _data_ Metadata is _meta_
-* Vault UpdateKvSecret _mount_and_path_ Metadata is _meta_
+* Vault UpdateKvSecret _mount_and_path_ Data Is _data_ [;]
+* Vault UpdateKvSecret _mount_and_path_ Data Is _data_ Metadata Is _meta_ [;]
+* Vault UpdateKvSecret _mount_and_path_ Metadata Is _meta_ [;]
 
 _Options_
 
@@ -653,11 +653,11 @@ _Options_
 @bound_ops("Vault-PatchKvSecret")
 def execute_patch_kv_secret(ctx: ExecContext, statement: Tree) -> None:
     """
-**Patch the KV secrets**
+**Patch the KV secrets data and/or metadata**
 
-* Vault PatchKvSecret _mount_and_path_ Data Is _data_
-* Vault PatchKvSecret _mount_and_path_ Data Is _data_ Metadata is _meta_
-* Vault PatchKvSecret _mount_and_path_ Metadata is _meta_
+* Vault PatchKvSecret _mount_and_path_ Data Is _data_ [;]
+* Vault PatchKvSecret _mount_and_path_ Data Is _data_ Metadata Is _meta_ [;]
+* Vault PatchKvSecret _mount_and_path_ Metadata Is _meta_ [;]
 
 _Options_
 
@@ -689,8 +689,8 @@ def execute_delete_kv_secret(ctx: ExecContext, statement: Tree) -> None:
     """
 **Delete a KV secret**
 
-* Vault DeleteKvSecret _mount_and_path_ Version Is _version_
-* Vault DeleteKvSecret _mount_and_path_ Data Is _data_
+* Vault DeleteKvSecret _mount_and_path_ Version Is _version_ [;]
+* Vault DeleteKvSecret _mount_and_path_ Data Is _data_ [;]
 
 _Options_
 
@@ -712,7 +712,7 @@ def execute_undelete_kv_secret(ctx: ExecContext, statement: Tree) -> None:
     """
 *Undelete a KV secret**
 
-* Vault UndeleteKvSecret _mount_and_path_
+* Vault UndeleteKvSecret _mount_and_path_ [;]
 
 _Options_
 
@@ -734,7 +734,7 @@ def execute_destroy_kv_secret(ctx: ExecContext, statement: Tree) -> None:
     """
 **Destroy a KV secret**
 
-* Vault DestoryKvSecret _mount_and_path_
+* Vault DestoryKvSecret _mount_and_path_ [;]
 
 _Options_
 
@@ -754,9 +754,9 @@ _Options_
 @bound_ops("Vault-DeleteKvMetadata")
 def execute_delete_kv_metadata(ctx: ExecContext, statement: Tree) -> None:
     """
-**Delete KV secret metadata**
+**Delete KV metadata**
 
-* Vault DeleteKvMetadata _mount_and_path_
+* Vault DeleteKvMetadata _mount_and_path_ [;]
 
 _Options_
 
@@ -777,7 +777,7 @@ def execute_list_kv_secrets(ctx: ExecContext, statement: Tree) -> None:
     """
 **List KV secrets at a path location**
 
-* Vault ListKvSecrets _mount_and_path_
+* Vault ListKvSecrets _mount_and_path_ [;]
 
 _Options_
 
