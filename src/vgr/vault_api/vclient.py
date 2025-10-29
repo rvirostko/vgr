@@ -202,10 +202,12 @@ class VaultClient():
 
     def read_mount(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
         mount_point = self._fix_mount_point(mount_point)
+        # TODO probably not right
         return self.do_get(encode_url(f'/v1/sys/mounts/{mount_point}tune'), namespace)
 
     def update_mount(self, mount_point: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         mount_point = self._fix_mount_point(mount_point)
+        # TODO probably not right
         return self.do_post(encode_url(f'/v1/sys/mounts/{mount_point}tune'), config, namespace)
 
     def delete_mount(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
@@ -411,6 +413,7 @@ class VaultClient():
         """
         Create or update an LDAP library.
         """
+        # https://developer.hashicorp.com/vault/api-docs/secret/ldap
         mount_point = self._fix_mount_point(mount_point)
         return self.do_post(encode_url(f'/v1/{mount_point}library/{name}'), config, namespace)
 
@@ -418,6 +421,7 @@ class VaultClient():
         """
         Read an LDAP library definition.
         """
+        # https://developer.hashicorp.com/vault/api-docs/secret/ldap
         mount_point = self._fix_mount_point(mount_point)
         return self.do_get(encode_url(f'/v1/{mount_point}library/{name}'), namespace)
 
@@ -425,12 +429,14 @@ class VaultClient():
         """
         Update an LDAP library (alias for create_ldap_library).
         """
+        # https://developer.hashicorp.com/vault/api-docs/secret/ldap
         return self.create_ldap_library(mount_point, name, config, namespace)
 
     def delete_ldap_library(self, mount_point: str, name: str, namespace: str=None) -> Dict[str, Any]:
         """
         Delete an LDAP library.
         """
+        # https://developer.hashicorp.com/vault/api-docs/secret/ldap
         mount_point = self._fix_mount_point(mount_point)
         return self.do_delete(encode_url(f'/v1/{mount_point}library/{name}'), namespace)
 
@@ -438,47 +444,54 @@ class VaultClient():
         """
         List LDAP libraries at the given mount point.
         """
+        # https://developer.hashicorp.com/vault/api-docs/secret/ldap
         mount_point = self._fix_mount_point(mount_point)
         return self.do_list(encode_url(f'/v1/{mount_point}library'), namespace)
 
-    def create_ldap_secret(self, mount_point: str, name: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
+    def create_ldap_role(self, mount_point: str, name: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         """
-        Create or update an LDAP static role (secret).
+        Create or update an LDAP static role.
         """
+        # https://developer.hashicorp.com/vault/api-docs/secret/ldap
         mount_point = self._fix_mount_point(mount_point)
         return self.do_post(encode_url(f'/v1/{mount_point}static-cred/{name}'), config, namespace)
 
-    def read_ldap_secret(self, mount_point: str, name: str, namespace: str=None) -> Dict[str, Any]:
+    def read_ldap_role(self, mount_point: str, name: str, namespace: str=None) -> Dict[str, Any]:
         """
-        Read an LDAP static role (secret).
+        Read an LDAP static role.
         """
+        # https://developer.hashicorp.com/vault/api-docs/secret/ldap
         mount_point = self._fix_mount_point(mount_point)
         return self.do_get(encode_url(f'/v1/{mount_point}static-cred/{name}'), namespace)
 
-    def update_ldap_secret(self, mount_point: str, name: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
+    def update_ldap_role(self, mount_point: str, name: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         """
-        Update an LDAP static role (secret) (alias for create_ldap_secret).
+        Update an LDAP static role (alias for create_ldap_role).
         """
-        return self.create_ldap_secret(mount_point, name, config, namespace)
+        # https://developer.hashicorp.com/vault/api-docs/secret/ldap
+        return self.create_ldap_role(mount_point, name, config, namespace)
 
-    def delete_ldap_secret(self, mount_point: str, name: str, namespace: str=None) -> Dict[str, Any]:
+    def delete_ldap_role(self, mount_point: str, name: str, namespace: str=None) -> Dict[str, Any]:
         """
-        Delete an LDAP static role (secret).
+        Delete an LDAP static role.
         """
+        # https://developer.hashicorp.com/vault/api-docs/secret/ldap
         mount_point = self._fix_mount_point(mount_point)
         return self.do_delete(encode_url(f'/v1/{mount_point}static-cred/{name}'), namespace)
 
-    def list_ldap_secrets(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
+    def list_ldap_roles(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
         """
-        List LDAP static roles (secrets) at the given mount point.
+        List LDAP static roles at the given mount point.
         """
+        # https://developer.hashicorp.com/vault/api-docs/secret/ldap
         mount_point = self._fix_mount_point(mount_point)
         return self.do_list(encode_url(f'/v1/{mount_point}static-cred'), namespace)
 
-    def rotate_ldap_secret(self, mount_point: str, name: str, namespace: str=None) -> Dict[str, Any]:
+    def rotate_ldap_role(self, mount_point: str, name: str, namespace: str=None) -> Dict[str, Any]:
         """
-        Rotate credentials for an LDAP static role (secret).
+        Rotate credentials for an LDAP static role.
         """
+        # https://developer.hashicorp.com/vault/api-docs/secret/ldap
         mount_point = self._fix_mount_point(mount_point)
         return self.do_post(encode_url(f'/v1/{mount_point}static-cred/{name}/rotate'), namespace=namespace)
 

@@ -800,16 +800,39 @@ _Options_
 @bound_ops("Vault-CreateLdapLibrary")
 def execute_create_ldap_library(ctx: ExecContext, statement: Tree) -> None:
     """
-**TODO**
+**Create a set of LDAP credentials**
+
+* Vault CreateLdapLibrary _mount_and_set_<br>
+  <em>Config Is _config_ [;]
+
+_Options_
+
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Giving _variable_
 """
-    raise NotImplementedError() # TODO
+    mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Set Name'))
+    args = _extract_args(ctx, statement)
+    _allowed_args(args, _CONFIG_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    config = _get_arg(args, _CONFIG_ARG, dict)
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.create_ldap_library(mount_point, name, config, namespace))
 
 @bound_ops("Vault-ReadLdapLibrary")
 def execute_read_ldap_library(ctx: ExecContext, statement: Tree) -> None:
     """
-**TODO**
+**Get the configuraiton of a set of LDAP credentials**
+
+* Vault ReadLdapLibrary _mount_and_set_ [;]
+
+_Options_
+
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Giving _variable_
 """
-    mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
+    mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Set Name'))
     args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
@@ -819,21 +842,57 @@ def execute_read_ldap_library(ctx: ExecContext, statement: Tree) -> None:
 @bound_ops("Vault-UpdateLdapLibrary")
 def execute_update_ldap_library(ctx: ExecContext, statement: Tree) -> None:
     """
-**TODO**
+**Update the configuraiton of a set of LDAP credentials**
+
+* Vault UpdateLdapLibrary _mount_and_set_<br>
+  <em>Config Is _config_ [;]
+
+_Options_
+
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Giving _variable_
 """
-    raise NotImplementedError() # TODO
+    mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Set Name'))
+    args = _extract_args(ctx, statement)
+    _allowed_args(args, _CONFIG_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    config = _get_arg(args, _CONFIG_ARG, dict)
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.update_ldap_library(mount_point, name, config, namespace))
 
 @bound_ops("Vault-DeleteLdapLibrary")
 def execute_delete_ldap_library(ctx: ExecContext, statement: Tree) -> None:
     """
-**TODO**
+**Remove a set of LDAP credentials**
+
+* Vault DeleteLdapLibrary _mount_and_set_ [;]
+
+_Options_
+
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Giving _variable_
 """
-    raise NotImplementedError() # TODO
+    mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Set Name'))
+    args = _extract_args(ctx, statement)
+    _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.delete_ldap_library(mount_point, name, namespace))
 
 @bound_ops("Vault-ListLdapLibraries")
 def execute_list_ldap_libraries(ctx: ExecContext, statement: Tree) -> None:
     """
-**TODO**
+**List LDAP library set names**
+
+* Vault ListLdapLibrary _mount_point_ [;]
+
+_Options_
+
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Giving _variable_
 """
     mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
     args = _extract_args(ctx, statement)
@@ -843,58 +902,108 @@ def execute_list_ldap_libraries(ctx: ExecContext, statement: Tree) -> None:
     _set_result(ctx, args, client.list_ldap_libraries(mount_point, namespace))
 
 #-------------------------------------------------------------------------------
-# LDAP secrets engine : Static
+# LDAP secrets engine : Static Roles
 #-------------------------------------------------------------------------------
 
-@bound_ops("Vault-CreateLdapSecret")
-def execute_create_ldap_secret(ctx: ExecContext, statement: Tree) -> None:
+@bound_ops("Vault-CreateLdapRole")
+def execute_create_ldap_role(ctx: ExecContext, statement: Tree) -> None:
     """
-**TODO**
+**Create a static LDAP role**
+
+* Vault CreateLdapRole _mount_and_role_<br>
+  <em>Config Is _config_ [;]
+
+_Options_
+
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Giving _variable_
 """
     raise NotImplementedError() # TODO
 
-@bound_ops("Vault-ReadLdapSecret")
-def execute_read_ldap_secret(ctx: ExecContext, statement: Tree) -> None:
+@bound_ops("Vault-ReadLdapRole")
+def execute_read_ldap_role(ctx: ExecContext, statement: Tree) -> None:
     """
-**TODO**
+**Get a static LDAP role**
+
+* Vault ReadLdapRole _mount_and_role_ [;]
+
+_Options_
+
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Giving _variable_
 """
     mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
     args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
-    _set_result(ctx, args, client.read_ldap_secret(mount_point, name, namespace))
+    _set_result(ctx, args, client.read_ldap_role(mount_point, name, namespace))
 
-@bound_ops("Vault-UpdateLdapSecret")
-def execute_update_ldap_secret(ctx: ExecContext, statement: Tree) -> None:
+@bound_ops("Vault-UpdateLdapRole")
+def execute_update_ldap_role(ctx: ExecContext, statement: Tree) -> None:
     """
-**TODO**
+**Update a static LDAP role**
+
+* Vault UpdateLdapRole _mount_and_role_<br>
+  <em>Config Is _config_ [;]
+
+_Options_
+
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Giving _variable_
 """
     raise NotImplementedError() # TODO
 
-@bound_ops("Vault-DeleteLdapSecret")
-def execute_delete_ldap_secret(ctx: ExecContext, statement: Tree) -> None:
+@bound_ops("Vault-DeleteLdapRole")
+def execute_delete_ldap_role(ctx: ExecContext, statement: Tree) -> None:
     """
-**TODO**
+**Remove a static LDAP role**
+
+* Vault DeleteLdapRole _mount_and_role_ [;]
+
+_Options_
+
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Giving _variable_
 """
     raise NotImplementedError() # TODO
 
-@bound_ops("Vault-ListLdapSecrets")
-def execute_list_ldap_secrets(ctx: ExecContext, statement: Tree) -> None:
+@bound_ops("Vault-ListLdapRoles")
+def execute_list_ldap_roles(ctx: ExecContext, statement: Tree) -> None:
     """
-**TODO**
+**List static LDAP roles**
+
+* Vault ListLdapRoles _mount_point_ [;]
+
+_Options_
+
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Giving _variable_
 """
     mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
     args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
     namespace: str = _get_arg(args, _NS_ARG, str, True)
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
-    _set_result(ctx, args, client.list_ldap_secrets(mount_point, namespace))
+    _set_result(ctx, args, client.list_ldap_roles(mount_point, namespace))
 
-@bound_ops("Vault-RotateLdapSecret")
-def execute_rotate_ldap_secret(ctx: ExecContext, statement: Tree) -> None:
+@bound_ops("Vault-RotateLdapRole")
+def execute_rotate_ldap_role(ctx: ExecContext, statement: Tree) -> None:
     """
-**TODO**
+**Rotate the password of a static LDAP role**
+
+* Vault RotateLdapRole _mount_and_role_ [;]
+
+_Options_
+
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Giving _variable_
 """
     raise NotImplementedError() # TODO
 

@@ -25,12 +25,12 @@
     | vault_update_ldap_lib
     | vault_delete_ldap_lib
     | vault_list_ldap_libs
-    | vault_create_ldap_secret
-    | vault_read_ldap_secret
-    | vault_update_ldap_secret
-    | vault_delete_ldap_secret
-    | vault_list_ldap_secrets
-    | vault_rotate_ldap_secret
+    | vault_create_ldap_role
+    | vault_read_ldap_role
+    | vault_update_ldap_role
+    | vault_delete_ldap_role
+    | vault_list_ldap_roles
+    | vault_rotate_ldap_role
     | vault_api_get
     | vault_api_list
     | vault_api_delete
@@ -82,20 +82,20 @@ vault_destroy_kv_secret : "Vault"i "DestroyKvSecret"i expr vault_args _SEMICOLON
 vault_list_kv_secrets  : "Vault"i "ListKvSecrets"i expr vault_args _SEMICOLON?
 vault_patch_kv_secret  : "Vault"i "PatchKvSecret"i expr vault_args _SEMICOLON?
 
-// LDAP Libraries Secrets
+// LDAP Libraries Sets
 vault_create_ldap_lib : "Vault"i "CreateLdapLibrary"i expr vault_args _SEMICOLON?
 vault_read_ldap_lib   : "Vault"i "ReadLdapLibrary"i expr vault_args _SEMICOLON?
 vault_update_ldap_lib : "Vault"i "UpdateLdapLibrary"i expr vault_args _SEMICOLON?
 vault_delete_ldap_lib : "Vault"i "DeleteLdapLibrary"i expr vault_args _SEMICOLON?
 vault_list_ldap_libs  : "Vault"i "ListLdapLibraries"i expr vault_args _SEMICOLON?
 
-// LDAP Static Secrets
-vault_create_ldap_secret : "Vault"i "CreateLdapSecret"i expr vault_args _SEMICOLON?
-vault_read_ldap_secret   : "Vault"i "ReadLdapSecret"i expr vault_args _SEMICOLON?
-vault_update_ldap_secret : "Vault"i "UpdateLdapSecret"i expr vault_args _SEMICOLON?
-vault_delete_ldap_secret : "Vault"i "DeleteLdapSecret"i expr vault_args _SEMICOLON?
-vault_list_ldap_secrets  : "Vault"i "ListLdapSecrets"i expr vault_args _SEMICOLON?
-vault_rotate_ldap_secret : "Vault"i "RotateLdapSecret"i expr vault_args _SEMICOLON?
+// LDAP Static Roles
+vault_create_ldap_role : "Vault"i "CreateLdapRole"i expr vault_args _SEMICOLON?
+vault_read_ldap_role   : "Vault"i "ReadLdapRole"i expr vault_args _SEMICOLON?
+vault_update_ldap_role : "Vault"i "UpdateLdapRole"i expr vault_args _SEMICOLON?
+vault_delete_ldap_role : "Vault"i "DeleteLdapRole"i expr vault_args _SEMICOLON?
+vault_list_ldap_roles  : "Vault"i "ListLdapRoles"i expr vault_args _SEMICOLON?
+vault_rotate_ldap_role : "Vault"i "RotateLdapRole"i expr vault_args _SEMICOLON?
 
 // Database Secrets Engine
 vault_create_db_conn  : "Vault"i "CreateDbConnection"i expr vault_args _SEMICOLON?

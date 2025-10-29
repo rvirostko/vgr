@@ -25,15 +25,16 @@ from .stmts import (
     execute_create_db_connection,
     execute_create_kv_secret,
     execute_create_ldap_library,
-    execute_create_ldap_secret,
+    execute_create_ldap_role,
     execute_create_mount,
     execute_create_ns,
     execute_default_ns,
     execute_delete_db_connection,
+    execute_delete_db_role,
     execute_delete_kv_metadata,
     execute_delete_kv_secret,
     execute_delete_ldap_library,
-    execute_delete_ldap_secret,
+    execute_delete_ldap_role,
     execute_delete_mount,
     execute_delete_ns,
     execute_destroy_kv_secret,
@@ -41,7 +42,7 @@ from .stmts import (
     execute_list_db_connections,
     execute_list_kv_secrets,
     execute_list_ldap_libraries,
-    execute_list_ldap_secrets,
+    execute_list_ldap_roles,
     execute_list_mounts,
     execute_list_ns,
     execute_lock_ns,
@@ -50,18 +51,18 @@ from .stmts import (
     execute_read_kv_metadata,
     execute_read_kv_secret,
     execute_read_ldap_library,
-    execute_read_ldap_secret,
+    execute_read_ldap_role,
     execute_read_mount,
     execute_read_ns,
     execute_reset_db_connection,
     execute_rotate_db_connection_creds,
-    execute_rotate_ldap_secret,
+    execute_rotate_ldap_role,
     execute_undelete_kv_secret,
     execute_unlock_ns,
     execute_update_db_connection,
     execute_update_kv_secret,
     execute_update_ldap_library,
-    execute_update_ldap_secret,
+    execute_update_ldap_role,
     execute_update_mount,
     execute_update_ns,
     vault_initialize,
@@ -119,37 +120,41 @@ _KV2 Secrets_
 * Vault ListKvSecrets _mount_and_path_ [_options_]... - List KV secrets at a path location
 * Vault PatchKvSecret _mount_and_path_ [_options_]... - Patch the KV secrets data and/or metadata
 
-_LDAP Libraries Secrets_
+_LDAP Libraries Sets_
 
-* Vault CreateLdapLibrary _expr_ [_options_]... [;]
-* Vault ReadLdapLibrary _expr_ [_options_]... [;]
-* Vault UpdateLdapLibrary _expr_ [_options_]... [;]
-* Vault DeleteLdapLibrary _expr_ [_options_]... [;]
-* Vault ListLdapLibraries _expr_ [_options_]... [;]
+* Vault CreateLdapLibrary _expr_ [_options_]... - TODO
+* Vault ReadLdapLibrary _expr_ [_options_]... - TODO
+* Vault UpdateLdapLibrary _expr_ [_options_]... - TODO
+* Vault DeleteLdapLibrary _expr_ [_options_]... - TODO
+* Vault ListLdapLibraries _expr_ [_options_]... - TODO
 
-_LDAP Static Secrets_
+_LDAP Static Roles_
 
-* Vault CreateLdapSecret _expr_ [_options_]... [;]
-* Vault ReadLdapSecret _expr_ [_options_]... [;]
-* Vault UpdateLdapSecret _expr_ [_options_]... [;]
-* Vault DeleteLdapSecret _expr_ [_options_]... [;]
-* Vault ListLdapSecrets _expr_ [_options_]... [;]
-* Vault RotateLdapSecret _expr_ [_options_]... [;]
+* Vault CreateLdapRole _expr_ [_options_]... - TODO
+* Vault ReadLdapRole _expr_ [_options_]... - TODO
+* Vault UpdateLdapRole _expr_ [_options_]... - TODO
+* Vault DeleteLdapRole _expr_ [_options_]... - TODO
+* Vault ListLdapRoles _expr_ [_options_]... - TODO
+* Vault RotateLdapRole _expr_ [_options_]... - TODO
 
-_Database Secrets_
+_Database Connections_
 
-* Vault CreateDbConnection _expr_ [_options_]... [;]
-* Vault ReadDbConnection _expr_ [_options_]... [;]
-* Vault UpdateDbConnection _expr_ [_options_]... [;]
-* Vault DeleteDbConnection _expr_ [_options_]... [;]
-* Vault ListDbConnections _expr_ [_options_]... [;]
-* Vault ResetDbConnection _expr_ [_options_]... [;]
-* Vault RotateDbConnectionCredentials _expr_ [_options_]... [;]
-* Vault CreateDbRole _expr_ [_options_]... [;]
-* Vault ReadDbRole _expr_ [_options_]... [;]
-* Vault UpdateDbRole _expr_ [_options_]... [;]
-* Vault ListDbRoles _expr_ [_options_]... [;]
-* Vault GenerateDbCredentials _expr_ [_options_]... [;]
+* Vault CreateDbConnection _expr_ [_options_]... - TODO
+* Vault ReadDbConnection _expr_ [_options_]... - TODO
+* Vault UpdateDbConnection _expr_ [_options_]... - TODO
+* Vault DeleteDbConnection _expr_ [_options_]... - TODO
+* Vault ListDbConnections _expr_ [_options_]... - TODO
+* Vault ResetDbConnection _expr_ [_options_]... - TODO
+* Vault RotateDbConnectionCredentials _expr_ [_options_]... - TODO
+
+_Database Roles_
+
+* Vault CreateDbRole _expr_ [_options_]... - TODO
+* Vault ReadDbRole _expr_ [_options_]... - TODO
+* Vault UpdateDbRole _expr_ [_options_]... - TODO
+* Vault DeleteDbRole _expr_ [_options_]... - TODO
+* Vault ListDbRoles _expr_ [_options_]... - TODO
+* Vault GenerateDbCredentials _expr_ [_options_]... - TODO
 
 _Universal Options_
 
@@ -205,15 +210,16 @@ STATEMENT_HANDLERS = {
     'vault_create_db_conn'      : execute_create_db_connection,
     'vault_create_kv_secret'    : execute_create_kv_secret,
     'vault_create_ldap_lib'     : execute_create_ldap_library,
-    'vault_create_ldap_secret'  : execute_create_ldap_secret,
+    'vault_create_ldap_role'    : execute_create_ldap_role,
     'vault_create_mount'        : execute_create_mount,
     'vault_create_ns'           : execute_create_ns,
     'vault_default_ns'          : execute_default_ns,
-    'vault_delete db_conn'      : execute_delete_db_connection,
+    'vault_delete_db_conn'      : execute_delete_db_connection,
+    'vault_delete_db_role'      : execute_delete_db_role,
     'vault_delete_kv_metadata'  : execute_delete_kv_metadata,
     'vault_delete_kv_secret'    : execute_delete_kv_secret,
     'vault_delete_ldap_lib'     : execute_delete_ldap_library,
-    'vault_delete_ldap_secret'  : execute_delete_ldap_secret,
+    'vault_delete_ldap_role'    : execute_delete_ldap_role,
     'vault_delete_mount'        : execute_delete_mount,
     'vault_delete_ns'           : execute_delete_ns,
     'vault_destroy_kv_secret'   : execute_destroy_kv_secret,
@@ -221,7 +227,7 @@ STATEMENT_HANDLERS = {
     'vault_list_db_conns'       : execute_list_db_connections,
     'vault_list_kv_secrets'     : execute_list_kv_secrets,
     'vault_list_ldap_libs'      : execute_list_ldap_libraries,
-    'vault_list_ldap_secrets'   : execute_list_ldap_secrets,
+    'vault_list_ldap_roles'     : execute_list_ldap_roles,
     'vault_list_mounts'         : execute_list_mounts,
     'vault_list_ns'             : execute_list_ns,
     'vault_lock_ns'             : execute_lock_ns,
@@ -231,21 +237,22 @@ STATEMENT_HANDLERS = {
     'vault_read_kv_metadata'    : execute_read_kv_metadata,
     'vault_read_kv_secret'      : execute_read_kv_secret,
     'vault_read_ldap_lib'       : execute_read_ldap_library,
-    'vault_read_ldap_secret'    : execute_read_ldap_secret,
+    'vault_read_ldap_role'      : execute_read_ldap_role,
     'vault_read_mount'          : execute_read_mount,
     'vault_read_ns'             : execute_read_ns,
     'vault_rotate_db_conn'      : execute_rotate_db_connection_creds,
-    'vault_rotate_ldap_secret'  : execute_rotate_ldap_secret,
+    'vault_rotate_ldap_role'    : execute_rotate_ldap_role,
     'vault_undelete_kv_secret'  : execute_undelete_kv_secret,
     'vault_unlock_ns'           : execute_unlock_ns,
     'vault_update_db_conn'      : execute_update_db_connection,
     'vault_update_kv_secret'    : execute_update_kv_secret,
     'vault_update_ldap_lib'     : execute_update_ldap_library,
-    'vault_update_ldap_secret'  : execute_update_ldap_secret,
+    'vault_update_ldap_role'    : execute_update_ldap_role,
     'vault_update_mount'        : execute_update_mount,
     'vault_update_ns'           : execute_update_ns,
 }
 
+# Used with Select statement's From clause
 _TARGETS = ('ns', 'mount', 'aws', 'kv', 'ldap', 'db', 'db_role')
 
 _FUNCTIONS = {
