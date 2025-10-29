@@ -797,14 +797,18 @@ _Options_
 # LDAP secrets engine : Library
 #-------------------------------------------------------------------------------
 
-@bound_ops("**TODO**")
-# vault_create_ldap_lib : "Vault"i "CreateLdapLibrary"i expr vault_args _SEMICOLON?
+@bound_ops("Vault-CreateLdapLibrary")
 def execute_create_ldap_library(ctx: ExecContext, statement: Tree) -> None:
+    """
+**TODO**
+"""
     raise NotImplementedError() # TODO
 
-@bound_ops("**TODO**")
-# vault_read_ldap_lib   : "Vault"i "ReadLdapLibrary"i expr vault_args _SEMICOLON?
+@bound_ops("Vault-ReadLdapLibrary")
 def execute_read_ldap_library(ctx: ExecContext, statement: Tree) -> None:
+    """
+**TODO**
+"""
     mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
     args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -812,19 +816,25 @@ def execute_read_ldap_library(ctx: ExecContext, statement: Tree) -> None:
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.read_ldap_library(mount_point, name, namespace))
 
-@bound_ops("**TODO**")
-# vault_update_ldap_lib : "Vault"i "UpdateLdapLibrary"i expr vault_args _SEMICOLON?
+@bound_ops("Vault-UpdateLdapLibrary")
 def execute_update_ldap_library(ctx: ExecContext, statement: Tree) -> None:
+    """
+**TODO**
+"""
     raise NotImplementedError() # TODO
 
-@bound_ops("**TODO**")
-# vault_delete_ldap_lib : "Vault"i "DeleteLdapLibrary"i expr vault_args _SEMICOLON?
+@bound_ops("Vault-DeleteLdapLibrary")
 def execute_delete_ldap_library(ctx: ExecContext, statement: Tree) -> None:
+    """
+**TODO**
+"""
     raise NotImplementedError() # TODO
 
-@bound_ops("**TODO**")
-# vault_list_ldap_libs  : "Vault"i "ListLdapLibraries"i expr vault_args _SEMICOLON?
+@bound_ops("Vault-ListLdapLibraries")
 def execute_list_ldap_libraries(ctx: ExecContext, statement: Tree) -> None:
+    """
+**TODO**
+"""
     mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
     args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -836,14 +846,18 @@ def execute_list_ldap_libraries(ctx: ExecContext, statement: Tree) -> None:
 # LDAP secrets engine : Static
 #-------------------------------------------------------------------------------
 
-@bound_ops("**TODO**")
-# vault_create_ldap_secret : "Vault"i "CreateLdapSecret"i expr vault_args _SEMICOLON?
+@bound_ops("Vault-CreateLdapSecret")
 def execute_create_ldap_secret(ctx: ExecContext, statement: Tree) -> None:
+    """
+**TODO**
+"""
     raise NotImplementedError() # TODO
 
-@bound_ops("**TODO**")
-# vault_read_ldap_secret   : "Vault"i "ReadLdapSecret"i expr vault_args _SEMICOLON?
+@bound_ops("Vault-ReadLdapSecret")
 def execute_read_ldap_secret(ctx: ExecContext, statement: Tree) -> None:
+    """
+**TODO**
+"""
     mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
     args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -851,19 +865,25 @@ def execute_read_ldap_secret(ctx: ExecContext, statement: Tree) -> None:
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.read_ldap_secret(mount_point, name, namespace))
 
-@bound_ops("**TODO**")
-# vault_update_ldap_secret : "Vault"i "UpdateLdapSecret"i expr vault_args _SEMICOLON?
+@bound_ops("Vault-UpdateLdapSecret")
 def execute_update_ldap_secret(ctx: ExecContext, statement: Tree) -> None:
+    """
+**TODO**
+"""
     raise NotImplementedError() # TODO
 
-@bound_ops("**TODO**")
-# vault_delete_ldap_secret : "Vault"i "DeleteLdapSecret"i expr vault_args _SEMICOLON?
+@bound_ops("Vault-DeleteLdapSecret")
 def execute_delete_ldap_secret(ctx: ExecContext, statement: Tree) -> None:
+    """
+**TODO**
+"""
     raise NotImplementedError() # TODO
 
-@bound_ops("**TODO**")
-# vault_list_ldap_secrets  : "Vault"i "ListLdapSecrets"i expr vault_args _SEMICOLON?
+@bound_ops("Vault-ListLdapSecrets")
 def execute_list_ldap_secrets(ctx: ExecContext, statement: Tree) -> None:
+    """
+**TODO**
+"""
     mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
     args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -871,18 +891,22 @@ def execute_list_ldap_secrets(ctx: ExecContext, statement: Tree) -> None:
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.list_ldap_secrets(mount_point, namespace))
 
-@bound_ops("**TODO**")
-# vault_rotate_ldap_secret : "Vault"i "RotateLdapSecret"i expr vault_args _SEMICOLON?
+@bound_ops("Vault-RotateLdapSecret")
 def execute_rotate_ldap_secret(ctx: ExecContext, statement: Tree) -> None:
+    """
+**TODO**
+"""
     raise NotImplementedError() # TODO
 
 #-------------------------------------------------------------------------------
 # Database secrets engine : Connections
 #-------------------------------------------------------------------------------
 
-@bound_ops("**TODO**")
-# vault_create_db_conn  : "Vault"i "CreateDbConnection"i expr vault_args _SEMICOLON?
+@bound_ops("Vault-CreateDbConnection")
 def execute_create_db_connection(ctx: ExecContext, statement: Tree) -> None:
+    """
+**TODO**
+"""
     mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
     args = _extract_args(ctx, statement)
     _allowed_args(args, _CONFIG_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -891,9 +915,11 @@ def execute_create_db_connection(ctx: ExecContext, statement: Tree) -> None:
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.create_database_connection(mount_point, name, config, namespace))
 
-@bound_ops("**TODO**")
-# vault_read_db_conn    : "Vault"i "ReadDbConnection"i expr vault_args _SEMICOLON?
+@bound_ops("Vault-ReadDbConnection")
 def execute_read_db_connection(ctx: ExecContext, statement: Tree) -> None:
+    """
+**TODO**
+"""
     mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
     args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -901,16 +927,20 @@ def execute_read_db_connection(ctx: ExecContext, statement: Tree) -> None:
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.read_database_connection(mount_point, name, namespace))
 
-@bound_ops("**TODO**")
-# vault_update_db_conn  : "Vault"i "UpdateDbConnection"i expr vault_args _SEMICOLON?
+@bound_ops("Vault-UpdateDbConnection")
 def execute_update_db_connection(ctx: ExecContext, statement: Tree) -> None:
+    """
+**TODO**
+"""
     # NB: There's no difference in the call, but the ACL may need to be
     #     different depending upon it being a create or update.
     return execute_create_db_connection(ctx, statement)
 
-@bound_ops("**TODO**")
-# vault_delete_db_conn  : "Vault"i "DeleteDbConnection"i expr vault_args _SEMICOLON?
+@bound_ops("Vault-DeleteDbConnection")
 def execute_delete_db_connection(ctx: ExecContext, statement: Tree) -> None:
+    """
+**TODO**
+"""
     mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
     args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -918,9 +948,11 @@ def execute_delete_db_connection(ctx: ExecContext, statement: Tree) -> None:
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.delete_database_connection(mount_point, name, namespace))
 
-@bound_ops("**TODO**")
-# vault_list_db_conns   : "Vault"i "ListDbConnections"i expr vault_args _SEMICOLON?
+@bound_ops("Vault-ListDbConnections")
 def execute_list_db_connections(ctx: ExecContext, statement: Tree) -> None:
+    """
+**TODO**
+"""
     mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
     args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -928,9 +960,11 @@ def execute_list_db_connections(ctx: ExecContext, statement: Tree) -> None:
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.list_database_connections(mount_point, namespace))
 
-@bound_ops("**TODO**")
-# vault_reset_db_conn   : "Vault"i "ResetDbConnection"i expr vault_args _SEMICOLON?
+@bound_ops("Vault-ResetDbConnection")
 def execute_reset_db_connection(ctx: ExecContext, statement: Tree) -> None:
+    """
+**TODO**
+"""
     mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
     args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -938,9 +972,11 @@ def execute_reset_db_connection(ctx: ExecContext, statement: Tree) -> None:
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.reset_database_connection(mount_point, name, namespace))
 
-@bound_ops("**TODO**")
-# vault_rotate_db_conn  : "Vault"i "RotateDbConnectionCredentials"i expr vault_args _SEMICOLON?
+@bound_ops("Vault-RotateDbConnectionCredentials")
 def execute_rotate_db_connection_creds(ctx: ExecContext, statement: Tree) -> None:
+    """
+**TODO**
+"""
     mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
     args = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -949,11 +985,14 @@ def execute_rotate_db_connection_creds(ctx: ExecContext, statement: Tree) -> Non
     _set_result(ctx, args, client.rotate_database_connection_creds(mount_point, name, namespace))
 
 #-------------------------------------------------------------------------------
-# Database secrets engine : Connections
+# Database secrets engine : Roles
 #-------------------------------------------------------------------------------
 
-@bound_ops("**TODO**")
+@bound_ops("Vault-CreateDbRole")
 def execute_create_db_role(ctx: ExecContext, statement: Tree) -> None:
+    """
+**TODO**
+"""
     mount_point, role_name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Role Name'))
     args = _extract_args(ctx, statement)
     _allowed_args(args, _CONFIG_ARG, _TYPE_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -963,8 +1002,11 @@ def execute_create_db_role(ctx: ExecContext, statement: Tree) -> None:
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.create_database_role(mount_point, role_name, is_static, config, namespace))
 
-@bound_ops("**TODO**")
+@bound_ops("Vault-ReadDbRole")
 def execute_read_db_role(ctx: ExecContext, statement: Tree) -> None:
+    """
+**TODO**
+"""
     mount_point, role_name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Role Name'))
     args = _extract_args(ctx, statement)
     _allowed_args(args, _TYPE_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -973,14 +1015,20 @@ def execute_read_db_role(ctx: ExecContext, statement: Tree) -> None:
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.read_database_role(mount_point, role_name, is_static, namespace))
 
-@bound_ops("**TODO**")
+@bound_ops("Vault-UpdateDbRole")
 def execute_update_db_role(ctx: ExecContext, statement: Tree) -> None:
+    """
+**TODO**
+"""
     # NB: There's no difference in the call, but the ACL may need to be
     #     different depending upon it being a create or update.
     return execute_create_db_role(ctx, statement)
 
-@bound_ops("**TODO**")
+@bound_ops("Vault-DeleteDbRole")
 def execute_delete_db_role(ctx: ExecContext, statement: Tree) -> None:
+    """
+**TODO**
+"""
     mount_point, role_name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Role Name'))
     args = _extract_args(ctx, statement)
     _allowed_args(args, _TYPE_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -989,8 +1037,11 @@ def execute_delete_db_role(ctx: ExecContext, statement: Tree) -> None:
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.delete_database_role(mount_point, role_name, is_static, namespace))
 
-@bound_ops("**TODO**")
+@bound_ops("Vault-ListDbRoles")
 def execute_list_db_roles(ctx: ExecContext, statement: Tree) -> None:
+    """
+**TODO**
+"""
     mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
     args = _extract_args(ctx, statement)
     _allowed_args(args, _TYPE_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -999,8 +1050,11 @@ def execute_list_db_roles(ctx: ExecContext, statement: Tree) -> None:
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.list_database_role(mount_point, is_static, namespace))
 
-@bound_ops("**TODO**")
+@bound_ops("Vault-GenerateDbCredentials")
 def execute_generate_db_role_creds(ctx: ExecContext, statement: Tree) -> None:
+    """
+**TODO**
+"""
     mount_point, role_name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Role Name'))
     args = _extract_args(ctx, statement)
     _allowed_args(args, _TYPE_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -1009,8 +1063,11 @@ def execute_generate_db_role_creds(ctx: ExecContext, statement: Tree) -> None:
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.generate_database_role_credentials(mount_point, role_name, is_static, namespace))
 
-@bound_ops("**TODO**")
+@bound_ops("Vault-RotateDbRoleCredentials")
 def execute_vault_rotate_db_role_creds(ctx: ExecContext, statement: Tree) -> None:
+    """
+**TODO**
+"""
     mount_point, role_name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Role Name'))
     args = _extract_args(ctx, statement)
     _allowed_args(args, _TYPE_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
