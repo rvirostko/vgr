@@ -527,7 +527,7 @@ class VaultClient():
     def rotate_database_connection_creds(self, mount_point: str, name: str, namespace: str=None) -> Dict[str, Any]:
         # https://developer.hashicorp.com/vault/api-docs/secret/databases#rotate-root-credentials
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_delete(encode_url(f'/v1/{mount_point}rotate-root/{name}'), namespace)
+        return self.do_post(encode_url(f'/v1/{mount_point}rotate-root/{name}'), namespace)
 
     def _static_pfx(self, path: str, is_static: bool) -> str:
         return "static-" + path if is_static else path
