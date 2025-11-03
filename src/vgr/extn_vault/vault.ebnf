@@ -111,7 +111,7 @@ vault_read_db_role         : "Vault"i "ReadDbRole"i expr vault_args _SEMICOLON?
 vault_update_db_role       : "Vault"i "UpdateDbRole"i expr vault_args _SEMICOLON?
 vault_delete_db_role       : "Vault"i "DeleteDbRole"i expr vault_args _SEMICOLON?
 vault_list_db_roles        : "Vault"i "ListDbRoles"i expr vault_args _SEMICOLON?
-vault_generate_db_creds    : "Vault"i "GenerateDbCredentials"i expr vault_args _SEMICOLON?
+vault_generate_db_role_creds : "Vault"i "GenerateDbRoleCredentials"i expr vault_args _SEMICOLON?
 # Note: while other db_role calls use Type is dynamic/static,
 #       rotate only applied to static. If you specify type, if must be static
 vault_rotate_db_role_creds : "Vault"i "RotateDbRoleCredentials"i expr vault_args _SEMICOLON?
