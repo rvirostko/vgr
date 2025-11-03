@@ -128,7 +128,6 @@ _Options_
 * Namespace Is _namespace_
 * Using [Connection] _name_
 * Giving _variable_
-
 """
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -149,7 +148,6 @@ _Options_
 * Namespace Is _namespace_
 * Using [Connection] _name_
 * Giving _variable_
-
 """
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -170,7 +168,6 @@ _Options_
 * Namespace Is _namespace_
 * Using [Connection] _name_
 * Giving _variable_
-
 """
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -192,7 +189,6 @@ _Options_
 * Namespace Is _namespace_
 * Using [Connection] _name_
 * Giving _variable_
-
 """
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _DATA_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -215,7 +211,6 @@ _Options_
 * Namespace Is _namespace_
 * Using [Connection] _name_
 * Giving _variable_
-
 """
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _DATA_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -235,7 +230,6 @@ def execute_default_ns(ctx: ExecContext, statement: Tree) -> None:
 _Options_
 
 * Giving _variable_
-
 """
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _RESULT_ARG)
@@ -256,7 +250,6 @@ _Options_
 * Namespace Is _parent_
 * Using [Connection] _name_
 * Giving _variable_
-
 """
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _META_ARG, _RESULT_ARG, _USING_ARG)
@@ -278,7 +271,6 @@ _Options_
 * Namespace Is _parent_
 * Using [Connection] _name_
 * Giving _variable_
-
 """
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -299,7 +291,6 @@ _Options_
 * Namespace Is _parent_
 * Using [Connection] _name_
 * Giving _variable_
-
 """
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _META_ARG, _RESULT_ARG, _USING_ARG)
@@ -321,7 +312,6 @@ _Options_
 * Namespace Is _parent_
 * Using [Connection] _name_
 * Giving _variable_
-
 """
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -344,7 +334,6 @@ _Options_
 * Namespace Is _parent_
 * Using [Connection] _name_
 * Giving _variable_
-
 """
     namespace: str = _resolve_str_arg(ctx, statement.children[0], 'Namespace', True) if len(statement.children) > 1 else ""
     args: dict = _extract_args(ctx, statement)
@@ -365,7 +354,6 @@ _Options_
 * Namespace Is _parent_
 * Using [Connection] _name_
 * Giving _variable_
-
 """
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -386,7 +374,6 @@ _Options_
 * Namespace Is _parent_
 * Using [Connection] _name_
 * Giving _variable_
-
 """
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG, _KEY_ARG)
@@ -412,7 +399,6 @@ _Options_
 * Namespace Is _namespace_
 * Using [Connection] _name_
 * Giving _variable_
-
 """
     mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
     args = _extract_args(ctx, statement)
@@ -452,7 +438,6 @@ _Options_
 * Namespace Is _namespace_
 * Using [Connection] _name_
 * Giving _variable_
-
 """
     mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
     args = _extract_args(ctx, statement)
@@ -474,7 +459,6 @@ _Options_
 * Namespace Is _namespace_
 * Using [Connection] _name_
 * Giving _variable_
-
 """
     mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
     args = _extract_args(ctx, statement)
@@ -502,7 +486,6 @@ _Options_
 * Namespace Is _namespace_
 * Using [Connection] _name_
 * Giving _variable_
-
 """
     mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
     args = _extract_args(ctx, statement)
@@ -555,7 +538,6 @@ _Options_
 * Namespace Is _namespace_
 * Using [Connection] _name_
 * Giving _variable_
-
 """
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
     args = _extract_args(ctx, statement)
@@ -585,7 +567,6 @@ _Options_
 * Namespace Is _namespace_
 * Using [Connection] _name_
 * Giving _variable_
-
 """
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
     args = _extract_args(ctx, statement)
@@ -607,7 +588,6 @@ _Options_
 * Namespace Is _namespace_
 * Using [Connection] _name_
 * Giving _variable_
-
 """
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
     args = _extract_args(ctx, statement)
@@ -631,7 +611,6 @@ _Options_
 * Namespace Is _namespace_
 * Using [Connection] _name_
 * Giving _variable_
-
 """
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
     args = _extract_args(ctx, statement)
@@ -665,7 +644,6 @@ _Options_
 * Namespace Is _namespace_
 * Using [Connection] _name_
 * Giving _variable_
-
 """
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
     args = _extract_args(ctx, statement)
@@ -697,7 +675,6 @@ _Options_
 * Namespace Is _namespace_
 * Using [Connection] _name_
 * Giving _variable_
-
 """
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
     args = _extract_args(ctx, statement)
@@ -719,7 +696,6 @@ _Options_
 * Namespace Is _namespace_
 * Using [Connection] _name_
 * Giving _variable_
-
 """
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
     args = _extract_args(ctx, statement)
@@ -741,7 +717,6 @@ _Options_
 * Namespace Is _namespace_
 * Using [Connection] _name_
 * Giving _variable_
-
 """
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
     args = _extract_args(ctx, statement)
@@ -763,7 +738,6 @@ _Options_
 * Namespace Is _namespace_
 * Using [Connection] _name_
 * Giving _variable_
-
 """
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
     args = _extract_args(ctx, statement)
@@ -784,7 +758,6 @@ _Options_
 * Namespace Is _namespace_
 * Using [Connection] _name_
 * Giving _variable_
-
 """
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
     args = _extract_args(ctx, statement)
@@ -1014,7 +987,16 @@ _Options_
 @bound_ops("Vault-CreateDbConnection")
 def execute_create_db_connection(ctx: ExecContext, statement: Tree) -> None:
     """
-**TODO**
+**Create and configure a Database Connection**
+
+* Vault CreateDbConnection _mount_and_name_<br>
+  <em>Config Is _config_ [;]
+
+_Options_
+
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Giving _variable_
 """
     mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
     args = _extract_args(ctx, statement)
@@ -1027,7 +1009,15 @@ def execute_create_db_connection(ctx: ExecContext, statement: Tree) -> None:
 @bound_ops("Vault-ReadDbConnection")
 def execute_read_db_connection(ctx: ExecContext, statement: Tree) -> None:
     """
-**TODO**
+**Read a Database Connection configuration**
+
+* Vault ReadDbConnection _mount_and_name_ [;]
+
+_Options_
+
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Giving _variable_
 """
     mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
     args = _extract_args(ctx, statement)
@@ -1039,16 +1029,38 @@ def execute_read_db_connection(ctx: ExecContext, statement: Tree) -> None:
 @bound_ops("Vault-UpdateDbConnection")
 def execute_update_db_connection(ctx: ExecContext, statement: Tree) -> None:
     """
-**TODO**
+**Update a Database Connection configuration**
+
+* Vault UpdateDbConnection _mount_and_name_<br>
+  <em>Config Is _config_ [;]
+
+_Options_
+
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Giving _variable_
 """
-    # NB: There's no difference in the call, but the ACL may need to be
-    #     different depending upon it being a create or update.
-    return execute_create_db_connection(ctx, statement)
+    mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
+    args = _extract_args(ctx, statement)
+    _allowed_args(args, _CONFIG_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    config = _get_arg(args, _CONFIG_ARG, dict)
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.update_database_connection(mount_point, name, config, namespace))
 
 @bound_ops("Vault-DeleteDbConnection")
 def execute_delete_db_connection(ctx: ExecContext, statement: Tree) -> None:
     """
-**TODO**
+**Remove a Database Connection**
+
+* Vault DeleteDbConnection _mount_and_name_<br>
+  <em>Config Is _config_ [;]
+
+_Options_
+
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Giving _variable_
 """
     mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
     args = _extract_args(ctx, statement)
@@ -1060,7 +1072,15 @@ def execute_delete_db_connection(ctx: ExecContext, statement: Tree) -> None:
 @bound_ops("Vault-ListDbConnections")
 def execute_list_db_connections(ctx: ExecContext, statement: Tree) -> None:
     """
-**TODO**
+**List Database Connections**
+
+* Vault DeleteDbConnection _mount_point_ [;]
+
+_Options_
+
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Giving _variable_
 """
     mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
     args = _extract_args(ctx, statement)
@@ -1072,7 +1092,15 @@ def execute_list_db_connections(ctx: ExecContext, statement: Tree) -> None:
 @bound_ops("Vault-ResetDbConnection")
 def execute_reset_db_connection(ctx: ExecContext, statement: Tree) -> None:
     """
-**TODO**
+**Closes a Database Connection and it's plugin and restarts it**
+
+* Vault ResetDbConnection _mount_and_name_ [;]
+
+_Options_
+
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Giving _variable_
 """
     mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
     args = _extract_args(ctx, statement)
@@ -1084,7 +1112,15 @@ def execute_reset_db_connection(ctx: ExecContext, statement: Tree) -> None:
 @bound_ops("Vault-RotateDbConnectionCredentials")
 def execute_rotate_db_connection_creds(ctx: ExecContext, statement: Tree) -> None:
     """
-**TODO**
+**Rotate the user credentials of the Database Connection**
+
+* Vault RotateDbConnectionCredentials _mount_and_name_ [;]
+
+_Options_
+
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Giving _variable_
 """
     mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
     args = _extract_args(ctx, statement)
@@ -1100,7 +1136,17 @@ def execute_rotate_db_connection_creds(ctx: ExecContext, statement: Tree) -> Non
 @bound_ops("Vault-CreateDbRole")
 def execute_create_db_role(ctx: ExecContext, statement: Tree) -> None:
     """
-**TODO**
+**Creates a Role for a Database**
+
+* Vault CreateDbRole _mount_and_name_<br>
+  <em>Config is _config_ [;]
+
+_Options_
+
+* Type Is _type_ - use "Static" for static roles, otherwise omit
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Giving _variable_
 """
     mount_point, role_name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Role Name'))
     args = _extract_args(ctx, statement)
@@ -1114,7 +1160,16 @@ def execute_create_db_role(ctx: ExecContext, statement: Tree) -> None:
 @bound_ops("Vault-ReadDbRole")
 def execute_read_db_role(ctx: ExecContext, statement: Tree) -> None:
     """
-**TODO**
+**Read a Database Role**
+
+* Vault ReadDbRole _mount_and_name_ [;]
+
+_Options_
+
+* Type Is _type_ - use "Static" for static roles, otherwise omit
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Giving _variable_
 """
     mount_point, role_name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Role Name'))
     args = _extract_args(ctx, statement)
@@ -1127,16 +1182,40 @@ def execute_read_db_role(ctx: ExecContext, statement: Tree) -> None:
 @bound_ops("Vault-UpdateDbRole")
 def execute_update_db_role(ctx: ExecContext, statement: Tree) -> None:
     """
-**TODO**
+**Update a Role for a Database**
+
+* Vault UpdateDbRole _mount_and_name_<br>
+  <em>Config is _config_ [;]
+
+_Options_
+
+* Type Is _type_ - use "Static" for static roles, otherwise omit
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Giving _variable_
 """
-    # NB: There's no difference in the call, but the ACL may need to be
-    #     different depending upon it being a create or update.
-    return execute_create_db_role(ctx, statement)
+    mount_point, role_name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Role Name'))
+    args = _extract_args(ctx, statement)
+    _allowed_args(args, _CONFIG_ARG, _TYPE_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    config = _get_arg(args, _CONFIG_ARG, dict)
+    is_static = _is_static_type(args)
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.update_database_role(mount_point, role_name, is_static, config, namespace))
 
 @bound_ops("Vault-DeleteDbRole")
 def execute_delete_db_role(ctx: ExecContext, statement: Tree) -> None:
     """
-**TODO**
+**Remove a Database Role**
+
+* Vault DeleteDbRole _mount_and_name_ [;]
+
+_Options_
+
+* Type Is _type_ - use "Static" for static roles, otherwise omit
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Giving _variable_
 """
     mount_point, role_name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Role Name'))
     args = _extract_args(ctx, statement)
@@ -1149,7 +1228,16 @@ def execute_delete_db_role(ctx: ExecContext, statement: Tree) -> None:
 @bound_ops("Vault-ListDbRoles")
 def execute_list_db_roles(ctx: ExecContext, statement: Tree) -> None:
     """
-**TODO**
+**List Database Roles for a mount point**
+
+* Vault ListDbRoles _mount_point_ [;]
+
+_Options_
+
+* Type Is _type_ - use "Static" for static roles, otherwise omit
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Giving _variable_
 """
     mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
     args = _extract_args(ctx, statement)
@@ -1159,10 +1247,19 @@ def execute_list_db_roles(ctx: ExecContext, statement: Tree) -> None:
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.list_database_role(mount_point, is_static, namespace))
 
-@bound_ops("Vault-GenerateDbCredentials")
+@bound_ops("Vault-GenerateDbRoleCredentials")
 def execute_generate_db_role_creds(ctx: ExecContext, statement: Tree) -> None:
     """
-**TODO**
+**Generate a new credentials for a Database Role**
+
+* Vault GenerateDbRoleCredentials _mount_and_name_ [;]
+
+_Options_
+
+* Type Is _type_ - use "Static" for static roles, otherwise omit
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Giving _variable_
 """
     mount_point, role_name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Role Name'))
     args = _extract_args(ctx, statement)
@@ -1175,7 +1272,16 @@ def execute_generate_db_role_creds(ctx: ExecContext, statement: Tree) -> None:
 @bound_ops("Vault-RotateDbRoleCredentials")
 def execute_vault_rotate_db_role_creds(ctx: ExecContext, statement: Tree) -> None:
     """
-**TODO**
+**Generate a new credentials for a _Static_ Database Role**
+
+* Vault RotateDbRoleCredentials _mount_and_name_ [;]
+
+_Options_
+
+* Type Is _type_ - must be "Static" if provided
+* Namespace Is _namespace_
+* Using [Connection] _name_
+* Giving _variable_
 """
     mount_point, role_name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Role Name'))
     args = _extract_args(ctx, statement)
