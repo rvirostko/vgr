@@ -83,79 +83,79 @@ _Connections_
 
 _Generic API Calls_
 
-* Vault APIGet _path_ [_options_]... - Send a GET to a Vault API
-* Vault APIList _path_ [_options_]... - Send a LIST to a Vault API
-* Vault APIDelete _path_ [_options_]... - Send a DELETE to a Vault API
-* Vault APIPost _path_ [_options_]... - Send a PATCH to a Vault API
-* Vault APIPatch _path_ [_options_]... - Send a POST to a Vault API
+* Vault APIGet _path_ - Send a GET to a Vault API
+* Vault APIList _path_ - Send a LIST to a Vault API
+* Vault APIDelete _path_ - Send a DELETE to a Vault API
+* Vault APIPost _path_ - Send a PATCH to a Vault API
+* Vault APIPatch _path_ - Send a POST to a Vault API
 
 _Namespace Management_
 
-* Vault CreateNamespace _namespace_ [_options_]... - Create a new namesapce
-* Vault ReadNamespace _namespace_ [_options_]... - Read a namespace
-* Vault UpdateNamespace _namespace_ [_options_]... - Update a namespace
-* Vault DeleteNamespace _namespace_ [_options_]... - Delete a namespace
-* Vault ListNamespaces [_namespace_] [_options_]... - List child namespaces
-* Vault LockNamespace _namespace_ [_options_]... - Lock a namespace
-* Vault UnlockNamespace _namespace_ [_options_]... - Unlock a namespace
+* Vault CreateNamespace _namespace_ - Create a new namesapce
+* Vault ReadNamespace _namespace_ - Read a namespace
+* Vault UpdateNamespace _namespace_ - Update a namespace
+* Vault DeleteNamespace _namespace_ - Delete a namespace
+* Vault ListNamespaces [_namespace_] - List child namespaces
+* Vault LockNamespace _namespace_ - Lock a namespace
+* Vault UnlockNamespace _namespace_ - Unlock a namespace
 * Vault DefaultNamespace _namespace_ - Set the namespace to be used by subsequent requests
 
 _Secret Engine Mount Points_
 
-* Vault CreateMount _mount_point_ [_options_]... - Create and configure a secrets engine
-* Vault ReadMount _mount_point_ [_options_]... - Read the configuration of a secrets engine mount
-* Vault UpdateMount _mount_point_ [_options_]... - Update the configuration of a secrets engine
-* Vault DeleteMount _mount_point_ [_options_]... - Remove a secrets engine mount
-* Vault ListMounts [_namespace_] [_options_]... - List the mount points in a namespace
+* Vault CreateMount _mount_point_ - Create and configure a secrets engine
+* Vault ReadMount _mount_point_ - Read the configuration of a secrets engine mount
+* Vault UpdateMount _mount_point_ - Update the configuration of a secrets engine
+* Vault DeleteMount _mount_point_ - Remove a secrets engine mount
+* Vault ListMounts [_namespace_] - List the mount points in a namespace
 
 _KV2 Secrets_
 
-* Vault CreateKvSecret _mount_and_path_ [_options_]... - Create or update the KV secrets
-* Vault ReadKvSecret _mount_and_path_ [_options_]... - Read the KV secrets
-* Vault ReadKvMetadata _mount_and_path_ [_options_]... - Read the KV metadata
-* Vault DeleteKvMetadata _mount_and_path_ [_options_]... - Delete KV metadata
-* Vault UpdateKvSecret _mount_and_path_ [_options_]... - Update the KV secrets data and/or metadata
-* Vault DeleteKvSecret _mount_and_path_ [_options_]... - Delete a KV secret
-* Vault UndeleteKvSecret _mount_and_path_ [_options_]... - Undelete a KV secret
-* Vault DestroyKvSecret _mount_and_path_ [_options_]... - Destroy a KV secret
-* Vault ListKvSecrets _mount_and_path_ [_options_]... - List KV secrets at a path location
-* Vault PatchKvSecret _mount_and_path_ [_options_]... - Patch the KV secrets data and/or metadata
+* Vault CreateKvSecret _mount_and_path_ - Create or update the KV secrets
+* Vault ReadKvSecret _mount_and_path_ - Read the KV secrets
+* Vault ReadKvMetadata _mount_and_path_ - Read the KV metadata
+* Vault DeleteKvMetadata _mount_and_path_ - Delete KV metadata
+* Vault UpdateKvSecret _mount_and_path_ - Update the KV secrets data and/or metadata
+* Vault DeleteKvSecret _mount_and_path_ - Delete a KV secret
+* Vault UndeleteKvSecret _mount_and_path_ - Undelete a KV secret
+* Vault DestroyKvSecret _mount_and_path_ - Destroy a KV secret
+* Vault ListKvSecrets _mount_and_path_ - List KV secrets at a path location
+* Vault PatchKvSecret _mount_and_path_ - Patch the KV secrets data and/or metadata
 
 _LDAP Libraries Sets_
 
-* Vault CreateLdapLibrary _expr_ [_options_]... - TODO
-* Vault ReadLdapLibrary _expr_ [_options_]... - TODO
-* Vault UpdateLdapLibrary _expr_ [_options_]... - TODO
-* Vault DeleteLdapLibrary _expr_ [_options_]... - TODO
-* Vault ListLdapLibraries _expr_ [_options_]... - TODO
+* Vault CreateLdapLibrary _mount_and_set_ - Create a set of LDAP credentials
+* Vault ReadLdapLibrary _mount_and_set_ - Get the configuraiton of a set of LDAP credentials
+* Vault UpdateLdapLibrary _mount_and_set_ - Update the configuraiton of a set of LDAP credentials
+* Vault DeleteLdapLibrary _mount_and_set_ - Remove a set of LDAP credentials
+* Vault ListLdapLibraries _mount_point_ - List LDAP library set names
 
 _LDAP Static Roles_
 
-* Vault CreateLdapRole _expr_ [_options_]... - TODO
-* Vault ReadLdapRole _expr_ [_options_]... - TODO
-* Vault UpdateLdapRole _expr_ [_options_]... - TODO
-* Vault DeleteLdapRole _expr_ [_options_]... - TODO
-* Vault ListLdapRoles _expr_ [_options_]... - TODO
-* Vault RotateLdapRole _expr_ [_options_]... - TODO
+* Vault CreateLdapRole _mount_and_role_ - Create a static LDAP role
+* Vault ReadLdapRole _mount_and_role_ - Get a static LDAP role
+* Vault UpdateLdapRole _mount_and_role_ - Update a static LDAP role
+* Vault DeleteLdapRole _mount_and_role_ - Remove a static LDAP role
+* Vault ListLdapRoles _mount_point_ - List static LDAP roles
+* Vault RotateLdapRole _mount_and_role_ - Rotate the password of a static LDAP role
 
 _Database Connections_
 
-* Vault CreateDbConnection _expr_ [_options_]... - TODO
-* Vault ReadDbConnection _expr_ [_options_]... - TODO
-* Vault UpdateDbConnection _expr_ [_options_]... - TODO
-* Vault DeleteDbConnection _expr_ [_options_]... - TODO
-* Vault ListDbConnections _expr_ [_options_]... - TODO
-* Vault ResetDbConnection _expr_ [_options_]... - TODO
-* Vault RotateDbConnectionCredentials _expr_ [_options_]... - TODO
+* Vault CreateDbConnection _mount_and_name_ - Create and configure a Database Connection
+* Vault ReadDbConnection _mount_and_name_ - Read a Database Connection configuration
+* Vault UpdateDbConnection _mount_and_name_ - Update a Database Connection configuration
+* Vault DeleteDbConnection _mount_and_name_ - Remove a Database Connection
+* Vault ListDbConnections _mount_point_ - List Database Connections
+* Vault ResetDbConnection _mount_and_name_ - Closes a Database Connection and it's plugin and restarts it
+* Vault RotateDbConnectionCredentials _mount_and_name_ - Rotate the user credentials of the Database Connection
 
 _Database Roles_
 
-* Vault CreateDbRole _expr_ [_options_]... - TODO
-* Vault ReadDbRole _expr_ [_options_]... - TODO
-* Vault UpdateDbRole _expr_ [_options_]... - TODO
-* Vault DeleteDbRole _expr_ [_options_]... - TODO
-* Vault ListDbRoles _expr_ [_options_]... - TODO
-* Vault GenerateDbRoleCredentials _expr_ [_options_]... - TODO
+* Vault CreateDbRole _mount_and_name_ - Creates a Role for a Database
+* Vault ReadDbRole _mount_and_name_ - Read a Database Role
+* Vault UpdateDbRole _mount_and_name_ - Update a Role for a Database
+* Vault DeleteDbRole _mount_and_name_ - Remove a Database Role
+* Vault ListDbRoles _mount_point_ - List Database Roles for a mount point
+* Vault GenerateDbRoleCredentials _mount_and_name_ - Generate a new credentials for a Database Role
 
 _Universal Options_
 

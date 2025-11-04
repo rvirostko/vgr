@@ -859,7 +859,7 @@ def execute_list_ldap_libraries(ctx: ExecContext, statement: Tree) -> None:
     """
 **List LDAP library set names**
 
-* Vault ListLdapLibrary _mount_point_ [;]
+* Vault ListLdapLibraries _mount_point_ [;]
 
 _Options_
 
@@ -892,7 +892,13 @@ _Options_
 * Using [Connection] _name_
 * Giving _variable_
 """
-    raise NotImplementedError() # TODO
+    mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
+    args = _extract_args(ctx, statement)
+    _allowed_args(args, _CONFIG_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    config = _get_arg(args, _CONFIG_ARG, dict, True)
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.create_ldap_role(mount_point, name, config, namespace))
 
 @bound_ops("Vault-ReadLdapRole")
 def execute_read_ldap_role(ctx: ExecContext, statement: Tree) -> None:
@@ -928,7 +934,13 @@ _Options_
 * Using [Connection] _name_
 * Giving _variable_
 """
-    raise NotImplementedError() # TODO
+    mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
+    args = _extract_args(ctx, statement)
+    _allowed_args(args, _CONFIG_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    config = _get_arg(args, _CONFIG_ARG, dict, True)
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.update_ldap_role(mount_point, name, config, namespace))
 
 @bound_ops("Vault-DeleteLdapRole")
 def execute_delete_ldap_role(ctx: ExecContext, statement: Tree) -> None:
@@ -943,7 +955,12 @@ _Options_
 * Using [Connection] _name_
 * Giving _variable_
 """
-    raise NotImplementedError() # TODO
+    mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
+    args = _extract_args(ctx, statement)
+    _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.delete_ldap_role(mount_point, name, namespace))
 
 @bound_ops("Vault-ListLdapRoles")
 def execute_list_ldap_roles(ctx: ExecContext, statement: Tree) -> None:
@@ -978,7 +995,12 @@ _Options_
 * Using [Connection] _name_
 * Giving _variable_
 """
-    raise NotImplementedError() # TODO
+    mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
+    args = _extract_args(ctx, statement)
+    _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
+    namespace: str = _get_arg(args, _NS_ARG, str, True)
+    client =_CONNECTIONS.get_connection(_get_conn_name(args))
+    _set_result(ctx, args, client.rotate_ldap_role(mount_point, name, namespace))
 
 #-------------------------------------------------------------------------------
 # Database secrets engine : Connections
@@ -1074,7 +1096,7 @@ def execute_list_db_connections(ctx: ExecContext, statement: Tree) -> None:
     """
 **List Database Connections**
 
-* Vault DeleteDbConnection _mount_point_ [;]
+* Vault ListDbConnections _mount_point_ [;]
 
 _Options_
 

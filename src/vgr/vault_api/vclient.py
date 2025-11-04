@@ -202,13 +202,11 @@ class VaultClient():
 
     def read_mount(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
         mount_point = self._fix_mount_point(mount_point)
-        # TODO probably not right
-        return self.do_get(encode_url(f'/v1/sys/mounts/{mount_point}tune'), namespace)
+        return self.do_get(encode_url(f'/v1/sys/mounts/{mount_point}'), namespace)
 
     def update_mount(self, mount_point: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         mount_point = self._fix_mount_point(mount_point)
-        # TODO probably not right
-        return self.do_post(encode_url(f'/v1/sys/mounts/{mount_point}tune'), config, namespace)
+        return self.do_post(encode_url(f'/v1/sys/mounts/{mount_point}'), config, namespace)
 
     def delete_mount(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
         mount_point = self._fix_mount_point(mount_point)
