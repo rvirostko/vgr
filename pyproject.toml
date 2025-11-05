@@ -16,7 +16,8 @@ dependencies = [
     "ldap3>=2.9.1",
     "prompt_toolkit>=3.0.50",
     "RapidFuzz>=3.13.0",
-    "rich>=13.9.4"
+    "rich>=13.9.4",
+    "blessed; sys_platform == 'win32'"
 ]
 
 [project.scripts]
