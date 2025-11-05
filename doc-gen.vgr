@@ -1,33 +1,6 @@
 //-----------------------------------------------------------------------------
-// Generates examples for function documentation
+// Generates examples for function and expression documentation
 //-----------------------------------------------------------------------------
-
-// Results of examples go to this file
-Open Output File "o.txt"
-// The echo output goes to this file
-Open Error File "e.txt"
-Tron
-//-----------------------------------------------------------------------------
-// Behavior tests go here
-//-----------------------------------------------------------------------------
-Print None.CountOf("a").Repr()
-Print "aaaBc".CountOf("").Repr()
-Print "aaaBc".CountOf("a").Repr()
-Print "aaaBc".CountOf("aa").Repr()
-#Print "The title".SubStr(4, 5).Repr()
-#Print "the TITLE".RightStrip("aeiou", "AEIOU").Repr()
-Print ["A.b.c", "X.y.z"].CountOf(".").Repr()
-Print 123.CountOf("1").Repr()
-//-----------------------------------------------------------------------------
-Troff
-Close Error File
-Close Output File
-
-// Load in the generated data and convert
-Load o_in With File "o.txt" Text Lines
-Set o_in To o_in.ReplaceStr("'", '"')
-Load o_err With File "e.txt" Text Lines
-Set o_err To o_err.RemovePrefix("Print ").RemoveSuffix(".Repr()")
 
 //-----------------------------------------------------------------------------
 // Prototype for a "distribute a function" feature
@@ -45,11 +18,96 @@ Define Function dist(lst, fn):
 End
 //-----------------------------------------------------------------------------
 
+//-----------------------------------------------------------------------------
+// Remove parens around a string
+//-----------------------------------------------------------------------------
+Define Function deparen(s):
+    If s.StartsWith("(") and s.EndsWith(")"):
+        Return s.Slice(1,-1)
+    End
+    Return s
+End
+//-----------------------------------------------------------------------------
+
+//-----------------------------------------------------------------------------
+// Join strings with an arrow
+//-----------------------------------------------------------------------------
 Set arrow_join(x) -> x.Join(" → ")
+//-----------------------------------------------------------------------------
+
+Set rnd = math.random100
+Set setup_file = "doc-gen-{}-s.txt".Format(rnd)
+Set out_file = "doc-gen-{}-o.txt".Format(rnd)
+Set err_file = "doc-gen-{}-e.txt".Format(rnd)
+
+Open Error File setup_file
+Tron
+//-----------------------------------------------------------------------------
+// Set up stuff
+//-----------------------------------------------------------------------------
+Set fruits To ["apple", "banana", "apple", "orange", "apple"]
+Set fruit_colors To {"apple": "red", "banana": "yellow"}
+//-----------------------------------------------------------------------------
+Troff
+Close Error File
+
+// Results of examples go to this file
+Open Output File out_file
+// The echo output goes to this file
+Open Error File err_file
+Tron
+//-----------------------------------------------------------------------------
+// Behavior tests go here
+//-----------------------------------------------------------------------------
+
+
+Print None.RIndexOf("a").Repr()
+Print "aaaBc".RIndexOf("").Repr()
+Print "aaaBc".RIndexOf("z").Repr()
+Print "aaaBc".RIndexOf("aB").Repr()
+Print 1232.RIndexOf("2").Repr()
+
+
+# List example
+Print fruits.RIndexOf("apple").Repr()
+Print fruits.RIndexOf("grape").Repr()
+
+# Dict example
+Print fruit_colors.RIndexOf("apple").Repr()
+Print fruit_colors.RIndexOf("grape").Repr()
+
+#Print None.FloorDiv("2").Repr()
+#Print 5.FloorDiv(" 2").Repr()
+#Print "5".FloorDiv("2.0").Repr()
+#Print [5, 7].FloorDiv(2).Repr()
+#Print ("5" ** 2).Repr()
+#Print ([3, 5] ** 3).Repr()
+#Print (25 ** .5).Repr()
+#Print (5 % [1, 2]).Repr()
+#Print ([1, 2] % [5, 7]).Repr()
+
+#Print ({"a": 5, "b": 7} < {"a": 7, "b": 5}).Repr()
+#Print ({"a": 5, "b": 7, "c": 11} != {"c": 13, "b": 7, "a": 5}).Repr()
+#Print ({"a": 5, "b": 7, "c": 11} - ["a", "c"]).Repr()
+#Print ({"a": 5, "b": 7, "c": 11} - {"a":None, "b":None}).Repr()
+//-----------------------------------------------------------------------------
+Troff
+Close Error File
+Close Output File
+
+// Load in the generated data and convert
+Load s_in WIth File setup_file Text Lines
+Load o_in With File out_file Text Lines
+Set o_in To o_in.ReplaceStr("'", '"')
+Load o_err With File err_file Text Lines
+Set o_err To o_err.RemovePrefix("Print ").RemoveSuffix(".Repr()")
+Set o_err To o_err.@dist(deparen)
+
 Set example To
-    o_err.CombineWith(o_in). // Combine the data sources
-    @dist(arrow_join).       // Join the statement and its output
-    MdCodeBlock("vgr")       // Make into a code example
+    (s_in +                   // Any setup strings
+     o_err.CombineWith(o_in). // Combine the data sources
+     @dist(arrow_join)).      // Join the statement and its output
+    MdCodeBlock("vgr")        // Make into a code example
 // See it as a preview for editing
 Print As Markdown example
 // And have it ready to paste
@@ -57,3 +115,7 @@ Print As Markdown example
 // We need to double up backslashes because the example will
 // be pasted into docstrings
 Terminal SetClipboard example.ReplaceStr("\\", "\\\\").AppendStr("\n")
+
+ForEach fn in [setup_file, out_file, err_file]:
+    Assert fn.RemoveFile().FirstItem() : "Could not delete {}", fn
+End
