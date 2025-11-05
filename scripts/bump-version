@@ -7,7 +7,7 @@ fi
 
 PROJECT_ROOT=$(pwd)
 
-VERSION_FILE="${PROJECT_ROOT}/src/vgr/version.py"
+VERSION_FILE="${PROJECT_ROOT}/src/vgr/__init__.py"
 TOML_FILE="${PROJECT_ROOT}/pyproject.toml"
 
 # Default is to just rewrite the date
@@ -50,7 +50,7 @@ sed -i '' -E "s/^(__version__[[:space:]]*=[[:space:]]*\").*(\".*)/\1${NEW_VERSIO
 sed -i '' -E "s/^(__version_date__[[:space:]]*=[[:space:]]*\").*(\".*)/\1${NEW_DATE}\2/" "$VERSION_FILE"
 
 printf "\nIn ${VERSION_FILE}:\n"
-cat "${VERSION_FILE}" | grep "__version_"
+cat "${VERSION_FILE}" | grep '__version__.*='
 
 sed -i '' -E "s/^(version[[:space:]]*=[[:space:]]*\").*(\".*)/\1${NEW_VERSION}\2/" "$TOML_FILE"
 

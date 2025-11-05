@@ -18,7 +18,7 @@ import uuid
 
 from .data_dict import DataDictionary, DynamicValue, MAX_FRAMES
 from .exec_context import ExecContext
-from .version import __version__, __version_date__
+from . import __version__, __version_date__
 
 VGR_PREFIX = 'vgr'
 INCLUDED_PATH = (VGR_PREFIX, 'included')
