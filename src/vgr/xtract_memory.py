@@ -18,6 +18,9 @@ class InMemoryExtractor(DataExtractor):
         self._data = poly_list(data)
         self._target = target
 
+    def __repr__(self):
+        return "InMemoryExtractor(target=" + repr(self._target) + ", data_len=" + str(len(self._data) if self._data else 0) + ")"
+
     def start(self, io: InfoOutput):
         """Nothing"""
 
