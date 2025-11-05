@@ -10,7 +10,7 @@ from lark import Tree, Token, Transformer, Visitor, v_args
 
 from .app_exceptions import VgrRuntimeError
 from .data_xtract import QueryFilter, InfoOutput, DataExtractor, EndExtractException
-from .evaluate import bind_operations, _var_name_path
+from .evaluate import bind_operations
 from .exec_context import ExecContext
 from .mathpak import poly_false, bound_ops, type_str
 from .output import (
@@ -30,7 +30,9 @@ from .xtract_vault import VAULT_TARGETS, VaultDataExtractor
 _ROWID_PATH = ('$rowid', ) # NB: zero based
 _DEFAULT_TARGET_NAME = '$record'
 
-_VAR_OPT = 'var'
+_DATA = 'data'
+_FILE = 'file'
+_TARGET = 'target'
 
 class SelectAnalyzer(Visitor):
 
@@ -147,7 +149,7 @@ class SelectAnalyzer(Visitor):
         # we are extracting the entire record and the target
         # name is the name for the columns
         if not self.output_statements:
-            self._headers.append(self.from_opts['target'])
+            self._headers.append(self.from_opts[_TARGET])
         self.output_opts['headers'] = self.make_cols_names_unique(self._headers)
         self._output_statements = [bind_operations(self.add_implicit(o)) for o in self.output_statements]
         self._predicates = [bind_operations(self.add_implicit(p)) for p in self.predicates]
@@ -155,7 +157,7 @@ class SelectAnalyzer(Visitor):
     def add_implicit(self, tree: Tree) -> Tree:
         """Should only be applied to the outputs and predicates after analysis!"""
         from_type = self.from_opts['type']
-        target = self.from_opts['target']
+        target = self.from_opts[_TARGET]
         # Expected contents: top level keys for current frame all the way to global
         valid_contexts = self.ctx.dd.keys()
         if from_type == 'from_vault': valid_contexts += VAULT_TARGETS
@@ -222,30 +224,30 @@ class SelectAnalyzer(Visitor):
             rc.append(name)
         return rc
 
-    def var_from(self, node: Tree):
-        """... From Var <name> [As <target>] ..."""
+    def expr_from(self, node: Tree):
+        """... From <expr> [As <target>] ..."""
         node = bind_operations(node)
         self.from_opts['type'] = 'memory'
-        self.from_opts[_VAR_OPT] = _var_name_path(node.children[0])
-        self.from_opts['target'] = self._get_target_name(node.children[1]) if len(node.children) > 1 else _DEFAULT_TARGET_NAME
+        self.from_opts[_DATA] = node.children[0]
+        self.from_opts[_TARGET] = self._get_target_name(node.children[1]) if len(node.children) > 1 else _DEFAULT_TARGET_NAME
 
     def file_from(self, node: Tree):
         """... From File <filename> [As <target>] ..."""
         node = bind_operations(node)
         self.from_opts['type'] = 'memory'
         filename = self.ctx.eval_filename_expr(bind_operations(node.children[0]))
-        self.from_opts['file'] = filename
+        self.from_opts[_FILE] = filename
         self.from_opts['dtype'] = load_data_type(filename, None)
-        self.from_opts['target'] = self._get_target_name(node.children[1]) if len(node.children) > 1 else _DEFAULT_TARGET_NAME
+        self.from_opts[_TARGET] = self._get_target_name(node.children[1]) if len(node.children) > 1 else _DEFAULT_TARGET_NAME
 
     def file_from_typed(self, node: Tree):
         """... From File <filename> <source_type> [As <target>] ..."""
         node = bind_operations(node)
         self.from_opts['type'] = 'memory'
         filename = self.ctx.eval_filename_expr(bind_operations(node.children[0]))
-        self.from_opts['file'] = filename
+        self.from_opts[_FILE] = filename
         self.from_opts['dtype'] = load_data_type(filename, node.children[1])
-        self.from_opts['target'] = self._get_target_name(node.children[2]) if len(node.children) > 2 else _DEFAULT_TARGET_NAME
+        self.from_opts[_TARGET] = self._get_target_name(node.children[2]) if len(node.children) > 2 else _DEFAULT_TARGET_NAME
 
     def _get_target_name(self, node: Tree) -> str:
         target = self.ctx.eval_expr_or_const(bind_operations(node))
@@ -263,10 +265,10 @@ class SelectAnalyzer(Visitor):
             raise VgrRuntimeError(node, e) from e
 
     def from_vault(self, node: Tree):
-        """... From [Vault] <vault-target> ..."""
+        """... From Vault <vault-target> ..."""
         node = bind_operations(node)
         self.from_opts['type'] = 'vault'
-        self.from_opts['target'] = node.children[0].value.lower()
+        self.from_opts[_TARGET] = node.children[0].value.lower()
 
     def where_clause(self, node: Tree):
         """... Where expr (, expr)* ..."""
@@ -417,7 +419,7 @@ TODO
         ctx.print_tree(statement)
         output_opts = select.output_opts
         from_opts = select.from_opts
-        ctx.dd.declare_var(True, (from_opts['target'],))
+        ctx.dd.declare_var(True, (from_opts[_TARGET],))
         # If the type was not set, we use the default
         output_opts['type'] = output_opts.get('type', 'csv')
         writer = create_writer(output_opts, select.output_controls)
@@ -453,8 +455,8 @@ class QueryRunner(QueryFilter, InfoOutput):
 
     def run_extraction(self, extractor: DataExtractor) -> None:
         """
-        The writer is started up, and if it can proceede, we turn
-        the process, essentially, over to the extractor.
+        The writer started up, and if it can proceede, we turn
+        the process, essentialy, over to the extractor.
         Here we handle clean up, especial on the receipt of
         a DataLimitExceededException: this is the only place where
         this should be caught.
@@ -554,17 +556,17 @@ def create_extractor(ctx: ExecContext, opts: dict) -> DataExtractor:
     Using the options, create an extractor for data.
     """
     xtype = opts['type']
-    target = opts['target']
+    target = opts[_TARGET]
     if xtype == 'vault':
         # TODO Much more complicated in the future...
         return VaultDataExtractor(target)
     if xtype == 'memory':
-        path = opts.get(_VAR_OPT, None)
-        if path:
-            return InMemoryExtractor(ctx.get_var(*path), target)
-        filename = opts.get('file', None)
+        data = opts.get(_DATA, None)
+        if data:
+            return InMemoryExtractor(ctx.eval_expr(data), target)
+        filename = opts.get(_FILE, None)
         if filename:
-            # TODO need input encoding opt, default to usf-8-sig
+            # TODO need input encoding opt, default to utf-8-sig
             try:
                 with open(filename, 'r', encoding='utf-8-sig') as f:
                     data, _ = load_file_as(f, opts['dtype'])
@@ -574,6 +576,7 @@ def create_extractor(ctx: ExecContext, opts: dict) -> DataExtractor:
                 data = [data] if isinstance(data, dict) else [{'value' : data}]
             if ctx.verbose: ctx.print_verbose('Read', len(data), 'Records ' if len(data) != 1 else 'Record', 'From', filename)
             return InMemoryExtractor(data, target)
+        raise NotImplementedError(f'Extractor type {xtype!r} : no data and no file') #SNO
     raise NotImplementedError(f'Extractor type {xtype!r}') #SNO
 
 def create_writer(opts: dict, controls: dict) -> RecordWriter:
