@@ -125,13 +125,13 @@ _VGR_PATH: list[Path] = []
 
 def get_vgr_path() -> list[Path]:
     """
-    Parse VGRPATH into a list of paths.
+    Parse VGR_PATH into a list of paths.
     If if not defined in the environment, platform specific defaults
-    are choosen. The parsing is done once, so changing `env.VGRPATH` does not
+    are choosen. The parsing is done once, so changing `env.VGR_PATH` does not
     affect this.
     """
     if len(_VGR_PATH) == 0:
-        envpath = os.environ.get("VGRPATH")
+        envpath = os.environ.get("VGR_PATH")
         if envpath is not None:
             entries = [(path.strip() or '.') for path in envpath.split(os.pathsep)]
         else:
