@@ -173,6 +173,8 @@ None.Sort() → None
 [5.1, 5, 5.0].Sort() → [5, 5.0, 5.1]
 ["five", 5, 5.0].Sort() → [5, 5.0, "five"]
 ```
+
+Also see `Unique()`
 """
     unique = False if unique is None else bool_arg(unique, 'Unique')
     reverse = False if reverse is None else bool_arg(reverse, 'Reverse')
@@ -197,7 +199,14 @@ will be returned in an list. Index values are zero-based.
 Requests for items outside the list's bounds results in _None_.
 
 ```vgr
-**TODO**
+None.Item(0) → None
+[].Item(0) → None
+[None].Item(0) → None
+["apple", "banana", "cantaloupe"].Item(1) → "banana"
+["apple", "banana", "cantaloupe"].Item(5) → None
+["apple", "banana", "cantaloupe"].Item(-5) → None
+"apple".Item(1) → "apple"
+5.Item(1) → 5
 ```
 
 Also see `FirstItem()` and `LastItem()`
@@ -218,7 +227,12 @@ If the list is empty then _None_ is returned.
 For non-list types _value_ is returned unchanged.
 
 ```vgr
-**TODO**
+None.FirstItem() → None
+[].FirstItem() → None
+[None].FirstItem() → None
+["apple", "banana", "cantaloupe"].FirstItem() → "apple"
+"apple".FirstItem() → "apple"
+5.FirstItem() → 5
 ```
 
 Also see `Item()` and `LastItem()`
@@ -236,7 +250,12 @@ If the list is empty then _None_ is returned.
 For non-list types _value_ is returned unchanged.
 
 ```vgr
-**TODO**
+None.LastItem() → None
+[].LastItem() → None
+[None].LastItem() → None
+["apple", "banana", "cantaloupe"].LastItem() → "cantaloupe"
+"apple".LastItem() → "apple"
+5.LastItem() → 5
 ```
 
 Also see `Item()` and `FistItem()`
@@ -257,10 +276,17 @@ For lists, a list of unique values is returned.
 For all other types the value is returned unchanged.
 
 ```vgr
-**TODO**
+None.Unique() → None
+[].Unique() → []
+[None].Unique() → [None]
+"senselessness".Unique() → "senl"
+["a", "b", "c", "b"].Unique() → ["a", "b", "c"]
+5.Unique() → 5
 ```
+
+Also see `Sort()`
 """
-    if isinstance(x, str): return poly_unique(x.encode()).decode()
+    if isinstance(x, str): return "".join(dict.fromkeys(x))
     if isinstance(x, (list, tuple)):
         unique = []
         for x1 in x:
