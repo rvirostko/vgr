@@ -367,8 +367,32 @@ def build_list(*values: Any) -> list[Any]:
 Lists can contain any type including _None_, other lists, and dictionaries.
 
 ```vgr
-**TODO**
+Set empty To []
+Set a_none To [None]
+Set numbers To [1, 2, 3, 4, 5]
+Set names To ["Alice", "Bob", "Charlie"]
+Set matrix To [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9]
+]
+Set records To [
+    {"name": "Alice", "age": 30},
+    {"name": "Bob", "age": 25},
+    {"name": "Charlie", "age": 35}
+]
+Set mixed To [
+    42,
+    "apple",
+    3.14,
+    True,
+    None,
+    {"key": "value"},
+    [1, 2, 3]
+]
 ```
+
+Also see `Append`, `Insert`, `Prepend`, `Remove`, and `Replace` statements
 """
     return [] if values is None else list(values)
 
@@ -385,8 +409,38 @@ Keys can be any ordinal type: int, float, string. _None_ cannot be a key.
 Values can be any type including _None_, other lists, and dictionaries.
 
 ```vgr
-**TODO**
+Set data To {}
+Set person To {
+    "name": "Alice",
+    "age":  30,
+    "city": "Paris"
+}
+Set employee To {
+    "id": "E123",
+    "info": {
+        "name":       "Bob",
+        "department": "Sales",
+        "active":     True
+    }
+}
+Set inventory To {
+    "fruits": ["apple", "banana", "orange"],
+    "counts": [10, 25, 7]
+}
+Set users To {
+    "alice": {"email": "alice@example.com", "active": True},
+    "bob":   {"email": "bob@example.com",   "active": False}
+}
+Set mixed To {
+    "number": 42,
+    "text":   "hello",
+    "flag":   False,
+    "none":   None,
+    "list":   [1, 2, 3],
+    "dict":   {"nested": "value"}
+}
 ```
+Also see `Dig()` and `Lookup()`
 """
     # Values is alternating pairs of key/values
     # so we use a "stride" of two to form two groups
