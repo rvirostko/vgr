@@ -15,6 +15,7 @@ from .common import (
     X_None_Op,
     Y_Coll_Op,
 )
+from .inequ import poly_eq
 from .reg_ex import poly_regex_replace
 from .types import poly_str
 
@@ -789,22 +790,41 @@ _string_loc_ops = {
 
 def poly_count(x: Any, sub: Any=None) -> Any:
     """
-**Return the count of non-overlapping occurrences of one string in another**
+**Return the count of a value in another **
 
-* CountOf(_value_, _substr_)
-* _value_.CountOf(_substr_)
+* CountOf(_value_, _sub_)
+* _value_.CountOf(_sub_)
 
 ```vgr
+// General
 None.CountOf("a") → None
-"aaaBc".CountOf("") → 6
+121.CountOf("2") → 1 // int converted to string
+
+// With Strings
+"".CountOf("x") → 0
+"aaaBc".CountOf("") → 0
 "aaaBc".CountOf("a") → 3
-"aaaBc".CountOf("aa") → 1
-["A.b.c", "X.y.z"].CountOf(".") → [2, 2]
-123.CountOf("1") → 123
+"aaaBc".CountOf("aa") → 1 // occurrences must be non-overlapping
+
+// With lists
+Set fruits To ["apple", "banana", "apple", "orange", "apple"]
+fruits.CountOf("apple") → 3
+fruits.CountOf("grape") → 0
+
+// With dictionaries
+Set fruit_colors To {"apple": "red", "banana": "yellow"}
+fruit_colors.CountOf("apple") → 1
+fruit_colors.CountOf("grape") → 0
 ```
 """
-    if isinstance(x, (NoneType, bool, int, float)): return x
-    return _exec_x_y_op(x, str_arg(sub, 'Substr', False) or '', 'CountOf', poly_count, str.count, _string_loc_ops)
+    if x is None: return None
+    if isinstance(x, (list, tuple)): return sum(1 for x1 in x if poly_eq(sub, x1))
+    if isinstance(x, dict): return 1 if sub in x else 0
+    x = str(x)
+    if len(x) == 0: return 0
+    sub = str_arg(sub, 'Sub', False) or ''
+    if len(sub) == 0: return 0 # sane rather than pythonic
+    return _exec_x_y_op(x, sub, 'CountOf', poly_count, str.count, _string_loc_ops)
 
 def poly_index(x: Any, sub: Any=None) -> Any:
     """
