@@ -797,7 +797,7 @@ def poly_count(x: Any, sub: Any=None) -> Any:
 
 ```vgr
 // General
-None.CountOf("a") → None
+None.CountOf("a") → 0
 121.CountOf("2") → 1 // int converted to string
 
 // With Strings
@@ -806,18 +806,18 @@ None.CountOf("a") → None
 "aaaBc".CountOf("a") → 3
 "aaaBc".CountOf("aa") → 1 // occurrences must be non-overlapping
 
-// With lists
+// With Lists
 Set fruits To ["apple", "banana", "apple", "orange", "apple"]
 fruits.CountOf("apple") → 3
 fruits.CountOf("grape") → 0
 
-// With dictionaries
+// With Dictionaries
 Set fruit_colors To {"apple": "red", "banana": "yellow"}
 fruit_colors.CountOf("apple") → 1
 fruit_colors.CountOf("grape") → 0
 ```
 """
-    if x is None: return None
+    if x is None: return 0
     if isinstance(x, (list, tuple)): return sum(1 for x1 in x if poly_eq(sub, x1))
     if isinstance(x, dict): return 1 if sub in x else 0
     x = str(x)
@@ -828,57 +828,90 @@ fruit_colors.CountOf("grape") → 0
 
 def poly_index(x: Any, sub: Any=None) -> Any:
     """
-**Returns the _lowest_ index of one string in another**
+**Returns the _lowest_ index of one item in another**
 
-* IndexOf(_value_, _substr_)
-* _value_.IndexOf(_substr_)
+* IndexOf(_value_, _sub_)
+* _value_.IndexOf(_sub_)
 
-The returned index is zero based.
-
-If _substr_ cannot be found, an error is raised: use `FindStr()`
-as an alternative that returns -1 on an error.
+The returned index is zero based, with -1 returned if _sub_ is not found.
+When _value_ is a string, the behavior is the same as with `FindStr()`.
 
 ```vgr
-None.IndexOf("a") → None
-"aaaBc".IndexOf("") → 0
-"aaaBc".IndexOf("z") → Substring not found
+// General
+None.IndexOf("a") → -1
+123.IndexOf("2") → 1 // int converted to string
+
+// With Strings
+"aaaBc".IndexOf("") → -1
+"aaaBc".IndexOf("z") → -1
 "aaaBc".IndexOf("aB") → 2
-["Abc.", ".Xyz"].IndexOf(".") → [3, 0]
-123.IndexOf("1") → 123
+
+// With Lists
+Set fruits To ["apple", "banana", "apple", "orange", "apple"]
+fruits.IndexOf("apple") → 0
+fruits.IndexOf("grape") → -1
+
+// With Dictionaries
+Set fruit_colors To {"apple": "red", "banana": "yellow"}
+fruit_colors.IndexOf("apple") → 0  // key present
+fruit_colors.IndexOf("grape") → -1 // key not present
 ```
 
 Also see `RIndexOf()` and `FindStr()`
 """
-    if isinstance(x, (NoneType, bool, int, float)): return x
-    return _exec_x_y_op(x, str_arg(sub, 'Substr', False) or '', 'IndexOf', poly_index, str.index, _string_loc_ops)
+    if x is None: return -1
+    if isinstance(x, (list, tuple)): return next((i for i, x1 in enumerate(x) if poly_eq(sub, x1)), -1)
+    if isinstance(x, dict): return 0 if sub in x else -1
+    x = str(x)
+    if len(x) == 0: return -1
+    sub = str_arg(sub, 'Sub', False) or ''
+    if len(sub) == 0: return -1
+    return _exec_x_y_op(x, sub, 'IndexOf', poly_index, str.find, _string_loc_ops)
 
 def poly_rindex(x: Any, sub: Any=None) -> Any:
     """
-**Returns the _highest_ index of one string in another**
+**Returns the _highest_ index of one item in another**
 
-* RIndexOf(_value_, _substr_)
-* _value_.RIndexOf(_substr_)
+* RIndexOf(_value_, _sub_)
+* _value_.RIndexOf(_sub_)
 
-The returned index is zero based.
-
-If _substr_ cannot be found, an error is raised: use `RFindStr()`
-as an alternative that returns -1 on an error.
+The returned index is zero based, with -1 returned if _sub_ is not found.
+When _value_ is a string, the behavior is the same as with `RFindStr()`.
 
 ```vgr
-None.RIndexOf("a") → None
-"aaaBc".RIndexOf("") → 5
-"aaaBc".RIndexOf("z") → Substring not found
-"aaaBc".RIndexOf("a") → 2
-["A.b.c", "X.y.z"].RIndexOf(".") → [3, 3]
-123.RIndexOf("1") → 123
+// General
+None.RIndexOf("a") → -1
+1232.RIndexOf("2") → 3 // int converted to string
+
+// With Strings
+"aaaBc".RIndexOf("") → -1
+"aaaBc".RIndexOf("z") → -1
+"aaaBc".RIndexOf("aB") → 2
+
+// With Lists
+Set fruits To ["apple", "banana", "apple", "orange", "apple"]
+fruits.RIndexOf("apple") → 4
+fruits.RIndexOf("grape") → -1
+
+// With Dictionaries
+Set fruit_colors To {"apple": "red", "banana": "yellow"}
+fruit_colors.RIndexOf("apple") → 0  // key present
+fruit_colors.RIndexOf("grape") → -1 // key not present
 ```
 
 Also see `IndexOf()` and `RFindStr()`
 """
-    if isinstance(x, (NoneType, bool, int, float)): return x
-    return _exec_x_y_op(x, str_arg(sub, 'Substr', False) or '', 'RIndexOf', poly_rindex, str.rindex, _string_loc_ops)
 
-def poly_find(x: Any, sub: Any=None) -> Any:
+    if x is None: return -1
+    if isinstance(x, (list, tuple)): return next((i for i in range(len(x) - 1, -1, -1) if poly_eq(sub, x[i])), -1)
+    if isinstance(x, dict): return 0 if sub in x else -1
+    x = str(x)
+    if len(x) == 0: return -1
+    sub = str_arg(sub, 'Sub', False) or ''
+    if len(sub) == 0: return -1
+    return _exec_x_y_op(x, sub, 'RIndexOf', poly_rindex, str.rfind, _string_loc_ops)
+
+def poly_findstr(x: Any, sub: Any=None) -> Any:
     """
 **Returns the _lowest_ index of one string in another**
 
@@ -901,9 +934,9 @@ None.FindStr("a") → None
 Also see `RFindStr()` and `IndexOf()`
 """
     if isinstance(x, (NoneType, bool, int, float)): return x
-    return _exec_x_y_op(x, str_arg(sub, 'Substr', False) or '', 'FindStr', poly_find, str.find, _string_loc_ops)
+    return _exec_x_y_op(x, str_arg(sub, 'Substr', False) or '', 'FindStr', poly_findstr, str.find, _string_loc_ops)
 
-def poly_rfind(x: Any, sub: Any=None) -> Any:
+def poly_rfindstr(x: Any, sub: Any=None) -> Any:
     """
 **Returns the _highest_ index of one string in another**
 
@@ -925,7 +958,7 @@ None.RFindStr("a") → None
 Also see `FindStr()` and `RIndexOf()`
 """
     if isinstance(x, (NoneType, bool, int, float)): return x
-    return _exec_x_y_op(x, str_arg(sub, 'Substr', False) or '', 'RFindStr', poly_rfind, str.rfind, _string_loc_ops)
+    return _exec_x_y_op(x, str_arg(sub, 'Substr', False) or '', 'RFindStr', poly_rfindstr, str.rfind, _string_loc_ops)
 
 #---------------------------------------------
 

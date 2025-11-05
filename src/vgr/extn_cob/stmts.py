@@ -18,7 +18,7 @@ from ..mathpak import (
     poly_div,
     poly_eq,
     poly_false,
-    poly_find,
+    poly_findstr,
     poly_ge,
     poly_le,
     poly_lt,
@@ -699,7 +699,7 @@ Also see `FindStr()`
         elif part_type == 'delimited':
             index = -1
             delimiter = ctx.eval_to_str(item.children[-1], "Delimiter")
-            index = poly_find(part, delimiter) if delimiter else -1
+            index = poly_findstr(part, delimiter) if delimiter else -1
             value += part[0:index] if index >= 0 else part
         else:
             raise NotImplementedError(f'String option {part_type!r} not implemented')
