@@ -9,7 +9,11 @@ from lark import Tree
 from .app_exceptions import VgrRuntimeError
 from .evaluate import get_writable_var_path
 from .exec_context import ExecContext
-from .mathpak import bound_ops
+from .mathpak import (
+    bound_ops,
+    poly_int,
+    type_str,
+)
 
 @bound_ops("Append")
 def execute_list_append(ctx: ExecContext, statement: Tree) -> None:
@@ -323,7 +327,6 @@ def _normalize_positions(pos_expr, list_len: int, positions) -> list:
     except ValueError as e:
         raise VgrRuntimeError(pos_expr, e) from e
 
-from .mathpak import poly_int, type_str
 def _to_int(item: Any) -> int:
     if isinstance(item, int): return item
     if isinstance(item, float): return int(item)
