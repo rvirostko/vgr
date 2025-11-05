@@ -17,7 +17,7 @@ dependencies = [
     "prompt_toolkit>=3.0.50",
     "RapidFuzz>=3.13.0",
     "rich>=13.9.4",
-    "blessed; sys_platform == 'win32'"
+    "blessed>1.23.0; sys_platform == 'win32'"
 ]
 
 [project.scripts]
@@ -26,6 +26,9 @@ vgr = "vgr.vgr:main"
 [project.optional-dependencies]
 dev = [
     "pytest>=8.2.0"
+]
+extras = [
+    "pyperclip>=1.11.0",
 ]
 
 [tool.setuptools]
