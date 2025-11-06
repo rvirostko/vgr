@@ -61,6 +61,17 @@ from .inequ import (
 )
 from .is_in import poly_in, poly_not_in, poly_contains_all, poly_contains_any
 from .json_funcs import format_json, parse_json, strip_nulls, to_json, to_json_string
+from .list import (
+    poly_islist,
+    poly_list_append,
+    poly_list_insert,
+    poly_list_prepend,
+    poly_list_remove_first,
+    poly_list_remove_last,
+    poly_list_remove,
+    poly_list_replace,
+    poly_list,
+)
 from .logic import poly_true, poly_false
 from .lookup import poly_lookup
 from .markdown import (
@@ -170,12 +181,10 @@ from .types import (
     poly_isfloat,
     poly_isinf,
     poly_isint,
-    poly_islist,
     poly_isnan,
     poly_isnumber,
     poly_isstr,
     poly_iszero,
-    poly_list,
     poly_number,
     poly_sign,
     poly_str,

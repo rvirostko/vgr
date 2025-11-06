@@ -45,8 +45,8 @@ Tron
 //-----------------------------------------------------------------------------
 // Set up stuff
 //-----------------------------------------------------------------------------
-Set fruits To ["apple", "banana", "apple", "orange", "apple"]
-Set fruit_colors To {"apple": "red", "banana": "yellow"}
+Set fruits To ["apple", "banana", "orange"]
+#Set fruit_colors To {"apple": "red", "banana": "yellow"}
 //-----------------------------------------------------------------------------
 Troff
 Close Error File
@@ -60,36 +60,22 @@ Tron
 // Behavior tests go here
 //-----------------------------------------------------------------------------
 
-
-Print None.RIndexOf("a").Repr()
-Print "aaaBc".RIndexOf("").Repr()
-Print "aaaBc".RIndexOf("z").Repr()
-Print "aaaBc".RIndexOf("aB").Repr()
-Print 1232.RIndexOf("2").Repr()
-
+Print None.ListInsert(0, "cantoloupe").Repr()
+Print "apple".ListInsert(0, None).Repr()
+Print "apple".ListInsert(0, "cantoloupe").Repr()
+Print fruits.ListInsert(2, "cantoloupe").Repr()
+Print fruits.ListInsert(2, "cantoloupe", "pear").Repr()
+Print fruits.ListInsert(None, "cantoloupe").Repr()
+Print fruits.ListInsert(-1, "cantoloupe").Repr()
+Print fruits.ListInsert(5, "cantoloupe").Repr()
 
 # List example
-Print fruits.RIndexOf("apple").Repr()
-Print fruits.RIndexOf("grape").Repr()
+#Print fruits.RIndexOf("apple").Repr()
+#Print fruits.RIndexOf("grape").Repr()
 
 # Dict example
-Print fruit_colors.RIndexOf("apple").Repr()
-Print fruit_colors.RIndexOf("grape").Repr()
-
-#Print None.FloorDiv("2").Repr()
-#Print 5.FloorDiv(" 2").Repr()
-#Print "5".FloorDiv("2.0").Repr()
-#Print [5, 7].FloorDiv(2).Repr()
-#Print ("5" ** 2).Repr()
-#Print ([3, 5] ** 3).Repr()
-#Print (25 ** .5).Repr()
-#Print (5 % [1, 2]).Repr()
-#Print ([1, 2] % [5, 7]).Repr()
-
-#Print ({"a": 5, "b": 7} < {"a": 7, "b": 5}).Repr()
-#Print ({"a": 5, "b": 7, "c": 11} != {"c": 13, "b": 7, "a": 5}).Repr()
-#Print ({"a": 5, "b": 7, "c": 11} - ["a", "c"]).Repr()
-#Print ({"a": 5, "b": 7, "c": 11} - {"a":None, "b":None}).Repr()
+#Print fruit_colors.RIndexOf("apple").Repr()
+#Print fruit_colors.RIndexOf("grape").Repr()
 //-----------------------------------------------------------------------------
 Troff
 Close Error File

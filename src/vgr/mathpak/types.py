@@ -312,41 +312,6 @@ def poly_isdict(x: Any) -> bool:
 """
     return isinstance(x, dict)
 
-def poly_islist(x: Any) -> bool:
-    """
-**Returns _True_ if the value is a list**
-
-* IsList(_value_)
-* _value_.IsList()
-
-The Python _tuple_ and _list_ types are both considered lists.
-
-```vgr
-**TODO**
-```
-"""
-    return isinstance(x, (list, tuple))
-
-def poly_list(x: Any) -> Any:
-    """
-**Converts a value to a list**
-
-* ToList(_value_)
-* _value_.ToList()
-
-Dictionaries are converted to a list of key/value pairs.
-If _value_ is _None_ an empty list is returned.
-
-```vgr
-**TODO**
-```
-"""
-    if x is None: return []
-    if isinstance(x, list): return x
-    if isinstance(x, tuple): return [*x] if x else []
-    if isinstance(x, dict): return [[key, x[key]] for key in sorted(x)] if x else []
-    return [x]
-
 def poly_isempty(x: Any) -> bool:
     """
 **Test a value to see if it is _empty_**
