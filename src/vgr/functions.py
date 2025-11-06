@@ -684,7 +684,7 @@ _BUILT_IN_FUNCS: dict[str, Callable[..., Any]] = {
     "ToNumber":       poly_number,
     "ToOctal":        poly_oct,
     "ToString":       poly_str,
-    "Translate":      poly_translate,
+    "TranslateStr":   poly_translate,
     "Trunc":          poly_trunc,
     "Type":           poly_type,
     "Unique":         poly_unique,

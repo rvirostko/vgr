@@ -91,4 +91,4 @@ Printf fmt, label, a, a.PrependStr(s4, s5), b, b.PrependStr(s4, s5), c, c.Prepen
 # Replace()
 # RegExReplace()
 # CompilePattern()
-# Translate
+# TranslateStr

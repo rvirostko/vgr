@@ -1465,20 +1465,20 @@ def poly_translate(x: Any, from_str: Any, to_str: Any=None) -> Any:
     """
 **Perform character-by-character conversion or deletion**
 
-* Translate(_value_, _expression_)
-* Translate(_value_, _expression_, _expression_)
-* _value_.Translate(_expression_)
-* _value_.Translate(_expression_, _expression_)
+* TranslateStr(_value_, _expression_)
+* TranslateStr(_value_, _expression_, _expression_)
+* _value_.TranslateStr(_expression_)
+* _value_.TranslateStr(_expression_, _expression_)
 
 If the two-arguments form is used, or the replacement string is empty or _None_,
 the characters are deleted.
 
 ```vgr
-"abc".Translate("b") → "ac"
-"abc".Translate("b","*") → "a*c"
-"dog".Translate(string.ascii_lowercase, string.ascii_uppercase) → "DOG"
-["cat", "dog"].Translate("ao", "40") → ["c4t", "d0g"]
-"cat".Translate({"c".Ord(): "r".Ord()}) → "rat"
+"abc".TranslateStr("b") → "ac"
+"abc".TranslateStr("b","*") → "a*c"
+"dog".TranslateStr(string.ascii_lowercase, string.ascii_uppercase) → "DOG"
+["cat", "dog"].TranslateStr("ao", "40") → ["c4t", "d0g"]
+"cat".TranslateStr({"c".Ord(): "r".Ord()}) → "rat"
 ```
 """
     if x is not None and from_str is not None:
