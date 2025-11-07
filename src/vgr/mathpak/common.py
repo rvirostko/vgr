@@ -40,7 +40,7 @@ _FALSE_STRS = ('false', 'f', 'no', 'n', 'off')
 
 def type_str(o: Any) -> str:
     """Use repr so we get a nice string for use in error messages"""
-    return repr(type(o).__name__)
+    return 'None' if o is None else repr(type(o).__name__)
 
 def str_to_number(s: str) -> Number:
     """
