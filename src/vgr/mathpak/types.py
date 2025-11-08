@@ -299,19 +299,6 @@ def poly_isstr(x: Any) -> bool:
 """
     return isinstance(x, str)
 
-def poly_isdict(x: Any) -> bool:
-    """
-**Returns _True_ if the value is a dictionary**
-
-* IsDictionary(_value_)
-* _value_.IsDictionary()
-
-```vgr
-**TODO**
-```
-"""
-    return isinstance(x, dict)
-
 def poly_isempty(x: Any) -> bool:
     """
 **Test a value to see if it is _empty_**

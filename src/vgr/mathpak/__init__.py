@@ -1,6 +1,8 @@
 
-from .add import poly_add, poly_sum
-from .attrs import poly_dig
+from .add import (
+    poly_add,
+    poly_sum,
+)
 from .bases import (
     poly_base64_decode,
     poly_base64_encode,
@@ -14,7 +16,12 @@ from .bases import (
     poly_parse_int,
     poly_parse_oct,
 )
-from .bit_ops import poly_bit_and, poly_bit_or, poly_bit_not, poly_bit_xor
+from .bit_ops import (
+    poly_bit_and,
+    poly_bit_or,
+    poly_bit_not,
+    poly_bit_xor,
+)
 from .checksum import poly_checksum
 from .common import (
     bound_ops,
@@ -25,7 +32,20 @@ from .common import (
     str_to_number,
     type_str,
 )
-from .div import poly_div, poly_fdiv, poly_divmod
+from .dict import (
+    poly_dig,
+    poly_getkeys,
+    poly_getvalue,
+    poly_isdict,
+    poly_lookup,
+    poly_removekey,
+    poly_setvalue,
+)
+from .div import (
+    poly_div,
+    poly_fdiv,
+    poly_divmod,
+)
 from .files import (
     base_name,
     dir_name,
@@ -33,7 +53,7 @@ from .files import (
     is_dir,
     is_file,
     remove_file,
-    )
+)
 from .general import (
     dsort,
     poly_ascii,
@@ -73,7 +93,6 @@ from .list import (
     poly_list,
 )
 from .logic import poly_true, poly_false
-from .lookup import poly_lookup
 from .markdown import (
     md_blockquote,
     md_bold,
@@ -176,7 +195,6 @@ from .types import (
     poly_float,
     poly_int,
     poly_isbool,
-    poly_isdict,
     poly_isfinite,
     poly_isfloat,
     poly_isinf,
