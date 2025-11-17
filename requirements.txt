@@ -5,3 +5,4 @@ prompt_toolkit>=3.0.50
 pwinput>=1.0.3
 RapidFuzz>=3.13.0
 rich>=13.9.4
+blessed>1.23.0; sys_platform == "win32"
