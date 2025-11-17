@@ -42,7 +42,6 @@ fi
 if [ "$OKAY" -eq 1 ]; then
     if [ ! -d "./.venv" ]; then
         python3 -m venv .venv
-        pip install -r requirements.txt
     fi
 fi
 
@@ -61,6 +60,10 @@ if [ "$OKAY" -eq 1 ]; then
     if [ "${VIRTUAL_ENV:-}" != "" ]; then
         echo "VIRTUAL_ENV=${VIRTUAL_ENV}"
     fi
+fi
+
+if [ "$OKAY" -eq 1 ]; then
+    python3 -m pip install -r requirements-dev.txt
 fi
 
 if [ "$OKAY" -eq 1 ]; then
