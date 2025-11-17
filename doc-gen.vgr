@@ -45,8 +45,16 @@ Tron
 //-----------------------------------------------------------------------------
 // Set up stuff
 //-----------------------------------------------------------------------------
-Set fruits To ["apple", "banana", "orange"]
+#Set fruits To ["apple", "banana", "orange"]
 #Set fruit_colors To {"apple": "red", "banana": "yellow"}
+#Set point1 To {"x": 5, "y": 7, "meta": {"type": "2d", "name": "p1"}}
+#Set point2 To {"x": 7, "y": 29, "meta": {"type": "2d", "name": "p2"}}
+
+Set point1 To {"x": 5, "y": 7, "space": 2, "name": "p1"}
+Set point2 To {"x": 7, "y":29, "space": 2, "name": "p2"}
+Set point3 To {"x": 9, "y":31, "z": -7, "space": 3, "name": "p3"}
+Set point4 To {"x":11, "y":37, "z": None, "space": 3, "name": "p4"}
+Set points To [point1, point2, point3, point4]
 //-----------------------------------------------------------------------------
 Troff
 Close Error File
@@ -60,22 +68,14 @@ Tron
 // Behavior tests go here
 //-----------------------------------------------------------------------------
 
-Print None.ListInsert(0, "cantoloupe").Repr()
-Print "apple".ListInsert(0, None).Repr()
-Print "apple".ListInsert(0, "cantoloupe").Repr()
-Print fruits.ListInsert(2, "cantoloupe").Repr()
-Print fruits.ListInsert(2, "cantoloupe", "pear").Repr()
-Print fruits.ListInsert(None, "cantoloupe").Repr()
-Print fruits.ListInsert(-1, "cantoloupe").Repr()
-Print fruits.ListInsert(5, "cantoloupe").Repr()
+Print points.LookupItem("x", 5).Repr()
+Print points.LookupItem("z", None).GetKeyValue("name").Repr()
+Print points.LookupItem("space", 1).GetKeyValue("name").Repr()
+Print points.LookupItem("space", [1, 2]).GetKeyValue("name").Repr()
+Print points.LookupItem("space", [2, 1]).GetKeyValue("name").Repr()
+Print points.LookupItem("space", 3).LookupItem("z", None).GetKeyValue("name").Repr()
+Print points.LookupItem("name", CompilePattern("p[24]")).GetKeyValue("name").Repr()
 
-# List example
-#Print fruits.RIndexOf("apple").Repr()
-#Print fruits.RIndexOf("grape").Repr()
-
-# Dict example
-#Print fruit_colors.RIndexOf("apple").Repr()
-#Print fruit_colors.RIndexOf("grape").Repr()
 //-----------------------------------------------------------------------------
 Troff
 Close Error File

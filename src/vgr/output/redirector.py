@@ -3,7 +3,7 @@ import sys
 from io import IOBase
 from io import UnsupportedOperation
 
-from ..mathpak import type_str
+from ..mathpak import poly_type
 
 class Redirection():
     """Redirection for a standard stream (stdin, stdout, stderr)"""
@@ -31,7 +31,7 @@ class Redirection():
                 open(first_arg,
                     mode=kwargs.get('mode', 'w'),
                     encoding=kwargs.get('encoding', 'utf-8')))
-        raise TypeError(f'Unsupported argument type: {type_str(first_arg)}')
+        raise TypeError(f'Unsupported argument type: {poly_type(first_arg)!r}')
 
     def _redirect_to_file(self, destination: IOBase, shared: bool=False):
         self.end_redirect()

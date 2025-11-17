@@ -15,7 +15,7 @@ from .mathpak import (
     dsort,
     poly_repr,
     poly_sort,
-    type_str,
+    poly_type,
 )
 from .output import CSVRecordWriter, JSONRecordWriter, TextRecordWriter
 from .stmt_set import load_file_as, load_data_type
@@ -116,7 +116,7 @@ class SortAnalyzer(Visitor):
         """
         rc = self.ctx.eval_expr_or_const(arg)
         if rc is None or isinstance(rc, (str, int, float)): return rc
-        raise VgrRuntimeError(arg, TypeError(f'{name} must be a simple type; found {type_str(rc)}'))
+        raise VgrRuntimeError(arg, TypeError(f'{name} must be a simple type; found {poly_type(rc)!r}'))
 
     def _store_io(self, node: Tree, io: dict) -> None:
         """

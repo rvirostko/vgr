@@ -16,8 +16,7 @@ import time
 from prompt_toolkit import PromptSession
 from prompt_toolkit.history import FileHistory
 
-from .mathpak import poly_bool
-from .output import expand_filename
+from .mathpak import poly_bool, expand_filename
 
 class CustomArgParser(ArgumentParser):
     """A non-exiting argument parser"""

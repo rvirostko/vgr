@@ -45,7 +45,7 @@ from .interactive import CmdLine, ArgumentParser, ParserBuilder
 from .log_config import init_logging, set_logging_level
 from .mathpak import (
     poly_repr,
-    type_str,
+    poly_type,
 )
 from .redir import print_stderr
 from .exec_context import ExecContext
@@ -120,7 +120,7 @@ class VGRCmdLine(CmdLine):
         if self._ctx.verbose:
             print(e, file=sys.stderr)
         else:
-            print(e.args[0] if e.args else f'{type_str(e)}', file=sys.stderr)
+            print(e.args[0] if e.args else f'{poly_type(e)!r}', file=sys.stderr)
 
     def _get_vgr_default(self, env_var: str, default: Any) -> str:
         """Look for a matching environment variable (uppercase) and return it or the default value"""

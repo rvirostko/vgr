@@ -5,7 +5,10 @@ List related functions
 from copy import copy
 from typing import Any
 
-from .common import int_arg
+from .common import (
+    int_arg,
+#    requires_exec_context,
+)
 
 def poly_islist(x: Any) -> bool:
     """
@@ -24,6 +27,27 @@ None.IsList() → False
 Also see `ToList()`
 """
     return isinstance(x, (list, tuple))
+
+def poly_list_create(*args) -> list:
+    """
+**Create and/or initialize a list**
+
+* List(_value_...)
+* **[** _value_... **]**
+
+The items in the list may be constants, expressions, or _None_,
+and include other lists and dictionaries.
+
+```vgr
+List() → []
+List(None) → [None]
+List(2, 3, 4) → [2, 3, 4]
+List(2, 3, [4]) → [2, 3, [4]]
+```
+
+Also see `ToList()` and `IsList()`
+"""
+    return list(args)
 
 def poly_list(x: Any) -> list:
     """
@@ -260,3 +284,40 @@ and the `Insert` statement, which acts directly on a variable
                 x.insert(index, value)
                 index += 1
     return x
+
+# TODO
+
+# Set double_it(n) -> n * 2
+# Set get_count(d, default_value) -> d.GetKeyValue("count", default_value)
+# Set sum_positive(acc, n) -> n >= 0 ? acc + n : acc
+
+# Set counters = [
+#   { "name": "a", "count": 5 },
+#   { "name": "b" },
+#   { "name": "c", "count": 3 }
+# ]
+
+# Print counters.
+#   Apply(get_count, -1).
+#   Apply(double_it).
+#   CombineUsing(sum_positive)
+# # → 16
+
+#@requires_exec_context
+#def poly_list_apply(x: Any, funct, *args, *, ctx=None) -> Any:
+
+# How is [1,2,3].Apply() different from [1,2,3].@f()?
+#   * With [1,2,3].@f(), f() is called once with a list argument
+#   * With [1,2,3].Apply(f), f() is called three times with int arguments
+# If the operation performed by f() is naturally distibuted on lists
+# there is no functional difference.
+# For non-list values, there is no difference between the two operations.
+
+# Signature for the CombineUsing() function should be f(accumulator, value [,args])
+# The default value for the accumulator is None. Depending upon the operations within
+# f(), this should work for addition-like operations.
+# If used on a list, it will return a list. For non-list values, it will return
+# a single value.
+
+#@requires_exec_context
+#def poly_list_combine(x: Any, funct, acc: Any=None, *, ctx=None) -> Any:

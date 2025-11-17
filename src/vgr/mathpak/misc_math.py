@@ -3,7 +3,8 @@
 from typing import Any, Callable
 import math
 
-from .common import bound_ops, str_to_number, type_str, dist_x
+from .common import bound_ops, str_to_number, dist_x
+from .type import poly_type
 
 def poly_abs(x: Any) -> Any:
     """
@@ -149,7 +150,7 @@ Also see `RoundMultiple()`
         ndigits = int(ndigits)
     else:
         if isinstance(ndigits, str): return poly_round(x, str_to_number(ndigits))
-        raise TypeError(f'Unsupported type for NDigits: {type_str(ndigits)}')
+        raise TypeError(f'Unsupported type for NDigits: {poly_type(ndigits)!r}')
     if isinstance(x, (int, float)): return arithmetic_round(x, ndigits)
     if hasattr(x, '__round__'): return round(x, ndigits)
     if isinstance(x, (list, tuple)): return dist_x(poly_round, x, ndigits)
@@ -160,7 +161,7 @@ def _get_multiple_arg(multiple: Any) -> Any:
         if isinstance(multiple, str):
             multiple = str_to_number(multiple)
         else:
-            raise TypeError(f'Unsupported type for multiple: {type_str(multiple)}')
+            raise TypeError(f'Unsupported type for multiple: {poly_type(multiple)!r}')
     multiple = abs(multiple)
     return 1 if multiple == 0 else multiple
 

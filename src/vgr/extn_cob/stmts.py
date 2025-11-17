@@ -29,7 +29,7 @@ from ..mathpak import (
     poly_str,
     poly_sub,
     poly_true,
-    type_str,
+    poly_type,
 )
 from ..redir import print_stderr, print_stdout
 from ..stmt_exec import exec_if_else, exec_loop, exec_repeat, LOOP_META_PATH, set_loop_meta
@@ -693,7 +693,7 @@ Also see `FindStr()`
         elif isinstance(part, (bool, int, float, str)):
             part = poly_str(part)
         else:
-            raise VgrRuntimeError(expr, ValueError(f'Cannot String {type_str(part)!r}'))
+            raise VgrRuntimeError(expr, ValueError(f'Cannot String {poly_type(part)!r}'))
         if part_type == 'full':
             value += part
         elif part_type == 'delimited':

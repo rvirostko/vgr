@@ -11,18 +11,18 @@ from .common import (
     int_arg,
     NoneType,
     str_arg,
-    type_str,
     X_None_Op,
     Y_Coll_Op,
 )
 from .inequ import poly_eq
 from .reg_ex import poly_regex_replace
+from .type import poly_type
 from .types import poly_str
 
 def _exec_x_op(x: Any, name: str, op: Callable[[Any], Any], string_op, op_table) -> Any:
     """General purpose string operation execution for no-args methods on str"""
     operation = op_table.get(type(x))
-    if operation is None: raise ValueError(f'{name}() on {type_str(x)} not possible')
+    if operation is None: raise ValueError(f'{name}() on {poly_type(x)!r} not possible')
     return operation(op, x, string_op)
 
 #---------------------------------------------
@@ -450,7 +450,7 @@ def _exec_x_y_op(x: Any, y: Any, name: str, op: Callable[[Any, Any], Any], strin
             # May ops will accept a None for their arg and take default action
             # So we use the same as if it was a string
             operation = op_table.get((type(x), str if y is None else type(y)))
-    if operation is None: raise ValueError(f'{name}() between {type_str(x)} and {type_str(y)} not possible')
+    if operation is None: raise ValueError(f'{name}() between {poly_type(x)!r} and {poly_type(y)!r} not possible')
     return operation(op, x, y, string_op)
 
 def _exec_str_str_op(x: Any, y: Any, name: str, op: Callable[[Any, Any], Any], string_op) -> Any:
@@ -611,7 +611,7 @@ def _exec_bool_str_op(x: Any, y: Any, name: str, op: Callable[[Any, Any], Any], 
         for y1 in flatten(y):
             if y1 is None: continue
             if not isinstance(y1, str):
-                raise ValueError(f'{name}() between {type_str(x)} and {type_str(y1)} not possible')
+                raise ValueError(f'{name}() between {poly_type(x)!r} and {poly_type(y1)!r} not possible')
             if y1 and string_op(x, y1): return True
     return False
 
@@ -779,7 +779,7 @@ Also see `LeftStr()` and `RightStr()`
     if isinstance(x, str): return x[start:start + length]
     if isinstance(x, (list, tuple)): return list(poly_substr(x1, start, length) for x1 in x)
     if isinstance(x, dict): return {key: poly_substr(value, start, length) for key, value in x.items()}
-    raise ValueError(f'SubStr() on {type_str(x)} not possible')
+    raise ValueError(f'SubStr() on {poly_type(x)!r} not possible')
 
 _string_loc_ops = {
     (str, str)   : lambda _op, x, y,  sm: sm(x, y),
@@ -1217,7 +1217,7 @@ def _append(x: Any, y: Any) -> Any:
         if isinstance(y, (list, tuple)): return reduce(_append, y, x)
         if isinstance(y, (bool, int, float)): return x + str(y)
         if isinstance(y, str): return x + y
-    raise TypeError(f'Concatenation between {type_str(x)} and {type_str(y)} not supported')
+    raise TypeError(f'Concatenation between {poly_type(x)!r} and {poly_type(y)!r} not supported')
 
 def _prepend(x: Any, y: Any) -> Any:
     if y is None: return x
@@ -1229,7 +1229,7 @@ def _prepend(x: Any, y: Any) -> Any:
         if isinstance(y, (list, tuple)): return reduce(_prepend, y, x)
         if isinstance(y, (bool, int, float)): return str(y) + x
         if isinstance(y, str): return y + x
-    raise TypeError(f'Concatenation between {type_str(x)} and {type_str(y)} not supported')
+    raise TypeError(f'Concatenation between {poly_type(x)!r} and {poly_type(y)!r} not supported')
 
 def _replace(x: Any, old: Any, new: Any=None) -> Any:
     if isinstance(old, re.Pattern): return poly_regex_replace(x, old, new)
@@ -1253,7 +1253,7 @@ def _replace(x: Any, old: Any, new: Any=None) -> Any:
     if isinstance(x, str): return x.replace(old, new)
     if isinstance(x, (list, tuple)): return list(_replace(x1, old, new) for x1 in x)
     if isinstance(x, dict): return {key: _replace(value, old, new) for key, value in x.items()}
-    raise TypeError(f'Replacement of {type_str(x)} not supported')
+    raise TypeError(f'Replacement of {poly_type(x)!r} not supported')
 
 def poly_split(x: Any, sep: str=None, maxsplit: int=-1) -> Any:
     """
@@ -1330,7 +1330,7 @@ def _split(name: str, p_op, str_op, x: Any, sep: str=None, maxsplit: int=-1):
     if isinstance(x, str): return str_op(x, sep, maxsplit)
     if isinstance(x, (list, tuple)): return list(p_op(x1, sep, maxsplit) for x1 in x)
     if isinstance(x, dict): return {key: p_op(value, sep, maxsplit) for key, value in x.items()}
-    raise TypeError(f'{name} of {type_str(x)} not supported')
+    raise TypeError(f'{name} of {poly_type(x)!r} not supported')
 
 
 def poly_splitlines(x: Any, keepends: bool=False) -> Any:
@@ -1354,7 +1354,7 @@ None.SplitLines() → None
     if isinstance(x, (bool, int, float)): return str(x).splitlines(keepends)
     if isinstance(x, str): return x.splitlines(keepends)
     if isinstance(x, (list, tuple)): return list(poly_splitlines(x1, keepends) for x1 in x)
-    raise TypeError(f'Splitlines with {type_str(x)} not supported')
+    raise TypeError(f'Splitlines with {poly_type(x)!r} not supported')
 
 def poly_join(x: Any, sep: str=None) -> Any:
     """
@@ -1392,7 +1392,7 @@ Also see `Split()` and `RSplit()`
     if isinstance(sep, (bool, int, float, str)): sep = str(sep)
     sep = '' if sep is None else str_arg(sep, 'Sep', False)
     if isinstance(x, (list, tuple)): return sep.join([poly_join(x1, sep) for x1 in x if x1 is not None])
-    raise TypeError(f'Join of {type_str(x)} not supported')
+    raise TypeError(f'Join of {poly_type(x)!r} not supported')
 
 def poly_format(format_string: Any, *args) -> str:
     """
@@ -1459,7 +1459,7 @@ _*Format control*_
     if isinstance(format_string, (list, tuple)):
         return ''.join(poly_format(f, *args) for f in format_string)
     if isinstance(format_string, str): return format_string.format(*args)
-    raise TypeError(f'Format with {type_str(format_string)} not supported')
+    raise TypeError(f'Format with {poly_type(format_string)!r} not supported')
 
 def poly_translate(x: Any, from_str: Any, to_str: Any=None) -> Any:
     """

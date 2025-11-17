@@ -4,6 +4,8 @@ Routines and values that can be used by operator and function implementations.
 
 from typing import Any, Callable, Union
 
+from .type import poly_type
+
 Number = Union[int, float]
 
 NoneType = type(None)
@@ -35,12 +37,17 @@ def bound_ops(*operators):
         return func
     return decorator
 
+def requires_exec_context(func):
+    """Mark a function as requiring an ExecContext"""
+    func.requires_exec_context = True
+    return func
+
+def get_requires_exec_context(func) -> bool:
+    """Check if a function requires an ExecContext"""
+    return getattr(func, "requires_exec_context", False)
+
 _TRUE_STRS = ('true', 't', 'yes', 'y', 'on')
 _FALSE_STRS = ('false', 'f', 'no', 'n', 'off')
-
-def type_str(o: Any) -> str:
-    """Use repr so we get a nice string for use in error messages"""
-    return 'None' if o is None else repr(type(o).__name__)
 
 def str_to_number(s: str) -> Number:
     """
@@ -97,7 +104,7 @@ def bool_arg(arg: Any, name: str) -> bool:
             # Not, null, and not empty, so Python truthy
             return True
     if isinstance(arg, (int, float)): return arg != 0
-    raise ValueError(f'{name} argument must be a boolean, found {type_str(arg)}')
+    raise ValueError(f'{name} argument must be a boolean, found {poly_type(arg)!r}')
 
 def int_arg(arg: Any, name: str) -> int:
     """
@@ -107,7 +114,7 @@ def int_arg(arg: Any, name: str) -> int:
     if isinstance(arg, str): arg = str_to_number(arg)
     if arg is None: arg = 0
     if not isinstance(arg, (int, float)):
-        raise ValueError(f'{name} argument must be a number, found {type_str(arg)}')
+        raise ValueError(f'{name} argument must be a number, found {poly_type(arg)!r}')
     return int(arg)
 
 def str_arg(arg: Any, name: str, req_value: bool=True) -> str:
@@ -118,7 +125,7 @@ def str_arg(arg: Any, name: str, req_value: bool=True) -> str:
         if req_value and len(arg) == 0:
             raise ValueError(f'{name} argument cannot be blank')
         return arg
-    raise ValueError(f'{name} argument must be a string, found {type_str(arg)}')
+    raise ValueError(f'{name} argument must be a string, found {poly_type(arg)!r}')
 
 def empty_is_zero(v: str) -> Any:
     return 0 if len(v) == 0 else str_to_number(v)
@@ -142,7 +149,7 @@ def matching_default(x: Any) -> Any:
     """Given an object, return a _default_ value that matches its type"""
     default = _DEFAULTS_BY_TYPE.get(type(x))
     if default is not None: return default
-    raise TypeError(f'No default value for {type_str(x)}') # SNO
+    raise TypeError(f'No default value for {poly_type(x)!r}') # SNO
 
 def op_key(x: Any, y: Any) -> tuple:
     """The key used to look up behavior by operand type"""

@@ -12,7 +12,7 @@ from .exec_context import ExecContext
 from .mathpak import (
     bound_ops,
     poly_int,
-    type_str,
+    poly_type,
 )
 
 @bound_ops("Append")
@@ -331,7 +331,7 @@ def _to_int(item: Any) -> int:
     if isinstance(item, int): return item
     if isinstance(item, float): return int(item)
     if isinstance(item, str): return poly_int(item)
-    raise ValueError(f'Cannot use {type_str(item)} as a list position')
+    raise ValueError(f'Cannot use {poly_type(item)!r} as a list position')
 
 def _remove_items(dst: list, removals: list) -> list:
     removal_mapping = {}

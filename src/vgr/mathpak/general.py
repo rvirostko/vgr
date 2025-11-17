@@ -3,8 +3,9 @@ from functools import cmp_to_key
 from typing import Any
 import re
 
-from .common import str_to_number, type_str, bool_arg, dist_x
+from .common import str_to_number, bool_arg, dist_x
 from .inequ import poly_lt, poly_gt, poly_eq, poly_ne
+from .type import poly_type
 
 def poly_reverse(x: Any) -> Any:
     """
@@ -132,26 +133,6 @@ Also see `Ascii()`
     if isinstance(x, re.Pattern): return poly_repr(x.pattern)
     if isinstance(x, list): return '[' + ', '.join(poly_repr(x1) for x1 in x) + ']'
     return repr(x)
-
-def poly_type(x: Any) -> str:
-    """
-**Return the internal data type of an item**
-
-* Type(_value_)
-* _value_.Type()
-
-For _None_ the value _NoneType_ is returned.
-
-```vgr
-None.Type() → "NoneType"
-"five".Type() → "str"
-5.Type() → "int"
-5.0.Type() → "float"
-["five", 5, 5.0].Type() → "list"
-{"One": 1, "Two": 2}.Type() → "dict"
-```
-"""
-    return type(x).__name__
 
 def poly_sort(x: Any, unique: bool=False, reverse: bool=False) -> Any:
     """
@@ -323,15 +304,15 @@ def _check_keys(keys: list[str], name: str):
     if keys is None or not keys:
         raise ValueError(f'{name} may not be empty')
     if not isinstance(keys, (list, tuple)):
-        raise TypeError(f'For {name} expected list, found {type_str(keys)}')
+        raise TypeError(f'For {name} expected list, found {poly_type(keys)!r}')
     for i, s in enumerate(keys):
         if s is None or isinstance(s, (str, int, float)): continue
-        raise TypeError(f'{name}[{i}]: expected simple type, found {type_str(s)}')
+        raise TypeError(f'{name}[{i}]: expected simple type, found {poly_type(s)!r}')
     return keys
 
 def _check_sort_dir(lst: list[bool]) -> list[bool]:
     if not isinstance(lst, (list, tuple)):
-        raise TypeError(f'Sort Direction: expected list, found {type_str(lst)}')
+        raise TypeError(f'Sort Direction: expected list, found {poly_type(lst)!r}')
     result = []
     for i, val in enumerate(lst):
         if val is None:
@@ -339,7 +320,7 @@ def _check_sort_dir(lst: list[bool]) -> list[bool]:
         elif isinstance(val, bool):
             result.append(val)
         else:
-            raise TypeError(f"Sort Direction[{i}]: expected boolean, found {type_str(val)}")
+            raise TypeError(f"Sort Direction[{i}]: expected boolean, found {poly_type(val)!r}")
     return result
 
 def _cmp_to_key_asc(x: Any, y: Any):

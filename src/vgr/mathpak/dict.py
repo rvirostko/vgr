@@ -3,17 +3,19 @@ Dictionary related functions
 """
 
 from copy import copy, deepcopy
-from itertools import chain
+from re import Pattern
 from typing import Any
 
-from .common import type_str
-from .inequ import poly_eq
+from ..vgr_callable import VgrCallable
 
-def poly_dig(_data: Any, *_args) -> Any:
-    """
-**Obsolete: use GetValue()**
-"""
-    raise NotImplementedError("Dig() has been replaced by GetValue()")
+from .common import (
+    int_arg,
+    requires_exec_context,
+)
+from .inequ import poly_eq
+from .match import poly_matches
+from .type import poly_type
+from .types import poly_bool
 
 def poly_isdict(x: Any) -> bool:
     """
@@ -33,96 +35,99 @@ Also see `Type()`
 """
     return isinstance(x, dict)
 
-def poly_getvalue(data: Any, path: Any, default_value: Any=None) -> Any:
+def poly_getkeyvalue(data: Any, path: Any, default_value: Any=None) -> Any:
     """
 **Traverse a path in a dictionary and return its value**
 
-* GetValue(_value_, _path_)
-* GetValue(_value_, _path_, _default_value_)
-* _value_.GetValue(_path_)
-* _value_.GetValue(_path_, _default_value_)
+* GetKeyValue(_value_, _path_)
+* GetKeyValue(_value_, _path_, _default_value_)
+* _value_.GetKeyValue(_path_)
+* _value_.GetKeyValue(_path_, _default_value_)
 
 The _value_ must either be a dictionary, a list, or _None_.
 
-Path can be:
+The _path_ can be:
+
 * A string, boolean, int, or float
 * A list composed of path components
 
 ```vgr
 Set point1 To {"x": 5, "y": 7, "meta": {"type": "2d", "name": "p1"}}
-point1.GetValue(None) →
+point1.GetKeyValue(None) →
     {"x": 5, "y": 7, "meta": {"type": "2d", "name": "p1"}}
-None.GetValue("x") → None
-point1.GetValue("x") → 5
-point1.GetValue(["x"]) → 5
-point1.GetValue(["x", None]) → 5
-point1.GetValue("z") → None
-point1.GetValue("z", 0) → 0
+None.GetKeyValue("x") → None
+point1.GetKeyValue("x") → 5
+point1.GetKeyValue(["x"]) → 5
+point1.GetKeyValue(["x", None]) → 5
+point1.GetKeyValue("z") → None
+point1.GetKeyValue("z", 0) → 0
 
 Set point2 To {"x": 7, "y": 29, "meta": {"type": "2d", "name": "p2"}}
-point2.GetValue(["meta", "name"]) → "p2"
-[point1, point2].GetValue("y") → [7, 29]
+point2.GetKeyValue(["meta", "name"]) → "p2"
+[point1, point2].GetKeyValue("y") → [7, 29]
 ```
 
-Also see `SetValue()` and `Lookup()`
+Also see `SetKeyValue()` and `LookupItem()`
 """
-    if isinstance(data, (list, tuple)): return list(poly_getvalue(d1, path, default_value) for d1 in data)
+    if isinstance(data, (list, tuple)): return list(poly_getkeyvalue(d1, path, default_value) for d1 in data)
     if not isinstance(data, dict): return data
     path = _normalize_path(path)
     if path is None: return data
     if isinstance(path, (str, bool, int, float)):  return copy(data.get(path, default_value))
-    return copy(_deref(data, path, default_value))
+    found, rc = _deref(data, path)
+    return copy(rc if found else default_value)
 
-def poly_setvalue(data: Any, path: Any, value: Any=None) -> Any:
+def poly_setkeyvalue(data: Any, path: Any, value: Any=None) -> Any:
     """
 **Traverse a path in a dictionary and set a value**
 
-* SetValue(_value_, _path_)
-* SetValue(_value_, _path_, _new_value_)
-* _value_.SetValue(_path_)
-* _value_.SetValue(_path_, _new_value_)
+* SetKeyValue(_value_, _path_)
+* SetKeyValue(_value_, _path_, _new_value_)
+* _value_.SetKeyValue(_path_)
+* _value_.SetKeyValue(_path_, _new_value_)
 
 The _value_ must either be a dictionary, a list, or _None_.
 
-Path can be:
+The _path_ can be:
+
 * A string, boolean, int, or float
 * A list composed of path components
 
 ```vgr
 Set point1 To {"x": 5, "y": 7, "meta": {"type": "2d", "name": "p1"}}
-None.SetValue("z", 0) → None
-point1.SetValue(None)
+None.SetKeyValue("z", 0) → None
+point1.SetKeyValue(None)
     → {"x": 5, "y": 7, "meta": {"type": "2d", "name": "p1"}}
-point1.SetValue("x")
+point1.SetKeyValue("x")
     → {"x": None, "y": 7, "meta": {"type": "2d", "name": "p1"}}
-point1.SetValue("z", 10)
+point1.SetKeyValue("z", 10)
     → {"x": 5, "y": 7, "meta": {"type": "2d", "name": "p1"}, "z": 10}
-point1.SetValue(["meta", "name"], "alpha")
+point1.SetKeyValue(["meta", "name"], "alpha")
     → {"x": 5, "y": 7, "meta": {"type": "2d", "name": "alpha"}}
-point1.SetValue([], "ignored")
+point1.SetKeyValue([], "ignored")
     → {"x": 5, "y": 7, "meta": {"type": "2d", "name": "p1"}}
 
 Set point2 To {"x": 7, "y": 29, "meta": {"type": "2d", "name": "p2"}}
-point2.SetValue(["meta", "color"], "red")
+point2.SetKeyValue(["meta", "color"], "red")
     → {"x": 7, "y": 29, "meta": {"type": "2d", "name": "p2", "color": "red"}}
-point2.SetValue(["meta", "extra", "layer"], 3)
+point2.SetKeyValue(["meta", "extra", "layer"], 3)
     → {"x": 7, "y": 29, "meta": {"type": "2d", "name": "p2", "extra": {"layer": 3}}}
-[point1, point2].SetValue("z", 0)
+[point1, point2].SetKeyValue("z", 0)
     → [{"x": 5, "y": 7, "meta": {"type": "2d", "name": "p1"}, "z": 0},
        {"x": 7, "y": 29, "meta": {"type": "2d", "name": "p2"}, "z": 0}]
-[point1, point2].SetValue(["meta", "visible"], True)
+[point1, point2].SetKeyValue(["meta", "visible"], True)
     → [{"x": 5, "y": 7, "meta": {"type": "2d", "name": "p1", "visible": True}},
        {"x": 7, "y": 29, "meta": {"type": "2d", "name": "p2", "visible": True}}]
-[point1, point2].SetValue(["meta", "name"], None)
+[point1, point2].SetKeyValue(["meta", "name"], None)
     → [{"x": 5, "y": 7, "meta": {"type": "2d", "name": None}},
        {"x": 7, "y": 29, "meta": {"type": "2d", "name": None}}]
-[None, point1].SetValue(["meta", "flag"], True)
+[None, point1].SetKeyValue(["meta", "flag"], True)
     → [None, {"x": 5, "y": 7, "meta": {"type": "2d", "name": "p1", "flag": True}}]
 ```
 
-Also see `GetValue()`
+Also see `GetKeyValue()`
 """
-    if isinstance(data, list): return list(poly_setvalue(d1, path, value) for d1 in data)
+    if isinstance(data, list): return list(poly_setkeyvalue(d1, path, value) for d1 in data)
     if not isinstance(data, dict): return data
     path = _normalize_path(path)
     if path is None: return data
@@ -176,7 +181,8 @@ def poly_removekey(data: Any, path: Any) -> Any:
 
 The _value_ must either be a dictionary, a list, or _None_.
 
-Path can be:
+The _path_ can be:
+
 * A string, boolean, int, or float
 * A list composed of path components
 
@@ -196,7 +202,7 @@ Set point2 To {"x": 7, "y": 29, "meta": {"type": "2d", "name": "p2"}}
        {"x": 7, "y": 29, "meta": {"name": "p2"}}]
 ```
 
-Also see `SetValue()`
+Also see `SetKeyValue()`
 """
     if isinstance(data, list): return list(poly_removekey(d1, path) for d1 in data)
     if not isinstance(data, dict): return data
@@ -210,29 +216,36 @@ Also see `SetValue()`
     else:
         # A multi step path removal, last part is the final key
         path, key = path[:-1], path[-1]
-        target = _deref(data, path)
-        if isinstance(target, dict) and key in target:
+        found, target = _deref(data, path)
+        if found and isinstance(target, dict) and key in target:
             # Multiple layers down so make a deep copy
             # Then, because it is a deep copy, we need to
             # relocate "target" before removing the key
             data = deepcopy(data)
-            _deref(data, path).pop(key)
+            _, target = _deref(data, path)
+            target.pop(key)
     return data
 
-# TODO "attr" needs to become "path"
-def poly_lookup(x: Any, attr: Any, *args) -> Any:
+@requires_exec_context
+def poly_lookupitem(x: Any, path: Any, values: Any=None, limit: Any=None, *, ctx=None) -> Any:
     """
-**Find a matching entry in a list by value**
+**Find a matching entries in a list by value**
 
-* Lookup(_list_, _attr_, _value_...)
-* _list_.Lookup(_attr_, _value_...)
+* LookupItem(_list_, _path_, _value_ [, limit])
+* _list_.LookupItem(_path_, _value_ [, limit])
 
-The _attr_ argument can be an int or float but more typically is a string. Lists and dictionaries cannot be used.
-The attributes named in the list must be an exact match.
-For _value_ argument, it may be a single value or a list of values.
+The _path_ can be:
 
-The result is always a list, which may be empty. A Lookup() performed on _None_ or a non-list
-always returns an empty list of results.
+* A string, boolean, int, or float
+* A list composed of path components
+
+For _value_ argument, may be a single value, a list of values.
+Regular expressions can also be used for comparisons: see `CompilePattern()`.
+If a _value_ is a function the dereferenced key value is passed as the argument to
+the function for testing. The function should return a boolean value.
+
+The returned result is always a list, which may be empty.
+When performed on _None_ or a non-dictionary it returns an empty list.
 
 ```vgr
 Set point1 To {"x": 5, "y": 7, "space": 2, "name": "p1"}
@@ -240,49 +253,76 @@ Set point2 To {"x": 7, "y":29, "space": 2, "name": "p2"}
 Set point3 To {"x": 9, "y":31, "z": -7, "space": 3, "name": "p3"}
 Set point4 To {"x":11, "y":37, "z": None, "space": 3, "name": "p4"}
 Set points To [point1, point2, point3, point4]
-points.Lookup("x", 5) → [{"x": 5, "y": 7, "space": 2, "name": "p1"}]
-points.Lookup("z", None).GetValue("name") → ["p4"]
-points.Lookup("space", 1).GetValue("name") → []
-points.Lookup("space", 1, 2).GetValue("name") → ["p1", "p2"]
-points.Lookup("space", 3).Lookup("z", None).GetValue("name") → ["p4"]
+
+points.LookupItem("x", 5) → [{"x": 5, "y": 7, "space": 2, "name": "p1"}]
+points.LookupItem("z", None).GetKeyValue("name") → ["p4"]
+points.LookupItem("space", 1).GetKeyValue("name") → []
+points.LookupItem("space", [1, 2]).GetKeyValue("name") → ["p1", "p2"]
+points.LookupItem("space", [2, 1]).GetKeyValue("name") → ["p1", "p2"]
+points.LookupItem("space", 3).LookupItem("z", None).GetKeyValue("name")
+    → ["p4"]
+points.LookupItem("name", CompilePattern("p[24]")).GetKeyValue("name")
+    → ["p2", "p4"]
+
+Set filter(x) -> x.EndsWith("2", "3")
+points.LookupItem("name", filter).GetKeyValue("name") → ["p2", "p3"]
 ```
 
-Also see `GetValue()`
+Also see `GetKeyValue()` and `CompilePattern()`
 """
-    if not isinstance(x, list): return []
-    if not isinstance(attr, (str, int, float, tuple)):
-        raise TypeError(f'Cannot use {type_str(attr)} for attribute in Lookup')
-    # NB: Don't strip the attr! Crazy people put blanks in CSV column headers and you may have to deal with that
-    if len(args) == 1:
-        arg = args[0]
-        return _multi_lookup(x, attr, arg) if isinstance(arg, (list, tuple)) else _lookup(x, attr, arg)
-    return _multi_lookup(x, attr, args)
+    if x is None: return []
+    # We must always have a list to search
+    if not isinstance(x, list): x = list(x)
+    # We must always have a path
+    path = _normalize_path(path)
+    if path is None: return []
+    # We must always have a value
+    if isinstance(values, list) and len(values) == 0: return []
+    # Constrain limit to either None or a positive non-zero integer
+    if limit is not None:
+        limit = int_arg(limit, "Limit")
+        if limit <= 0: limit = None
+    def _test(x: Any, y: Any) -> bool:
+        # If the desired value is a function, then x is passed to it for evaluation
+        if isinstance(y, VgrCallable): return poly_bool(y.evaluate(ctx, [x]))
+        # If the desired value is a Pattern, use matches rather than equals
+        return poly_matches(x, y) if isinstance(y, Pattern) else poly_eq(x, y)
+    def _in_list(value: Any, values: list) -> bool:
+        # Our own value of "in" which includes Patterns as per above
+        for v in values:
+            if _test(value, v): return True
+        return False
+    def _find(data: Any, path: Any) -> tuple:
+        return (True, data[path]) if path in data else (False, None)
+    # Determine the comparison operation
+    comparator = _in_list if isinstance(values, list) else _test
+    finder = _deref if isinstance(path, list) else _find
+    results = []
+    # Sweep the data for matching elements and add to the results
+    for data in x:
+        # Skip over non-dict instances in the list
+        if isinstance(data, dict):
+            # Determine the attribute and compare it if found
+            # Note that you can't use lookup() to find entries which
+            # do not posses an attribute
+            found, value = finder(data, path)
+            if found and comparator(value, values):
+                results.append(data)
+                # Terminate search if we exceed our limit
+                if limit is not None and len(results) >= limit: break
+    return results
 
-def _multi_lookup(x:Any, attr: Any, values: Any) -> list[Any]:
-    # This chain takes all the results and handles as if it were a single iterator
-    return list(chain.from_iterable(_lookup(x, attr, value) for value in values))
-
-def _lookup(x: Any, attr: Any, value: Any) -> list[Any]:
-    # NB: since poly_eq() uses the first param to drive conversions,
-    #     we use the data we have in the records as the "right" type
-    #     and let value be adjusted accordingly
-    return [x1 for x1 in x
-            if isinstance(x1, dict) and
-                attr in x1 and
-                poly_eq(x1.get(attr), value)]
-
-def _deref(data: Any, path: list, default_value: Any=None) -> Any:
+def _deref(data: Any, path: list) -> tuple:
     for step in path:
         if not isinstance(data, dict) or step not in data:
-            data = default_value
-            break
+            return (False, None)
         data = data[step]
-    return data
+    return (True, data)
 
 def _normalize_path(path: Any) -> Any:
     def _validate_step(step: Any) -> Any:
         if isinstance(step, (str, bool, int, float)): return step
-        raise TypeError(f'Dereferencing with a {type_str(step)} not supported')
+        raise TypeError(f'Dereferencing with a {poly_type(step)!r} not supported')
     if path is None: return None
     # Single step; path is just a key
     if not isinstance(path, list): return _validate_step(path)

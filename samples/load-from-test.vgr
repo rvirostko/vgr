@@ -13,35 +13,35 @@ Pass   # "Modern"
 Pass   // C-style
 Pass   -- SQL style
 
-Set base = vgr.source.FirstItem().DirName() + "/"
+Set base To vgr.source.FirstItem().DirectoryName() + os.sep
 
-Set bar = "//" + ("-" * 77)
+Set bar To "//" + ("-" * 77)
 
 # This file contains a single JSON object
-# The Select For JSON Root <root> can be used to produce a file like this
+# Select For JSON Root <root> can be used to produce a file like this
 Print bar
-Load test.json.obj From [base, "in.json"].Join("/")
-Assert test.json.obj.type() == "dict"
+Load test.json.obj From base + "in.json"
 Exhibit test.json.obj
+Assert test.json.obj.Type() == "dict"
 Print bar
 Print ""
 
-# This file has a JSON array, suitable for use with Lookup()
+# This file has a JSON array, suitable for use with LookupItem()
 # The Select For JSON produces this by default
 Print bar
-Load test.json.arr From [base, "array.json"].Join("/")
+Load test.json.arr From base + "array.json"
 Exhibit test.json.arr
-Assert test.json.arr.type() == "list"
+Assert test.json.arr.Type() == "list"
 Print bar
 Print ""
 
 # This file has a JSON object per row.
-# The Select For JSON No Array Wrapper produces this
+# Select For JSON No Array Wrapper produces this
 # The file can be used here or prefiltered by grep before being used
 Print bar
-Load test.json.objs From [base, "objs.txt"].Join("/") JSON Object Per Line
+Load test.json.objs From base + "objs.txt" JSON Object Per Line
 Exhibit test.json.objs
-Assert test.json.objs.type() == "list"
+Assert test.json.objs.Type() == "list"
 Print bar
 Print ""
 
@@ -50,68 +50,69 @@ Print ""
 # columns and add those space (and quotes!) to the column data
 # This also uses some syntactic sugar and using expressions
 Print bar
-Set csv_file_name="objs"
-Load test.csv.arr From File [base, csv_file_name + ".csv"].Join("/") CSV
+Set csv_file_name To "objs"
+Load test.csv.arr From File base + csv_file_name + ".csv" CSV
 Exhibit test.csv.arr
-Assert test.csv.arr.type() == "list"
+Assert test.csv.arr.Type() == "list"
 Print bar
 Print ""
 
 # Text allows you to read in text as a string
 # Text is the default when the extension is not .csv or .json
 Print bar
-Load test.text From [base, "objs.txt"].Join("/") Text
+Load test.text From base + "objs.txt" Text
 Exhibit test.text
-Assert test.text.type() == "str"
+Assert test.text.Type() == "str"
 Print bar
 Print ""
 
 # Text allows you to read lines of text into an array
 Print bar
-Load test.text From [base, "objs.txt"].Join("/") Text Lines
+Load test.text From base + "objs.txt" Text Lines
 Exhibit test.text
-Assert test.text.type() == "list"
+Assert test.text.Type() == "list"
 Assert test.text.FirstItem().Type() == "str"
 Print bar
 Print ""
 
-# Lookup values are somewhat flexible...
-# Internally they use poly_eq() with the value from the
-# data as the left operand, and what you are searching for as the right
+# Lookup values are somewhat flexible as they use either "IsEqualTo()" or "Matches()"
 Print bar
-Set fmt="test.{2}.arr.Lookup({0!r}, {1!r}) -> {3!r}\ntest.{4}.arr.Lookup({0!r}, {1!r}) -> {5!r}\n"
-Set key="idx"; Set value=3;
-Printf fmt, key, value, "csv", test.csv.arr.Lookup(key, value), "json", test.json.arr.Lookup(key, value)
-Set value=3.0
-Printf fmt, key, value, "csv", test.csv.arr.Lookup(key, value), "json", test.json.arr.Lookup(key, value)
-# NB: the CSV has the idx column as strings, so this returns an empty array
-Set value=" 3 "
-Printf fmt, key, value, "csv", test.csv.arr.Lookup(key, value), "json", test.json.arr.Lookup(key, value)
-Set key="fname"; Set value="Justin";
-Printf fmt, key, value, "csv", test.csv.arr.Lookup(key, value), "json", test.json.arr.Lookup(key, value)
-Print bar
-Print ""
-
-# Order depends upon what you ask for, but unless you have a datatype error
-# You will always get back an array, even if empty
-Print bar
-Set fmt2="test.csv.arr.Lookup({!r}, {!r}, {!r}) -> {!r}\n"
-Set key="idx";
-Set value1=0; Set value2=3;
-Printf fmt2, key, value1, value2, test.csv.arr.Lookup(key, value1, value2)
-Printf fmt2, key, value2, value1, test.csv.arr.Lookup(key, value1, value2)
-Set value = [ value2, value1 ]
-Printf "test.csv.arr.Lookup({!r}, {!r}) -> {!r}\n", key, value, test.csv.arr.Lookup(key, value)
+Set fmt To """test.{2}.arr.LookupItem({0!r}, {1!r}) -> {3!r}
+test.{4}.arr.LookupItem({0!r}, {1!r}) -> {5!r}
+"""
+Set test_values To [["idx", 3], ["idx", 3.0], ["idx", " 3 "], ["fname", "Justin"], ["fname", "justin"], ["fname", CompilePattern("(?i)Justin")]]
+ForEach test_value in test_values:
+    Set key To test_value.FirstItem()
+    Set value to test_value.LastItem()
+    Printf fmt, key, value,
+        "csv", test.csv.arr.LookupItem(key, value),
+        "json", test.json.arr.LookupItem(key, value)
+End
 Print bar
 Print ""
 
 Print bar
-Set jsmith = test.csv.arr.Lookup("lname", "Smith").Lookup("fname", "Justin").FirstItem()
+Set fmt2 To "test.csv.arr.LookupItem({!r}, {!r}) -> {!r}\n"
+Set key To "idx"
+Set test_values To [[0], [0, 0], [0, 3], [3, 0], [3, 3], [3]]
+ForEach value in test_values:
+    Printf fmt2, key, value,
+        test.csv.arr.LookupItem(key, value)
+End
+Print bar
+Print ""
+
+Print bar
+# Chained lookup
+Set jsmith To test.csv.arr.
+    LookupItem("lname", CompilePattern("(?i)Smith")).
+    LookupItem("fname", CompilePattern("(?i)Justin")).
+    FirstItem()
 Printf "{}, {} : ID {}\n", jsmith.lname, jsmith.fname, jsmith.idx
-Set env.OFS = " | "; Set env.ORS = " |\n"
-Print "| " + jsmith.idx, jsmith.lname, jsmith.fname;
-Set env.OFS = None; Set env.ORS = None;
-Printf "Heap's idx={}\n", test.csv.arr.Lookup("lname", "Heap").FirstItem().idx
+Print "|", jsmith.idx, "|", jsmith.lname, "|", jsmith.fname, "|"
+# Dereferencing a result
+Printf "Heap's idx = {}\n",
+    test.csv.arr.LookupItem("lname", "Heap").FirstItem().idx
 Print bar
 
 Print "\nDone"

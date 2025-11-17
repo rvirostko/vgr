@@ -6,8 +6,9 @@ from functools import cmp_to_key
 from typing import Any, Iterable
 import statistics
 
+from .common import str_to_number
 from .inequ import poly_lt, poly_gt
-from .common import str_to_number, type_str
+from .type import poly_type
 
 def poly_max(x: Any, *args: Any) -> Any:
     """
@@ -133,7 +134,7 @@ def _coerce_to_numbers(values):
         elif isinstance(v, str):
             result.append(str_to_number(v))
         else:
-            raise ValueError(f'{type_str(v)} cannot be converted to a number')
+            raise ValueError(f'{poly_type(v)!r} cannot be converted to a number')
     return result
 
 def _cmp_to_key_asc(x: Any, y: Any):

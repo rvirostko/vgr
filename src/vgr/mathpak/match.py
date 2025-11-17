@@ -6,7 +6,8 @@ Includes case independent variations.
 from typing import Any
 import re
 
-from .common import bound_ops, NoneType, type_str
+from .common import bound_ops, NoneType
+from .type import poly_type
 
 @bound_ops("~", "Matches", "Matches-Any")
 def poly_matches(x: Any, *args) -> Any:
@@ -153,7 +154,7 @@ def _do_match(x: Any, y: Any, ci: bool=False, do_all: bool=False) -> Any:
         if isinstance(y, (NoneType, bool, int, float)): return x == y
     # a_dictionary Matches "abc" -> Exception
     if not isinstance(x, str):
-        raise TypeError(f'Cannot perform Match on {type_str(x)}')
+        raise TypeError(f'Cannot perform Match on {poly_type(x)!r}')
     if isinstance(y, str):
         try:
             y = re.compile(y, re.IGNORECASE if ci else 0)
@@ -166,4 +167,4 @@ def _do_match(x: Any, y: Any, ci: bool=False, do_all: bool=False) -> Any:
     if isinstance(y, (list, tuple)):
         if do_all: return all(_do_match(x, y1, ci, do_all) for y1 in y)
         return any(_do_match(x, y1, ci, do_all) for y1 in y)
-    raise TypeError(f'Cannot use {type_str(y)} as a Pattern with Match')
+    raise TypeError(f'Cannot use {poly_type(y)!r} as a Pattern with Match')

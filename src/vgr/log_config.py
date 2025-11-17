@@ -7,7 +7,7 @@ import logging
 import os
 import re
 
-from .output import verify_relative_path, expand_filename
+from .mathpak import verify_relative_path, expand_filename
 
 _LEVEL_MAP = {
     'debug':    logging.DEBUG,

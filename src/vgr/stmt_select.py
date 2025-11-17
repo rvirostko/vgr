@@ -12,7 +12,7 @@ from .app_exceptions import VgrRuntimeError
 from .data_xtract import QueryFilter, InfoOutput, DataExtractor, EndExtractException
 from .evaluate import bind_operations
 from .exec_context import ExecContext
-from .mathpak import poly_false, bound_ops, type_str
+from .mathpak import poly_false, bound_ops, poly_type
 from .output import (
     CSVRecordWriter,
     JSONRecordWriter,
@@ -190,7 +190,7 @@ class SelectAnalyzer(Visitor):
         if as_value is None or isinstance(as_value, (str, int, float)):
             self._headers.append(as_value)
         else:
-            raise VgrRuntimeError(as_node, TypeError(f"Value for 'As' must be a simple type; found {type_str(as_value)}"))
+            raise VgrRuntimeError(as_node, TypeError(f"Value for 'As' must be a simple type; found {poly_type(as_value)!r}"))
 
     @classmethod
     def get_default_col_name(cls, node: Tree) -> str:
@@ -253,7 +253,7 @@ class SelectAnalyzer(Visitor):
         target = self.ctx.eval_expr_or_const(bind_operations(node))
         if target is None: return _DEFAULT_TARGET_NAME
         if not isinstance(target, str):
-            raise VgrRuntimeError(node, TypeError(f"Value for 'As' must be a string; found {type_str(target)}"))
+            raise VgrRuntimeError(node, TypeError(f"Value for 'As' must be a string; found {poly_type(target)!r}"))
         target = target.strip()
         if self._VAR_NAME.fullmatch(target) is None:
             raise VgrRuntimeError(node, TypeError(f"Value for 'As' must be a valid simple variable name; {target!r}"))

@@ -11,7 +11,6 @@ from .data_dict import DataDictionary
 
 class ExecContext(ABC):
 
-
     def __init__(self, parser: Lark, dd: DataDictionary):
         super().__init__()
         assert parser is not None

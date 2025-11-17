@@ -49,7 +49,7 @@ from .mathpak import (
     poly_shr,
     poly_sub,
     poly_true,
-    type_str,
+    poly_type,
 )
 
 def shorten(s: str, width: int=64) -> str:
@@ -120,6 +120,8 @@ def assert_has_meta(tree: Tree):
 class Operation(Tree, ABC):
     """A replacement Tree node that adds a slot for execution"""
 
+    __slots__ = ("_meta",)
+
     def __init__(self, base: Tree):
         assert_has_meta(base)
         # Shallow copy of the children array
@@ -138,13 +140,21 @@ class Operation(Tree, ABC):
 
 class SimpleOperation(Operation):
     """Instance that invokes another operation : part of an expression"""
+
+    __slots__ = ("_op", "_requires_ctx")
+
     def __init__(self, base: Tree, op):
         super().__init__(base)
         self._op = op
+        from .mathpak import get_requires_exec_context
+        self._requires_ctx = get_requires_exec_context(op)
+
 
     def execute(self, ctx: ExecContext, args: list) -> Any:
         # We evaluate all the arguments and execute the operation
-        return self._op(*tuple(ctx.eval_expr(arg) for arg in args))
+        positional_args = tuple(ctx.eval_expr(arg) for arg in args)
+        # Pass in the context if required, but as a kwargs value
+        return self._op(*positional_args, ctx=ctx) if self._requires_ctx else self._op(*positional_args)
 
     def op_name(self) -> str:
         return self._op.__name__
@@ -467,4 +477,4 @@ def eval_expr(ctx: ExecContext, expr: Any) -> Any:
     if isinstance(expr, Token):
         # All tokens should be CONSTs so we don't want users mucking them up
         return deepcopy(expr.value)
-    raise VgrRuntimeError(expr, NotImplementedError(f'Unknown type {type_str(expr)}')) #SNO
+    raise VgrRuntimeError(expr, NotImplementedError(f'Unknown type {poly_type(expr)!r}')) #SNO

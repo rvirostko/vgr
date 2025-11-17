@@ -6,8 +6,9 @@ scalar values.
 
 from typing import Any
 
-from .common import NoneType, bound_ops, type_str
+from .common import NoneType, bound_ops
 from .inequ import poly_eq
+from .type import poly_type
 
 @bound_ops("IsIn")
 def poly_in(x: Any, y: Any) -> bool:
@@ -147,7 +148,7 @@ def _is_in(x: Any, y: Any, do_all: bool) -> Any:
         t = (_is_in(x1, y, do_all) for x1 in x)
         return all(t) if do_all else any(t)
     if not isinstance(x, (NoneType, bool, int, str, float)):
-        raise TypeError(f'Cannot use {type_str(x)} with In/Contains')
+        raise TypeError(f'Cannot use {poly_type(x)!r} with In/Contains')
     if isinstance(y, str): return isinstance(x, str) and x in y
     if isinstance(y, (list, tuple)): return x in y
     if isinstance(y, dict): return x in y.keys()

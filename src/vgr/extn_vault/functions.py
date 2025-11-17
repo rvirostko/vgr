@@ -5,7 +5,7 @@ Functions applicable to Vault data types.
 from typing import Any
 import re
 
-from ..mathpak import type_str, poly_floor
+from ..mathpak import poly_type, poly_floor_multiple
 
 # Used in str -> ms
 _DURATION_STR_PATTERN = re.compile(r'(-?\d+\.?\d*)(ns|us|µs|ms|s|m|h|d)?', re.IGNORECASE)
@@ -50,7 +50,7 @@ String values are converted as per the Vault specification for duration strings.
     if isinstance(duration, (int, float)):
         return int(duration * 1_000)
     if not isinstance(duration, str):
-        raise ValueError(f'Unsupported duration type {type_str(duration)}')
+        raise ValueError(f'Unsupported duration type {poly_type(duration)!r}')
     duration = duration.strip()
     total_milliseconds = 0
     position = 0
@@ -89,7 +89,7 @@ milliseconds.
     if ms is None:
         return None
     if not isinstance(ms, (int, float)):
-        raise ValueError(f'Unsupported duration type {type_str(ms)}')
+        raise ValueError(f'Unsupported duration type {poly_type(ms)!r}')
     if ms == 0:
         return '0'
     result = []
@@ -97,7 +97,7 @@ milliseconds.
     for unit, factor in _TIME_UNITS_FACTOR:
         if remaining_ms >= factor:
             # NB: this is the only place where "precision" is used with floor()
-            value = poly_floor(remaining_ms / factor, .25)
+            value = poly_floor_multiple(remaining_ms / factor, .25)
             # If value is a whole number, remove the fractional part
             result.append(f'{str(value).removesuffix(".0")}{unit}')
             remaining_ms -= value * factor

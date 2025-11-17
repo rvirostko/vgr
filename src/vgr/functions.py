@@ -60,7 +60,6 @@ from .mathpak import (
     poly_contains_all,
     poly_contains_any,
     poly_count,
-    poly_dig,
     poly_div,
     poly_divmod,
     poly_endswith,
@@ -78,12 +77,12 @@ from .mathpak import (
     poly_ge,
     poly_getitem,
     poly_getkeys,
-    poly_getvalue,
+    poly_getkeyvalue,
     poly_gt,
     poly_hash,
-    poly_hex,
     poly_hex_decode,
     poly_hex_encode,
+    poly_hex,
     poly_imatches,
     poly_in,
     poly_index,
@@ -105,6 +104,7 @@ from .mathpak import (
     poly_isnan,
     poly_isnumber,
     poly_isnumeric,
+    poly_is_pattern,
     poly_isprintable,
     poly_isspace,
     poly_isstr,
@@ -112,10 +112,12 @@ from .mathpak import (
     poly_isupper,
     poly_iszero,
     poly_join,
+    poly_lookupitem,
     poly_lastitem,
     poly_le,
     poly_leftstr,
     poly_list_append,
+    poly_list_create,
     poly_list_insert,
     poly_list_prepend,
     poly_list_remove_first,
@@ -124,7 +126,6 @@ from .mathpak import (
     poly_list_replace,
     poly_list,
     poly_ljust,
-    poly_lookup,
     poly_lower,
     poly_lstrip,
     poly_lt,
@@ -170,7 +171,7 @@ from .mathpak import (
     poly_round,
     poly_rsplit,
     poly_rstrip,
-    poly_setvalue,
+    poly_setkeyvalue,
     poly_shl,
     poly_shorten,
     poly_shr,
@@ -203,11 +204,13 @@ from .mathpak import (
     to_json_string,
     to_json,
 )
+from .vgr_callable import VgrCallable
 
 def _default_to(value: Any, default: Any) -> Any:
     """
 **Returns the default if a value is _None_**
 
+* DefaultTo(_value_, _default_)
 * _value_.DefaultTo(_default_)
 
 ```vgr
@@ -216,10 +219,26 @@ def _default_to(value: Any, default: Any) -> Any:
 """
     return default if value is None else value
 
+def _is_function(obj: Any) -> Any:
+    """
+**Returns _True_ if the value is a function**
+
+* IsFunction(_value_)
+* _value_.IsFunction()
+
+```vgr
+None.IsFunction() → False
+Set f(x) -> x+1
+f.IsFunction() → True
+```
+"""
+    return isinstance(obj, VgrCallable)
+
 def _id(obj: Any) -> Any:
     """
 **Returns the internal, unique ID used by the value**
 
+* Id(_value_)
 * _value_.Id()
 
 ```vgr
@@ -232,6 +251,8 @@ def _enumerate(obj: Any, start_at: int=0) -> Any:
     """
 **Create an enumeration for a collection**
 
+* Enumerate(_value_)
+* Enumerate(_value_, _start_at_)
 * _value_.Enumerate()
 * _value_.Enumerate(_start_at_)
 
@@ -245,8 +266,8 @@ None.Enumerate() → []
 5.Enumerate() → [[0, 5]]
 [5].Enumerate() → [[0, 5]]
 [5].Enumerate(-3) → [[-3, 5]]
-math.float.Enumerate() → [[0, "max", 1.7976931348623157e+308],
-    [1, "min", 2.2250738585072014e-308]]
+math.float.Enumerate(1) → [[1, "max", 1.7976931348623157e+308],
+    [2, "min", 2.2250738585072014e-308]]
 ```
 """
     if obj is None: return []
@@ -261,9 +282,11 @@ def _negate(x: Any) -> Any:
     """
 **Returns the negation of a value**
 
+* Negate(_value_)
 * _value_.Negate()
 
 The _value_'s type determines what is returned:
+
 * _None_ : always returns _True_
 * String : returns _value_ unchanged
 * Boolean : returns the logical negation
@@ -367,7 +390,8 @@ The values for _plural_ and _signular_ can be any any values.
         is_one = hasattr(x, "__len__") and len(x) == 1
     return singular if is_one else plural
 
-@bound_ops("[...]", "list")
+# TODO move to list.py
+@bound_ops("[...]")
 def build_list(*values: Any) -> list[Any]:
     """
 **Create a list from the collected values**
@@ -403,10 +427,12 @@ Set mixed To [
 ]
 ```
 
-Also see `Append`, `Insert`, `Prepend`, `Remove`, and `Replace` statements
+Also see `Append`, `Insert`, `Prepend`, `Remove`, and `Replace` statements,
+and the `List()` and `ToList()` functions
 """
     return [] if values is None else list(values)
 
+# TODO move to dict.py
 @bound_ops("{...}", "dictionary", "dict")
 def build_dict(*values: Any) -> dict:
     """
@@ -451,7 +477,7 @@ Set mixed To {
     "dict":   {"nested": "value"}
 }
 ```
-Also see `Dig()` and `Lookup()`
+Also see `GetKeyValue()` and `LookupItem()`
 """
     # Values is alternating pairs of key/values
     # so we use a "stride" of two to form two groups
@@ -528,7 +554,6 @@ _BUILT_IN_FUNCS: dict[str, Callable[..., Any]] = {
     "ContainsAny":    poly_contains_any,
     "CountOf":        poly_count,
     "DefaultTo":      _default_to,
-    "Dig":            poly_dig, # To be removed: replaced by GetValue()
     "DirectoryName":  dir_name,
     "Div":            poly_div,
     "DivMod":         poly_divmod,
@@ -547,7 +572,7 @@ _BUILT_IN_FUNCS: dict[str, Callable[..., Any]] = {
     "FormatJSON":     format_json,
     "FormatTimestamp":format_timestamp,
     "GetKeys":        poly_getkeys,
-    "GetValue":       poly_getvalue,
+    "GetKeyValue":    poly_getkeyvalue,
     "Hash":           poly_hash,
     "HexDecode":      poly_hex_decode,
     "HexEncode":      poly_hex_encode,
@@ -568,6 +593,7 @@ _BUILT_IN_FUNCS: dict[str, Callable[..., Any]] = {
     "IsFile":         is_file,
     "IsFinite":       poly_isfinite,
     "IsFloat":        poly_isfloat,
+    "IsFunction":     _is_function,
     "IsGreaterThan":  poly_gt,
     "IsIn":           poly_in,
     "IsInf":          poly_isinf,
@@ -583,6 +609,7 @@ _BUILT_IN_FUNCS: dict[str, Callable[..., Any]] = {
     "IsNotLessThan":  poly_ge,
     "IsNumber":       poly_isnumber,
     "IsNumeric":      poly_isnumeric,
+    "IsPattern":      poly_is_pattern,
     "IsPrintable":    poly_isprintable,
     "IsSpace":        poly_isspace,
     "IsString":       poly_isstr,
@@ -598,6 +625,7 @@ _BUILT_IN_FUNCS: dict[str, Callable[..., Any]] = {
     "LeftStr":        poly_leftstr,
     "LeftStrip":      poly_lstrip,
     "Length":         _length,
+    "List":           poly_list_create,
     "ListAppend":     poly_list_append,
     "ListInsert":     poly_list_insert,
     "ListPrepend":    poly_list_prepend,
@@ -605,7 +633,7 @@ _BUILT_IN_FUNCS: dict[str, Callable[..., Any]] = {
     "ListRemoveFirst":poly_list_remove_first,
     "ListRemoveLast": poly_list_remove_last,
     "ListReplace":    poly_list_replace,
-    "Lookup":         poly_lookup,
+    "LookupItem":     poly_lookupitem,
     "Lower":          poly_lower,
     "Matches":        poly_matches,
     "MatchesAll":     poly_matches_all,
@@ -661,7 +689,7 @@ _BUILT_IN_FUNCS: dict[str, Callable[..., Any]] = {
     "Round":          poly_round,
     "RoundMultiple":  poly_round_multiple,
     "RSplit":         poly_rsplit,
-    "SetValue":       poly_setvalue,
+    "SetKeyValue":    poly_setkeyvalue,
     "ShortenStr":     poly_shorten,
     "Sign":           poly_sign,
     "Slice":          _slice,
@@ -882,7 +910,7 @@ def _get_arg_range(op, dot_invocation: bool) -> tuple:
     for param in sig.parameters.values():
         if param.kind == inspect.Parameter.VAR_POSITIONAL:
             positional = True
-        else:
+        elif param.kind in (inspect.Parameter.POSITIONAL_ONLY, inspect.Parameter.POSITIONAL_OR_KEYWORD):
             if param.default == inspect.Parameter.empty:
                 req_args += 1
             else:

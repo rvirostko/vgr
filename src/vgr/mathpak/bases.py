@@ -5,7 +5,8 @@ Functions for converting numbers to non base10 representations and back again
 from typing import Any
 import base64
 
-from .common import type_str, NoneType
+from .common import NoneType
+from .type import poly_type
 from .types import poly_int
 
 def poly_bin(x: Any) -> Any:
@@ -32,7 +33,7 @@ Also see `ToOctal()` and `ToHex()`
     if isinstance(x, (bool, int, float)): return bin(int(x))
     if isinstance(x, str): return bin(poly_int(x))
     if isinstance(x, (list, tuple)): return list(poly_bin(x1) for x1 in x)
-    raise TypeError(f'Binary format with {type_str(x)} not supported')
+    raise TypeError(f'Binary format with {poly_type(x)!r} not supported')
 
 def poly_oct(x: Any) -> Any:
     """
@@ -58,7 +59,7 @@ Also see `ToBinary()` and `ToHex()`
     if isinstance(x, (bool, int, float)): return oct(int(x))
     if isinstance(x, str): return oct(poly_int(x))
     if isinstance(x, (list, tuple)): return list(poly_oct(x1) for x1 in x)
-    raise TypeError(f'Octal format with {type_str(x)} not supported')
+    raise TypeError(f'Octal format with {poly_type(x)!r} not supported')
 
 def poly_hex(x: Any) -> Any:
     """
@@ -84,7 +85,7 @@ Also see `ToBinary()` and `ToOctal()`
     if isinstance(x, (bool, int, float)): return hex(int(x))
     if isinstance(x, str): return hex(poly_int(x))
     if isinstance(x, (list, tuple)): return list(poly_hex(x1) for x1 in x)
-    raise TypeError(f'Hexadecimal format with {type_str(x)} not supported')
+    raise TypeError(f'Hexadecimal format with {poly_type(x)!r} not supported')
 
 def poly_parse_int(x: Any, base: Any=10) -> Any:
     """
@@ -123,7 +124,7 @@ Also see `ParseBinary()`, `ParseOctal()`, `ParseHex()`
         except ValueError as e:
             raise ValueError(f'Invalid value for use with base {base}: {x!r}') from e
     if isinstance(x, (list, tuple)): return list(poly_parse_int(x1, base) for x1 in x)
-    raise TypeError(f'Parsing from {type_str(x)} not supported')
+    raise TypeError(f'Parsing from {poly_type(x)!r} not supported')
 
 def poly_parse_bin(x: Any) -> Any:
     """
@@ -225,7 +226,7 @@ Also see `Base64Decode()`
     if isinstance(x, bool): x = str(int(x))
     if isinstance(x, (int, float)): x = str(x)
     if isinstance(x, str): return base64.b64encode(x.encode()).decode(_check_charset(charset))
-    raise TypeError(f'Base64 encoding of {type_str(x)} not supported')
+    raise TypeError(f'Base64 encoding of {poly_type(x)!r} not supported')
 
 def poly_base64_decode(x: Any, charset: str = "utf-8") -> Any:
     """
@@ -257,7 +258,7 @@ Also see `Base64Encode()`
     if isinstance(x, str):
         x = x.strip()
         return '' if not x else base64.b64decode(x).decode(_check_charset(charset))
-    raise TypeError(f'Base64 decoding of {type_str(x)} not supported')
+    raise TypeError(f'Base64 decoding of {poly_type(x)!r} not supported')
 
 def poly_hex_encode(x: Any, charset: str = "utf-8") -> str:
     """
@@ -287,7 +288,7 @@ Also see `HexDecode()`
     if isinstance(x, bool): x = str(int(x))
     if isinstance(x, (int, float)): x = str(x)
     if isinstance(x, str): return x.encode(_check_charset(charset)).hex()
-    raise TypeError(f'Hex encoding of {type_str(x)} not supported')
+    raise TypeError(f'Hex encoding of {poly_type(x)!r} not supported')
 
 def poly_hex_decode(x: Any, charset: str = "utf-8") -> str:
     """
@@ -319,7 +320,7 @@ Also see `HexEncode()`
     if isinstance(x, str):
         x = x.strip()
         return '' if not x else bytes.fromhex(x).decode(_check_charset(charset))
-    raise TypeError(f'Hex decoding of {type_str(x)} not supported')
+    raise TypeError(f'Hex decoding of {poly_type(x)!r} not supported')
 
 def _check_charset(charset: str) -> str:
     """Validate charset name, raising error if not known."""
@@ -327,7 +328,7 @@ def _check_charset(charset: str) -> str:
         charset = "utf-8"
     else:
         if not isinstance(charset, str):
-            raise TypeError(f'Expected string for charset, found {type_str(charset)}')
+            raise TypeError(f'Expected string for charset, found {poly_type(charset)!r}')
         charset = charset.strip()
         if not charset: charset = "utf-8"
     try:

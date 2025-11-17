@@ -14,6 +14,7 @@ from ..mathpak import (
     bound_ops,
     poly_int,
     poly_list,
+    poly_type,
 )
 from ..vault_api.client_mgr import VaultClientManager
 
@@ -1363,9 +1364,6 @@ def _split_mount_path(s: str) -> tuple:
         raise ValueError(f'Missing information following Mount Point: {s}')
     return parts
 
-def _type_str(o: Any) -> str:
-    return repr(type(o).__name__)
-
 def _is_static_type(args: dict):
     """Look at _TYPE_ARG and see if user requested "static" """
     value: str = _get_arg(args, _TYPE_ARG, str, True)
@@ -1396,20 +1394,20 @@ def _extract_args(ctx: ExecContext, statement: Tree) -> dict:
                 v = ctx.eval_expr_or_const(arg_node)
                 # TODO !! looks like potential common code
                 if v:
-                    if not isinstance(v, (int, float)): raise TypeError(f'{arg_name.title()} must be a int; found {_type_str(v)}')
+                    if not isinstance(v, (int, float)): raise TypeError(f'{arg_name.title()} must be a int; found {poly_type(v)!r}')
                     args[arg_name] = int(v)
             elif arg_name in _ARG_EXPR:
                 args[arg_name] = ctx.eval_expr_or_const(arg_node)
             else:
                 raise VgrRuntimeError(child, NotImplementedError(f'Vault argument {arg_name!r} not implemented')) # SNO
         else:
-            raise VgrRuntimeError(child, ValueError(f'Unexpected Vault argument {child.data!r}:{_type_str(child)}')) # SNO
+            raise VgrRuntimeError(child, ValueError(f'Unexpected Vault argument {child.data!r}:{poly_type(child)!r}')) # SNO
     return args
 
 def _resolve_str_arg(ctx: ExecContext, expr: Tree, name: str, allow_none: bool=False) -> str:
     rc = ctx.eval_expr_or_const(expr)
     if rc is None and allow_none: return None
-    if not isinstance(rc, str): raise TypeError(f'{name} must be a string; found {_type_str(rc)}')
+    if not isinstance(rc, str): raise TypeError(f'{name} must be a string; found {poly_type(rc)!r}')
     return rc
 
 def _allowed_args(args: dict, *allowed_keys) -> None:
@@ -1425,4 +1423,4 @@ def _get_arg(args: dict, name: str, expected_type: type, optional: bool = False)
         raise ValueError(f'Missing required argument: {name.title()}')
     value = args[name]
     if isinstance(value, expected_type): return value
-    raise TypeError(f'Argument {name.title()} must be of type {_type_str(expected_type)}, found {_type_str(value)}')
+    raise TypeError(f'Argument {name.title()} must be of type {poly_type(expected_type)!r}, found {poly_type(value)!r}')

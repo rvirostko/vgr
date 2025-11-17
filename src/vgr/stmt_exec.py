@@ -30,19 +30,19 @@ from .evaluate import (
     eval_expr_or_const,
     get_writable_var_path,
 )
-from .output import verify_relative_path
 from .exec_context import ExecContext
 from .functions import build_dict
 from .mathpak import (
     bound_ops,
+    expand_filename,
     poly_int,
     poly_list,
     poly_number,
     poly_repr,
     poly_true,
-    type_str,
+    poly_type,
+    verify_relative_path
 )
-from .output import expand_filename
 from .redir import (
     execute_open,
     execute_close,
@@ -957,7 +957,7 @@ class DefaultExecContext(ExecContext):
         if rc is None and allow_none: return None
         # TODO should we not convert numbers to a string?
         if not isinstance(rc, str):
-            raise VgrRuntimeError(expr, TypeError(f'{name} must be a string; found {type_str(rc)}'))
+            raise VgrRuntimeError(expr, TypeError(f'{name} must be a string; found {poly_type(rc)!r}'))
         return rc
 
     def eval_filename_expr(self, expr: Any, allow_none: bool=False) -> str:
@@ -975,7 +975,7 @@ class DefaultExecContext(ExecContext):
                 return poly_int(rc)
             except ValueError as e:
                 raise VgrRuntimeError(expr, str(e)) from e
-        raise VgrRuntimeError(expr, TypeError(f'{name} must be an integer; found {type_str(rc)}'))
+        raise VgrRuntimeError(expr, TypeError(f'{name} must be an integer; found {poly_type(rc)!r}'))
 
     def eval_to_number(self, expr: Tree, name: str, allow_none: bool=False):
         rc = self.eval_expr(expr)
@@ -984,14 +984,14 @@ class DefaultExecContext(ExecContext):
         if rc is None and allow_none: return None
         if isinstance(rc, bool): return int(rc)
         if isinstance(rc, (int, float)): return rc
-        raise VgrRuntimeError(expr, TypeError(f'{name} must be an integer; found {type_str(rc)}'))
+        raise VgrRuntimeError(expr, TypeError(f'{name} must be an integer; found {poly_type(rc)!r}'))
 
     def eval_to_bool(self, expr: Tree, name: str, allow_none: bool=False) -> bool:
         # TODO see other conv routines
         rc = self.eval_expr(expr)
         if rc is None and allow_none: return None
         if not isinstance(rc, (bool, int, float, str)):
-            raise VgrRuntimeError(expr, TypeError(f'{name} must be an boolean; found {type_str(rc)}'))
+            raise VgrRuntimeError(expr, TypeError(f'{name} must be an boolean; found {poly_type(rc)!r}'))
         return poly_true(rc)
 
     def get_source(self, tree, end_tree = None) -> str:

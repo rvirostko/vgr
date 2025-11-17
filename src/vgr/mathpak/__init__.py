@@ -25,21 +25,20 @@ from .bit_ops import (
 from .checksum import poly_checksum
 from .common import (
     bound_ops,
+    get_requires_exec_context,
     int_arg,
     str_arg,
     str_to_bool,
     str_to_int,
     str_to_number,
-    type_str,
 )
 from .dict import (
-    poly_dig,
     poly_getkeys,
-    poly_getvalue,
+    poly_getkeyvalue,
     poly_isdict,
-    poly_lookup,
+    poly_lookupitem,
     poly_removekey,
-    poly_setvalue,
+    poly_setkeyvalue,
 )
 from .div import (
     poly_div,
@@ -49,10 +48,12 @@ from .div import (
 from .files import (
     base_name,
     dir_name,
+    expand_filename,
     file_exists,
     is_dir,
     is_file,
     remove_file,
+    verify_relative_path,
 )
 from .general import (
     dsort,
@@ -65,7 +66,6 @@ from .general import (
     poly_repr,
     poly_reverse,
     poly_sort,
-    poly_type,
     poly_unique,
 )
 from .inequ import (
@@ -84,6 +84,7 @@ from .json_funcs import format_json, parse_json, strip_nulls, to_json, to_json_s
 from .list import (
     poly_islist,
     poly_list_append,
+    poly_list_create,
     poly_list_insert,
     poly_list_prepend,
     poly_list_remove_first,
@@ -121,7 +122,11 @@ from .misc_math import (
 from .mod import poly_mod
 from .mul import poly_mul
 from .pow import poly_pow
-from .reg_ex import compile_pattern, poly_regex_replace
+from .reg_ex import (
+    compile_pattern,
+    poly_is_pattern,
+    poly_regex_replace,
+)
 from .shift import poly_shl, poly_shr
 from .stats import (
     poly_max,
@@ -190,6 +195,7 @@ from .strings import (
 )
 from .sub import poly_sub
 from .time_funcs import format_duration, format_timestamp
+from .type import poly_type
 from .types import (
     poly_bool,
     poly_float,

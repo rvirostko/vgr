@@ -2,7 +2,7 @@
 Functor compilation and execution
 """
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import Any
 
 from lark import Tree, Token
@@ -14,9 +14,12 @@ from .app_exceptions import (
     VgrStatementReturn,
 )
 from .exec_context import ExecContext
-from .mathpak import type_str
+from .mathpak import poly_type
+from .vgr_callable import VgrCallable
 
-class _VgrCallable(ABC):
+class AbstractUserCallable(VgrCallable):
+    _SELF_PATH = ('$self',)
+    _ARGS_PATH = ('$args',)
 
     # we should show where it came from... file and start line/col
     # probably need a generic "meta" object that covers that and the source
@@ -26,21 +29,6 @@ class _VgrCallable(ABC):
         self._param_paths = param_paths
 
     def __repr__(self): return self._sig() + '\u2192' + str(self)
-
-    def _sig(self): return '(' +  ','.join('.'.join(t) for t in self._param_paths) + ')'
-
-    def _create_locals_list(self, arg_values: list) -> list:
-        # Pad values if not enough args were provided
-        # In that way, we have a default value of "None"
-        if len(arg_values) < len(self._param_paths):
-            arg_values = arg_values + [None] * (len(self._param_paths) - len(arg_values))
-        return list(zip(self._param_paths, arg_values))
-
-class _AbstractUserFunction(_VgrCallable):
-    _SELF_PATH = ('$self',)
-    _ARGS_PATH = ('$args',)
-
-    def __str__(self): return '<function>'
 
     def evaluate(self, ctx: ExecContext, arg_values: list) -> Any:
         ctx.dd.push_frame(self._create_locals_list(arg_values))
@@ -57,17 +45,25 @@ class _AbstractUserFunction(_VgrCallable):
     def _evaluate(self, ctx: ExecContext) -> Any: pass
 
     def _create_locals_list(self, arg_values: list) -> list:
+        # Pad values if not enough args were provided
+        # In that way, we have a default value of "None"
+        if len(arg_values) < len(self._param_paths):
+            arg_values = arg_values + [None] * (len(self._param_paths) - len(arg_values))
+        rc = list(zip(self._param_paths, arg_values))
         # Adds the "self" and "args" after the named parameters
-        rc = super()._create_locals_list(arg_values)
         rc.append((self._SELF_PATH, self))
         rc.append((self._ARGS_PATH, arg_values))
         return rc
 
-class UserFunction(_AbstractUserFunction):
+    def _sig(self): return '(' +  ','.join('.'.join(t) for t in self._param_paths) + ')'
+
+class UserFunction(AbstractUserCallable):
     def __init__(self, param_paths: list[tuple[str]], statements: list):
         super().__init__(param_paths)
         assert statements is not None and isinstance(statements, list)
         self._statements = statements
+
+    def __str__(self): return '<function>'
 
     def _evaluate(self, ctx: ExecContext) -> Any:
         try:
@@ -84,7 +80,7 @@ class UserFunction(_AbstractUserFunction):
         None is ignored, and the execution is distributed across lists
         """
         if fn is None: return None
-        if isinstance(fn, _AbstractUserFunction): return fn.evaluate(ctx, arg_values)
+        if isinstance(fn, AbstractUserCallable): return fn.evaluate(ctx, arg_values)
         # Recursively process lists and dictionaries
         if isinstance(fn, (list, tuple)):
             return list(UserFunction.invoke(ctx, f1, arg_values) for f1 in fn)
@@ -114,9 +110,9 @@ class UserFunction(_AbstractUserFunction):
         if isinstance(source, (int, float, bool)):
             # These should end up being functions returning constants
             return UserFunction.compile(ctx, str(source), param_paths)
-        raise TypeError(f'Cannot use {type_str(source)} as the source for an Arrow Function')
+        raise TypeError(f'Cannot use {poly_type(source)!r} as the source for an Arrow Function')
 
-class ArrowFunction(_AbstractUserFunction):
+class ArrowFunction(AbstractUserCallable):
     """
 **Arrow Functions - lightweight functions**
 

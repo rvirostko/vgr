@@ -23,7 +23,7 @@ from ..mathpak import (
     poly_list,
     poly_str,
     poly_strip,
-    type_str,
+    poly_type,
 )
 
 from .ldap_client import LdapClientManager, validate_ldap_url
@@ -246,7 +246,7 @@ def _resolve_int_arg(ctx: ExecContext, opt: Tree, name: str) -> str:
             return poly_int(rc)
         except ValueError as e:
             raise VgrRuntimeError(expr, e) from e
-    raise VgrRuntimeError(expr, TypeError(f'{name} must be a number; found {type_str(rc)}'))
+    raise VgrRuntimeError(expr, TypeError(f'{name} must be a number; found {poly_type(rc)!r}'))
 
 def _resolve_str_arg(ctx: ExecContext, opt: Tree, name: str, allow_none: bool=False) -> str:
     expr = opt.children[0]
@@ -256,7 +256,7 @@ def _resolve_str_arg(ctx: ExecContext, opt: Tree, name: str, allow_none: bool=Fa
         # NB: if you use "expr" instead of "opt" it can't seem to find the index!
         if poly_isempty(rc) and not allow_none: raise VgrRuntimeError(opt, ValueError(f'{name} cannot be blank'))
         return rc
-    raise VgrRuntimeError(expr, TypeError(f'{name} must be a string; found {type_str(rc)}'))
+    raise VgrRuntimeError(expr, TypeError(f'{name} must be a string; found {poly_type(rc)!r}'))
 
 def _resolve_opt_str_arg(ctx: ExecContext, opt: Tree, name: str) -> str:
     """Allows for a None result"""
@@ -266,7 +266,7 @@ def _resolve_bool_arg(ctx: ExecContext, opt: Tree, name: str) -> bool:
     expr = opt.children[0]
     rc = ctx.eval_expr_or_const(expr)
     if rc is None: return False
-    if isinstance(rc, (dict, list, tuple)): raise VgrRuntimeError(expr, TypeError(f'{name} must be a boolean; found {type_str(rc)}'))
+    if isinstance(rc, (dict, list, tuple)): raise VgrRuntimeError(expr, TypeError(f'{name} must be a boolean; found {poly_type(rc)!r}'))
     return poly_bool(rc)
 
 def _resolve_opt_bool_arg(ctx: ExecContext, opt: Tree, name: str) -> bool:
@@ -336,7 +336,7 @@ def _resolve_attrs_arg(ctx: ExecContext, opt: Tree, name: str) -> Any:
             if isinstance(attr, str):
                 attrs.append(attr)
             else:
-                raise VgrRuntimeError(expr, TypeError(f'{name} can contain only strings; found {type_str(rc)}'))
+                raise VgrRuntimeError(expr, TypeError(f'{name} can contain only strings; found {poly_type(rc)!r}'))
     return attrs if attrs else NO_ATTRIBUTES
 
 def _resolve_giving_arg(ctx: ExecContext, opt: Tree, _name: str) -> tuple:
@@ -372,7 +372,7 @@ _OPT_HANDLER = {
 def _extract_args(ctx: ExecContext, args: dict, opts: list) -> dict:
     for opt in opts:
         if not isinstance(opt, Tree) or not opt.data.startswith('lopt_'):
-            raise VgrRuntimeError(opt, ValueError(f'Unexpected Ldap argument {opt.data!r}:{type_str(opt)}')) # SNO
+            raise VgrRuntimeError(opt, ValueError(f'Unexpected Ldap argument {opt.data!r}:{poly_type(opt)!r}')) # SNO
         arg_name = opt.data[5:]
         if arg_name not in _OPT_HANDLER:
             raise VgrRuntimeError(opt, NotImplementedError(f'Ldap argument {arg_name!r} not implemented')) # SNO

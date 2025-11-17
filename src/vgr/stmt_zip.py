@@ -12,8 +12,8 @@ from lark import Tree
 
 from .app_exceptions import VgrRuntimeError
 from .exec_context import ExecContext
-from .mathpak import bound_ops, type_str
-from .output import prepare_path, verify_relative_path
+from .mathpak import bound_ops, poly_type, verify_relative_path
+from .redir import prepare_path
 
 @bound_ops("Create-ZIP")
 def execute_zip(ctx: ExecContext, statement: Tree):
@@ -95,6 +95,6 @@ def _eval_to_list_str(ctx: ExecContext, clause: Tree, name: str) -> list[str]:
                 for v in val: add_it(expr, v)
             else:
                 # Ignore others if it "isn't anything", but if it is, it's an error
-                if val: raise VgrRuntimeError(expr, TypeError(f'{name} must be a string; found {type_str(rc)}'))
+                if val: raise VgrRuntimeError(expr, TypeError(f'{name} must be a string; found {poly_type(rc)!r}'))
     for expr in clause.children: add_it(expr, ctx.eval_expr(expr))
     return rc

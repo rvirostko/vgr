@@ -5,14 +5,15 @@ Handles the stdout/stderr redirection used by statements.
 """
 
 from io import IOBase
+import os
 import re
 
 from lark import Tree
 
 from .app_exceptions import VgrRuntimeError
 from .exec_context import ExecContext
-from .mathpak import bound_ops
-from .output import IORedirector, prepare_path
+from .mathpak import bound_ops, verify_relative_path, expand_filename
+from .output import IORedirector
 
 _REDIRECTOR = IORedirector()
 
@@ -98,6 +99,17 @@ Also see `Open`
 
 def close_all_redirects() -> None:
     _REDIRECTOR.end_redirects()
+
+def prepare_path(filename: str) -> str:
+    """
+    Creates the directory structure required for the filename.
+    Only works with paths relative to the CWD
+    """
+    full_path = expand_filename(verify_relative_path(filename))
+    # Exclude last component, the file name
+    dir_path = os.path.dirname(full_path)
+    os.makedirs(dir_path, exist_ok=True)
+    return filename
 
 def _eval_stream_name(node: Tree) -> str:
     """The node's data (name) is the stream name"""

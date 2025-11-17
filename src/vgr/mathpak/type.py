@@ -1,0 +1,32 @@
+
+from typing import Any
+import re
+
+from ..vgr_callable import VgrCallable
+
+def poly_type(x: Any) -> str:
+    """
+**Return the internal data type of an item**
+
+* Type(_value_)
+* _value_.Type()
+
+For _None_ the value _none_ is returned.
+
+```vgr
+None.Type() → "none"
+"five".Type() → "str"
+5.Type() → "int"
+5.0.Type() → "float"
+CompilePattern("[abc]").Type() → "pattern"
+["five", 5, 5.0].Type() → "list"
+{"One": 1, "Two": 2}.Type() → "dict"
+
+Set f(x) -> x+2
+f.Type() -> "function"
+```
+"""
+    if x is None: return 'none'
+    if isinstance(x, re.Pattern): return 'pattern'
+    if isinstance(x, VgrCallable): return 'function'
+    return type(x).__name__
