@@ -88,7 +88,7 @@ Also see `Vault-Disconnect`
                 raise VgrRuntimeError(child, NotImplementedError(f'Argument {name!r} not handled')) # SNO
         else:
             raise VgrRuntimeError(child, ValueError(f'Unexpected Vault argument {child!r}')) # SNO
-    conn_name = conn_name or _STATE.default_connection
+    conn_name = conn_name or _get_conn_name({})
     _CONNECTIONS.connect(conn_name, addr, token)
     _STATE.default_connection = conn_name
     _set_result(ctx, {}, None)
@@ -1344,8 +1344,11 @@ def _set_result(ctx: ExecContext, args: dict, data: Any) -> dict:
     return data
 
 def _get_conn_name(args: dict) -> str:
-    """If the args doesn't contain the connection, use the default one"""
-    _STATE.default_connection =_get_arg(args, _USING_ARG, str, True) or _STATE.default_connection or _DEFAULT_CONN_NAME
+    """
+    If the args doesn't contain the connection, use either the current default connection or the fixed default.
+    Has the side effect of setting the default connection in _STATE.
+    """
+    _STATE.default_connection = _get_arg(args, _USING_ARG, str, True) or _STATE.default_connection or _DEFAULT_CONN_NAME
     return _STATE.default_connection
 
 def _combine_ns(parent: str, child: str) -> str:
