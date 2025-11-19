@@ -38,6 +38,7 @@ from .mathpak import (
     poly_abs,
     poly_add,
     poly_append,
+    poly_apply,
     poly_ascii,
     poly_base64_decode,
     poly_base64_encode,
@@ -57,6 +58,7 @@ from .mathpak import (
     poly_chr,
     poly_clamp,
     poly_clone,
+    poly_combine_using,
     poly_contains_all,
     poly_contains_any,
     poly_count,
@@ -330,16 +332,19 @@ def _slice(x: Any, start: int=None, stop: int=None, step: int=None) -> Any:
     if isinstance(x, Iterable): return list(list(x)[start:stop:step])
     return x
 
+# TODO rename and move to lists
 def _combine_with(first: Any, *rest) -> Any:
     """
-**Combine elements of collections into a list of tuples**
+**Combine elements of collections into a list of lists**
 
+* CombineWith()
+* CombineWith(_expresssion_ [,_expression_...])
 * _value_.CombineWith()
 * _value_.CombineWith(_expresssion_ [,_expression_...])
 
 Combines the elements of the listed collections into an array of arrays.
-Each element will have the _N_th matching values joined together.
-If the lists are of unequal length, _None_ values are used for the
+Each element will have the Nth matching values joined together.
+If the lists are of unequal length, values of _None_ are used for the
 missing items.
 
 ```vgr
@@ -349,12 +354,13 @@ missing items.
     def normalize(x):
         return x if isinstance(x, Iterable) and not isinstance(x, (str, bytes, bytearray)) else [x]
     iterables = [normalize(first)] + [normalize(arg) for arg in rest]
-    return list(zip_longest(*iterables))
+    return list(map(list, zip_longest(*iterables)))
 
 def _length(x: Any) -> bool:
     """
 **Return the length of an an item**
 
+* Length(_value_)
 * _value_.Length()
 
 Returns the length of lists and strings.
@@ -531,6 +537,7 @@ _BUILT_IN_FUNCS: dict[str, Callable[..., Any]] = {
     "Abs":            poly_abs,
     "Add":            poly_add,
     "AppendStr":      poly_append,
+    "Apply":          poly_apply,
     "ASCII":          poly_ascii,
     "Base64Decode":   poly_base64_decode,
     "Base64Encode":   poly_base64_encode,
@@ -549,6 +556,7 @@ _BUILT_IN_FUNCS: dict[str, Callable[..., Any]] = {
     "Chr":            poly_chr,
     "Clamp":          poly_clamp,
     "Clone":          poly_clone,
+    "CombineUsing":   poly_combine_using,
     "CombineWith":    _combine_with,
     "CompilePattern": compile_pattern,
     "ContainsAll":    poly_contains_all,

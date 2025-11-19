@@ -3,12 +3,15 @@ List related functions
 """
 
 from copy import copy
+from functools import reduce
 from typing import Any
 
 from .common import (
     int_arg,
-#    requires_exec_context,
+    requires_exec_context,
 )
+
+from ..vgr_callable import VgrCallable
 
 def poly_islist(x: Any) -> bool:
     """
@@ -285,39 +288,116 @@ and the `Insert` statement, which acts directly on a variable
                 index += 1
     return x
 
-# TODO
+@requires_exec_context
+def poly_apply(x: Any, funct, *args, ctx=None) -> Any:
+    """
+**Applies one or more user defined functions to a value or a list of values**
 
-# Set double_it(n) -> n * 2
-# Set get_count(d, default_value) -> d.GetKeyValue("count", default_value)
-# Set sum_positive(acc, n) -> n >= 0 ? acc + n : acc
+* Apply(_value_, _function_ [, _arg_...])
+* _value_.Apply(_function_ [, _arg_...])
 
-# Set counters = [
-#   { "name": "a", "count": 5 },
-#   { "name": "b" },
-#   { "name": "c", "count": 3 }
-# ]
+When _value_ is a list, each value within it is passed to _function_. Additional arguments, if
+any, passed following it.
+When not a list, _value_ is passed as the first argument to _function_ followed by any additional
+arguments.
+If _function_ is not a user defined function, it acts as a function returning that value.
+If _function_ is a list, the functions within it are executed in order, chaining their results.
+The same additional arguments are passed to all functions, which may use or ignore as appropriate.
 
-# Print counters.
-#   Apply(get_count, -1).
-#   Apply(double_it).
-#   CombineUsing(sum_positive)
-# # → 16
+```vgr
+Set by_two(x) -> x * 2
+None.Apply(by_two) → None
+5.Apply(by_two) → 10
+5.Apply(None) → None
+5.Apply(6) → 6
+[5, 6].Apply(by_two) → [10, 12]
 
-#@requires_exec_context
-#def poly_list_apply(x: Any, funct, *args, *, ctx=None) -> Any:
+Set adder(x, y, z) -> x + y + z
+6.Apply(adder) → 6
+6.Apply(adder, 2) → 8
+6.Apply(adder, 2, 3) → 11
+6.Apply(adder, 2, 3, 4) → 11
 
-# How is [1,2,3].Apply() different from [1,2,3].@f()?
-#   * With [1,2,3].@f(), f() is called once with a list argument
-#   * With [1,2,3].Apply(f), f() is called three times with int arguments
-# If the operation performed by f() is naturally distibuted on lists
-# there is no functional difference.
-# For non-list values, there is no difference between the two operations.
+Set v_adder() -> Sum($args)
+6.Apply(v_adder, 2, 3, 4) → 15
+[0, 1, 2].Apply(v_adder, 4, 5, 6) → [15, 16, 17]
 
-# Signature for the CombineUsing() function should be f(accumulator, value [,args])
-# The default value for the accumulator is None. Depending upon the operations within
-# f(), this should work for addition-like operations.
-# If used on a list, it will return a list. For non-list values, it will return
-# a single value.
+[5, 6].Apply([adder, by_two], 5, 6) → [32, 34]
+[5, 6].Apply([by_two, adder], 5, 6) → [21, 23]
 
-#@requires_exec_context
-#def poly_list_combine(x: Any, funct, acc: Any=None, *, ctx=None) -> Any:
+Set slen(x, default_value) -> Type(x) Is "str" ? StrLen(x) : default_value.DefaultTo(0)
+["hello", "world", 5].Length() → 3
+["hello", "world", 5].StrLen() → [5, 5, None]
+["hello", "world", 5].Apply(slen) → [5, 5, 0]
+["hello", "world", 5].Apply(slen, -1) → [5, 5, -1]
+```
+
+Also see `CombineUsing()`
+"""
+    def _apply_it(value: Any, f) -> Any:
+        if isinstance(f, VgrCallable): return f.evaluate(ctx, [value, *args])
+        if isinstance(f, list): return reduce(_apply_it, f, value)
+        return f
+    return [_apply_it(x1, funct) for x1 in x] if isinstance(x, list) else _apply_it(x, funct)
+
+@requires_exec_context
+def poly_combine_using(x: Any, funct, *args, **kwargs) -> Any:
+    """
+**Combine values into a single value using a user defined function**
+
+* CombineUsing(_value_, _function_ [, _initial_value_ [, _arg_...]])
+* _value_.CombineUsing(_function_ [, _initial_value_ [, _arg_...]])
+
+When _value_ is a list, each value within it is passed to _function_. Additional arguments, if
+any, passed following it.
+When not a list, _value_ is passed as the first argument to _function_ followed by any additional
+arguments.
+
+The signature for _function_ should be _f(accumulator, value [,args])_ where
+_accumulator_ is the result of previous calls, starting with _initial_value_.
+The default value for _initial_value_ is _None_, and while optional,
+depending upon the operations within _function_, you may need to
+specify a starting value.
+
+```vgr
+Set add_it(acc, value) -> acc + value
+None.CombineUsing(add_it) → None
+5.CombineUsing(None) → None
+5.CombineUsing(add_it) → 5
+5.CombineUsing(6) → 6
+[5, 6].CombineUsing(add_it) → 11
+
+Set f(acc, value, scale) -> acc + (value * scale.DefaultTo(1))
+2.CombineUsing(f) → 2
+2.CombineUsing(f, 0) → 2
+2.CombineUsing(f, 0, 2) → 4
+2.CombineUsing(f, 0, .5) → 1.0
+
+Set double_it(n) -> n * 2
+Set get_count(d, default_value) -> d.GetKeyValue("count", default_value)
+Set sum_positive(acc, n) -> n >= 0 ? acc + n : acc
+Set counters = [
+    { "name": "a", "count": 5 },
+    { "name": "b" },
+    { "name": "c", "count": 3 }
+]
+counters.
+    Apply(get_count, -1).
+    Apply(double_it).
+    CombineUsing(sum_positive) → 16
+```
+
+Also see `Apply()`
+"""
+    ctx = kwargs.pop("ctx")
+    if args:
+        acc, *args = args
+    else:
+        acc, args = None, []
+    def _combine_it(a: Any, value: Any) -> Any:
+        if isinstance(funct, VgrCallable): return funct.evaluate(ctx, [a, value, *args])
+        return funct
+    if isinstance(x, list):
+        for x1 in x: acc = _combine_it(acc, x1)
+        return acc
+    return _combine_it(acc, x)
