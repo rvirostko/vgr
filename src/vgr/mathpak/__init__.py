@@ -35,6 +35,7 @@ from .common import (
 from .dict import (
     poly_getkeys,
     poly_getkeyvalue,
+    poly_getvalues,
     poly_isdict,
     poly_lookupitem,
     poly_removekey,

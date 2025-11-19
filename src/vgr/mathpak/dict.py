@@ -164,12 +164,44 @@ Set point2 To {"x": 7, "z": 29}
 point2.GetKeys() → ["x", "z"]
 [point1, point2].GetKeys() → ["y", "x", "z"]
 ```
+
+Also see `GetValues()`
 """
     if isinstance(data, dict): return list(data.keys())
     if isinstance(data, list):
         keys = set()
         for item in data: keys.update(poly_getkeys(item))
         return list(keys)
+    return []
+
+def poly_getvalues(data: Any) -> list:
+    """
+**Return a list of all the values in a dictionary**
+
+* GetValues(_value_)
+* _value_.GetValues()
+
+The _value_ must either be a dictionary or a list.
+For non-dictionaries, an empty list is returned.
+
+```vgr
+Set point1 To {"x": 5, "y": 7, "space": 2, "name": "p1"}
+Set point2 To {"x": 7, "y":29, "space": 2, "name": "p2"}
+Set points To [point1, point2]
+
+None.GetValues() → []
+5.GetValues() → []
+point1.GetValues() → [5, 7, 2, "p1"]
+points.GetValues() → [[5, 7, 2, "p1"], [7, 29, 2, "p2"]]
+```
+
+Also see `GetKeys()`
+"""
+    if isinstance(data, dict): return list(data.values())
+    if isinstance(data, list):
+        values = []
+        for item in data: values.append(poly_getvalues(item))
+        return values
     return []
 
 def poly_removekey(data: Any, path: Any) -> Any:
