@@ -29,4 +29,4 @@ f.Type() -> "function"
     if x is None: return 'none'
     if isinstance(x, re.Pattern): return 'pattern'
     if isinstance(x, VgrCallable): return 'function'
-    return type(x).__name__
+    return (x if isinstance(x, type) else type(x)).__name__
