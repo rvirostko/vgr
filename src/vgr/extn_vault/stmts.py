@@ -1426,4 +1426,5 @@ def _get_arg(args: dict, name: str, expected_type: type, optional: bool = False)
         raise ValueError(f'Missing required argument: {name.title()}')
     value = args[name]
     if isinstance(value, expected_type): return value
+    if value is None and optional: return None
     raise TypeError(f'Argument {name.title()} must be of type {poly_type(expected_type)!r}, found {poly_type(value)!r}')
