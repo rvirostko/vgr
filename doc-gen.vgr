@@ -26,8 +26,6 @@ Tron
 //-----------------------------------------------------------------------------
 // Set up stuff
 //-----------------------------------------------------------------------------
-
-
 //-----------------------------------------------------------------------------
 Troff
 Close Error File
@@ -41,15 +39,16 @@ Tron
 // Behavior tests go here
 //-----------------------------------------------------------------------------
 
-Print ("value" + None.Plural()).Repr()
-Print ("value" + 1.Plural()).Repr()
-Print ("character" + "1".Plural()).Repr()
-Print ("character" + "2".Plural()).Repr()
-Print ("character" + "two".Plural()).Repr()
-Print ("item" + [].Plural()).Repr()
-Print ("item" + ["one", "two"].Plural()).Repr()
-Print ("Zero" + 2.Plural("es")).Repr()
-Print 1.Plural("mice", "mouse").Repr()
+Print CombineLists(None).Repr()
+Print CombineLists([], []).Repr()
+Print CombineLists([], [1, 2]).Repr()
+Print CombineLists([1, 2], [3, 4]).Repr()
+Print CombineLists([1], [10, 20, 30]).Repr()
+Print CombineLists([1, 2], ["a", "b"], [True, False]).Repr()
+Print CombineLists(5, 10).Repr()
+Print CombineLists(1, [2, 3]).Repr()
+Print CombineLists([None], [1, 2]).Repr()
+Print CombineLists([1, 2, 3]).Repr()
 
 //-----------------------------------------------------------------------------
 Troff

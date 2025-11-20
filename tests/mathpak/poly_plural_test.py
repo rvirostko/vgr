@@ -1,4 +1,3 @@
-# test_poly_plural.py
 import pytest
 
 from vgr.mathpak import poly_plural

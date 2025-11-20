@@ -418,7 +418,16 @@ If the lists are of unequal length, values of _None_ are used for the
 missing items.
 
 ```vgr
-**TODO**
+CombineLists(None) → [[None]]
+CombineLists([], []) → []
+CombineLists([], [1, 2]) → [[None, 1], [None, 2]]
+CombineLists([1, 2], [3, 4]) → [[1, 3], [2, 4]]
+CombineLists([1], [10, 20, 30]) → [[1, 10], [None, 20], [None, 30]]
+CombineLists([1, 2], ["a", "b"], [True, False]) → [[1, "a", True], [2, "b", False]]
+CombineLists(5, 10) → [[5, 10]]
+CombineLists(1, [2, 3]) → [[1, 2], [None, 3]]
+CombineLists([None], [1, 2]) → [[None, 1], [None, 2]]
+CombineLists([1, 2, 3]) → [[1], [2], [3]]
 ```
 """
     def normalize(x):
