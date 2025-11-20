@@ -13,6 +13,7 @@ from .mathpak import (
     base_name,
     bound_ops,
     build_dict,
+    build_list,
     compile_pattern,
     dir_name,
     encode_url,
@@ -350,48 +351,6 @@ For all other values _None_ is returned.
 ```
 """
     return len(x) if hasattr(x, '__len__') else None
-
-# TODO move to list.py
-@bound_ops("[...]")
-def build_list(*values: Any) -> list[Any]:
-    """
-**Create a list from the collected values**
-
-* **[** **]** _an_ _empty_ _list_
-* **[** _expression_ [, _expression_]... **]** _an_ _initialized_ _list_
-
-Lists can contain any type including _None_, other lists, and dictionaries.
-
-```vgr
-Set empty To []
-Set a_none To [None]
-Set numbers To [1, 2, 3, 4, 5]
-Set names To ["Alice", "Bob", "Charlie"]
-Set matrix To [
-    [1, 2, 3],
-    [4, 5, 6],
-    [7, 8, 9]
-]
-Set records To [
-    {"name": "Alice", "age": 30},
-    {"name": "Bob", "age": 25},
-    {"name": "Charlie", "age": 35}
-]
-Set mixed To [
-    42,
-    "apple",
-    3.14,
-    True,
-    None,
-    {"key": "value"},
-    [1, 2, 3]
-]
-```
-
-Also see `Append`, `Insert`, `Prepend`, `Remove`, and `Replace` statements,
-and the `List()` and `ToList()` functions
-"""
-    return [] if values is None else list(values)
 
 @bound_ops("||", "Or", "∨")
 def logical_or(eval_arg, args: list) -> Any:

@@ -9,11 +9,53 @@ from itertools import zip_longest
 from typing import Any
 
 from .common import (
+    bound_ops,
     int_arg,
     requires_exec_context,
 )
 
 from ..vgr_callable import VgrCallable
+
+@bound_ops("[...]")
+def build_list(*values: Any) -> list[Any]:
+    """
+**Create a list from the collected values**
+
+* **[** **]** _an_ _empty_ _list_
+* **[** _expression_ [, _expression_]... **]** _an_ _initialized_ _list_
+
+Lists can contain any type including _None_, other lists, and dictionaries.
+
+```vgr
+Set empty To []
+Set a_none To [None]
+Set numbers To [1, 2, 3, 4, 5]
+Set names To ["Alice", "Bob", "Charlie"]
+Set matrix To [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9]
+]
+Set records To [
+    {"name": "Alice", "age": 30},
+    {"name": "Bob", "age": 25},
+    {"name": "Charlie", "age": 35}
+]
+Set mixed To [
+    42,
+    "apple",
+    3.14,
+    True,
+    None,
+    {"key": "value"},
+    [1, 2, 3]
+]
+```
+
+Also see `Append`, `Insert`, `Prepend`, `Remove`, and `Replace` statements,
+and the `List()` and `ToList()` functions
+"""
+    return [] if values is None else list(values)
 
 def poly_islist(x: Any) -> bool:
     """
@@ -404,7 +446,6 @@ Also see `Apply()`
         return acc
     return _combine_it(acc, x)
 
-# TODO rename and move to lists
 def poly_combine_lists(first: Any, *rest) -> Any:
     """
 **Combine elements of collections into a list of lists**
