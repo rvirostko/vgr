@@ -63,7 +63,7 @@ if [ "$OKAY" -eq 1 ]; then
 fi
 
 if [ "$OKAY" -eq 1 ]; then
-    python3 -m pip install -r requirements-dev.txt
+    python3 -m pip install -q -r requirements-dev.txt
 fi
 
 if [ "$OKAY" -eq 1 ]; then
