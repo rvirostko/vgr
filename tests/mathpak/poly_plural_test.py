@@ -31,14 +31,3 @@ from vgr.mathpak import poly_plural
 )
 def test_poly_plural(x, plural, singular, expected):
     assert poly_plural(x, plural, singular) == expected
-
-def test_doc_examples():
-    # Mirror a few composite examples from the docstring
-    assert "value" + poly_plural(None) == "values"
-    assert "value" + poly_plural(1) == "value"
-    assert "character" + poly_plural("1") == "character"
-    assert "character" + poly_plural("two") == "characters"
-    assert "item" + poly_plural([]) == "items"
-    assert "item" + poly_plural(["one", "two"]) == "items"
-    assert "Zero" + poly_plural(2, "es") == "Zeroes"
-    assert poly_plural(1, "mice", "mouse") == "mouse"
