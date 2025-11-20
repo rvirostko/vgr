@@ -1481,6 +1481,8 @@ the characters are deleted.
 "cat".TranslateStr({"c".Ord(): "r".Ord()}) → "rat"
 ```
 """
+    def _maketrans(from_str: str, to_str: str=''):
+        return str.maketrans({from_str[i]: to_str[i] if i < len(to_str) else None for i in range(len(from_str))})
     if x is not None and from_str is not None:
         if isinstance(x, str):
             # A lot of assumptions here, but we'll try to use it as requested
@@ -1556,5 +1558,34 @@ Also see `Ord()`
 
 #---------------------------------------------
 
-def _maketrans(from_str: str, to_str: str=''):
-    return str.maketrans({from_str[i]: to_str[i] if i < len(to_str) else None for i in range(len(from_str))})
+def poly_plural(x: Any, plural: Any='s', singular: Any='') -> Any:
+    """
+**Return a suffix for pluralization**
+
+* _value_.Plural()
+* _value_.Plural(_plural_)
+* _value_.Plural(_plural_, _singular_)
+
+If _value_ is a number is not equal to one, or a value that
+has a length that is not one, then the _plural_ value is returned.
+Otherwise, the _singular_ value is returned.
+The defaults arguments are _s_ and an empty string respectively.
+The values for _plural_ and _signular_ can be any any values.
+
+```vgr
+"value" + None.Plural() → "values"
+"value" + 1.Plural() → "value"
+"character" + "1".Plural() → "character"
+"character" + "2".Plural() → "character"
+"character" + "two".Plural() → "characters"
+"item" + [].Plural() → "items"
+"item" + ["one", "two"].Plural() → "items"
+"Zero" + 2.Plural("es") → "Zeroes"
+1.Plural("mice", "mouse") → "mouse"
+```
+"""
+    if isinstance(x, (int, float)):
+        is_one = x == 1
+    else:
+        is_one = hasattr(x, "__len__") and len(x) == 1
+    return singular if is_one else plural

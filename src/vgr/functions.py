@@ -154,6 +154,7 @@ from .mathpak import (
     poly_parse_hex,
     poly_parse_int,
     poly_parse_oct,
+    poly_plural,
     poly_pow,
     poly_pred,
     poly_prepend,
@@ -372,30 +373,6 @@ For all other values _None_ is returned.
 ```
 """
     return len(x) if hasattr(x, '__len__') else None
-
-def _plural(x: Any, plural: Any='s', singular: Any='') -> Any:
-    """
-**Return a suffix for pluralization**
-
-* _value_.Plural()
-* _value_.Plural(_plural_)
-* _value_.Plural(_plural_, _singular_)
-
-If _value_ is a number is not equal to one, or a value that
-has a length that is not one, then the _plural_ value is returned.
-Otherwise, the _singular_ value is returned.
-The defaults arguments are _s_ and an empty string respectively.
-The values for _plural_ and _signular_ can be any any values.
-
-```vgr
-**TODO**
-```
-"""
-    if isinstance(x, (int, float)):
-        is_one = x == 1
-    else:
-        is_one = hasattr(x, "__len__") and len(x) == 1
-    return singular if is_one else plural
 
 # TODO move to list.py
 @bound_ops("[...]")
@@ -675,7 +652,7 @@ _BUILT_IN_FUNCS: dict[str, Callable[..., Any]] = {
     "ParseJSON":      parse_json,
     "ParseOctal":     poly_parse_oct,
     "ParseUrl":       parse_url,
-    "Plural":         _plural,
+    "Plural":         poly_plural,
     "Pow":            poly_pow,
     "Pred":           poly_pred,
     "PrependStr":     poly_prepend,

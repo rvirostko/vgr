@@ -172,6 +172,7 @@ from .strings import (
     poly_lower,
     poly_lstrip,
     poly_ord,
+    poly_plural,
     poly_prepend,
     poly_removeprefix,
     poly_removesuffix,
