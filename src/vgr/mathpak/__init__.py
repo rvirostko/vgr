@@ -84,6 +84,7 @@ from .is_in import poly_in, poly_not_in, poly_contains_all, poly_contains_any
 from .json_funcs import format_json, parse_json, strip_nulls, to_json, to_json_string
 from .list import (
     poly_apply,
+    poly_combine_lists,
     poly_combine_using,
     poly_islist,
     poly_list_append,

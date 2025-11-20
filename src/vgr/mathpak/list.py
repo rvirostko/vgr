@@ -2,8 +2,10 @@
 List related functions
 """
 
+from collections.abc import Iterable
 from copy import copy
 from functools import reduce
+from itertools import zip_longest
 from typing import Any
 
 from .common import (
@@ -401,3 +403,25 @@ Also see `Apply()`
         for x1 in x: acc = _combine_it(acc, x1)
         return acc
     return _combine_it(acc, x)
+
+# TODO rename and move to lists
+def poly_combine_lists(first: Any, *rest) -> Any:
+    """
+**Combine elements of collections into a list of lists**
+
+* CombineLists(_expresssion_ [,_expression_...])
+* _value_.CombineLists(_expresssion_ [,_expression_...])
+
+Combines the elements of the listed collections into an array of arrays.
+Each element will have the Nth matching values joined together.
+If the lists are of unequal length, values of _None_ are used for the
+missing items.
+
+```vgr
+**TODO**
+```
+"""
+    def normalize(x):
+        return x if isinstance(x, Iterable) and not isinstance(x, (str, bytes, bytearray)) else [x]
+    iterables = [normalize(first)] + [normalize(arg) for arg in rest]
+    return list(map(list, zip_longest(*iterables)))

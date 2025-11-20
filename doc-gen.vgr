@@ -3,29 +3,10 @@
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-// Prototype for a "distribute a function" feature
-//-----------------------------------------------------------------------------
-Define Function dist(lst, fn):
-    If lst.IsList():
-        Declare t Local
-        Set t To []
-        ForEach x in lst:
-            Set t += @fn(x)
-        End
-        Return t
-    End
-    Return @fn(lst)
-End
-//-----------------------------------------------------------------------------
-
-//-----------------------------------------------------------------------------
 // Remove parens around a string
 //-----------------------------------------------------------------------------
 Define Function deparen(s):
-    If s.StartsWith("(") and s.EndsWith(")"):
-        Return s.Slice(1,-1)
-    End
-    Return s
+    Return s.StartsWith("(") and s.EndsWith(")") ? s.Slice(1,-1) : s
 End
 //-----------------------------------------------------------------------------
 
@@ -45,16 +26,8 @@ Tron
 //-----------------------------------------------------------------------------
 // Set up stuff
 //-----------------------------------------------------------------------------
-#Set fruits To ["apple", "banana", "orange"]
-#Set fruit_colors To {"apple": "red", "banana": "yellow"}
-#Set point1 To {"x": 5, "y": 7, "meta": {"type": "2d", "name": "p1"}}
-#Set point2 To {"x": 7, "y": 29, "meta": {"type": "2d", "name": "p2"}}
 
-Set point1 To {"x": 5, "y": 7, "space": 2, "name": "p1"}
-Set point2 To {"x": 7, "y":29, "space": 2, "name": "p2"}
-Set point3 To {"x": 9, "y":31, "z": -7, "space": 3, "name": "p3"}
-Set point4 To {"x":11, "y":37, "z": None, "space": 3, "name": "p4"}
-Set points To [point1, point2, point3, point4]
+
 //-----------------------------------------------------------------------------
 Troff
 Close Error File
@@ -68,13 +41,15 @@ Tron
 // Behavior tests go here
 //-----------------------------------------------------------------------------
 
-Print points.LookupItem("x", 5).Repr()
-Print points.LookupItem("z", None).GetKeyValue("name").Repr()
-Print points.LookupItem("space", 1).GetKeyValue("name").Repr()
-Print points.LookupItem("space", [1, 2]).GetKeyValue("name").Repr()
-Print points.LookupItem("space", [2, 1]).GetKeyValue("name").Repr()
-Print points.LookupItem("space", 3).LookupItem("z", None).GetKeyValue("name").Repr()
-Print points.LookupItem("name", CompilePattern("p[24]")).GetKeyValue("name").Repr()
+Print ("value" + None.Plural()).Repr()
+Print ("value" + 1.Plural()).Repr()
+Print ("character" + "1".Plural()).Repr()
+Print ("character" + "2".Plural()).Repr()
+Print ("character" + "two".Plural()).Repr()
+Print ("item" + [].Plural()).Repr()
+Print ("item" + ["one", "two"].Plural()).Repr()
+Print ("Zero" + 2.Plural("es")).Repr()
+Print 1.Plural("mice", "mouse").Repr()
 
 //-----------------------------------------------------------------------------
 Troff
@@ -82,19 +57,22 @@ Close Error File
 Close Output File
 
 // Load in the generated data and convert
-Load s_in WIth File setup_file Text Lines
+Load s_in With File setup_file Text Lines
 Load o_in With File out_file Text Lines
 Set o_in To o_in.ReplaceStr("'", '"')
 Load o_err With File err_file Text Lines
-Set o_err To o_err.RemovePrefix("Print ").RemoveSuffix(".Repr()")
-Set o_err To o_err.@dist(deparen)
+Set o_err To
+    o_err.RemovePrefix("Print ").
+    RemoveSuffix(".Repr()").
+    Apply(deparen)
 
 Set example To
-    (s_in +                   // Any setup strings
-     o_err.CombineWith(o_in). // Combine the data sources
-     @dist(arrow_join)).      // Join the statement and its output
-    MdCodeBlock("vgr")        // Make into a code example
-// See it as a preview for editing
+    (s_in +                     // Any setup strings
+     CombineLists(o_err, o_in). // Combine the data sources
+       Apply(arrow_join)).      // Join the statement and its output
+    MdCodeBlock("vgr")          // Make into a code example
+
+// Preview it for editing
 Print As Markdown example
 // And have it ready to paste
 // NB: You probably need to install pyperclip for this to work
@@ -102,6 +80,7 @@ Print As Markdown example
 // be pasted into docstrings
 Terminal SetClipboard example.ReplaceStr("\\", "\\\\").AppendStr("\n")
 
+// Clean up our temp files
 ForEach fn in [setup_file, out_file, err_file]:
     Assert fn.RemoveFile().FirstItem() : "Could not delete {}", fn
 End

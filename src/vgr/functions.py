@@ -6,7 +6,6 @@ It also generates the grammar fragments used to identify the functions.
 from collections import defaultdict
 from collections.abc import Sequence, Iterable
 from functools import lru_cache
-from itertools import zip_longest
 from typing import Any, Callable
 import inspect
 
@@ -58,6 +57,7 @@ from .mathpak import (
     poly_chr,
     poly_clamp,
     poly_clone,
+    poly_combine_lists,
     poly_combine_using,
     poly_contains_all,
     poly_contains_any,
@@ -333,30 +333,6 @@ def _slice(x: Any, start: int=None, stop: int=None, step: int=None) -> Any:
     if isinstance(x, Iterable): return list(list(x)[start:stop:step])
     return x
 
-# TODO rename and move to lists
-def _combine_with(first: Any, *rest) -> Any:
-    """
-**Combine elements of collections into a list of lists**
-
-* CombineWith()
-* CombineWith(_expresssion_ [,_expression_...])
-* _value_.CombineWith()
-* _value_.CombineWith(_expresssion_ [,_expression_...])
-
-Combines the elements of the listed collections into an array of arrays.
-Each element will have the Nth matching values joined together.
-If the lists are of unequal length, values of _None_ are used for the
-missing items.
-
-```vgr
-**TODO**
-```
-"""
-    def normalize(x):
-        return x if isinstance(x, Iterable) and not isinstance(x, (str, bytes, bytearray)) else [x]
-    iterables = [normalize(first)] + [normalize(arg) for arg in rest]
-    return list(map(list, zip_longest(*iterables)))
-
 def _length(x: Any) -> bool:
     """
 **Return the length of an an item**
@@ -533,8 +509,8 @@ _BUILT_IN_FUNCS: dict[str, Callable[..., Any]] = {
     "Chr":            poly_chr,
     "Clamp":          poly_clamp,
     "Clone":          poly_clone,
+    "CombineLists":   poly_combine_lists,
     "CombineUsing":   poly_combine_using,
-    "CombineWith":    _combine_with,
     "CompilePattern": compile_pattern,
     "ContainsAll":    poly_contains_all,
     "ContainsAny":    poly_contains_any,
