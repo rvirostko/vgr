@@ -1,0 +1,9 @@
+#!/bin/bash
+
+if [ ! -d "./src/vgr" ]; then
+    echo "You are not in the project root" >&2
+    exit 1
+fi
+
+python3 -m pip install -q .[dev]
+pytest -s
