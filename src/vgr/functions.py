@@ -12,6 +12,7 @@ import inspect
 from .mathpak import (
     base_name,
     bound_ops,
+    build_dict,
     compile_pattern,
     dir_name,
     encode_url,
@@ -391,58 +392,6 @@ Also see `Append`, `Insert`, `Prepend`, `Remove`, and `Replace` statements,
 and the `List()` and `ToList()` functions
 """
     return [] if values is None else list(values)
-
-# TODO move to dict.py
-@bound_ops("{...}", "dictionary", "dict")
-def build_dict(*values: Any) -> dict:
-    """
-**Create a dictionary from the collected values**
-
-* **{** **}** _an_ _empty_ _dictionary_
-* **{** _key_ **:** _value_ [, _key_ **:** _value_]... **}** _an_ _initialized_ _dictionary_
-
-Keys can be any ordinal type: int, float, string. _None_ cannot be a key.
-
-Values can be any type including _None_, other lists, and dictionaries.
-
-```vgr
-Set data To {}
-Set person To {
-    "name": "Alice",
-    "age":  30,
-    "city": "Paris"
-}
-Set employee To {
-    "id": "E123",
-    "info": {
-        "name":       "Bob",
-        "department": "Sales",
-        "active":     True
-    }
-}
-Set inventory To {
-    "fruits": ["apple", "banana", "orange"],
-    "counts": [10, 25, 7]
-}
-Set users To {
-    "alice": {"email": "alice@example.com", "active": True},
-    "bob":   {"email": "bob@example.com",   "active": False}
-}
-Set mixed To {
-    "number": 42,
-    "text":   "hello",
-    "flag":   False,
-    "none":   None,
-    "list":   [1, 2, 3],
-    "dict":   {"nested": "value"}
-}
-```
-Also see `GetKeyValue()` and `LookupItem()`
-"""
-    # Values is alternating pairs of key/values
-    # so we use a "stride" of two to form two groups
-    # and recombine into pairs using zip()
-    return None if values is None else dict(zip(values[::2], values[1::2]))
 
 @bound_ops("||", "Or", "∨")
 def logical_or(eval_arg, args: list) -> Any:

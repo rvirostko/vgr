@@ -31,9 +31,9 @@ from .evaluate import (
     get_writable_var_path,
 )
 from .exec_context import ExecContext
-from .functions import build_dict
 from .mathpak import (
     bound_ops,
+    build_dict,
     expand_filename,
     poly_int,
     poly_list,

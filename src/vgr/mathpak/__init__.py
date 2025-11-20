@@ -33,6 +33,7 @@ from .common import (
     str_to_number,
 )
 from .dict import (
+    build_dict,
     poly_getkeys,
     poly_getkeyvalue,
     poly_getvalues,

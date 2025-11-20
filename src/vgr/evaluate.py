@@ -15,8 +15,9 @@ from .app_exceptions import VgrRuntimeError
 from .data_dict import DataDictionary
 from .exec_context import ExecContext
 from .user_callable import UserFunction
-from .functions import get_function_op, build_list, build_dict, logical_and, logical_or
+from .functions import get_function_op, build_list, logical_and, logical_or
 from .mathpak import (
+    build_dict,
     poly_add,
     poly_bit_and,
     poly_bit_or,
