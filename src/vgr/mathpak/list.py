@@ -16,13 +16,15 @@ from .common import (
 
 from ..vgr_callable import VgrCallable
 
-@bound_ops("[...]")
+@bound_ops("[...]", "list", "array")
 def build_list(*values: Any) -> list[Any]:
     """
 **Create a list from the collected values**
 
-* **[** **]** _an_ _empty_ _list_
-* **[** _expression_ [, _expression_]... **]** _an_ _initialized_ _list_
+* List()
+* List(_expression_ [, _expression_]...)
+* **[** **]**
+* **[** _expression_ [, _expression_]... **]**
 
 Lists can contain any type including _None_, other lists, and dictionaries.
 
@@ -50,12 +52,17 @@ Set mixed To [
     {"key": "value"},
     [1, 2, 3]
 ]
+
+List() → []
+List(None) → [None]
+List(2, 3, 4) → [2, 3, 4]
+List(2, 3, [4]) → [2, 3, [4]]
 ```
 
 Also see `Append`, `Insert`, `Prepend`, `Remove`, and `Replace` statements,
 and the `List()` and `ToList()` functions
 """
-    return [] if values is None else list(values)
+    return list(values)
 
 def poly_islist(x: Any) -> bool:
     """
@@ -74,27 +81,6 @@ None.IsList() → False
 Also see `ToList()`
 """
     return isinstance(x, (list, tuple))
-
-def poly_list_create(*args) -> list:
-    """
-**Create and/or initialize a list**
-
-* List(_value_...)
-* **[** _value_... **]**
-
-The items in the list may be constants, expressions, or _None_,
-and include other lists and dictionaries.
-
-```vgr
-List() → []
-List(None) → [None]
-List(2, 3, 4) → [2, 3, 4]
-List(2, 3, [4]) → [2, 3, [4]]
-```
-
-Also see `ToList()` and `IsList()`
-"""
-    return list(args)
 
 def poly_list(x: Any) -> list:
     """

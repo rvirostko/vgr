@@ -90,7 +90,6 @@ from .list import (
     poly_combine_using,
     poly_islist,
     poly_list_append,
-    poly_list_create,
     poly_list_insert,
     poly_list_prepend,
     poly_list_remove_first,
