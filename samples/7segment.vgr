@@ -1,0 +1,109 @@
+# Simulate a seven segment display
+# Demonstrates binary operations
+
+# Segment names and layout
+#  -- a --
+# |       |
+# f       b
+# |       |
+#  -- g --
+# |       |
+# e       c
+# |       |
+#  -- d --
+
+# Bit masks for the segments
+AMASK = 0b00000001
+BMASK = 0b00000010
+CMASK = 0b00000100
+DMASK = 0b00001000
+EMASK = 0b00010000
+FMASK = 0b00100000
+GMASK = 0b01000000
+
+# Maps a digit to the segments
+SEG = [
+    0b0111111,  # 0
+    0b0000110,  # 1
+    0b1011011,  # 2
+    0b1001111,  # 3
+    0b1100110,  # 4
+    0b1101101,  # 5
+    0b1111101,  # 6
+    0b0000111,  # 7
+    0b1111111,  # 8
+    0b1100111,  # 9
+    0b1110111,  # A
+    0b1111100,  # B
+    0b0111001,  # C
+    0b1011110,  # D
+    0b1111001,  # E
+    0b1110001   # F
+]
+
+# Converts a value to the segments which should be displayed
+Define Function encode_7seg(n):
+    Declare rc Local
+    Set rc To List()
+    If n.Type() != 'str':
+        Set n To n.ToString()
+    End
+    ForEach d In n.Ord().BitAnd(0b1111):
+        Append SEG.Item(d) To List rc
+    End
+    Return rc
+End
+
+# Selects the box characters used to create the digits
+Set C To term.box.lightrounded
+Set VPART To [
+    SPACE * 5,
+    C.vbar + (SPACE * 4),
+    (SPACE * 4) + C.vbar,
+    C.vbar + (SPACE * 3) + C.vbar
+]
+Set HPART To [ SPACE * 3, C.hbar * 3 ]
+Set LCORNER To [ SPACE, SPACE, SPACE, C.bl, SPACE, C.tl, C.vbar, C.lt ]
+Set RCORNER To [ SPACE, SPACE, SPACE, C.br, SPACE, C.tr, C.vbar, C.rt ]
+
+Set vpart(n, lmask, rmask) -> VPART.Item(n.BitAnd(lmask).ToBool() + n.BitAnd(rmask).ToBool().LeftShift(1))
+Set hpart(n, mask) -> HPART.Item((n.BitAnd(mask).ToBool()))
+Set cpart(n, pmask, umask, dmask, chars) ->
+    chars.Item(n.BitAnd(pmask).ToBool() +
+    n.BitAnd(umask).ToBool().LeftShift(1) +
+    n.BitAnd(dmask).ToBool().LeftShift(2))
+
+# Converts the segments into an array of strings
+Define Function render_7seg(n):
+    Declare rc Local
+    Set rc To List()
+    For row = 1 To 7:
+        Evaluate row
+            When 1        Append n.@cpart(AMASK, 0, FMASK, LCORNER) + n.@hpart(AMASK) + n.@cpart(AMASK, 0, BMASK, RCORNER) To rc
+            When 2 Thru 3 Append n.@vpart(FMASK, BMASK) To rc
+            When 4        Append n.@cpart(GMASK, FMASK, EMASK, LCORNER) + n.@hpart(GMASK) + n.@cpart(GMASK, BMASK, CMASK, RCORNER) To rc
+            When 5 Thru 6 Append n.@vpart(EMASK, CMASK) To rc
+            When 7        Append n.@cpart(DMASK, EMASK, 0, LCORNER) + n.@hpart(DMASK) + n.@cpart(DMASK, CMASK, 0, RCORNER) To rc
+        End-Evaluate
+    Next
+    Return rc
+End
+
+For i = 0 to 99999:
+    Set rows To None
+    # Join the lines from the digits into single lines
+    ForEach digit In @encode_7seg(i)
+        Set enc To digit.@render_7seg()
+        If $loop.first:
+            Set rows To enc
+        Else:
+            For i = 0 To Length(enc) - 1
+                Replace i In rows With rows.Item(i) + "  " + enc.Item(i)
+            Next
+        End
+    End
+    Term CLS
+    ForEach row In rows:
+        Print row
+    End
+Next
