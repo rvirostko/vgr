@@ -7,6 +7,16 @@ _SEMICOLON: ";"
 _OSB: "["
 _CSB: "]"
 
+ZORK_MOVE: "Go"i (_NORTH | _SOUTH | _EAST | _WEST | _UP | _DOWN)
+_NORTH: "N"i | "North"i
+_SOUTH: "S"i | "South"i
+_EAST: "E"i | "East"i
+_WEST: "W"i | "West"i
+_UP: "U"i | "Up"i
+_DOWN: "D"i | "Down"i
+WOE_TO_YOU: "Hello"i ","? "Sailor"i
+
+
 // Converted to their literal values after parsing
 TRUE.90: "true"i
 FALSE.90: "false"i
