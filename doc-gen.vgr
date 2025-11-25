@@ -26,29 +26,23 @@ Tron
 //-----------------------------------------------------------------------------
 // Set up stuff
 //-----------------------------------------------------------------------------
+
 //-----------------------------------------------------------------------------
 Troff
 Close Error File
 
-// Results of examples go to this file
-Open Output File out_file
-// The echo output goes to this file
-Open Error File err_file
+Open Output File out_file // Results go to this file
+Open Error File err_file  // The echoed commands goes to this file
 Tron
 //-----------------------------------------------------------------------------
-// Behavior tests go here
+// Documentation examples go here
 //-----------------------------------------------------------------------------
 
-Print CombineLists(None).Repr()
-Print CombineLists([], []).Repr()
-Print CombineLists([], [1, 2]).Repr()
-Print CombineLists([1, 2], [3, 4]).Repr()
-Print CombineLists([1], [10, 20, 30]).Repr()
-Print CombineLists([1, 2], ["a", "b"], [True, False]).Repr()
-Print CombineLists(5, 10).Repr()
-Print CombineLists(1, [2, 3]).Repr()
-Print CombineLists([None], [1, 2]).Repr()
-Print CombineLists([1, 2, 3]).Repr()
+Print None.SetBits(1, 0, 1)
+Print 0xEE55.SetBits(0, 15, 8).ToHex()
+Print 0xEE55.SetBits(255, 7, 8).ToHex()
+Print Ord("ABC").SetBits(3, 6, 2).Chr().Repr()
+Print {"a": 5}.SetBits(31, 5, 4).Repr()
 
 //-----------------------------------------------------------------------------
 Troff

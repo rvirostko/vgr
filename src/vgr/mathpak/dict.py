@@ -62,12 +62,119 @@ Set mixed To {
     "dict":   {"nested": "value"}
 }
 ```
-Also see `GetKeyValue()` and `LookupItem()`
+Also see `Dict()`, `GetKeyValue()`, and `LookupItem()`
 """
     # Values is alternating pairs of key/values
     # so we use a "stride" of two to form two groups
     # and recombine into pairs using zip()
     return None if values is None else dict(zip(values[::2], values[1::2]))
+
+def poly_dict_create(*args: Any) -> dict:
+    """
+**Compose a dictionary from hetrogenous data**
+
+* Dict()
+* Dict(_expression_ [, _expression_...])
+
+Creates a dictionary and optionally initializes it.
+Sources for initialization can be ordinals used as keys or composite keys,
+lists of initializations, and other dictionaries.
+
+When dictionaries are added, a deep merge is performed, unlike
+the shallow merge performed by `Add()`.
+
+```vgr
+Dict(None) → {}
+Dict([]) → {}
+Dict("a") → {"a": None}
+Dict(["a"]) → {"a": None}
+Dict(["a", 1]) → {"a": 1}
+Dict(["a", 1, 2]) → {"a": [1, 2]}
+Dict(["f.a", 1], ["f.b", 2]) → {"f": {"a": 1, "b": 2}}
+Dict([["f.a", 1], ["f.b", 2]]) → {"f": {"a": 1, "b": 2}}
+Dict({"f":{"a": 1}}, ["f.b", 2]) → {"f": {"a": 1, "b": 2}}
+
+Set lines = ["a | b | c", "1 | 2 | 3", "one | two | three"]
+Set records To List()
+ForEach line in lines:
+    Set elems To line.Split("|").Strip()
+    If $loop.first:
+        Set headers To elems.Upper()
+    Else:
+        Append Dict(CombineLists(headers, elems)) To records
+    End
+End
+Print records.FormatJson()
+[
+  {
+    "A": "1",
+    "B": "2",
+    "C": "3"
+  },
+  {
+    "A": "one",
+    "B": "two",
+    "C": "three"
+  }
+]
+```
+
+Also see `CombineLists()`
+"""
+    def _set_key(data: dict, key: Any, value: Any) -> dict:
+        # Only scalar keys can be used; other ignored
+        if isinstance(key, (int, float)): return poly_setkeyvalue(data, key, value)
+        # String can be paths; simple split with no other cleanup
+        if isinstance(key, str): return poly_setkeyvalue(data, key.split('.'), value)
+        # Other types are ignored
+        return data
+    def _normalize_args(*args):
+        for item in args:
+            if isinstance(item, list):
+                # Is this is a list of lists/dicts?
+                inner_all_complex = True
+                for sub in item:
+                    if sub is not None and not isinstance(sub, (list, dict)):
+                        inner_all_complex = False
+                        break
+                if inner_all_complex:
+                    yield from item
+                else:
+                    yield item
+            else:
+                yield item
+    data = {}
+    for arg in _normalize_args(*args):
+        if arg is not None:
+            if isinstance(arg, dict):
+                data = _merge_dict(data, arg)
+            elif isinstance(arg, list):
+                if len(arg) > 0:
+                    # Lists should be [key, value(s)]
+                    key = arg[0]
+                    if key is not None:
+                        l = len(arg)
+                        data = _set_key(data, key, None if l == 1 else arg[1] if l == 2 else arg[1:])
+            else:
+                data = _set_key(data, arg, None)
+    return data
+
+def _merge_dict(a: dict, b: dict) -> dict:
+    """
+    Recursively merge dict b into dict a.
+    Values in b override unless both sides are dicts.
+    Operates in-place on a and also returns it.
+    """
+    if len(a) == 0:
+        a = b
+    elif len(b) != 0:
+        for key, b_val in b.items():
+            if key in a and isinstance(a[key], dict) and isinstance(b_val, dict):
+                _merge_dict(a[key], b_val)
+            else:
+                a[key] = b_val
+    return a
+
 
 def poly_isdict(x: Any) -> bool:
     """

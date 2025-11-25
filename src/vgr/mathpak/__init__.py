@@ -18,9 +18,25 @@ from .bases import (
 )
 from .bit_ops import (
     poly_bit_and,
-    poly_bit_or,
     poly_bit_not,
+    poly_bit_or,
     poly_bit_xor,
+    poly_clear_bit,
+    poly_count_leading_zeros,
+    poly_count_ones,
+    poly_count_trailing_zeros,
+    poly_count_zeros,
+    poly_extract_bits,
+    poly_highest_one_bit,
+    poly_lowest_one_bit,
+    poly_reverse_bits,
+    poly_reverse_bytes,
+    poly_rotate_left,
+    poly_rotate_right,
+    poly_set_bit,
+    poly_set_bits,
+    poly_test_bit,
+    poly_toggle_bit,
 )
 from .checksum import poly_checksum
 from .common import (
@@ -34,6 +50,7 @@ from .common import (
 )
 from .dict import (
     build_dict,
+    poly_dict_create,
     poly_getkeys,
     poly_getkeyvalue,
     poly_getvalues,
