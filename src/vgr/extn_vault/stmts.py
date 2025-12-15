@@ -64,7 +64,7 @@ def vault_initialize(dd: DataDictionary) -> None:
 @bound_ops("Vault-Connect")
 def execute_connect(ctx: ExecContext, statement: Tree) -> None:
     """
-**Establish a connection to Vault
+**Establish a connection to Vault**
 
 * Vault Connect [;]
 * Vault Connect To _host_ [;]
