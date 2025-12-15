@@ -1,0 +1,30 @@
+
+Set data To vgr.source.FirstItem().DirectoryName() + os.sep + "data" + os.sep
+
+Define Function check_load_meta(meta, format, keys, records):
+    Assert meta.Type() Is "dict"
+    Assert meta Contains "filename"
+    Assert meta Contains "format"
+    Assert meta.format Is format
+    Assert meta Contains "keys"
+    Assert meta.keys.Type() Is "list"
+    Assert meta.keys.Sort() Equals keys.Sort()
+    Assert meta Contains "records"
+    Assert meta.records.Type() Is "int"
+    Assert meta.records Equals records
+End
+
+Set frog_tests To [
+    { "ftype": "csv",  "dtype": "list", "keys": ["name", "age"] },
+    { "ftype": "json", "dtype": "dict", "keys": ["name", "age"] },
+    { "ftype": "yaml", "dtype": "dict", "keys": ["name", "age"] },
+    { "ftype": "ini",  "dtype": "dict", "keys": ["frog"] },
+    { "ftype": "hcl",  "dtype": "dict", "keys": ["frog"] },
+]
+
+ForEach test In frog_tests:
+    Load t From data + "frog." + test.ftype
+    Assert t.Type() Is test.dtype
+    Call check_load_meta($load, test.ftype, test.keys, 1)
+    Printf "{}\n{}\n\n", $load.filename, t.FormatJson()
+End

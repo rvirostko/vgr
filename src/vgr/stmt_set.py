@@ -4,9 +4,13 @@ Includes the implemenation for SET/UNSET, MOVE, and LOAD FROM.
 
 from io import TextIOWrapper
 from typing import Any
+import configparser
 import csv
 import json
 import os
+
+import hcl2
+import yaml
 
 from lark import Tree, Token
 
@@ -18,7 +22,7 @@ from .dd_config import (
     get_user_args,
     set_user_args,
 )
-from .evaluate import do_set, do_unset, shorten, get_writable_var_path, create_param_list
+from .evaluate import do_set, do_unset, get_writable_var_path, create_param_list
 from .exec_context import ExecContext
 from .mathpak import (
     bound_ops,
@@ -29,6 +33,7 @@ from .mathpak import (
     poly_div,
     poly_mod,
     poly_mul,
+    poly_plural,
     poly_pow,
     poly_repr,
     poly_shl,
@@ -36,6 +41,19 @@ from .mathpak import (
     poly_sub,
 )
 from .redir import close_all_redirects
+
+_LOAD_META_PATH = ('$load',)
+
+_EXTENSION_MAP = {
+    '.csv':    'csv_file',
+    '.hcl':    'hcl_file',
+    '.ini':    'ini_file',
+    '.json':   'json_object',
+    '.tf':     'hcl_file',
+    '.tfvars': 'hcl_file',
+    '.yaml':   'yaml_file',
+    '.yml':    'yaml_file',
+}
 
 @bound_ops("Set")
 def execute_set(ctx: ExecContext, statement: Tree) -> None:
@@ -203,16 +221,26 @@ def execute_load_from(ctx: ExecContext, statement: Tree) -> None:
 **Assign a value to a variable from a file**
 
 * Load _variable_ From [File] _file_ [;]
+* Load _variable_ From [File] _file_ CSV [;]
+* Load _variable_ From [File] _file_ HCL [;]
+* Load _variable_ From [File] _file_ INI [;]
 * Load _variable_ From [File] _file_ JSON [Object] [;]
 * Load _variable_ From [File] _file_ JSON [Object] Per Line [;]
-* Load _variable_ From [File] _file_ CSV [;]
 * Load _variable_ From [File] _file_ Text [;]
 * Load _variable_ From [File] _file_ Text Lines [;]
+* Load _variable_ From [File] _file_ YAML [;]
 
-The _file_ argument is a string that is as file to be loaded
+The _file_ argument is a string expression for the file to be loaded
 
 If no type—_JSON_, _CSV_, etc—is included, the type is inferred from the file's extension
 with _Text_ as the default.
+
+After the file is loaded, the following metadata values are available:
+
+* $load.filename - name of the loaded file
+* $load.format - source format: json, yaml, hcl, ini, csv, text
+* $load.keys - list of top-level keys if applicable
+* $load.records - number of top-level records
 
 `Windows Note`: If you hard code paths, please use the slash as a universal
 directory separator. Since the backslash is an escape character, if you use
@@ -224,50 +252,80 @@ it in a string, you will either need to double it or use a _raw string_.
     filename = ctx.eval_filename_expr(fn_child)
     dtype = load_data_type(filename, statement.children[2] if len(statement.children) > 2 else None)
     # TODO need to have an encoding param
-    # defaults to utf-8-sig
+    encoding = 'utf-8-sig'
     try:
-        with open(filename, 'r', encoding='utf-8-sig') as f:
-            data, fieldnames = load_file_as(f, dtype)
+        with open(filename, 'r', encoding=encoding) as f:
+            data, metadata = load_file_as(filename, f, dtype)
             ctx.set_var(data, *var_path)
+            ctx.set_var(metadata, *_LOAD_META_PATH)
     except Exception as e:
         raise VgrRuntimeError(fn_child, OSError(f'While reading {filename!r}: {str(e)}')) from e
     if ctx.verbose:
-        if isinstance(data, list):
-            length = len(data)
-            if ctx.verbose: ctx.print_verbose('Loaded', '.'.join(var_path), 'With', length, 'Records' if length != 1 else 'Record')
-        else:
-            if ctx.verbose: ctx.print_verbose('Loaded', '.'.join(var_path), 'With', shorten(poly_repr(data)))
-        if fieldnames and ctx.verbose: ctx.print_verbose('Fieldnames :', '', ', '.join(poly_repr(f) for f in fieldnames))
+        length = metadata['records']
+        ctx.print_verbose('Loaded', '.'.join(var_path), 'With', length, poly_plural(length, 'Records', 'Record'))
+        if len(metadata['keys']) > 0: ctx.print_verbose('Keys :', '', ', '.join(poly_repr(key) for key in metadata['keys']))
 
 def load_data_type(filename: str, token: Token) -> str:
     """Returns one of:
-    * text_file
-    * text_lines
-    * json_object
-    * json_objects
-    * csv_file
-    """
+
+* csv_file
+* hcl_file
+* json_object
+* json_objects
+* text_file
+* text_lines
+* yaml_file
+"""
     if token is not None: return token.data
     ext = os.path.splitext(filename)[1].lower()
-    return 'csv_file' if ext == '.csv' else 'json_object' if ext == '.json' else 'text_file'
+    return _EXTENSION_MAP.get(ext, 'text_file')
 
-def load_file_as(file: TextIOWrapper, dtype: str) -> tuple:
-    """Read the file in according to the type, which comes for load_file_type()"""
-    if dtype == 'text_file':
-        return (file.read(), [])
-    if dtype == 'text_lines':
-        return (file.read().splitlines(), ['line'])
-    if dtype == 'json_object':
-        return _info_from_json(json.load(file))
-    if dtype == 'json_objects':
-        return _info_from_json([json.loads(line) for line in file if line.strip()])
-    if dtype == 'csv_file':
-        return _info_from_csv(csv.DictReader(file))
-    raise ValueError(f'Unknown file content type {dtype!r}') # SNO
+def load_file_as(filename: str, file: TextIOWrapper, dtype: str) -> tuple:
+    """Read the file in according to the type, which comes for load_file_type().
+Returns a tuple with the data and metadata
+"""
+    data = None
+    keys = None
+    if dtype.startswith('text_'):
+        data = file.read()
+        data = data.splitlines() if dtype == 'text_lines' else data
+    elif dtype == 'json_object':
+        data = json.load(file)
+    elif dtype == 'json_objects':
+        data = [json.loads(line) for line in file if line.strip()]
+    elif dtype == 'csv_file':
+        reader = csv.DictReader(file)
+        keys = reader.fieldnames or []
+        data = list(reader)
+    elif dtype == 'yaml_file':
+        data = yaml.safe_load(file)
+    elif dtype == 'hcl_file':
+        data = hcl2.load(file)
+    elif dtype == 'ini_file':
+        parser = configparser.ConfigParser()
+        parser.read_file(file)
+        data = { section: dict(parser.items(section)) for section in parser.sections() }
+    else:
+        raise ValueError(f'Unknown file content type {dtype!r}') # SNO
+    keys = _keys_from_data(data) if keys is None else keys
+    records = len(data) if isinstance(data, list) else 1
+    return (data, _create_load_meta(filename, dtype, keys, records))
 
-def _info_from_csv(reader: csv.DictReader) -> tuple:
-    return (list(reader), reader.fieldnames or [])
-
-def _info_from_json(data: Any) -> tuple:
+def _keys_from_data(data: Any) -> list:
     sample = data[0] if isinstance(data, list) and data else data
-    return (data, list(sample.keys()) if isinstance(sample, dict) else [])
+    return list(sample.keys()) if isinstance(sample, dict) else []
+
+def _create_load_meta(filename: str, dtype: str, keys: list, records: int) -> dict:
+    """Returns a dict, which is the"$load" meta variable:
+
+* $load.filename # name of the loaded file
+* $load.format   # logical format: json, yaml, hcl, ini, csv, text
+* $load.keys     # list of top-level keys
+* $load.records  # number of top-level records
+"""
+    return {
+        'filename': filename,
+        'format':   dtype.split('_')[0],
+        'keys':     keys,
+        'records':  records
+    }

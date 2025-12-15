@@ -11,14 +11,16 @@ requires-python = ">=3.9"
 license = { file = "LICENSE.txt" }
 authors = [{ name = "Ross Virostko", email = "ross.virostko@citizensbank.com" }]
 dependencies = [
+    "blessed>1.23.0; sys_platform == 'win32'",
     "Jinja2>=3.1.6",
     "lark>=1.2.2",
     "ldap3>=2.9.1",
     "prompt_toolkit>=3.0.50",
     "pwinput>=1.0.3",
+    "python-hcl2>=7.3.1",
+    "PyYAML>=6.0.3",
     "RapidFuzz>=3.13.0",
-    "rich>=13.9.4",
-    "blessed>1.23.0; sys_platform == 'win32'"
+    "rich>=13.9.4"
 ]
 
 [project.scripts]

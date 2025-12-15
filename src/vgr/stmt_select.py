@@ -569,7 +569,8 @@ def create_extractor(ctx: ExecContext, opts: dict) -> DataExtractor:
             # TODO need input encoding opt, default to utf-8-sig
             try:
                 with open(filename, 'r', encoding='utf-8-sig') as f:
-                    data, _ = load_file_as(f, opts['dtype'])
+                    # TODO future: bind metadata to "$load"
+                    data, _metadata = load_file_as(filename, f, opts['dtype'])
             except Exception as e:
                 raise ValueError(f'While reading {filename!r}: {str(e)}') from e
             if not isinstance(data, list):

@@ -228,9 +228,10 @@ def _read_data(ctx: ExecContext, source: dict) -> list:
         # TODO encoding
         # defaults to utf-8-sig
         try:
-            with open(source[_FILE], 'r', encoding='utf-8-sig') as f:
-                data, fields = load_file_as(f, source[_DTYPE])
-            source[_FIELDS] = fields
+            filename = source[_FILE]
+            with open(filename, 'r', encoding='utf-8-sig') as f:
+                data, metadata = load_file_as(filename, f, source[_DTYPE])
+            source[_FIELDS] = metadata['keys']
             data = data if isinstance(data, (list, tuple)) else [] if data is None else [data]
         except Exception as e:
             raise ValueError(f'While reading {source[_FILE]!r}: {str(e)}') from e
