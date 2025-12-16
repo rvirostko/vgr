@@ -1,4 +1,3 @@
 frog {
-  name = "frog"
   age  = 3
 }

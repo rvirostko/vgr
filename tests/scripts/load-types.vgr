@@ -29,6 +29,10 @@ ForEach test In frog_tests:
     Assert t.Type() Is test.dtype
     Assert $load Is Not None
     Call check_load_meta($load, test.ftype, test.keys, 1)
-    Printf "{}\n{}\n\n", $load.filename, t.FormatJson()
+    Assert $load.keys.Sort() Equals t.GetKeys().Sort()
+    Printf "{} - {}, {} record{}\nkeys : {}\n{}\n\n",
+        $load.filename, $load.format, $load.records, $load.records.Plural(),
+        $load.keys.Sort().Repr(),
+        t.FormatJson()
 End
 Assert $load Is "global load"
