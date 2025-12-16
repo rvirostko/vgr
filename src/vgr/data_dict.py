@@ -12,7 +12,8 @@ from typing import (
     Optional,
 )
 import copy
-import re
+
+from .mathpak import poly_repr
 
 # These values are INTENTIALLY omitted from keys()!
 GOBAL_CONTEXT = '$global'
@@ -283,11 +284,7 @@ class DynamicValue:
     def __mul__(self, other): return self._func() * other
     def __ne__(self, other): return self._func() != other
     def __radd__(self, other): return other + self._func()
-    def __repr__(self):
-        # NB: partial copy of poly_repr
-        x = self._func
-        if isinstance(x, re.Pattern): return repr(x.pattern)
-        return repr(x)
+    def __repr__(self): return poly_repr(self._func())
     def __rmul__(self, other): return other * self._func()
     def __rsub__(self, other): return other - self._func()
     def __rtruediv__(self, other): return other / self._func()
