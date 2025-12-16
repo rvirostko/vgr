@@ -243,7 +243,7 @@ def poly_isfinite(x: Any) -> bool:
 
 ```vgr
 None.IsFinite() → False
-math.inf.IsFinite() → False
+Inf.IsFinite() → False
 " 0 ".IsFinite() → False
 0.IsFinite() → True
 1.0.IsFinite() → True
@@ -262,7 +262,7 @@ def poly_isnan(x: Any) -> bool:
 
 ```vgr
 None.IsNan() → False
-math.nan.IsNan() → True
+Nan.IsNan() → True
 " 0 ".IsNan() → False
 0.IsNan() → False
 True.IsNan() → False
