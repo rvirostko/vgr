@@ -31,6 +31,7 @@ from .mathpak import (
     poly_bit_or,
     poly_bit_xor,
     poly_div,
+    poly_getkeys,
     poly_mod,
     poly_mul,
     poly_plural,
@@ -284,7 +285,13 @@ def load_data_type(filename: str, token: Token) -> str:
 
 def load_file_as(filename: str, file: TextIOWrapper, dtype: str) -> tuple:
     """Read the file in according to the type, which comes for load_file_type().
-Returns a tuple with the data and metadata
+Returns a tuple with the data and metadata used for the $load variable:
+
+* $load.filename - name of the loaded file
+* $load.format   - logical format: json, yaml, hcl, ini, csv, text
+* $load.keys     - list of top-level keys
+* $load.records  - number of top-level records
+
 """
     data = None
     keys = None
@@ -309,25 +316,10 @@ Returns a tuple with the data and metadata
         data = { section: dict(parser.items(section)) for section in parser.sections() }
     else:
         raise ValueError(f'Unknown file content type {dtype!r}') # SNO
-    keys = _keys_from_data(data) if keys is None else keys
-    records = len(data) if isinstance(data, list) else 1
-    return (data, _create_load_meta(filename, dtype, keys, records))
-
-def _keys_from_data(data: Any) -> list:
-    sample = data[0] if isinstance(data, list) and data else data
-    return list(sample.keys()) if isinstance(sample, dict) else []
-
-def _create_load_meta(filename: str, dtype: str, keys: list, records: int) -> dict:
-    """Returns a dict, which is the"$load" meta variable:
-
-* $load.filename # name of the loaded file
-* $load.format   # logical format: json, yaml, hcl, ini, csv, text
-* $load.keys     # list of top-level keys
-* $load.records  # number of top-level records
-"""
-    return {
-        'filename': filename,
-        'format':   dtype.split('_')[0],
-        'keys':     keys,
-        'records':  records
-    }
+    return (data,
+            {
+                'filename': filename,
+                'format':   dtype.split('_')[0],
+                'keys':     poly_getkeys(data) if keys is None else keys,
+                'records':  len(data) if isinstance(data, list) else 1
+            })
