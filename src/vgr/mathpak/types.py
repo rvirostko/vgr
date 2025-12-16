@@ -285,6 +285,7 @@ Space.IsZero() → False
 " 0 ".IsZero() → True
 0.IsZero() → True
 0.0.IsZero() → True
+Zero.IsZero() → True
 True.IsZero() → False
 False.IsZero() → True
 ```
