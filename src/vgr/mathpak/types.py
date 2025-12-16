@@ -60,6 +60,8 @@ def poly_isbool(x: Any) -> bool:
 ```vgr
 **TODO**
 ```
+
+Also see `Type()`, `IsInt()`, `IsFloat()`, `IsNumber()`, and `IsString()`
 """
     return isinstance(x, bool)
 
@@ -104,6 +106,8 @@ def poly_isfloat(x: Any) -> bool:
 ```vgr
 **TODO**
 ```
+
+Also see `Type()`, `IsBool()`, `IsInt()`, `IsNumber()`, and `IsString()`
 """
     return isinstance(x, float)
 
@@ -145,6 +149,8 @@ def poly_isint(x: Any) -> bool:
 ```vgr
 **TODO**
 ```
+
+Also see `Type()`, `IsBool()`, `IsFloat()`, `IsNumber()`, and `IsString()`
 """
     return isinstance(x, int)
 
@@ -165,6 +171,8 @@ to a number. It can be any value, including _None_.
 ```vgr
 **TODO**
 ```
+
+Also see `ToInt()` and `ToFloat()`
 """
     if poly_isnumber(x): return x
     if poly_isstr(x):
@@ -188,6 +196,8 @@ Only _float_ and _int_ items are considered numbers.
 ```vgr
 **TODO**
 ```
+
+Also see `Type()`, `IsBool()`, `IsInt()`, `IsFloat()`, and `IsString()`
 """
     return isinstance(x, (int, float))
 
@@ -232,7 +242,13 @@ def poly_isfinite(x: Any) -> bool:
 * _value_.IsFinite()
 
 ```vgr
-**TODO**
+None.IsFinite() → False
+math.inf.IsFinite() → False
+" 0 ".IsFinite() → False
+0.IsFinite() → True
+1.0.IsFinite() → True
+True.IsFinite() → True
+False.IsFinite() → True
 ```
 """
     return math.isfinite(x) if isinstance(x, (int, float)) else False
@@ -245,8 +261,13 @@ def poly_isnan(x: Any) -> bool:
 * _value_.IsNan()
 
 ```vgr
-**TODO**
+None.IsNan() → False
+math.nan.IsNan() → True
+" 0 ".IsNan() → False
+0.IsNan() → False
+True.IsNan() → False
 ```
+
 """
     return math.isnan(x) if isinstance(x, (int, float)) else False
 
@@ -257,6 +278,16 @@ def poly_iszero(x: Any) -> bool:
 * IsZero(_value_)
 * _value_.IsZero()
 
+```vgr
+None.IsZero() → False
+"".IsZero() → False
+Space.IsZero() → False
+" 0 ".IsZero() → True
+0.IsZero() → True
+0.0.IsZero() → True
+True.IsZero() → False
+False.IsZero() → True
+```
 """
     if isinstance(x, str):
         try:
@@ -294,8 +325,15 @@ def poly_isstr(x: Any) -> bool:
 * _value_.IsString()
 
 ```vgr
-**TODO**
+None.IsString() → False
+"".IsString() → True
+Space.IsString() → True
+"frog".IsString() → True
+0.IsString() → False
+True.IsString() → False
 ```
+
+Also see `Type()` and `IsNumber()`
 """
     return isinstance(x, str)
 
@@ -316,8 +354,21 @@ A value is considered empty if:
 * It is the boolean _False_
 
 ```vgr
-**TODO**
+None.IsEmpty() → True
+[].IsEmpty() → True
+[""].IsEmpty() → False
+{}.IsEmpty() → True
+{"a": 1}.IsEmpty() → False
+"".IsEmpty() → True
+Space.IsEmpty() → True
+"frog".IsEmpty() → False
+0.IsEmpty() → True
+1.IsEmpty() → False
+True.IsEmpty() → False
+False.IsEmpty() → True
 ```
+
+Also see `IsNotEmpty()`
 """
     if isinstance(x, (list, tuple, dict)): return len(x) == 0
     if isinstance(x, str): return len(x) == 0 or x.isspace()
@@ -339,8 +390,21 @@ A value is considered empty if:
 * It is the boolean _True_
 
 ```vgr
-**TODO**
+None.IsNotEmpty() → False
+[].IsNotEmpty() → False
+[""].IsNotEmpty() → True
+{}.IsNotEmpty() → False
+{"a": 1}.IsNotEmpty() → True
+"".IsNotEmpty() → False
+Space.IsNotEmpty() → False
+"frog".IsNotEmpty() → True
+0.IsNotEmpty() → False
+1.IsNotEmpty() → True
+True.IsNotEmpty() → True
+False.IsNotEmpty() → False
 ```
+
+Also see `IsEmpty()`
 """
     if isinstance(x, (list, tuple, dict)): return len(x) > 0
     if isinstance(x, str): return len(x) > 0 and not x.isspace()
