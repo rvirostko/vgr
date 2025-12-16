@@ -47,7 +47,7 @@ Also see `Assert`
             except ValueError:
                 rc = VgrExitingException.EXIT_SUCCESS if poly_true(x) else VgrExitingException.EXIT_FAILED
             msg = f'Exiting with rc = {rc}'
-    _LOG.info('%s', msg)
+    _LOG.info('%s(%s): %s', SSM.current[0], statement.meta.line, msg.strip())
     raise VgrExitingException(rc, statement, msg)
 
 @bound_ops("Assert")
@@ -84,7 +84,7 @@ Also see `Exit`
             except (ValueError, TypeError) as e:
                 print_stderr(f'While evaluating {SSM.source_for(statement)} on line {statement.meta.line}: ', e)
         msg = str(msg) if poly_notempty(msg) else f'{SSM.source_for(statement)} failed'
-        _LOG.warning('%s', msg)
+        _LOG.warning('%s(%s): %s', SSM.current[0], statement.meta.line, msg.strip())
         # Point the "error" at the expression being tested
         raise VgrStatementAssert(exprs[0], msg)
 
