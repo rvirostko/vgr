@@ -282,11 +282,11 @@ def execute_compute(ctx: ExecContext, statement: Tree) -> None:
 * Compute _variable_ Equal _expression_ [;]
 
 ```vgr
-Move {"x": 5, "y": 5} To start
-Move {"x": -10, "y": -10} To end
+Move {"x": 5, "y": 5} To start_pt
+Move {"x": -10, "y": -10} To end_pt
 Compute distance Equal (
-        ((start.x - end.x) ** 2) +
-        ((start.y - end.y) ** 2)
+        ((start_pt.x - end_pt.x) ** 2) +
+        ((start_pt.y - end_pt.y) ** 2)
     ) ** .5
 End-Compute
 distance → 21.213203435596427
