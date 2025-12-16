@@ -117,6 +117,8 @@ break: "Break"i _SEMICOLON?
 continue: "Continue"i _SEMICOLON?
 return: "Return"i expr? _SEMICOLON?
 
+// NB: Unicode alternates exist here and elsewhere only for logical or mathematical operations and constants, not textual ones.
+
 op_eq: ("==" | "\u2175" | "Equals"i | "Is"i | "Is"i? "Equal"i "To"i)                       // Unicode ⩵ (two consecutive equals signs)
 op_ne: ("!=" | "\u2260" | "<>" | "\u00AC=" | "Is"i "Not"i | "Is"i? "Not"i "Equal"i "To"i ) // Unicode ≠ (not eq) and ¬ (not)
 // NB: intentionally "not greater than or equal to" et al
@@ -342,7 +344,8 @@ ternary: expr "?" expr ":" expr -> c_ternary
 
 // Flattening operations out here allows the parse tree to hold
 // the operation type explicitly instead of a generic "OP" where
-// we need to deal with aliases
+// we need to deal with aliases.
+// See previous comment on use of Unicode alternates
 ?expr2: atom
     | "(" expr ")"
     // must be expr2 not expr else it binds across and/or
@@ -389,15 +392,26 @@ ternary: expr "?" expr ":" expr -> c_ternary
     | "[" (expr (_COMMA expr)*)? _COMMA? "]" -> array
     | "{" (expr ":" expr (_COMMA expr ":" expr)*)? _COMMA? "}" -> dict
 
-?atom: ("True"i  | "\u22A4") -> vtrue                   // Unicode ⊤ (top)
+?atom: ("None"i  | "\u2205" | "Null"i) -> vnone         // Unicode ∅ (Empty set)
+    // Boolean constants
+    | ("True"i  | "\u22A4") -> vtrue                    // Unicode ⊤ (top)
     | ("False"i | "\u22A5") -> vfalse                   // Unicode ⊥ (bottom)
-    | ("None"i  | "\u2205" | "Null"i) -> vnone          // Unicode ∅ (Empty set)
-    | ("Inf"i   | "\u221E") -> vinf                     // Unicode ∞ (infinity)
+    // Figurative constants: where COBOL "inspired" only the singular version is used
+    // Numeric figurative constants
     | "Nan"i -> vnan
-    // COBOL "figurative constants", although we only use singular here though
-    | "Space"i -> vspace                                // becomes " "
     | "Zero"i -> vzero                                  // becomes int 0
+    | ("Inf"i   | "\u221E") -> vinf                     // Unicode ∞ (infinity)
+    // Character figurative constants
+    // These are here to support structured text formats (CSV, JSON, et al)
+    // and is intentionally NOT a "punctuation catalog"
+    | "Colon"i -> vcolon                                // becomes ':'
+    | "Comma"i -> vcomma                                // becomes ','
+    | "Newline"i -> vnewline                            // becomes '\n'
+    | "Period"i -> vperiod                              // becomes '.'
     | "Quote"i -> vquote                                // becomes '"'
+    | "Space"i -> vspace                                // becomes " "
+    | "Tab"i -> vtab                                    // becomes '\t'
+    // Values that closely follow Python and other lanuages
     | HEX_NUMBER | BIN_NUMBER | OCT_NUMBER | DEC_NUMBER // becomes INT at runtime
     | FLOAT_NUMBER                                      // becomes FLOAT at runtime
     | STRING

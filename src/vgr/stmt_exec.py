@@ -754,30 +754,50 @@ class ConstantsNormalizer(Transformer):
         except SyntaxError as e:
             raise VgrRuntimeError(token, ValueError(str(e.msg).strip())) from e
 
+    # The None/Null constant
+    @v_args(tree=True)
+    def vnone(self, tree: Tree): return self._const_tree(tree, None)
+
+    # Boolean constants
     @v_args(tree=True)
     def vtrue(self, tree: Tree): return self._const_tree(tree, True)
 
     @v_args(tree=True)
     def vfalse(self, tree: Tree): return self._const_tree(tree, False)
 
-    @v_args(tree=True)
-    def vnone(self, tree: Tree): return self._const_tree(tree, None)
-
-    @v_args(tree=True)
-    def vinf(self, tree: Tree): return self._const_tree(tree, math.inf)
-
+    # Numeric figurative constants
     @v_args(tree=True)
     def vnan(self, tree: Tree): return self._const_tree(tree, math.nan)
-
-    @v_args(tree=True)
-    def vspace(self, tree: Tree): return self._const_tree(tree, ' ')
 
     @v_args(tree=True)
     def vzero(self, tree: Tree): return self._const_tree(tree, 0)
 
     @v_args(tree=True)
+    def vinf(self, tree: Tree): return self._const_tree(tree, math.inf)
+
+    # Character figurative constants
+    @v_args(tree=True)
+    def vcolon(self, tree: Tree): return self._const_tree(tree, ':')
+
+    @v_args(tree=True)
+    def vcomma(self, tree: Tree): return self._const_tree(tree, ',')
+
+    @v_args(tree=True)
+    def vnewline(self, tree: Tree): return self._const_tree(tree, '\n')
+
+    @v_args(tree=True)
+    def vperiod(self, tree: Tree): return self._const_tree(tree, '.')
+
+    @v_args(tree=True)
     def vquote(self, tree: Tree): return self._const_tree(tree, '"')
 
+    @v_args(tree=True)
+    def vspace(self, tree: Tree): return self._const_tree(tree, ' ')
+
+    @v_args(tree=True)
+    def vtab(self, tree: Tree): return self._const_tree(tree, '\t')
+
+    # Numeric constants
     def DEC_NUMBER(self, token): return self._to_int(token, 10)
     def HEX_NUMBER(self, token): return self._to_int(token, 16)
     def OCT_NUMBER(self, token): return self._to_int(token, 8)
