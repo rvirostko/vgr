@@ -62,6 +62,16 @@ class DataDictionary():
         dropped_frame.drop()
 
     @property
+    def in_local_frame(self) -> bool:
+        """
+        Is the current frame a _local_ frame vs the _global_ frame?
+
+        :return: True if the current frame is a local frame
+        :rtype: bool
+        """
+        return len(self._frames) > 1
+
+    @property
     def _current_frame(self) -> "Frame":
         """The frame at the end of the list is the current frame"""
         return self._frames[-1]

@@ -257,6 +257,8 @@ it in a string, you will either need to double it or use a _raw string_.
         with open(filename, 'r', encoding=encoding) as f:
             data, metadata = load_file_as(filename, f, dtype)
             ctx.set_var(data, *var_path)
+            # Try to make the meta variable a local if possible
+            ctx.dd.declare_var(ctx.dd.in_local_frame, *_LOAD_META_PATH)
             ctx.set_var(metadata, *_LOAD_META_PATH)
     except Exception as e:
         raise VgrRuntimeError(fn_child, OSError(f'While reading {filename!r}: {str(e)}')) from e

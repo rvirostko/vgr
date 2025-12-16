@@ -22,9 +22,13 @@ Set frog_tests To [
     { "ftype": "hcl",  "dtype": "dict", "keys": ["frog"] },
 ]
 
+Assert $load Is None
+Set $load To "global load"
 ForEach test In frog_tests:
     Load t From data + "frog." + test.ftype
     Assert t.Type() Is test.dtype
+    Assert $load Is Not None
     Call check_load_meta($load, test.ftype, test.keys, 1)
     Printf "{}\n{}\n\n", $load.filename, t.FormatJson()
 End
+Assert $load Is "global load"
