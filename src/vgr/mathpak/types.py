@@ -9,6 +9,28 @@ import re
 
 from .common import str_to_number, str_to_bool
 
+def poly_isnone(x: Any) -> Any:
+    """
+**Returns _True_ if the value is _None_**
+
+* IsNone(_value_)
+* _value_.IsNone()
+
+Also see `IsNotNone()`
+"""
+    return x is None
+
+def poly_isnotnone(x: Any) -> Any:
+    """
+**Returns _True_ if the value is not _None_**
+
+* IsNotNone(_value_)
+* _value_.IsNotNone()
+
+Also see `IsNone()`
+"""
+    return x is not None
+
 def poly_bool(x: Any) -> Any:
     """
 **Converts the value to a boolean**
@@ -269,7 +291,7 @@ True.IsNan() → False
 ```
 
 """
-    return math.isnan(x) if isinstance(x, (int, float)) else False
+    return math.isnan(x) if isinstance(x, float) else False
 
 def poly_iszero(x: Any) -> bool:
     """

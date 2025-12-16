@@ -1,0 +1,43 @@
+
+# Compare figurative constants (or Unicode alternatives)
+# against known or calculated values
+
+Unset none_value
+Assert none_value.IsNone()
+Assert None Equals none_value
+Assert None === none_value
+Assert None.IsNone()
+Assert ! None.IsNotNone()
+Assert Null Equals none_value
+Assert ∅ Equals none_value
+
+Set true_value To 1 == 1
+Set false_value To 1 == 0
+Assert true_value != false_value
+
+Assert True Equals true_value
+Assert True === true_value
+Assert True.IsTrue()
+Assert ⊤ Equals true_value
+Assert False Equals false_value
+Assert False.IsFalse()
+Assert ⊥ Equals false_value
+
+Assert Nan Equals math.nan
+Assert Nan === math.nan
+Assert Nan.IsNan()
+Assert Zero Equals 0
+Assert Zero === 0
+Assert Zero.IsZero()
+Assert Inf Equals math.inf
+Assert Inf === math.inf
+Assert Inf.IsInf()
+Assert ∞ Equals math.inf
+
+Assert Colon Equals ":"
+Assert Comma Equals ","
+Assert Newline Equals "\n"
+Assert Period Equals "."
+Assert Quote Equals '"'
+Assert Space Equals " "
+Assert Tab Equals "\t"

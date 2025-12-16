@@ -3,6 +3,7 @@ Polymorphic inequality operators
 """
 
 from typing import Any, Callable, Iterable
+import math
 
 from .common import str_to_number, bound_ops
 
@@ -63,7 +64,12 @@ None == "5" → False
     # None is only equal to itself
     if x is None: return y is None
     if y is None: return False
-    override = _overrides.get((type(x), type(y)))
+    tx = type(x)
+    ty = type(y)
+    # Nan is only equal to itself
+    if tx == float and math.isnan(x): return ty == float and math.isnan(y)
+    if ty == float and math.isnan(y): return False
+    override = _overrides.get((tx, ty))
     return override(poly_eq, x, y) if override else x == y
 
 @bound_ops("===")
@@ -87,6 +93,8 @@ types of the two values match. No conversions are performed.
     tx = type(x)
     ty = type(y)
     if tx != ty: return False
+    # Nan is only equal to itself, so reuse equals logic
+    if tx == float and math.isnan(x): return poly_eq(x, y)
     override = _overrides.get((tx, ty))
     return override(poly_exact_eq, x, y) if override else x == y
 
