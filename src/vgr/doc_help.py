@@ -273,6 +273,6 @@ class VgrLexer(RegexLexer):
             # Triple-quoted strings (long strings, can be multi-line)
             (r'[Rr]?("""(.*?)(?<!\\)(\\\\)*?"""|\'\'\'(.*?)(?<!\\)(\\\\)*?\'\'\')', String),
 
-            (r"(?:(?<=^)|(?<=\s))(Accept|String|End-String|Delimited\s+By(?:\s+Size)?|(Up|Down)\s+By|Do|Forever|Append|Prepend|Remove|Replace|Insert|At|Corresponding|Corr|If|Else|End-If|Exhibit|Add|Subtract|Giving|Multiply|Divide|Into|From|Compute|Equal|End-Compute|Display|Repeat|Perform|End-Perform|From|By|Until|Varying|For|Next|ForEach|Contains|Is|In|Not|Greater|Less|Than|Any|All|For|Next|Move|Evaluate|Sort|On|Key|File|Asc|Des|Unique|Printf|End|Otherwise|Assert|None|True|False|Nan|Zero|Inf|Colon|Comma|Newline|Period|Quote|Space|Tab|Choose|Print|Using|When|Matches|Set|To)(?:(?=$)|(?=\s))", Keyword),
+            (r"(?:(?<=^)|(?<=[\s:;,]))(Accept|String|End-String|Delimited\s+By(?:\s+Size)?|(Up|Down)\s+By|Do|Forever|Append|Prepend|Remove|Replace|Insert|At|Corresponding|Corr|If|Else|End-If|Exhibit|Add|Subtract|Giving|Multiply|Divide|Into|From|Compute|Equal|End-Compute|Display|Repeat|Perform|End-Perform|From|By|Until|Varying|For|Next|ForEach|Contains|Is|In|Not|Greater|Less|Than|Any|All|For|Next|Move|Evaluate|Sort|On|Key|File|Asc|Des|Unique|Printf|End|Otherwise|Assert|None|True|False|Nan|Zero|Inf|Colon|Comma|Newline|Period|Quote|Space|Tab|Choose|Print|Using|When|Matches|Set|To)(?:(?=$)|(?=[\s:;,]))", Keyword),
         ]
     }
