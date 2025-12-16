@@ -10,6 +10,7 @@ class StatementSourceMgr:
 
     @property
     def current(self) -> tuple:
+        """Returns tuple of the _origin_ and the source _text_"""
         return self._stack[-1]
 
     def push(self, origin: str, text) -> None:
@@ -17,7 +18,6 @@ class StatementSourceMgr:
 
     def pop(self) -> None:
         self._stack.pop()
-
 
     def source_for(self, node: Tree, end_node: Tree=None) -> str:
         """
