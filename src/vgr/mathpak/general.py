@@ -110,7 +110,7 @@ Also see `Id()` and `Hash()`
 
 def poly_repr(x: Any) -> str:
     """
-**Returns a string representation of an item
+**Returns a string representation of an item**
 
 Differs slightly from `ToString()` as it surrounds string values with quotes
 and escapes non-printable characters.
