@@ -468,7 +468,7 @@ def _draw_vline(style: BoxStyle, lines: int) -> None:
             _print(BOXES[style][BoxPart.vbar], _CUB_1, _CUD_1)
 
 def _eval_all(ctx: ExecContext, cmd: Tree) -> list:
-    return [ctx.eval_expr(child) for child in cmd.children]
+    return [ctx.eval_expr_or_const(child) for child in cmd.children]
 
 def _term_draw_box(ctx: ExecContext, cmd: Tree) -> None:
     if _DUMB_TERM: return
