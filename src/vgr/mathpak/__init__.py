@@ -224,19 +224,21 @@ from .types import (
     poly_float,
     poly_int,
     poly_isbool,
+    poly_isempty,
     poly_isfinite,
     poly_isfloat,
     poly_isinf,
     poly_isint,
     poly_isnan,
+    poly_isnone,
+    poly_isnotnone,
     poly_isnumber,
     poly_isstr,
     poly_iszero,
+    poly_notempty,
     poly_number,
     poly_sign,
     poly_str,
-    poly_isempty,
-    poly_notempty,
 )
 from .web import parse_url, encode_url
 
