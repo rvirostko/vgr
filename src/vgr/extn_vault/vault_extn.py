@@ -191,12 +191,12 @@ adds the following attributes:
 * _variable_.status - Human-readable status of the operation. If the operation
   succeeded, it will be _None_. Otherwise it will contain errors or warning reported
   by Vault, or the HTTP status.
-* _variable_._vclient.url - The URL used in the operation
-* _variable_._vclient.method - The HTTP method used in the operation
-* _variable_._vclient.status - The HTTP return code from the operation
-* _variable_._vclient.vault_index - value of the returned _X-Vault-Index_ header
-* _variable_._vclient.vault_cluster - value of the returned _X-Vault-Cluster_ header
-* _variable_._vclient.vault_lease_id - value of the returned _X-Vault-Lease-Id_ header
+* _variable_.vclient.url - The URL used in the operation
+* _variable_.vclient.method - The HTTP method used in the operation
+* _variable_.vclient.status - The HTTP return code from the operation
+* _variable_.vclient.vault_index - value of the returned _X-Vault-Index_ header
+* _variable_.vclient.vault_cluster - value of the returned _X-Vault-Cluster_ header
+* _variable_.vclient.vault_lease_id - value of the returned _X-Vault-Lease-Id_ header
 
 """
 
