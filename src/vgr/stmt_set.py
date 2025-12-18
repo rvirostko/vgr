@@ -266,7 +266,7 @@ it in a string, you will either need to double it or use a _raw string_.
     if ctx.verbose:
         length = metadata['records']
         ctx.print_verbose('Loaded', '.'.join(var_path), 'With', length, poly_plural(length, 'Records', 'Record'))
-        if len(metadata['keys']) > 0: ctx.print_verbose('Keys :', '', ', '.join(poly_repr(key) for key in metadata['keys']))
+        if len(metadata['keys']) > 0: ctx.print_verbose('Keys :', ', '.join(poly_repr(key) for key in metadata['keys']))
 
 def load_data_type(filename: str, token: Token) -> str:
     """Returns one of:
