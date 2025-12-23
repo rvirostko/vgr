@@ -91,10 +91,10 @@ class VaultClient():
     def do_delete(self, url: str, namespace: str=None) -> Dict[str, Any]:
         return self.make_request(url, _M_DELETE, None, namespace)
 
-    def do_post(self, url: str, data: Dict[str, Any]=None, namespace: str=None) -> Dict[str, Any]:
+    def do_post(self, url: str, data: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         return self.make_request(url, _M_POST, data, namespace)
 
-    def do_patch(self, url: str, data: Dict[str, Any]=None, namespace: str=None) -> Dict[str, Any]:
+    def do_patch(self, url: str, data: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         return self.make_request(url, _M_PATCH, data, namespace)
 
     def make_request(self, url: str, method: str, data: Dict[str, Any], namespace: str) -> Dict[str, Any]:
@@ -190,7 +190,7 @@ class VaultClient():
         return self.do_list('/v1/sys/namespaces', namespace)
 
     def lock_namespace(self, namespace: str) -> Dict[str, Any]:
-        return self.do_post(encode_url('/v1/sys/namespaces/api-lock/lock'), namespace)
+        return self.do_post(encode_url('/v1/sys/namespaces/api-lock/lock'), None, namespace)
 
     def unlock_namespace(self, namespace: str, unlock_key: Any) -> Dict[str, Any]:
         return self.do_post(encode_url('/v1/sys/namespaces/api-lock/unlock'), _create_unlock(unlock_key), namespace)
@@ -491,7 +491,7 @@ class VaultClient():
         """
         # https://developer.hashicorp.com/vault/api-docs/secret/ldap
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_post(encode_url(f'/v1/{mount_point}static-cred/{name}/rotate'), namespace=namespace)
+        return self.do_post(encode_url(f'/v1/{mount_point}static-cred/{name}/rotate'), None, namespace)
 
     def create_database_connection(self, mount_point: str, name: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         # https://developer.hashicorp.com/vault/api-docs/secret/databases#configure-connection
@@ -520,12 +520,12 @@ class VaultClient():
     def reset_database_connection(self, mount_point: str, name: str, namespace: str=None) -> Dict[str, Any]:
         # https://developer.hashicorp.com/vault/api-docs/secret/databases#reset-connection
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_post(encode_url(f'/v1/{mount_point}reset/{name}'), namespace)
+        return self.do_post(encode_url(f'/v1/{mount_point}reset/{name}'), None, namespace)
 
     def rotate_database_connection_creds(self, mount_point: str, name: str, namespace: str=None) -> Dict[str, Any]:
         # https://developer.hashicorp.com/vault/api-docs/secret/databases#rotate-root-credentials
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_post(encode_url(f'/v1/{mount_point}rotate-root/{name}'), namespace)
+        return self.do_post(encode_url(f'/v1/{mount_point}rotate-root/{name}'), None, namespace)
 
     def _static_pfx(self, path: str, is_static: bool) -> str:
         return "static-" + path if is_static else path
@@ -561,7 +561,7 @@ class VaultClient():
 
     def rotate_database_static_role_credentials(self, mount_point: str, role_name: str, namespace: str=None) -> Dict[str, Any]:
         # https://developer.hashicorp.com/vault/api-docs/secret/databases#rotate-static-role-credentials        mount_point = self._fix_mount_point(mount_point)
-        return self.do_post(encode_url(f'/v1/{mount_point}rotate-role/{role_name}'), namespace)
+        return self.do_post(encode_url(f'/v1/{mount_point}rotate-role/{role_name}'), None, namespace)
 
     def __enter__(self):
         return self.open()
