@@ -14,6 +14,8 @@ from lark.exceptions import (
 
 from .src_mgr import SSM
 
+_ERRNO_RE = re.compile(r'^\[[^\s]+\s+\d+\]\s*')
+
 _ERROR_XLATE = {
     KeyboardInterrupt:    "Interrupted",
     LexError:             "Lexing Error",
@@ -83,26 +85,14 @@ class VgrException(Exception):
     def _exception_message(self) -> str:
         """
         Return a user-friendly message from any exception instance.
-        - If no args: returns empty string
-        - If one arg: returns it as string
-        - If multiple args: joins them with commas
         - Special cases for OSError and assertions
         """
         e = self.orig_exc
-        if not e or not e.args: return ''
-        rc = ''
-        if isinstance(e, OSError):
-            # First arg is always a numeric code
-            rc = ', '.join(map(str, e.args[1:]))
-        else:
-            rc = str(e.args[0] if len(e.args) == 1 else e)
-        # Text is created either from the source
-        # or from a user format, so use verbatim
-        if isinstance(self, VgrStatementAssert):
-            return rc
-        rc = rc.strip()
-        # Capitalize just the first letter
-        return rc[0].upper() + rc[1:] if len(rc) >= 2 else rc.upper()
+        if e is None: return ''
+        # Strip  numeric codes at front of OSError
+        rc = _ERRNO_RE.sub('', str(e)) if isinstance(e, OSError) else str(e)
+        # For asserts, text is created either from the source or from a user format, so use verbatim
+        return rc if isinstance(self, VgrStatementAssert) else rc.strip()
 
     @staticmethod
     def rewrap(e: "VgrException") -> "VgrException":
