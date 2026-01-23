@@ -1,0 +1,41 @@
+# Version checker
+# @Include this file
+
+# We only need to do this once...
+Declare _vgr_version Global
+Set _vgr_version To vgr.version.Split(".").ToInt()
+
+#-------------------------------------------------------------------------------
+# RequiresVersion() - Assert a specific version of VGR is being used
+#
+# Arguments:
+#    version : one to three part version string (e.g. "1.2.2")
+#    type_check : "lte", "gte", or "eq"; defaults to "gte"
+#
+# Use:
+#    Call RequiresVersion("1.1.3") - at least version 1.1.3
+#    Call RequiresVersion("1.1.3", "gte") - same as above
+#    Call RequiresVersion("1.1.2", "lte") - version 1.1.2 or earlier
+#    Call RequiresVersion("1.1.4", "eq") - exactly version 1.1.4
+#-------------------------------------------------------------------------------
+Define Function RequiresVersion(version, type_check):
+    # Validate and convert the arguments
+    Assert version Is None Or version.IsString() : "version argument must be a string"
+    Assert type_check Is None Or type_check.IsString() "type_check arguments must be a string"
+    Set version To version.Strip().DefaultTo("1.1.0").Split(".").ToInt()
+    Set type_check To type_check.Strip().Lower().DefaultTo("gte")
+    # Determine the comparison type
+    Choose Using type_check:
+        When "lte", "<=":
+            Assert _vgr_version.IsNotGreaterThan(version) :
+                "Requires version before {}, using {}", version.ToString().Join("."), _vgr_version.ToString().Join(".")
+        When "gte", ">=":
+            Assert _vgr_version.IsNotLessThan(version) :
+                "Requires at least version {}, using {}", version.ToString().Join("."), _vgr_version.ToString().Join(".")
+        When "eq", "==", "=":
+            Assert _vgr_version.IsEqualTo(version) :
+                "Requires version {}, using {}", version.ToString().Join("."), _vgr_version.ToString().Join(".")
+        Otherwise:
+            Assert False : "Unrecognized check type {}; use gte, lte, or eq", type_check
+    End
+End
