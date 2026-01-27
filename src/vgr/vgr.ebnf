@@ -161,7 +161,7 @@ sleep: "Sleep"i "For"i? expr ("Seconds"i | "Second"i)? _SEMICOLON?
 set:  ("Set"i "Variable"i?)? var_name ("=" | "To"i) expr _SEMICOLON?
     | ("Set"i "Variable"i?)? var_name ("=" | "To"i)? def_params? ("->" | "=>" | "\u2192") expr _SEMICOLON? -> set_arrow
     | ("Set"i "Variable"i?)? var_name ("=" | "To"i)? def_params? ("->" | "=>" | "\u2192") "Compile"i "(" expr ")" _SEMICOLON? -> compile_arrow
-    | ("Set"i "Variable"i?)? var_name IN_PLACE_OP expr _SEMICOLON? -> set_in_place
+    | ("Set"i "Variable"i?)? var_name IN_PLACE_OP expr _SEMICOLON?
 IN_PLACE_OP: ("+=" | "-=" | "*=" | "/=" | "%=" | "**=" | "&=" | "|=" | "^=" | "<<=" | ">>=" )
 
 swap: "Swap"i "Variable"i? var_name "With"i "Variable"i? var_name _SEMICOLON?

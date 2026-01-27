@@ -300,7 +300,7 @@ def create_parser(extn_registry: VgrExtensionRegistry, debug: bool, verbose: boo
         grammar = grammar.replace(tag, value)
     print_debug(debug, 'GRAMMAR =\n', grammar)
     return Lark(grammar,
-                start=['opt_statements', 'expr'],
+                start=['opt_statements', 'expr', 'set'],
                 lexer='contextual',
                 parser='lalr',
                 debug=True,
@@ -352,12 +352,14 @@ Environment variables:
 """
     )
     clp.add_argument('--version', '-V', action='version', version=f'{__version__} {__version_date__}')
-    clp.add_argument('--source', '-e', metavar='STATEMENTS', action=SaveOrderedSources,
+    clp.add_argument('--execute', '-e', metavar='STATEMENTS', action=SaveOrderedSources,
                     help='Execute the given statements')
     clp.add_argument('--file', '-f', metavar='FILE', action=SaveOrderedSources,
                      help="Execute statements stored in a file")
     clp.add_argument('--include', '-i', metavar='FILE', action=SaveOrderedSources,
                      help="Load statements stored in a file once")
+    clp.add_argument('--assign', '-v', metavar='var=expr', action=SaveOrderedSources,
+                     help="Assign a value to a variable")
     clp.add_argument('--verbose', action='store_true', help='Enable/disable verbose mode')
     clp.add_argument('--debug', '-D', action='store_true', help='Enable/disable debug mode')
     clp.add_argument('--echo', action='store_true', help='Enable/disable statement echo')
@@ -420,22 +422,25 @@ Environment variables:
     exit_code: int = VgrExitingException.EXIT_SUCCESS
     try:
         ordered_args = args.ordered if hasattr(args, "ordered") else []
-        # Accumulated -e/-f options, stored in the order given
+        # Execute accumulated -e, -f, et al options in the order given
         for opt in ordered_args:
             stype, svalue = opt
-            if stype in ['e', 's']: # -e or --source
+            if stype  == 'e': # -e or --execute
                 # Simple statements directly on the command line
                 ctx.print_verbose('Executing statements from command line...')
                 ctx.execute_statements(svalue, '<cmd-line>')
                 continue
             try:
                 if stype == 'f': # -f or --file
-                    # NB: we don't "sandbox" these files like we do with others
+                    # NB: we don't "sandbox" these input files like we do with others
                     do_source(ctx, find_vgr_source(svalue))
                     continue
                 if stype == 'i': # -i or --include
                     # Files to be included once
                     do_include(ctx, find_vgr_source(svalue))
+                    continue
+                if stype in ['v', 'a']: # -v or --assign
+                    ctx.execute_statements(svalue, '<cmd-line>', 'set')
                     continue
             except VgrException as e:
                 raise e

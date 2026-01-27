@@ -56,6 +56,29 @@ _EXTENSION_MAP = {
     '.yml':    'yaml_file',
 }
 
+def _inplace_add_shim(x: Any, y: Any) -> Any:
+    if isinstance(x, (list, tuple)):
+        if isinstance(y, (list, tuple)):
+            x.extend(y)
+        else:
+            x.append(y)
+        return x
+    return poly_add(x, y)
+
+_IN_PLACE_OP = {
+    "+=":  _inplace_add_shim,
+    "-=":  poly_sub,
+    "*=":  poly_mul,
+    "/=":  poly_div,
+    "%=":  poly_mod,
+    "**=": poly_pow,
+    "&=":  poly_bit_and,
+    "|=":  poly_bit_or,
+    "^=":  poly_bit_xor,
+    "<<=": poly_shl,
+    ">>=": poly_shr,
+}
+
 @bound_ops("Set")
 def execute_set(ctx: ExecContext, statement: Tree) -> None:
     """
@@ -104,8 +127,28 @@ Print @c(5,3)
 ```
 """
     var_path = get_writable_var_path(ctx, statement.children[0])
-    expr = statement.children[1]
-    do_set(ctx, ctx.eval_expr(expr), *var_path)
+    if len(statement.children) == 2:
+        # <var> <expr> : direct assignment
+        new_value = ctx.eval_expr(statement.children[1])
+    else:
+        # <var> <op> <expr> : modify existing value
+        op = _IN_PLACE_OP[statement.children[1].value.lower()]
+        new_value = op(ctx.get_var(*var_path), ctx.eval_expr(statement.children[2]))
+    do_set(ctx, new_value, *var_path)
+
+def execute_set_arrow(ctx: ExecContext, statement: Tree) -> None:
+    """-documentation combined with `set`-"""
+    var_path = get_writable_var_path(ctx, statement.children[0])
+    param_paths = create_param_list(ctx, statement.children[1])
+    expr = statement.children[-1]
+    do_set(ctx, UserFunction.from_expression(ctx.get_source(expr), expr, param_paths), *var_path)
+
+def execute_compile_arrow(ctx: ExecContext, statement: Tree) -> None:
+    """-documentation combined with `set`-"""
+    var_path = get_writable_var_path(ctx, statement.children[0])
+    param_paths = create_param_list(ctx, statement.children[1])
+    expr = statement.children[-1]
+    do_set(ctx, UserFunction.compile(ctx, ctx.eval_expr(expr), param_paths), *var_path)
 
 @bound_ops("Unset")
 def execute_unset(ctx: ExecContext, statement: Tree) -> None:
@@ -155,50 +198,6 @@ Where _option_ is-
             ctx.debug = False
             ctx.echo = False
             ctx.verbose = False
-
-def _inplace_add_shim(x: Any, y: Any) -> Any:
-    if isinstance(x, (list, tuple)):
-        if isinstance(y, (list, tuple)):
-            x.extend(y)
-        else:
-            x.append(y)
-        return x
-    return poly_add(x, y)
-
-_IN_PLACE_OP = {
-    "+=":  _inplace_add_shim,
-    "-=":  poly_sub,
-    "*=":  poly_mul,
-    "/=":  poly_div,
-    "%=":  poly_mod,
-    "**=": poly_pow,
-    "&=":  poly_bit_and,
-    "|=":  poly_bit_or,
-    "^=":  poly_bit_xor,
-    "<<=": poly_shl,
-    ">>=": poly_shr,
-}
-
-def execute_set_in_place(ctx: ExecContext, statement: Tree) -> None:
-    """-documentation combined with `set`-"""
-    var_path = get_writable_var_path(ctx, statement.children[0])
-    op = _IN_PLACE_OP[statement.children[1].value]
-    expr = statement.children[2]
-    do_set(ctx, op(ctx.get_var(*var_path), ctx.eval_expr(expr)), *var_path)
-
-def execute_set_arrow(ctx: ExecContext, statement: Tree) -> None:
-    """-documentation combined with `set`-"""
-    var_path = get_writable_var_path(ctx, statement.children[0])
-    param_paths = create_param_list(ctx, statement.children[1])
-    expr = statement.children[-1]
-    do_set(ctx, UserFunction.from_expression(ctx.get_source(expr), expr, param_paths), *var_path)
-
-def execute_compile_arrow(ctx: ExecContext, statement: Tree) -> None:
-    """-documentation combined with `set`-"""
-    var_path = get_writable_var_path(ctx, statement.children[0])
-    param_paths = create_param_list(ctx, statement.children[1])
-    expr = statement.children[-1]
-    do_set(ctx, UserFunction.compile(ctx, ctx.eval_expr(expr), param_paths), *var_path)
 
 @bound_ops("Swap")
 def execute_swap(ctx: ExecContext, statement: Tree) -> None:

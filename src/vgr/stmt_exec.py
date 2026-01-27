@@ -93,7 +93,6 @@ from .stmt_set import (
     execute_load_from,
     execute_reset,
     execute_set_arrow,
-    execute_set_in_place,
     execute_set,
     execute_swap,
     execute_unset,
@@ -922,7 +921,6 @@ STATEMENT_HANDLERS = {
     'return':            execute_return,
     'select':            execute_select,
     'set_arrow':         execute_set_arrow,
-    'set_in_place':      execute_set_in_place,
     'set':               execute_set,
     'sleep':             execute_sleep,
     'sort':              execute_sort,
@@ -1072,7 +1070,9 @@ class DefaultExecContext(ExecContext):
             origin = '' if origin.startswith('<') and origin.endswith('>') else origin
             if origin: self.source_stack.insert(0, origin)
             try:
-                self.dispatch_statements(self._parser.parse(statement_text, start=start or self._DEFAULT_PARSE_START).children)
+                tree = self._parser.parse(statement_text, start=start or self._DEFAULT_PARSE_START)
+                # NB: this assumes that a user provided "start" is a single statement
+                self.dispatch_statements(tree.children if start is None else [tree])
             except exceptions.UnexpectedInput as e:
                 raise VgrException(e, e, *SSM.current) from e
             finally:
