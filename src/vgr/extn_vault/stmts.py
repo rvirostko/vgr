@@ -12,6 +12,7 @@ from ..evaluate import do_set, _var_name_path
 from ..exec_context import ExecContext
 from ..mathpak import (
     bound_ops,
+    poly_clamp,
     poly_int,
     poly_list,
     poly_type,
@@ -72,9 +73,14 @@ def execute_connect(ctx: ExecContext, statement: Tree) -> None:
 * Vault Connect To _host_ With _token_ As _connection_name_ [;]
 * Vault Connect As _connection_name_ To _host_, Token Is _token_ [;]
 
+_Options_
+
+* Timeout Is _value_ [Seconds]
+* [BlockSize | Block Size] Is _value_ [Bytes]
+
 Also see `Vault-Disconnect`
 """
-    addr = token = conn_name = None
+    addr = token = conn_name = timeout = blocksize = None
     for child in statement.children:
         if isinstance(child, Tree):
             name: str = child.data
@@ -84,12 +90,22 @@ Also see `Vault-Disconnect`
                 token = _resolve_str_arg(ctx, child.children[0], 'Vault Token')
             elif name == 'conn_name':
                 conn_name = _resolve_str_arg(ctx, child.children[0], 'Vault Connection Name')
+            elif name == 'conn_timeout':
+                v = _resolve_int_arg(ctx, child.children[0], 'Vault Connection Timeout', True)
+                timeout = None if v is None else poly_clamp(v, 1, 600) # 1 sec to 10 minutes
+            elif name == 'conn_blocksize':
+                v = _resolve_int_arg(ctx, child.children[0], 'Vault Connection Blocksize', True)
+                blocksize = None if v is None else poly_clamp(v, 256, 1024 * 512) # 256 bytes to 512k
             else:
                 raise VgrRuntimeError(child, NotImplementedError(f'Argument {name!r} not handled')) # SNO
         else:
             raise VgrRuntimeError(child, ValueError(f'Unexpected Vault argument {child!r}')) # SNO
     conn_name = conn_name or _get_conn_name({})
-    _CONNECTIONS.connect(conn_name, addr, token)
+    client = _CONNECTIONS.connect(conn_name, addr, token)
+    if timeout is not None:
+        client.timeout = timeout
+    if blocksize is not None:
+        client.blocksize = blocksize
     _STATE.default_connection = conn_name
     _set_result(ctx, {}, None)
 
@@ -1394,11 +1410,7 @@ def _extract_args(ctx: ExecContext, statement: Tree) -> dict:
             if arg_name in _ARG_VAR_NAME:
                 args[arg_name] = _var_name_path(arg_node)
             elif arg_name in _ARG_INT_EXPR:
-                v = ctx.eval_expr_or_const(arg_node)
-                # TODO !! looks like potential common code
-                if v:
-                    if not isinstance(v, (int, float)): raise TypeError(f'{arg_name.title()} must be a int; found {poly_type(v)!r}')
-                    args[arg_name] = int(v)
+                args[arg_name] = _resolve_int_arg(ctx, arg_node, arg_name.title(), True)
             elif arg_name in _ARG_EXPR:
                 args[arg_name] = ctx.eval_expr_or_const(arg_node)
             else:
@@ -1412,6 +1424,12 @@ def _resolve_str_arg(ctx: ExecContext, expr: Tree, name: str, allow_none: bool=F
     if rc is None and allow_none: return None
     if not isinstance(rc, str): raise TypeError(f'{name} must be a string; found {poly_type(rc)!r}')
     return rc
+
+def _resolve_int_arg(ctx: ExecContext, expr: Tree, name: str, allow_none: bool=False) -> int:
+    rc = ctx.eval_expr_or_const(expr)
+    if rc is None and allow_none: return None
+    if not isinstance(rc, (int, float, str)): raise TypeError(f'{name} must be a int; found {poly_type(rc)!r}')
+    return poly_int(rc)
 
 def _allowed_args(args: dict, *allowed_keys) -> None:
     """Raise an error if any key in args is not in allowed_keys."""

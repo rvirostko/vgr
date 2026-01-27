@@ -42,6 +42,8 @@ vault_connect   : "Vault"i "Connect"i (_COMMA? vault_conn_arg)* _SEMICOLON?
 vault_disconnect: "Vault"i "Disconnect"i ("From"i? expr)? _SEMICOLON?
 vault_conn_arg: "To"i "Host"i? expr -> conn_addr
     | ("With"i "Token"i? | "Token"i "Is"i) expr -> conn_token
+    | "Timeout"i "Is"i? expr "Seconds"i? -> conn_timeout
+    | ("BlockSize"i | "Block"i "Size"i) "Is"i? expr "Bytes"i? -> conn_blocksize
     | "As"i expr -> conn_name
 
 // Generic Vault API interactions
