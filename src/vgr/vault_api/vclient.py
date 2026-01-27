@@ -9,6 +9,7 @@ from urllib.parse import urlparse
 import http.client
 import json
 import logging
+import socket
 
 from .util import encode_url
 
@@ -21,12 +22,24 @@ _M_LIST = 'LIST'
 _M_DELETE = 'DELETE'
 _M_POST = 'POST'
 _M_PATCH = 'PATCH'
+_M_HEAD = 'HEAD'
+_M_OPTIONS = 'OPTIONS'
 
 _CM_KEY = 'custom_metadata'
 _CM_KEY_MAX_LEN = 128
 _CM_VALUE_MAX_LEN = 150
 _DATA_KEY = 'data'
 _UNLOCK_KEY = 'unlock_key'
+
+_HUNG_UP_EXCEPTIONS = (
+    http.client.RemoteDisconnected,
+    http.client.CannotSendRequest,
+    http.client.ResponseNotReady,
+    BrokenPipeError,
+    ConnectionResetError,
+)
+
+_SAFE_METHODS = { _M_GET, _M_LIST, _M_HEAD, _M_OPTIONS }
 
 _LOG = logging.getLogger(__name__)
 
@@ -53,6 +66,17 @@ class VaultClient():
         if not token: raise ValueError("Vault token not provided")
         self._token = token
         self._addr = addr
+        p = urlparse(addr)
+        if not p.scheme: p = urlparse("https://" + addr)
+        if p.scheme and not p.netloc:
+            raise ValueError(f"Address {self._addr!r} has a scheme but no authority (expected //hostname)")
+        self._scheme = p.scheme.lower()
+        if self._scheme not in ("http", "https"):
+            raise ValueError(f"Unsupported URL scheme {p.scheme!r} in address {self._addr!r}")
+        if not p.hostname:
+            raise ValueError(f"Address {self._addr!r} does not contain a valid hostname")
+        self._hostname = p.hostname
+        self._port = p.port or (443 if self._scheme == "https" else 80)
         self._conn = None # See open()/close()
         self._default_ns = default_ns
         self._timeout = 30.0 # in seconds
@@ -114,7 +138,7 @@ class VaultClient():
             headers['Content-Type'] = f'{mime_type}; charset={_UTF_8}'
             data_bytes = json.dumps(data, default=str).encode(_UTF_8)
         try:
-            self._conn.request(url=url, method=method, headers=headers, body=data_bytes)
+            self._request_with_reconnect(url=url, method=method, headers=headers, body=data_bytes)
             response = self._conn.getresponse()
             text_response = response.read().decode(_UTF_8)
             if text_response:
@@ -150,18 +174,34 @@ class VaultClient():
             self._error(e.code, ' on ', self._addr + url)
             raise
 
+    def _request_with_reconnect(self, *, url, method, headers, body):
+        try:
+            self._conn.request(url=url, method=method, headers=headers, body=body)
+        except _HUNG_UP_EXCEPTIONS as original_e:
+            if method not in _SAFE_METHODS: raise original_e
+            self._warn(f"Connection stale during {method} request to {url}: {original_e}; reconnecting")
+            try:
+                self.close()
+            except Exception as close_e:
+                self._warn("Close failed - ", repr(close_e))
+            try:
+                self.open()
+                self._conn.request(url=url, method=method, headers=headers, body=body)
+            except Exception as req_e:
+                self._warn("Request retry failed - ", repr(req_e))
+                raise req_e from original_e
+
     def open(self):
         if self._conn is None:
             self._info('Opening connection to', self._addr)
-            p = urlparse(self._addr)
-            if p.scheme.lower() == 'https':
-                self._conn = http.client.HTTPSConnection(p.hostname,
-                                                         p.port or 443,
+            if self._scheme == 'https':
+                self._conn = http.client.HTTPSConnection(self._hostname,
+                                                         self._port,
                                                          timeout=self.timeout,
                                                          blocksize=self.blocksize)
             else:
-                self._conn = http.client.HTTPConnection(p.hostname,
-                                                        p.port or 80,
+                self._conn = http.client.HTTPConnection(self._hostname,
+                                                        self._port or 80,
                                                         timeout=self.timeout,
                                                         blocksize=self.blocksize)
         return self
