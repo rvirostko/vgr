@@ -278,7 +278,7 @@ Also see `Sort()`
 
 def dsort(data: dict, keys: list[str], ascending: list[bool], unique: bool, unique_cols: list[str]) -> list:
     """
-    Sort by fields in a list of dictionary
+    Sort by fields in a list of dictionaries
     Also unique support
     """
     keys = _check_keys(keys, 'Sort Key')
