@@ -2,7 +2,7 @@
 Set data To vgr.source.FirstItem().DirectoryName() + os.sep + "data" + os.sep
 
 Define Function check_load_meta(meta, format, keys, records):
-    Assert meta.Type() Is "dict"
+    Assert meta.Type() Is "dictionary"
     Assert meta Contains "filename"
     Assert meta Contains "format"
     Assert meta.format Is format
@@ -15,11 +15,11 @@ Define Function check_load_meta(meta, format, keys, records):
 End
 
 Set frog_tests To [
-    { "ftype": "csv",  "dtype": "list", "keys": ["name", "age"] },
-    { "ftype": "json", "dtype": "dict", "keys": ["name", "age"] },
-    { "ftype": "yaml", "dtype": "dict", "keys": ["name", "age"] },
-    { "ftype": "ini",  "dtype": "dict", "keys": ["frog"] },
-    { "ftype": "hcl",  "dtype": "dict", "keys": ["frog"] },
+    { "ftype": "csv",  "dtype": "list",       "keys": ["name", "age"] },
+    { "ftype": "json", "dtype": "dictionary", "keys": ["name", "age"] },
+    { "ftype": "yaml", "dtype": "dictionary", "keys": ["name", "age"] },
+    { "ftype": "ini",  "dtype": "dictionary", "keys": ["frog"] },
+    { "ftype": "hcl",  "dtype": "dictionary", "keys": ["frog"] },
 ]
 
 Assert $load Is None
