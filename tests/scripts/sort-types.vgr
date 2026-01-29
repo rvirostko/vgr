@@ -1,0 +1,124 @@
+
+Set data To vgr.source.FirstItem().DirectoryName() + os.sep + "data" + os.sep
+
+#-------------------------------------------------------------------------------
+Define Function sort_and_check(var):
+    Display "Sorting data in memory" Upon Output
+    Assert var.IsList() And var.FirstItem().IsDictionary()
+    Sort var On Key name
+    Select name, legs From var For Batch Template
+    Assert var.Length() ≥ 3
+    Assert var.FirstItem().name ≤ var.LastItem().name
+    Assert var.Item(1).name.IsBetween(var.FirstItem().name, var.LastItem().name)
+End
+#-------------------------------------------------------------------------------
+
+#-------------------------------------------------------------------------------
+Define Function sort_file_and_check(fn):
+    Display "Sorting file in place" Upon Output
+    Sort File fn On Key name
+    Load t With File fn
+    Select name, legs From t For Batch Template
+    Assert $load.records ≥ 3
+    Assert t.FirstItem().name ≤ t.LastItem().name
+    Assert t.Item(1).name.IsBetween(t.FirstItem().name, t.LastItem().name)
+End
+#-------------------------------------------------------------------------------
+
+#-------------------------------------------------------------------------------
+Display Newline "Sorting HCL data" Upon Output
+Set fn = data + "animals.hcl"
+Open Output fn
+Printf "{}", """\
+animals = [
+  { name = "elephant", legs = 4 },
+  { name = "dog",      legs = 4 },
+  { name = "cat",      legs = 4 },
+  { name = "sparrow",  legs = 2 }
+]
+"""
+Close Output
+# have to defrefence and sort as a variable
+Load t With File fn
+Call sort_and_check(t.animals)
+#-------------------------------------------------------------------------------
+
+#-------------------------------------------------------------------------------
+Display Newline "Sorting INI data" Upon Output
+Set fn = data + "animals.ini"
+Open Output fn
+Printf "{}", """\
+[animal.1]
+name=elephant
+legs = 4
+
+[animal.2]
+name=dog
+legs = 4
+
+[animal.3]
+name = cat
+legs = 4
+
+[animal.4]
+name = sparrow
+legs = 2
+"""
+Close Output
+# have to defrefence and sort as a variable
+Load t With File fn
+Call sort_and_check(t.GetValues())
+#-------------------------------------------------------------------------------
+
+#-------------------------------------------------------------------------------
+Display Newline "Sorting JSON data" Upon Output
+Set fn = data + "animals.json"
+Open Output fn
+Printf "{}", """\
+[
+  { "name": "elephant", "legs": 4 },
+  { "name": "dog",      "legs": 4 },
+  { "name": "cat",      "legs": 4 },
+  { "name": "sparrow",  "legs": 2 }
+]
+"""
+Close Output
+Call sort_file_and_check(fn)
+#-------------------------------------------------------------------------------
+
+#-------------------------------------------------------------------------------
+Display Newline "Sorting CSV data" Upon Output
+Set fn = data + "animals.csv"
+Open Output fn
+Printf "{}", """\
+name,legs
+elephant,4
+dog,4
+cat,4
+sparrow,2
+"""
+Close Output
+Call sort_file_and_check(fn)
+#-------------------------------------------------------------------------------
+
+#-------------------------------------------------------------------------------
+Display Newline "Sorting TEXT data" Upon Output
+Set fn = data + "animals.text"
+Open Output fn
+Printf "{}", """\
+elephant
+dog
+cat
+sparrow"""
+Close Output
+Sort File fn # No keys in text file
+# "Text Lines" results in a per-line list rather than a single string
+Load t With File fn Text Lines
+Assert t.IsList()
+Assert t.FirstItem().IsString()
+Sort t # No keys required/allowed with an array of strings
+Select Line From t as Line For Batch Template
+Assert t.Length() ≥ 3
+Assert t.FirstItem() ≤ t.LastItem()
+Assert t.Item(1).IsBetween(t.FirstItem(), t.LastItem())
+#-------------------------------------------------------------------------------
