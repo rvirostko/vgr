@@ -1002,14 +1002,14 @@ class DefaultExecContext(ExecContext):
         if rc is None and allow_none: return None
         if isinstance(rc, bool): return int(rc)
         if isinstance(rc, (int, float)): return rc
-        raise VgrRuntimeError(expr, TypeError(f'{name} must be an integer; found {poly_type(rc)!r}'))
+        raise VgrRuntimeError(expr, TypeError(f'{name} must be a number; found {poly_type(rc)!r}'))
 
     def eval_to_bool(self, expr: Tree, name: str, allow_none: bool=False) -> bool:
         # TODO see other conv routines
         rc = self.eval_expr(expr)
         if rc is None and allow_none: return None
         if not isinstance(rc, (bool, int, float, str)):
-            raise VgrRuntimeError(expr, TypeError(f'{name} must be an boolean; found {poly_type(rc)!r}'))
+            raise VgrRuntimeError(expr, TypeError(f'{name} must be a boolean; found {poly_type(rc)!r}'))
         return poly_true(rc)
 
     def get_source(self, tree, end_tree = None) -> str:

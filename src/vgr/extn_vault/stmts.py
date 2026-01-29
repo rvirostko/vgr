@@ -1428,7 +1428,7 @@ def _resolve_str_arg(ctx: ExecContext, expr: Tree, name: str, allow_none: bool=F
 def _resolve_int_arg(ctx: ExecContext, expr: Tree, name: str, allow_none: bool=False) -> int:
     rc = ctx.eval_expr_or_const(expr)
     if rc is None and allow_none: return None
-    if not isinstance(rc, (int, float, str)): raise TypeError(f'{name} must be a int; found {poly_type(rc)!r}')
+    if not isinstance(rc, (int, float, str)): raise TypeError(f'{name} must be a number or string; found {poly_type(rc)!r}')
     return poly_int(rc)
 
 def _allowed_args(args: dict, *allowed_keys) -> None:

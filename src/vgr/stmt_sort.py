@@ -116,7 +116,7 @@ class SortAnalyzer(Visitor):
         """
         rc = self.ctx.eval_expr_or_const(arg)
         if rc is None or isinstance(rc, (str, int, float)): return rc
-        raise VgrRuntimeError(arg, TypeError(f'{name} must be a simple type; found {poly_type(rc)!r}'))
+        raise VgrRuntimeError(arg, TypeError(f'{name} must be a number or string; found {poly_type(rc)!r}'))
 
     def _store_io(self, node: Tree, io: dict) -> None:
         """

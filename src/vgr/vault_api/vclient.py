@@ -9,9 +9,9 @@ from urllib.parse import urlparse
 import http.client
 import json
 import logging
-import socket
 
 from .util import encode_url
+from ..mathpak import poly_type
 
 _MIME_JSON: str = 'application/json'
 _MIME_JSON_PATCH: str = 'application/merge-patch+json'
@@ -643,7 +643,7 @@ def _create_kv_data(data: Any) -> Dict[str, Any]:
             return data
         # We assume that the dictionary we got is the data itself
         return {_DATA_KEY: data}
-    raise ValueError(f'Unexpected type {type(data).__name__!r} for data')
+    raise ValueError(f'Data must be a dictionary, found {poly_type(data)!r}')
 
 def _create_metadata(metadata: Any) -> Dict[str, Any]:
     """Create a custom_metadata dictionary that conforms to Vault's limits."""
@@ -651,7 +651,7 @@ def _create_metadata(metadata: Any) -> Dict[str, Any]:
         return {_CM_KEY: {}}
     if isinstance(metadata, dict):
         return {_CM_KEY: _validate_metadata(metadata.get(_CM_KEY, metadata))}
-    raise ValueError(f'Unexpected type {type(metadata).__name__!r} for metadata')
+    raise ValueError(f'Metadata must be a dictionary, found {poly_type(metadata)!r}')
 
 def _validate_metadata(metadata: Dict[str, Any]) -> Dict[str, str]:
     """Validate and format metadata keys and values."""
@@ -679,4 +679,4 @@ def _create_unlock(data: Any) -> Dict[str, Any]:
         if _UNLOCK_KEY in data:
             return {_UNLOCK_KEY: data[_UNLOCK_KEY]}
         return {}
-    raise ValueError(f'Unexpected type {type(data).__name__!r}')
+    raise ValueError(f'Key must be a string or dictionary, found {poly_type(data)!r}')
