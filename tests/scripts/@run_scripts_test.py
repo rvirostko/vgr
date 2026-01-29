@@ -57,14 +57,14 @@ def test_vgr_files(path: Path):
     ids=lambda p: p.name,
 )
 def test_vgr_statements(path: Path):
-    """Execute line-by-line via --source"""
+    """Execute line-by-line via --execute"""
     LOG_DIR.mkdir(exist_ok=True)
     with path.open() as fh:
         with (LOG_DIR / (path.name + ".txt")).open("w", encoding="utf-8") as f:
             for i, line in enumerate(fh, 1):
                 line = line.strip()
                 if line and not line.startswith("#"):
-                    code, stdout, stderr = run_subprocess(["--source", line])
+                    code, stdout, stderr = run_subprocess(["--execute", line])
                     write_results(f, stdout, stderr)
                     if "!" in path.name:
                         assert code != 0, f"! Expected failure but line succeeded: {path.name!r}:{i}"

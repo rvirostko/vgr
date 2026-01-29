@@ -333,15 +333,15 @@ def main():
     clp = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
         description=f'Version {__version__} ({__version_date__})',
-        epilog="""Statements added with --source and --file are executed in the order they are given.
+        epilog="""Statements added with --execute, --file, --include, and --assign are executed in the order they are given.
 
 Following that, statements are read from stdin if they are available.
 
-If no --source and --file arguments are given, and stdin is interactive, by default the REPL is started. Using --repl false prevents it from opening.
+If no --execute and --file arguments are given, and stdin is interactive, by default the REPL is started. Using --repl false prevents it from opening.
 
 Additional arguments are added to the "args" variable. Only simple data types can be set. Quotes are not required for strings.
 
---verbose, --debug, and --echo control only the initial settings. Commands in --source and --file arguments can still change them when running.
+--verbose, --debug, and --echo control only the initial settings. Commands in --execute and --file arguments can still change them when running.
 
 Environment variables:
   - OFS/ORS - output field and record separators as defined by AWK
@@ -363,7 +363,7 @@ Environment variables:
     clp.add_argument('--verbose', action='store_true', help='Enable/disable verbose mode')
     clp.add_argument('--debug', '-D', action='store_true', help='Enable/disable debug mode')
     clp.add_argument('--echo', action='store_true', help='Enable/disable statement echo')
-    clp.add_argument('--repl', action='store_true', help='Request REPL. REPL automatically starts if --source/--file are not used')
+    clp.add_argument('--repl', action='store_true', help='Request REPL. REPL automatically starts if --execute/--file are not used')
     clp.add_argument('--logfile', type=str, default=None,
                     help='Path to the log file')
     clp.add_argument('--loglevel', type=str, default='info',
