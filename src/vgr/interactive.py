@@ -5,6 +5,7 @@ and simple file control. Also the base of a "help" system.
 
 from abc import ABC, abstractmethod
 from argparse import ArgumentParser, ArgumentError, ArgumentTypeError, Namespace, OPTIONAL
+from shutil import which
 from typing import Iterable
 import ast
 import os
@@ -137,7 +138,6 @@ class CmdLine:
         self.add_cmd("multiline", self._exec_multiline)
         self.add_cmd("prompt", self._exec_prompt)
         self.add_cmd("pwd", self._exec_pwd)
-        self.add_cmd("!", self._exec_subshell)
         self.add_cmd("shell", self._exec_subshell)
 
     def add_cmd(self, cmd: str, func) -> None:
@@ -249,26 +249,33 @@ Changes made at runtime are not persistent.
 **REPL: Open an OS sub-shell**
 
 * **shell** : open an interactive sub-shell
-* **shell** _command_: run the command in a sub-shell
+* **shell** _command_ [_arg_]...: run the command in a sub-shell
 
 You can use **!** as an alias for **shell**
 """
         if os.name == "nt":
-            # Prefer MSYS2 / Git Bash / Cygwin if they set SHELL
-            shell = os.environ.get('SHELL')
-            if shell and shell.endswith('bash'):
-                shell = [shell]
+            ps_env = any(var.endswith("PSModulePath") for var in os.environ)
+            ps = which("powershell.exe")
+            if ps_env and ps:
+                shell = ps
+                cmd_flag = "-Command"
             else:
-                # Fall back to cmd.exe only, never PowerShell
-                shell = [os.environ.get('COMSPEC', 'cmd.exe')]
+                shell = "cmd.exe"
+                cmd_flag = "/c"
         else:
             # POSIX (Linux, macOS, WSL, etc.)
-            shell = [os.environ.get('SHELL', '/bin/sh')]
-        if args:
-            cmd = ' '.join(args).strip()
-            subprocess.run(cmd, shell=True, executable=shell[0], check=False)
-        else:
-            subprocess.run(shell, check=False)
+            shell = os.environ.get('SHELL', '/bin/sh')
+            cmd_flag = "-c"
+        try:
+            if args:
+                # Command(s) executed by the shell
+                subprocess.run([shell, cmd_flag, args[0]], check=False)
+            else:
+                # Interactive shell for a human
+                subprocess.run([shell], check=False)
+        except OSError as e:
+            # Only failure we care about: shell could not be created
+            raise RuntimeError(f"Unable to start '{shell}': {e}") from e
 
     def _exec_help(self, *args) -> None: pass
 
@@ -276,17 +283,22 @@ You can use **!** as an alias for **shell**
 
     def _parse_command(self, line: str):
         """Q&D parsing of a command line so we can check for REPL commands"""
-        stripped = line.strip()
+        def remove_quotes(s: str) -> str:
+            return  s[1:-1] if len(s) >= 2 and ((s[0] == s[-1]) and s[0] in ('"', "'")) else s
+        stripped = line.lstrip()
         if not stripped: return None
-        # Detect sub-shell escape
-        if stripped.startswith("!"):
-            # parts: command marker "!", and the rest as a single string
-            rest = stripped[1:].lstrip()
-            return "!", [rest] if rest else []
         # Split on spaces, string quoted args
-        parts = [next(filter(None, m.groups()), '') for m in re.finditer(r'"([^"]*)"|\'([^\']*)\'|(\S+)', stripped)]
-        if not parts: return None
-        return parts[0], parts[1:]
+        tokens = list(re.finditer(r'"[^"]*"|\'[^\']*\'|\S+|^\S*[!]', stripped))
+        if not tokens: return None
+        first_match = tokens.pop(0)
+        first = remove_quotes(first_match.group(0))
+        if first.lower() in ("!", "shell"):
+            # Everything after first token becomes a single argument
+            rest_start = first_match.end()
+            rest = stripped[rest_start:]
+            return "shell", [rest] if rest else []
+        # Otherwise, return first + cleaned tokens
+        return first, [remove_quotes(m.group(0)) for m in tokens]
 
     def _expand_prompt(self) -> str:
         """Expands the Bash-like prompt sequences"""
