@@ -4,6 +4,7 @@ Includes the implemenation for SET/UNSET, MOVE, and LOAD FROM.
 
 from io import TextIOWrapper
 from typing import Any
+import codecs
 import configparser
 import csv
 import json
@@ -12,7 +13,7 @@ import os
 import hcl2
 import yaml
 
-from lark import Tree, Token
+from lark import Tree
 
 from .app_exceptions import VgrRuntimeError
 from .user_callable import UserFunction
@@ -40,6 +41,7 @@ from .mathpak import (
     poly_shl,
     poly_shr,
     poly_sub,
+    poly_type,
 )
 from .redir import close_all_redirects
 
@@ -247,15 +249,37 @@ directory separator. Since the backslash is an escape character, if you use
 it in a string, you will either need to double it or use a _raw string_.
 
 """
+    def is_valid_encoding(name: str) -> bool:
+        try:
+            codecs.lookup(name)
+            return True
+        except LookupError:
+            return False
     var_path = get_writable_var_path(ctx, statement.children[0])
     fn_child = statement.children[1]
     filename = ctx.eval_filename_expr(fn_child)
-    dtype = load_data_type(filename, statement.children[2] if len(statement.children) > 2 else None)
-    # TODO need to have an encoding param
-    encoding = 'utf-8-sig'
+    ftype = None
+    encoding = None
+    for opt in statement.children[2:]:
+        if opt.data == "encoding":
+            expr = opt.children[0]
+            encoding = ctx.eval_expr_or_const(expr)
+            if encoding is not None:
+                if not isinstance(encoding, str):
+                    raise VgrRuntimeError(expr, TypeError(f'Encoding must be a string, found {poly_type(encoding)}'))
+                encoding = encoding.strip()
+                if encoding:
+                    if not is_valid_encoding(encoding):
+                        raise VgrRuntimeError(expr, TypeError(f'Encoding {encoding!r} is not valid'))
+                else:
+                    encoding = None
+        else:
+            if ftype:
+                raise VgrRuntimeError(opt, ValueError('Duplicate file type specified'))
+            ftype = opt.data
     try:
-        with open(filename, 'r', encoding=encoding) as f:
-            data, metadata = load_file_as(filename, f, dtype)
+        with open(filename, 'r', encoding=encoding or 'utf-8-sig') as f:
+            data, metadata = load_file_as(filename, f, load_data_type(filename, ftype))
             ctx.set_var(data, *var_path)
             # Try to make the meta variable a local if possible
             ctx.dd.declare_var(ctx.dd.in_local_frame, *_LOAD_META_PATH)
@@ -267,7 +291,7 @@ it in a string, you will either need to double it or use a _raw string_.
         ctx.print_verbose('Loaded', '.'.join(var_path), 'With', length, poly_plural(length, 'Records', 'Record'))
         if len(metadata['keys']) > 0: ctx.print_verbose('Keys :', ', '.join(poly_repr(key) for key in metadata['keys']))
 
-def load_data_type(filename: str, token: Token) -> str:
+def load_data_type(filename: str, ftype: str) -> str:
     """Returns one of:
 
 * csv_file
@@ -278,7 +302,7 @@ def load_data_type(filename: str, token: Token) -> str:
 * text_lines
 * yaml_file
 """
-    if token is not None: return token.data
+    if ftype is not None: return ftype
     ext = os.path.splitext(filename)[1].lower()
     return _EXTENSION_MAP.get(ext, 'text_file')
 

@@ -178,8 +178,9 @@ reset: "Reset"i reset_opt (_COMMA? reset_opt)* _SEMICOLON?
 source: "Source"i ("File"i | "Files"i)? expr (_COMMA expr)* _SEMICOLON?
 include: "@Include"i ("File"i | "Files"i)? expr (_COMMA expr)* _SEMICOLON?
 
-// TODO needs to have an encoding value (defaults to utf-8-sig)
-load_from: "Load"i "Variable"i? var_name ("From"i | "With"i) "File"i? expr ("As"i? load_source_type)? _SEMICOLON?
+load_from: "Load"i "Variable"i? var_name ("From"i | "With"i) "File"i? expr (_COMMA? load_from_opts)* _SEMICOLON?
+?load_from_opts: ("Type"i "Is"i? | "As"i)? load_source_type
+    | "Encoding"i "Is"i? expr -> encoding
 load_source_type: "CSV"i -> csv_file
     | "HCL"i -> hcl_file
     | "INI"i -> ini_file
