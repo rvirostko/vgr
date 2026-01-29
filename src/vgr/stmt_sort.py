@@ -272,7 +272,7 @@ def _write_data(ctx: ExecContext, data: list, target: dict) -> None:
                 rw.write([row.get(p, None) for p in headers] if isinstance(row, dict) else [row])
             rw.finish()
             return
-        raise ValueError(f'Unknown file content type {dtype!r}') # SNO
+        raise ValueError(f'Sort: Unsupported file type {dtype!r} for writing')
 
 def _append_unique(x: list, y: list) -> list:
     return x + [x1 for x1 in y if x1 not in x]
