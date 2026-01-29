@@ -83,7 +83,7 @@ def poly_isbool(x: Any) -> bool:
 **TODO**
 ```
 
-Also see `Type()`, `IsInt()`, `IsFloat()`, `IsNumber()`, and `IsString()`
+Also see `Type()`, `IsInteger()`, `IsFloat()`, `IsNumber()`, and `IsString()`
 """
     return isinstance(x, bool)
 
@@ -129,7 +129,7 @@ def poly_isfloat(x: Any) -> bool:
 **TODO**
 ```
 
-Also see `Type()`, `IsBool()`, `IsInt()`, `IsNumber()`, and `IsString()`
+Also see `Type()`, `IsBool()`, `IsInteger()`, `IsNumber()`, and `IsString()`
 """
     return isinstance(x, float)
 
@@ -165,8 +165,8 @@ def poly_isint(x: Any) -> bool:
     """
 **Returns _True_ if the value is an integer**
 
-* IsInt(_value_)
-* _value_.IsInt()
+* IsInteger(_value_)
+* _value_.IsInteger()
 
 ```vgr
 **TODO**
@@ -219,7 +219,7 @@ Only _float_ and _int_ items are considered numbers.
 **TODO**
 ```
 
-Also see `Type()`, `IsBool()`, `IsInt()`, `IsFloat()`, and `IsString()`
+Also see `Type()`, `IsBool()`, `IsInteger()`, `IsFloat()`, and `IsString()`
 """
     return isinstance(x, (int, float))
 

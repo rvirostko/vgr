@@ -16,7 +16,7 @@ For _None_ the value _none_ is returned.
 ```vgr
 None.Type() → "none"
 "five".Type() → "string"
-5.Type() → "int"
+5.Type() → "integer"
 5.0.Type() → "float"
 CompilePattern("[abc]").Type() → "pattern"
 ["five", 5, 5.0].Type() → "list"
@@ -30,5 +30,6 @@ f.Type() -> "function"
     if isinstance(x, re.Pattern): return 'pattern'
     if isinstance(x, VgrCallable): return 'function'
     if isinstance(x, str): return 'string'
+    if isinstance(x, int): return 'integer'
     if isinstance(x, dict): return 'dictionary'
     return (x if isinstance(x, type) else type(x)).__name__

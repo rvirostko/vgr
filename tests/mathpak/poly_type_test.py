@@ -7,7 +7,7 @@ from vgr.mathpak import poly_type, compile_pattern
     [
         (None,                 "none"),
         ("hello",              "string"),
-        (1,                    "int"),
+        (1,                    "integer"),
         (1.0,                  "float"),
         (["hello"],            "list"),
         ({"hello":"world"},    "dictionary"),

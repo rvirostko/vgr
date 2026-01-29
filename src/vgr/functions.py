@@ -495,7 +495,7 @@ _BUILT_IN_FUNCS: dict[str, Callable[..., Any]] = {
     "IsGreaterThan":  poly_gt,
     "IsIn":           poly_in,
     "IsInf":          poly_isinf,
-    "IsInt":          poly_isint,
+    "IsInteger":      poly_isint,
     "IsLessThan":     poly_lt,
     "IsList":         poly_islist,
     "IsLower":        poly_islower,

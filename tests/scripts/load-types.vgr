@@ -10,7 +10,7 @@ Define Function check_load_meta(meta, format, keys, records):
     Assert meta.keys.Type() Is "list"
     Assert meta.keys.Sort() Equals keys.Sort()
     Assert meta Contains "records"
-    Assert meta.records.Type() Is "int"
+    Assert meta.records.Type() Is "integer"
     Assert meta.records Equals records
 End
 

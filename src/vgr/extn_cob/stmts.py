@@ -871,11 +871,11 @@ Move 0 to Lower_bound
 Move 255 to Upper_bound
 Move 3 to Modulus
 Evaluate True
-    When X Is None           Assert False: "X is not set"
-    When X.Type() != "int"   Assert False: "X must be an integer"
-    When X < Lower_bound     Assert False: "X cannot be less than {}", Lower_bound
-    When X > Upper_bound     Assert False: "X cannot be greater than {}", Upper_bound
-    When X.FloorDiv(Modulus) Assert False: "X must be divisible by {}", Modulus
+    When X Is None             Assert False: "X is not set"
+    When X.Type() != "integer" Assert False: "X must be an integer"
+    When X < Lower_bound       Assert False: "X cannot be less than {}", Lower_bound
+    When X > Upper_bound       Assert False: "X cannot be greater than {}", Upper_bound
+    When X.FloorDiv(Modulus)   Assert False: "X must be divisible by {}", Modulus
     When Other Display X " checks out!"
 End-Evaluate
 ```

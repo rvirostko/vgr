@@ -3,7 +3,7 @@ Set f(x) -> x
 
 Assert None.Type() Is "none"
 Assert "hello".Type() Is "string"
-Assert 1.Type() Is "int"
+Assert 1.Type() Is "integer"
 Assert 1.0.Type() Is "float"
 Assert [].Type() Is "list"
 Assert {}.Type() Is "dictionary"
@@ -13,7 +13,7 @@ Assert f.Type() Is "function"
 Assert None.IsNone()
 Assert None.IsNotNone() Is False
 Assert "x".IsString()
-Assert 1.IsInt()
+Assert 1.IsInteger()
 Assert 1.0.IsFloat()
 Assert 1.IsNumber() And 1.0.IsNumber()
 Assert [].IsList()
