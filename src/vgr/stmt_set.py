@@ -222,22 +222,37 @@ def execute_load_from(ctx: ExecContext, statement: Tree) -> None:
     """
 **Assign a value to a variable from a file**
 
-* Load _variable_ From [File] _file_ [;]
-* Load _variable_ From [File] _file_ CSV [;]
-* Load _variable_ From [File] _file_ HCL [;]
-* Load _variable_ From [File] _file_ INI [;]
-* Load _variable_ From [File] _file_ JSON [Object] [;]
-* Load _variable_ From [File] _file_ JSON [Object] Per Line [;]
-* Load _variable_ From [File] _file_ Text [;]
-* Load _variable_ From [File] _file_ Text Lines [;]
-* Load _variable_ From [File] _file_ YAML [;]
+* Load _variable_ From [File] _file_<br>
+  <em>[Type [Is] | [As]] _type_<br>
+  <em>[Encoding [Is] _encoding_]<br>
+  [;]
 
-The _file_ argument is a string expression for the file to be loaded
+The _file_ argument is a string expression for the file to be loaded.
 
-If no type—_JSON_, _CSV_, etc—is included, the type is inferred from the file's extension
+If a _type_ is specified, it must be one of:
+
+* CSV - The CSV data is read as a list of dictionaries, with the
+  column headers as attribute names
+* HCL - The data is read creating a dictionary
+* INI - The INI sections are used to create a dictionary
+* JSON [Object] - The data is a single JSON object;
+  a dictionary is created
+* JSON [Object] Per Line - The data is a text file with one
+  JSON object per line; a list of dictionaries is created
+* Text - The data is read as a string
+* Text Lines - The data is read line-by-line, creating a list of strings
+* YAML - The data is read creating a dictionary
+
+If not specified, it is inferred from the file's extension
 with _Text_ as the default.
 
-After the file is loaded, the following metadata values are available:
+Then optional _encoding_ is a string expression for the character encoding.
+If none is specified, then _utf-8-sig_ is used as the default.
+
+Both _type_ and _encoding_ are optional and can be specified in any order.
+For readability, they can be separated with commas.
+
+After the data is loaded, the following metadata values are available:
 
 * $load.filename - name of the loaded file
 * $load.format - source format: json, yaml, hcl, ini, csv, text
