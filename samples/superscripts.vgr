@@ -55,7 +55,7 @@ Assert x⁽⁺·⁵⁾ == x.Pow(.5)
 Assert x⁽⁻·⁵⁾ == x.Pow(-.5)
 
 // cast to any int if we don't loose precession
-Set intify(x) -> x == x.ToInt() ? x.ToInt() : x
+Set intify(x) -> x == x.ToInteger() ? x.ToInteger() : x
 
 Define Function solve_quadratic(a, b, c):
     // Solve ax² + bx + c = 0

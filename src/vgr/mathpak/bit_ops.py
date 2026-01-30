@@ -32,8 +32,8 @@ def poly_bit_and(x: Any, *args) -> Any:
 | int   | float | int       | x & y                 |
 | int   | str   | int       | _See below_           |
 | _any_ | list  | list      | distributive          |
-| float | int   | int       | ToInt(x) & y          |
-| float | float | int       | ToInt(x) & ToInt(y)   |
+| float | int   | int       | ToInteger(x) & y      |
+| float | float | int       | ToInteger(x) & ToInteger(y) |
 | float | str   | int       | _See below_           |
 | str   | int   | str       | _See below_           |
 | str   | float | str       | _See below_           |
@@ -73,8 +73,8 @@ def poly_bit_or(x: Any, *args) -> Any:
 | int   | float | int       | x | y                 |
 | int   | str   | int       | _See below_           |
 | _any_ | list  | list      | distributive          |
-| float | int   | int       | ToInt(x) | y          |
-| float | float | int       | ToInt(x) | ToInt(y)   |
+| float | int   | int       | ToInteger(x) | y      |
+| float | float | int       | ToInteger(x) | ToInteger(y) |
 | float | str   | int       | _See below_           |
 | str   | int   | str       | _See below_           |
 | str   | float | str       | _See below_           |
@@ -114,8 +114,8 @@ def poly_bit_xor(x: Any, *args) -> Any:
 | int   | float | int       | x ^ y                 |
 | int   | str   | int       | _See below_           |
 | _any_ | list  | list      | distributive          |
-| float | int   | int       | ToInt(x) ^ y          |
-| float | float | int       | ToInt(x) ^ ToInt(y)   |
+| float | int   | int       | ToInteger(x) ^ y      |
+| float | float | int       | ToInteger(x) ^ ToInteger(y) |
 | float | str   | int       | _See below_           |
 | str   | int   | str       | _See below_           |
 | str   | float | str       | _See below_           |
@@ -586,7 +586,7 @@ If a single bit is being extracted, it is better to use `TestBit()`.
 None.ExtractBits(0, 1) → None
 0xEE55.ExtractBits(15, 8).ToHex() → 0xee
 0xEE55.ExtractBits(7, 8).ToHex() → 0x55
-Ord("123").ExtractBits(3, 4).ToInt() → [1, 2, 3]
+Ord("123").ExtractBits(3, 4).ToInteger() → [1, 2, 3]
 {"a": 5}.ExtractBits(3, 4) → {"a": 5}
 ```
 

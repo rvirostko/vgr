@@ -3,7 +3,7 @@
 
 # We only need to do this once...
 Declare _vgr_version Global
-Set _vgr_version To vgr.version.Split(".").ToInt()
+Set _vgr_version To vgr.version.Split(".").ToInteger()
 
 #-------------------------------------------------------------------------------
 # RequiresVersion() - Assert a specific version of VGR is being used
@@ -21,8 +21,8 @@ Set _vgr_version To vgr.version.Split(".").ToInt()
 Define Function RequiresVersion(version, type_check):
     # Validate and convert the arguments
     Assert version Is None Or version.IsString() : "version argument must be a string"
-    Assert type_check Is None Or type_check.IsString() "type_check arguments must be a string"
-    Set version To version.Strip().DefaultTo("1.1.0").Split(".").ToInt()
+    Assert type_check.IsNone() Or type_check.IsString() : "type_check arguments must be a string"
+    Set version To version.Strip().DefaultTo("1.1.0").Split(".").ToInteger()
     Set type_check To type_check.Strip().Lower().DefaultTo("gte")
     # Determine the comparison type
     Choose Using type_check:

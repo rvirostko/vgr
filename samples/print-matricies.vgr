@@ -55,8 +55,8 @@ End
 Define Function print_matricies(operations, matrix_min, matrix_max):
     Assert operations.IsDictionary()
     Assert operations.Length() > 0 : "No operations defined"
-    matrix_min = matrix_min.ToInt().DefaultTo(0).Clamp(0, 99)
-    matrix_max = matrix_max.ToInt().DefaultTo(9).Clamp(matrix_min, 99)
+    matrix_min = matrix_min.ToInteger().DefaultTo(0).Clamp(0, 99)
+    matrix_max = matrix_max.ToInteger().DefaultTo(9).Clamp(matrix_min, 99)
     ForEach item in operations:
         # operations is dictionary, so ForEach returns a key-value pair for each item
         Set op_name To item.FirstItem()
@@ -76,7 +76,7 @@ Define Function print_matricies(operations, matrix_min, matrix_max):
             For y = matrix_min To matrix_max:
                 Set rc = @op_func(x, y)
                 If rc.IsFinite():
-                    Printf "{:>2d} ", rc.ToInt()
+                    Printf "{:>2d} ", rc.ToInteger()
                 Else:
                     Printf " - "
                 End

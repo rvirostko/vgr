@@ -24,12 +24,12 @@ None.IsTrue() → False
 "".IsTrue() → True
 "x".IsTrue() → True
 "false".IsTrue() → True
-"false".ToBool().IsTrue() → False
+"false".ToBoolean().IsTrue() → False
 True.IsTrue() → True
 False.IsTrue() → False
 ```
 
-Also see `ToBool()`
+Also see `ToBoolean()`
 """
     if x is None: return False
     if isinstance(x, (int, float)): return bool(x)
@@ -61,7 +61,7 @@ True.IsFalse() → False
 False.IsFalse() → True
 ```
 
-Also see `ToBool()`
+Also see `ToBoolean()`
 """
     if x is None: return True
     if isinstance(x, (int, float)): return not bool(x)

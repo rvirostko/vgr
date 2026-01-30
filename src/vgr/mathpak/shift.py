@@ -30,14 +30,14 @@ integers to perform the operation.
 | x     | y     | returns | operation            |
 |-------|-------|---------|----------------------|
 | int   | int   | int     | x << y               |
-| int   | float | int     | x << ToInt(y)        |
-| int   | str   | int     | x << ToInt(y)        |
-| float | int   | int     | ToInt(x) << y        |
-| float | float | int     | ToInt(x) << y        |
-| float | str   | int     | ToInt(x) << ToInt(y) |
-| str   | int   | int     | ToInt(x) << y        |
-| str   | float | int     | ToInt(x) << y        |
-| str   | str   | int     | ToInt(x) << ToInt(y) |
+| int   | float | int     | x << ToInteger(y)    |
+| int   | str   | int     | x << ToInteger(y)    |
+| float | int   | int     | ToInteger(x) << y    |
+| float | float | int     | ToInteger(x) << y    |
+| float | str   | int     | ToInteger(x) << ToInteger(y) |
+| str   | int   | int     | ToInteger(x) << y    |
+| str   | float | int     | ToInteger(x) << y    |
+| str   | str   | int     | ToInteger(x) << ToInteger(y) |
 | list  | int   | list    | distributed          |
 | list  | float | list    | distributed          |
 | list  | str   | list    | distributed          |
@@ -72,14 +72,14 @@ integers to perform the operation.
 | x     | y     | returns | operation            |
 |-------|-------|---------|----------------------|
 | int   | int   | int     | x >> y               |
-| int   | float | int     | x >> ToInt(y)        |
-| int   | str   | int     | x >> ToInt(y)        |
-| float | int   | int     | ToInt(x) >> y        |
-| float | float | int     | ToInt(x) >> ToInt(y) |
-| float | str   | int     | ToInt(x) >> ToInt(y) |
-| str   | int   | int     | ToInt(x) >> y        |
-| str   | float | int     | ToInt(x) >> ToInt(y) |
-| str   | str   | int     | ToInt(x) >> ToInt(y) |
+| int   | float | int     | x >> ToInteger(y)    |
+| int   | str   | int     | x >> ToInteger(y)    |
+| float | int   | int     | ToInteger(x) >> y    |
+| float | float | int     | ToInteger(x) >> ToInteger(y) |
+| float | str   | int     | ToInteger(x) >> ToInteger(y) |
+| str   | int   | int     | ToInteger(x) >> y    |
+| str   | float | int     | ToInteger(x) >> ToInteger(y) |
+| str   | str   | int     | ToInteger(x) >> ToInteger(y) |
 | list  | int   | list    | distributed          |
 | list  | float | list    | distributed          |
 | list  | str   | list    | distributed          |

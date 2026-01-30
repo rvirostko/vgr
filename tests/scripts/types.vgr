@@ -1,22 +1,48 @@
 
 Set f(x) -> x
+Set p To CompilePattern("x")
 
 Assert None.Type() Is "none"
 Assert "hello".Type() Is "string"
+Assert True.Type() Is "boolean"
 Assert 1.Type() Is "integer"
 Assert 1.0.Type() Is "float"
 Assert [].Type() Is "list"
 Assert {}.Type() Is "dictionary"
-Assert CompilePattern("x").Type() Is "pattern"
+Assert p.Type() Is "pattern"
 Assert f.Type() Is "function"
 
 Assert None.IsNone()
+Assert 0.IsNone() Is False
 Assert None.IsNotNone() Is False
+Assert 0.IsNotNone()
+
 Assert "x".IsString()
+Assert True.IsBoolean()
 Assert 1.IsInteger()
 Assert 1.0.IsFloat()
 Assert 1.IsNumber() And 1.0.IsNumber()
 Assert [].IsList()
 Assert {}.IsDictionary()
-Assert CompilePattern("x").IsPattern()
+Assert p.IsPattern()
 Assert f.IsFunction()
+
+Assert False.IsFalse()
+Assert False.IsTrue() Is False
+Assert True.IsTrue()
+Assert True.IsFalse() Is False
+
+Assert 5.IsNumber()
+Assert 5.0.IsNumber()
+Assert True.IsNumber() Is False
+
+Assert Inf.IsInf()
+Assert 0.IsInf() Is False
+Assert Inf.IsFinite() Is False
+
+Assert Nan.IsNan()
+Assert 0.IsNan() Is False
+
+Assert 0.IsZero()
+Assert Zero.IsZero()
+Assert 1.IsZero() Is False

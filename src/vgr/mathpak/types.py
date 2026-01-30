@@ -35,8 +35,8 @@ def poly_bool(x: Any) -> Any:
     """
 **Converts the value to a boolean**
 
-* ToBool(_value_)
-* _value_.ToBool()
+* ToBoolean(_value_)
+* _value_.ToBoolean()
 
 If _value_ is _None_ then _False_ is returned.
 Numbers that are zero return _False_ while all others return _True_.
@@ -76,8 +76,8 @@ def poly_isbool(x: Any) -> bool:
     """
 **Returns _True_ if the value is a boolean**
 
-* IsBool(_value_)
-* _value_.IsBool()
+* IsBoolean(_value_)
+* _value_.IsBoolean()
 
 ```vgr
 **TODO**
@@ -129,7 +129,7 @@ def poly_isfloat(x: Any) -> bool:
 **TODO**
 ```
 
-Also see `Type()`, `IsBool()`, `IsInteger()`, `IsNumber()`, and `IsString()`
+Also see `Type()`, `IsBoolean()`, `IsInteger()`, `IsNumber()`, and `IsString()`
 """
     return isinstance(x, float)
 
@@ -137,10 +137,10 @@ def poly_int(x: Any, default: Any = _SENTINEL) -> Any:
     """
 **Converts the value to an integer**
 
-* ToInt(_value_)
-* ToInt(_value_, _default_)
-* _value_.ToInt()
-* _value_.ToInt(_default_)
+* ToInteger(_value_)
+* ToInteger(_value_, _default_)
+* _value_.ToInteger()
+* _value_.ToInteger(_default_)
 
 If _value_ is _None_ or is a non-convertable type then _None_ is returned.
 Strings that cannot be converted may result in a value error.
@@ -172,7 +172,7 @@ def poly_isint(x: Any) -> bool:
 **TODO**
 ```
 
-Also see `Type()`, `IsBool()`, `IsFloat()`, `IsNumber()`, and `IsString()`
+Also see `Type()`, `IsBoolean()`, `IsFloat()`, `IsNumber()`, and `IsString()`
 """
     return isinstance(x, int)
 
@@ -194,7 +194,7 @@ to a number. It can be any value, including _None_.
 **TODO**
 ```
 
-Also see `ToInt()` and `ToFloat()`
+Also see `ToInteger()` and `ToFloat()`
 """
     if poly_isnumber(x): return x
     if poly_isstr(x):
@@ -213,15 +213,16 @@ def poly_isnumber(x: Any) -> bool:
 * IsNumber(_value_)
 * _value_.IsNumber()
 
-Only _float_ and _int_ items are considered numbers.
+Only _float_ and _int_ items are considered numbers, although booleans
+can be converted to numbers.
 
 ```vgr
 **TODO**
 ```
 
-Also see `Type()`, `IsBool()`, `IsInteger()`, `IsFloat()`, and `IsString()`
+Also see `Type()`, `IsBoolean()`, `IsInteger()`, `IsFloat()`, and `IsString()`
 """
-    return isinstance(x, (int, float))
+    return not isinstance(x, bool) and isinstance(x, (int, float))
 
 def poly_sign(x: Any) -> Any:
     """

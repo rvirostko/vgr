@@ -1382,7 +1382,7 @@ None.Join() → ""
 ["a", "b"].Join(", ") → "a, b"
 ["a", ["b", "c"]].Join("-") → "a-b-c"
 1234.Join(0) → "1234"
-123.ToString().Ord().Chr().Join(0).ToInt() → 10203
+123.ToString().Ord().Chr().Join(0).ToInteger() → 10203
 ```
 
 Also see `Split()` and `RSplit()`

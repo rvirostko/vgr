@@ -66,12 +66,12 @@ Set HPART To [ SPACE * 3, C.hbar * 3 ]
 Set LCORNER To [ SPACE, SPACE, SPACE, C.bl, SPACE, C.tl, C.vbar, C.lt ]
 Set RCORNER To [ SPACE, SPACE, SPACE, C.br, SPACE, C.tr, C.vbar, C.rt ]
 
-Set vpart(n, lmask, rmask) -> VPART.Item(n.BitAnd(lmask).ToBool() + n.BitAnd(rmask).ToBool().LeftShift(1))
-Set hpart(n, mask) -> HPART.Item((n.BitAnd(mask).ToBool()))
+Set vpart(n, lmask, rmask) -> VPART.Item(n.BitAnd(lmask).ToBoolean() + n.BitAnd(rmask).ToBoolean().LeftShift(1))
+Set hpart(n, mask) -> HPART.Item((n.BitAnd(mask).ToBoolean()))
 Set cpart(n, pmask, umask, dmask, chars) ->
-    chars.Item(n.BitAnd(pmask).ToBool() +
-    n.BitAnd(umask).ToBool().LeftShift(1) +
-    n.BitAnd(dmask).ToBool().LeftShift(2))
+    chars.Item(n.BitAnd(pmask).ToBoolean() +
+    n.BitAnd(umask).ToBoolean().LeftShift(1) +
+    n.BitAnd(dmask).ToBoolean().LeftShift(2))
 
 # Converts the segments into an array of strings
 Define Function render_7seg(n):

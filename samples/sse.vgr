@@ -26,16 +26,16 @@ For scene = 0 To loops:
     # We recalc line on every scene in case for when the window is resized
     Term GetTermSize
     Assert term.size is not None: "Can't determine screen size"
-    Set line To ((term.size.rows - sse.Length()) / 3).ToInt()
+    Set line To ((term.size.rows - sse.Length()) / 3).ToInteger()
     If scene > 0:
         # Flip the art
         Set sse To sse.StrRev().TranslateStr("/\\'`", "\\/`'")
         # Increase speed, but limit it
-        Set fps = (fps * (5/4)).Min(600).ToInt().Round(-1)
+        Set fps = (fps * (5/4)).Min(600).ToInteger().Round(-1)
         # Pause for six frames
         Sleep 1 / (fps / 6) Second
     End
-    Term Home, Print "Delay: 1/{}s".Format(fps.ToInt()), EraseEOS
+    Term Home, Print "Delay: 1/{}s".Format(fps.ToInteger()), EraseEOS
     If scene.Mod(2):
         # Right-to-Left movement
         For frame = 1 To (sse.FirstItem().Length() + term.size.cols):

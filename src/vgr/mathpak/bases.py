@@ -247,7 +247,7 @@ None.Base64Decode() → None
 5.1.Base64Decode() → 5.1
 "SGVsbG8=".Base64Decode() → "Hello"
 "\\tSGVsbG8=\\n".Base64Decode() → "Hello"
-["MQ==", "MA=="].Base64Decode().ToBool() → [True, False]
+["MQ==", "MA=="].Base64Decode().ToBoolean() → [True, False]
 ```
 
 Also see `Base64Encode()`
@@ -309,7 +309,7 @@ None.HexDecode() → None
 5.1.HexDecode() → 5.1
 "48656c6c6f".HexDecode() → "Hello"
 "\\t48656c6c6f\\n".HexDecode() → "Hello"
-["31", "30"].HexDecode().ToBool() → [True, False]
+["31", "30"].HexDecode().ToBoolean() → [True, False]
 ```
 
 Also see `HexEncode()`
