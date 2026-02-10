@@ -89,8 +89,10 @@ def search_entries(entries: dict, query: str="", limit: int = 10) -> list[tuple[
         key: Canonical name, value: (implementing function, name normalized, documentation normalized)
 
     """
+    def norm_key(k: str) -> str:
+        return re.sub(r'\s+', ' ', k.strip().replace('-', ' ').casefold())
     if not entries: return []
-    q = query.strip().replace('_', '').casefold().removesuffix("()").removesuffix("(")
+    q = query.strip().casefold().removesuffix("()").removesuffix("(")
     tokens = q.split()
     scores = {}
     for name, (_, name_norm, doc_norm) in entries.items():
@@ -109,7 +111,7 @@ def search_entries(entries: dict, query: str="", limit: int = 10) -> list[tuple[
     filtered_matches.sort(key=lambda x: -x[1])
     # If the query is an "exact" match, return only that entry
     top_name = filtered_matches[0][0] if filtered_matches else None
-    if top_name and top_name.casefold().replace('_', '').replace(' ', '') == q:
+    if top_name and norm_key(top_name) == norm_key(q):
         return [(top_name, entries[top_name][0])]
     # Otherwise, convert the filtered matches into an array and return
     # references that are unique by function
@@ -125,26 +127,12 @@ def unique_by_func(entries: list, limit: int=None) -> list:
             if limit and len(rc) >= limit: break
     return rc
 
-_NBSP = "\u00A0"
-_REPLACER = re.compile(r"[.]{3}|[ \t]*<br>[ \t]*\n|<sp>|<en>|<em>", re.IGNORECASE)
-_EN = _NBSP * 2
-_EM = _NBSP * 4
-_ELLIPSIS = "…"
-
-def _text_replace(match):
-    tag = match.group(0).lower()
-    if tag == "...": return _ELLIPSIS
-    if tag == "<sp>": return _NBSP
-    if tag == "<en>": return _EN
-    if tag == "<em>": return _EM
-    return '  \n'
-
 class MdLexerState:
     lexer: "VgrLexer" = None
 
 _STATE = MdLexerState()
 
-def create_md_lexer(parser: Lark) -> None:
+def create_md_lexer(_parser: Lark) -> None:
     # TODO future : figure out how to get
     # dynamic values into that class: they
     # way that you think would work doesn't
@@ -164,7 +152,6 @@ def print_doc(func: Callable) -> None:
     console.print("")
 
 def _print(console: Console, s: str) -> None:
-    s = _REPLACER.sub(_text_replace, s)
     last_pos = 0
     for match in _VGR_CODE_BLOCK_PATTERN.finditer(s):
         start, end = match.span()
