@@ -15,6 +15,7 @@ from .app_exceptions import (
     VgrExitingException,
     VgrStatementAssert,
 )
+from .auto_doc import gen_auto_docs
 from .data_dict import DataDictionary
 from .dd_config import (
     dd_init,
@@ -195,31 +196,31 @@ For example **help Add** with return informtion for `Add()` while
                     print_md('_Use **help topics** to list topics_')
                     print()
 
-    def _print_statement_help(self, topic: str, q: str) -> None:
+    def _print_statement_help(self, _topic: str, q: str) -> None:
         results = self._get_statement_help(q) if q else self._all_help(get_statement_entries())
         self._display_statement_help(q, results)
 
-    def _print_function_help(self, topic: str, q: str) -> None:
+    def _print_function_help(self, _topic: str, q: str) -> None:
         results = self._get_function_help(q) if q else self._all_help(get_function_entries())
         self._display_function_help(q, results)
 
-    def _print_operator_help(self, topic: str, q: str) -> None:
+    def _print_operator_help(self, _topic: str, q: str) -> None:
         results = self._get_operator_help(q) if q else self._all_help(get_operator_entries())
         self._display_operator_help(q, results)
 
-    def _print_version(self, topic: str, q: str) -> None:
+    def _print_version(self, _topic: str, _q: str) -> None:
         print_md(f'**{__version__} {__version_date__}**')
 
     def _all_help(self, entries: list) -> list:
         return unique_by_func([(name, entries[name][0]) for name in sorted(entries.keys())])
 
-    def _get_operator_help(self, q) -> list:
+    def _get_operator_help(self, q: str) -> list:
         return search_entries(get_operator_entries(), q)
 
-    def _get_statement_help(self, q) -> list:
+    def _get_statement_help(self, q: str) -> list:
         return search_entries(get_statement_entries(), q)
 
-    def _get_function_help(self, q) -> list:
+    def _get_function_help(self, q: str) -> list:
         return search_entries(get_function_entries(), q)
 
     def _display_operator_help(self, q, results) -> None:
@@ -370,6 +371,8 @@ Environment variables:
                     help='Logging level (debug, info, warning, error, critical)')
     clp.add_argument('--logoverwrite', action='store_true',
                     help='Overwrite log file instead of appending')
+    clp.add_argument('--gen-doc', action='store_true',
+                     help='Generate documentation')
     clp.add_argument('--gen-vsc-extn', action='store_true',
                      help='Generate a VSCode extension for syntax highlighting')
     clp.add_argument('args', nargs='*', metavar='arg',
@@ -387,11 +390,11 @@ Environment variables:
     extensions = load_extensions(dd, args.verbose)
     parser = create_parser(extensions, args.debug, args.verbose)
 
-    if args.gen_vsc_extn:
-        create_vscode_extension(keyword_pattern(parser), function_names_pattern())
-        sys.exit(VgrExitingException.EXIT_SUCCESS)
-    create_md_lexer(parser)
+    if args.gen_doc: gen_auto_docs()
+    if args.gen_vsc_extn: create_vscode_extension(keyword_pattern(parser), function_names_pattern())
+    if args.gen_doc or args.gen_vsc_extn: sys.exit(VgrExitingException.EXIT_SUCCESS)
 
+    create_md_lexer(parser)
     ctx = create_exec_context(parser, dd)
     ctx.debug = args.debug
     ctx.verbose = args.verbose
