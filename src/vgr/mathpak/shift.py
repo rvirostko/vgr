@@ -20,11 +20,11 @@ def poly_shl(x: Any, *args) -> Any:
     """
 **Bitwise Shift Left operation**
 
-* _x_ << _y_
-* LeftShift(_x_, _y_...)
-* _x_.LeftShift(_y_...)
+* *x* << *y*
+* LeftShift(*x*, *y*&hellip;)
+* *x*.LeftShift(*y*&hellip;)
 
-The values of both _x_ and _y_ are converted to
+The values of both *x* and *y* are converted to
 integers to perform the operation.
 
 | x     | y     | returns | operation            |
@@ -42,7 +42,7 @@ integers to perform the operation.
 | list  | float | list    | distributed          |
 | list  | str   | list    | distributed          |
 
-TypeError raised on all other combinations
+A type error is raised on all other combinations
 
 ```vgr
 None << None → None
@@ -62,11 +62,11 @@ def poly_shr(x: Any, *args):
     """
 **Bitwise Shift Right operation**
 
-* _x_ >> _y_
-* RightShift(_x_, _y_...)
-* _x_.RightShift(_y_...)
+* *x* >> *y*
+* RightShift(*x*, *y*&hellip;)
+* *x*.RightShift(*y*&hellip;)
 
-The values of both _x_ and _y_ are converted to
+The values of both *x* and *y* are converted to
 integers to perform the operation.
 
 | x     | y     | returns | operation            |
@@ -84,7 +84,7 @@ integers to perform the operation.
 | list  | float | list    | distributed          |
 | list  | str   | list    | distributed          |
 
-TypeError raised on all other combinations
+A type error is raised on all other combinations
 
 ```vgr
 None >> None → None

@@ -16,14 +16,16 @@ def execute_def_function(ctx: ExecContext, statement: Tree) -> None:
     """
 **Define a function**
 
-* [Define] Function _variable_ [:]<br>
-  <em>_statement_...<br>
+* [Define] Function *variable* [:]\\
+  &emsp;&emsp;_statement_&hellip;\\
   End [;]
-* [Define] Function _variable_(_param_...) [:]<br>
-  <em>_statement_...<br>
+* [Define] Function *variable*(_param_&hellip;) [:]\\
+  &emsp;&emsp;_statement_&hellip;\\
   End [;]
 
-TODO
+```vgr
+**TODO**
+```
 """
     # if count <= 2, then we don't have a list of params, just a name and statements
     count = len(statement.children)
@@ -37,11 +39,13 @@ def execute_call(ctx: ExecContext, statement: Tree) -> None:
     """
 **Invoke a function**
 
-* Call _variable_ [Giving _variable_] [;]
-* Call _variable_ Using _expression_... [Giving _variable_] [;]
-* Call _variable_(_expression_...) [Giving _variable_] [;]
+* Call *variable* [Giving *variable*] [;]
+* Call *variable* Using *expression*&hellip; [Giving *variable*] [;]
+* Call *variable*(*expression*&hellip;) [Giving *variable*] [;]
 
-TODO
+```vgr
+**TODO**
+```
 """
     fn = get_function(ctx, statement.children[0])
     values = [ctx.eval_expr(arg) for arg in statement.children[1:]]

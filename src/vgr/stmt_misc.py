@@ -14,10 +14,15 @@ def execute_sleep(ctx: ExecContext, statement: Tree) -> None:
     """
 **Sleep for a given number of seconds**
 
-* Sleep [For] _expression_ [Second | Seconds] [;]
+* Sleep [For] *expression* [Second | Seconds] [;]
 
 Values may be floating point, e.g. .01 to delay for ten milliseconds.
 Negative and zero values are ignored. Maximum sleep time is five minutes.
+
+```vgr
+**TODO**
+```
+
 """
     n = ctx.eval_to_number(statement.children[0], 'Sleep time')
     n = min(max(n, 0), 300)

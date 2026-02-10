@@ -51,22 +51,22 @@ def execute_accept(ctx: ExecContext, statement: Tree) -> None:
     """
 **Get user input or retrieve date and time values**
 
-* Accept _variable_ [_option_] [;]
-* Accept _variable_ From [Console | Terminal | Stdin | Sysin | Sysinp] [_option_] [;]
-* Accept _variable_ From [Unix] Epoch [;]
-* Accept _variable_ From Date [;]
-* Accept _variable_ From Date YYYYMMDD [;]
-* Accept _variable_ From Day YYYYDDD [;]
-* Accept _variable_ From Day-Of-Week [;]
-* Accept _variable_ From Day [;]
-* Accept _variable_ From Time [;]
-* Accept _variable_ From Timestamp [;]
+* Accept *variable* [*option*] [;]
+* Accept *variable* From [Console | Terminal | Stdin | Sysin | Sysinp] [*option*] [;]
+* Accept *variable* From [Unix] Epoch [;]
+* Accept *variable* From Date [;]
+* Accept *variable* From Date YYYYMMDD [;]
+* Accept *variable* From Day YYYYDDD [;]
+* Accept *variable* From Day-Of-Week [;]
+* Accept *variable* From Day [;]
+* Accept *variable* From Time [;]
+* Accept *variable* From Timestamp [;]
 
-Note that _Timestamp_ and _Epoch_ are aliases, returning the number of seconds
+Note that `Timestamp` and `Epoch` are aliases, returning the number of seconds
 since 1-Jan-1970.
 
 For user input, when at end-of-file (when not interactive) or if the user hits return
-without entering any information, the contents of _variable_ remains
+without entering any information, the contents of *variable* remains
 unchanged. There is no limit on the length of user input, but it is a single line.
 
 Options are
@@ -79,9 +79,7 @@ Accept value         // input displayed
 Accept value Echo    // input displayed
 Accept value No Echo // nothing displayed
 Accept value Secure  // asterisks displayed
-```
 
-```vgr
 Accept value From Date YYYYMMDD
 Print value → "20251003"
 Accept now From Epoch
@@ -107,7 +105,7 @@ Also see `FormatTimestamp()`
         line = line.rstrip('\n') if line else line
         if line: do_set(ctx, line, *var_path)
 
-@bound_ops("Stop-Run")
+@bound_ops("Stop Run")
 def execute_exit(_: ExecContext, statement: Tree) -> None:
     """
 **Terminate execution**
@@ -116,26 +114,30 @@ def execute_exit(_: ExecContext, statement: Tree) -> None:
 
 Ends the program with an exit code of zero.
 
+```vgr
+**TODO**
+```
+
 Also see `Exit`
 """
     raise VgrExitingException(VgrExitingException.EXIT_SUCCESS, statement)
 
 @control_statement
-@bound_ops("Perform-Until")
+@bound_ops("Perform Until")
 def execute_perform_until(ctx: ExecContext, statement: Tree) -> None:
     """
 **Repeatedly execute a block of statements until a condition is reached**
 
-* Perform Until _expression_<br>
-  <em>_statement_...<br>
+* Perform Until *expression*\\
+  &emsp;&emsp;_statement_&hellip;\\
   End-Perform [;]
 
-The block of statements is executed until _expression_ evaluates to True.
+The block of statements is executed until *expression* evaluates to True.
 If a `Break` or `Next Sentence` is encountered, looping ends regardless of the
 expression's value. If `Continue` is encountered, statements
-following it are skipped, and _expression_ is checked again.
+following it are skipped, and *expression* is checked again.
 
-Statements have access to the _$loop_ variable, but only _index_ and _first_.
+Statements have access to the *$loop* variable, but only *index* and _first_.
 
 ```vgr
 Move 0 To counter
@@ -155,23 +157,23 @@ End-Perform
     exec_loop(ctx, statement, False)
 
 @control_statement
-@bound_ops("Perform-Times")
+@bound_ops("Perform Times")
 def execute_perform_times(ctx: ExecContext, statement: Tree) -> None:
     """
 **Execute a block of statements a fixed number of times**
 
-* Perform _expression_ Times<br>
-  <em>_statement_...<br>
+* Perform *expression* Times\\
+  &emsp;&emsp;_statement_&hellip;\\
   End-Perform [;]
 
 The block of statements is executed the given number of times.
-The _expression_ is evaluated and converted to an integer, rounding down.
+The *expression* is evaluated and converted to an integer, rounding down.
 For any statements to execute, the value must be greater than or equal to one.
 If `Break` or `Next Sentence` is encountered, looping ends regardless of the
 expression's value. If `Continue` is encountered, statements
 following it are skipped and looping continues.
 
-Statements have access to the _$loop_ variable, including _index_, _length_, _first_, and _last_.
+Statements have access to the *$loop* variable, including *index*, *length*, _first_, and _last_.
 
 ```vgr
 Move 5 To counter
@@ -190,16 +192,16 @@ Also see `Repeat`
     exec_repeat(ctx, statement)
 
 @control_statement
-@bound_ops("Perform-Varying")
+@bound_ops("Perform Varying")
 def execute_perform_varying(ctx: ExecContext, statement: Tree) -> None:
     """
 **Execute a block of statements while increasing or decreasing a variable's value**
 
-* Perform Varying _variable_ From _expression_ By _expressions_ Until _expression_<br>
-  <em>_statement_...<br>
+* Perform Varying *variable* From *expression* By *expression* Until *expression*\\
+  &emsp;&emsp;_statement_&hellip;\\
   End-Perform [;]
-* Perform With Test [Before | After] Varying _variable_ From _expression_ By _expressions_ Until _expression_<br>
-  <em>_statement_...<br>
+* Perform With Test [Before | After] Varying *variable* From *expression* By *expression* Until *expression*\\
+  &emsp;&emsp;_statement_&hellip;\\
   End-Perform [;]
 
 If a `Break` or `Next Sentence` is encountered, looping ends regardless of the
@@ -208,7 +210,7 @@ following it are skipped and looping continues.
 
 If not specified, the test expression is performed before the block of statements.
 
-Statements have access to the _$loop_ variable, but only _index_ and _first_.
+Statements have access to the *$loop* variable, but only *index* and _first_.
 
 ```vgr
 Perform Varying counter From 0 By 1 Until counter > 5
@@ -233,7 +235,7 @@ End-Perform
 10 {'index': 4, 'first': False}
 ```
 
-Also see `For-Next`
+Also see `For Next`
 """
     # Echo the control portion, not the statements
     ctx.echo_source(statement, statement.children[-1])
@@ -278,8 +280,8 @@ def execute_compute(ctx: ExecContext, statement: Tree) -> None:
     """
 **Evaluate and expression and assign to a variable**
 
-* Compute _variable_ = _expression_ [;]
-* Compute _variable_ Equal _expression_ [;]
+* Compute *variable* = *expression* [;]
+* Compute *variable* Equal *expression* [;]
 
 ```vgr
 Move {"x": 5, "y": 5} To start_pt
@@ -296,7 +298,7 @@ Also see `Set` and `Move`
 """
     execute_set(ctx, statement)
 
-@bound_ops("Next-Sentence")
+@bound_ops("Next Sentence")
 def execute_next_sentence(_: ExecContext, statement: Tree) -> None:
     """
 **Exits the current block of statements**
@@ -305,27 +307,33 @@ def execute_next_sentence(_: ExecContext, statement: Tree) -> None:
 
 Can be used with conditional and looping statements
 
+```vgr
+**TODO**
+```
+
 Also see `Break`
 """
     raise VgrStatementBreak(statement)
 
 @control_statement
-@bound_ops("If-End-If")
+@bound_ops("If End-If")
 def execute_if(ctx: ExecContext, statement: Tree) -> None:
     """
 **Conditionally execute a block of statements**
 
-* If _expression_<br>
-  <em>_statement_...<br>
+* If *expression*\\
+  &emsp;&emsp;_statement_&hellip;\\
   End-If [;]
-* If _expression_<br>
-  <em>_statement_...<br>
-  Else<br>
-  <em>_statement_...<br>
+* If *expression*\\
+  &emsp;&emsp;_statement_&hellip;\\
+  Else\\
+  &emsp;&emsp;_statement_&hellip;\\
   End-If [;]
 
-If _expression_ evaluates to True the first block of statements is executed.
-If it evaluates to _False_, the second block of statements, if provided, is executed.
+COBOL compatiple version of `If Else`
+
+If *expression* evaluates to `True` the first block of statements is executed.
+If it evaluates to `False`, the second block of statements, if provided, is executed.
 
 ```vgr
 Move 5 To a
@@ -343,18 +351,18 @@ End-If
 "b is larger"
 ```
 
-Also see `If-Then`, `Break`, and `Continue`
+Also see `If Else`, `Break`, and `Continue`
 """
     exec_if_else(ctx, statement, True)
 
-@bound_ops("Set-Up")
+@bound_ops("Set Up")
 def execute_inc(ctx: ExecContext, statement: Tree) -> None:
     """
 **Increment a counter by an amount**
 
-* Set _variable_ Up By _expression_ [;]
+* Set *variable* Up By *expression* [;]
 
-If _variable_ does not exist, it is created and initialized to zero.
+If *variable* does not exist, it is created and initialized to zero.
 This is fundamentally an arithmetic, scalar operation.
 
 ```vgr
@@ -370,21 +378,21 @@ End-Perform
 78.125 : 6103.515625
 ```
 
-Also see `Set-Down`
+Also see `Set Down`, `-`, and `Set`
 """
     var_path = get_writable_var_path(ctx, statement.children[0])
     x = poly_number(ctx.get_var(*var_path)) or 0
     y = poly_number(ctx.eval_expr(statement.children[1])) or 0
     do_set(ctx, poly_add(x, y), *var_path)
 
-@bound_ops("Set-Down")
+@bound_ops("Set Down")
 def execute_dec(ctx: ExecContext, statement: Tree) -> None:
     """
 **Deccrement a counter by an amount**
 
-* Set _variable_ Down By _expression_ [;]
+* Set *variable* Down By *expression* [;]
 
-If _variable_ does not exist, it is created and initialized to zero.
+If *variable* does not exist, it is created and initialized to zero.
 This is fundamentally an arithmetic, scalar operation.
 
 ```vgr
@@ -400,7 +408,7 @@ End-Perform
 0.625 : 0.390625
 ```
 
-Also see `Set-Up`
+Also see `Set Up`, `+`, and `Set`
 """
     var_path = get_writable_var_path(ctx, statement.children[0])
     x = poly_number(ctx.get_var(*var_path)) or 0
@@ -412,15 +420,15 @@ def execute_move_to(ctx: ExecContext, statement: Tree) -> None:
     """
 **Assign a value to a variable**
 
-* Move _expression_ To _variable_ [;]
-* Move Corresponding _expression_ To _variable_ [;]
-* Move Corr _expression_ To _variable_ [;]
+* Move *expression* To *variable* [;]
+* Move Corresponding *expression* To *variable* [;]
+* Move Corr *expression* To *variable* [;]
 
 The first form is equivalent to `Set`.
 The second and third forms work with dictionaries, copying attribute from the
-evaluated _expression_ to _variable_. If _variable_ does not exist,
-is _None_ or not a dictionary, a regular move is performed.
-If _expression_ does not resolve to a dictionary, the corresponding
+evaluated *expression* to *variable*. If *variable* does not exist,
+is `None` or not a dictionary, a regular move is performed.
+If *expression* does not resolve to a dictionary, the corresponding
 request is ignored and a regular move is performed.
 
 ```vgr
@@ -439,7 +447,7 @@ a.y = 2
 a.z = 3
 ```
 
-Also see `Add()` for combining dictionaries
+Also see `Set` and `Add()` for combining dictionaries
 """
     corresponding = False
     start = 0
@@ -469,10 +477,10 @@ def execute_add_to(ctx: ExecContext, statement: Tree) -> None:
     """
 **Add one or more values to a variable**
 
-* Add _expression_... To _variable_ [End-Add] [;]
-* Add _expression_... To _expression_ Giving _variable_ [End-Add] [;]
+* Add *expression*&hellip; To *variable* [End-Add] [;]
+* Add *expression*&hellip; To *expression* Giving *variable* [End-Add] [;]
 
-If _variable_ does not exist, it is created and initialized to zero.
+If *variable* does not exist, it is created and initialized to zero.
 This is fundamentally an arithmetic, scalar operation.
 
 ```vgr
@@ -494,7 +502,7 @@ c = 17
 d = 29
 ```
 
-Also see `Add()` and `Sum()`
+Also see `Add()` and `Sum()`, `+`, and `Set`
 """
     var_path = get_writable_var_path(ctx, statement.children[-1])
     x = poly_number(ctx.get_var(*var_path)) or 0
@@ -512,10 +520,10 @@ def execute_sub_from(ctx: ExecContext, statement: Tree) -> None:
     """
 **Subtract one or more values from a variable**
 
-* Subtract _expression_... From _variable_ [;]
-* Subtract _expression_... From _expression_ Giving _variable_ [;]
+* Subtract *expression*&hellip; From *variable* [;]
+* Subtract *expression*&hellip; From *expression* Giving *variable* [;]
 
-If _variable_ does not exist, it is created and initialized to zero.
+If *variable* does not exist, it is created and initialized to zero.
 This is fundamentally an arithmetic, scalar operation.
 
 ```vgr
@@ -537,7 +545,7 @@ c = 13
 d = 1
 ```
 
-Also see `Sub()`
+Also see `Sub()`, `-`, and `Set`
 """
     var_path = get_writable_var_path(ctx, statement.children[-1])
     x = poly_number(ctx.get_var(*var_path)) or 0
@@ -555,13 +563,13 @@ def execute_mul_by(ctx: ExecContext, statement: Tree) -> None:
     """
 **Multiply one number by another**
 
-* Multiply _expression_ By _variable_ [;]
-* Multiply _expression_ By _expression_ Giving _variable_ [;]
+* Multiply *expression* By *variable* [;]
+* Multiply *expression* By *expression* Giving *variable* [;]
 
-In the first form, _variable_ is multiplied by the results of _expression_.
-In the second, the result of the multiplication is placed into _variable_.
+In the first form, *variable* is multiplied by the results of *expression*.
+In the second, the result of the multiplication is placed into *variable*.
 
-In either case, if _variable_ does not exist, it is created and initialized to zero.
+In either case, if *variable* does not exist, it is created and initialized to zero.
 This is fundamentally an arithmetic, scalar operation.
 
 ```vgr
@@ -579,7 +587,7 @@ c = 55
 d = 385
 ```
 
-Also see `Mul()`
+Also see `Mul()`, `*`, and `Set`
 """
     var_path = get_writable_var_path(ctx, statement.children[-1])
     args = tuple(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
@@ -594,14 +602,14 @@ def execute_div_into(ctx: ExecContext, statement: Tree) -> None:
     """
 **Divide one number by another**
 
-* Divide _expression_ Into _variable_ [;]
-* Divide _expression_ Into _expression_ Giving _variable_ [;]
-* Divide _expression_ By _expression_ Giving _variable_ [;]
+* Divide *expression* Into *variable* [;]
+* Divide *expression* Into *expression* Giving *variable* [;]
+* Divide *expression* By *expression* Giving *variable* [;]
 
-In the first form _variable_ is divided by the results of _expression_.
-In the other forms the result of the division is placed into _variable_.
+In the first form *variable* is divided by the results of *expression*.
+In the other forms the result of the division is placed into *variable*.
 
-In either case, if _variable_ does not exist, it is created and initialized to zero.
+In either case, if *variable* does not exist, it is created and initialized to zero.
 This is fundamentally an arithmetic, scalar operation.
 
 ```vgr
@@ -622,7 +630,7 @@ Exhibit c
 c = 1.25
 ```
 
-Also see `Div()`
+Also see `Div()`, `/`, and `Set`
 """
     var_path = get_writable_var_path(ctx, statement.children[-1])
     args = tuple(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
@@ -643,22 +651,22 @@ def execute_string(ctx: ExecContext, statement: Tree) -> None:
     """
 **Concatenate strings**
 
-* String _value_... Into _variable_ [;]
-* String<br>
-  <em>_value_ Delimited By Size<br>
-  <em>_value_ Delimited By _delimiter_<br>
-  <em>Into _variable_<br>
+* String *value*&hellip; Into *variable* [;]
+* String\\
+  &emsp;&emsp;*value* Delimited By Size\\
+  &emsp;&emsp;*value* Delimited By _delimiter_\\
+  &emsp;&emsp;Into *variable*\\
   End-String [;]
 
-All _value_ arguments may be constants or expressions that yield a string,
-integer, or float. If a _value_ is _None_ it is ignored.
+All *value* arguments may be constants or expressions that yield a string,
+integer, or float. If a *value* is `None` it is ignored.
 
-If _variable_ does not exist it is created. If it already exists, its
+If *variable* does not exist it is created. If it already exists, its
 value is overwritten.
 
-By default the entirety of each _value_ is added to the result.
+By default the entirety of each *value* is added to the result.
 If a delimiter is specified, as in the second form of the syntax, the part of
-the value to the left of _delimiter_ is used. If _value_ does not contain the
+the value to the left of _delimiter_ is used. If *value* does not contain the
 delimiter string, it is added in its entirety. The search for _delimiter_
 uses the same rules as `FindStr()`.
 
@@ -711,7 +719,7 @@ def execute_exhibit(ctx: ExecContext, statement: Tree) -> None:
 **Display the names and values of variables**
 
 * Exhibit * [;]
-* Exhibit _variable_... [;]
+* Exhibit *variable*&hellip; [;]
 
 `Exhibit` is not typically used in scripts, but is useful for debugging
 and for working in the REPL.
@@ -719,7 +727,7 @@ and for working in the REPL.
 The values are displayed on individual lines. If a variable has sub-values, each
 portion is displayed on its own line.
 
-With a single argument of _*_ all variables are displayed.
+With a single argument of *\\** all variables are displayed.
 
 Unlike `Display` et al, the values display are the _representation_ of the data, not
 its printable value. This lets you diferentiate between an integer and a string, and
@@ -769,12 +777,12 @@ Also see `Display`, `Print`, `Printf`, and `Repr()`
 @bound_ops("Display")
 def execute_display_on(ctx: ExecContext, statement: Tree) -> None:
     """
-**Print values to either the output (stdout) or error (stderr) streams**
+**Print values to either the output or error streams**
 
-* Display _expression_... [_option_]... [;]
+* Display *expression*&hellip; [*option*]&hellip; [;]
 
 The default is to print to the output stream.
-While similar to `Print`, `Display` does not use _env.OFS_ or _env.ORS_, instead
+While similar to `Print`, `Display` does not use *env.OFS* or *env.ORS*, instead
 it defaults to no separator between items and always ending with a newline.
 
 *Options*
@@ -794,7 +802,7 @@ Display Greeting Whom
 HelloWorld
 ```
 
-Also see `Print`, `Printf`, and `Exhibit`
+Also see `Print`, `Printf`, and `Exhibit`, as well as `Open` and `Close`
 """
     dest_stdout = True
     ender = None
@@ -833,13 +841,13 @@ def execute_evaluate(ctx: ExecContext, statement: Tree) -> None:
     """
 **Choose from a set of statements based on a value**
 
-* Evaluate _expression_<br>
-  <em>When [Not] _expression_ _statement_...<br>
-  <em>When [Not] _expression_ [Through | Thru] _expression_ _statement_...<br>
-  <em>When Other _statement_...<br>
+* Evaluate *expression*\\
+  &emsp;&emsp;When [Not] *expression* _statement_&hellip;\\
+  &emsp;&emsp;When [Not] *expression* [Through | Thru] *expression* _statement_&hellip;\\
+  &emsp;&emsp;When Other _statement_&hellip;\\
   End-Evaluate [;]
 
-The _expression_ in the statement is evaluated and it becomes the
+The *expression* in the statement is evaluated and it becomes the
 _desired value_ which is compared against values in `When` clauses.
 The `Other` clause is executed if no `When`s match. Its use is optional.
 
@@ -854,7 +862,6 @@ cause, and that at least one other `When` must be specified.
 
 In addition to `Next Sentence`, `Break` and `Continue` can be used within blocks of statements.
 
-**Examples**
 ```vgr
 Move time.today.month To month
 Evaluate month
@@ -880,7 +887,7 @@ Evaluate True
 End-Evaluate
 ```
 
-Also see `Choose` and `Choose-Using`
+Also see `Choose` and `Choose Using`
 """
     ctx.echo_source(statement, statement.children[1])
     statement_children = iter(statement.children)

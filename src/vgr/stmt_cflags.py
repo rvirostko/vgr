@@ -18,11 +18,16 @@ def execute_echo(ctx: ExecContext, statement: Tree) -> None:
 
 * Echo;
 * Echo [On | Off] [;]
-* Echo _expression_ [;]
+* Echo *expression* [;]
 
 Without arguments, statement echoing is turned on.
 When on, statements are echoed before execution
 Note that this command itself never echoes itself.
+
+```vgr
+**TODO**
+```
+
 """
     ctx.echo = _flag_value(ctx, bind_operations(statement), 'Echo')
     ctx.print_verbose('Echo =', ctx.echo)
@@ -34,10 +39,15 @@ def execute_debug(ctx: ExecContext, statement: Tree) -> None:
 
 * Debug;
 * Debug [On | Off] [;]
-* Debug _expression_ [;]
+* Debug *expression* [;]
 
 Without arguments, debug is turned on.
 When on, additional technical output is generated.
+
+```vgr
+**TODO**
+```
+
 """
     ctx.debug = _flag_value(ctx, statement, 'Debug')
     ctx.print_verbose('Debug =', ctx.debug)
@@ -49,10 +59,15 @@ def execute_verbose(ctx: ExecContext, statement: Tree) -> None:
 
 * Verbose;
 * Verbose [On | Off] [;]
-* Verbose _expression_ [;]
+* Verbose *expression* [;]
 
 Without arguments, verbose is turned on.
 When on, additional operational output is generated.
+
+```vgr
+**TODO**
+```
+
 """
     o_verbose = ctx.verbose
     ctx.verbose = _flag_value(ctx, statement, 'Verbose')

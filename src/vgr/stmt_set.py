@@ -86,27 +86,26 @@ def execute_set(ctx: ExecContext, statement: Tree) -> None:
     """
 **Assign a value to a variable or modify a variable's existing value**
 
-* Set _variable_ [= | To] _expression_ [;]
-* Set _variable_ [= | To] (_arg_...) -> _expression_ _Arrow_ _Function_
-* Set _variable_ [= | To] (_arg_...) -> Compile(_expression_) _Dynamic_ _Arrow_ _Function_
-* Set _variable_ += _expression_ [;] _Addition_
-* Set _variable_ -= _expression_ [;] _Subtraction_
-* Set _variable_ *= _expression_ [;] _Multiplication_
-* Set _variable_ /= _expression_ [;] _Division_
-* Set _variable_ %= _expression_ [;] _Modulo_
-* Set _variable_ **= _expression_ [;] _Power_
-* Set _variable_ &= _expression_ [;] _Bit And_
-* Set _variable_ |= _expression_ [;] _Bit Or_
-* Set _variable_ ^= _expression_ [;] _Bit Xor_
-* Set _variable_ <<= _expression_ [;] _Bit Shift Left_
-* Set _variable_ >>= _expression_ [;] _Bit Shift Right_
+* Set *variable* [= | To] *expression* [;]
+* Set *variable* [= | To] (*arg*&hellip;) -> *expression* _Arrow_ _Function_
+* Set *variable* [= | To] (*arg*&hellip;) -> Compile(*expression*) _Dynamic_ _Arrow_ _Function_
+* Set *variable* += *expression* [;] _Addition_
+* Set *variable* -= *expression* [;] _Subtraction_
+* Set *variable* *= *expression* [;] _Multiplication_
+* Set *variable* /= *expression* [;] _Division_
+* Set *variable* %= *expression* [;] _Modulo_
+* Set *variable* **= *expression* [;] _Power_
+* Set *variable* &= *expression* [;] _Bit And_
+* Set *variable* |= *expression* [;] _Bit Or_
+* Set *variable* ^= *expression* [;] _Bit Xor_
+* Set *variable* <<= *expression* [;] _Bit Shift Left_
+* Set *variable* >>= *expression* [;] _Bit Shift Right_
 
 Arrow Functions may define zero or more arguments, but unlike those
 defined with `Function` are composed entirely in an expression.
 
 When `+=` is used with two lists, the lists are concatenated.
 
-**Examples**
 ```vgr
 Set a To 5
 Set b To 3
@@ -157,7 +156,13 @@ def execute_unset(ctx: ExecContext, statement: Tree) -> None:
     """
 **Remove a variable**
 
-* Unset _variable_ [, _variable_]... [;]
+* Unset *variable* [, *variable*]&hellip; [;]
+
+```vgr
+**TODO**
+```
+
+Also see `Set` and `Reset`
 """
     for child in statement.children:
         do_unset(ctx, *get_writable_var_path(ctx, child))
@@ -167,15 +172,19 @@ def execute_reset(ctx: ExecContext, statement: Tree) -> None:
     """
 **Reset global state to initial conditions**
 
-* Reset _option_ [, _option_]... [;]
+* Reset *option* [, *option*]&hellip; [;]
 
-Where _option_ is-
+Where *option* is-
 * Data - Resets all user set data except for user arguments
   and the settings for Debug, Verbose, and Echo
 * Includes - Clears the list of `@Include` files
 * Args - Resets user arguments stored in _args_ list
 * Output - Resets all output redirection
 * All - Resets all of the above plus `Debug`, `Echo`, and `Verbose` settings
+
+```vgr
+**TODO**
+```
 
 """
     for opt in statement.children:
@@ -206,10 +215,15 @@ def execute_swap(ctx: ExecContext, statement: Tree) -> None:
     """
 **Exchange the values of two variables**
 
-* Swap [Varaible] _x_ With _y_ [;]
-* Swap [Variables] _x_ And _y_ [;]
+* Swap [Varaible] *x* With *y* [;]
+* Swap [Variables] *x* And *y* [;]
 
-Both variables must be mutable
+Both variables must be mutable.
+
+```vgr
+**TODO**
+```
+
 """
     path1 = get_writable_var_path(ctx, statement.children[0])
     path2 = get_writable_var_path(ctx, statement.children[1])
@@ -217,19 +231,19 @@ Both variables must be mutable
     do_set(ctx, ctx.get_var(*path2), *path1)
     do_set(ctx, temp, *path2)
 
-@bound_ops("Load", "Load-From")
+@bound_ops("Load")
 def execute_load_from(ctx: ExecContext, statement: Tree) -> None:
     """
 **Assign a value to a variable from a file**
 
-* Load _variable_ From [File] _file_<br>
-  <em>[Type [Is] | [As]] _type_<br>
-  <em>[Encoding [Is] _encoding_]<br>
+* Load *variable* From [File] *file_name*\\
+  &emsp;&emsp;[Type [Is] | [As]] *file_type*\\
+  &emsp;&emsp;[Encoding [Is] _encoding_]\\
   [;]
 
-The _file_ argument is a string expression for the file to be loaded.
+The *file_name* argument is a string expression for the file to be loaded.
 
-If a _type_ is specified, it must be one of:
+If a *file_type* is specified, it must be one of:
 
 * CSV - The CSV data is read as a list of dictionaries, with the
   column headers as attribute names
@@ -249,7 +263,7 @@ with _Text_ as the default.
 Then optional _encoding_ is a string expression for the character encoding.
 If none is specified, then _utf-8-sig_ is used as the default.
 
-Both _type_ and _encoding_ are optional and can be specified in any order.
+Both *file_type* and _encoding_ are optional and can be specified in any order.
 For readability, they can be separated with commas.
 
 After the data is loaded, the following metadata values are available:
@@ -259,9 +273,14 @@ After the data is loaded, the following metadata values are available:
 * $load.keys - list of top-level keys if applicable
 * $load.records - number of top-level records
 
-`Windows Note`: If you hard code paths, please use the slash as a universal
-directory separator. Since the backslash is an escape character, if you use
-it in a string, you will either need to double it or use a _raw string_.
+```vgr
+**TODO**
+```
+
+> **Windows Note**\\
+> If you hard code paths, please use the slash as a universal
+> directory separator. Since the backslash is an escape character, if you use
+> it in a string, you will either need to double it or use a _raw string_.
 
 """
     def is_valid_encoding(name: str) -> bool:

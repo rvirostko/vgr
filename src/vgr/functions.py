@@ -232,10 +232,10 @@ from .vgr_callable import VgrCallable
 
 def _default_to(value: Any, default: Any) -> Any:
     """
-**Returns the default if a value is _None_**
+**Returns the default if a value is `None`**
 
-* DefaultTo(_value_, _default_)
-* _value_.DefaultTo(_default_)
+* DefaultTo(*value*, *default*)
+* *value*.DefaultTo(*default*)
 
 ```vgr
 **TODO**
@@ -245,10 +245,10 @@ def _default_to(value: Any, default: Any) -> Any:
 
 def _is_function(obj: Any) -> Any:
     """
-**Returns _True_ if the value is a function**
+**Is a value a function**
 
-* IsFunction(_value_)
-* _value_.IsFunction()
+* IsFunction(*value*)
+* *value*.IsFunction()
 
 ```vgr
 None.IsFunction() → False
@@ -262,8 +262,8 @@ def _id(obj: Any) -> Any:
     """
 **Returns the internal, unique ID used by the value**
 
-* Id(_value_)
-* _value_.Id()
+* Id(*value*)
+* *value*.Id()
 
 ```vgr
 **TODO**
@@ -275,15 +275,15 @@ def _enumerate(obj: Any, start_at: int=0) -> Any:
     """
 **Create an enumeration for a collection**
 
-* Enumerate(_value_)
-* Enumerate(_value_, _start_at_)
-* _value_.Enumerate()
-* _value_.Enumerate(_start_at_)
+* Enumerate(*value*)
+* Enumerate(*value*, *start_at*)
+* *value*.Enumerate()
+* *value*.Enumerate(*start_at*)
 
-The _start_at_ argument defines the number used in the enumerated value.
-The default value for _start_at_ is zero.
+The *start_at* argument defines the number used in the enumerated value.
+The default value for *start_at* is zero.
 Enumeration of values that are not collections produces an enumeration of a single entry.
-Enumerating _None_ returns an empty list.
+Enumerating `None` returns an empty list.
 
 ```vgr
 None.Enumerate() → []
@@ -306,13 +306,13 @@ def _negate(x: Any) -> Any:
     """
 **Returns the negation of a value**
 
-* Negate(_value_)
-* _value_.Negate()
+* Negate(*value*)
+* *value*.Negate()
 
-The _value_'s type determines what is returned:
+The *value*'s type determines what is returned:
 
-* _None_ : always returns _True_
-* String : returns _value_ unchanged
+* `None` : always returns `True`
+* String : returns *value* unchanged
 * Boolean : returns the logical negation
 * Int and Float : return the arithmetic negation
 * Lists and Dictionaries : distributed negation
@@ -332,10 +332,10 @@ def _slice(x: Any, start: int=None, stop: int=None, step: int=None) -> Any:
     """
 **Extract a portion of a list or string**
 
-* _value_.Slice()
-* _value_.Slice(_start_)
-* _value_.Slice(_start_, _stop_)
-* _value_.Slice(_start_, _stop_, _step_)
+* *value*.Slice()
+* *value*.Slice(*start*)
+* *value*.Slice(*start*, *stop*)
+* *value*.Slice(*start*, *stop*, *step*)
 
 ```vgr
 **TODO**
@@ -357,12 +357,12 @@ def _length(x: Any) -> bool:
     """
 **Return the length of an an item**
 
-* Length(_value_)
-* _value_.Length()
+* Length(*value*)
+* *value*.Length()
 
 Returns the length of lists and strings.
 For dictionaries, the number of attributes is returned.
-For all other values _None_ is returned.
+For all other values `None` is returned.
 
 ```vgr
 **TODO**
@@ -370,16 +370,16 @@ For all other values _None_ is returned.
 """
     return len(x) if hasattr(x, '__len__') else None
 
-@bound_ops("||", "Or", "∨")
+@bound_ops("Or", "||", "∨")
 def logical_or(eval_arg, args: list) -> Any:
     """
 **Logical Or operation**
 
-* _x_ || _y_
-* _x_ Or _y_
-* _x_ ∨ _y_
+* *x* || *y*
+* *x* Or *y*
+* *x* ∨ *y*
 
-The values for _x_ and _y_  are evaluated as booleans.
+The values for *x* and *y*  are evaluated as booleans.
 
 ```vgr
 **TODO**
@@ -391,16 +391,16 @@ The values for _x_ and _y_  are evaluated as booleans.
         if eval_arg(arg): return True
     return False
 
-@bound_ops("&&", "And", "∧")
+@bound_ops("And", "&&", "∧")
 def logical_and(eval_arg, args: list) -> Any:
     """
 **Logical And operation**
 
-* _x_ && _y_
-* _x_ And _y_
-* _x_ ∧ _y_
+* *x* && *y*
+* *x* And *y*
+* *x* ∧ *y*
 
-The values for _x_ and _y_  are evaluated as booleans.
+The values for *x* and *y*  are evaluated as booleans.
 
 ```vgr
 **TODO**
@@ -430,7 +430,6 @@ _BUILT_IN_FUNCS: dict[str, Callable[..., Any]] = {
     "Ceil":           poly_ceil,
     "CeilMultiple":   poly_ceil_multiple,
     "Center":         poly_center,
-    "Centre":         poly_center,
     "Checksum":       poly_checksum,
     "Chr":            poly_chr,
     "Clamp":          poly_clamp,
@@ -447,7 +446,7 @@ _BUILT_IN_FUNCS: dict[str, Callable[..., Any]] = {
     "CountTrailingZeroBits": poly_count_trailing_zeros,
     "CountZeroBits":  poly_count_zeros,
     "DefaultTo":      _default_to,
-    "Dict":           poly_dict_create,
+    "Dictionary":     poly_dict_create,
     "DirectoryName":  dir_name,
     "Div":            poly_div,
     "DivMod":         poly_divmod,
@@ -708,7 +707,7 @@ def function_names_pattern() -> str:
     return r"(?i)\b(" + "|".join(functions) + r")(?=\s*\()"
 
 @lru_cache
-def get_operator_entries():
+def get_operator_entries() -> dict[str, tuple]:
     entries = {}
     for func in _OP_FUNCS:
         # See mathpak/common for the bound_ops decorator

@@ -16,48 +16,59 @@ from ..tags import control_statement
 from ..mathpak import bound_ops
 
 @control_statement
-@bound_ops("Do-While")
+@bound_ops("Do While")
 def execute_do_while(ctx: ExecContext, statement: Tree) -> None:
     """A BASIC-style Do-While Loop
 
-* Do While _expression_<br>
-  <em>_statement_...<br>
+* Do While *expression*\\
+  &emsp;&emsp;_statement_&hellip;\\
   Loop [;]
 
-As long as the expression evaluates to True, the block of statements is
+As long as the expression evaluates to `True`, the block of statements is
 repeatedly executed.
-If a Break statement is encountered, looping ends regardless of the
-expression's value. If a Continue statement is encountered, statements
-following it are skipped, and the expression is checked again."""
+If a `Break` is encountered, looping ends regardless of the
+expression's value. If a `Continue` is encountered, statements
+following it are skipped, and the expression is checked again.
+
+```vgr
+**TODO**
+```
+
+"""
     exec_loop(ctx, statement, True)
 
 @control_statement
-@bound_ops("Do-Until")
+@bound_ops("Do Until")
 def execute_do_until(ctx: ExecContext, statement: Tree) -> None:
     """A BASIC-style Do-Until Loop
 
-* Do Until _expression_<br>
-  <em>_statement_...<br>
+* Do Until *expression*\\
+  &emsp;&emsp;_statement_&hellip;\\
   Loop [;]
 
-The block of statements is executed until the expression evaluates to True.
-If a Break statement is encountered, looping ends regardless of the
-expression's value. If a Continue statement is encountered, statements
+The block of statements is executed until the expression evaluates to `True`.
+If a `Break` is encountered, looping ends regardless of the
+expression's value. If a `Continue` is encountered, statements
 following it are skipped, and the expression is checked again.
+
+```vgr
+**TODO**
+```
+
 """
     exec_loop(ctx, statement, False)
 
 @control_statement
-@bound_ops("For-Next")
+@bound_ops("For Next")
 def execute_for_next(ctx: ExecContext, statement: Tree) -> None:
     """
 **A BASIC-style For-Next Loop**
 
-* For _variable_ = _expressions_ To _expression_ [:]<br>
-  <em>_statement_...<br>
+* For *variable* = *expression* To *expression* [:]\\
+  &emsp;&emsp;*statement*&hellip;\\
   Next [;]
-* For _variable_ = _expressions_ To _expression_ By _expression_ [:]<br>
-  <em>_statement_...<br>
+* For *variable* = *expression* To *expression* By *expression* [:]\\
+  &emsp;&emsp;*statement*&hellip;\\
   Next [;]
 
 The block of statements is executed until the limit is exceeded.
@@ -65,7 +76,7 @@ If `Break` is encountered, looping ends regardless of the
 limit's value. If `Continue` is encountered, statements
 following it are skipped and looping proceeds.
 
-Statements have access to the _$loop_ variable, including _index_, _length_, _first_, and _last_.
+Statements have access to the *$loop* variable, including *index*, *length*, _first_, and _last_.
 
 ```vgr
 For x = 2.0 To 4.0 By .5
@@ -120,7 +131,7 @@ Next
     finally:
         ctx.dd.pop_frame()
 
-@bound_ops("Exit-Block")
+@bound_ops("Exit Block")
 def execute_exit(_: ExecContext, statement: Tree) -> None:
     """
 **Exits the current block of statements**
@@ -130,23 +141,35 @@ def execute_exit(_: ExecContext, statement: Tree) -> None:
 * Exit While [;]
 
 BASIC variants of `Break`.
-Note that the scope portion of the statement not respected; the _current_
+
+Note that the scope portion of the statement is not respected; the current
 block is exited without regards to type.
+
+```vgr
+**TODO**
+```
+
 """
     raise VgrStatementBreak(statement)
 
-@bound_ops("Continue-Block")
+@bound_ops("Continue Block")
 def execute_continue(_: ExecContext, statement: Tree) -> None:
     """
-**Causes the current loop to to start again**
+**Cause the current loop to to start again**
 
 * Continue Do [;]
 * Continue For [;]
 * Continue While [;]
 
 BASIC variants of `Continue`.
-Note that the scope portion of the statement not respected; the _current_
+
+Note that the scope portion of the statement is not respected; the current
 block is restarted without regards to type.
+
+```vgr
+**TODO**
+```
+
 """
     raise VgrStatementContinue(statement)
 
@@ -155,9 +178,18 @@ def execute_let(ctx: ExecContext, statement: Tree) -> None:
     """
 **Assign a value to a variable**
 
-* Let _variable_ = _expression_ [;]
+* Let *variable* = *expression* [;]
 
 BASIC equivalent of `Set`
+
+```vgr
+Let X = 5
+Let Y = 7
+Let RESULT = X * Y
+Print RESULT
+```
+
+Also see `Set`
 """
     execute_set(ctx, statement)
 
@@ -170,6 +202,12 @@ def execute_troff(ctx: ExecContext, _: Tree) -> None:
 * Troff [;]
 
 BASIC equivalent of `Echo False`
+
+```vgr
+**TODO**
+```
+
+Also see `Echo`
 """
     ctx.echo = False
     ctx.print_verbose('Trace Off')
@@ -183,6 +221,12 @@ def execute_tron(ctx: ExecContext, _: Tree) -> None:
 * Tron [;]
 
 BASIC equivalent of `Echo True`
+
+```vgr
+**TODO**
+```
+
+Also see `Echo`
 """
     ctx.echo = True
     ctx.print_verbose('Trace On')

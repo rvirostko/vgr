@@ -13,8 +13,8 @@ def parse_url(url: Any, remove_nulls: bool=True) -> Any:
     """
 **Decompose a URL string and return a dictionary of its components**
 
-* ParseUrl(_value_)
-* _value_.ParseUrl()
+* ParseUrl(*value*)
+* *value*.ParseUrl()
 
 In addition, the result will contain _error_ indicating if there was an error
 and _error_msg_ describing the error. It always include the URL itself.
@@ -74,10 +74,10 @@ def encode_url(url: str, safe: str="/") -> str:
     """
 **Encode reserved characters in a full or partial URL**
 
-* EncodeURL(_value_)
-* EncodeURL(_value_, _safe_)
-* _value_.EncodeURL()
-* _value_.EncodeURL(_safe_)
+* EncodeURL(*value*)
+* EncodeURL(*value*, _safe_)
+* *value*.EncodeURL()
+* *value*.EncodeURL(_safe_)
 
 The _safe_ argument is string which lists reserved characters that need
 not be encoded. When omitted, it defaults to "/".

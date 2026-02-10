@@ -16,17 +16,17 @@ from .common import (
 
 from ..vgr_callable import VgrCallable
 
-@bound_ops("[...]", "list", "array")
+@bound_ops("[...]")
 def build_list(*values: Any) -> list[Any]:
     """
 **Create a list from the collected values**
 
-* List()
-* List(_expression_ [, _expression_]...)
 * **[** **]**
-* **[** _expression_ [, _expression_]... **]**
+* **[** *expression* [, *expression*]&hellip; **]**
+* List()
+* List(*expression* [, *expression*]&hellip;)
 
-Lists can contain any type including _None_, other lists, and dictionaries.
+Lists can contain any type including `None`, other lists, and dictionaries.
 
 ```vgr
 Set empty To []
@@ -66,10 +66,10 @@ and the `List()` and `ToList()` functions
 
 def poly_islist(x: Any) -> bool:
     """
-**Returns _True_ if the value is a list**
+**Is the value a list**
 
-* IsList(_value_)
-* _value_.IsList()
+* IsList(*value*)
+* *value*.IsList()
 
 ```vgr
 None.IsList() → False
@@ -86,11 +86,11 @@ def poly_list(x: Any) -> list:
     """
 **Converts a value to a list**
 
-* ToList(_value_)
-* _value_.ToList()
+* ToList(*value*)
+* *value*.ToList()
 
 Dictionaries are converted to a list of key/value pairs.
-If _value_ is _None_ an empty list is returned.
+If *value* is `None` an empty list is returned.
 
 ```vgr
 Set fruits To ["apple", "banana", "apple", "orange", "apple"]
@@ -113,8 +113,8 @@ def poly_list_append(x: Any, *args) -> list:
     """
 **Adds items to the end of a list**
 
-* ListAppend(_list_, _value_...)
-* _list_.ListAppend(_value_...)
+* ListAppend(_list_, *value*&hellip;)
+* _list_.ListAppend(*value*&hellip;)
 
 If applied to a value that is not already a list, it is converted using `ToList()`.
 A modified copy of the list is returned.
@@ -141,8 +141,8 @@ def poly_list_prepend(x: Any, *args) -> list:
     """
 **Adds items to the start of a list**
 
-* ListPrepend(_list_, _value_...)
-* _list_.ListPrepend(_value_...)
+* ListPrepend(_list_, *value*&hellip;)
+* _list_.ListPrepend(*value*&hellip;)
 
 If applied to a value that is not already a list, it is converted using `ToList()`.
 A modified copy of the list is returned.
@@ -220,11 +220,11 @@ def poly_list_remove(x: Any, index: int=0) -> list:
     """
 **Removes an item from a list by index**
 
-* ListRemove(_list_, _index_)
-* _list_.ListRemove(_index_)
+* ListRemove(_list_, *index*)
+* _list_.ListRemove(*index*)
 
 If applied to a value that is not already a list, it is converted using `ToList()`.
-If _index_ is out of range, the operation is ignored.
+If *index* is out of range, the operation is ignored.
 A modified copy of the list is returned.
 
 ```vgr
@@ -251,11 +251,11 @@ def poly_list_replace(x: Any, index, value: Any=None) -> list:
     """
 **Replace an item in a list by index**
 
-* ListReplace(_list_, _index_, _value_)
-* _list_.ListRemove(_index_, _value_)
+* ListReplace(_list_, *index*, *value*)
+* _list_.ListRemove(*index*, *value*)
 
 If applied to a value that is not already a list, it is converted using `ToList()`.
-If _index_ is out of range, the operation is ignored.
+If *index* is out of range, the operation is ignored.
 A modified copy of the list is returned.
 
 ```vgr
@@ -284,11 +284,11 @@ def poly_list_insert(x: Any, index, *values) -> list:
     """
 **Insert items into a list by index**
 
-* ListInsert(_list_, _index_, _value_...)
-* _list_.ListInsert(_index_, _value_...)
+* ListInsert(_list_, *index*, *value*&hellip;)
+* _list_.ListInsert(*index*, *value*&hellip;)
 
 If applied to a value that is not already a list, it is converted using `ToList()`.
-If _index_ is out of range, the operation is ignored.
+If *index* is out of range, the operation is ignored.
 A modified copy of the list is returned.
 
 ```vgr
@@ -323,12 +323,12 @@ def poly_apply(x: Any, funct, *args, ctx=None) -> Any:
     """
 **Applies one or more user defined functions to a value or a list of values**
 
-* Apply(_value_, _function_ [, _arg_...])
-* _value_.Apply(_function_ [, _arg_...])
+* Apply(*value*, _function_ [, *arg*&hellip;])
+* *value*.Apply(_function_ [, *arg*&hellip;])
 
-When _value_ is a list, each value within it is passed to _function_. Additional arguments, if
+When *value* is a list, each value within it is passed to _function_. Additional arguments, if
 any, passed following it.
-When not a list, _value_ is passed as the first argument to _function_ followed by any additional
+When not a list, *value* is passed as the first argument to _function_ followed by any additional
 arguments.
 If _function_ is not a user defined function, it acts as a function returning that value.
 If _function_ is a list, the functions within it are executed in order, chaining their results.
@@ -375,17 +375,17 @@ def poly_combine_using(x: Any, funct, *args, **kwargs) -> Any:
     """
 **Combine values into a single value using a user defined function**
 
-* CombineUsing(_value_, _function_ [, _initial_value_ [, _arg_...]])
-* _value_.CombineUsing(_function_ [, _initial_value_ [, _arg_...]])
+* CombineUsing(*value*, _function_ [, _initial_value_ [, *arg*&hellip;]])
+* *value*.CombineUsing(_function_ [, _initial_value_ [, *arg*&hellip;]])
 
-When _value_ is a list, each value within it is passed to _function_. Additional arguments, if
+When *value* is a list, each value within it is passed to _function_. Additional arguments, if
 any, passed following it.
-When not a list, _value_ is passed as the first argument to _function_ followed by any additional
+When not a list, *value* is passed as the first argument to _function_ followed by any additional
 arguments.
 
 The signature for _function_ should be _f(accumulator, value [,args])_ where
 _accumulator_ is the result of previous calls, starting with _initial_value_.
-The default value for _initial_value_ is _None_, and while optional,
+The default value for _initial_value_ is `None`, and while optional,
 depending upon the operations within _function_, you may need to
 specify a starting value.
 
@@ -436,12 +436,12 @@ def poly_combine_lists(first: Any, *rest) -> Any:
     """
 **Combine elements of collections into a list of lists**
 
-* CombineLists(_expresssion_ [,_expression_...])
-* _value_.CombineLists(_expresssion_ [,_expression_...])
+* CombineLists(_expresssion_ [,*expression*&hellip;])
+* *value*.CombineLists(_expresssion_ [,*expression*&hellip;])
 
 Combines the elements of the listed collections into an array of arrays.
 Each element will have the Nth matching values joined together.
-If the lists are of unequal length, values of _None_ are used for the
+If the lists are of unequal length, values of `None` are used for the
 missing items.
 
 ```vgr

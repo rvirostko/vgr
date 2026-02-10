@@ -11,10 +11,10 @@ from .types import poly_int
 
 def poly_bin(x: Any) -> Any:
     """
-**Convert an integer number to a binary string prefixed with “0b”**
+**Convert an integer number to a binary string**
 
-* ToBinary(_value_)
-* _value_.ToBinary()
+* ToBinary(*value*)
+* *value*.ToBinary()
 
 Distributed across all collections except dictionaries.
 
@@ -37,10 +37,10 @@ Also see `ToOctal()` and `ToHex()`
 
 def poly_oct(x: Any) -> Any:
     """
-**Convert an integer number to an octal string prefixed with “0o”**
+**Convert an integer number to an octal string**
 
-* ToOctal(_value_)
-* _value_.ToOctal()
+* ToOctal(*value*)
+* *value*.ToOctal()
 
 Distributed across all collections except dictionaries.
 
@@ -63,10 +63,10 @@ Also see `ToBinary()` and `ToHex()`
 
 def poly_hex(x: Any) -> Any:
     """
-**Convert an integer number to a hexadecimal string prefixed with “0x”**
+**Convert an integer number to a hexadecimal string**
 
-* ToHex(_value_)
-* _value_.ToHex()
+* ToHex(*value*)
+* *value*.ToHex()
 
 Distributed across all collections except dictionaries.
 
@@ -91,10 +91,10 @@ def poly_parse_int(x: Any, base: Any=10) -> Any:
     """
 **Convert a non-numeric value into an integer**
 
-* ParseInt(_value_)
-* ParseInt(_value_, _base_)
-* _value_.ParseInt()
-* _value_.ParseInt(_base_)
+* ParseInt(*value*)
+* ParseInt(*value*, _base_)
+* *value*.ParseInt()
+* *value*.ParseInt(_base_)
 
 The default base is decimal.
 
@@ -130,8 +130,8 @@ def poly_parse_bin(x: Any) -> Any:
     """
 **A specialized version of `ParseInt()` for base 2**
 
-* ParseBinary(_value_)
-* _value_.ParseBinary()
+* ParseBinary(*value*)
+* *value*.ParseBinary()
 
 ```vgr
 None.ParseBinary() → None
@@ -153,8 +153,8 @@ def poly_parse_oct(x: Any) -> Any:
     """
 **A specialized version of `ParseInt()` for base 8**
 
-* ParseOctal(_value_)
-* _value_.ParseOctal()
+* ParseOctal(*value*)
+* *value*.ParseOctal()
 
 ```vgr
 None.ParseOctal() → None
@@ -177,8 +177,8 @@ def poly_parse_hex(x: Any) -> Any:
     """
 **A specialized version of `ParseInt()` for base 16**
 
-* ParseHex(_value_)
-* _value_.ParseHex()
+* ParseHex(*value*)
+* *value*.ParseHex()
 
 ```vgr
 None.ParseHex() → None
@@ -201,12 +201,12 @@ def poly_base64_encode(x: Any, charset: str = "utf-8") -> Any:
     """
 **Encode a string using base 64 encoding**
 
-* Base64Encode(_value_)
-* Base64Encode(_value_, _charset_)
-* _value_.Base64Encode()
-* _value_.Base64Encode(_charset_)
+* Base64Encode(*value*)
+* Base64Encode(*value*, *charset*)
+* *value*.Base64Encode()
+* *value*.Base64Encode(*charset*)
 
-The default _charset_ is UTF-8.
+The default *charset* is UTF-8.
 
 ```vgr
 None.Base64Encode() → None
@@ -232,12 +232,12 @@ def poly_base64_decode(x: Any, charset: str = "utf-8") -> Any:
     """
 **Decode a string using base 64 encoding**
 
-* Base64Decode(_value_)
-* Base64Decode(_value_, _charset_)
-* _value_.Base64Decode()
-* _value_.Base64Decode(_charset_)
+* Base64Decode(*value*)
+* Base64Decode(*value*, *charset*)
+* *value*.Base64Decode()
+* *value*.Base64Decode(*charset*)
 
-The default _charset_ is UTF-8.
+The default *charset* is UTF-8.
 
 ```vgr
 None.Base64Decode() → None
@@ -264,12 +264,12 @@ def poly_hex_encode(x: Any, charset: str = "utf-8") -> str:
     """
 **Encode a string as a series of hexidecimal characters**
 
-* HexEncode(_value_)
-* HexEncode(_value_, _charset_)
-* _value_.HexEncode()
-* _value_.HexEncode(_charset_)
+* HexEncode(*value*)
+* HexEncode(*value*, *charset*)
+* *value*.HexEncode()
+* *value*.HexEncode(*charset*)
 
-The default _charset_ is UTF-8.
+The default *charset* is UTF-8.
 
 ```vgr
 None.HexEncode() → None
@@ -294,12 +294,12 @@ def poly_hex_decode(x: Any, charset: str = "utf-8") -> str:
     """
 **Decode a string of hexidecimal characters into a string**
 
-* HexDecode(_value_)
-* HexDecode(_value_, _charset_)
-* _value_.HexDecode()
-* _value_.HexDecode(_charset_)
+* HexDecode(*value*)
+* HexDecode(*value*, *charset*)
+* *value*.HexDecode()
+* *value*.HexDecode(*charset*)
 
-The default _charset_ is UTF-8.
+The default *charset* is UTF-8.
 
 ```vgr
 None.HexDecode() → None

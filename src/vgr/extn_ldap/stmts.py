@@ -66,41 +66,41 @@ def ldap_initialize(dd: DataDictionary) -> None:
     for name, value in _AUTH_MAP.items():
         dd.set_var(value, _LDAP_PREFIX, 'auth', name)
 
-@bound_ops("Ldap-Connect")
+@bound_ops("Ldap Connect")
 def execute_connect(ctx: ExecContext, statement: Tree) -> None:
     """
 **Establish an LDAP connection**
 
-* Ldap Connect<br>
-  <em>To _url_<br>
-  <em>[Auth | Authentication] [Is] _auth_type_<br>
-  <em>User [Is] _user_<br>
-  <em>Password [Is] _password_<br>
-  <em>Read Only [[Is] _read_only_]<br>
-  <em>[Return] Empty [Attrs | Attributes] [[Is] _empty_attrs_]<br>
-  <em>Time Limit [[Is] _time_limit_]<br>
-  <em>Page Size [[Is] _page_size_]<br>
-  <em>As _connection_name_<br>
+* Ldap Connect\\
+  &emsp;&emsp;To *url*\\
+  &emsp;&emsp;[Auth | Authentication] [Is] *auth_type*\\
+  &emsp;&emsp;User [Is] *user*\\
+  &emsp;&emsp;Password [Is] *password*\\
+  &emsp;&emsp;Read Only [[Is] *read_only*]\\
+  &emsp;&emsp;[Return] Empty [Attrs | Attributes] [[Is] *empty_attrs*]\\
+  &emsp;&emsp;Time Limit [[Is] *time_limit*]\\
+  &emsp;&emsp;Page Size [[Is] *page_size*]\\
+  &emsp;&emsp;As *connection_name*
 
-If _url_ is omitted then _LDAP_URL_, if defined, is used.
-Likewise, environment variables _LDAP_BIND_DN_ and _LDAP_PASSWORD_ are used
-if _user_ and _password_ are omitted and _auth_type_ is _Simple_.
+If *url* is omitted then *LDAP_URL*, if defined, is used.
+Likewise, environment variables *LDAP_BIND_DN* and *LDAP_PASSWORD* are used
+if *user* and *password* are omitted and *auth_type* is `Simple`.
 
-The values for _read_only_ and _empty_attrs_ are booleans. If the option
-is present but no value is provided, the default value is _True_.
+The values for *read_only* and *empty_attrs* are booleans. If the option
+is present but no value is provided, the default value is `True`.
 
-The values for _time_limit_ and _page_size_ are both integers, reflecting
+The values for *time_limit* and *page_size* are both integers, reflecting
 the default maximum operation time in seconds and the default blocking
 for retrieved data respectively. Both can be changed on a per operation
 basis when applicable.
 
-The value for _auth_type_ is a string which must be one of
+The value for *auth_type* is a string which must be one of
 
-* Anonymous - no authentication required
-* Simple - user/password authentication. This is the default.
-* Ntlm - Uses Windows authentication
+* `Anonymous` - no authentication required
+* `Simple` - user/password authentication. This is the default.
+* `Ntlm` - Uses Windows authentication
 
-If _connection_name_ is omitted, a default name is used.
+If *connection_name* is omitted, a default name is used.
 This name, or default, becomes the value of _term.connection_.
 
 ```vgr
@@ -129,15 +129,15 @@ Exhibit ldap.connection → ldap.connection = "ldap_corp"
     _STATE.default_connection = conn_name
     do_set(ctx, None, *_DEFAULT_GIVING_PATH)
 
-@bound_ops("Ldap-Disconnect")
+@bound_ops("Ldap Disconnect")
 def execute_disconnect(ctx: ExecContext, statement: Tree) -> None:
     """
 **Disconnect from LDAP**
 
 * Ldap Disconnect
-* Ldap Disconnect [From] _connection_name_
+* Ldap Disconnect [From] *connection_name*
 
-The _connection_name_ must have been created by a previous `Ldap Connect`.
+The *connection_name* must have been created by a previous `Ldap Connect`.
 If no name is provided, the default name is used.
 
 ```vgr
@@ -156,59 +156,63 @@ Exhibit ldap.connection → ldap.connection = None
         if name == _STATE.default_connection: _STATE.default_connection = None
         do_set(ctx, None, *_DEFAULT_GIVING_PATH)
 
-@bound_ops("Ldap-Search")
+@bound_ops("Ldap Search")
 def execute_search(ctx: ExecContext, statement: Tree) -> None:
     """
 **Perform an LDAP search**
 
-* Ldap Search<br>
-  <em>Base [Is] _base_<br>
-  <em>Scope [Is] _scope_<br>
-  <em>Filter [Is] _filter_<br>
-  <em>Attributes [Is | Are] _attributes_<br>
-  <em>Time Limit [[Is] _time_limit_]<br>
-  <em>Page Size [[Is] _page_size_]<br>
-  <em>Dereference Aliases [[Is] _deref_aliases_]<br>
-  <em>Get Operational [Attributes | Attrs] [[Is] _op_attrs_]<br>
-  <em>Giving _variable_<br>
-  <em>Using [Connection] _connection_name_<br>
+* Ldap Search\\
+  &emsp;&emsp;Base [Is] *base*\\
+  &emsp;&emsp;Scope [Is] *scope*\\
+  &emsp;&emsp;Filter [Is] *filter*\\
+  &emsp;&emsp;Attributes [Is | Are] *attributes*\\
+  &emsp;&emsp;Time Limit [[Is] *time_limit*]\\
+  &emsp;&emsp;Page Size [[Is] *page_size*]\\
+  &emsp;&emsp;Dereference Aliases [[Is] *deref_aliases*]\\
+  &emsp;&emsp;Get Operational [Attributes | Attrs] [[Is] *op_attrs*]\\
+  &emsp;&emsp;Giving *variable*\\
+  &emsp;&emsp;Using [Connection] *connection_name*
 
-All items are optional except for _base_.
+All items are optional except for *base*.
 
-The _attributes_ to be retrieved are specified as _All_, _None_, or a list of string names.
+The *attributes* to be retrieved are specified as `All`, `None`, or a list of string names.
 If no attributes are defined, all available attributes, as defined by the LDAP server, are returned.
 
-In addition, the _DN_ attribute is added to all retrieved values, even if none of the requested
+In addition, the `DN` attribute is added to all retrieved values, even if none of the requested
 attributes had a value.
 
-The values for _time_limit_ and _page_size_ are both integers, reflecting
+The values for *time_limit* and *page_size* are both integers, reflecting
 the maximum operation time in seconds and the blocking
 for retrieved data respectively. Defaults are inherited from the connection.
 
-The values for _deref_aliases_ and _op_attrs_ are booleans. If a value
-is not provided for the argument, it default to _True_. Setting _deref_aliases_
+The values for *deref_aliases* and *op_attrs* are booleans. If a value
+is not provided for the argument, it default to `True`. Setting *deref_aliases*
 cause the search to proceed across aliases in the LDAP tree.
-The _op_attrs_ option must be set to _True_ to retrieve operational
-attributes such as Active Directory's _whenCreated_ or _whenChanged_
+The *op_attrs* option must be set to `True` to retrieve operational
+attributes such as Active Directory's *whenCreated* or *whenChanged*
 attributes.
 
-The value for _scope_ is a string which must be one of
+The value for *scope* is a string which must be one of
 
-* Base - the search target is _base_
-* Level or One - the objects that are immediately under _base_ are searched. This is the default.
-* All or Subtree - A full subtree search is performed
+* `Base` - the search target is *base*
+* `Level` or `One` - the objects that are immediately under *base* are searched. This is the default.
+* `All` or `Subtree` - A full subtree search is performed
 
-If the _Giving_ argument is used, it must reference a user writeable variable.
+If the `Giving` argument is used, it must reference a user writeable variable.
 On completion, this variable will have the following items set
 
-* _variable_.success - a boolean indicating if the search succeeded or not. Not finding any
+* *variable*.success - a boolean indicating if the search succeeded or not. Not finding any
   item _is not_ considered an error.
-* _variable_.result_code - an LDAP specific error code, with zero meaning no errors
-* _variable_.error - a human readable description of an error, if any
-* _variable_.entries - a list of the retrieved values.
-  Note that when _size_limit_ is set to one, the wrapping list is omitted.
+* *variable*.result_code - an LDAP specific error code, with zero meaning no errors
+* *variable*.error - a human readable description of an error, if any
+* *variable*.entries - a list of the retrieved values.
+  Note that when *size_limit* is set to one, the wrapping list is omitted.
 
-If the _Giving_ argument is omited, results are stored in _ldap.result_
+If the `Giving` argument is omited, results are stored in *ldap.result*
+
+```vgr
+**TODO**
+```
 
 Also see-
 

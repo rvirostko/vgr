@@ -9,12 +9,12 @@ from .type import poly_type
 
 def poly_reverse(x: Any) -> Any:
     """
-**Reverses the contents of the lists and strings**
+**Reverses the contents of a list or string**
 
-* Reverse(_value_)
-* _value_.Reverse()
+* Reverse(*value*)
+* *value*.Reverse()
 
-If _value_ is an ordinal rather than a list, it is returned unchanged.
+If *value* is an ordinal rather than a list, it is returned unchanged.
 
 ```vgr
 "five".Reverse() → "evif"
@@ -50,8 +50,8 @@ def poly_hash(x: Any) -> int:
     """
 **Returns the internal hashcode for an object**
 
-* Hash(_value_)
-* _value_.Hash()
+* Hash(*value*)
+* *value*.Hash()
 
 This can be used in debugging but is of limited values in scripts.
 Cannot be applied to lists or dictionaries.
@@ -68,8 +68,8 @@ def poly_clone(x: Any) -> Any:
     """
 **Ceates a copy of complex objects**
 
-* Clone(_value_)
-* _value_.Clone()
+* Clone(*value*)
+* *value*.Clone()
 
 Only lists and dictionaries are cloned, as other
 data types are not mutable in the same sense as
@@ -77,23 +77,24 @@ collections. This operation clones the container: if the
 values within it are complex objects, their values will
 still be shared.
 
-**Examples**
+***Simple types return the same object***
 
-_*Simple types return the same object*_
 ```vgr
 Set x = 5
 Print x.Id(), x.Clone().Id()
 4335020464 4335020464 // same object
 ```
 
-_*Cloning a complex object*_
+***Cloning a complex object***
+
 ```vgr
 Set y = [1,2,3]
 Print y.Id(), y.Clone().Id()
 4808334400 4807906688 // different objects
 ```
 
-_*Container is cloned, but complex objects are shared*_
+***Container is cloned, but complex objects are shared***
+
 ```vgr
 Set z = [ {"a" : 1} ]
 Set z′ = z.Clone()
@@ -138,12 +139,12 @@ def poly_sort(x: Any, unique: bool=False, reverse: bool=False) -> Any:
     """
 **Sort lists and strings with unique and reverse**
 
-* Sort(_value_)
-* Sort(_value_, _unique_)
-* Sort(_value_, _unique_, _reverse_)
-* _value_.Sort()
-* _value_.Sort(_unique_)
-* _value_.Sort(_unique_, _reverse_)
+* Sort(*value*)
+* Sort(*value*, _unique_)
+* Sort(*value*, _unique_, _reverse_)
+* *value*.Sort()
+* *value*.Sort(_unique_)
+* *value*.Sort(_unique_, _reverse_)
 
 ```vgr
 None.Sort() → None
@@ -170,14 +171,14 @@ def poly_getitem(x:Any, index: Any) -> Any:
     """
 **Return the N-th item from a list**
 
-* Item(_value_, _index_)
-* _value_.Item(_index_)
+* Item(*value*, *index*)
+* *value*.Item(*index*)
 
-For non-list types _value_ is returned unchanged.
-If _index_ itself is a list, the corresponding items
+For non-list types *value* is returned unchanged.
+If *index* itself is a list, the corresponding items
 will be returned in an list. Index values are zero-based.
 
-Requests for items outside the list's bounds results in _None_.
+Requests for items outside the list's bounds results in `None`.
 
 ```vgr
 None.Item(0) → None
@@ -201,11 +202,11 @@ def poly_firstitem(x: Any) -> Any:
     """
 **Return the first item from a list**
 
-* FirstItem(_value_)
-* _value_.FirstItem()
+* FirstItem(*value*)
+* *value*.FirstItem()
 
-If the list is empty then _None_ is returned.
-For non-list types _value_ is returned unchanged.
+If the list is empty then `None` is returned.
+For non-list types *value* is returned unchanged.
 
 ```vgr
 None.FirstItem() → None
@@ -224,11 +225,11 @@ def poly_lastitem(x: Any) -> Any:
     """
 **Return the last item from a list**
 
-* LastItem(_value_)
-* _value_.LastItem()
+* LastItem(*value*)
+* *value*.LastItem()
 
-If the list is empty then _None_ is returned.
-For non-list types _value_ is returned unchanged.
+If the list is empty then `None` is returned.
+For non-list types *value* is returned unchanged.
 
 ```vgr
 None.LastItem() → None
@@ -248,8 +249,8 @@ def poly_unique(x: Any) -> Any:
     """
 **A unique that works with lists or strings**
 
-* Unique(_value_)
-* _value_.Unique()
+* Unique(*value*)
+* *value*.Unique()
 
 For strings, a string containing all the unique characters in
 the string is returned.

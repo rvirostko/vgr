@@ -21,7 +21,7 @@ class AbstractUserCallable(VgrCallable):
     _SELF_PATH = ('$self',)
     _ARGS_PATH = ('$args',)
 
-    # we should show where it came from... file and start line/col
+    # we should show where it came from: file and start line/col
     # probably need a generic "meta" object that covers that and the source
     # which was kind of what SSM was supposed to be
     def __init__(self, param_paths: list[tuple[str]]):
@@ -116,35 +116,37 @@ class ArrowFunction(AbstractUserCallable):
     """
 **Arrow Functions - lightweight functions**
 
-_*Definition*_
-* Set _variable_ = () -> _expression_
-* Set _variable_ = (_arg_ [, _arg_]...) -> _expression_
-* Set _variable_ = (...) -> Compile( _expression_ )
+***Definition***
 
-_*Invocation*_
-* @_variable_(_arg_...) - Stand-alone
-* _value_.@_variable_(_arg_...) - Inline
+* Set *variable* = () -> *expression*
+* Set *variable* = (*arg* [, *arg*]&hellip;) -> *expression*
+* Set *variable* = (&hellip;) -> Compile(*expression*)
+
+***Invocation***
+
+* @*variable*(*arg*&hellip;) - Stand-alone
+* *value*.@*variable*(*arg*&hellip;) - Inline
 
 Arrow Functions are for short expressions and recursive cases, not for full multi-statement functions.
 Parameters need not be declared if empty. Names of parameters follow the rules for variables, but
 are a single name, not a dotted path.
 The arrow operator separates the parameter list from the body.
-The body is either an expression or a dynamic expression using _Compile_(...).
+The body is either an expression or a dynamic expression using _Compile_(&hellip;).
 
-_*Special Rules*_
+***Special Rules***
+
 * Inside the function, the variable `$self` is the same function for recursive calls
 * Also, there is a `$args` variable which contins the arguments as passed by the caller.
   This may contain more or less than the named arguments.
 * If a parameter is `Unset` inside a function it exposes a global value if one exists
-* When invoked inline, the preceeding _value_ is the first argument passed to the function
+* When invoked inline, the preceeding *value* is the first argument passed to the function
 * Arrow Functions can read but not change global state except by acting on arguments that are
   passed by reference, such as lists and dictionaries
 * The `$global` and `$outer` prefixes may be used to resolve variables defined outside of
   the function: both should be used sparingly
 
-**Examples**
+***Missing and extra arguments***
 
-_*Missing and extra arguments*_
 ```vgr
 Set add = (x, y) -> x + y
 Print @add(5) → None     // x defaults to None
@@ -152,20 +154,23 @@ Print @add(5, 6) → 11
 Print @add(5, 6, 7) → 11 // Extra arg ignored
 ```
 
-_*Recursive function using compact notation*_
+***Recursive function using compact notation***
+
 ```vgr
 fact(n) -> (n <= 1 ? 1 : n * @$self(n - 1))
 Print @fact(5) → 120
 ```
 
-_*Dynamically compiled expression*_
+***Dynamically compiled expression***
+
 ```vgr
 Accept op From stdin
 Assert op in ["+", "-", "*", "/"]
 Set dyn = (x, y) -> Compile("(x {} y) + 10".Format(op))
 ```
 
-_*Invocation of variables which are _not_ functions*_
+***Invocation of variables which are _not_ functions***
+
 ```vgr
 Unset a
 Print @a() → None

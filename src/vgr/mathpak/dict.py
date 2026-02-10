@@ -18,17 +18,17 @@ from .match import poly_matches
 from .type import poly_type
 from .types import poly_bool
 
-@bound_ops("{...}", "dictionary", "dict")
+@bound_ops("{...}")
 def build_dict(*values: Any) -> dict:
     """
 **Create a dictionary from the collected key/value pairs**
 
-* **{** **}** _an_ _empty_ _dictionary_
-* **{** _key_ **:** _value_ [, _key_ **:** _value_]... **}** _an_ _initialized_ _dictionary_
+* **{** **}** *an empty dictionary*
+* **{** _key_ **:** *value* [, _key_ **:** *value*]&hellip; **}** *an initialized dictionary*
 
-Keys can be any ordinal type: int, float, string. _None_ cannot be a key.
+Keys can be any ordinal type: integer, float, string. `None` cannot be a key.
 
-Values can be any type including _None_, other lists, and dictionaries.
+Values can be any type including `None`, other lists, and dictionaries.
 
 ```vgr
 Set data To {}
@@ -62,7 +62,7 @@ Set mixed To {
     "dict":   {"nested": "value"}
 }
 ```
-Also see `Dict()`, `GetKeyValue()`, and `LookupItem()`
+Also see `Dictionary()`, `GetKeyValue()`, and `LookupItem()`
 """
     # Values is alternating pairs of key/values
     # so we use a "stride" of two to form two groups
@@ -73,8 +73,8 @@ def poly_dict_create(*args: Any) -> dict:
     """
 **Compose a dictionary from hetrogenous data**
 
-* Dict()
-* Dict(_expression_ [, _expression_...])
+* Dictionary()
+* Dictionary(*expression* [, *expression*&hellip;])
 
 Creates a dictionary and optionally initializes it.
 Sources for initialization can be ordinals used as keys or composite keys,
@@ -84,15 +84,15 @@ When dictionaries are added, a deep merge is performed, unlike
 the shallow merge performed by `Add()`.
 
 ```vgr
-Dict(None) → {}
-Dict([]) → {}
-Dict("a") → {"a": None}
-Dict(["a"]) → {"a": None}
-Dict(["a", 1]) → {"a": 1}
-Dict(["a", 1, 2]) → {"a": [1, 2]}
-Dict(["f.a", 1], ["f.b", 2]) → {"f": {"a": 1, "b": 2}}
-Dict([["f.a", 1], ["f.b", 2]]) → {"f": {"a": 1, "b": 2}}
-Dict({"f":{"a": 1}}, ["f.b", 2]) → {"f": {"a": 1, "b": 2}}
+Dictionary(None) → {}
+Dictionary([]) → {}
+Dictionary("a") → {"a": None}
+Dictionary(["a"]) → {"a": None}
+Dictionary(["a", 1]) → {"a": 1}
+Dictionary(["a", 1, 2]) → {"a": [1, 2]}
+Dictionary(["f.a", 1], ["f.b", 2]) → {"f": {"a": 1, "b": 2}}
+Dictionary([["f.a", 1], ["f.b", 2]]) → {"f": {"a": 1, "b": 2}}
+Dictionary({"f":{"a": 1}}, ["f.b", 2]) → {"f": {"a": 1, "b": 2}}
 
 Set lines = ["a | b | c", "1 | 2 | 3", "one | two | three"]
 Set records To List()
@@ -101,7 +101,7 @@ ForEach line in lines:
     If $loop.first:
         Set headers To elems.Upper()
     Else:
-        Append Dict(CombineLists(headers, elems)) To records
+        Append Dictionary(CombineLists(headers, elems)) To records
     End
 End
 Print records.FormatJson()
@@ -178,10 +178,10 @@ def _merge_dict(a: dict, b: dict) -> dict:
 
 def poly_isdict(x: Any) -> bool:
     """
-**Returns _True_ if the value is a dictionary**
+**Is a value a dictionary**
 
-* IsDictionary(_value_)
-* _value_.IsDictionary()
+* IsDictionary(*value*)
+* *value*.IsDictionary()
 
 ```vgr
 None.IsDictionary() → False
@@ -198,16 +198,16 @@ def poly_getkeyvalue(data: Any, path: Any, default_value: Any=None) -> Any:
     """
 **Traverse a path in a dictionary and return its value**
 
-* GetKeyValue(_value_, _path_)
-* GetKeyValue(_value_, _path_, _default_value_)
-* _value_.GetKeyValue(_path_)
-* _value_.GetKeyValue(_path_, _default_value_)
+* GetKeyValue(*value*, *path*)
+* GetKeyValue(*value*, *path*, *default_value*)
+* *value*.GetKeyValue(*path*)
+* *value*.GetKeyValue(*path*, *default_value*)
 
-The _value_ must either be a dictionary, a list, or _None_.
+The *value* must either be a dictionary, a list, or `None`.
 
-The _path_ can be:
+The *path* can be:
 
-* A string, boolean, int, or float
+* A string, boolean, integer, or float
 * A list composed of path components
 
 ```vgr
@@ -240,16 +240,16 @@ def poly_setkeyvalue(data: Any, path: Any, value: Any=None) -> Any:
     """
 **Traverse a path in a dictionary and set a value**
 
-* SetKeyValue(_value_, _path_)
-* SetKeyValue(_value_, _path_, _new_value_)
-* _value_.SetKeyValue(_path_)
-* _value_.SetKeyValue(_path_, _new_value_)
+* SetKeyValue(*value*, *path*)
+* SetKeyValue(*value*, *path*, *new_value*)
+* *value*.SetKeyValue(*path*)
+* *value*.SetKeyValue(*path*, *new_value*)
 
-The _value_ must either be a dictionary, a list, or _None_.
+The *value* must either be a dictionary, a list, or `None`.
 
-The _path_ can be:
+The *path* can be:
 
-* A string, boolean, int, or float
+* A string, boolean, integer, or float
 * A list composed of path components
 
 ```vgr
@@ -307,10 +307,10 @@ def poly_getkeys(data: Any) -> list:
     """
 **Retrieve the keys used in a dictionary**
 
-* GetKeys(_value_)
-* _value_.GetKeys()
+* GetKeys(*value*)
+* *value*.GetKeys()
 
-The _value_ must either be a dictionary or a list.
+The *value* must either be a dictionary or a list.
 For non-dictionaries, an empty list is returned.
 
 ```vgr
@@ -337,10 +337,10 @@ def poly_getvalues(data: Any) -> list:
     """
 **Return a list of all the values in a dictionary**
 
-* GetValues(_value_)
-* _value_.GetValues()
+* GetValues(*value*)
+* *value*.GetValues()
 
-The _value_ must either be a dictionary or a list.
+The *value* must either be a dictionary or a list.
 For non-dictionaries, an empty list is returned.
 
 ```vgr
@@ -367,14 +367,14 @@ def poly_removekey(data: Any, path: Any) -> Any:
     """
 **Remove a key from a dictionary**
 
-* RemoveKey(_value_, _path_)
-* _value_.RemoveKey(_path_)
+* RemoveKey(*value*, *path*)
+* *value*.RemoveKey(*path*)
 
-The _value_ must either be a dictionary, a list, or _None_.
+The *value* must either be a dictionary, a list, or `None`.
 
-The _path_ can be:
+The *path* can be:
 
-* A string, boolean, int, or float
+* A string, boolean, intger, or float
 * A list composed of path components
 
 ```vgr
@@ -422,21 +422,21 @@ def poly_lookupitem(x: Any, path: Any, values: Any=None, limit: Any=None, *, ctx
     """
 **Find a matching entries in a list by value**
 
-* LookupItem(_list_, _path_, _value_ [, limit])
-* _list_.LookupItem(_path_, _value_ [, limit])
+* LookupItem(_list_, *path*, *value* [, *limit*])
+* _list_.LookupItem(_path_, *value* [, *limit*])
 
-The _path_ can be:
+The *path* can be:
 
-* A string, boolean, int, or float
+* A string, boolean, integer, or float
 * A list composed of path components
 
-For _value_ argument, may be a single value, a list of values.
+For *value* argument, may be a single value, a list of values.
 Regular expressions can also be used for comparisons: see `CompilePattern()`.
-If a _value_ is a function the dereferenced key value is passed as the argument to
+If a *value* is a function the dereferenced key value is passed as the argument to
 the function for testing. The function should return a boolean value.
 
 The returned result is always a list, which may be empty.
-When performed on _None_ or a non-dictionary it returns an empty list.
+When performed on `None` or a non-dictionary it returns an empty list.
 
 ```vgr
 Set point1 To {"x": 5, "y": 7, "space": 2, "name": "p1"}

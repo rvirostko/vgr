@@ -41,15 +41,21 @@ def execute_print(ctx: ExecContext, statement: Tree) -> None:
     """
 **Print values, similar to AWK's print statement**
 
-* Print [Output | Error | Markdown] _expression_ [, _expression_]... [;]
+* Print [Output | Error | Markdown] *expression* [, *expression*]&hellip; [;]
 
 Default destination is `Output`. `Markdown` always goes to the current console.
 If the console is redirected to a file `Markdown` output written as text.
 
-The results of the expressions are separated by the string defined in _arg.ofs_.
-Lines are ended by with the _arg.ors_ string. The defaults are space and new line and
-are used if the values are set to _None_.
-If there are no expressions to print only the _arg.ors_ is printed.
+The results of the expressions are separated by the string defined in *env.OFS*.
+Lines are ended by with the *env.ORS* string. The defaults are space and new line and
+are used if the values are set to `None`.
+If there are no expressions to print only the *env.ORS* is printed.
+
+```vgr
+**TODO**
+```
+
+Also see `Printf`
 """
     channel, args = _extract_args(statement)
     sep = ctx.get_var(*OFS_PATH)
@@ -63,8 +69,8 @@ def execute_printf(ctx: ExecContext, statement: Tree) -> None:
     """
 **Print formatted values, similar to AWK's printf statement**
 
-* Printf _expression_ [, _expression_]... [;]
-* Printf [Output | Error | Markdown] _expression_ [, _expression_]... [;]
+* Printf *expression* [, *expression*]&hellip; [;]
+* Printf [Output | Error | Markdown] *expression* [, *expression*]&hellip; [;]
 
 If no expressions are given, nothing is printed.
 Default destination is `Output`. `Markdown` always goes to the current console.
@@ -72,9 +78,13 @@ If the console is redirected to a file `Markdown` output written as text.
 
 The first expression is resolved to a string used to format the other values.
 
-Formatting syntax is that used in [Python's str.format()](https://docs.python.org/3/library/string.html#formatstrings)
+Formatting syntax is that used by `Format()`.
 
-Also see `Format()`
+```vgr
+**TODO**
+```
+
+Also see `Print`, `Format()`, in addition to `Open` and `Close`
 
 """
     channel, args = _extract_args(statement)

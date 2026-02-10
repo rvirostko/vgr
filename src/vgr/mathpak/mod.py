@@ -17,26 +17,26 @@ def poly_mod(x: Any, *args):
     """
 **Modulo operation**
 
-* _x_ % _y_
-* Mod(_x_, _y_...)
-* _x_.Mod(_y_...)
+* *x* % *y*
+* Mod(*x*, *y*&hellip;)
+* *x*.Mod(*y*&hellip;)
 
 | x     | y     | returns | operation           |
 |-------|-------|---------|---------------------|
 | int   | int   | float   | x % y               |
 | int   | float | float   | x % y               |
-| int   | str   | float   | x % float(y)        |
+| int   | str   | float   | x % ToFloat(y)        |
 | float | int   | float   | x % y               |
 | float | float | float   | x % y               |
-| float | str   | float   | x % float(y)        |
-| str   | int   | float   | float(x) % y        |
-| str   | float | float   | float(x) % y        |
-| str   | str   | float   | float(x) % float(y) |
+| float | str   | float   | x % ToFloat(y)        |
+| str   | int   | float   | ToFloat(x) % y        |
+| str   | float | float   | ToFloat(x) % y        |
+| str   | str   | float   | ToFloat(x) % ToFloat(y) |
 | list  | int   | list    | distributive        |
 | list  | float | list    | distributive        |
 | list  | str   | list    | distributive        |
 
-TypeError raised on all other combinations
+A type error is raised on all other combinations
 
 ```vgr
 None % None → None

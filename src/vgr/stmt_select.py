@@ -37,7 +37,7 @@ _TARGET = 'target'
 class SelectAnalyzer(Visitor):
 
     # NB: Need to keep in sync with grammar
-    # TODO it is out of sync...
+    # TODO it is out of sync
     _VAR_NAME = re.compile(r'[A-Za-z_](?:[A-Za-z0-9_]|-+[A-Za-z])*(?:\u2032+|[\u2033\u2034\u2057\u2080-\u2089])?')
 
     _BOOL_OPTS = (
@@ -406,9 +406,11 @@ class ImplicitContextAdder(Transformer):
 @bound_ops("Select")
 def execute_select(ctx: ExecContext, statement: Tree):
     """
-** A Select statement for lists, files, and data sources**
+**A Select statement for lists, files, and data sources**
 
-TODO
+```vgr
+**TODO**
+```
 """
     ctx.dd.push_frame([(_ROWID_PATH, 0)])
     try:

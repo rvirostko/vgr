@@ -29,11 +29,15 @@ def execute_exit(ctx: ExecContext, statement: Tree) -> None:
 **Exits the script setting a return code**
 
 * Exit [;]
-* Exit _expression_ [;]
+* Exit *expression* [;]
 
-The _expression_ is a numeric the code returned to the operating system.
+The *expression* is a numeric the code returned to the operating system.
 The default return code is zero.
-Note that in this specific case _True_ returns zero and _False_ returns one.
+Note that in this specific case `True` returns zero and `False` returns one.
+
+```vgr
+**TODO**
+```
 
 Also see `Assert`
 """
@@ -55,22 +59,20 @@ def execute_assert(ctx: ExecContext, statement: Tree) -> None:
     """
 **Assert that a condition is met, halting execution if it is not**
 
-* Assert _expression_ [;]
-* Assert _expression_ : _expression_ [, _expression_]... [;]
+* Assert *expression* [;]
+* Assert *expression* : *expression* [, *expression*]&hellip; [;]
 
 The first expression is evaluated as a boolean value which must be true for execution to continue.
 
 The optional expressions following the colon compose a a string message printed if the first expression
-is not true. It is composed in the same manner as `Printf`, with the first one being a string containing
-formatting syntax as used in [Python's str.format()](https://docs.python.org/3/library/string.html#formatstrings)
-
-See `Format()` for more formatting information.
+is not `True`. It is composed in the same manner as `Printf`, with the first one being a string containing
+formatting syntax as used by `Format()`.
 
 If no message is given the the failing expression is used as the message
 
 Execution ends with an exit code of 1 indicating failure
 
-Also see `Exit`
+Also see `Exit` and `Format()`
 """
     exprs = statement.children
     v: bool = poly_true(ctx.eval_expr(exprs[0])) if len(exprs) else False
@@ -94,10 +96,15 @@ def execute_return(ctx: ExecContext, statement: Tree) -> None:
 **Return a value from a function**
 
 * Return [;]
-* Return _expression_ [;]
+* Return *expression* [;]
 
-If _expression_ is not provided, or if a function does not contain a return,
-the return values is always _None_.
+If *expression* is not provided, or if a function does not contain a return,
+the return values is always `None`.
+
+```vgr
+**TODO**
+```
+
 """
     rc = ctx.eval_expr(statement.children[0]) if statement.children else None
     raise VgrStatementReturn(rc, statement)

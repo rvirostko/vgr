@@ -31,8 +31,8 @@ def md_bold(text: Any) -> Any:
     """
 **Format the text in Markdown as bold**
 
-* MdBold(_value_)
-* _value_.MdBold()
+* MdBold(*value*)
+* *value*.MdBold()
 
 ```vgr
 **TODO**
@@ -45,8 +45,8 @@ def md_italics(text: Any) -> Any:
     """
 **Format the text in Markdown as italics**
 
-* MdItalics(_value_)
-* _value_.MdItalics()
+* MdItalics(*value*)
+* *value*.MdItalics()
 
 ```vgr
 **TODO**
@@ -59,8 +59,8 @@ def md_strikethrough(text: Any) -> Any:
     """
 **Format the text in Markdown as strike-through**
 
-* MdStrikeThrough(_value_)
-* _value_.MdStrikeThrough()
+* MdStrikeThrough(*value*)
+* *value*.MdStrikeThrough()
 
 ```vgr
 **TODO**
@@ -73,8 +73,8 @@ def md_code(text: Any) -> Any:
     """
 **Format the text in Markdown as code**
 
-* MdCode(_value_)
-* _value_.MdCode()
+* MdCode(*value*)
+* *value*.MdCode()
 
 ```vgr
 **TODO**
@@ -87,8 +87,8 @@ def md_link(text: Any, url: Any) -> Any:
     """
 **Format the text in Markdown as a link**
 
-* MdLink(_value_, _url_)
-* _value_.MdLink(_url_)
+* MdLink(*value*, _url_)
+* *value*.MdLink(_url_)
 
 ```vgr
 **TODO**
@@ -104,10 +104,10 @@ def md_heading(text: Any, level: int=1) -> Any:
     """
 **Format the text in Markdown as a heading**
 
-* MdHeading(_value_)
-* MdHeading(_value_, _level_)
-* _value_.MdHeading()
-* _value_.MdHeading(_level_)
+* MdHeading(*value*)
+* MdHeading(*value*, _level_)
+* *value*.MdHeading()
+* *value*.MdHeading(_level_)
 
 ```vgr
 **TODO**
@@ -124,10 +124,10 @@ def md_blockquote(text: Any) -> Any:
     """
 **Format the text in Markdown as a block quote**
 
-* MdBlockQuote(_value_)
-* _value_.MdBlockQuote()
+* MdBlockQuote(*value*)
+* *value*.MdBlockQuote()
 
-If _value_ is a list, each element in it is formatted as part of the block.
+If *value* is a list, each element in it is formatted as part of the block.
 
 ```vgr
 **TODO**
@@ -143,10 +143,10 @@ def md_unordered_list(text: Any) -> Any:
     """
 **Format the text in Markdown as an unordered list item**
 
-* MdUnorderedList(_value_)
-* _value_.MdUnorderedList()
+* MdUnorderedList(*value*)
+* *value*.MdUnorderedList()
 
-If _value_ is a list, each element in it is formated as a list item.
+If *value* is a list, each element in it is formated as a list item.
 
 ```vgr
 **TODO**
@@ -162,10 +162,10 @@ def md_ordered_list(text: Any) -> Any:
     """
 **Format the text in Markdown as an ordered list item**
 
-* MdOrderedList(_value_)
-* _value_.MdOrderedList()
+* MdOrderedList(*value*)
+* *value*.MdOrderedList()
 
-If _value_ is a list, each element in it is formated as a list item.
+If *value* is a list, each element in it is formated as a list item.
 
 ```vgr
 **TODO**
@@ -185,12 +185,12 @@ def md_code_block(text: Any, lang: str=None) -> Any:
     """
 **Format the text in Markdown as a code block**
 
-* MdCodeBlock(_value_)
-* MdCodeBlock(_value_, _language_)
-* _value_.MdCodeBlock()
-* _value_.MdCodeBlock(_language_)
+* MdCodeBlock(*value*)
+* MdCodeBlock(*value*, _language_)
+* *value*.MdCodeBlock()
+* *value*.MdCodeBlock(_language_)
 
-If _value_ is a list, each element in it is formatted as part of the block.
+If *value* is a list, each element in it is formatted as part of the block.
 
 ```vgr
 **TODO**

@@ -10,15 +10,15 @@ from .common import NoneType, bound_ops
 from .inequ import poly_eq
 from .type import poly_type
 
-@bound_ops("IsIn")
+@bound_ops("Is In", "∈")
 def poly_in(x: Any, y: Any) -> bool:
     """
 **Is a value contained in another value or collection**
 
-* _value_ Is In _expression_
-* _value_ ∈ _expression_
-* IsIn(_value_, _expression_)
-* _value_.IsIn(_expression_)
+* *value* Is In *expression*
+* *value* ∈ *expression*
+* IsIn(*value*, *expression*)
+* *value*.IsIn(*expression*)
 
 ```vgr
 None.IsIn(None) → True
@@ -44,15 +44,15 @@ Also see `IsNotIn()` and `ContainsAny()`
 """
     return _is_in(x, y, False)
 
-@bound_ops("Not-In", "Is-Not-In")
+@bound_ops("Is Not In", "∉")
 def poly_not_in(x: Any, y: Any) -> Any:
     """
 **Is a value _not_ contained in another value or collection**
 
-* _value_ Is Not In _expression_
-* _value_ ∉ _expression_
-* IsNotIn(_value_, _expression_)
-* _value_.IsNotIn(_expression_)
+* *value* Is Not In *expression*
+* *value* ∉ *expression*
+* IsNotIn(*value*, *expression*)
+* *value*.IsNotIn(*expression*)
 
 ```vgr
 None.IsNotIn(None) → False
@@ -78,14 +78,14 @@ Also see `IsIn()`
 """
     return not _is_in(x, y, False)
 
-@bound_ops("Contains", "Contains-Any")
+@bound_ops("Contains Any")
 def poly_contains_any(x: Any, y: Any) -> Any:
     """
 **Is a value contained in another value or collection**
 
-* _value_ Contains [Any] _expression_
-* ContainsAny(_value_, _expression_)
-* _value_.ContainsAny(_expression_)
+* *value* Contains [Any] *expression*
+* ContainsAny(*value*, *expression*)
+* *value*.ContainsAny(*expression*)
 
 Functions identically to `IsIn()` except that the sense of the
 operands are reverse.
@@ -114,14 +114,14 @@ Also see `ContainsAll()` and `IsIn()`
 """
     return _is_in(y, x, False)
 
-@bound_ops("Contains-All")
+@bound_ops("Contains All")
 def poly_contains_all(x: Any, y: Any) -> Any:
     """
 **Is a value contained in another value or collection**
 
-* _value_ Contains All _expression_
-* ContainsAll(_value_, _expression_)
-* _value_.ContainsAll(_expression_)
+* *value* Contains All *expression*
+* ContainsAll(*value*, *expression*)
+* *value*.ContainsAll(*expression*)
 
 Functions identically to `ContainsAny()` except that when working with lists,
 all tests are satisfied.

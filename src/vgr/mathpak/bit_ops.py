@@ -22,25 +22,25 @@ def poly_bit_and(x: Any, *args) -> Any:
     """
 **Bitwise And operation**
 
-* _x_ & _y_
-* BitAnd(_x_, _y_...)
-* _x_.BitAnd(_y_...)
+* *x* & *y*
+* BitAnd(*x*, *y*&hellip;)
+* *x*.BitAnd(*y*&hellip;)
 
 | x     | y     | returns   | operation             |
 |-------|-------|-----------|-----------------------|
 | int   | int   | int       | x & y                 |
 | int   | float | int       | x & y                 |
-| int   | str   | int       | _See below_           |
-| _any_ | list  | list      | distributive          |
+| int   | str   | int       | *See below*           |
+| *any* | list  | list      | distributive          |
 | float | int   | int       | ToInteger(x) & y      |
 | float | float | int       | ToInteger(x) & ToInteger(y) |
-| float | str   | int       | _See below_           |
-| str   | int   | str       | _See below_           |
-| str   | float | str       | _See below_           |
-| str   | str   | str       | _See below_           |
-| list  | _any_ | list      | distributive          |
+| float | str   | int       | *See below*           |
+| str   | int   | str       | *See below*           |
+| str   | float | str       | *See below*           |
+| str   | str   | str       | *See below*           |
+| list  | *any* | list      | distributive          |
 
-TypeError raised on all other combinations
+A type error is raised on all other combinations
 
 *String operations*
 
@@ -63,25 +63,25 @@ def poly_bit_or(x: Any, *args) -> Any:
     """
 **Bitwise Or operation**
 
-* _x_ | _y_
-* BitOr(_x_, _y_...)
-* _x_.BitOr(_y_...)
+* *x* | *y*
+* BitOr(*x*, *y*&hellip;)
+* *x*.BitOr(*y*&hellip;)
 
 | x     | y     | returns   | operation             |
 |-------|-------|-----------|-----------------------|
 | int   | int   | int       | x | y                 |
 | int   | float | int       | x | y                 |
-| int   | str   | int       | _See below_           |
-| _any_ | list  | list      | distributive          |
+| int   | str   | int       | *See below*           |
+| *any* | list  | list      | distributive          |
 | float | int   | int       | ToInteger(x) | y      |
 | float | float | int       | ToInteger(x) | ToInteger(y) |
-| float | str   | int       | _See below_           |
-| str   | int   | str       | _See below_           |
-| str   | float | str       | _See below_           |
-| str   | str   | str       | _See below_           |
-| list  | _any_ | list      | distributive          |
+| float | str   | int       | *See below*           |
+| str   | int   | str       | *See below*           |
+| str   | float | str       | *See below*           |
+| str   | str   | str       | *See below*           |
+| list  | *any* | list      | distributive          |
 
-TypeError raised on all other combinations
+A type error is raised on all other combinations
 
 *String operations*
 
@@ -102,27 +102,27 @@ Also see `BitAnd()` and `BitXor()`
 @bound_ops("^")
 def poly_bit_xor(x: Any, *args) -> Any:
     """
-**Bitwise exclusive Or (Xor) operation**
+**Bitwise Exclusive Or operation**
 
-* _x_ ^ _y_
-* BitXor(_x_, _y_...)
-* _x_.BitXor(_y_...)
+* *x* ^ *y*
+* BitXor(*x*, *y*&hellip;)
+* *x*.BitXor(*y*&hellip;)
 
 | x     | y     | returns   | operation             |
 |-------|-------|-----------|-----------------------|
 | int   | int   | int       | x ^ y                 |
 | int   | float | int       | x ^ y                 |
-| int   | str   | int       | _See below_           |
-| _any_ | list  | list      | distributive          |
+| int   | str   | int       | *See below*           |
+| *any* | list  | list      | distributive          |
 | float | int   | int       | ToInteger(x) ^ y      |
 | float | float | int       | ToInteger(x) ^ ToInteger(y) |
-| float | str   | int       | _See below_           |
-| str   | int   | str       | _See below_           |
-| str   | float | str       | _See below_           |
-| str   | str   | str       | _See below_           |
-| list  | _any_ | list      | distributive          |
+| float | str   | int       | *See below*           |
+| str   | int   | str       | *See below*           |
+| str   | float | str       | *See below*           |
+| str   | str   | str       | *See below*           |
+| list  | *any* | list      | distributive          |
 
-TypeError raised on all other combinations
+A type error is raised on all other combinations
 
 *String operations*
 
@@ -144,8 +144,8 @@ def poly_bit_not(x: Any) -> Any:
     """
 **Bitwise invert (negation) operation**
 
-* BitNot(_value_)
-* _value_.BitNot()
+* BitNot(*value*)
+* *value*.BitNot()
 
 Returns the shortest length bitwise negation, in multiples of eight bits,
 for a numeric value.
@@ -178,12 +178,12 @@ def poly_set_bit(x: Any, index: int, do_set: bool=True) -> Any:
     """
 **Set bit at an index to one**
 
-* SetBit(_value_, _index_[, _set_])
-* _value_.SetBit(_index_[, _set_])
+* SetBit(*value*, *index*[, _set_])
+* *value*.SetBit(*index*[, _set_])
 
 The optional _set_ argument is interpreted as a boolean, indicating if the
-bit at the given index should be set to one (_True_) or zero (_False_).
-The default is _True_, setting the bit to one.
+bit at the given index should be set to one (`True`) or zero (`False`).
+The default is `True`, setting the bit to one.
 
 ```vgr
 None.SetBit(2).ToBinary() → None
@@ -206,8 +206,8 @@ def poly_clear_bit(x: Any, index: int) -> Any:
     """
 **Set bit at an index to zero**
 
-* ClearBit(_value_, _index_)
-* _value_.ClearBit(_index_)
+* ClearBit(*value*, *index*)
+* *value*.ClearBit(*index*)
 
 ```vgr
 None.ClearBit(2).ToBinary() → None
@@ -227,10 +227,10 @@ Also see `SetBit()` and `ToggleBit()`
 
 def poly_toggle_bit(x: Any, index: int) -> Any:
     """
-** Reverse the setting of the bit at an index**
+**Reverse the setting of the bit at an index**
 
-* ToggleBit(_value_, _index_)
-* _value_.ToggleBit(_index_)
+* ToggleBit(*value*, *index*)
+* *value*.ToggleBit(*index*)
 
 ```vgr
 None.ToggleBit(2).ToBinary() → None
@@ -250,10 +250,10 @@ Also see `SetBit()` and `ClearBit()`
 
 def poly_test_bit(x: Any, index: int):
     """
-**Return _True_ if the bit at index is one**
+**Return `True` if the bit at index is one**
 
-* IsBitSet(_value_, _index_)
-* _value_.IsBitSet(_index_)
+* IsBitSet(*value*, *index*)
+* *value*.IsBitSet(*index*)
 
 ```vgr
 None.IsBitSet(2) → False
@@ -275,8 +275,8 @@ def poly_count_ones(x: Any):
     """
 **Return the number of one bits in a value**
 
-* CountOneBits(_value_)
-* _value.CountOneBits()
+* CountOneBits(*value*)
+* *value*.CountOneBits()
 
 ```vgr
 None.CountOneBits() → 0
@@ -295,10 +295,10 @@ Also see `CountZeroBits()`
 
 def poly_count_zeros(x: Any, width: int):
     """
-**Return the number of zero bits in a value, treating it as being _width_ bits long**
+**Return the number of zero bits in a value, treating it as being *width* bits long**
 
-* CountZeroBits(_value_, _width_)
-* _value.CountZeroBits(_width_)
+* CountZeroBits(*value*, *width*)
+* *value*.CountZeroBits(_width_)
 
 ```vgr
 None.CountZeroBits(8) → 0
@@ -318,10 +318,10 @@ Also see `CountLeadingZeroBits()`, `CountTrailingZeroBits()`, and `CountOneBits(
 
 def poly_count_leading_zeros(x: Any, width: int):
     """
-**Return the number of _leading_ zero bits in a value, treating it as being _width_ bits long**
+**Return the number of _leading_ zero bits in a value, treating it as being *width* bits long**
 
-* CountLeadingZeroBits(_value_, _width_)
-* _value.CountLeadingZeroBits(_width_)
+* CountLeadingZeroBits(*value*, *width*)
+* *value*.CountLeadingZeroBits(_width_)
 
 ```vgr
 None.CountLeadingZeroBits(8) → 0
@@ -345,8 +345,8 @@ def poly_count_trailing_zeros(x: Any):
     """
 **Return the number of _trailing_ zero bits in a value**
 
-* CountTrailingZeroBits(_value_)
-* _value.CountTrailingZeroBits()
+* CountTrailingZeroBits(*value*)
+* *value*.CountTrailingZeroBits()
 
 ```vgr
 None.CountTrailingZeroBits() → 0
@@ -369,8 +369,8 @@ def poly_highest_one_bit(x: Any):
     """
 **Return a value with only its most significant one bit preserved**
 
-* HighestOneBit(_value_)
-* _value_.HighestOneBit()
+* HighestOneBit(*value*)
+* *value*.HighestOneBit()
 
 ```vgr
 None.HighestOneBit() → None
@@ -393,8 +393,8 @@ def poly_lowest_one_bit(x: Any):
     """
 **Return a value with only its least significant one bit preserved**
 
-* LowestOneBit(_value_)
-* _value_.LowestOneBit()
+* LowestOneBit(*value*)
+* *value*.LowestOneBit()
 
 ```vgr
 None.LowestOneBit() → None
@@ -415,10 +415,10 @@ Also see `HighestOneBit()`
 
 def poly_rotate_left(x: Any, count: int, width: int):
     """
-**Rotate right by _count_ bits within a unsigned space of _width_ bits**
+**Rotate right by *count* bits within a unsigned space of *width* bits**
 
-* RotateLeft(_value_, _count_, _width_)
-* _value_.RotateLeft(_count_, _width_)
+* RotateLeft(*value*, *count*, *width*)
+* *value*.RotateLeft(*count*, *width*)
 
 ```vgr
 None.RotateLeft(2, 8) → None
@@ -443,10 +443,10 @@ Also see `RotateLeft()` and `LeftShift()`
 
 def poly_rotate_right(x: Any, count: int, width: int):
     """
-**Rotate right by _count_ bits within a unsigned space of _width_ bits**
+**Rotate right by *count* bits within a unsigned space of *width* bits**
 
-* RotateRight(_value_, _count_, _width_)
-* _value_.RotateRight(_count_, _width_)
+* RotateRight(*value*, *count*, *width*)
+* *value*.RotateRight(*count*, *width*)
 
 ```vgr
 None.RotateRight(2, 8) → None
@@ -471,10 +471,10 @@ Also see `RotateLeft()` and `RightShift()`
 
 def poly_reverse_bits(x: Any, width: int):
     """
-**Reverse the order of bits within an unsigned space of _width_ bits**
+**Reverse the order of bits within an unsigned space of *width* bits**
 
-* ReverseBits(_value_, _width_)
-* _value_.ReverseBits(_width_)
+* ReverseBits(*value*, *width*)
+* *value*.ReverseBits(_width_)
 
 ```vgr
 None.ReverseBits(8) → None
@@ -497,15 +497,17 @@ Also see `ReverseBytes()`
         return r
     return x
 
+# TODO this name is WRONG: should be "reverse bits" OR change width to be bytes, not bits
 def poly_reverse_bytes(x: Any, width: int):
     """
-**Swaps byte order for correct interpretation
-when moving between big-endian and little-endian architectures, protocols, or file formats**
+**Swaps byte order for correct interpretation**
 
-* ReverseBytes(_value_, _width_)
-* _value_.ReverseBytes(_width_)
+* ReverseBytes(*value*, *width*)
+* *value*.ReverseBytes(*width*)
 
-_width_ must be a multiple of eight
+Swaps byte order when moving between big-endian and little-endian architectures, protocols, or file formats
+
+*width* must be a multiple of eight
 
 ```vgr
 None.ReverseBytes(32) → None
@@ -532,11 +534,11 @@ def poly_set_bits(x: Any, bits: int, start: int, width: int) -> Any:
     """
 **Sets one or more bits at a specific location in a value**
 
-* SetBits(_value_, _bits_, _start_, _width_)
-* _value.SetBits(_bits_, _start_, _width_)
+* SetBits(*value*, *bits*, *start*, *width*)
+* *value*.SetBits(*bits*, *start*, *width*)
 
-_bits_ is the new value which will be set in the _value_.
-_start_ is the starting bit in value with zero being the least significant bit.
+*bits* is the new value which will be set in the *value*.
+*start* is the starting bit in value with zero being the least significant bit.
 Values up to 256 bits long are supported.
 
 If a single bit is being changed, it is better to use `SetBit()` or `ClearBit()`.
@@ -574,10 +576,10 @@ def poly_extract_bits(x: Any, start: int, width: int) -> Any:
     """
 **Extracts one or more bits at a specific location in a value**
 
-* ExtractBits(_value_, _start_, _width_)
-* _value.ExtractBits(_start_, _width_)
+* ExtractBits(*value*, *start*, *width*)
+* *value*.ExtractBits(*start*, *width*)
 
-_start_ is the starting bit in value with zero being the least significant bit.
+*start* is the starting bit in value with zero being the least significant bit.
 Values up to 256 bits long are supported.
 
 If a single bit is being extracted, it is better to use `TestBit()`.
@@ -612,7 +614,7 @@ def _clamp_bit_param(value: int, max_value: int) -> int:
     return 0 if value < 0 else max_value if value > max_value else value
 
 def _str_num_op(op: Callable[[Any, Any], Any], x: str, y: Any) -> Any:
-    # TODO see if this is still useful...
+    # TODO see if this is still useful
     """See if the string can be converted to a number before applying the operation"""
     y_int = int(y)
     try:

@@ -148,7 +148,7 @@ class CmdLine:
 **REPL: Change the current working directory**
 
 * **cd** : changes to the user's home directory
-* **cd _dir_** : changes to the given directory
+* **cd *dir*** : changes to the given directory
 
 Execution of statements are sandboxed to the current directory, so if you
 need to change location after starting a session you can use this command.
@@ -179,7 +179,7 @@ need to change location after starting a session you can use this command.
 
 * **history** : display recent history
 * **history --clear** : clear history
-* **history --max _n_** : set the maximum commands saved
+* **history --max *n*** : set the maximum commands saved
 """
         values = self._parse(self._HISTORY_PARSER, *args)
         if values is not None:
@@ -218,7 +218,7 @@ To execute commands in multiline editing mode, use **META-Return** instead.
 **REPL: Change the Prompt**
 
 * **prompt** : print the template used to generate the interactive prompt
-* **prompt _template_** : set the prompt to the template
+* **prompt *template*** : set the prompt to the template
 
 The template supports a limited set of values that are defined by the
 Bash Shell:
@@ -249,7 +249,7 @@ Changes made at runtime are not persistent.
 **REPL: Open an OS sub-shell**
 
 * **shell** : open an interactive sub-shell
-* **shell** _command_ [_arg_]...: run the command in a sub-shell
+* **shell** *command* [*arg*]&hellip;: run the command in a sub-shell
 
 You can use **!** as an alias for **shell**
 """

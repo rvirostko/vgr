@@ -138,39 +138,39 @@ def execute_sort(ctx: ExecContext, statement: Tree) -> None:
     """
 **Sort the contents of a list or a file**
 
-* Sort [Variable | Var] _variable_ _keys_ [_unique_] [_target_] [;]
-* Sort File _file_name_ [_file_type_] _keys_ [_unique_] [_target_] [;]
+* Sort [Variable | Var] *variable* _keys_ [_unique_] [_target_] [;]
+* Sort File *file_name* [*file_type*] _keys_ [_unique_] [_target_] [;]
 
 The _keys_ option
-* ... [On | By] _key_spec_ [, _key_spec_ ...] ...
-* _key_spec_ : [Ascending | Descending] [Key] _expression_
+* &hellip; [On | By] _key_spec_ [, _key_spec_ &hellip;] &hellip;
+* _key_spec_ : [Ascending | Descending] [Key] *expression*
 * Ascending and Descending may be abbreviated as Asc or Des
 * Ascending is the default ordering
 * When sorting non-dictionary items, no keys are required.
   The only available key is _line_.
 
 The _unique_ option
-* ... Unique ...
-* ... Unique On _expression_ [, _expression ...] ...
+* &hellip; Unique &hellip;
+* &hellip; Unique On *expression* [, *expression* &hellip;] &hellip;
 * Without a list of keys, uniqueness performed on keys used to perform the sort
 * When sorting non-dictionary items, no keys are required.
   The only available key is _line_.
 
 The _target_ option
-* ... [Into | Giving] [Variable | Var] _variable_ ...
-* ... [Into | Giving] File _file_name_ ...
-* ... [Into | Giving] File _file_name_ [_file_type_] ...
+* &hellip; [Into | Giving] [Variable | Var] *variable* &hellip;
+* &hellip; [Into | Giving] File *file_name* &hellip;
+* &hellip; [Into | Giving] File *file_name* [*file_type*] &hellip;
 * If omitted, sort is performed in-place
 
-The _file_type_ option
-* ... As _type_ ... where _type_ is : JSON or JSON Object (an array of objects),
-    JSON Object Per Line (each line is an object),
-    CSV (CSV data),
-    Text Lines (each item a line of text) or
-    Text (entire object as text)
-* If no file type is given it is guessed from the extension
+The *file_type* option
+* &hellip; As *file_type* &hellip; where *file_type* is:\\
+  &emsp;JSON or JSON Object (an array of objects)\\
+  &emsp;JSON Object Per Line (each line is an object)\\
+  &emsp;CSV (CSV data)\\
+  &emsp;Text Lines (each item a line of text)\\
+  &emsp;Text (entire object as text)
+* If no file type is given it is guessed from *file_name*'s extension
 
-**Examples**
 ```vgr
 # Sort the contents of a variable and write to a file
 Sort persons On Key fname, lname Into File "persons.sorted" As Json
@@ -181,6 +181,8 @@ Sort File export + ".dat" As CSV On Asc Key id, Des env
 # Sort/unique
 Sort accts On acct_nbr Unique
 ```
+
+Also see `Sort()` and `Unique()`
 
 """
     sort = SortAnalyzer(ctx).analyze(statement)

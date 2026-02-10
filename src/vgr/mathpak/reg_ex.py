@@ -11,10 +11,10 @@ from .type import poly_type
 
 def poly_is_pattern(x:Any) -> bool:
     """
-**Returns _True_ if the value is a pre-compiled regular expression pattern**
+**Is a value a pre-compiled regular expression pattern**
 
-* IsPattern(_value_)
-* _value_.IsPattern()
+* IsPattern(*value*)
+* *value*.IsPattern()
 
 ```vgr
 "[abc]".IsPattern() → False
@@ -29,11 +29,11 @@ def compile_pattern(x: Any, flags: int=0) -> Any:
     """
 **Create a pre-compiled regular expression pattern**
 
-* CompilePattern(_pattern_)
-* _pattern_.CompilePattern()
+* CompilePattern(*pattern*)
+* *pattern*.CompilePattern()
 
 The compiled pattern can be used with `RegexReplace()`
-If the _pattern_ argument is a list, all the patterns
+If the *pattern* argument is a list, all the patterns
 in the list are compiled.
 
 ```vgr
@@ -57,21 +57,21 @@ def poly_regex_replace(x: Any, *args) -> Any:
     """
 **Regular Expression replacement**
 
-* RegexReplace(_value_, _pattern_)
-* RegexReplace(_value_, _pattern_... _replacement_)
-* _value_.RegexReplace(_pattern_)
-* _value_.RegexReplace(_pattern_... _replacement_)
+* RegexReplace(*value*, *pattern*)
+* RegexReplace(*value*, *pattern*&hellip;, *replacement*)
+* *value*.RegexReplace(*pattern*)
+* *value*.RegexReplace(*pattern*&hellip;, *replacement*)
 
 The input value can be a string, list, or a dictionary.
 Replacement is distributed over the contents of a list or dictionary.
 The pattern can be a single string or pattern a list of either.
-All _pattern_ values are applied in order, all using the same _replacement_ value.
+All *pattern* values are applied in order, all using the same *replacement* value.
 
-The _replacement_ must be a string, but can be empty or _None_, which results in deletion of
+The *replacement* must be a string, but can be empty or `None`, which results in deletion of
 the matched patterns.
 
-The pattern can start with _(?i)_ for case indepenent replacement,
-_(?m)_ for multiline replacement, or combined as _(?im)_ for both.
+The pattern can start with *(?i)* for case indepenent replacement,
+*(?m)* for multiline replacement, or combined as *(?im)* for both.
 Capture groups can be referenced in the replacement.
 
 ```vgr

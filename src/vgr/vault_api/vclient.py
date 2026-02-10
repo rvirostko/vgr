@@ -320,7 +320,7 @@ class VaultClient():
             raise ValueError('versions required for destroy')
         # https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#destroy-secret-versions
         return self.make_request(encode_url(f'/v1/{mount_point}destroy{path}'),
-                                "PUT", # That's what the docs say...
+                                "PUT", # That's what the docs say
                                 {'versions': data['versions']},
                                 namespace)
 
@@ -638,7 +638,7 @@ def _create_kv_data(data: Any) -> Dict[str, Any]:
     if not data:
         return {_DATA_KEY: {}}
     if isinstance(data, dict):
-        # User has passed in something that might be round tripped...
+        # User has passed in something that might be round tripped
         if _DATA_KEY in data:
             return data
         # We assume that the dictionary we got is the data itself

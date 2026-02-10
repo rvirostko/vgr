@@ -35,7 +35,7 @@ def duration_to_ms(duration: Any) -> int:
     """
 **Convert a Vault duration value to milliseconds**
 
-* _value_.DurationToMs()
+* *value*.DurationToMs()
 
 Numeric values are assumed to be in seconds.
 String values are converted as per the Vault specification for duration strings.
@@ -75,7 +75,7 @@ def ms_to_duration(ms: Any) -> str:
     """
 **Converts a duration in milliseconds into a Vault duration string**
 
-* _value_.MsToDuration()
+* *value*.MsToDuration()
 
 Value must be a number, either an integer or floating point value, and
 must be in _milliseconds_ not seconds. Numeric values returned from Vault
@@ -137,22 +137,40 @@ def _find_flat_data(obj, *full_path) -> dict:
 
 def extract_kv_data(obj) -> dict:
     """
-    Try to find a _data_ entry in the object
-    for use with a Vault call.
-    """
+**Find a *data* key in a dictionary**
+
+* *value*.ExtractKvData()
+* ExtractKvData(*value*)
+
+Used to extract data for use with a Vault call.
+
+```vgr
+**TODO**
+```
+
+Also see `ExtractKVMetadata()`
+
+"""
     return _find_flat_data(obj, "data", "data")
 
 def extract_kv_metadata(obj) -> dict:
     """
-    Try to find a _metadata_ or _custom_metadata_ entry in the
-    object for use with a Vault call.
-    """
+**Find a *metadata* or *custom_metadata* key in a dictionary**
+
+Used to extract data for use with a Vault call.
+
+```vgr
+**TODO**
+```
+
+Also see `ExtractKVData()`
+"""
     return _find_flat_data(obj, "data", "data", "metadata", "custom_metadata")
 
 def add_kv_cas(obj: dict, cas: int) -> dict:
     """
     If cas is set, add the correct options to the object:
-        **"options": { "cas": _value_ }**
+        **"options": { "cas": *value* }**
     """
     if cas is not None:
         opts = obj.get('options', {})

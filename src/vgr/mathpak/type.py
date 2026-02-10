@@ -8,10 +8,10 @@ def poly_type(x: Any) -> str:
     """
 **Return the internal data type of an item**
 
-* Type(_value_)
-* _value_.Type()
+* Type(*value*)
+* *value*.Type()
 
-For _None_ the value _none_ is returned.
+For `None` the value *none* is returned.
 
 ```vgr
 None.Type() → "none"
@@ -26,6 +26,10 @@ CompilePattern("[abc]").Type() → "pattern"
 Set f(x) -> x+2
 f.Type() -> "function"
 ```
+
+Also see `IsNone()`, `IsBoolean()`, `IsDictionary()`, `IsInteger()`,
+`IsFloat()`, `IsNumber()`, `IsPattern()`,
+`IsString()`, and `IsFunction()`.
 """
     if x is None: return 'none'
     if isinstance(x, bool): return 'boolean'

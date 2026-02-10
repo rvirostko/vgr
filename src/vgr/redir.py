@@ -40,25 +40,30 @@ def execute_open(ctx: ExecContext, statement: Tree) -> None:
     """
 **Send output to a file**
 
-* Open [Output | Error] [File] _file_ [Overwrite] [;]
-* Open [Output | Error] [File] _file_ No Overwrite [;]
-* Open [Output | Error] [File] _file_ [Extend | Append] [;]
+* Open [Output | Error] [File] *file_name* [Overwrite] [;]
+* Open [Output | Error] [File] *file_name* No Overwrite [;]
+* Open [Output | Error] [File] *file_name* [Extend | Append] [;]
 
-The _file_ argument is a string for the file to be opened.
+The *file_name* argument is a string for the file to be opened.
 
 If output is already being sent to another file, it is closed first.
 
-When *Extend* or *Append* is used, output is added to the end of an existing file.
-When *No Overwrite* is used, the command will fail if the file already exists.
-Otherwise, if *Overwrite* is used or no mode is given the contents of existing files are truncated.
+When `Extend` or `Append` is used, output is added to the end of an existing file.
+When `No Overwrite` is used, the open fails if the file already exists.
+Otherwise, if `Overwrite` is used or no option is given the contents of existing files are truncated.
 
 All redirection is closed at program termination.
 
-`Windows Note`: If you hard code paths, please use the slash as a universal
-directory separator. Since the backslash is an escape character, if you use
-it in a string, you will either need to double it or use a _raw string_.
+> **Windows Note**\\
+> If you hard code paths, please use the slash as a universal
+> directory separator. Since the backslash is an escape character, if you use
+> it in a string, you will either need to double it or use a _raw string_.
 
-Also see `Close`
+```vgr
+**TODO**
+```
+
+Also see `Close`, `Print`, and `Printf`.
 """
     stream = _eval_stream_name(statement.children[0])
     filename = ctx.eval_filename_expr(statement.children[1])
@@ -90,6 +95,10 @@ def execute_close(ctx: ExecContext, statement: Tree) -> None:
 Once closed, command output and errors resumes their default destinations.
 
 All redirection is closed at program termination.
+
+```vgr
+**TODO**
+```
 
 Also see `Open`
 """

@@ -36,21 +36,20 @@ def execute_choose(ctx: ExecContext, statement: Tree) -> None:
     """
 **Choose from a set of statements based on a series of tests**
 
-* Choose [All]: <br>
-  <em>When _expression_ : _statement_... <br>
-  <em>Otherwise : _statement_... <br>
+* Choose [All]:\\
+  &emsp;&emsp;When *expression* : _statement_&hellip;\\
+  &emsp;&emsp;Otherwise : _statement_&hellip;\\
   End [;]
 
 The values in `When` clauses are examined in order, and the first to
-evaluate to _True_ has its block of statements executed.
+evaluate to `True` has its block of statements executed.
 
-If none of the `When` clauses evaluates to _True_ the `Otherwise` cause,
+If none of the `When` clauses evaluates to `True` the `Otherwise` cause,
 if provided, is selected. Note that this clause _must_ follow all the `When`
-causes, and that at least one `When` must be specified.
+clauses, and that at least one `When` must be specified.
 
 Both `Break` and `Continue` can be used within blocks of statements.
 
-**Examples**
 ```vgr
 Set month To time.today.month
 Choose :
@@ -72,7 +71,7 @@ For n = 1 To 15:
 Next
 ```
 
-Also see `Choose-Using`
+Also see `Choose Using`
 """
     statement_children = iter(statement.children)
     do_all = False
@@ -109,22 +108,22 @@ _CHOOSE_OPS = {
 _CHOOSE_NEG_OPS = ['not_values_block', 'op_ne', 'op_not_contains', 'op_not_matches', 'op_not_imatches']
 
 @control_statement
-@bound_ops("Choose-Using")
+@bound_ops("Choose Using")
 def execute_choose_using(ctx: ExecContext, statement: Tree) -> None:
     """
 **Choose from a set of statements based on a value**
 
-* Choose [All] Using _expression_ :<br>
-  <em>When [Not] Empty : _statement_...<br>
-  <em>When [Not] _expression_ [, _expression_]... : _statement_...<br>
-  <em>When [Not] _expression_ [To | Through | Thru] _expression_ : _statement_...<br>
-  <em>When [< | Less Than] _expression_: _statement_...<br>
-  <em>When [>= | Not Less Than] _expression_: _statement_...<br>
-  <em>When [> | Greater Than] _expression_: _statement_...<br>
-  <em>When [<= | Not Greater Than] _expression_: _statement_...<br>
-  <em>When [Not] Matches _expression_ [, _expression_]... : _statement_...<br>
-  <em>When [Not] Contains _expression_ [, _expression_]... : _statement_...<br>
-  <em>Otherwise : _statement_...<br>
+* Choose [All] Using *expression* :\\
+  &emsp;&emsp;When [Not] Empty : _statement_&hellip;\\
+  &emsp;&emsp;When [Not] *expression* [, *expression*]&hellip; : _statement_&hellip;\\
+  &emsp;&emsp;When [Not] *expression* [To | Through | Thru] *expression* : _statement_&hellip;\\
+  &emsp;&emsp;When [< | Less Than] *expression*: _statement_&hellip;\\
+  &emsp;&emsp;When [>= | Not Less Than] *expression*: _statement_&hellip;\\
+  &emsp;&emsp;When [> | Greater Than] *expression*: _statement_&hellip;\\
+  &emsp;&emsp;When [<= | Not Greater Than] *expression*: _statement_&hellip;\\
+  &emsp;&emsp;When [Not] Matches *expression* [, *expression*]&hellip; : _statement_&hellip;\\
+  &emsp;&emsp;When [Not] Contains *expression* [, *expression*]&hellip; : _statement_&hellip;\\
+  &emsp;&emsp;Otherwise : _statement_&hellip;\\
   End [;]
 
 The expression in the Choose statement is evaluated and it becomes the
@@ -147,7 +146,6 @@ Both `Break` and `Continue` can be used within blocks of statements.
 While complicated expressions can be used as the values in `When` it is recommended
 that constant or references to constants be used.
 
-**Examples**
 ```vgr
 Set month To time.today.month
 Choose Using month:

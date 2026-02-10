@@ -17,9 +17,9 @@ def poly_pow(x: Any, *args):
     """
 **Raise a value to a power**
 
-* _x_ ** _y_
-* Pow(_x_, _y_...)
-* _x_.Pow(_y_...)
+* *x* ** *y*
+* Pow(*x*, *y*&hellip;)
+* *x*.Pow(*y*&hellip;)
 
 | x     | y     | returns   | operation                  |
 |-------|-------|-----------|----------------------------|
@@ -36,7 +36,7 @@ def poly_pow(x: Any, *args):
 | list  | float | list      | distributed                |
 | list  | str   | list      | distributed                |
 
-TypeError raised on all other combinations
+A type error is raised on all other combinations
 
 ```vgr
 None ** None → None

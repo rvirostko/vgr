@@ -158,11 +158,11 @@ class DataDictionary():
 Declares a variable in the appropriate frame.
 
 Returns :
-* _True_ if variable established as local
-* _False_ if variable established as global
-* _None_ if variable pre-existing
+* `True` if variable established as local
+* *False* if variable established as global
+* `None` if variable pre-existing
 
-The value at the path will be set to _None_ if
+The value at the path will be set to `None` if
 nothing already exists; existing values are never
 overwritten.
 """
@@ -319,8 +319,8 @@ class Frame:
     def declare(self, prefix: str) -> bool:
         """
         Idempotent if already present.
-        Returns _True_ if the variable is a global.
-        Returns _None_ if no action taken (already present)
+        Returns `True` if the variable is a global.
+        Returns `None` if no action taken (already present)
         """
         if prefix in self._data: return None
         self._data[prefix] = None
@@ -349,7 +349,7 @@ class Frame:
 
     def keys(self) -> KeysView[str]:
         """
-        By design, this returns _only_ the keys defined
+        By design, this returns *only* the keys defined
         in this frame, not the chain of outer frames
         """
         return self._data.keys()
@@ -365,7 +365,7 @@ class Frame:
 
 class LocalsFrame(Frame):
     """
-    This type of frame has _local_ variables which show others
+    This type of frame has *local* variables which show others
     in the calling chain. Newly created variables are created as locals.
     """
     def __init__(self, outer_frame: Frame, locals_list: list=None) -> None:

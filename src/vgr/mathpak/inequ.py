@@ -7,23 +7,23 @@ import math
 
 from .common import str_to_number, bound_ops
 
-@bound_ops("==", "⩵", "Equals", "Is", "Is Equal To")
+@bound_ops("Is Equal To", "==", "⩵", "Equals", "Is")
 def poly_eq(x: Any, y: Any) -> bool:
     """
-**Equals comparison**
+**Equality comparison**
 
-* _x_ == _y_
-* _x_ ⩵ _y_
-* _x_ Equals _y_
-* _x_ Is _y_
-* _x_ [Is] Equal To _y_
-* IsEqualTo(_x_, _y_)
-* _x_.IsEqualTo(_y_)
+* *x* [Is] Equal To *y*
+* *x* Equals *y*
+* *x* Is *y*
+* *x* == *y*
+* *x* ⩵ *y*
+* IsEqualTo(*x*, *y*)
+* *x*.IsEqualTo(*y*)
 
 | x     | y          | operation           |
 |-------|------------|---------------------|
-| None  | _any_      | y == None           |
-| _any_ | None       | False               |
+| None  | *any*      | y == None           |
+| *any* | None       | False               |
 | int   | int/float  | x == y              |
 | int   | str        | x == ToNumber(y)†   |
 | int   | list       | [x] == y‡           |
@@ -34,10 +34,10 @@ def poly_eq(x: Any, y: Any) -> bool:
 | str   | str        | x == y              |
 | str   | list       | [x] == y            |
 | list  | list       | x == y              |
-| list  | _any_      | x == [y]            |
+| list  | *any*      | x == [y]            |
 | dict  | dict       | x == y by attr      |
 
-TypeError raised on all other combinations
+A type error is raised on all other combinations
 
 Dictionary comparisons do not perform any type
 conversions.
@@ -75,9 +75,9 @@ None == "5" → False
 @bound_ops("===")
 def poly_exact_eq(x: Any, y: Any) -> bool:
     """
-**Exact Equals comparison**
+**Exact equality comparison**
 
-* _x_ === _y_
+* *x* === *y*
 
 While similar to a regular equals comparison, it requires that
 types of the two values match. No conversions are performed.
@@ -86,6 +86,8 @@ types of the two values match. No conversions are performed.
 5 == "5" -> True
 5 === "5" -> False
 ```
+
+Also see `==`
 """
     # None is only equal to itself
     if x is None: return y is None
@@ -98,24 +100,24 @@ types of the two values match. No conversions are performed.
     override = _overrides.get((tx, ty))
     return override(poly_exact_eq, x, y) if override else x == y
 
-@bound_ops("!=", "≠", "<>", "¬=", "Is Not", "Is Not Equal To")
+@bound_ops("Is Not Equal To", "!=", "≠", "<>", "¬=")
 def poly_ne(x: Any, y: Any) -> bool:
     """
 **Not equals comparison**
 
-* _x_ != _y_
-* _x_ ≠ _y_
-* _x_ <> _y_
-* _x_ ¬= _y_
-* _x_ Is Not _y_
-* _x_ [Is] Not Equal To _y_
-* NotEqualTo(_x_, _y_)
-* _x_.NotEqualTo(_y_)
+* *x* Is Not *y*
+* *x* [Is] Not Equal To *y*
+* *x* != *y*
+* *x* ≠ *y*
+* *x* <> *y*
+* *x* ¬= *y*
+* NotEqualTo(*x*, *y*)
+* *x*.NotEqualTo(*y*)
 
 | x     | y          | operation           |
 |-------|------------|---------------------|
-| None  | _any_      | y != None           |
-| _any_ | None       | True                |
+| None  | *any*      | y != None           |
+| *any* | None       | True                |
 | int   | int/float  | x != y              |
 | int   | str        | x != ToNumber(y)†   |
 | int   | list       | [x] != y‡           |
@@ -126,10 +128,10 @@ def poly_ne(x: Any, y: Any) -> bool:
 | str   | str        | x != y              |
 | str   | list       | [x] != y            |
 | list  | list       | x != y              |
-| list  | _any_      | x != [y]            |
+| list  | *any*      | x != [y]            |
 | dict  | dict       | x != y by attr      |
 
-TypeError raised on all other combinations
+A type error is raised on all other combinations
 
 Dictionary comparisons do not perform any type
 conversions.
@@ -155,21 +157,21 @@ None != "5" → True
 """
     return not poly_eq(x, y)
 
-@bound_ops("<", "＜", "Is Less Than")
+@bound_ops("Is Less Than", "<", "＜")
 def poly_lt(x: Any, y: Any) -> bool:
     """
 **Less than comparison**
 
-* _x_ < _y_
-* _x_ ＜ _y_
-* _x_ [Is] Less Than _y_
-* IsLessThan(_x_, _y_)
-* _x_.IsLessThan(_y_)
+* *x* [Is] Less Than *y*
+* *x* < *y*
+* *x* ＜ *y*
+* IsLessThan(*x*, *y*)
+* *x*.IsLessThan(*y*)
 
 | x     | y          | operation          |
 |-------|------------|--------------------|
-| None  | _any_      | y != None          |
-| _any_ | None       | False              |
+| None  | *any*      | y != None          |
+| *any* | None       | False              |
 | int   | int/float  | x < y              |
 | int   | str        | x < ToNumber(y)†   |
 | int   | list       | [x] < y‡           |
@@ -180,9 +182,9 @@ def poly_lt(x: Any, y: Any) -> bool:
 | str   | str        | x < y              |
 | str   | list       | [x] < y            |
 | list  | list       | x < y              |
-| list  | _any_      | x < [y]            |
+| list  | *any*      | x < [y]            |
 
-TypeError raised on all other combinations
+A type error is raised on all other combinations
 
 † If the string value cannot be converted to a number
 the corresponding non-string value is converted to
@@ -190,6 +192,11 @@ a string.
 
 ‡ After conversion to an array the comparison is
 performed between corresponding elements.
+
+```vgr
+**TODO**
+```
+
 """
     # None is less than everything except itself
     if x is None: return y is not None
@@ -197,21 +204,21 @@ performed between corresponding elements.
     override = _overrides.get((type(x), type(y)))
     return override(poly_lt, x, y) if override else x < y
 
-@bound_ops(">", "＞", "Is Greater Than")
+@bound_ops("Is Greater Than", ">", "＞")
 def poly_gt(x: Any, y: Any) -> Any:
     """
 **Greater than comparison**
 
-* _x_ > _y_
-* _x_ ＞ _y_
-* _x_ [Is] Greater Than _y_
-* IsGreaterThan(_x_, _y_)
-* _x_.IsGreaterThan(_y_)
+* *x* [Is] Greater Than *y*
+* *x* > *y*
+* *x* ＞ *y*
+* IsGreaterThan(*x*, *y*)
+* *x*.IsGreaterThan(*y*)
 
 | x     | y          | operation          |
 |-------|------------|--------------------|
-| None  | _any_      | y != None          |
-| _any_ | None       | True               |
+| None  | *any*      | y != None          |
+| *any* | None       | True               |
 | int   | int/float  | x > y              |
 | int   | str        | x > ToNumber(y)†   |
 | int   | list       | [x] > y‡           |
@@ -222,9 +229,9 @@ def poly_gt(x: Any, y: Any) -> Any:
 | str   | str        | x > y              |
 | str   | list       | [x] > y            |
 | list  | list       | x > y              |
-| list  | _any_      | x > [y]            |
+| list  | *any*      | x > [y]            |
 
-TypeError raised on all other combinations
+A type error is raised on all other combinations
 
 † If the string value cannot be converted to a number
 the corresponding non-string value is converted to
@@ -250,23 +257,23 @@ None > "5" → True
     override = _overrides.get((type(x), type(y)))
     return override(poly_gt, x, y) if override else x > y
 
-@bound_ops("<=", "≤", "¬>", "!>", "Is Not Greater Than")
+@bound_ops("<=", "Is Not Greater Than", "≤", "¬>", "!>")
 def poly_le(x: Any, y: Any) -> bool:
     """
 **Less than or equal to comparison**
 
-* _x_ <= _y_
-* _x_ ≤ _y_
-* _x_ ¬> _y_
-* _x_ !> _y_
-* _x_ [Is] Not Greater Than _y_
-* NotGreaterThan(_x_, _y_)
-* _x_.NotGreaterThan(_y_)
+* *x* [Is] Not Greater Than *y*
+* *x* <= *y*
+* *x* ≤ *y*
+* *x* ¬> *y*
+* *x* !> *y*
+* NotGreaterThan(*x*, *y*)
+* *x*.NotGreaterThan(*y*)
 
 | x     | y          | operation          |
 |-------|------------|--------------------|
-| None  | _any_      | True               |
-| _any_ | None       | False              |
+| None  | *any*      | True               |
+| *any* | None       | False              |
 | int   | int/float  | x <= y             |
 | int   | str        | x <= ToNumber(y)†  |
 | int   | list       | [x] <= y‡          |
@@ -277,9 +284,9 @@ def poly_le(x: Any, y: Any) -> bool:
 | str   | str        | x <= y             |
 | str   | list       | [x] <= y           |
 | list  | list       | x <= y             |
-| list  | _any_      | x <= [y]           |
+| list  | *any*      | x <= [y]           |
 
-TypeError raised on all other combinations
+A type error is raised on all other combinations
 
 † If the string value cannot be converted to a number
 the corresponding non-string value is converted to
@@ -305,23 +312,23 @@ None <= "5" → True
     override = _overrides.get((type(x), type(y)))
     return override(poly_le, x, y) if override else x <= y
 
-@bound_ops(">=", "≥", "¬<", "!<", "Is Not Less Than")
+@bound_ops(">=", "Is Not Less Than", "≥", "¬<", "!<")
 def poly_ge(x: Any, y: Any) -> bool:
     """
 **Greater than or equal to comparison**
 
-* _x_ >= _y_
-* _x_ ≥ _y_
-* _x_ ¬< _y_
-* _x_ !< _y_
-* _x_ [Is] Not Less Than _y_
-* NotLessThan(_x_, _y_)
-* _x_.NotLessThan(_y_)
+* *x* [Is] Not Less Than *y*
+* *x* >= *y*
+* *x* ≥ *y*
+* *x* ¬< *y*
+* *x* !< *y*
+* NotLessThan(*x*, *y*)
+* *x*.NotLessThan(*y*)
 
 | x     | y          | operation          |
 |-------|------------|--------------------|
-| None  | _any_      | y == None          |
-| _any_ | None       | True               |
+| None  | *any*      | y == None          |
+| *any* | None       | True               |
 | int   | int/float  | x >= y             |
 | int   | str        | x >= ToNumber(y)†  |
 | int   | list       | [x] >= y‡          |
@@ -332,9 +339,9 @@ def poly_ge(x: Any, y: Any) -> bool:
 | str   | str        | x >= y             |
 | str   | list       | [x] >= y           |
 | list  | list       | x >= y             |
-| list  | _any_      | x >= [y]           |
+| list  | *any*      | x >= [y]           |
 
-TypeError raised on all other combinations
+A type error is raised on all other combinations
 
 † If the string value cannot be converted to a number
 the corresponding non-string value is converted to
@@ -364,16 +371,15 @@ def poly_between(x: Any, y: Any=None, z: Any=None) -> bool:
     """
 **Determine if a value is within an inclusive range**
 
-* IsBetween(_value_, _low_, _high_)
-* IsBetween(_value_, _high_, _low_)
-* _value_.IsBetween(_low_, _high_)
-* _value_.IsBetween(_high_, _low_)
+* IsBetween(*value*, *low*, *high*)
+* IsBetween(*value*, *high*, *low*)
+* *value*.IsBetween(*low*, *high*)
+* *value*.IsBetween(*high*, *low*)
 
-If _low_ and/or _high_ are omitted, _None_ is assumed.
+If *low* and/or *high* are omitted, `None` is assumed.
 
 When comparing mixed types, the type of the value,
 not the constraints, determines conversions.
-See `LessThan()` and `GreaterThan()` for conversion details
 
 ```vgr
 None.IsBetween() → True
@@ -387,7 +393,7 @@ None.IsBetween() → True
 4.IsBetween(4.0.Succ(), 5.0.Pred()) → False
 ```
 
-Also see `Succ()` and `Pred()`
+Also see `Succ()` and `Pred()`, as well as `LessThan()` and `GreaterThan()` for conversion details
 """
     low, high = (y, z) if poly_lt(y, z) else (z, y)
     # We always want to use x as a base as it influences conversions
@@ -397,16 +403,15 @@ def poly_clamp(x: Any, y: Any=None, z: Any=None) -> Any:
     """
 **Constrain a value within an inclusive range**
 
-* Clamp(_value_, _low_, _high_)
-* Clamp(_value_, _high_, _low_)
-* _value_.Clamp(_low_, _high_)
-* _value_.Clamp(_high_, _low_)
+* Clamp(*value*, *low*, *high*)
+* Clamp(*value*, *high*, *low*)
+* *value*.Clamp(*low*, *high*)
+* *value*.Clamp(*high*, *low*)
 
-If _low_ and/or _high_ are omitted, _None_ is assumed.
+If *low* and/or *high* are omitted, `None` is assumed.
 
 When working with mixed types, the type of the value,
 not the constraints, determines conversions.
-See `LessThan()` and `GreaterThan()` for conversion details
 
 ```vgr
 None.Clamp() → None
@@ -422,7 +427,7 @@ None.Clamp() → None
 4.Clamp(4.0.Succ(), 5.0.Pred()) → 4.000000000000001
 ```
 
-Also see `Succ()` and `Pred()`
+Also see `Succ()` and `Pred()` as well as `LessThan()` and `GreaterThan()` for conversion details
 """
     low, high = (y, z) if poly_lt(y, z) else (z, y)
     # We always want to use x as a base as it influences conversions

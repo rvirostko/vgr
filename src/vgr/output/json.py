@@ -89,7 +89,7 @@ class JSONRecordWriter(FileRecordWriter):
         # Special case for "Select From..." or "Select x From x..."
         # where the entire source record is being written as an object
         if len(record) == 1 and isinstance(record[0], dict):
-            # Try to keep checks and rewrite logic down to a minimum...
+            # Try to keep checks and rewrite logic down to a minimum
             if self._include_nulls:
                 obj = record[0]
             else:

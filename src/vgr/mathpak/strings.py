@@ -47,10 +47,10 @@ def poly_strlen(x: Any) -> Any:
     """
 **Return the length of a string**
 
-* StrLen(_value_)
-* _value_.StrLen()
+* StrLen(*value*)
+* *value*.StrLen()
 
-If _value_ is of any type except string, _None_ is returned.
+If *value* is of any type except string, `None` is returned.
 
 ```vgr
 "foo".StrLen() → 3
@@ -66,8 +66,8 @@ def poly_strrev(x: Any) -> Any:
     """
 **Returns the characters of the string in reverse order**
 
-* StrRev(_value_)
-* _value_.StrRev()
+* StrRev(*value*)
+* *value*.StrRev()
 
 ```vgr
 None.StrRev() → None
@@ -82,8 +82,8 @@ def poly_capitalize(x: Any) -> Any:
     """
 **Return the capitalized version of a string**
 
-* Capitalize(_value_)
-* _value_.Capitalize()
+* Capitalize(*value*)
+* *value*.Capitalize()
 
 ```vgr
 None.Capitalize() → None
@@ -100,8 +100,8 @@ def poly_casefold(x: Any) -> Any:
     """
 **Return a caseless version of a string**
 
-* Casefold(_value_)
-* _value_.Casefold()
+* Casefold(*value*)
+* *value*.Casefold()
 
 ```vgr
 None.Casefold() → None
@@ -118,8 +118,8 @@ def poly_lower(x: Any) -> Any:
     """
 **Return a lowercase version of a string**
 
-* Lower(_value_)
-* _value_.Lower()
+* Lower(*value*)
+* *value*.Lower()
 
 ```vgr
 None.Lower() → None
@@ -136,8 +136,8 @@ def poly_swapcase(x: Any) -> Any:
     """
 **Return a string with upper and lower case characters swapped**
 
-* SwapCase(_value_)
-* _value_.SwapCase()
+* SwapCase(*value*)
+* *value*.SwapCase()
 
 ```vgr
 None.SwapCase() → None
@@ -154,8 +154,8 @@ def poly_title(x: Any) -> Any:
     """
 **Title-case words in a string**
 
-* TitleCase(_value_)
-* _value_.TitleCase()
+* TitleCase(*value*)
+* *value*.TitleCase()
 
 ```vgr
 None.TitleCase() → None
@@ -172,8 +172,8 @@ def poly_upper(x: Any) -> Any:
     """
 **Return an upper case version of a string**
 
-* Upper(_value_)
-* _value_.Upper()
+* Upper(*value*)
+* *value*.Upper()
 
 ```vgr
 None.Upper() → None
@@ -205,10 +205,10 @@ def _exec_bool_op(x: Any, name: str, op: Callable[[Any], Any], string_op) -> Any
 
 def poly_isalnum(x: Any) -> Any:
     """
-**Returns _True_ if the value is an alpha-numeric string**
+**Is a value an alpha-numeric string**
 
-* IsAlphaNumeric(_value_)
-* _value_.IsAlphaNumeric()
+* IsAlphaNumeric(*value*)
+* *value*.IsAlphaNumeric()
 
 A string is alpha-numeric if all characters in the string are
 alpha-numeric and there is at least one character in the string.
@@ -226,10 +226,10 @@ Also see `IsAlpha()` and `IsNumeric()`
 
 def poly_isalpha(x: Any) -> Any:
     """
-**Returns _True_ if value is an alphabetic string**
+**Is a value an alphabetic string**
 
-* IsAlpha(_value_)
-* _value_.IsAlpha()
+* IsAlpha(*value*)
+* *value*.IsAlpha()
 
 A string is alphabetic if all characters in the string
 are alphabetic and there is at least one character in the string.
@@ -244,10 +244,10 @@ are alphabetic and there is at least one character in the string.
 
 def poly_isascii(x: Any) -> Any:
     """
-**Returns _True_ if value is a string composed of all ASCII character**
+**Is a value a string composed of all ASCII character**
 
-* IsAscii(_value_)
-* _value_.IsAscii()
+* IsAscii(*value*)
+* *value*.IsAscii()
 
 ASCII characters are those in the range U+0000 to U+007F.
 Additionally, an empty string considers ASCII.
@@ -265,15 +265,15 @@ Also see `IsPrintable()`
 
 def poly_isdecimal(x: Any) -> Any:
     """
-**Returns _True_ if the value is a decimal string**
+**Is the value a string of decimal characters**
 
-* IsDecimal(_value_)
-* _value_.IsDecimal()
+* IsDecimal(*value*)
+* *value*.IsDecimal()
 
 A string is a decimal string if all characters in the string
 are decimal and there is at least one character in the string.
 Decimal characters are the digits 0–9 or Unicode characters
-from the _Nd_ (Decimal Number) category.
+from the *Nd* (Decimal Number) category.
 
 This is the most restrictive of the number related tests.
 
@@ -289,10 +289,10 @@ Also see `IsDigit()` and `IsNumeric()`
 
 def poly_isdigit(x: Any) -> Any:
     """
-**Returns _True_ if the value is a digit string**
+**Is a value a string of digits**
 
-* IsDigit(_value_)
-* _value_.IsDigit()
+* IsDigit(*value*)
+* *value*.IsDigit()
 
 A string is a digit string if all characters in the string
 are digits and there is at least one character in the string.
@@ -311,10 +311,10 @@ Also see `IsDecimal()` and `IsNumeric()`
 
 def poly_islower(x: Any) -> Any:
     """
-**Returns _True_ if the value is a lowercase string**
+**Is a value a string of lowercase characters**
 
-* IsLower(_value_)
-* _value_.IsLower()
+* IsLower(*value*)
+* *value*.IsLower()
 
 A string is lowercase if all cased characters in the string
 are lowercase and there is at least one cased character in the string.
@@ -329,10 +329,10 @@ are lowercase and there is at least one cased character in the string.
 
 def poly_isnumeric(x: Any) -> Any:
     """
-**Returns _True_ if the value is a numeric string**
+**Is a value a string of numeric characters**
 
-* IsNumeric(_value_)
-* _value_.IsNumeric()
+* IsNumeric(*value*)
+* *value*.IsNumeric()
 
 A string is numeric if all characters in the string are
 numeric and there is at least one character in the string.
@@ -353,10 +353,10 @@ Also see `IsDecimal()` and `IsDigit()`
 
 def poly_isprintable(x: Any) -> Any:
     """
-**Returns _True_ if the value is a string and is printable**
+**Is a value a string of printable characters**
 
-* IsPrintable(_value_)
-* _value_.IsPrintable()
+* IsPrintable(*value*)
+* *value*.IsPrintable()
 
 A string is printable if all of its characters are considered printable
 –generally characters which are not control characters or undefined–
@@ -371,10 +371,10 @@ or if it is empty.
 
 def poly_isspace(x: Any) -> Any:
     """
-**Returns _True_ if the value is a whitespace string**
+**Is a value a string of whitespace characters**
 
-* IsSpace(_value_)
-* _value_.IsSpace()
+* IsSpace(*value*)
+* *value*.IsSpace()
 
 A string is whitespace if all characters in the string are whitespace
 and there is at least one character in the string.
@@ -389,10 +389,10 @@ and there is at least one character in the string.
 
 def poly_istitle(x: Any) -> Any:
     """
-**Returns _True_ if the value is a title-case string**
+**Is a value a string of title-case characters**
 
-* IsTitle(_value_)
-* _value_.IsTitle()
+* IsTitle(*value*)
+* *value*.IsTitle()
 
 In a title-cased string, upper- and title-case characters may only
 follow uncased characters and lowercase characters only cased ones.
@@ -407,10 +407,10 @@ follow uncased characters and lowercase characters only cased ones.
 
 def poly_isupper(x: Any) -> Any:
     """
-**Returns _True_ if the value is an uppercase string**
+**Is a value a string of uppercase characters**
 
-* IsUpper(_value_)
-* _value_.IsUpper()
+* IsUpper(*value*)
+* *value*.IsUpper()
 
 A string is uppercase if all cased characters in the string are uppercase
 and there is at least one cased character in the string.
@@ -464,10 +464,10 @@ def poly_strip(x: Any, *args) -> Any:
     """
 **Remove leading and trailing characters from a string**
 
-* Strip(_value_)
-* Strip(_value_, _expression_...)
-* _value_.Strip()
-* _value_.Strip(_expression_...)
+* Strip(*value*)
+* Strip(*value*, *expression*&hellip;)
+* *value*.Strip()
+* *value*.Strip(*expression*&hellip;)
 
 Without an argument, whitespace is removed. When arguments are provided
 they specify the characters to be removed. Note that the removal is
@@ -493,10 +493,10 @@ def poly_lstrip(x: Any, *args) -> Any:
     """
 **Remove leading characters from a string**
 
-* LeftStrip(_value_)
-* LeftStrip(_value_, _expression_...)
-* _value_.LeftStrip()
-* _value_.LeftStrip(_expression_...)
+* LeftStrip(*value*)
+* LeftStrip(*value*, *expression*&hellip;)
+* *value*.LeftStrip()
+* *value*.LeftStrip(*expression*&hellip;)
 
 ```vgr
 None.LeftStrip() → None
@@ -518,10 +518,10 @@ def poly_rstrip(x: Any, *args) -> Any:
     """
 **Remove trailing characters from a string**
 
-* RightStrip(_value_)
-* RightStrip(_value_, _expression_...)
-* _value_.RightStrip()
-* _value_.RightStrip(_expression_...)
+* RightStrip(*value*)
+* RightStrip(*value*, *expression*&hellip;)
+* *value*.RightStrip()
+* *value*.RightStrip(*expression*&hellip;)
 
 ```vgr
 None.RightStrip() → None
@@ -543,10 +543,10 @@ def poly_removeprefix(x: Any, *args) -> Any:
     """
 **Remove a prefix from a string if present**
 
-* RemovePrefix(_value_)
-* RemovePrefix(_value_, _prefix_...)
-* _value_.RemovePrefix()
-* _value_.RemovePrefix(_prefix_...)
+* RemovePrefix(*value*)
+* RemovePrefix(*value*, _prefix_&hellip;)
+* *value*.RemovePrefix()
+* *value*.RemovePrefix(_prefix_&hellip;)
 
 ```vgr
 None.RemovePrefix() → None
@@ -573,10 +573,10 @@ def poly_removesuffix(x: Any, *args) -> Any:
     """
 **Remvoe a suffix from a string if present**
 
-* RemoveSuffix(_value_)
-* RemoveSuffix(_value_, _prefix_...)
-* _value_.RemoveSuffix()
-* _value_.RemoveSuffix(_prefix_...)
+* RemoveSuffix(*value*)
+* RemoveSuffix(*value*, _prefix_&hellip;)
+* *value*.RemoveSuffix()
+* *value*.RemoveSuffix(_prefix_&hellip;)
 
 ```vgr
 None.RemoveSuffix() → None
@@ -617,17 +617,17 @@ def _exec_bool_str_op(x: Any, y: Any, name: str, op: Callable[[Any, Any], Any], 
 
 def poly_startswith(x: Any, *prefixes: Any) -> Any:
     """
-**Returns _True_ if a string value starts with the specified prefix**
+**Does a string start with one or more prefixes**
 
-* StartsWith(_value_, _prefix_...)
-* _value_.StartsWith(_prefix_...)
+* StartsWith(*value*, _prefix_&hellip;)
+* *value*.StartsWith(_prefix_&hellip;)
 
 The _prefix_ argument must be either a string or a list of strings. Lists and individual strings
 may be intermixed.
 
-If _value_ is a list, the operation is distributed over the values in the list.
-If _value_ is a dictionary, the operation is distributed over all keys that are strings.
-If _value_ is neither a list, dictionary, or string, _False_ is returned.
+If *value* is a list, the operation is distributed over the values in the list.
+If *value* is a dictionary, the operation is distributed over all keys that are strings.
+If *value* is neither a list, dictionary, or string, `False` is returned.
 
 ```vgr
 "foo".StartsWith("f") → True
@@ -641,17 +641,17 @@ Also see `EndsWith()`
 
 def poly_endswith(x: Any, *suffixes: Any) -> bool:
     """
-**Returns _True_ if a string value ends with the specified suffix**
+**Does a string end with one or more prefixes**
 
-* EndsWith(_value_, _suffix_...)
-* _value_.EndsWith(_suffix_...)
+* EndsWith(*value*, _suffix_&hellip;)
+* *value*.EndsWith(_suffix_&hellip;)
 
 The _suffix_ argument must be either a string or a list of strings. Lists and individual strings
 may be intermixed.
 
-If _value_ is a list, the operation is distributed over the values in the list.
-If _value_ is a dictionary, the operation is distributed over all keys that are strings.
-If _value_ is neither a list, dictionary, or string, _False_ is returned.
+If *value* is a list, the operation is distributed over the values in the list.
+If *value* is a dictionary, the operation is distributed over all keys that are strings.
+If *value* is neither a list, dictionary, or string, `False` is returned.
 
 ```vgr
 "foo".EndsWith("oo") → True
@@ -680,10 +680,10 @@ def poly_expandtabs(x: Any, tabsize: Any=8) -> Any:
     """
 **Converts tabs in a string into spaces**
 
-* ExpandTabs(_value_)
-* ExpandTabs(_value_, _tabsize_)
-* _value_.ExpandTabs()
-* _value_.ExpandTabs(_tabsize_)
+* ExpandTabs(*value*)
+* ExpandTabs(*value*, _tabsize_)
+* *value*.ExpandTabs()
+* *value*.ExpandTabs(_tabsize_)
 
 Tabsize defaults to 8 and is limited from 0 to 64.
 
@@ -701,12 +701,12 @@ def poly_leftstr(x: Any, length: Any=1) -> Any:
     """
 **Returns the leftmost characters of a string**
 
-* LeftStr(_value_)
-* LeftStr(_value_, _length_)
-* _value_.LeftStr()
-* _value_.LeftStr(_length_)
+* LeftStr(*value*)
+* LeftStr(*value*, *length*)
+* *value*.LeftStr()
+* *value*.LeftStr(*length*)
 
-Without a _length_ argument a single character is returned.
+Without a *length* argument a single character is returned.
 
 ```vgr
 None.LeftStr() → None
@@ -725,12 +725,12 @@ def poly_rightstr(x: Any, length: Any=1) -> Any:
     """
 **Retunrs the rightmost characters of a string**
 
-* RightStr(_value_)
-* RightStr(_value_, _length_)
-* _value_.RightStr()
-* _value_.RightStr(_length_)
+* RightStr(*value*)
+* RightStr(*value*, *length*)
+* *value*.RightStr()
+* *value*.RightStr(*length*)
 
-Without a _length_ argument a single character is returned.
+Without a *length* argument a single character is returned.
 
 ```vgr
 None.RightStr() → None
@@ -751,15 +751,15 @@ def poly_substr(x: Any, start: Any=0, length: Any=1) -> Any:
     """
 **Return a portion of a string**
 
-* SubStr(_value_)
-* SubStr(_value_, _start_)
-* SubStr(_value_, _start_, _length_)
-* _value_.SubStr()
-* _value_.SubStr(_start_)
-* _value_.SubStr(_start_, _length_)
+* SubStr(*value*)
+* SubStr(*value*, *start*)
+* SubStr(*value*, *start*, *length*)
+* *value*.SubStr()
+* *value*.SubStr(*start*)
+* *value*.SubStr(*start*, *length*)
 
-If not provided, _start_ defaults to zero and _length_ to one.
-The _start_ index is zero based.
+If not provided, *start* defaults to zero and *length* to one.
+The *start* index is zero based.
 
 ```vgr
 None.SubStr() → None
@@ -790,10 +790,10 @@ _string_loc_ops = {
 
 def poly_count(x: Any, sub: Any=None) -> Any:
     """
-**Return the count of a value in another **
+**Return the count of a value in another**
 
-* CountOf(_value_, _sub_)
-* _value_.CountOf(_sub_)
+* CountOf(*value*, _sub_)
+* *value*.CountOf(_sub_)
 
 ```vgr
 // General
@@ -830,11 +830,11 @@ def poly_index(x: Any, sub: Any=None) -> Any:
     """
 **Returns the _lowest_ index of one item in another**
 
-* IndexOf(_value_, _sub_)
-* _value_.IndexOf(_sub_)
+* IndexOf(*value*, _sub_)
+* *value*.IndexOf(_sub_)
 
 The returned index is zero based, with -1 returned if _sub_ is not found.
-When _value_ is a string, the behavior is the same as with `FindStr()`.
+When *value* is a string, the behavior is the same as with `FindStr()`.
 
 ```vgr
 // General
@@ -872,11 +872,11 @@ def poly_rindex(x: Any, sub: Any=None) -> Any:
     """
 **Returns the _highest_ index of one item in another**
 
-* RIndexOf(_value_, _sub_)
-* _value_.RIndexOf(_sub_)
+* RIndexOf(*value*, _sub_)
+* *value*.RIndexOf(_sub_)
 
 The returned index is zero based, with -1 returned if _sub_ is not found.
-When _value_ is a string, the behavior is the same as with `RFindStr()`.
+When *value* is a string, the behavior is the same as with `RFindStr()`.
 
 ```vgr
 // General
@@ -915,8 +915,8 @@ def poly_findstr(x: Any, sub: Any=None) -> Any:
     """
 **Returns the _lowest_ index of one string in another**
 
-* FindStr(_value_, _substr_)
-* _value_.FindStr(_substr_)
+* FindStr(*value*, _substr_)
+* *value*.FindStr(_substr_)
 
 The returned index is zero based.
 
@@ -940,8 +940,8 @@ def poly_rfindstr(x: Any, sub: Any=None) -> Any:
     """
 **Returns the _highest_ index of one string in another**
 
-* RFindStr(_value_, _substr_)
-* _value_.RFindStr(_substr_)
+* RFindStr(*value*, _substr_)
+* *value*.RFindStr(_substr_)
 
 The returned index is zero based.
 
@@ -974,13 +974,13 @@ def poly_center(x: Any, width: int=0, fillchar: str=' ') -> Any:
     """
 **Create a centered string of the given width**
 
-* Center(_value_, _width_)
-* Center(_value_, _width_, _pad_)
-* _value_.Center(_width_)
-* _value_.Center(_width_, _pad_)
+* Center(*value*, *width*)
+* Center(*value*, *width*, _pad_)
+* *value*.Center(_width_)
+* *value*.Center(_width_, _pad_)
 
-If the _value_ to be centered is _None_, it is treated as an empty string.
-The _width_ argument is interpreted as a numeric value. If _None_, zero is assumed.
+If the *value* to be centered is `None`, it is treated as an empty string.
+The *width* argument is interpreted as a numeric value. If `None`, zero is assumed.
 The _pad_ argument, if provided, is interpreted as a string value. Only the first character is used.
 If not provided, the default is a space.
 
@@ -1003,13 +1003,13 @@ def poly_ljust(x: Any, width: int=0, fillchar: str=' ') -> Any:
     """
 **Create a string of the given width with contents left aligned**
 
-* LeftJustify(_value_, _width_)
-* LeftJustify(_value_, _width_, _pad_)
-* _value_.LeftJustify(_width_)
-* _value_.LeftJustify(_width_, _pad_)
+* LeftJustify(*value*, *width*)
+* LeftJustify(*value*, *width*, _pad_)
+* *value*.LeftJustify(_width_)
+* *value*.LeftJustify(_width_, _pad_)
 
-If the _value_ to be centered is _None_, it is treated as an empty string.
-The _width_ argument is interpreted as a numeric value. If _None_, zero is assumed.
+If the *value* to be centered is `None`, it is treated as an empty string.
+The *width* argument is interpreted as a numeric value. If `None`, zero is assumed.
 The _pad_ argument, if provided, is interpreted as a string value. Only the first character is used.
 If not provided, the default is a space.
 
@@ -1032,13 +1032,13 @@ def poly_rjust(x: Any, width: int=0, fillchar: str=' ') -> Any:
     """
 **Create a string of the given width with contents right aligned**
 
-* RightJustify(_value_, _width_)
-* RightJustify(_value_, _width_, _pad_)
-* _value_.RightJustify(_width_)
-* _value_.RightJustify(_width_, _pad_)
+* RightJustify(*value*, *width*)
+* RightJustify(*value*, *width*, _pad_)
+* *value*.RightJustify(_width_)
+* *value*.RightJustify(_width_, _pad_)
 
-If the _value_ to be centered is _None_, it is treated as an empty string.
-The _width_ argument is interpreted as a numeric value. If _None_, zero is assumed.
+If the *value* to be centered is `None`, it is treated as an empty string.
+The *width* argument is interpreted as a numeric value. If `None`, zero is assumed.
 The _pad_ argument, if provided, is interpreted as a string value. Only the first character is used.
 If not provided, the default is a space.
 
@@ -1061,11 +1061,11 @@ def poly_zfill(x: Any, width: int=0) -> Any:
     """
 **Create a string of the given width with contents right aligned, padded with zeroes**
 
-* ZeroFill(_value_, _width_)
-* _value_.ZeroFill(_width_)
+* ZeroFill(*value*, *width*)
+* *value*.ZeroFill(_width_)
 
-If the _value_ to be centered is _None_, it is treated as an empty string.
-The _width_ argument is interpreted as a numeric value. If _None_, zero is assumed.
+If the *value* to be centered is `None`, it is treated as an empty string.
+The *width* argument is interpreted as a numeric value. If `None`, zero is assumed.
 
 ```vgr
 None.ZeroFill(3) → "000"
@@ -1086,15 +1086,15 @@ def poly_shorten(x: str, length: int=32, placeholder: str="\u2026") -> str:
     """
 **Shorten a string's length, optionally adding a placeholder**
 
-* ShortenStr(_value_, _length_)
-* ShortenStr(_value_, _length_, _placeholder_)
-* _value_.ShortenStr(_length_)
-* _value_.ShortenStr(_length_, _placeholder_)
+* ShortenStr(*value*, *length*)
+* ShortenStr(*value*, *length*, *placeholder*)
+* *value*.ShortenStr(*length*)
+* *value*.ShortenStr(*length*, *placeholder*)
 
-If the _value_ is _None_, it is treated as an empty string.
-The _length_ argument is interpreted as a numeric value. If _None_, 32 is assumed.
-The default _placeholder_ is an ellipses, and is added when the string
-is truncated. A value of _None_ omits the placeholder.
+If the *value* is `None`, it is treated as an empty string.
+The *length* argument is interpreted as a numeric value. If `None`, 32 is assumed.
+The default *placeholder* is an ellipses, and is added when the string
+is truncated. A value of `None` omits the placeholder.
 
 ```vgr
 None.ShortenStr(3) → ""
@@ -1115,7 +1115,7 @@ string.digits.ShortenStr(7, " etc") → "012 etc"
     # No placeholder, so simple truncation
     if not placeholder:  return x[:length]
     pl_len = len(placeholder)
-    # If the placeholder overflows the length...
+    # If the placeholder overflows the length
     if pl_len >= length: return placeholder[:length]
     # Truncate to length, adjusting for the addition of the placeholder
     return x[:length - pl_len] + placeholder
@@ -1126,12 +1126,12 @@ def poly_append(x: Any, *args) -> Any:
     """
 **Concatenate strings**
 
-* AppendStr(_value_)
-* AppendStr(_value_, _arg_...)
-* _value_.AppendStr()
-* _value_.AppendStr(_arg_...)
+* AppendStr(*value*)
+* AppendStr(*value*, *arg*&hellip;)
+* *value*.AppendStr()
+* *value*.AppendStr(*arg*&hellip;)
 
-The argument values are concatenated to end of _value_.
+The argument values are concatenated to end of*value*.
 
 ```vgr
 None.AppendStr() → None
@@ -1151,12 +1151,12 @@ def poly_prepend(x: Any, *args) -> Any:
     """
 **Concatenate string placing values at the beginning of the string**
 
-* PrependStr(_value_)
-* PrependStr(_value_, _arg_...)
-* _value_.PrependStr()
-* _value_.PrependStr(_arg_...)
+* PrependStr(*value*)
+* PrependStr(*value*, *arg*&hellip;)
+* *value*.PrependStr()
+* *value*.PrependStr(*arg*&hellip;)
 
-The argument values are concatenated to end of _value_.
+The argument values are concatenated to end of*value*.
 
 ```vgr
 None.PrependStr() → None
@@ -1176,17 +1176,17 @@ def poly_replace(x: Any, *args) -> Any:
     """
 **Replace or delete values in a string**
 
-* ReplaceStr(_value_)
-* ReplaceStr(_value_, _old_)
-* ReplaceStr(_value_, _old_, _new_)
-* ReplaceStr(_value_, _old_..., _new_)
-* _value_.ReplaceStr()
-* _value_.ReplaceStr(_old_)
-* _value_.ReplaceStr(_old_, _new_)
-* _value_.ReplaceStr(_old_..., _new_)
+* ReplaceStr(*value*)
+* ReplaceStr(*value*, *old*)
+* ReplaceStr(*value*, *old*, *new*)
+* ReplaceStr(*value*, *old*&hellip;, *new*)
+* *value*.ReplaceStr()
+* *value*.ReplaceStr(*old*)
+* *value*.ReplaceStr(*old*, *new*)
+* *value*.ReplaceStr(*old*&hellip;, *new*)
 
-String conversion is performed on _value_, _old_, and _new_ as
-required. The value for _old_ may be a compiled regular expression.
+String conversion is performed on *value*, *old*, and *new* as
+required. The value for *old* may be a compiled regular expression.
 
 ```vgr
 None.ReplaceStr() → None
@@ -1259,14 +1259,14 @@ def poly_split(x: Any, sep: str=None, maxsplit: int=-1) -> Any:
     """
 **Split a string based on a separator string**
 
-* Split(_value_)
-* Split(_value_, _sep_)
-* Split(_value_, _sep_, _maxsplit_)
-* _value_.Split()
-* _value_.Split(_sep_)
-* _value_.Split(_sep_, _maxsplit_)
+* Split(*value*)
+* Split(*value*, _sep_)
+* Split(*value*, _sep_, _maxsplit_)
+* *value*.Split()
+* *value*.Split(_sep_)
+* *value*.Split(_sep_, _maxsplit_)
 
-If _sep_ is not specified, or is _None_ or a blank string, the
+If _sep_ is not specified, or is `None` or a blank string, the
 split is performed on any whitespace character, and empty entries
 are omitted.
 
@@ -1292,12 +1292,12 @@ def poly_rsplit(x: Any, sep: str=None, maxsplit: int=-1) -> Any:
     """
 **Split a string based on a separator string**
 
-* RSplit(_value_)
-* RSplit(_value_, _sep_)
-* RSplit(_value_, _sep_, _maxsplit_)
-* _value_.RSplit()
-* _value_.RSplit(_sep_)
-* _value_.RSplit(_sep_, _maxsplit_)
+* RSplit(*value*)
+* RSplit(*value*, _sep_)
+* RSplit(*value*, _sep_, _maxsplit_)
+* *value*.RSplit()
+* *value*.RSplit(_sep_)
+* *value*.RSplit(_sep_, _maxsplit_)
 
 `RSplit()` is identical to `Split()` except that the splitting of
 _value_ starts from the end of the string.
@@ -1337,10 +1337,10 @@ def poly_splitlines(x: Any, keepends: bool=False) -> Any:
     """
 **Split a string into multiple lines**
 
-* SplitLines(_value_)
-* SplitLines(_value_, _keepends_)
-* _value_.SplitLines()
-* _value_.SplitLines(_keepends_)
+* SplitLines(*value*)
+* SplitLines(*value*, _keepends_)
+* *value*.SplitLines()
+* *value*.SplitLines(_keepends_)
 
 ```vgr
 None.SplitLines() → None
@@ -1360,19 +1360,19 @@ def poly_join(x: Any, sep: str=None) -> Any:
     """
 **Join together the elements of a list as strings**
 
-* Join(_value_, )
-* Join(_value_, _sep_)
-* _value_.Join()
-* _value_.Join(_sep_)
+* Join(*value*, )
+* Join(*value*, _sep_)
+* *value*.Join()
+* *value*.Join(_sep_)
 
 The _sep_ argument is the separator between the strings.
 It defaults to an empty string.
 
-If _value_ is a list, the items in it are converted to strings and concatenated
-using _sep_. Items in the list that are _None_ are ignored.
+If *value* is a list, the items in it are converted to strings and concatenated
+using _sep_. Items in the list that are `None` are ignored.
 
-If _value_ is an ordinal, it is converted to a string, and
-_sep_ is not used. With a _value_ of _None_ or for an empty list an
+If *value* is an ordinal, it is converted to a string, and
+_sep_ is not used. With a *value* of `None` or for an empty list an
 empty string is returned.
 
 ```vgr
@@ -1398,22 +1398,24 @@ def poly_format(format_string: Any, *args) -> str:
     """
 **Format values into a string**
 
-* Format(_format_, _expression_...)
-* Format(format_, _expression_...)
-* _format_.Format(_expression_...)
-* _format_.Format(_expression_...)
+* Format(_format_, *expression*&hellip;)
+* Format(format_, *expression*&hellip;)
+* _format_.Format(*expression*&hellip;)
+* _format_.Format(*expression*&hellip;)
 
 Formatting syntax is that used in [Python's str.format()](https://docs.python.org/3/library/string.html#formatstrings)
 
 **Formatting Cheat Sheet**
 
-_*Basic usage*_
+***Basic usage***
+
 ```vgr
 "Hello, {}".Format("world")    → "Hello, world"
 "{0} + {0} = {1}".Format(2, 4) → "2 + 2 = 4"
 ```
 
-_*Number formatting*_
+***Number formatting***
+
 ```vgr
 "{:d}".Format(42)       → "42" // decimal
 "{:b}".Format(42)       → "101010" // binary
@@ -1424,7 +1426,8 @@ _*Number formatting*_
 "{:.2f}".Format(3.1415) → "3.14" // fixed-point, 2 decimals
 ```
 
-_*Alignment & width*_
+***Alignment & width***
+
 ```vgr
 "{:<10}".Format("hi")  →  "hi        " // left align
 "{:>10}".Format("hi")  →  "        hi" // right align
@@ -1432,7 +1435,8 @@ _*Alignment & width*_
 "{:*^10}".Format("hi") →  "****hi****" // custom fill
 ```
 
-_*Signs & numbers*_
+***Signs & numbers***
+
 ```vgr
 "{:+d}".Format(42)     → "+42"
 "{:+d}".Format(-42)    → "-42"
@@ -1441,13 +1445,15 @@ _*Signs & numbers*_
 "{:_}".Format(1234567) → "1_234_567"
 ```
 
-_*Accessing elements*_
+***Accessing elements***
+
 ```vgr
 Set person To {"name": "Alice", "age": 25}
 "{0[name]} is {0[age]}".Format(person) → "Alice is 25"
 ```
 
-_*Format control*_
+***Format control***
+
 ```vgr
 "{0} {0!r} {0!s}".Format("hi") → "hi 'hi' hi" // raw vs str formatting
 "{0:.{1}f}".Format(3.14159, 2) → "3.14" // precision via argument
@@ -1465,12 +1471,12 @@ def poly_translate(x: Any, from_str: Any, to_str: Any=None) -> Any:
     """
 **Perform character-by-character conversion or deletion**
 
-* TranslateStr(_value_, _expression_)
-* TranslateStr(_value_, _expression_, _expression_)
-* _value_.TranslateStr(_expression_)
-* _value_.TranslateStr(_expression_, _expression_)
+* TranslateStr(*value*, *expression*)
+* TranslateStr(*value*, *expression*, *expression*)
+* *value*.TranslateStr(*expression*)
+* *value*.TranslateStr(*expression*, *expression*)
 
-If the two-arguments form is used, or the replacement string is empty or _None_,
+If the two-arguments form is used, or the replacement string is empty or `None`,
 the characters are deleted.
 
 ```vgr
@@ -1507,10 +1513,10 @@ def poly_ord(x:Any) -> Any:
     """
 **Convert a string to its ordinal values**
 
-* Ord(_value_)
-* _value_.Ord()
+* Ord(*value*)
+* *value*.Ord()
 
-If _value_ is a single character, the ordinal is returned; for an multi-character
+If *value* is a single character, the ordinal is returned; for an multi-character
 string, an array of ordinals are returned.
 The operation is distributed across lists and dictionaries.
 
@@ -1535,10 +1541,10 @@ def poly_chr(x: Any ) -> Any:
     """
 **Convert a number to single character string**
 
-* Chr(_value_)
-* _value_.Chr()
+* Chr(*value*)
+* *value*.Chr()
 
-If _value_ is a value for a Unicode character a single character string
+If *value* is a value for a Unicode character a single character string
 is returned.
 The operation is distributed across lists and dictionaries.
 
@@ -1562,11 +1568,11 @@ def poly_plural(x: Any, plural: Any='s', singular: Any='') -> Any:
     """
 **Return a suffix for pluralization**
 
-* _value_.Plural()
-* _value_.Plural(_plural_)
-* _value_.Plural(_plural_, _singular_)
+* *value*.Plural()
+* *value*.Plural(_plural_)
+* *value*.Plural(_plural_, _singular_)
 
-If _value_ is a number is not equal to one, or a value that
+If *value* is a number is not equal to one, or a value that
 has a length that is not one, then the _plural_ value is returned.
 Otherwise, the _singular_ value is returned.
 The defaults arguments are _s_ and an empty string respectively.

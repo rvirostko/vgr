@@ -74,129 +74,130 @@ def _vault_help(_ctx, _statement) -> None:
     """
 **Vault Commands**
 
-_Connections_
-* Vault Connect<br>
-  <em>To [Host] _host_<br>
-  <em>[With Token | [Token Is] _token_<br>
-  <em>As _connection_name_ - Opens a connection to a Vault instance
-* Vault Disconnect [[From] _connection_name_] - Closes a connection
+*Connections*
 
-_Generic API Calls_
+* Vault Connect\\
+  &emsp;&emsp;To [Host] *host*\\
+  &emsp;&emsp;[With Token | [Token Is] *token*\\
+  &emsp;&emsp;As *connection_name* - Opens a connection to a Vault instance
+* Vault Disconnect [[From] *connection_name*] - Closes a connection
 
-* Vault APIGet _path_ - Send a GET to a Vault API
-* Vault APIList _path_ - Send a LIST to a Vault API
-* Vault APIDelete _path_ - Send a DELETE to a Vault API
-* Vault APIPost _path_ - Send a PATCH to a Vault API
-* Vault APIPatch _path_ - Send a POST to a Vault API
+*Generic API Calls*
 
-_Namespace Management_
+* Vault APIGet *path* - Send a GET to a Vault API
+* Vault APIList *path* - Send a LIST to a Vault API
+* Vault APIDelete *path* - Send a DELETE to a Vault API
+* Vault APIPost *path* - Send a PATCH to a Vault API
+* Vault APIPatch *path* - Send a POST to a Vault API
 
-* Vault CreateNamespace _namespace_ - Create a new namesapce
-* Vault ReadNamespace _namespace_ - Read a namespace
-* Vault UpdateNamespace _namespace_ - Update a namespace
-* Vault DeleteNamespace _namespace_ - Delete a namespace
-* Vault ListNamespaces [_namespace_] - List child namespaces
-* Vault LockNamespace _namespace_ - Lock a namespace
-* Vault UnlockNamespace _namespace_ - Unlock a namespace
-* Vault DefaultNamespace _namespace_ - Set the namespace to be used by subsequent requests
+*Namespace Management*
 
-_Secret Engine Mount Points_
+* Vault CreateNamespace *namespace* - Create a new namesapce
+* Vault ReadNamespace *namespace* - Read a namespace
+* Vault UpdateNamespace *namespace* - Update a namespace
+* Vault DeleteNamespace *namespace* - Delete a namespace
+* Vault ListNamespaces [*namespace*] - List child namespaces
+* Vault LockNamespace *namespace* - Lock a namespace
+* Vault UnlockNamespace *namespace* - Unlock a namespace
+* Vault DefaultNamespace *namespace* - Set the namespace to be used by subsequent requests
 
-* Vault CreateMount _mount_point_ - Create and configure a secrets engine
-* Vault ReadMount _mount_point_ - Read the configuration of a secrets engine mount
-* Vault UpdateMount _mount_point_ - Update the configuration of a secrets engine
-* Vault DeleteMount _mount_point_ - Remove a secrets engine mount
-* Vault ListMounts [_namespace_] - List the mount points in a namespace
+*Secret Engine Mount Points*
 
-_KV2 Secrets_
+* Vault CreateMount *mount_point* - Create and configure a secrets engine
+* Vault ReadMount *mount_point* - Read the configuration of a secrets engine mount
+* Vault UpdateMount *mount_point* - Update the configuration of a secrets engine
+* Vault DeleteMount *mount_point* - Remove a secrets engine mount
+* Vault ListMounts [*namespace*] - List the mount points in a namespace
 
-* Vault CreateKvSecret _mount_and_path_ - Create or update the KV secrets
-* Vault ReadKvSecret _mount_and_path_ - Read the KV secrets
-* Vault ReadKvMetadata _mount_and_path_ - Read the KV metadata
-* Vault DeleteKvMetadata _mount_and_path_ - Delete KV metadata
-* Vault UpdateKvSecret _mount_and_path_ - Update the KV secrets data and/or metadata
-* Vault DeleteKvSecret _mount_and_path_ - Delete a KV secret
-* Vault UndeleteKvSecret _mount_and_path_ - Undelete a KV secret
-* Vault DestroyKvSecret _mount_and_path_ - Destroy a KV secret
-* Vault ListKvSecrets _mount_and_path_ - List KV secrets at a path location
-* Vault PatchKvSecret _mount_and_path_ - Patch the KV secrets data and/or metadata
+*KV2 Secrets*
 
-_LDAP Libraries Sets_
+* Vault CreateKvSecret *mount_and_path* - Create or update the KV secrets
+* Vault ReadKvSecret *mount_and_path* - Read the KV secrets
+* Vault ReadKvMetadata *mount_and_path* - Read the KV metadata
+* Vault DeleteKvMetadata *mount_and_path* - Delete KV metadata
+* Vault UpdateKvSecret *mount_and_path* - Update the KV secrets data and/or metadata
+* Vault DeleteKvSecret *mount_and_path* - Delete a KV secret
+* Vault UndeleteKvSecret *mount_and_path* - Undelete a KV secret
+* Vault DestroyKvSecret *mount_and_path* - Destroy a KV secret
+* Vault ListKvSecrets *mount_and_path* - List KV secrets at a path location
+* Vault PatchKvSecret *mount_and_path* - Patch the KV secrets data and/or metadata
 
-* Vault CreateLdapLibrary _mount_and_set_ - Create a set of LDAP credentials
-* Vault ReadLdapLibrary _mount_and_set_ - Get the configuraiton of a set of LDAP credentials
-* Vault UpdateLdapLibrary _mount_and_set_ - Update the configuraiton of a set of LDAP credentials
-* Vault DeleteLdapLibrary _mount_and_set_ - Remove a set of LDAP credentials
-* Vault ListLdapLibraries _mount_point_ - List LDAP library set names
+*LDAP Libraries Sets*
 
-_LDAP Static Roles_
+* Vault CreateLdapLibrary *mount_and_set* - Create a set of LDAP credentials
+* Vault ReadLdapLibrary *mount_and_set* - Get the configuraiton of a set of LDAP credentials
+* Vault UpdateLdapLibrary *mount_and_set* - Update the configuraiton of a set of LDAP credentials
+* Vault DeleteLdapLibrary *mount_and_set* - Remove a set of LDAP credentials
+* Vault ListLdapLibraries *mount_point* - List LDAP library set names
 
-* Vault CreateLdapRole _mount_and_role_ - Create a static LDAP role
-* Vault ReadLdapRole _mount_and_role_ - Get a static LDAP role
-* Vault UpdateLdapRole _mount_and_role_ - Update a static LDAP role
-* Vault DeleteLdapRole _mount_and_role_ - Remove a static LDAP role
-* Vault ListLdapRoles _mount_point_ - List static LDAP roles
-* Vault RotateLdapRole _mount_and_role_ - Rotate the password of a static LDAP role
+*LDAP Static Roles*
 
-_Database Connections_
+* Vault CreateLdapRole *mount_and_role* - Create a static LDAP role
+* Vault ReadLdapRole *mount_and_role* - Get a static LDAP role
+* Vault UpdateLdapRole *mount_and_role* - Update a static LDAP role
+* Vault DeleteLdapRole *mount_and_role* - Remove a static LDAP role
+* Vault ListLdapRoles *mount_point* - List static LDAP roles
+* Vault RotateLdapRole *mount_and_role* - Rotate the password of a static LDAP role
 
-* Vault CreateDbConnection _mount_and_name_ - Create and configure a Database Connection
-* Vault ReadDbConnection _mount_and_name_ - Read a Database Connection configuration
-* Vault UpdateDbConnection _mount_and_name_ - Update a Database Connection configuration
-* Vault DeleteDbConnection _mount_and_name_ - Remove a Database Connection
-* Vault ListDbConnections _mount_point_ - List Database Connections
-* Vault ResetDbConnection _mount_and_name_ - Closes a Database Connection and it's plugin and restarts it
-* Vault RotateDbConnectionCredentials _mount_and_name_ - Rotate the user credentials of the Database Connection
+*Database Connections*
 
-_Database Roles_
+* Vault CreateDbConnection *mount_and_name* - Create and configure a Database Connection
+* Vault ReadDbConnection *mount_and_name* - Read a Database Connection configuration
+* Vault UpdateDbConnection *mount_and_name* - Update a Database Connection configuration
+* Vault DeleteDbConnection *mount_and_name* - Remove a Database Connection
+* Vault ListDbConnections *mount_point* - List Database Connections
+* Vault ResetDbConnection *mount_and_name* - Closes a Database Connection and it's plugin and restarts it
+* Vault RotateDbConnectionCredentials *mount_and_name* - Rotate the user credentials of the Database Connection
 
-* Vault CreateDbRole _mount_and_name_ - Creates a Role for a Database
-* Vault ReadDbRole _mount_and_name_ - Read a Database Role
-* Vault UpdateDbRole _mount_and_name_ - Update a Role for a Database
-* Vault DeleteDbRole _mount_and_name_ - Remove a Database Role
-* Vault ListDbRoles _mount_point_ - List Database Roles for a mount point
-* Vault GenerateDbRoleCredentials _mount_and_name_ - Generate a new credentials for a Database Role
+*Database Roles*
 
-_Universal Options_
+* Vault CreateDbRole *mount_and_name* - Creates a Role for a Database
+* Vault ReadDbRole *mount_and_name* - Read a Database Role
+* Vault UpdateDbRole *mount_and_name* - Update a Role for a Database
+* Vault DeleteDbRole *mount_and_name* - Remove a Database Role
+* Vault ListDbRoles *mount_point* - List Database Roles for a mount point
+* Vault GenerateDbRoleCredentials *mount_and_name* - Generate a new credentials for a Database Role
 
-* Namespace [Is] _namespace_ - the namespace for the operations.
+*Universal Options*
+
+* Namespace [Is] *namespace* - the namespace for the operations.
   Default namespace is used if not specified. For some operations, this
   is may be combined with other arguments as the parent namespace.
-* Using [Connection] _connection_name_ - the connection to use. If not
+* Using [Connection] *connection_name* - the connection to use. If not
   specified the last connection used by another command is assumed.
-* [Result | Results] [In] _variable_ - the variable to receive the results
-  of the command. If not specified, results are placed in _vault.result_.
-* Giving _variable_ - synonym for _Results_
+* [Result | Results] [In] *variable* - the variable to receive the results
+  of the command. If not specified, results are placed in *vault.result*.
+* Giving *variable* - synonym for _Results_
 
 Multiple argument are separated by spaces or optional commas.
 
-_Specialized Options_
+*Specialized Options*
 
-* CAS [Is] _version_ - Sets the CAS version if required by operation
-* Config [Is] _config_ - Configuration data for the operation; may be
-  mutually exclusive with _Data_
-* Data [Is] _data_ - Operation data if used by operation
-* [Secret | Secrets] [[Is | Are]] _data_ - Synonym for _Data_
-* Description [Is] _text_ - Description text if used by operation
-* Key [Is] _key_ - Key argument if used by operation
-* [Meta | Metadata] [Is] _metadata_ - Metadata if used by operation
-* Type [Is] _type_ - Type indicator if used by operation
-* [Version | Ver] [Is] _version_ - Version value if used by operation
+* CAS [Is] *version* - Sets the CAS version if required by operation
+* Config [Is] *config* - Configuration data for the operation; may be
+  mutually exclusive with `Data`
+* Data [Is] *data* - Operation data if used by operation
+* [Secret | Secrets] [[Is | Are]] *data* - Synonym for _Data_
+* Description [Is] *text* - Description text if used by operation
+* Key [Is] *key* - Key argument if used by operation
+* [Meta | Metadata] [Is] *metadata* - Metadata if used by operation
+* Type [Is] *type* - Type indicator if used by operation
+* [Version | Ver] [Is] *version* - Version value if used by operation
 
-_Results Structure_
+*Results Structure*
 
 In addition to the data returned by Vault, the Vault statement
 adds the following attributes:
 
-* _variable_.status - Human-readable status of the operation. If the operation
-  succeeded, it will be _None_. Otherwise it will contain errors or warning reported
+* *variable*.status - Human-readable status of the operation. If the operation
+  succeeded, it will be `None`. Otherwise it will contain errors or warning reported
   by Vault, or the HTTP status.
-* _variable_.vclient.url - The URL used in the operation
-* _variable_.vclient.method - The HTTP method used in the operation
-* _variable_.vclient.status - The HTTP return code from the operation
-* _variable_.vclient.vault_index - value of the returned _X-Vault-Index_ header
-* _variable_.vclient.vault_cluster - value of the returned _X-Vault-Cluster_ header
-* _variable_.vclient.vault_lease_id - value of the returned _X-Vault-Lease-Id_ header
+* *variable*.vclient.url - The URL used in the operation
+* *variable*.vclient.method - The HTTP method used in the operation
+* *variable*.vclient.status - The HTTP return code from the operation
+* *variable*.vclient.vault_index - value of the returned _X-Vault-Index_ header
+* *variable*.vclient.vault_cluster - value of the returned _X-Vault-Cluster_ header
+* *variable*.vclient.vault_lease_id - value of the returned _X-Vault-Lease-Id_ header
 
 """
 

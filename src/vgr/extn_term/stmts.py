@@ -297,7 +297,7 @@ def add_dd_constants(dd: DataDictionary, prefix: str) -> None:
     dd.set_var(_boxes(), prefix, 'box')
     dd.set_var([style.name for style in BoxStyle], prefix, 'box_styles')
     dd.set_var(TERM_COLORS, prefix, 'color_names')
-    # TODO this block seems misplaced...
+    # TODO this block seems misplaced
     for val, name in enumerate(TERM_COLORS):
         _COLOR_NAME_MAP[_canonical_color_name(name)] = val
     for name, val in AUX_COLORS.items():
@@ -373,11 +373,11 @@ def _term_sgr_style(ctx: ExecContext, cmd: Tree) -> None:
             if c and not _NO_COLOR: _print(TermConsts.SGR_FG.format(c))
             continue
         if s in ("reset",):
-            # This resets FG color and "wide"...
+            # This resets FG color and "wide"
             _print(TermConsts.SGR_RESET_FG, TermConsts.DECSWL)
             # INTENTIONAL FALL-THRU
         if s in ("reset", "normal", "default"):
-            # This resets everything else...
+            # This resets everything else
             _print(*_SGR_ALL_OFF)
             continue
         # prefix of '+' means on, but that's the default of using the world
@@ -788,8 +788,8 @@ def execute_term_statement(ctx: ExecContext, statement: Tree) -> None:
     """
 **Execute Terminal control commands**
 
-* Terminal _command_ [, _command_]... [;]
-* Term _command_ [, _command_]... [;]
+* Terminal *command* [, *command*]&hellip; [;]
+* Term *command* [, *command*]&hellip; [;]
 
 _Cursor Control Commands_
 
@@ -827,7 +827,7 @@ _Scrolling Commands_
 
 * ScrollUp - Scroll up one line
 * ScrollDown - Scroll down one line
-* ScrollRegion _start_line_, _end_line_ - Scroll text in the given region
+* ScrollRegion *start_line*, *end_line* - Scroll text in the given region
 
 _Options Commands_
 
@@ -872,7 +872,7 @@ _Sending Control Characters_
 _Colors and Attrribute Commands_
 
 * Reset - Reset the colors and attributes
-* Style _style_ - Intepret _style_ as colors and attributes
+* Style *style* - Intepret *style* as colors and attributes
 * Bold [_on_off_] - Turn bold on/off
 * Dim [_on_off_] - Turn dim on/off
 * Blink [_on_off_] - Turn blink on/off
@@ -890,9 +890,9 @@ _Colors and Attrribute Commands_
 
 _Box and Line Drawing Commands_
 
-* [DrawBox | Box] [_style_,] _height_, _width_
-* [DrawHLine | HLine] [_style_,] _length_
-* [DrawVLine | VLine] [_style_,] _height_
+* [DrawBox | Box] [*style*,] *height*, *width*
+* [DrawHLine | HLine] [*style*,] *length*
+* [DrawVLine | VLine] [*style*,] *height*
 * Styles - Blank, ASCII, Single Double, SingleDouble, DoubleSingle,
   Brackets, Parens, Braces, Light, LightRounded, LightDash2,
   LightDash3, LightDash4, Heavy, HeavyDash2, HeavyDash3, HeavyDash4,

@@ -20,8 +20,8 @@ def execute_list_append(ctx: ExecContext, statement: Tree) -> None:
     """
 **Add one or more items to the end of a list**
 
-* Append _item_ To [List] _variable_ [;]
-* Append All _item_ To [List] _variable_ [;]
+* Append _item_ To [List] *variable* [;]
+* Append All _item_ To [List] *variable* [;]
 
 In the first form _item_ is added to the specified list, regardless of its type.
 In the second form when _All_ is specified, if _item_ is a list, all of its
@@ -29,11 +29,11 @@ members are added to the specified list.
 If _item_ is not a list itself, there is no difference between the first and
 second forms.
 
-If _variable_ is not defined it is created as an empty list.
-If _variable_ is not a list, it is converted to a list.
+If *variable* is not defined it is created as an empty list.
+If *variable* is not a list, it is converted to a list.
 
 ```vgr
-// Assume animals is ["cat", "dog", "fish"]
+// Assuming animals is ["cat", "dog", "fish"]
 
 Append None To animals  → ["cat", "dog", "fish", None]
 
@@ -62,8 +62,8 @@ def execute_list_prepend(ctx: ExecContext, statement: Tree) -> None:
     """
 **Add one or more items to the beginning of a list**
 
-* Prepend _item_ To [List] _variable_ [;]
-* Prepend All _item_ To [List] _variable_ [;]
+* Prepend _item_ To [List] *variable* [;]
+* Prepend All _item_ To [List] *variable* [;]
 
 In the first form _item_ is added to the specified list, regardless of its type.
 In the second form when _All_ is specified, if _item_ is a list, all of its
@@ -71,11 +71,11 @@ members are added to the specified list.
 If _item_ is not a list itself, there is no difference between the first and
 second forms.
 
-If _variable_ is not defined it is created as an empty list.
-If _variable_ is not a list, it is converted to a list.
+If *variable* is not defined it is created as an empty list.
+If *variable* is not a list, it is converted to a list.
 
 ```vgr
-// Assume animals is ["cat", "dog", "fish"]
+// Assuming animals is ["cat", "dog", "fish"]
 
 Prepend None To animals → [None, "cat", "dog", "fish"]
 
@@ -104,8 +104,8 @@ def execute_list_insert(ctx: ExecContext, statement: Tree) -> None:
     """
 **Insert one or more items into a list**
 
-* Insert _item_ Into [List] _variable_ At [Position | Index] _position_ [;]
-* Insert All _item_ Into [List] _variable_ At [Position | Index] _position_ [;]
+* Insert _item_ Into [List] *variable* At [Position | Index] _position_ [;]
+* Insert All _item_ Into [List] *variable* At [Position | Index] _position_ [;]
 
 In the first form _item_ is inserted to the specified list, regardless of its type.
 In the second form when _All_ is specified, if _item_ is a list, all of its
@@ -116,11 +116,11 @@ second forms.
 The _position_ argument must be a number and be greater than or equal to zero
 and less than the length of the existing list.
 
-If _variable_ is not defined it is created as an empty list.
-If _variable_ is not a list, it is converted to a list.
+If *variable* is not defined it is created as an empty list.
+If *variable* is not a list, it is converted to a list.
 
 ```vgr
-// Assume animals is ["cat", "dog", "fish"]
+// Assuming animals is ["cat", "dog", "fish"]
 
 Insert None Into animals At 1 → ["cat", None, "dog", "fish"]
 
@@ -183,21 +183,21 @@ def execute_list_remove(ctx: ExecContext, statement: Tree) -> None:
     """
 **Remove one or more items from a list by position**
 
-* Remove First [Item] From [List] _variable_ [Giving _removed_var_] [;]
-* Remove Last [Item] From [List] _variable_ [Giving _removed_var_] [;]
-* Remove [Position | Index] _position_ From [List] _variable_ [Giving _removed_var_ ] [;]
+* Remove First [Item] From [List] *variable* [Giving _removed_var_] [;]
+* Remove Last [Item] From [List] *variable* [Giving _removed_var_] [;]
+* Remove [Position | Index] _position_ From [List] *variable* [Giving _removed_var_ ] [;]
 
 The _position_ argument must be a number, or a list of numbers,
 which are greater than or equal to zero
 and less than the length of the existing list.
 
-If _variable_ is not defined it is created as an empty list.
-If _variable_ is not a list, it is converted to a list.
+If *variable* is not defined it is created as an empty list.
+If *variable* is not a list, it is converted to a list.
 
 The _removed_var_ receives the items removed from the list.
 
 ```vgr
-// Assume animals is ["cat", "dog", "fish"]
+// Assuming animals is ["cat", "dog", "fish"]
 
 Remove First From animals → ['dog', 'fish']
 
@@ -234,19 +234,19 @@ def execute_list_replace(ctx: ExecContext, statement: Tree) -> None:
     """
 **Replace one or more items in a list by position**
 
-* Replace [Position | Index] _position_ In [List] _variable_ [Giving _replaced_var_ ] [;]
+* Replace [Position | Index] _position_ In [List] *variable* [Giving *replaced_var* ] [;]
 
 The _position_ argument must be a number, or a list of numbers,
 which are greater than or equal to zero
 and less than the length of the existing list.
 
-If _variable_ is not defined it is created as an empty list.
-If _variable_ is not a list, it is converted to a list.
+If *variable* is not defined it is created as an empty list.
+If *variable* is not a list, it is converted to a list.
 
-The _replaced_var_ receives the items replaced in the list.
+The *replaced_var* receives the items replaced in the list.
 
 ```vgr
-// Assume animals is ["cat", "dog", "fish"]
+// Assuming animals is ["cat", "dog", "fish"]
 
 Replace 0 In animals With "bat" → ['bat', 'dog', 'fish']
 

@@ -15,35 +15,41 @@ from .exec_context import ExecContext
 from .mathpak import bound_ops, poly_type, verify_relative_path
 from .redir import prepare_path
 
-@bound_ops("Create-ZIP")
+@bound_ops("Create ZIP")
 def execute_zip(ctx: ExecContext, statement: Tree):
     """
 **Create a ZIP Archive**
 
-* Create ZIP [File] _zip_file_<br>
-  <em>[_option_ [, _option_]...] [;]
+* Create ZIP [File] _zip-file_\\
+  &emsp;&emsp;[*option* [, *option*]&hellip;] [;]
 
 Options are
 
-* Include [Is] _file_pattern_...
-* Exclude [Is] _file_pattern_...
-* Comment [Is] _comment_
+* Include [Is] *file_pattern*&hellip;
+* Exclude [Is] *file_pattern*&hellip;
+* Comment [Is] *comment*
 
-Include and Exclude expressions are strings that include files or
-directories using _glob_ patterns. Both options can specify multiple file
+The *file_pattern* used with `Include` and `Exclude` are strings that select files or
+directories using *glob* patterns. Both options can specify multiple file
 patterns and can be used multiple times.
+
 Directories are included recursively and include all file in them.
 
-If the include patterns do not match any files, or the exclude patterns
+If the `Include` patterns do not match any files, or the `Exclude` patterns
 remove all added files, then an empty archive is created.
 
 Both files and directories must be relative to the current directory.
 
-If a comment is specified multiple times, only the last one is used.
+If `Comment` is specified multiple times, only the last one is used.
 
-`Windows Note`: If you hard code paths, please use the slash as a universal
-directory separator. Since the backslash is an escape character, if you use
-it in a string, you will either need to double it or use a _raw string_.
+```vgr
+**TODO**
+```
+
+> **Windows Note**\\
+> If you hard code paths, please use the slash as a universal
+> directory separator. Since the backslash is an escape character, if you use
+> it in a string, you will either need to double it or use a _raw string_.
 """
     zip_name = ctx.eval_filename_expr(statement.children[0])
     include_patterns: list[str] = []
@@ -90,7 +96,7 @@ def _eval_to_list_str(ctx: ExecContext, clause: Tree, name: str) -> list[str]:
             if isinstance(val, (str, int, float)):
                 # Handle ordinals as strings
                 rc.append(str(val))
-            elif isinstance(val, (list, tuple)):
+            elif isinstance(val, list):
                 # Recurse into collections
                 for v in val: add_it(expr, v)
             else:

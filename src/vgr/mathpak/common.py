@@ -27,7 +27,6 @@ _DEFAULTS_BY_TYPE = {
     int : 0,
     list : [],
     str : '',
-    tuple : tuple(),
 }
 
 def bound_ops(*operators):
@@ -146,7 +145,7 @@ def dist_y(op: Callable[[Any, Any], Any], x: Any, y: list) -> list:
     return list(op(x, y1) for y1 in y)
 
 def matching_default(x: Any) -> Any:
-    """Given an object, return a _default_ value that matches its type"""
+    """Given an object, return a *default* value that matches its type"""
     default = _DEFAULTS_BY_TYPE.get(type(x))
     if default is not None: return default
     raise TypeError(f'No default value for {poly_type(x)!r}') # SNO

@@ -13,10 +13,10 @@ def poly_sub(x: Any, *args):
     """
 **Subtraction operation**
 
-* _x_ - _y_
-* _x_ － _y_
-* Sub(_x_, _y_...)
-* _x_.Sub(_y_...)
+* *x* - *y*
+* *x* － *y*
+* Sub(*x*, *y*&hellip;)
+* *x*.Sub(*y*&hellip;)
 
 | x     | y     | returns   | operation                 |
 |-------|-------|-----------|---------------------------|
@@ -36,7 +36,7 @@ def poly_sub(x: Any, *args):
 | dict  | list  | dict      | remove keys in y from x   |
 | dict  | dict  | dict      | remove keys in y from x   |
 
-TypeError raised on all other combinations
+A type error is raised on all other combinations
 
 ```vgr
 None - None → None

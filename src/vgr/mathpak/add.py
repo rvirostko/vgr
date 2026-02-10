@@ -8,10 +8,10 @@ def poly_add(x: Any, *args):
     """
 **Addition/concatenation operation**
 
-* _x_ + _y_
-* _x_ ＋ _y_
-* Add(_x_, _y_...)
-* _x_.Add(_y_...)
+* *x* + *y*
+* *x* ＋ *y*
+* Add(*x*, *y*&hellip;)
+* *x*.Add(*y*&hellip;)
 
 | x     | y     | returns   | operation                |
 |-------|-------|-----------|--------------------------|
@@ -33,9 +33,7 @@ def poly_add(x: Any, *args):
 | list  | list  | list      | union of lists           |
 | dict  | dict  | dict      | union of dicts           |
 
-TypeError raised on all other combinations
-
-See `ToNumber()` and `ToString()` for conversion details
+A type error is raised on all other combinations
 
 ```vgr
 None + None → None
@@ -48,6 +46,9 @@ None + "5" → "5"
 [1, 2] + [5] → [1, 2, 5]
 {"a": 5} + {"b": 6} → {"a": 5, "b": 6}
 ```
+
+Also see `ToNumber()` and `ToString()` for conversion details
+
 """
     return reduce(_add, args, x)
 
@@ -78,11 +79,11 @@ def poly_sum(x: Any, *args) -> Any:
     """
 **Recursively sum lists of numbers**
 
-* Sum(_values_...)
-* _value_.Sum()
-* _value_.Sum(_values_...)
+* Sum(*values*&hellip;)
+* *values*.Sum()
+* *values*.Sum(*values*&hellip;)
 
-If a value is _None_ it is treated as a zero.
+If a *values* is `None` it is treated as a zero.
 String values are converted to numbers when possible.
 
 While similar to `Add()`, `Sum()` is not distributed over

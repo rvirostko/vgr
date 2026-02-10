@@ -12,6 +12,10 @@ def dir_name(path: Any) -> Any:
 **Returns the directory part of a path**
 
 If path is empty "." is used, matching UNIX behavior.
+
+```vgr
+**TODO**
+```
 """
     if path is None: return None
     if isinstance(path, (list, tuple)): return list(dir_name(path1) for path1 in path)
@@ -22,6 +26,9 @@ def base_name(path: Any) -> Any:
     """
 **Returns the final component of a path**
 
+```vgr
+**TODO**
+```
 """
     if path is None: return None
     if isinstance(path, (list, tuple)): return list(base_name(path1) for path1 in path)
@@ -30,7 +37,11 @@ def base_name(path: Any) -> Any:
 
 def file_exists(path: Any) -> Any:
     """
-**Returns _True_ if path exists**
+**Does a path exists**
+
+```vgr
+**TODO**
+```
 """
     if path is None: return None
     if isinstance(path, (list, tuple)): return list(file_exists(path1) for path1 in path)
@@ -39,7 +50,11 @@ def file_exists(path: Any) -> Any:
 
 def is_file(path: Any) -> Any:
     """
-**Returns _True_ if path exists and is a regular file**
+**Checks to see if a file exists and is a regular file**
+
+```vgr
+**TODO**
+```
 """
     if path is None: return None
     if isinstance(path, (list, tuple)): return list(is_file(path1) for path1 in path)
@@ -48,7 +63,11 @@ def is_file(path: Any) -> Any:
 
 def is_dir(path: Any) -> Any:
     """
-**Returns _True_ if path exists and is a directory**
+**Checks to see if a path exists and is a directory**
+
+```vgr
+**TODO**
+```
 """
     if path is None: return None
     if isinstance(path, (list, tuple)): return list(is_dir(path1) for path1 in path)
@@ -57,7 +76,13 @@ def is_dir(path: Any) -> Any:
 
 def remove_file(path: Any) -> Any:
     """
-**Removes a file, returning _True_ if the file was removed or a string error message**
+**Removes a file, returning status**
+
+Either returns `True` if the file was removed or a string error message
+
+```vgr
+**TODO**
+```
 """
     if path is None: return (False, None)
     if isinstance(path, (list, tuple)): return list(remove_file(path1) for path1 in path)

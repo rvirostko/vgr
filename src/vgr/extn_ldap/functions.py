@@ -78,60 +78,110 @@ def _gen_attr_ineq(prefix: str, operator: str, attr: str, value: str) -> str:
 def attr_equals(attr: str, *values: str) -> str:
     """
 **Generate a filter for equality of an attribute with one or more values**
+
+```vgr
+**TODO**
+```
+
 """
     return _gen_attr_op('', '=', '|', attr, *values)
 
 def attr_not_equals(attr: str, *values: str) -> str:
     """
 **Generate a filter for inequality of an attribute with one or more values**
+
+```vgr
+**TODO**
+```
+
 """
     return _gen_attr_op('!', '=', '&', attr, *values)
 
 def attr_match(attr: str, *values: str) -> str:
     """
 **Generate a filter for approximate match of an attribute with one or more values**
+
+```vgr
+**TODO**
+```
+
 """
     return _gen_attr_op('', '~=', '|', attr, *values)
 
 def attr_lessthan(attr: str, value: str) -> str:
     """
 **Generate a filter for less-than comparison of an attribute**
+
+```vgr
+**TODO**
+```
+
 """
     return _gen_attr_ineq('!', '>=', attr, value)
 
 def attr_greaterthan(attr: str, value: str) -> str:
     """
 **Generate a filter for greater-than comparison of an attribute**
+
+```vgr
+**TODO**
+```
+
 """
     return _gen_attr_ineq('!', '<=', attr, value)
 
 def attr_lessthaneq(attr: str, value: str) -> str:
     """
 **Generate a filter for less-than or equal-to comparison of an attribute**
+
+```vgr
+**TODO**
+```
+
 """
     return _gen_attr_ineq('', '<=', attr, value)
 
 def attr_greaterthaneq(attr: str, value: str) -> str:
     """
 **Generate a filter for greater-than or equal-to comparison of an attribute**
+
+```vgr
+**TODO**
+```
+
 """
     return _gen_attr_ineq('', '>=', attr, value)
 
 def attr_between(attr: str, low_value: str, high_value: str) -> str:
     """
 **Generate a filter for an attribute being inside a range**
+
+```vgr
+**TODO**
+```
+
 """
     return ldap_and(attr_greaterthaneq(attr, low_value), attr_lessthaneq(attr, high_value))
 
 def attr_exists(attr: str) -> str:
     """
 **Generate a filter for an attribute having any value**
+
+```vgr
+**TODO**
+```
+
 """
     return attr_equals(attr, '*')
 
 def attr_not_exists(attr: str) -> str:
     """
 **Generate a filter for an attribute not having any value**
+
+```vgr
+**TODO**
+```
+
 """
     return attr_not_equals(attr, '*')
 
@@ -233,7 +283,7 @@ def qbe_to_filter(qbe: Dict[Any, Any]) -> str:
     """
 *Converts a dictionary to a query-by-example filter*
 
-* _value_.ToLdapFilter()
+* *value*.ToLdapFilter()
 
 The key-value pairs in the dictionary are converted to LDAP filter expressions.
 Keys or values that are invalid are ignored. The dictionary must contain at
@@ -243,6 +293,10 @@ least one valid key-value pair.
 * Leading and trailing spaces in keys are ignored. Embedded spaces are converted to an underscore.
 * Values may be composed of _&&_ and _||_ for logical And and Or operations respectively.
 * Values may start with an operator: =, !, ~, <, >, <=, >=. Equality is optional and assumed when operator is provided.
+
+```vgr
+**TODO**
+```
 """
     if not isinstance(qbe, dict): return None
     attr_filters: List[str] = []

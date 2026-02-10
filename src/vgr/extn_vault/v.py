@@ -167,7 +167,7 @@
 #             # library as an entity, we flatten the array of account names
 #             for acct_name in library_data.get('service_account_names', []):
 #                 LOG.dbg(f'{acct_name}')
-#                 # This may not be universal... but good enough for how
+#                 # This may not be universal, but good enough for how
 #                 # the way accounts are currently configured
 #                 library_data['dn'] = f'CN={acct_name},{mount_config.get("userdn","")}'
 #                 # TODO For password_rotation info we will need to talk to AD

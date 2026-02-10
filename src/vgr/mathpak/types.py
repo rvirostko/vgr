@@ -11,10 +11,14 @@ from .common import str_to_number, str_to_bool
 
 def poly_isnone(x: Any) -> Any:
     """
-**Returns _True_ if the value is _None_**
+**Is a value equal to `None`**
 
-* IsNone(_value_)
-* _value_.IsNone()
+* IsNone(*value*)
+* *value*.IsNone()
+
+```vgr
+**TODO**
+```
 
 Also see `IsNotNone()`
 """
@@ -22,10 +26,14 @@ Also see `IsNotNone()`
 
 def poly_isnotnone(x: Any) -> Any:
     """
-**Returns _True_ if the value is not _None_**
+**Is a value anything but `None`**
 
-* IsNotNone(_value_)
-* _value_.IsNotNone()
+* IsNotNone(*value*)
+* *value*.IsNotNone()
+
+```vgr
+**TODO**
+```
 
 Also see `IsNone()`
 """
@@ -35,22 +43,22 @@ def poly_bool(x: Any) -> Any:
     """
 **Converts the value to a boolean**
 
-* ToBoolean(_value_)
-* _value_.ToBoolean()
+* ToBoolean(*value*)
+* *value*.ToBoolean()
 
-If _value_ is _None_ then _False_ is returned.
-Numbers that are zero return _False_ while all others return _True_.
+If *value* is `None` then `False` is returned.
+Numbers that are zero return `False` while all others return `True`.
 
 When converting strings to booleans, comparisons are made
 independent of case after leading and trailing
 whitespace is removed.
 
-* 'true', 't', 'yes', 'y', or 'on' return _True_
-* 'false', 'f', 'no', 'n' or 'off' return _False_
+* 'true', 't', 'yes', 'y', or 'on' return `True`
+* 'false', 'f', 'no', 'n' or 'off' return `False`
 * If none of the above, it is converted to a number, then a bool.
 
-If it is a non-convertable type then _True_ is returned, as any
-non-_None_ value is consider _True_.
+If it is a non-convertable type then `True` is returned, as any
+non-`None` value is consider `True`.
 
 Conversion is distributed over lists.
 
@@ -74,10 +82,10 @@ Conversion is distributed over lists.
 
 def poly_isbool(x: Any) -> bool:
     """
-**Returns _True_ if the value is a boolean**
+**Is the value value a boolean**
 
-* IsBoolean(_value_)
-* _value_.IsBoolean()
+* IsBoolean(*value*)
+* *value*.IsBoolean()
 
 ```vgr
 **TODO**
@@ -94,15 +102,15 @@ def poly_float(x: Any, default: Any = _SENTINEL) -> Any:
     """
 **Converts the value to a floating point number**
 
-* ToFloat(_value_)
-* ToFloat(_value_, _default_)
-* _value_.ToFloat()
-* _value_.ToFloat(_default_)
+* ToFloat(*value*)
+* ToFloat(*value*, *default*)
+* *value*.ToFloat()
+* *value*.ToFloat(*default*)
 
-If _value_ is _None_ or is a non-convertable type then _None_ is returned.
+If *value* is `None` or is a non-convertable type then `None` is returned.
 Strings that cannot be converted may result in a value error.
-The optional _default_ value is returned if the value cannot be converted
-to a number. It can be any value, including _None_.
+The optional *default* value is returned if the value cannot be converted
+to a number. It can be any value, including `None`.
 
 ```vgr
 **TODO**
@@ -120,10 +128,10 @@ to a number. It can be any value, including _None_.
 
 def poly_isfloat(x: Any) -> bool:
     """
-**Returns _True_ if the value is a floating point number**
+**Is a value a floating point number**
 
-* IsFloat(_value_)
-* _value_.IsFloat()
+* IsFloat(*value*)
+* *value*.IsFloat()
 
 ```vgr
 **TODO**
@@ -137,15 +145,15 @@ def poly_int(x: Any, default: Any = _SENTINEL) -> Any:
     """
 **Converts the value to an integer**
 
-* ToInteger(_value_)
-* ToInteger(_value_, _default_)
-* _value_.ToInteger()
-* _value_.ToInteger(_default_)
+* ToInteger(*value*)
+* ToInteger(*value*, *default*)
+* *value*.ToInteger()
+* *value*.ToInteger(*default*)
 
-If _value_ is _None_ or is a non-convertable type then _None_ is returned.
+If *value* is `None` or is a non-convertable type then `None` is returned.
 Strings that cannot be converted may result in a value error.
-The optional _default_ value is returned if the value cannot be converted
-to a number. It can be any value, including _None_.
+The optional *default* value is returned if the value cannot be converted
+to a number. It can be any value, including `None`.
 
 ```vgr
 **TODO**
@@ -163,10 +171,10 @@ to a number. It can be any value, including _None_.
 
 def poly_isint(x: Any) -> bool:
     """
-**Returns _True_ if the value is an integer**
+**Is a value an integer**
 
-* IsInteger(_value_)
-* _value_.IsInteger()
+* IsInteger(*value*)
+* *value*.IsInteger()
 
 ```vgr
 **TODO**
@@ -180,15 +188,15 @@ def poly_number(x: Any, default: Any = _SENTINEL) -> Any:
     """
 **Converts the value to a number, which may be an integer or floating point number**
 
-* ToNumber(_value_)
-* ToNumber(_value_, _default_)
-* _value_.ToNumber()
-* _value_.ToNumber(_default_)
+* ToNumber(*value*)
+* ToNumber(*value*, *default*)
+* *value*.ToNumber()
+* *value*.ToNumber(*default*)
 
-If _value_ is _None_ or is a non-convertable type then _None_ is returned.
+If *value* is `None` or is a non-convertable type then `None` is returned.
 Strings that cannot be converted may result in a value error.
-The optional _default_ value is returned if the value cannot be converted
-to a number. It can be any value, including _None_.
+The optional *default* value is returned if the value cannot be converted
+to a number. It can be any value, including `None`.
 
 ```vgr
 **TODO**
@@ -208,10 +216,10 @@ Also see `ToInteger()` and `ToFloat()`
 
 def poly_isnumber(x: Any) -> bool:
     """
-**Returns _True_ if the value is a number**
+**Is a value a number**
 
-* IsNumber(_value_)
-* _value_.IsNumber()
+* IsNumber(*value*)
+* *value*.IsNumber()
 
 Only _float_ and _int_ items are considered numbers, although booleans
 can be converted to numbers.
@@ -228,13 +236,13 @@ def poly_sign(x: Any) -> Any:
     """
 **Return an integer value indicating the sign of a number**
 
-* Sign(_value_)
-* _value_.Sign()
+* Sign(*value*)
+* *value*.Sign()
 
-If _value_ is greater than zero, _1_ is returned.
+If *value* is greater than zero, _1_ is returned.
 If less than zero, _-1_ is returned. Zero is returned for zero.
 Distributed across lists, and strings are converted to numbers.
-For all other types, _None_ is returned.
+For all other types, `None` is returned.
 
 ```vgr
 **TODO**
@@ -246,10 +254,10 @@ For all other types, _None_ is returned.
 
 def poly_isinf(x: Any) -> bool:
     """
-**Returns _True_ if the value is infinity**
+**Is a value equal to infinity**
 
-* IsInf(_value_)
-* _value_.IsInf()
+* IsInf(*value*)
+* *value*.IsInf()
 
 ```vgr
 **TODO**
@@ -259,10 +267,10 @@ def poly_isinf(x: Any) -> bool:
 
 def poly_isfinite(x: Any) -> bool:
     """
-**Returns _True_ if the value is finite**
+**Is the value a number that is not infinite**
 
-* IsFinite(_value_)
-* _value_.IsFinite()
+* IsFinite(*value*)
+* *value*.IsFinite()
 
 ```vgr
 None.IsFinite() → False
@@ -278,10 +286,10 @@ False.IsFinite() → True
 
 def poly_isnan(x: Any) -> bool:
     """
-**Returns _True_ if the value is the special _not a number_ constant**
+**Is a value the special _not a number_ constant**
 
-* IsNan(_value_)
-* _value_.IsNan()
+* IsNan(*value*)
+* *value*.IsNan()
 
 ```vgr
 None.IsNan() → False
@@ -296,10 +304,10 @@ True.IsNan() → False
 
 def poly_iszero(x: Any) -> bool:
     """
-**Returns _True_ if the value is zero**
+**Is the value equal to zero**
 
-* IsZero(_value_)
-* _value_.IsZero()
+* IsZero(*value*)
+* *value*.IsZero()
 
 ```vgr
 None.IsZero() → False
@@ -324,10 +332,10 @@ def poly_str(x: Any) -> Any:
     """
 **Converts the value to its string representation**
 
-* ToString(_value_)
-* _value_.ToString()
+* ToString(*value*)
+* *value*.ToString()
 
-If _value_ is _None_ it is left as _None_, not converted to the string _"None"_.
+If *value* is `None` it is left as `None`.
 
 ```vgr
 **TODO**
@@ -343,10 +351,10 @@ If _value_ is _None_ it is left as _None_, not converted to the string _"None"_.
 
 def poly_isstr(x: Any) -> bool:
     """
-**Returns _True_ if the value is a string**
+**Is the value a string**
 
-* IsString(_value_)
-* _value_.IsString()
+* IsString(*value*)
+* *value*.IsString()
 
 ```vgr
 None.IsString() → False
@@ -363,19 +371,19 @@ Also see `Type()` and `IsNumber()`
 
 def poly_isempty(x: Any) -> bool:
     """
-**Test a value to see if it is _empty_**
+**Test a value to see if it is empty**
 
-* IsEmpty(_value_)
-* _value_.IsEmpty()
+* IsEmpty(*value*)
+* *value*.IsEmpty()
 
 A value is considered empty if:
-* It is _None_
+* It is `None`
 * It is a list that has no items
-* It is a dictionary that has attributes
+* It is a dictionary that has no attributes
 * It is a string that has zero length or
   consists of only space characters
 * It is a number that is zero
-* It is the boolean _False_
+* It is the boolean `False`
 
 ```vgr
 None.IsEmpty() → True
@@ -401,17 +409,17 @@ Also see `IsNotEmpty()`
 
 def poly_notempty(x: Any) -> bool:
     """
-**Test a value to see if it is _not empty_**
+**Test a value to see if it is *not empty***
 
-* NotEmpty(_value_)
-* _value_.NotEmpty()
+* NotEmpty(*value*)
+* *value*.NotEmpty()
 
 A value is considered empty if:
 * It is a list that has one or more items
 * It is a dictionary that has one or more attributes
 * It is a string that consists of more than just space characters
 * It is a number that is not zero
-* It is the boolean _True_
+* It is the boolean `True`
 
 ```vgr
 None.IsNotEmpty() → False

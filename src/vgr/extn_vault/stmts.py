@@ -62,23 +62,23 @@ def vault_initialize(dd: DataDictionary) -> None:
     dd.set_var(DynamicValue(lambda : _STATE.default_connection), _VAULT_PREFIX, 'connection')
     dd.set_var(None, *_DEFAULT_RESULT_PATH)
 
-@bound_ops("Vault-Connect")
+@bound_ops("Vault Connect")
 def execute_connect(ctx: ExecContext, statement: Tree) -> None:
     """
 **Establish a connection to Vault**
 
 * Vault Connect [;]
-* Vault Connect To _host_ [;]
-* Vault Connect To _host_ With _token_ [;]
-* Vault Connect To _host_ With _token_ As _connection_name_ [;]
-* Vault Connect As _connection_name_ To _host_, Token Is _token_ [;]
+* Vault Connect To *host* [;]
+* Vault Connect To *host* With *token* [;]
+* Vault Connect To *host* With *token* As *connection_name* [;]
+* Vault Connect As *connection_name* To *host*, Token Is *token* [;]
 
-_Options_
+*Options*
 
-* Timeout Is _value_ [Seconds]
-* [BlockSize | Block Size] Is _value_ [Bytes]
+* Timeout Is *value* [Seconds]
+* [BlockSize | Block Size] Is *value* [Bytes]
 
-Also see `Vault-Disconnect`
+Also see `Vault Disconnect`
 """
     addr = token = conn_name = timeout = blocksize = None
     for child in statement.children:
@@ -109,15 +109,15 @@ Also see `Vault-Disconnect`
     _STATE.default_connection = conn_name
     _set_result(ctx, {}, None)
 
-@bound_ops("Vault-Disconnect")
+@bound_ops("Vault Disconnect")
 def execute_disconnect(ctx: ExecContext, statement: Tree) -> None:
     """
 **Close a connection to Vault**
 
 * Vault Disconnect [;]
-* Vault Disconnect _connection_name_ [;]
+* Vault Disconnect *connection_name* [;]
 
-Also see `Vault-Connect`
+Also see `Vault Connect`
 """
     if statement.children:
         name = _resolve_str_arg(ctx, statement.children[0], 'Vault Connection Name')
@@ -133,18 +133,18 @@ Also see `Vault-Connect`
 # Generic API execution
 #-------------------------------------------------------------------------------
 
-@bound_ops("Vault-ApiDelete")
+@bound_ops("Vault ApiDelete")
 def execute_api_delete(ctx: ExecContext, statement: Tree) -> None:
     """
 **Send a DELETE to a Vault API**
 
-* Vault ApiDelete _path_ [_options_]... [;]
+* Vault ApiDelete *path* [*options*]&hellip; [;]
 
-_Options_
+*Options*
 
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -153,18 +153,18 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.do_delete(url, namespace))
 
-@bound_ops("Vault-ApiGet")
+@bound_ops("Vault ApiGet")
 def execute_api_get(ctx: ExecContext, statement: Tree) -> None:
     """
 **Send a GET to a Vault API**
 
-* Vault ApiGet _path_ [_options_]... [;]
+* Vault ApiGet *path* [*options*]&hellip; [;]
 
-_Options_
+*Options*
 
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -173,18 +173,18 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.do_get(url, namespace))
 
-@bound_ops("Vault-ApiList")
+@bound_ops("Vault ApiList")
 def execute_api_list(ctx: ExecContext, statement: Tree) -> None:
     """
 **Send a LIST to a Vault API**
 
-* Vault ApiList _path_ [_options_]... [;]
+* Vault ApiList *path* [*options*]&hellip; [;]
 
-_Options_
+*Options*
 
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -193,19 +193,19 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.do_list(url, namespace))
 
-@bound_ops("Vault-ApiPatch")
+@bound_ops("Vault ApiPatch")
 def execute_api_patch(ctx: ExecContext, statement: Tree) -> None:
     """
 **Send a PATCH to a Vault API**
 
-* Vault ApiPatch _path_ [_options_]... [;]
+* Vault ApiPatch *path* [*options*]&hellip; [;]
 
-_Options_
+*Options*
 
-* Data Is _data_
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Data Is *data*
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _DATA_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -215,19 +215,19 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.do_patch(url, data, namespace))
 
-@bound_ops("Vault-ApiPost")
+@bound_ops("Vault ApiPost")
 def execute_api_post(ctx: ExecContext, statement: Tree) -> None:
     """
 **Send a POST to a Vault API**
 
-* Vault ApiPost _path_ [_options_]... [;]
+* Vault ApiPost *path* [*options*]&hellip; [;]
 
-_Options_
+*Options*
 
-* Data Is _data_
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Data Is *data*
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _DATA_ARG, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -237,16 +237,16 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.do_post(url, data, namespace))
 
-@bound_ops("Vault-DefaultNamespace")
+@bound_ops("Vault DefaultNamespace")
 def execute_default_ns(ctx: ExecContext, statement: Tree) -> None:
     """
 **Set the namespace to be used by subsequent requests**
 
-* Vault DefaultNamespace _namespace_ [;]
+* Vault DefaultNamespace *namespace* [;]
 
-_Options_
+*Options*
 
-* Giving _variable_
+* Giving *variable*
 """
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _RESULT_ARG)
@@ -254,19 +254,19 @@ _Options_
     _STATE.default_namespace = '' if ns is None or ns.isspace() else ns.strip()
     _set_result(ctx, args, None)
 
-@bound_ops("Vault-CreateNamespace")
+@bound_ops("Vault CreateNamespace")
 def execute_create_ns(ctx: ExecContext, statement: Tree) -> None:
     """
 **Create a new namesapce**
 
-* Vault CreateNamespace _namespace_ [;]
+* Vault CreateNamespace *namespace* [;]
 
-_Options_
+*Options*
 
-* Metadata Is _meta_
-* Namespace Is _parent_
-* Using [Connection] _name_
-* Giving _variable_
+* Metadata Is *metadata*
+* Namespace Is *parent*
+* Using [Connection] *name*
+* Giving *variable*
 """
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _META_ARG, _RESULT_ARG, _USING_ARG)
@@ -276,18 +276,18 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.create_namespace(new_namespace, metadata, parent_namespace))
 
-@bound_ops("Vault-ReadNamespace")
+@bound_ops("Vault ReadNamespace")
 def execute_read_ns(ctx: ExecContext, statement: Tree) -> None:
     """
 **Read a namespace**
 
-* Vault ReadNamespace _namespace_ [;]
+* Vault ReadNamespace *namespace* [;]
 
-_Options_
+*Options*
 
-* Namespace Is _parent_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *parent*
+* Using [Connection] *name*
+* Giving *variable*
 """
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -296,18 +296,18 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.read_namespace(ns, parent_namespace))
 
-@bound_ops("Vault-UpdateNamespace")
+@bound_ops("Vault UpdateNamespace")
 def execute_update_ns(ctx: ExecContext, statement: Tree) -> None:
     """
 **Update a namespace**
 
-* Vault UpdateNamespace _namespace_ Metadata Is _meta_ [;]
+* Vault UpdateNamespace *namespace* Metadata Is *metadata* [;]
 
-_Options_
+*Options*
 
-* Namespace Is _parent_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *parent*
+* Using [Connection] *name*
+* Giving *variable*
 """
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _META_ARG, _RESULT_ARG, _USING_ARG)
@@ -317,18 +317,18 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.update_namespace(ns, metadata, parent_namespace))
 
-@bound_ops("Vault-DeleteNamespace")
+@bound_ops("Vault DeleteNamespace")
 def execute_delete_ns(ctx: ExecContext, statement: Tree) -> None:
     """
 **Delete a namespace**
 
-* Vault DeleteNamespace _namespace_ [;]
+* Vault DeleteNamespace *namespace* [;]
 
-_Options_
+*Options*
 
-* Namespace Is _parent_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *parent*
+* Using [Connection] *name*
+* Giving *variable*
 """
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -337,20 +337,20 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.delete_namespace(ns, parent_namespace))
 
-@bound_ops("Vault-ListNamespaces")
+@bound_ops("Vault ListNamespaces")
 def execute_list_ns(ctx: ExecContext, statement: Tree) -> None:
     """
 **List child namespaces**
 
 * Vault ListNamespaces [;]
-* Vault ListNamespaces _parent_ [;]
-* Vault ListNamespaces Namespace Is _parent_ [;]
+* Vault ListNamespaces *parent* [;]
+* Vault ListNamespaces Namespace Is *parent* [;]
 
-_Options_
+*Options*
 
-* Namespace Is _parent_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *parent*
+* Using [Connection] *name*
+* Giving *variable*
 """
     namespace: str = _resolve_str_arg(ctx, statement.children[0], 'Namespace', True) if len(statement.children) > 1 else ""
     args: dict = _extract_args(ctx, statement)
@@ -359,18 +359,18 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.list_namespace(_combine_ns(parent_namespace, namespace)))
 
-@bound_ops("Vault-LockNamespace")
+@bound_ops("Vault LockNamespace")
 def execute_lock_ns(ctx: ExecContext, statement: Tree) -> None:
     """
 **Lock a namespace**
 
-* Vault LockNamespace _namespace_ [;]
+* Vault LockNamespace *namespace* [;]
 
-_Options_
+*Options*
 
-* Namespace Is _parent_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *parent*
+* Using [Connection] *name*
+* Giving *variable*
 """
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG)
@@ -379,18 +379,18 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.lock_namespace(_combine_ns(parent_namespace, namespace)))
 
-@bound_ops("Vault-UnlockNamespace")
+@bound_ops("Vault UnlockNamespace")
 def execute_unlock_ns(ctx: ExecContext, statement: Tree) -> None:
     """
 **Unlock a namespace**
 
-* Vault UnlockNamespace _namespace_ Key Is _key_ [;]
+* Vault UnlockNamespace *namespace* Key Is *key* [;]
 
-_Options_
+*Options*
 
-* Namespace Is _parent_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *parent*
+* Using [Connection] *name*
+* Giving *variable*
 """
     args: dict = _extract_args(ctx, statement)
     _allowed_args(args, _NS_ARG, _RESULT_ARG, _USING_ARG, _KEY_ARG)
@@ -403,19 +403,19 @@ _Options_
 # Secret Engine mounts
 #-------------------------------------------------------------------------------
 
-@bound_ops("Vault-CreateMount")
+@bound_ops("Vault CreateMount")
 def execute_create_mount(ctx: ExecContext, statement: Tree) -> None:
     """
 **Create and configure a secrets engine**
 
-* Vault CreateMount _mount_point_ Data Is _data_ [;]
-* Vault CreateMount _mount_point_ Type Is _type_ Config Is _config_ Description Is _desc_ [;]
+* Vault CreateMount *mount_point* Data Is *data* [;]
+* Vault CreateMount *mount_point* Type Is _type_ Config Is _config_ Description Is _desc_ [;]
 
-_Options_
+*Options*
 
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
     args = _extract_args(ctx, statement)
@@ -443,18 +443,18 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.create_mount(mount_point, data, namespace))
 
-@bound_ops("Vault-ReadMount")
+@bound_ops("Vault ReadMount")
 def execute_read_mount(ctx: ExecContext, statement: Tree) -> None:
     """
 **Read the configuration of a secrets engine mount**
 
-* Vault ReadMount _mount_point_ [;]
+* Vault ReadMount *mount_point* [;]
 
-_Options_
+*Options*
 
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
     args = _extract_args(ctx, statement)
@@ -463,19 +463,19 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.read_mount(mount_point, namespace))
 
-@bound_ops("Vault-UpdateMount")
+@bound_ops("Vault UpdateMount")
 def execute_update_mount(ctx: ExecContext, statement: Tree) -> None:
     """
 **Update the configuration of a secrets engine**
 
-* Vault UpdateMount _mount_point_ Data Is _data_ [;]
-* Vault UpdateMount _mount_point_ Config Is _config_ [;]
+* Vault UpdateMount *mount_point* Data Is *data* [;]
+* Vault UpdateMount *mount_point* Config Is _config_ [;]
 
-_Options_
+*Options*
 
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
     args = _extract_args(ctx, statement)
@@ -491,18 +491,18 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.update_mount(mount_point, data, namespace))
 
-@bound_ops("Vault-DeleteMount")
+@bound_ops("Vault DeleteMount")
 def execute_delete_mount(ctx: ExecContext, statement: Tree) -> None:
     """
 **Remove a secrets engine mount**
 
-* Vault DeleteMount _mount_point_ [;]
+* Vault DeleteMount *mount_point* [;]
 
-_Options_
+*Options*
 
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
     args = _extract_args(ctx, statement)
@@ -511,24 +511,24 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.delete_mount(mount_point, namespace))
 
-@bound_ops("Vault-ListMounts")
+@bound_ops("Vault ListMounts")
 def execute_list_mounts(ctx: ExecContext, statement: Tree) -> None:
     """
 **List the mount points in a namespace**
 
 * Vault ListMounts [;]
-* Vault ListMounts _namespace_ [;]
-* Vault ListMounts Namspace Is _namespace_ [;]
-* Vault ListMounts _namespace_ Namspace Is _parent_namespace_ [;]
+* Vault ListMounts *namespace* [;]
+* Vault ListMounts Namspace Is *namespace* [;]
+* Vault ListMounts *namespace* Namspace Is *parent_namespace* [;]
 
 If no namespace name is provided, the default namespace name is used.
 
-_Options_
+*Options*
 
-* Using [Connection] _name_
-* Giving _variable_
+* Using [Connection] *name*
+* Giving *variable*
 
-Also see `Vault-DefaultNamespace`
+Also see `Vault DefaultNamespace`
 """
     namespace: str = _resolve_str_arg(ctx, statement.children[0], 'Namespace', True) if len(statement.children) > 1 else ""
     args: dict = _extract_args(ctx, statement)
@@ -541,20 +541,20 @@ Also see `Vault-DefaultNamespace`
 # KV2 secrets and metadata
 #-------------------------------------------------------------------------------
 
-@bound_ops("Vault-CreateKvSecret")
+@bound_ops("Vault CreateKvSecret")
 def execute_create_kv_secret(ctx: ExecContext, statement: Tree) -> None:
     """
 **Create or update the KV secrets**
 
-* Vault CreateKvSecret _mount_and_path_ Data Is _data_ [;]
-* Vault CreateKvSecret _mount_and_path_ Data Is _data_ Metadata Is _meta_ [;]
+* Vault CreateKvSecret *mount_and_path* Data Is *data* [;]
+* Vault CreateKvSecret *mount_and_path* Data Is *data* Metadata Is *metadata* [;]
 
-_Options_
+*Options*
 
 * CAS Is _version_
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
     args = _extract_args(ctx, statement)
@@ -571,19 +571,19 @@ _Options_
         metadata = extract_kv_metadata(_get_arg(args, _META_ARG, dict))
         _set_result(ctx, args, client.create_kv2_metadata(mount_point, path, metadata, namespace))
 
-@bound_ops("Vault-ReadKvSecret")
+@bound_ops("Vault ReadKvSecret")
 def execute_read_kv_secret(ctx: ExecContext, statement: Tree) -> None:
     """
 **Read the KV secrets**
 
-* Vault ReadKvSecret _mount_and_path_ [;]
-* Vault ReadKvSecret _mount_and_path_ Version Is _version_ [;]
+* Vault ReadKvSecret *mount_and_path* [;]
+* Vault ReadKvSecret *mount_and_path* Version Is _version_ [;]
 
-_Options_
+*Options*
 
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
     args = _extract_args(ctx, statement)
@@ -593,18 +593,18 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.read_kv2_secret(mount_point, path, version, namespace))
 
-@bound_ops("Vault-ReadKvMetadata")
+@bound_ops("Vault ReadKvMetadata")
 def execute_read_kv_metadata(ctx: ExecContext, statement: Tree) -> None:
     """
 **Read the KV metadata**
 
-* Vault ReadKvMetadata _mount_and_path_ [;]
+* Vault ReadKvMetadata *mount_and_path* [;]
 
-_Options_
+*Options*
 
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
     args = _extract_args(ctx, statement)
@@ -613,21 +613,21 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.read_kv2_metadata(mount_point, path, namespace))
 
-@bound_ops("Vault-UpdateKvSecret")
+@bound_ops("Vault UpdateKvSecret")
 def execute_update_kv_secret(ctx: ExecContext, statement: Tree) -> None:
     """
 **Update the KV secrets data and/or metadata**
 
-* Vault UpdateKvSecret _mount_and_path_ Data Is _data_ [;]
-* Vault UpdateKvSecret _mount_and_path_ Data Is _data_ Metadata Is _meta_ [;]
-* Vault UpdateKvSecret _mount_and_path_ Metadata Is _meta_ [;]
+* Vault UpdateKvSecret *mount_and_path* Data Is *data* [;]
+* Vault UpdateKvSecret *mount_and_path* Data Is *data* Metadata Is *metadata* [;]
+* Vault UpdateKvSecret *mount_and_path* Metadata Is *metadata* [;]
 
-_Options_
+*Options*
 
 * CAS Is _version_
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
     args = _extract_args(ctx, statement)
@@ -646,21 +646,21 @@ _Options_
         metadata = extract_kv_metadata(_get_arg(args, _META_ARG, dict))
         _set_result(ctx, args, client.update_kv2_metadata(mount_point, path, metadata, namespace))
 
-@bound_ops("Vault-PatchKvSecret")
+@bound_ops("Vault PatchKvSecret")
 def execute_patch_kv_secret(ctx: ExecContext, statement: Tree) -> None:
     """
 **Patch the KV secrets data and/or metadata**
 
-* Vault PatchKvSecret _mount_and_path_ Data Is _data_ [;]
-* Vault PatchKvSecret _mount_and_path_ Data Is _data_ Metadata Is _meta_ [;]
-* Vault PatchKvSecret _mount_and_path_ Metadata Is _meta_ [;]
+* Vault PatchKvSecret *mount_and_path* Data Is *data* [;]
+* Vault PatchKvSecret *mount_and_path* Data Is *data* Metadata Is *metadata* [;]
+* Vault PatchKvSecret *mount_and_path* Metadata Is *metadata* [;]
 
-_Options_
+*Options*
 
 * CAS Is _version_
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
     args = _extract_args(ctx, statement)
@@ -679,19 +679,19 @@ _Options_
         metadata = extract_kv_metadata(_get_arg(args, _META_ARG, dict))
         _set_result(ctx, args, client.patch_kv2_metadata(mount_point, path, metadata, namespace))
 
-@bound_ops("Vault-DeleteKvSecret")
+@bound_ops("Vault DeleteKvSecret")
 def execute_delete_kv_secret(ctx: ExecContext, statement: Tree) -> None:
     """
 **Delete a KV secret**
 
-* Vault DeleteKvSecret _mount_and_path_ Version Is _version_ [;]
-* Vault DeleteKvSecret _mount_and_path_ Data Is _data_ [;]
+* Vault DeleteKvSecret *mount_and_path* Version Is _version_ [;]
+* Vault DeleteKvSecret *mount_and_path* Data Is *data* [;]
 
-_Options_
+*Options*
 
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
     args = _extract_args(ctx, statement)
@@ -701,18 +701,18 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.delete_kv2_secret(mount_point, path, data, namespace))
 
-@bound_ops("Vault-UndeleteKvSecret")
+@bound_ops("Vault UndeleteKvSecret")
 def execute_undelete_kv_secret(ctx: ExecContext, statement: Tree) -> None:
     """
 *Undelete a KV secret**
 
-* Vault UndeleteKvSecret _mount_and_path_ [;]
+* Vault UndeleteKvSecret *mount_and_path* [;]
 
-_Options_
+*Options*
 
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
     args = _extract_args(ctx, statement)
@@ -722,18 +722,18 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.undelete_kv2_secret(mount_point, path, data, namespace))
 
-@bound_ops("Vault-DestroyKvSecret")
+@bound_ops("Vault DestroyKvSecret")
 def execute_destroy_kv_secret(ctx: ExecContext, statement: Tree) -> None:
     """
 **Destroy a KV secret**
 
-* Vault DestoryKvSecret _mount_and_path_ [;]
+* Vault DestoryKvSecret *mount_and_path* [;]
 
-_Options_
+*Options*
 
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
     args = _extract_args(ctx, statement)
@@ -743,18 +743,18 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.destroy_kv2_secret(mount_point, path, data, namespace))
 
-@bound_ops("Vault-DeleteKvMetadata")
+@bound_ops("Vault DeleteKvMetadata")
 def execute_delete_kv_metadata(ctx: ExecContext, statement: Tree) -> None:
     """
 **Delete KV metadata**
 
-* Vault DeleteKvMetadata _mount_and_path_ [;]
+* Vault DeleteKvMetadata *mount_and_path* [;]
 
-_Options_
+*Options*
 
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
     args = _extract_args(ctx, statement)
@@ -763,18 +763,18 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.delete_kv2_metadata(mount_point, path, namespace))
 
-@bound_ops("Vault-ListKvSecrets")
+@bound_ops("Vault ListKvSecrets")
 def execute_list_kv_secrets(ctx: ExecContext, statement: Tree) -> None:
     """
 **List KV secrets at a path location**
 
-* Vault ListKvSecrets _mount_and_path_ [;]
+* Vault ListKvSecrets *mount_and_path* [;]
 
-_Options_
+*Options*
 
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point, path = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Path'))
     args = _extract_args(ctx, statement)
@@ -787,19 +787,19 @@ _Options_
 # LDAP secrets engine : Library
 #-------------------------------------------------------------------------------
 
-@bound_ops("Vault-CreateLdapLibrary")
+@bound_ops("Vault CreateLdapLibrary")
 def execute_create_ldap_library(ctx: ExecContext, statement: Tree) -> None:
     """
 **Create a set of LDAP credentials**
 
-* Vault CreateLdapLibrary _mount_and_set_<br>
-  <em>Config Is _config_ [;]
+* Vault CreateLdapLibrary *mount_and_set*\\
+  &emsp;&emsp;Config Is _config_ [;]
 
-_Options_
+*Options*
 
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Set Name'))
     args = _extract_args(ctx, statement)
@@ -809,18 +809,18 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.create_ldap_library(mount_point, name, config, namespace))
 
-@bound_ops("Vault-ReadLdapLibrary")
+@bound_ops("Vault ReadLdapLibrary")
 def execute_read_ldap_library(ctx: ExecContext, statement: Tree) -> None:
     """
 **Get the configuraiton of a set of LDAP credentials**
 
-* Vault ReadLdapLibrary _mount_and_set_ [;]
+* Vault ReadLdapLibrary *mount_and_set* [;]
 
-_Options_
+*Options*
 
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Set Name'))
     args = _extract_args(ctx, statement)
@@ -829,19 +829,19 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.read_ldap_library(mount_point, name, namespace))
 
-@bound_ops("Vault-UpdateLdapLibrary")
+@bound_ops("Vault UpdateLdapLibrary")
 def execute_update_ldap_library(ctx: ExecContext, statement: Tree) -> None:
     """
 **Update the configuraiton of a set of LDAP credentials**
 
-* Vault UpdateLdapLibrary _mount_and_set_<br>
-  <em>Config Is _config_ [;]
+* Vault UpdateLdapLibrary *mount_and_set*\\
+  &emsp;&emsp;Config Is _config_ [;]
 
-_Options_
+*Options*
 
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Set Name'))
     args = _extract_args(ctx, statement)
@@ -851,18 +851,18 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.update_ldap_library(mount_point, name, config, namespace))
 
-@bound_ops("Vault-DeleteLdapLibrary")
+@bound_ops("Vault DeleteLdapLibrary")
 def execute_delete_ldap_library(ctx: ExecContext, statement: Tree) -> None:
     """
 **Remove a set of LDAP credentials**
 
-* Vault DeleteLdapLibrary _mount_and_set_ [;]
+* Vault DeleteLdapLibrary *mount_and_set* [;]
 
-_Options_
+*Options*
 
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Set Name'))
     args = _extract_args(ctx, statement)
@@ -871,18 +871,18 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.delete_ldap_library(mount_point, name, namespace))
 
-@bound_ops("Vault-ListLdapLibraries")
+@bound_ops("Vault ListLdapLibraries")
 def execute_list_ldap_libraries(ctx: ExecContext, statement: Tree) -> None:
     """
 **List LDAP library set names**
 
-* Vault ListLdapLibraries _mount_point_ [;]
+* Vault ListLdapLibraries *mount_point* [;]
 
-_Options_
+*Options*
 
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
     args = _extract_args(ctx, statement)
@@ -895,19 +895,19 @@ _Options_
 # LDAP secrets engine : Static Roles
 #-------------------------------------------------------------------------------
 
-@bound_ops("Vault-CreateLdapRole")
+@bound_ops("Vault CreateLdapRole")
 def execute_create_ldap_role(ctx: ExecContext, statement: Tree) -> None:
     """
 **Create a static LDAP role**
 
-* Vault CreateLdapRole _mount_and_role_<br>
-  <em>Config Is _config_ [;]
+* Vault CreateLdapRole *mount_and_role*\\
+  &emsp;&emsp;Config Is _config_ [;]
 
-_Options_
+*Options*
 
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
     args = _extract_args(ctx, statement)
@@ -917,18 +917,18 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.create_ldap_role(mount_point, name, config, namespace))
 
-@bound_ops("Vault-ReadLdapRole")
+@bound_ops("Vault ReadLdapRole")
 def execute_read_ldap_role(ctx: ExecContext, statement: Tree) -> None:
     """
 **Get a static LDAP role**
 
-* Vault ReadLdapRole _mount_and_role_ [;]
+* Vault ReadLdapRole *mount_and_role* [;]
 
-_Options_
+*Options*
 
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
     args = _extract_args(ctx, statement)
@@ -937,19 +937,19 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.read_ldap_role(mount_point, name, namespace))
 
-@bound_ops("Vault-UpdateLdapRole")
+@bound_ops("Vault UpdateLdapRole")
 def execute_update_ldap_role(ctx: ExecContext, statement: Tree) -> None:
     """
 **Update a static LDAP role**
 
-* Vault UpdateLdapRole _mount_and_role_<br>
-  <em>Config Is _config_ [;]
+* Vault UpdateLdapRole *mount_and_role*\\
+  &emsp;&emsp;Config Is _config_ [;]
 
-_Options_
+*Options*
 
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
     args = _extract_args(ctx, statement)
@@ -959,18 +959,18 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.update_ldap_role(mount_point, name, config, namespace))
 
-@bound_ops("Vault-DeleteLdapRole")
+@bound_ops("Vault DeleteLdapRole")
 def execute_delete_ldap_role(ctx: ExecContext, statement: Tree) -> None:
     """
 **Remove a static LDAP role**
 
-* Vault DeleteLdapRole _mount_and_role_ [;]
+* Vault DeleteLdapRole *mount_and_role* [;]
 
-_Options_
+*Options*
 
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
     args = _extract_args(ctx, statement)
@@ -979,18 +979,18 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.delete_ldap_role(mount_point, name, namespace))
 
-@bound_ops("Vault-ListLdapRoles")
+@bound_ops("Vault ListLdapRoles")
 def execute_list_ldap_roles(ctx: ExecContext, statement: Tree) -> None:
     """
 **List static LDAP roles**
 
-* Vault ListLdapRoles _mount_point_ [;]
+* Vault ListLdapRoles *mount_point* [;]
 
-_Options_
+*Options*
 
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
     args = _extract_args(ctx, statement)
@@ -999,18 +999,18 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.list_ldap_roles(mount_point, namespace))
 
-@bound_ops("Vault-RotateLdapRole")
+@bound_ops("Vault RotateLdapRole")
 def execute_rotate_ldap_role(ctx: ExecContext, statement: Tree) -> None:
     """
 **Rotate the password of a static LDAP role**
 
-* Vault RotateLdapRole _mount_and_role_ [;]
+* Vault RotateLdapRole *mount_and_role* [;]
 
-_Options_
+*Options*
 
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
     args = _extract_args(ctx, statement)
@@ -1023,19 +1023,19 @@ _Options_
 # Database secrets engine : Connections
 #-------------------------------------------------------------------------------
 
-@bound_ops("Vault-CreateDbConnection")
+@bound_ops("Vault CreateDbConnection")
 def execute_create_db_connection(ctx: ExecContext, statement: Tree) -> None:
     """
 **Create and configure a Database Connection**
 
-* Vault CreateDbConnection _mount_and_name_<br>
-  <em>Config Is _config_ [;]
+* Vault CreateDbConnection *mount_and_name*\\
+  &emsp;&emsp;Config Is _config_ [;]
 
-_Options_
+*Options*
 
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
     args = _extract_args(ctx, statement)
@@ -1045,18 +1045,18 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.create_database_connection(mount_point, name, config, namespace))
 
-@bound_ops("Vault-ReadDbConnection")
+@bound_ops("Vault ReadDbConnection")
 def execute_read_db_connection(ctx: ExecContext, statement: Tree) -> None:
     """
 **Read a Database Connection configuration**
 
-* Vault ReadDbConnection _mount_and_name_ [;]
+* Vault ReadDbConnection *mount_and_name* [;]
 
-_Options_
+*Options*
 
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
     args = _extract_args(ctx, statement)
@@ -1065,19 +1065,19 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.read_database_connection(mount_point, name, namespace))
 
-@bound_ops("Vault-UpdateDbConnection")
+@bound_ops("Vault UpdateDbConnection")
 def execute_update_db_connection(ctx: ExecContext, statement: Tree) -> None:
     """
 **Update a Database Connection configuration**
 
-* Vault UpdateDbConnection _mount_and_name_<br>
-  <em>Config Is _config_ [;]
+* Vault UpdateDbConnection *mount_and_name*\\
+  &emsp;&emsp;Config Is _config_ [;]
 
-_Options_
+*Options*
 
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
     args = _extract_args(ctx, statement)
@@ -1087,19 +1087,19 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.update_database_connection(mount_point, name, config, namespace))
 
-@bound_ops("Vault-DeleteDbConnection")
+@bound_ops("Vault DeleteDbConnection")
 def execute_delete_db_connection(ctx: ExecContext, statement: Tree) -> None:
     """
 **Remove a Database Connection**
 
-* Vault DeleteDbConnection _mount_and_name_<br>
-  <em>Config Is _config_ [;]
+* Vault DeleteDbConnection *mount_and_name*\\
+  &emsp;&emsp;Config Is _config_ [;]
 
-_Options_
+*Options*
 
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
     args = _extract_args(ctx, statement)
@@ -1108,18 +1108,18 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.delete_database_connection(mount_point, name, namespace))
 
-@bound_ops("Vault-ListDbConnections")
+@bound_ops("Vault ListDbConnections")
 def execute_list_db_connections(ctx: ExecContext, statement: Tree) -> None:
     """
 **List Database Connections**
 
-* Vault ListDbConnections _mount_point_ [;]
+* Vault ListDbConnections *mount_point* [;]
 
-_Options_
+*Options*
 
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
     args = _extract_args(ctx, statement)
@@ -1128,18 +1128,18 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.list_database_connections(mount_point, namespace))
 
-@bound_ops("Vault-ResetDbConnection")
+@bound_ops("Vault ResetDbConnection")
 def execute_reset_db_connection(ctx: ExecContext, statement: Tree) -> None:
     """
 **Closes a Database Connection and it's plugin and restarts it**
 
-* Vault ResetDbConnection _mount_and_name_ [;]
+* Vault ResetDbConnection *mount_and_name* [;]
 
-_Options_
+*Options*
 
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
     args = _extract_args(ctx, statement)
@@ -1148,18 +1148,18 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.reset_database_connection(mount_point, name, namespace))
 
-@bound_ops("Vault-RotateDbConnectionCredentials")
+@bound_ops("Vault RotateDbConnectionCredentials")
 def execute_rotate_db_connection_creds(ctx: ExecContext, statement: Tree) -> None:
     """
 **Rotate the user credentials of the Database Connection**
 
-* Vault RotateDbConnectionCredentials _mount_and_name_ [;]
+* Vault RotateDbConnectionCredentials *mount_and_name* [;]
 
-_Options_
+*Options*
 
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point, name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Name'))
     args = _extract_args(ctx, statement)
@@ -1172,20 +1172,20 @@ _Options_
 # Database secrets engine : Roles
 #-------------------------------------------------------------------------------
 
-@bound_ops("Vault-CreateDbRole")
+@bound_ops("Vault CreateDbRole")
 def execute_create_db_role(ctx: ExecContext, statement: Tree) -> None:
     """
 **Creates a Role for a Database**
 
-* Vault CreateDbRole _mount_and_name_<br>
-  <em>Config is _config_ [;]
+* Vault CreateDbRole *mount_and_name*\\
+  &emsp;&emsp;Config is _config_ [;]
 
-_Options_
+*Options*
 
-* Type Is _type_ - use "Static" for static roles, otherwise omit
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Type Is *type* - use "Static" for static roles, otherwise omit
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point, role_name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Role Name'))
     args = _extract_args(ctx, statement)
@@ -1196,19 +1196,19 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.create_database_role(mount_point, role_name, is_static, config, namespace))
 
-@bound_ops("Vault-ReadDbRole")
+@bound_ops("Vault ReadDbRole")
 def execute_read_db_role(ctx: ExecContext, statement: Tree) -> None:
     """
 **Read a Database Role**
 
-* Vault ReadDbRole _mount_and_name_ [;]
+* Vault ReadDbRole *mount_and_name* [;]
 
-_Options_
+*Options*
 
-* Type Is _type_ - use "Static" for static roles, otherwise omit
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Type Is *type* - use "Static" for static roles, otherwise omit
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point, role_name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Role Name'))
     args = _extract_args(ctx, statement)
@@ -1218,20 +1218,20 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.read_database_role(mount_point, role_name, is_static, namespace))
 
-@bound_ops("Vault-UpdateDbRole")
+@bound_ops("Vault UpdateDbRole")
 def execute_update_db_role(ctx: ExecContext, statement: Tree) -> None:
     """
 **Update a Role for a Database**
 
-* Vault UpdateDbRole _mount_and_name_<br>
-  <em>Config is _config_ [;]
+* Vault UpdateDbRole *mount_and_name*\\
+  &emsp;&emsp;Config is _config_ [;]
 
-_Options_
+*Options*
 
-* Type Is _type_ - use "Static" for static roles, otherwise omit
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Type Is *type* - use "Static" for static roles, otherwise omit
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point, role_name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Role Name'))
     args = _extract_args(ctx, statement)
@@ -1242,19 +1242,19 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.update_database_role(mount_point, role_name, is_static, config, namespace))
 
-@bound_ops("Vault-DeleteDbRole")
+@bound_ops("Vault DeleteDbRole")
 def execute_delete_db_role(ctx: ExecContext, statement: Tree) -> None:
     """
 **Remove a Database Role**
 
-* Vault DeleteDbRole _mount_and_name_ [;]
+* Vault DeleteDbRole *mount_and_name* [;]
 
-_Options_
+*Options*
 
-* Type Is _type_ - use "Static" for static roles, otherwise omit
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Type Is *type* - use "Static" for static roles, otherwise omit
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point, role_name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Role Name'))
     args = _extract_args(ctx, statement)
@@ -1264,19 +1264,19 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.delete_database_role(mount_point, role_name, is_static, namespace))
 
-@bound_ops("Vault-ListDbRoles")
+@bound_ops("Vault ListDbRoles")
 def execute_list_db_roles(ctx: ExecContext, statement: Tree) -> None:
     """
 **List Database Roles for a mount point**
 
-* Vault ListDbRoles _mount_point_ [;]
+* Vault ListDbRoles *mount_point* [;]
 
-_Options_
+*Options*
 
-* Type Is _type_ - use "Static" for static roles, otherwise omit
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Type Is *type* - use "Static" for static roles, otherwise omit
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point = _resolve_str_arg(ctx, statement.children[0], 'Mount Point')
     args = _extract_args(ctx, statement)
@@ -1286,19 +1286,19 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.list_database_role(mount_point, is_static, namespace))
 
-@bound_ops("Vault-GenerateDbRoleCredentials")
+@bound_ops("Vault GenerateDbRoleCredentials")
 def execute_generate_db_role_creds(ctx: ExecContext, statement: Tree) -> None:
     """
 **Generate a new credentials for a Database Role**
 
-* Vault GenerateDbRoleCredentials _mount_and_name_ [;]
+* Vault GenerateDbRoleCredentials *mount_and_name* [;]
 
-_Options_
+*Options*
 
-* Type Is _type_ - use "Static" for static roles, otherwise omit
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Type Is *type* - use "Static" for static roles, otherwise omit
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point, role_name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Role Name'))
     args = _extract_args(ctx, statement)
@@ -1308,19 +1308,19 @@ _Options_
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.generate_database_role_credentials(mount_point, role_name, is_static, namespace))
 
-@bound_ops("Vault-RotateDbRoleCredentials")
+@bound_ops("Vault RotateDbRoleCredentials")
 def execute_vault_rotate_db_role_creds(ctx: ExecContext, statement: Tree) -> None:
     """
 **Generate a new credentials for a _Static_ Database Role**
 
-* Vault RotateDbRoleCredentials _mount_and_name_ [;]
+* Vault RotateDbRoleCredentials *mount_and_name* [;]
 
-_Options_
+*Options*
 
-* Type Is _type_ - must be "Static" if provided
-* Namespace Is _namespace_
-* Using [Connection] _name_
-* Giving _variable_
+* Type Is *type* - must be "Static" if provided
+* Namespace Is *namespace*
+* Using [Connection] *name*
+* Giving *variable*
 """
     mount_point, role_name = _split_mount_path(_resolve_str_arg(ctx, statement.children[0], 'Mount Point/Role Name'))
     args = _extract_args(ctx, statement)

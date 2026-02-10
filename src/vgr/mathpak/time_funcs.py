@@ -14,14 +14,14 @@ def format_duration(x: Any, y: Any=0) -> Any:
     """
 **Format the duration between two timestamps**
 
-* FormatDuration(_value_)
-* FormatDuration(_start_, _end_)
-* FormatDuration(_end_, _start_)
-* _value_.FormatDuration()
-* _start_.FormatDuration(_end_)
-* _end_.FormatDuration(_start_)
+* FormatDuration(*value*)
+* FormatDuration(*start*, *end*)
+* FormatDuration(*end*, *start*)
+* *value*.FormatDuration()
+* *start*.FormatDuration(*end*)
+* *end*.FormatDuration(*start*)
 
-Returns a string in the form of _n_**d** _n_**h** _n_**m** _n_**s** using the shortest
+Returns a string in the form of *n***d** *n***h** *n***m** *n***s** using the shortest
 possible representation.
 
 ```vgr
@@ -59,7 +59,7 @@ def format_timestamp(x: Any, y: Any=None) -> Any:
 * _timestamp_.FormatTimestamp()
 * _timestamp_.FormatTimestamp(_format_)
 
-If the timestamp is _None_ then the current date and time are used.
+If the timestamp is `None` then the current date and time are used.
 If the _format_ is omitted, the results is a ISO 8601 extended format, using a 4-digit year.
 Time is separated by a **T** and uses a 24-hour format, with resolution down to the second.
 

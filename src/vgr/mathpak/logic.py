@@ -10,11 +10,11 @@ def poly_true(x: Any) -> bool:
     """
 **Check for logical True**
 
-* IsTrue(_value_)
-* _value_.IsTrue()
+* IsTrue(*value*)
+* *value*.IsTrue()
 
-Numbers are evaluated as _False_ for zero and True for non-zero.
-All non-_None_ values are consider _True_.
+Numbers are evaluated as `False` for zero and `True` for non-zero.
+All non-`None` values are consider `True`.
 
 ```vgr
 None.IsTrue() → False
@@ -40,14 +40,14 @@ def poly_false(x: Any) -> bool:
     """
 **Logical Negation (Not) operation**
 
-* ! _x_
-* ！_x_
-* ¬ _x_
-* IsFalse(_value_)
-* _value_.IsFalse()
+* ! *x*
+* ！*x*
+* ¬ *x*
+* IsFalse(*value*)
+* *value*.IsFalse()
 
-Numbers are evaluated as _False_ for zero and _True_ for non-zero.
-All non-_None_ values are consider _True_.
+Numbers are evaluated as `False` for zero and `True` for non-zero.
+All non-`None` values are consider `True`.
 
 ```vgr
 None.IsFalse() → True

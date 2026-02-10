@@ -205,17 +205,22 @@ def execute_source(ctx: ExecContext, statement: Tree) -> None:
     """
 **Execute statements stored in a file**
 
-* Source [File | Files] _file_name_ [, _file_name_]... [;]
+* Source [File | Files] *file_name* [, *file_name*]&hellip; [;]
 
 Each argument is evaluated to a file name. Statements in the file
 are executed, inheriting the current state of all variable and
 input/output redirection.
 
-`Windows Note`: If you hard code paths, please use the slash as a universal
-directory separator. Since the backslash is an escape character, if you use
-it in a string, you will either need to double it or use a _raw string_.
+> **Windows Note**\\
+> If you hard code paths, please use the slash as a universal
+> directory separator. Since the backslash is an escape character, if you use
+> it in a string, you will either need to double it or use a _raw string_.
 
-Also see `@Include`
+```vgr
+**TODO**
+```
+
+Also see `@Include` and `Reset`
 """
     for child in statement.children:
         try:
@@ -229,17 +234,17 @@ def execute_include(ctx: ExecContext, statement: Tree) -> None:
     """
 **Execute statements stored in a file once per run**
 
-* @Include [File | Files] _file_name_ [, _file_name_]... [;]
+* @Include [File | Files] *file_name* [, *file_name*]&hellip; [;]
 
 Similar to `Source` but files are only included once per run, unless
 cleared by `Reset`.
 
+> **Windows Note**\\
+> If you hard code paths, please use the slash as a universal
+> directory separator. Since the backslash is an escape character, if you use
+> it in a string, you will either need to double it or use a _raw string_.
+
 Also see `Source` and `Reset`
-
-`Windows Note`: If you hard code paths, please use the slash as a universal
-directory separator. Since the backslash is an escape character, if you use
-it in a string, you will either need to double it or use a _raw string_.
-
 """
     for child in statement.children:
         try:
@@ -281,40 +286,61 @@ def execute_break(_: ExecContext, statement: Tree) -> None:
 
 * Break [;]
 
-Can be used with If, Unless, While, Until, and ForEach statements
+Can be used with `If`, `Unless`, `While`, `Until`, and `ForEach` statements
+
+```vgr
+**TODO**
+```
+
 """
     raise VgrStatementBreak(statement)
 
 @bound_ops("Continue")
 def execute_continue(_: ExecContext, statement: Tree) -> None:
     """
-**Causes the current loop to start again**
+**Cause the current loop to start again**
 
 * Continue [;]
+
+```vgr
+**TODO**
+```
 
 """
     raise VgrStatementContinue(statement)
 
-@bound_ops("NOP", "Pass")
+@bound_ops("Pass", "NOP")
 def execute_pass(_: ExecContext, __: Tree) -> None:
     """
 **A placeholder for a statement**
 
-* NOP [;]
 * Pass [;]
+* NOP [;]
 
 A placeholder for a statement, which takes no action and has no side effects.
+
+```vgr
+If x < 10:
+    Pass // Must have one statement in block
+Else:
+    Print "x is too big"
+End
+```
 """
 
 @control_statement
-@bound_ops("Begin", "Begin-End", "Block")
+@bound_ops("Begin End")
 def execute_block(ctx: ExecContext, statement: Tree) -> None:
     """
 **Defines a group of statements with local variable scoping**
 
-* Begin [:]<br>
-  <em>_statement_...<br>
+* Begin [:]\\
+  &emsp;&emsp;_statement_&hellip;\\
   End [;]
+
+```vgr
+**TODO**
+```
 
 Also see `Declare`
 """
@@ -330,11 +356,15 @@ Also see `Declare`
 @bound_ops("Declare")
 def execute_declare_local(ctx: ExecContext, statement: Tree) -> None:
     """
-**Establishes a name as a variable; used for establishing scope**
+**Establishes a name as a variable, optionally establishing scope**
 
-* Declare _name_,... [;]
-* Declare _name_,... [As] Local [;]
-* Declare _name_,... [As] Global [;]
+* Declare _name_,&hellip; [;]
+* Declare _name_,&hellip; [As] Local [;]
+* Declare _name_,&hellip; [As] Global [;]
+
+```vgr
+**TODO**
+```
 
 """
     _declare(ctx, statement, True)
@@ -358,19 +388,19 @@ def _declare(ctx: ExecContext, statement: Tree, as_local: bool) -> None:
             ctx.print_verbose('.'.join(var_path), 'declared as', 'Local' if rc else 'Global')
 
 @control_statement
-@bound_ops("Do-Forever", "Forever")
+@bound_ops("Do Forever")
 def execute_forever(ctx: ExecContext, statement: Tree) -> None:
     """
 **Predicate-less loop**
 
-* Do Forever [:]<br>
-  <em>_statement_...<br>
+* Do Forever [:]\\
+  &emsp;&emsp;_statement_&hellip;\\
   End [;]
 
 The statements are repeatedly executed until a `Break` statement is
 encountered. A `Continue` causes the statements to loop.
 
-Statements have access to the _$loop_ variable, but only _index_ and _first_.
+Statements have access to the *$loop* variable, but only *index* and _first_.
 
 ```vgr
 Set x To 5
@@ -418,24 +448,28 @@ def exec_if_else(ctx: ExecContext, statement: Tree, desired_value: bool) -> None
         if has_else: ctx.dispatch_statements(statement.children[-1].children)
 
 @control_statement
-@bound_ops("If-Then", "If-Else")
+@bound_ops("If Else")
 def execute_if(ctx: ExecContext, statement: Tree) -> None:
     """
 **Conditionally execute a block of statements**
 
-* If _expression_ [Then | Do | :]<br>
-  <em>_statement_...<br>
+* If *expression* [Then | Do | :]\\
+  &emsp;&emsp;_statement_&hellip;\\
   End [;]
-* If _expression_ [Then | Do | :]<br>
-  <em>_statement_...<br>
-  Else [Do | :]<br>
-  <em>_statement_...<br>
+* If *expression* [Then | Do | :]\\
+  &emsp;&emsp;_statement_&hellip;\\
+  Else [Do | :]\\
+  &emsp;&emsp;_statement_&hellip;\\
   End [;]
 
-If the expression evaluates to _True_ the first block of statements is executed.
-If it evaluates to _False_, the second block of statements—if provided—is executed.
+If the expression evaluates to `True` the first block of statements is executed.
+If it evaluates to `False`, the second block of statements—if provided—is executed.
 If `Break` or `Continue` is encountered, statements
 following it are skipped. Execution resumes after the `End`.
+
+```vgr
+**TODO**
+```
 
 Also see `Break` and `Continue`
 """
@@ -447,14 +481,18 @@ def execute_unless(ctx: ExecContext, statement: Tree) -> None:
     """
 **Conditionally execute a block of statements**
 
-* Unless _expression_ [Then | :]<br>
-  <em>_statement_...<br>
+* Unless *expression* [Then | :]\\
+  &emsp;&emsp;_statement_&hellip;\\
   End [;]
 
-If the expression evaluates to _False_ the block of statements is executed.
+If the expression evaluates to `False` the block of statements is executed.
 If `Break` is encountered, looping ends regardless of the
 expression's value. If `Continue` is encountered, statements
 following it are skipped, and the expression is checked again.
+
+```vgr
+**TODO**
+```
 
 Also see `Break` and `Continue`
 """
@@ -514,11 +552,11 @@ def execute_while(ctx: ExecContext, statement: Tree) -> None:
     """
 **Repeatedly execute a block of statements while a condition exists**
 
-* While _expression_ [Do | :]<br>
-  <em>_statement_...<br>
+* While *expression* [Do | :]\\
+  &emsp;&emsp;_statement_&hellip;\\
   End [;]
 
-As long as the expression evaluates to _True_, the block of statements is
+As long as the expression evaluates to `True`, the block of statements is
 repeatedly executed.
 If `Break` is encountered, looping ends regardless of the
 expression's value. If `Continue` is encountered, statements
@@ -538,7 +576,7 @@ End
 40 : 1600 {'index': 4, 'first': False}
 ```
 
-Also see `Break` and `Continue`
+Also see `Until` in addition to `Break` and `Continue`
 """
     exec_loop(ctx, statement, True)
 
@@ -548,11 +586,11 @@ def execute_until(ctx: ExecContext, statement: Tree) -> None:
     """
 **Repeatedly execute a block of statements until a condition is reached**
 
-* Until _expression_ [Do | :]<br>
-  <em>_statement_...<br>
+* Until *expression* [Do | :]\\
+  &emsp;&emsp;_statement_&hellip;\\
   End [;]
 
-The block of statements is executed until the expression evaluates to _True_.
+The block of statements is executed until the expression evaluates to `True`.
 If `Break` is encountered, looping ends regardless of the
 expression's value. If `Continue` is encountered, statements
 following it are skipped, and the expression is checked again.
@@ -571,7 +609,7 @@ End
 40 : 1600 {'index': 4, 'first': False}
 ```
 
-Also see `Break` and `Continue`
+Also see `While` in addition to `Break` and `Continue`
 """
     exec_loop(ctx, statement, False)
 
@@ -581,8 +619,8 @@ def execute_repeat(ctx: ExecContext, statement: Tree) -> None:
     """
 **Execute a block of statements a fixed number of times**
 
-* Repeat _expression_ [Do | :]<br>
-  <em>_statement_...<br>
+* Repeat *expression* [Do | :]\\
+  &emsp;&emsp;_statement_&hellip;\\
   End [;]
 
 The block of statements is executed the given number of times.
@@ -592,7 +630,7 @@ If `Break` is encountered, looping ends regardless of the
 expression's value. If `Continue` is encountered, statements
 following it are skipped and looping continues.
 
-Statements have access to the _$loop_ variable, including _index_, _length_, _first_, and _last_.
+Statements have access to the *$loop* variable, including *index*, *length*, _first_, and _last_.
 
 ```vgr
 Repeat 3:
@@ -612,20 +650,20 @@ def execute_foreach(ctx: ExecContext, statement: Tree) -> None:
     """
 **Iterate over a list of values**
 
-* ForEach _variable_ In _expression_ [Do | :]<br>
-  <em>_statement_...<br>
+* ForEach *variable* In *expression* [Do | :]\\
+  &emsp;&emsp;_statement_&hellip;\\
   End [;]
 
-If expression is a single value, non-_None_ value, the statements are executed
+If expression is a single, non-`None` value, the statements are executed
 exactly once. If a list, the statements are executed once for each item,
-including items that are _None_, and if a dictionary, the statements
+including items that are `None`, and if a dictionary, the statements
 are executed once for each key/value pair.
 
 If `Break` is encountered, iteration ends regardless of the
 number of items remaining. If `Continue` is encountered, statements
 following it are skipped, and the loop continues with the next item.
 
-Statements have access to the _$loop_ variable, including _index_, _length_, _first_, and _last_.
+Statements have access to the *$loop* variable, including *index*, *length*, _first_, and _last_.
 
 ```vgr
 ForEach a In ["A", "B", "C"]:
@@ -857,8 +895,8 @@ class ConstantsNormalizer(Transformer):
     @staticmethod
     def quiet_literal_eval(s: str) -> str:
         with warnings.catch_warnings():
-            warnings.simplefilter("ignore", DeprecationWarning) # older...
-            warnings.simplefilter("ignore", SyntaxWarning) # newer...
+            warnings.simplefilter("ignore", DeprecationWarning) # older
+            warnings.simplefilter("ignore", SyntaxWarning) # newer
             return ast.literal_eval(s)
 
 # pylint: enable=invalid-name

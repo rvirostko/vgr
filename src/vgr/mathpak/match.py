@@ -9,21 +9,21 @@ import re
 from .common import bound_ops, NoneType
 from .type import poly_type
 
-@bound_ops("~", "Matches", "Matches-Any")
+@bound_ops("Matches Any", "~")
 def poly_matches(x: Any, *args) -> Any:
     """
 **Perform a regular expression match**
 
-* _value_ ~ _pattern_
-* _value_ ~ [ _pattern_... ]
-* _value_ Matches [Any] _pattern_
-* _value_ Matches [Any] [ _pattern_... ]
-* Matches(_value_, _pattern_...)
-* _value_.Matches(_pattern_...)
+* *value* Matches [Any] *pattern*
+* *value* Matches [Any] [ _pattern&hellip; ]
+* *value* ~ *pattern*
+* *value* ~ [ *pattern*&hellip; ]
+* Matches(*value*, *pattern*&hellip;)
+* *value*.Matches(*pattern*&hellip;)
 
-If _value_ is a collection, then _all_ values in it must match _pattern_
-for the expression to be _True_. If _pattern_ is a collection, then one or
-more of its contents must match for the expression to be _True_.
+If *value* is a collection, then *all* values in it must match *pattern*
+for the expression to be `True`. If *pattern* is a collection, then one or
+more of its contents must match for the expression to be `True`.
 
 ```vgr
 "aaa" Matches "^(a|b)+$" → True
@@ -31,7 +31,7 @@ more of its contents must match for the expression to be _True_.
 ["aaa", "abba", "bad"] Matches "^(a|b)+$" → False
 ```
 
-In its functional form, one or values for _pattern_ may be specified, acting as
+In its functional form, one or values for *pattern* may be specified, acting as
 if it was a collection of patterns.
 
 ```vgr
@@ -41,7 +41,7 @@ if it was a collection of patterns.
 ```
 
 While fundamentally a string/regular expression operation, it will
-work with ordinals, but only if the _pattern_ is also an ordinal, performing an
+work with ordinals, but only if the *pattern* is also an ordinal, performing an
 equality comparison.
 
 ```vgr
@@ -60,11 +60,11 @@ def poly_imatches(x: Any, y: Any) -> Any:
     """
 **Perform a case independent regular expression match**
 
-* _value_ ~* _pattern_
-* _value_ ~* [ _pattern_... ]
+* *value* ~* *pattern*
+* *value* ~* [ *pattern*&hellip; ]
 
 Operates identically to `Matches` except matching is performed independent
-of case. This applies to characters in both the _value_ and the _pattern_.
+of case. This applies to characters in both the *value* and the *pattern*.
 
 ```vgr
 "aaa" ~* "^(a|b)+$" → True
@@ -76,25 +76,27 @@ Also see operators `~` and `!~*`
 """
     return _do_match(x, y, True)
 
-@bound_ops("Matches-All")
+@bound_ops("Matches All")
 def poly_matches_all(x: Any, *args) -> Any:
     """
 **Perform a regular expression match**
 
-* _value_ Matches All _pattern_
-* _value_ Matches All [_pattern_...]
-* MatchesAll(_value_, _pattern_...)
-* _value_.MatchesAll(_pattern_...)
+* *value* Matches All *pattern*
+* *value* Matches All [*pattern*&hellip;]
+* MatchesAll(*value*, *pattern*&hellip;)
+* *value*.MatchesAll(*pattern*&hellip;)
 
-Operates indentically to `Matches` except _value_ must match _all_ of the
-patterns. When _pattern_ is a single value, or a collection with exactly one
+Operates indentically to `Matches` except *value* must match *all* of the
+patterns. When *pattern* is a single value, or a collection with exactly one
 value, it operates identically to `Matches`. When a colleciton of patterns
-of is provided, _all_ must match.
+of is provided, *all* must match.
 
 ```vgr
 "aaa".MatchesAll("^a+$") → True
 "aaa".MatchesAll("^a+$", "^b+$") → False
 ```
+
+Also see `Matches Any` and `!~`
 """
     if not args: args = [None]
     return _do_match(x, args[0] if len(args) == 0 else [*args], False, True)
@@ -104,11 +106,11 @@ def poly_not_matches(x: Any, y: Any) -> Any:
     """
 **Perform a negated regular expression match**
 
-* _value_ !~ _pattern_
-* _value_ !~ [ _pattern_... ]
+* *value* !~ *pattern*
+* *value* !~ [ *pattern*&hellip; ]
 
-Operates identically to `Matches` except that it requires that _value_
-does _not_ match any of the patterns.
+Operates identically to `Matches` except that it requires that *value*
+does *not* match any of the patterns.
 
 ```vgr
 "aaa" !~ "^b+$" → True
@@ -125,11 +127,11 @@ def poly_not_imatches(x: Any, y: Any) -> Any:
     """
 **Perform a negated case independent regular expression match**
 
-* _value_ !~* _pattern_
-* _value_ !~* [ _pattern_... ]
+* *value* !~* *pattern*
+* *value* !~* [ *pattern*&hellip; ]
 
 Operates identically to `Matches` except that the match is performed independent
-of case and it request that _value_ does _not_ match any of the patterns.
+of case and it request that *value* does _not_ match any of the patterns.
 
 ```vgr
 "Aaa" !~* "^b+$" → True

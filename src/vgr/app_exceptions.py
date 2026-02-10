@@ -72,7 +72,7 @@ class VgrException(Exception):
             line = f'line {self.line}' if self.line else None
             col = f'column {self.column}' if self.column else None
             if src or line or col:
-                # All this because join() suxs...
+                # All this because join() suxs
                 msg += ' at'
                 if src: msg += ' ' + src
                 if line: msg += ' ' + line

@@ -9,10 +9,10 @@ def poly_mul(x: Any, *args):
     """
 **Multiplication operation**
 
-* _x_ * _y_
-* _x_ × _y_
-* Mul(_x_, _y_...)
-* _x_.Mul(_y_...)
+* *x* * *y*
+* *x* × *y*
+* Mul(*x*, *y*&hellip;)
+* *x*.Mul(*y*&hellip;)
 
 | x     | y     | returns | operation           |
 |-------|-------|---------|---------------------|
@@ -33,7 +33,7 @@ def poly_mul(x: Any, *args):
 | list  | str   | list    | distributive        |
 | list  | list  | list    | cartesian product   |
 
-TypeError raised on all other combinations
+A type error is raised on all other combinations
 
 ```vgr
 None * None → None

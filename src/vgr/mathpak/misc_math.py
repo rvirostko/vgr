@@ -10,8 +10,8 @@ def poly_abs(x: Any) -> Any:
     """
 **Return the absolute value of a value**
 
-* Abs(_value_)
-* _value_.Abs()
+* Abs(*value*)
+* *value*.Abs()
 
 Strings will be converted to numbers.
 Distributed over lists.
@@ -29,15 +29,14 @@ None.Abs() → None
     if isinstance(x, str): return poly_abs(str_to_number(x))
     return abs(x) if hasattr(x, '__abs__') else _dist(poly_abs, x)
 
-# First item is just for display purposes
 @bound_ops("⌈...⌉")
 def poly_ceil(x: Any) -> Any:
     """
 **Returns the least integer greater than or equal to a value**
 
-* Ceil(_value_)
-* _value_.Ceil()
-* ⌈ _value_ ⌉
+* ⌈ *value* ⌉
+* Ceil(*value*)
+* *value*.Ceil()
 
 Strings will be converted to numbers.
 Distributed over lists.
@@ -60,8 +59,8 @@ def poly_trunc(x: Any) -> Any:
     """
 **Truncates a value to the lowest integer towards zero**
 
-* Trunc(_value_)
-* _value_.Trunc()
+* Trunc(*value*)
+* *value*.Trunc()
 
 ```vgr
 None.Trunc() → None
@@ -77,15 +76,14 @@ Also see `Ceil()` and `Floor()`
     if isinstance(x, str): return poly_trunc(str_to_number(x))
     return math.trunc(x) if hasattr(x, '__trunc__') else _dist(poly_trunc, x)
 
-# First item is just for display purposes
 @bound_ops("⌊...⌋")
 def poly_floor(x: Any) -> Any:
     """
 **Returns the least integer less than or equal to a value**
 
-* Floor(_value_)
-* _value_.Floor()
-* ⌊ _value_ ⌋
+* ⌊ *value* ⌋
+* Floor(*value*)
+* *value*.Floor()
 
 Strings will be converted to numbers.
 Distributed over lists.
@@ -115,14 +113,13 @@ def poly_round(x: Any, ndigits: int=0) -> Any:
     """
 **Arithmetic rounding of a number to a given number of decimal places or power of ten**
 
-* Round(_value_)
-* Round(_value_, _ndigits_)
+* Round(*value*)
+* Round(*value*, *ndigits*)
+* *value*.Round()
+* *value*.Round(*ndigits*)
 
-* Round(_value_)
-* Round(_value_, _ndigits_)
-
-If _ndigits_ is not provide _value_ is rounded to a whole number.
-Positive values of _ndigits_ rounds to a number of decimal places.
+If *ndigits* is not provide *value* is rounded to a whole number.
+Positive values of *ndigits* rounds to a number of decimal places.
 Negative values round to a power of ten.
 
 Strings will be converted to numbers.
@@ -169,10 +166,10 @@ def poly_round_multiple(x: Any, multiple: Any=1) -> Any:
     """
 **Arithmetic rounding of a number using a _multiple_ value to align the result**
 
-* RoundMultiple(_value_)
-* RoundMultiple(_value_, _multiple_)
-* _value_.RoundMultiple()
-* _value_.RoundMultiple(_multiple_)
+* RoundMultiple(*value*)
+* RoundMultiple(*value*, _multiple_)
+* *value*.RoundMultiple()
+* *value*.RoundMultiple(_multiple_)
 
 Using _multiple_ like a modulus, an arithmetic rounding is
 performed so that the result aligns with the multiple.
@@ -202,6 +199,7 @@ None.RoundMultiple() → None
 5.125.RoundMultiple(1/4) → 5.25
 5.125.RoundMultiple(1/8) → 5.125
 ```
+
 Also see `Round()`
 """
     if x is None: return None
@@ -215,10 +213,10 @@ def poly_floor_multiple(x: Any, multiple: Any=1) -> Any:
     """
 **Floor of a number using a _multiple_ value to align the result**
 
-* FloorMultiple(_value_)
-* FloorMultiple(_value_, _multiple_)
-* _value_.FloorMultiple()
-* _value_.FloorMultiple(_multiple_)
+* FloorMultiple(*value*)
+* FloorMultiple(*value*, _multiple_)
+* *value*.FloorMultiple()
+* *value*.FloorMultiple(_multiple_)
 
 Using _multiple_ like a modulus, a floor operation is
 performed so that the result aligns with the multiple.
@@ -248,6 +246,7 @@ None.FloorMultiple() → None
 5.125.FloorMultiple(1/4) → 5.0
 5.125.FloorMultiple(1/8) → 5.125
 ```
+
 Also see `Floor()` and `CeilMultiple()`
 """
     if x is None: return None
@@ -261,10 +260,10 @@ def poly_ceil_multiple(x: Any, multiple: Any=1) -> Any:
     """
 **Ceil of a number using a _multiple_ value to align the result**
 
-* CeilMultiple(_value_)
-* CeilMultiple(_value_, _multiple_)
-* _value_.CeilMultiple()
-* _value_.CeilMultiple(_multiple_)
+* CeilMultiple(*value*)
+* CeilMultiple(*value*, _multiple_)
+* *value*.CeilMultiple()
+* *value*.CeilMultiple(_multiple_)
 
 Using _multiple_ like a modulus, a ceil operation is
 performed so that the result aligns with the multiple.
@@ -309,8 +308,8 @@ def poly_pred(x: Any) -> Any:
     """
 **Return the arithmetic predecessor of a value**
 
-* Pred(_value_)
-* _value_.Pred()
+* Pred(*value*)
+* *value*.Pred()
 
 ```vgr
 None.Pred() → None
@@ -337,8 +336,8 @@ def poly_succ(x: Any) -> Any:
     """
 **Return the arithmetic successor of a value**
 
-* Succ(_value_)
-* _value_.Succ()
+* Succ(*value*)
+* *value*.Succ()
 
 ```vgr
 None.Succ() → None

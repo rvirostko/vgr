@@ -44,17 +44,21 @@ def execute_log(ctx: ExecContext, statement: Tree) -> None:
 **Send a message to the log or set the logging level**
 
 * Log _level_ [;]
-* Log _level_ _expression_ [, _expression_]... [;]
+* Log _level_ *expression* [, *expression*]&hellip; [;]
 * Log Level _level_ [;]
 
-The logging level must be one of _Debug_, _Info_, _Warn_, or _Error_
+The logging level must be one of `Debug`, `Info`, `Warn`, or `Error`
 
 The first expression is resolved to a string and used to format the other values in
 a manner similar to `Printf`.
 
-Formatting syntax is that used in [Python's str.format()](https://docs.python.org/3/library/string.html#formatstrings)
+Formatting syntax is that used in `Printf` and `Format()`
 
-See `Format()` for formatting details
+```vgr
+**TODO**
+```
+
+Also see `Print` and `Format()` for formatting details
 
 """
     log_level = statement.children[0].data.title()

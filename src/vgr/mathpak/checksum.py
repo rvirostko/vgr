@@ -15,20 +15,20 @@ def poly_checksum(x, algo: str=_DEFAULT_ALGO) -> str:
     """
 **Generate a checksum string for a value**
 
-* Checksum(_value_)
-* Checksum(_value_, _algorithm_)
-* _value_.Checksum()
-* _value_.Checksum(_algorithm_)
+* Checksum(*value*)
+* Checksum(*value*, *algorithm*)
+* *value*.Checksum()
+* *value*.Checksum(*algorithm*)
 
-If _value_ is an array, the operation returns an array of the checksums.
+If *value* is an array, the operation returns an array of the checksums.
 If the value is a dictionary, it is formated as compact JSON with
 sorted keys to create a string for computation.
 Other non-string types are converted to a string before computation.
 
-The optional _algorithm_ defaults to _md5_.
-Available algorithms are: _md5_, _sha1_, _sha224_, _sha256_, _sha384_,
-_sha512_, _blake2b_, _blake2s_, _sha3_224_, _sha3_256_, _sha3_384_,
-_sha3_512_, _shake_128_, and _shake_256_.
+The optional *algorithm* defaults to *md5*.
+Available algorithms are: *md5*, *sha1*, *sha224*, *sha256*, *sha384*,
+*sha512*, *blake2b*, *blake2s*, *sha3_224*, *sha3_256*, *sha3_384*,
+*sha3_512*, *shake_128*, and *shake_256*.
 
 ```vgr
 None.Checksum() → None

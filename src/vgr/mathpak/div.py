@@ -13,10 +13,10 @@ def poly_div(x: Any, *args):
     """
 **Division operation**
 
-* _x_ / _y_
-* _x_ ÷ _y_
-* Div(_x_, _y_...)
-* _x_.Div(_y_...)
+* *x* / *y*
+* *x* ÷ *y*
+* Div(*x*, *y*&hellip;)
+* *x*.Div(*y*&hellip;)
 
 | x     | y     | returns | operation                 |
 |-------|-------|---------|---------------------------|
@@ -33,7 +33,7 @@ def poly_div(x: Any, *args):
 | list  | float | list    | distributive              |
 | list  | str   | list    | distributive              |
 
-TypeError raised on all other combinations
+A type error is raised on all other combinations
 
 ```vgr
 None / None → None
@@ -56,8 +56,8 @@ def poly_fdiv(x: Any, *args):
     """
 **Floor division operation**
 
-* FloorDiv(_x_, _y_...)
-* _x_.FloorDiv(_y_...)
+* FloorDiv(*x*, *y*&hellip;)
+* *x*.FloorDiv(*y*&hellip;)
 
 Floor division returns the largest integer less than
 or equal to the result of the division.
@@ -77,7 +77,7 @@ or equal to the result of the division.
 | list  | float | list      | distributive                 |
 | list  | str   | list      | distributive                 |
 
-TypeError raised on all other combinations
+A type error is raised on all other combinations
 
 ```vgr
 None.FloorDiv(None) → None
@@ -100,10 +100,10 @@ def poly_divmod(x: Any, y: Any) -> Any:
     """
 **Division/modulo operation**
 
-* DivMod(_x_, _y_)
-* _x_.DivMod(_y_)
+* DivMod(*x*, *y*)
+* *x*.DivMod(*y*)
 
-Returns a two item list of [_x_ fdiv _y_, _x_ % _y_]
+Returns a two item list of [*x* fdiv *y*, *x* % *y*]
 
 | x     | y     | returns | operation                         |
 |-------|-------|---------|-----------------------------------|
@@ -120,7 +120,7 @@ Returns a two item list of [_x_ fdiv _y_, _x_ % _y_]
 | list  | float | list    | distributive                      |
 | list  | str   | list    | distributive                      |
 
-TypeError raised on all other combinations
+A type error is raised on all other combinations
 
 ```vgr
 None.DivMod(None) → None
