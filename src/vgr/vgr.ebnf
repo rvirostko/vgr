@@ -434,11 +434,9 @@ STRING: _STRING | _LONG_STRING | _MS_STRING
 SH_COMMENT: /#[^\n]*/
 CPP_COMMENT: /\/\/[^\n]*/
 C_COMMENT: "/*" /(.|\n)*?/ "*/"
-SQL_COMMENT: /--[^\n]*/
 
 %import common.WS
 %ignore WS
 %ignore SH_COMMENT
 %ignore C_COMMENT
 %ignore CPP_COMMENT
-%ignore SQL_COMMENT

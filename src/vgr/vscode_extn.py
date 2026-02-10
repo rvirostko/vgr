@@ -90,13 +90,6 @@ def _vscode_syntax_highlighting(keyword_pattern: str, function_pattern: str):
                 "beginCaptures": {"0": {"name": "punctuation.definition.comment.vgr"}},
                 "end": r"$"
             },
-            # Single-line comments "--"
-            {
-                "name": "comment.line.double-dash.vgr",
-                "begin": r"--",
-                "beginCaptures": {"0": {"name": "punctuation.definition.comment.vgr"}},
-                "end": r"$"
-            },
             # Multi-line comments "/* */"
             {
                 "name": "comment.block.vgr",
