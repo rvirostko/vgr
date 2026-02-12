@@ -541,9 +541,9 @@ def poly_removeprefix(x: Any, *args) -> Any:
 **Remove a prefix from a string if present**
 
 * RemovePrefix(*value*)
-* RemovePrefix(*value*, _prefix_&hellip;)
+* RemovePrefix(*value*, *prefix*&hellip;)
 * *value*.RemovePrefix()
-* *value*.RemovePrefix(_prefix_&hellip;)
+* *value*.RemovePrefix(*prefix*&hellip;)
 
 ```vgr
 None.RemovePrefix() → None
@@ -571,9 +571,9 @@ def poly_removesuffix(x: Any, *args) -> Any:
 **Remvoe a suffix from a string if present**
 
 * RemoveSuffix(*value*)
-* RemoveSuffix(*value*, _prefix_&hellip;)
+* RemoveSuffix(*value*, *prefix*&hellip;)
 * *value*.RemoveSuffix()
-* *value*.RemoveSuffix(_prefix_&hellip;)
+* *value*.RemoveSuffix(*prefix*&hellip;)
 
 ```vgr
 None.RemoveSuffix() → None
@@ -616,10 +616,10 @@ def poly_startswith(x: Any, *prefixes: Any) -> Any:
     """
 **Does a string start with one or more prefixes**
 
-* StartsWith(*value*, _prefix_&hellip;)
-* *value*.StartsWith(_prefix_&hellip;)
+* StartsWith(*value*, *prefix*&hellip;)
+* *value*.StartsWith(*prefix*&hellip;)
 
-The _prefix_ argument must be either a string or a list of strings. Lists and individual strings
+The *prefix* argument must be either a string or a list of strings. Lists and individual strings
 may be intermixed.
 
 If *value* is a list, the operation is distributed over the values in the list.
@@ -640,10 +640,10 @@ def poly_endswith(x: Any, *suffixes: Any) -> bool:
     """
 **Does a string end with one or more prefixes**
 
-* EndsWith(*value*, _suffix_&hellip;)
-* *value*.EndsWith(_suffix_&hellip;)
+* EndsWith(*value*, *suffix*&hellip;)
+* *value*.EndsWith(*suffix*&hellip;)
 
-The _suffix_ argument must be either a string or a list of strings. Lists and individual strings
+The *suffix* argument must be either a string or a list of strings. Lists and individual strings
 may be intermixed.
 
 If *value* is a list, the operation is distributed over the values in the list.
@@ -677,11 +677,11 @@ def poly_expandtabs(x: Any, tabsize: Any=8) -> Any:
 **Converts tabs in a string into spaces**
 
 * ExpandTabs(*value*)
-* ExpandTabs(*value*, _tabsize_)
+* ExpandTabs(*value*, *tabsize*)
 * *value*.ExpandTabs()
-* *value*.ExpandTabs(_tabsize_)
+* *value*.ExpandTabs(*tabsize*)
 
-Tabsize defaults to 8 and is limited from 0 to 64.
+*tabsize* defaults to 8 and is limited from 0 to 64.
 
 ```vgr
 None.ExpandTabs() → None
@@ -787,8 +787,8 @@ def poly_count(x: Any, sub: Any=None) -> Any:
     """
 **Return the count of a value in another**
 
-* CountOf(*value*, _sub_)
-* *value*.CountOf(_sub_)
+* CountOf(*value*, *sub*)
+* *value*.CountOf(*sub*)
 
 ```vgr
 // General
@@ -825,10 +825,10 @@ def poly_index(x: Any, sub: Any=None) -> Any:
     """
 **Returns the *lowest* index of one item in another**
 
-* IndexOf(*value*, _sub_)
-* *value*.IndexOf(_sub_)
+* IndexOf(*value*, *sub*)
+* *value*.IndexOf(*sub*)
 
-The returned index is zero based, with -1 returned if _sub_ is not found.
+The returned index is zero based, with -1 returned if *sub* is not found.
 When *value* is a string, the behavior is the same as with `FindStr()`.
 
 ```vgr
@@ -867,10 +867,10 @@ def poly_rindex(x: Any, sub: Any=None) -> Any:
     """
 **Returns the _highest_ index of one item in another**
 
-* RIndexOf(*value*, _sub_)
-* *value*.RIndexOf(_sub_)
+* RIndexOf(*value*, *sub*)
+* *value*.RIndexOf(*sub*)
 
-The returned index is zero based, with -1 returned if _sub_ is not found.
+The returned index is zero based, with -1 returned if *sub* is not found.
 When *value* is a string, the behavior is the same as with `RFindStr()`.
 
 ```vgr

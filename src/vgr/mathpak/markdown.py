@@ -186,9 +186,9 @@ def md_code_block(text: Any, lang: str=None) -> Any:
 **Format the text in Markdown as a code block**
 
 * MdCodeBlock(*value*)
-* MdCodeBlock(*value*, _language_)
+* MdCodeBlock(*value*, *language*)
 * *value*.MdCodeBlock()
-* *value*.MdCodeBlock(_language_)
+* *value*.MdCodeBlock(*language*)
 
 If *value* is a list, each element in it is formatted as part of the block.
 
