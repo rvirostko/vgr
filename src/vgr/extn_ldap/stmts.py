@@ -270,7 +270,7 @@ def _resolve_bool_arg(ctx: ExecContext, opt: Tree, name: str) -> bool:
     expr = opt.children[0]
     rc = ctx.eval_expr_or_const(expr)
     if rc is None: return False
-    if isinstance(rc, (dict, list, tuple)): raise VgrRuntimeError(expr, TypeError(f'{name} must be a boolean; found {poly_type(rc)!r}'))
+    if isinstance(rc, (dict, list)): raise VgrRuntimeError(expr, TypeError(f'{name} must be a boolean; found {poly_type(rc)!r}'))
     return poly_bool(rc)
 
 def _resolve_opt_bool_arg(ctx: ExecContext, opt: Tree, name: str) -> bool:
