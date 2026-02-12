@@ -118,11 +118,11 @@ from .list import (
 from .logic import poly_true, poly_false
 from .markdown import (
     md_blockquote,
-    md_bold,
+    md_strong,
     md_code_block,
     md_code,
     md_heading,
-    md_italics,
+    md_emphasis,
     md_link,
     md_ordered_list,
     md_strikethrough,
