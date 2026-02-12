@@ -19,7 +19,7 @@ def poly_max(x: Any, *args: Any) -> Any:
 ```
 """
     if not args:
-        if isinstance(x, (list, tuple)):
+        if isinstance(x, list):
             return max(x, key=cmp_to_key(_cmp_to_key_asc), default=None)
         return x
     return max(_flatten((x, *args)), key=cmp_to_key(_cmp_to_key_asc), default=None)
@@ -33,7 +33,7 @@ def poly_min(x: Any, *args: Any) -> Any:
 ```
 """
     if not args:
-        if isinstance(x, (list, tuple)):
+        if isinstance(x, list):
             return min(x, key=cmp_to_key(_cmp_to_key_asc), default=None)
         return x
     return min(_flatten((x, *args)), key=cmp_to_key(_cmp_to_key_asc), default=None)
@@ -146,7 +146,7 @@ def _filter_none(iterable: Iterable[Any]) -> list:
 
 def _flatten(values):
     for item in values:
-        if isinstance(item, (list, tuple)):
+        if isinstance(item, list):
             yield from item
         else:
             yield item

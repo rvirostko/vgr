@@ -49,7 +49,7 @@ now.FormatDuration(now + 8_192) → "2h 16m 32s"
         if m: parts.append(f'{m}m')
         if s or not parts: parts.append(f'{s}s')
         return " ".join(parts)
-    if isinstance(x, (list, tuple)): return dist_x(format_duration, x, y)
+    if isinstance(x, list): return dist_x(format_duration, x, y)
     raise TypeError(f'Unsupported type for timestamp: {poly_type(x)!r}')
 
 def format_timestamp(x: Any, y: Any=None) -> Any:
@@ -82,7 +82,7 @@ later.FormatTimestamp(time.format.compact.hm) → "1801"
     if x is None: x = datetime.now()
     if y is None: y = _DEFAULT_TS_FORMAT
     y = str_arg(y, "Timestamp Format")
-    if isinstance(x, (list, tuple)): return dist_x(format_timestamp, x, y)
+    if isinstance(x, list): return dist_x(format_timestamp, x, y)
     if isinstance(x, (int, float, str)): x = datetime.fromtimestamp(int_arg(x, "Timestamp"))
     if isinstance(x, datetime): return x.strftime(y)
     raise TypeError(f'Unsupported type for timestamp: {poly_type(x)!r}')

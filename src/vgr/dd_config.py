@@ -220,5 +220,5 @@ def _get_environment() -> dict:
 
 def _get_consts(source_mod) -> dict:
     return { key: value for key, value in vars(source_mod).items()
-                if isinstance(value, (int, float, str, dict, list, tuple)) and not key.startswith("_")
+                if isinstance(value, (int, float, str, dict, list)) and not key.startswith("_")
             }

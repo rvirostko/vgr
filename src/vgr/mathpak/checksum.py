@@ -48,7 +48,7 @@ None.Checksum() → None
             hasher = hashlib.new('md5')
         else:
             hasher = hashlib.new(str_arg(algo, 'Algorithm'))
-    if isinstance(x, (list, tuple)):
+    if isinstance(x, list):
         return list(poly_checksum(x1, algo) for x1 in x)
     if isinstance(x, dict):
         x = json.dumps(x, sort_keys=True, default=str, indent=None, separators=(',', ':'))

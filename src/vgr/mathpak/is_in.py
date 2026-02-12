@@ -144,13 +144,13 @@ Also see `ContainsAny()` and `IsIn()`
 
 def _is_in(x: Any, y: Any, do_all: bool) -> Any:
     """Does all the work for the in/contains operations"""
-    if isinstance(x, (list, tuple)):
+    if isinstance(x, list):
         t = (_is_in(x1, y, do_all) for x1 in x)
         return all(t) if do_all else any(t)
     if not isinstance(x, (NoneType, bool, int, str, float)):
         raise TypeError(f'Cannot use {poly_type(x)!r} with In/Contains')
     if isinstance(y, str): return isinstance(x, str) and x in y
-    if isinstance(y, (list, tuple)): return x in y
+    if isinstance(y, list): return x in y
     if isinstance(y, dict): return x in y.keys()
     try:
         # TODO arguments could be made here for

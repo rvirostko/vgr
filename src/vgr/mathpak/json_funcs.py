@@ -28,7 +28,7 @@ def strip_nulls(obj):
 """
     if isinstance(obj, dict):
         return {k: strip_nulls(v) for k, v in obj.items() if v is not None}
-    if isinstance(obj, (list, tuple)):
+    if isinstance(obj, list):
         return list(strip_nulls(v) for v in obj if v is not None)
     return obj
 

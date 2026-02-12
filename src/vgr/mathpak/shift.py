@@ -121,7 +121,4 @@ shift_operations = {
     (list, int): dist_x,
     (list, float): lambda op, x, y: dist_x(op, x, int(y)),
     (list, str): lambda op, x, y: dist_x(op, x, empty_is_zero(y)),
-    (tuple, int): dist_x,
-    (tuple, float): lambda op, x, y: dist_x(op, x, int(y)),
-    (tuple, str): lambda op, x, y: dist_x(op, x, empty_is_zero(y)),
 }

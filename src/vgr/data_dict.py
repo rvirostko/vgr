@@ -159,8 +159,8 @@ Declares a variable in the appropriate frame.
 
 Returns :
 * `True` if variable established as local
-* *False* if variable established as global
-* `None` if variable pre-existing
+* `False` if variable established as global
+* `None` if variable is pre-existing
 
 The value at the path will be set to `None` if
 nothing already exists; existing values are never

@@ -58,20 +58,13 @@ def _add(x: Any, y: Any) -> Any:
 
 _add_operations = {
     (int, list): dist_y,
-    (int, tuple): dist_y,
     (float, list): dist_y,
-    (float, tuple): dist_y,
     (str, str): lambda _, x, y: x + y,
     (str, int): lambda _, x, y: x + str(y),
     (str, float): lambda _, x, y: x + str(y),
     (str, list): dist_y,
-    (str, tuple): dist_y,
     (list, int): dist_x,
     (list, float): dist_x,
-    (tuple, int): dist_x,
-    (tuple, float): dist_x,
-    (list, tuple): lambda _, x, y: x + list(y),
-    (tuple, list): lambda _, x, y: x + tuple(y),
     (dict, dict): lambda _, x, y: {**x, **y}
 }
 
@@ -112,5 +105,5 @@ def _sum(obj):
             return str_to_number(obj) or 0
         except ValueError:
             pass
-    if isinstance(obj, (list, tuple)): return sum(_sum(item) for item in obj)
+    if isinstance(obj, list): return sum(_sum(item) for item in obj)
     return 0

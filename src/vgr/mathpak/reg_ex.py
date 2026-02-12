@@ -49,7 +49,7 @@ Also see `RegexReplace()` and `IsPattern()`
             return re.compile(x, flags)
         except Exception as e:
             raise ValueError(f'Pattern error: {x!r}') from e
-    if isinstance(x, (list, tuple)):
+    if isinstance(x, list):
         return list(compile_pattern(x1, flags) for x1 in x)
     raise ValueError(f'Cannot Compile {poly_type(x)!r} to a Pattern')
 
@@ -96,7 +96,7 @@ def _regex_replace(x: Any, pattern: Any, replacement: Any=None) -> Any:
     else:
         if not isinstance(replacement, str):
             raise ValueError(f'RegEx Replacement argument must be a string, found {poly_type(replacement)!r}')
-    if isinstance(pattern, (list, tuple)):
+    if isinstance(pattern, list):
         return reduce(lambda x, pattern1: _regex_replace(x, pattern1, replacement), pattern, x)
     # in case we are going to loop, pre-compile the pattern
     if not isinstance(pattern, re.Pattern):
@@ -104,6 +104,6 @@ def _regex_replace(x: Any, pattern: Any, replacement: Any=None) -> Any:
             raise TypeError(f'Unexpected type for RegEx pattern: {poly_type(pattern)!r}')
         pattern = re.compile(pattern)
     if isinstance(x, str): return re.sub(pattern, replacement, x)
-    if isinstance(x, (list, tuple)): return list(_regex_replace(x1, pattern, replacement) for x1 in x)
+    if isinstance(x, list): return list(_regex_replace(x1, pattern, replacement) for x1 in x)
     if isinstance(x, dict): return {key: _regex_replace(value, pattern, replacement) for key, value in x.items() }
     raise TypeError(f'RegEx replacement on {poly_type(x)!r} not supported')

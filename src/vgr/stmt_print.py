@@ -90,7 +90,7 @@ Also see `Print`, `Format()`, in addition to `Open` and `Close`
     channel, args = _extract_args(statement)
     if args:
         format_string = ctx.eval_to_str(args[0], 'Format string', True)
-        _CHANNEL_MAP[channel](poly_format(format_string, *tuple(_p_xform(ctx.eval_expr(expr)) for expr in args[1:])), end='', flush=True)
+        _CHANNEL_MAP[channel](poly_format(format_string, *list(_p_xform(ctx.eval_expr(expr)) for expr in args[1:])), end='', flush=True)
 
 def _p_xform(arg):
     """Little hack to override this special case data type"""

@@ -80,7 +80,7 @@ None.IsList() → False
 
 Also see `ToList()`
 """
-    return isinstance(x, (list, tuple))
+    return isinstance(x, list)
 
 def poly_list(x: Any) -> list:
     """
@@ -105,7 +105,6 @@ Also see `IsList()`
 """
     if x is None: return []
     if isinstance(x, list): return x
-    if isinstance(x, tuple): return [*x] if x else []
     if isinstance(x, dict): return [[key, x[key]] for key in sorted(x)] if x else []
     return [x]
 

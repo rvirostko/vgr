@@ -19,7 +19,7 @@ def parse_url(url: Any, remove_nulls: bool=True) -> Any:
 In addition, the result will contain _error_ indicating if there was an error
 and _error_msg_ describing the error. It always include the URL itself.
 
-Distributive over lists and tuples, but not dictionaries.
+Distributive over lists but not dictionaries.
 
 ```vgr
 Set url to "https://user:pass@example.com:8080/path/to/page?x=1&y=2#frag"
@@ -41,7 +41,7 @@ parsed.fragment → "frag"
 """
     if url is None: return None
     remove_nulls = poly_bool(remove_nulls)
-    if isinstance(url, (list, tuple)): return dist_x(parse_url, url, remove_nulls)
+    if isinstance(url, list): return dist_x(parse_url, url, remove_nulls)
     if not isinstance(url, str): return None
     url = url.strip()
     if len(url) == 0: return None
@@ -98,7 +98,7 @@ None.EncodeURL() → None
     if url is None: return None
     safe = str_arg(safe, "Safe", False)
     if safe is None: safe = ''
-    if isinstance(url, (list, tuple)): return list(encode_url(x1, safe) for x1 in url)
+    if isinstance(url, list): return list(encode_url(x1, safe) for x1 in url)
     if isinstance(url, (int, float)): url = str(url)
     if isinstance(url, str): return quote(url, safe=safe, errors='strict', encoding='utf-8')
     return url

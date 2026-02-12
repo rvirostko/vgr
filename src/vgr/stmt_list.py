@@ -221,7 +221,7 @@ Also see `Append`, `Prepend`, and `Insert`
     if rcount:
         if giving_path:
             # if caller only asked for one item, return one item
-            if not isinstance(positions, (list, tuple)): removed = removed[0]
+            if not isinstance(positions, list): removed = removed[0]
             _set_list_giving(ctx, giving_path, removed, gexpr)
         if ctx.verbose: ctx.print_verbose('Removed', rcount, f'item{"s" if rcount != 1 else ""} From', '.'.join(path))
     else:
@@ -265,7 +265,7 @@ Also see `Append`, `Prepend`, and `Insert`
     if rcount:
         if giving_path:
             # if caller only asked for one item, return one item
-            if not isinstance(positions, (list, tuple)): replaced = replaced[0]
+            if not isinstance(positions, list): replaced = replaced[0]
             _set_list_giving(ctx, giving_path, replaced, gexpr)
         if ctx.verbose: ctx.print_verbose('Replaced', rcount, f'item{"s" if rcount != 1 else ""} From', '.'.join(path))
     else:
@@ -285,7 +285,7 @@ def _eval_and_advance(ctx: ExecContext, statement: Tree, idx: int) -> tuple[int,
 
 def _eval_list_src(ctx: ExecContext, statement: Tree, idx: int, do_all: bool) -> tuple[int, Any]:
     idx, src = _eval_and_advance(ctx, statement, idx)
-    if do_all and isinstance(src, (list, tuple)): return idx, src
+    if do_all and isinstance(src, list): return idx, src
     return idx, [src]
 
 def _eval_list_target(ctx: ExecContext, statement: Tree, idx: int) -> tuple[int, tuple[str], list]:
@@ -293,7 +293,6 @@ def _eval_list_target(ctx: ExecContext, statement: Tree, idx: int) -> tuple[int,
     idx += 1
     value = ctx.get_var(*var_path)
     if value is None: return idx, var_path, ctx.set_var([], *var_path)
-    if isinstance(value, tuple): return idx, var_path, ctx.set_var([*value], *var_path)
     if not isinstance(value, list): return idx, var_path, ctx.set_var([value], *var_path)
     return idx, var_path, value
 
@@ -312,7 +311,6 @@ def _set_list_giving(ctx: ExecContext, path: tuple[str], value: Any, expr: Tree)
 def _normalize_positions(pos_expr, list_len: int, positions) -> list:
     """By the end, we should have a list filled with ints"""
     if positions is None: return []
-    if isinstance(positions, tuple): positions = [*positions]
     if not isinstance(positions, list): positions = [positions]
     try:
         # convert to integers

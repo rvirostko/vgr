@@ -149,7 +149,7 @@ def _do_match(x: Any, y: Any, ci: bool=False, do_all: bool=False) -> Any:
     # <Any> Matches None
     if y is None: return False
     # ["aaa", "bb"] Matches "^(a|b)+$" -> True
-    if isinstance(x, (list, tuple)):
+    if isinstance(x, list):
         return all(_do_match(x1, y, ci, do_all) for x1 in x)
     # 27 Matches 27.0 -> True
     if isinstance(x, (NoneType, bool, int, float)):
@@ -166,7 +166,7 @@ def _do_match(x: Any, y: Any, ci: bool=False, do_all: bool=False) -> Any:
     if isinstance(y, re.Pattern):
         return re.search(y, x) is not None
     # "Bobby" Matches ["Rob", "Bob"] -> True
-    if isinstance(y, (list, tuple)):
+    if isinstance(y, list):
         if do_all: return all(_do_match(x, y1, ci, do_all) for y1 in y)
         return any(_do_match(x, y1, ci, do_all) for y1 in y)
     raise TypeError(f'Cannot use {poly_type(y)!r} as a Pattern with Match')

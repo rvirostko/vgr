@@ -210,6 +210,6 @@ class FileRecordWriter(RecordWriter):
         if not isinstance(obj, (str, int, float)):
             # Compact JSON format for dictionaries
             if isinstance(obj, dict): return json.dumps(obj, separators=(",", ":"))
-            # Recursively stringify iterable elements (arrays, tuples, etc)
+            # Recursively stringify iterable elements
             if isinstance(obj, Iterable): return ", ".join(map(cls.stringify, obj))
         return str(obj)

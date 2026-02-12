@@ -150,7 +150,7 @@ Also see `RoundMultiple()`
         raise TypeError(f'Unsupported type for NDigits: {poly_type(ndigits)!r}')
     if isinstance(x, (int, float)): return arithmetic_round(x, ndigits)
     if hasattr(x, '__round__'): return round(x, ndigits)
-    if isinstance(x, (list, tuple)): return dist_x(poly_round, x, ndigits)
+    if isinstance(x, list): return dist_x(poly_round, x, ndigits)
     return x
 
 def _get_multiple_arg(multiple: Any) -> Any:
@@ -206,7 +206,7 @@ Also see `Round()`
     multiple = _get_multiple_arg(multiple)
     if isinstance(x, str): x = str_to_number(x)
     if isinstance(x, (int, float)): return multiple * arithmetic_round(x / multiple)
-    if isinstance(x, (list, tuple)): return dist_x(poly_round_multiple, x, multiple)
+    if isinstance(x, list): return dist_x(poly_round_multiple, x, multiple)
     return x
 
 def poly_floor_multiple(x: Any, multiple: Any=1) -> Any:
@@ -253,7 +253,7 @@ Also see `Floor()` and `CeilMultiple()`
     multiple = _get_multiple_arg(multiple)
     if isinstance(x, str): x = str_to_number(x)
     if isinstance(x, (int, float)): return multiple * math.floor(x / multiple)
-    if isinstance(x, (list, tuple)): return dist_x(poly_floor_multiple, x, multiple)
+    if isinstance(x, list): return dist_x(poly_floor_multiple, x, multiple)
     return x
 
 def poly_ceil_multiple(x: Any, multiple: Any=1) -> Any:
@@ -296,13 +296,13 @@ Also see `Ceil()` and `FloorMultiple()`
     multiple = _get_multiple_arg(multiple)
     if isinstance(x, str): x = str_to_number(x)
     if isinstance(x, (int, float)): return multiple * math.ceil(x / multiple)
-    if isinstance(x, (list, tuple)): return dist_x(poly_ceil_multiple, x, multiple)
+    if isinstance(x, list): return dist_x(poly_ceil_multiple, x, multiple)
     return x
 
 def _dist(op: Callable[[Any], Any], x: Any) -> Any:
     if x is None: return None
     # Distribute the operation over the collection
-    return list(op(x1) for x1 in x) if isinstance(x, (list, tuple)) else x
+    return list(op(x1) for x1 in x) if isinstance(x, list) else x
 
 def poly_pred(x: Any) -> Any:
     """
@@ -329,7 +329,7 @@ Also see `Succ()`
     if isinstance(x, bool): return False
     if isinstance(x, int): return x - 1
     if isinstance(x, float): return math.nextafter(x, -math.inf)
-    if isinstance(x, (list, tuple)): return list(poly_pred(x1) for x1 in x)
+    if isinstance(x, list): return list(poly_pred(x1) for x1 in x)
     return x
 
 def poly_succ(x: Any) -> Any:
@@ -357,5 +357,5 @@ Also see `Pred()`
     if isinstance(x, bool): return True
     if isinstance(x, int): return x + 1
     if isinstance(x, float): return math.nextafter(x, math.inf)
-    if isinstance(x, (list, tuple)): return list(poly_succ(x1) for x1 in x)
+    if isinstance(x, list): return list(poly_succ(x1) for x1 in x)
     return x

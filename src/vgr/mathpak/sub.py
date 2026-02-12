@@ -65,6 +65,5 @@ sub_operations = {
     (dict, float): lambda _, x, y: remove_keys(x, [y]),
     (dict, str): lambda _, x, y:  remove_keys(x, [y]),
     (dict, list): lambda _, x, y: remove_keys(x, y),
-    (dict, tuple): lambda _, x, y: remove_keys(x, y),
     (dict, dict): lambda _, x, y:  remove_keys(x, list(y.keys())),
 }

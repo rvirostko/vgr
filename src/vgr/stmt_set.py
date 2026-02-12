@@ -59,8 +59,8 @@ _EXTENSION_MAP = {
 }
 
 def _inplace_add_shim(x: Any, y: Any) -> Any:
-    if isinstance(x, (list, tuple)):
-        if isinstance(y, (list, tuple)):
+    if isinstance(x, list):
+        if isinstance(y, list):
             x.extend(y)
         else:
             x.append(y)

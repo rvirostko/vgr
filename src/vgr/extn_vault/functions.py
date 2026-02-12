@@ -117,7 +117,7 @@ def _is_flat_dict(obj) -> bool:
     ordinal objects.
     """
     return isinstance(obj, dict) and all(
-        not isinstance(v, (dict, list, tuple)) for v in obj.values()
+        not isinstance(v, (dict, list)) for v in obj.values()
     )
 
 def _find_flat_data(obj, *full_path) -> dict:

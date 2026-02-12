@@ -179,7 +179,4 @@ numeric_operations = {
     (list, int): dist_x,
     (list, float): dist_x,
     (list, str): dist_x,
-    (tuple, int): dist_x,
-    (tuple, float): dist_x,
-    (tuple, str): dist_x,
 }

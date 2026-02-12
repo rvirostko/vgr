@@ -25,7 +25,7 @@ class AbstractUserCallable(VgrCallable):
     # probably need a generic "meta" object that covers that and the source
     # which was kind of what SSM was supposed to be
     def __init__(self, param_paths: list[tuple[str]]):
-        assert isinstance(param_paths, (list, tuple))
+        assert isinstance(param_paths, list)
         self._param_paths = param_paths
 
     def __repr__(self): return self._sig() + '\u2192' + str(self)
@@ -82,7 +82,7 @@ class UserFunction(AbstractUserCallable):
         if fn is None: return None
         if isinstance(fn, AbstractUserCallable): return fn.evaluate(ctx, arg_values)
         # Recursively process lists and dictionaries
-        if isinstance(fn, (list, tuple)):
+        if isinstance(fn, list):
             return list(UserFunction.invoke(ctx, f1, arg_values) for f1 in fn)
         if isinstance(fn, dict):
             return {key: UserFunction.invoke(ctx, value, arg_values) for key, value in fn.items()}
@@ -104,7 +104,7 @@ class UserFunction(AbstractUserCallable):
         if isinstance(source, ArrowFunction):
             # This effectively changes the argument paths (maybe)
             return UserFunction.compile(ctx, source._source, param_paths)
-        if isinstance(source, (list, tuple)):
+        if isinstance(source, list):
             # Create a list of Arrow Functions
             return list(UserFunction.compile(ctx, s1, param_paths) for s1 in source)
         if isinstance(source, (int, float, bool)):

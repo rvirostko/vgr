@@ -76,7 +76,7 @@ Conversion is distributed over lists.
         except ValueError:
             # Not, null, and not empty, so Python truthy
             return True
-    if isinstance(x, (list, tuple)):
+    if isinstance(x, list):
         return list(poly_bool(x1) for x1 in x)
     return True
 
@@ -123,7 +123,7 @@ to a number. It can be any value, including `None`.
         except ValueError as e:
             if default is _SENTINEL: raise e
             return default
-    if isinstance(x, (list, tuple)): return list(poly_float(x1, default) for x1 in x)
+    if isinstance(x, list): return list(poly_float(x1, default) for x1 in x)
     return None if default is _SENTINEL else default
 
 def poly_isfloat(x: Any) -> bool:
@@ -166,7 +166,7 @@ to a number. It can be any value, including `None`.
         except ValueError as e:
             if default is _SENTINEL: raise e
             return default
-    if isinstance(x, (list, tuple)): return list(poly_int(x1, default) for x1 in x)
+    if isinstance(x, list): return list(poly_int(x1, default) for x1 in x)
     return None if default is _SENTINEL else default
 
 def poly_isint(x: Any) -> bool:
@@ -211,7 +211,7 @@ Also see `ToInteger()` and `ToFloat()`
         except ValueError as e:
             if default is _SENTINEL: raise e
             return default
-    if isinstance(x, (list, tuple)): return list(poly_number(x1, default) for x1 in x)
+    if isinstance(x, list): return list(poly_number(x1, default) for x1 in x)
     return None if default is _SENTINEL else default
 
 def poly_isnumber(x: Any) -> bool:
@@ -248,7 +248,7 @@ For all other types, `None` is returned.
 **TODO**
 ```
 """
-    if isinstance(x, (list, tuple)): return list(poly_sign(x1) for x1 in x)
+    if isinstance(x, list): return list(poly_sign(x1) for x1 in x)
     if isinstance(x, str): x = str_to_number(x)
     return (x > 0) - (x < 0) if isinstance(x, (int, float)) else None
 
@@ -345,7 +345,7 @@ If *value* is `None` it is left as `None`.
     if isinstance(x, bytes): return x.decode('utf-8')
     if isinstance(x, str): return x
     if isinstance(x, re.Pattern): return x.pattern
-    if isinstance(x, (list, tuple)): return list(poly_str(x1) for x1 in x)
+    if isinstance(x, list): return list(poly_str(x1) for x1 in x)
     if isinstance(x, dict): return json.dumps(x, default=str)
     return str(x)
 
@@ -402,7 +402,7 @@ False.IsEmpty() → True
 
 Also see `IsNotEmpty()`
 """
-    if isinstance(x, (list, tuple, dict)): return len(x) == 0
+    if isinstance(x, (list, dict)): return len(x) == 0
     if isinstance(x, str): return len(x) == 0 or x.isspace()
     if isinstance(x, (int, float)): return x == 0
     return x is None
@@ -438,7 +438,7 @@ False.IsNotEmpty() → False
 
 Also see `IsEmpty()`
 """
-    if isinstance(x, (list, tuple, dict)): return len(x) > 0
+    if isinstance(x, (list, dict)): return len(x) > 0
     if isinstance(x, str): return len(x) > 0 and not x.isspace()
     if isinstance(x, (int, float)): return bool(x)
     return x is not None

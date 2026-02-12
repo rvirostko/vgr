@@ -68,5 +68,5 @@ Also see `Print` and `Format()` for formatting details
     value = ''
     if len(statement.children) > 1:
         format_string = ctx.eval_to_str(statement.children[1], 'Format string', True)
-        value = poly_format(format_string, *tuple(ctx.eval_expr(expr) for expr in statement.children[2:]))
+        value = poly_format(format_string, *list(ctx.eval_expr(expr) for expr in statement.children[2:]))
     log_func(value)

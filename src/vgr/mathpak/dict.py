@@ -228,7 +228,7 @@ point2.GetKeyValue(["meta", "name"]) → "p2"
 
 Also see `SetKeyValue()` and `LookupItem()`
 """
-    if isinstance(data, (list, tuple)): return list(poly_getkeyvalue(d1, path, default_value) for d1 in data)
+    if isinstance(data, list): return list(poly_getkeyvalue(d1, path, default_value) for d1 in data)
     if not isinstance(data, dict): return data
     path = _normalize_path(path)
     if path is None: return data

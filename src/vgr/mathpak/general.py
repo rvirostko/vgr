@@ -24,7 +24,7 @@ If *value* is an ordinal rather than a list, it is returned unchanged.
 "One Two".Reverse() → "owT nenO"
 ```
 """
-    if isinstance(x, (list, tuple)): return list(reversed(x))
+    if isinstance(x, list): return list(reversed(x))
     if isinstance(x, str): return x[::-1]
     return x
 
@@ -162,7 +162,7 @@ Also see `Unique()`
     reverse = False if reverse is None else bool_arg(reverse, 'Reverse')
     if isinstance(x, str):
         return ''.join(chr(v) for v in poly_sort([ord(ch) for ch in x], unique, reverse))
-    if isinstance(x, (list, tuple)):
+    if isinstance(x, list):
         rc = list(sorted(x, key=cmp_to_key(_cmp_to_key_asc), reverse=reverse))
         return _unique_sorted(rc) if unique else rc
     return x
@@ -193,8 +193,8 @@ None.Item(0) → None
 
 Also see `FirstItem()` and `LastItem()`
 """
-    if not isinstance(x, (list, tuple)): return x
-    if isinstance(index, (list, tuple)): return dist_x(poly_getitem, x, index)
+    if not isinstance(x, list): return x
+    if isinstance(index, list): return dist_x(poly_getitem, x, index)
     i: int = int(index) if isinstance(index, (int, float)) else str_to_number(index) if isinstance(index, str) else None
     return x[i] if i is not None and 0 <= i < len(x) else None
 
@@ -242,7 +242,7 @@ None.LastItem() → None
 
 Also see `Item()` and `FistItem()`
 """
-    if not isinstance(x, (list, tuple)): return x
+    if not isinstance(x, list): return x
     return x[-1] if len(x) > 0 else None
 
 def poly_unique(x: Any) -> Any:
@@ -269,7 +269,7 @@ None.Unique() → None
 Also see `Sort()`
 """
     if isinstance(x, str): return "".join(dict.fromkeys(x))
-    if isinstance(x, (list, tuple)):
+    if isinstance(x, list):
         unique = []
         for x1 in x:
             if not any(poly_eq(x1, existing) for existing in unique):
@@ -304,7 +304,7 @@ def dsort(data: dict, keys: list[str], ascending: list[bool], unique: bool, uniq
 def _check_keys(keys: list[str], name: str):
     if keys is None or not keys:
         raise ValueError(f'{name} may not be empty')
-    if not isinstance(keys, (list, tuple)):
+    if not isinstance(keys, list):
         raise TypeError(f'For {name} expected list, found {poly_type(keys)!r}')
     for i, s in enumerate(keys):
         if s is None or isinstance(s, (str, int, float)): continue
@@ -312,7 +312,7 @@ def _check_keys(keys: list[str], name: str):
     return keys
 
 def _check_sort_dir(lst: list[bool]) -> list[bool]:
-    if not isinstance(lst, (list, tuple)):
+    if not isinstance(lst, list):
         raise TypeError(f'Sort Direction: expected list, found {poly_type(lst)!r}')
     result = []
     for i, val in enumerate(lst):

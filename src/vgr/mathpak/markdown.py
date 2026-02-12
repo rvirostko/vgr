@@ -94,7 +94,7 @@ def md_link(text: Any, url: Any) -> Any:
 **TODO**
 ```
 """
-    if isinstance(text, (list, tuple)) and isinstance(url, (list, tuple)):
+    if isinstance(text, list) and isinstance(url, list):
         return _meld(md_link, text, url)
     text = _to_str(text)
     url = _to_str(url)
@@ -133,7 +133,7 @@ If *value* is a list, each element in it is formatted as part of the block.
 **TODO**
 ```
 """
-    if isinstance(text, (list, tuple)):
+    if isinstance(text, list):
         if not text: return _BLANK
         return "\n".join([f"{_MD_BLOCK_QUOTE}{line}" for line in [poly_str(i) for i in text] if line is not None])
     text = _to_str(text)
@@ -152,7 +152,7 @@ If *value* is a list, each element in it is formated as a list item.
 **TODO**
 ```
 """
-    if isinstance(text, (list, tuple)):
+    if isinstance(text, list):
         if not text: return _BLANK
         return "\n".join([f"- {item}" for item in [poly_str(i) for i in text] if item is not None])
     text = _to_str(text)
@@ -171,7 +171,7 @@ If *value* is a list, each element in it is formated as a list item.
 **TODO**
 ```
 """
-    if isinstance(text, (list, tuple)):
+    if isinstance(text, list):
         if not text: return _BLANK
         # Convert to strings, then filter out the nulls
         strs = [poly_str(i) for i in text]
@@ -197,7 +197,7 @@ If *value* is a list, each element in it is formatted as part of the block.
 ```
 """
     lang = _to_str(lang)
-    if isinstance(text, (list, tuple)):
+    if isinstance(text, list):
         if not text: return _BLANK
         return md_code_block("\n".join(item for item in text if item is not None), lang)
     text = _to_str(text)

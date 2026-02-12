@@ -129,7 +129,7 @@ class SortAnalyzer(Visitor):
             io[_FILE] = self.ctx.eval_filename_expr(bind_operations(node.children[0]))
             io[_DTYPE] = load_data_type(io[_FILE], node.children[1] if len(node.children) == 2 else None)
         elif node.data == 'var':
-            io[_VAR] = tuple(name.value for name in node.children[0].children)
+            io[_VAR] = list(name.value for name in node.children[0].children)
         else:
             raise NotImplementedError(f'Sort source/target {node.data!r} not implemented') # SNO
 
@@ -213,7 +213,7 @@ def _read_data(ctx: ExecContext, source: dict) -> list:
         if not source[_IN_PLACE]:
             data = copy.deepcopy(data)
         # Make sure we have something iterable
-        data = data if isinstance(data, (list, tuple)) else [] if data is None else [data]
+        data = data if isinstance(data, list) else [] if data is None else [data]
         # Guess at a data type
         source[_DTYPE] = 'text_file' if len(data) == 0 or not isinstance(data[0], dict) else 'json_object'
         if source[_DTYPE] == 'text_file':
@@ -234,7 +234,7 @@ def _read_data(ctx: ExecContext, source: dict) -> list:
             with open(filename, 'r', encoding='utf-8-sig') as f:
                 data, metadata = load_file_as(filename, f, source[_DTYPE])
             source[_FIELDS] = metadata['keys']
-            data = data if isinstance(data, (list, tuple)) else [] if data is None else [data]
+            data = data if isinstance(data, list) else [] if data is None else [data]
         except Exception as e:
             raise ValueError(f'While reading {source[_FILE]!r}: {str(e)}') from e
     # The "on" keys must all be known in our fields

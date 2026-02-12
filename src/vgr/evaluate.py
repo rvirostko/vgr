@@ -19,6 +19,7 @@ from .functions import get_function_op, logical_and, logical_or
 from .mathpak import (
     build_dict,
     build_list,
+    get_requires_exec_context,
     poly_add,
     poly_bit_and,
     poly_bit_or,
@@ -148,9 +149,7 @@ class SimpleOperation(Operation):
     def __init__(self, base: Tree, op):
         super().__init__(base)
         self._op = op
-        from .mathpak import get_requires_exec_context
         self._requires_ctx = get_requires_exec_context(op)
-
 
     def execute(self, ctx: ExecContext, args: list) -> Any:
         # We evaluate all the arguments and execute the operation
