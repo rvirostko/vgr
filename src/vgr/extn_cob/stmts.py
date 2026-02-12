@@ -506,13 +506,13 @@ Also see `Add()` and `Sum()`, `+`, and `Set`
 """
     var_path = get_writable_var_path(ctx, statement.children[-1])
     x = poly_number(ctx.get_var(*var_path)) or 0
-    args = tuple(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
+    args = list(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
     do_set(ctx, poly_add(x, *args), *var_path)
 
 # Doc added to add_to
 def execute_add_giving(ctx: ExecContext, statement: Tree) -> None:
     var_path = get_writable_var_path(ctx, statement.children[-1])
-    args = tuple(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
+    args = list(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
     do_set(ctx, poly_add(*args), *var_path)
 
 @bound_ops("Subtract")
@@ -549,13 +549,13 @@ Also see `Sub()`, `-`, and `Set`
 """
     var_path = get_writable_var_path(ctx, statement.children[-1])
     x = poly_number(ctx.get_var(*var_path)) or 0
-    args = tuple(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
+    args = list(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
     do_set(ctx, poly_sub(x, *args), *var_path)
 
 # Doc added to sub_from
 def execute_sub_giving(ctx: ExecContext, statement: Tree) -> None:
     var_path = get_writable_var_path(ctx, statement.children[-1])
-    args = tuple(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
+    args = list(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
     do_set(ctx, poly_sub(args[-1], *args[:-1]), *var_path)
 
 @bound_ops("Multipy")
@@ -590,7 +590,7 @@ d = 385
 Also see `Mul()`, `*`, and `Set`
 """
     var_path = get_writable_var_path(ctx, statement.children[-1])
-    args = tuple(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
+    args = list(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
     if len(args) == 1:
         value = poly_mul(poly_number(ctx.get_var(*var_path)) or 0, args[0])
     else:
@@ -633,7 +633,7 @@ c = 1.25
 Also see `Div()`, `/`, and `Set`
 """
     var_path = get_writable_var_path(ctx, statement.children[-1])
-    args = tuple(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
+    args = list(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
     if len(args) == 1:
         value = poly_div(poly_number(ctx.get_var(*var_path)) or 0, args[0])
     else:
@@ -643,7 +643,7 @@ Also see `Div()`, `/`, and `Set`
 # Doc added to div_into
 def execute_div_by(ctx: ExecContext, statement: Tree) -> None:
     var_path = get_writable_var_path(ctx, statement.children[-1])
-    args = tuple(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
+    args = list(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
     do_set(ctx, poly_div(*args), *var_path)
 
 @bound_ops("String")
@@ -829,7 +829,7 @@ Also see `Print`, `Printf`, and `Exhibit`, as well as `Open` and `Close`
                 continue
         # Not an option, so exit loop
         break
-    args = tuple(ctx.eval_expr(expr) for expr in args)
+    args = list(ctx.eval_expr(expr) for expr in args)
     if dest_stdout:
         print_stdout(*args, sep='', end=ender, flush=flush)
     else:
