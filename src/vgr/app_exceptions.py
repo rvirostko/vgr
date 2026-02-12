@@ -6,8 +6,12 @@ import traceback
 from lark import Tree
 
 from lark.exceptions import (
+    LarkError,
     LexError,
     ParseError,
+    UnexpectedCharacters,
+    UnexpectedEOF,
+    UnexpectedInput,
     UnexpectedToken,
     VisitError,
 )
@@ -20,7 +24,6 @@ _ERROR_XLATE = {
     KeyboardInterrupt:    "Interrupted",
     LexError:             "Lexing Error",
     ParseError:           "Parsing Error",
-    UnexpectedToken:      "Syntax Error",
     VisitError:           "Visitor Error",
     ZeroDivisionError:    "Divide by Zero",
 }
@@ -58,7 +61,7 @@ class VgrException(Exception):
         trimmed_line = line_str.lstrip()
         adjusted_column = max(self.column - leading_ws, 1)
         # Compute start and end positions for span truncation
-        # NB: lark used one-based lines and columns
+        # NB: lark uses one-based lines and columns
         start = max(0, adjusted_column - 1 - span)
         end = adjusted_column - 1 + span
         snippet = trimmed_line[start:end]
@@ -82,6 +85,11 @@ class VgrException(Exception):
             traceback.print_exc(file=sys.stderr)
             return 'Internal error while generating description'
 
+    def _char_at(self, pos: int) -> str:
+        if not self.source_text: return "<?>"
+        if pos >= len(self.source_text): return "<eof>"
+        return self.source_text[pos]
+
     def _exception_message(self) -> str:
         """
         Return a user-friendly message from any exception instance.
@@ -89,6 +97,22 @@ class VgrException(Exception):
         """
         e = self.orig_exc
         if e is None: return ''
+        if isinstance(e, LexError):
+            return f"Invalid value {self._char_at(e.pos_in_stream)!r}"
+        if isinstance(e, ParseError):
+            if getattr(e, "token", None):
+                return f"Unexpected value {e.token.value!r}"
+            return "Invalid syntax"
+        if isinstance(e, UnexpectedToken):
+            return f"Unexpected value {e.token.value!r}"
+        if isinstance(e, UnexpectedCharacters):
+           return f"Unexpected value {self._char_at(e.pos_in_stream)!r}"
+        if isinstance(e, UnexpectedEOF):
+            return "Unexpected end of input"
+        if isinstance(e, UnexpectedInput):
+            return "Syntax Error"
+        if isinstance(e, LarkError):
+            return "Invalid syntax"
         # Strip  numeric codes at front of OSError
         rc = _ERRNO_RE.sub('', str(e)) if isinstance(e, OSError) else str(e)
         # For asserts, text is created either from the source or from a user format, so use verbatim

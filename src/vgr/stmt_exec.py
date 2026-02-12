@@ -1111,7 +1111,7 @@ class DefaultExecContext(ExecContext):
                 tree = self._parser.parse(statement_text, start=start or self._DEFAULT_PARSE_START)
                 # NB: this assumes that a user provided "start" is a single statement
                 self.dispatch_statements(tree.children if start is None else [tree])
-            except exceptions.UnexpectedInput as e:
+            except exceptions.LarkError as e:
                 raise VgrException(e, e, *SSM.current) from e
             finally:
                 if origin: self.source_stack.pop(0)
