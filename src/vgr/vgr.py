@@ -129,6 +129,8 @@ class VGRCmdLine(CmdLine):
 
 # TODO we can start to carve up the READ-ME into parts to add to
 # language topics.
+
+# TODO "help function(s)" should display info from doc (as with others)
     def _exec_help(self, *args) -> None:
         """
 **Language Topics**
@@ -154,7 +156,7 @@ For example **help Add** with return informtion for `Add()` while
 * **prompt** : Define the input input prompt
 * **pwd** : Print the current working directory
 * **shell** : Work with the OS sub-shell
-* **topics** : This help information
+* **topics** : What help topics are available
 * **version** : Print version informtion
 
 """
@@ -175,6 +177,8 @@ For example **help Add** with return informtion for `Add()` while
                     self._help_topics[key](topic, q)
                     return
         self._default_help_action(topic, q)
+
+    # TODO need a 'repl' that displays the info from above
 
     def _default_help_action(self, topic: str, q: str) -> None:
         # If no explicit topic that matches, then see what we can find
@@ -338,45 +342,50 @@ def main():
 
 Following that, statements are read from stdin if they are available.
 
-If no --execute and --file arguments are given, and stdin is interactive, by default the REPL is started. Using --repl false prevents it from opening.
+If no --execute and --file arguments are given, and stdin is interactive, by default the REPL is started.
 
-Additional arguments are added to the "args" variable. Only simple data types can be set. Quotes are not required for strings.
+Additional arguments are added as strings to the "args" list variable.
 
---verbose, --debug, and --echo control only the initial settings. Commands in --execute and --file arguments can still change them when running.
+--verbose, --debug, and --echo control initial settings only. Commands in --execute, --file, and --assign can change them.
 
 Environment variables:
-  - OFS/ORS - output field and record separators as defined by AWK
-  - VGR_PATH - Path used by Source and @Include in a manner similar to AWK
-  - VGR_PROMPT - REPL prompt; limited Bash-like escapes supported
+  - OFS/ORS - output field and record separators for the Print statement
+  - VGR_PATH - Path used by Source and @Include statements
+  - VGR_PROMPT - REPL prompt with limited Bash-like escapes supported
   - VGR_HISTORY - path to REPL's history file
   - VGR_HISTORY_SIZE - max number of lines stored in history
 """
     )
-    clp.add_argument('--version', '-V', action='version', version=f'{__version__} {__version_date__}')
+    clp.add_argument('--version', '-V', action='version', version=f'{__version__} {__version_date__}',
+                     help='Display version information and exit')
     clp.add_argument('--execute', '-e', metavar='STATEMENTS', action=SaveOrderedSources,
-                    help='Execute the given statements')
+                     help='Execute the given statements')
     clp.add_argument('--file', '-f', metavar='FILE', action=SaveOrderedSources,
                      help="Execute statements stored in a file")
     clp.add_argument('--include', '-i', metavar='FILE', action=SaveOrderedSources,
                      help="Load statements stored in a file once")
     clp.add_argument('--assign', '-v', metavar='var=expr', action=SaveOrderedSources,
                      help="Assign a value to a variable")
-    clp.add_argument('--verbose', action='store_true', help='Enable/disable verbose mode')
-    clp.add_argument('--debug', '-D', action='store_true', help='Enable/disable debug mode')
-    clp.add_argument('--echo', action='store_true', help='Enable/disable statement echo')
-    clp.add_argument('--repl', action='store_true', help='Request REPL. REPL automatically starts if --execute/--file are not used')
+    clp.add_argument('--verbose', action='store_true',
+                     help='Enable verbose mode')
+    clp.add_argument('--debug', '-D', action='store_true',
+                     help='Enable debug mode')
+    clp.add_argument('--echo', action='store_true',
+                     help='Enable statement echo')
+    clp.add_argument('--repl', action='store_true',
+                     help='Request REPL. REPL automatically starts if --execute/--file are not used')
     clp.add_argument('--logfile', type=str, default=None,
-                    help='Path to the log file')
+                     help='Path to the log file')
     clp.add_argument('--loglevel', type=str, default='info',
-                    help='Logging level (debug, info, warning, error, critical)')
+                     help='Logging level (debug, info, warning, error, critical)')
     clp.add_argument('--logoverwrite', action='store_true',
-                    help='Overwrite log file instead of appending')
+                     help='Overwrite log file instead of appending')
     clp.add_argument('--gen-doc', action='store_true',
-                     help='Generate documentation')
+                     help='Generate documentation and exit')
     clp.add_argument('--gen-vsc-extn', action='store_true',
-                     help='Generate a VSCode extension for syntax highlighting')
-    clp.add_argument('args', nargs='*', metavar='arg',
-                    default=[], help='Additional arguments. Values maybe booleans, numbers, or strings')
+                     help='Generate a Visual Studio Code extension and exit')
+    clp.add_argument('args', nargs='*', metavar='arg', default=[],
+                     help='Additional arguments. Values maybe booleans, numbers, or strings')
     args = clp.parse_args()
 
     init_logging(args.logfile, args.logoverwrite)
@@ -389,12 +398,12 @@ Environment variables:
     add_builtin_functions() # Done prior to loading extensions to prevent them overwriting
     extensions = load_extensions(dd, args.verbose)
     parser = create_parser(extensions, args.debug, args.verbose)
+    create_md_lexer(parser)
 
     if args.gen_doc: gen_auto_docs()
     if args.gen_vsc_extn: create_vscode_extension(keyword_pattern(parser), function_names_pattern())
     if args.gen_doc or args.gen_vsc_extn: sys.exit(VgrExitingException.EXIT_SUCCESS)
 
-    create_md_lexer(parser)
     ctx = create_exec_context(parser, dd)
     ctx.debug = args.debug
     ctx.verbose = args.verbose
@@ -426,18 +435,25 @@ Environment variables:
     try:
         ordered_args = args.ordered if hasattr(args, "ordered") else []
         # Execute accumulated -e, -f, et al options in the order given
+        cmds_provided = False
         for opt in ordered_args:
             stype, svalue = opt
-            if stype  == 'e': # -e or --execute
-                # Simple statements directly on the command line
-                ctx.print_verbose('Executing statements from command line...')
-                ctx.execute_statements(svalue, '<cmd-line>')
-                continue
             try:
+                if stype  == 'e': # -e or --execute
+                    # Simple statements directly on the command line
+                    ctx.print_verbose('Executing statements from command line...')
+                    ctx.execute_statements(svalue, '<cmd-line>')
+                    cmds_provided = True
+                    continue
                 if stype == 'f': # -f or --file
                     # NB: we don't "sandbox" these input files like we do with others
                     do_source(ctx, find_vgr_source(svalue))
+                    cmds_provided = True
                     continue
+                # NB: include and assign are NOT counted as commands,
+                #     as the former is assumed to be sourced for function definitions]
+                #     not executed for side effects, and assignments are for
+                #     internal state change
                 if stype == 'i': # -i or --include
                     # Files to be included once
                     do_include(ctx, find_vgr_source(svalue))
@@ -451,7 +467,7 @@ Environment variables:
                 raise VgrException(None, e, '<cmd-line>', svalue) from e
             raise NotImplementedError(f'Statement source {stype!r} not implemented') # SNO
         if sys.stdin.isatty():
-            if args.repl is True or not ordered_args:
+            if args.repl or not cmds_provided:
                 ctx.print_verbose('Starting the REPL...')
                 VGRCmdLine(ctx).run()
                 ctx.print_verbose('REPL exited')
