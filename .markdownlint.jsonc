@@ -1,0 +1,14 @@
+{
+  "default": true,
+
+  // Disable specific rules everywhere
+  "MD013": false,   // line-length
+  "MD036": false,   // no-emphasis-as-heading
+  "MD041": false,   // first-line-heading
+  "MD049": false,   // emphasis-style
+
+  "MD033": {
+    "allowed_elements": [ "a", "div" ]
+  }
+
+}
