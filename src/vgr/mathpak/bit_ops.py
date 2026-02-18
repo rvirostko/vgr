@@ -26,19 +26,19 @@ def poly_bit_and(x: Any, *args) -> Any:
 * BitAnd(*x*, *y*&hellip;)
 * *x*.BitAnd(*y*&hellip;)
 
-| x     | y     | returns   | operation             |
-|-------|-------|-----------|-----------------------|
-| int   | int   | int       | x & y                 |
-| int   | float | int       | x & y                 |
-| int   | str   | int       | *See below*           |
-| *any* | list  | list      | distributive          |
-| float | int   | int       | ToInteger(x) & y      |
+| x     | y     | returns   | operation                   |
+|-------|-------|-----------|-----------------------------|
+| int   | int   | int       | x & y                       |
+| int   | float | int       | x & y                       |
+| int   | str   | int       | *See below*                 |
+| *any* | list  | list      | distributive                |
+| float | int   | int       | ToInteger(x) & y            |
 | float | float | int       | ToInteger(x) & ToInteger(y) |
-| float | str   | int       | *See below*           |
-| str   | int   | str       | *See below*           |
-| str   | float | str       | *See below*           |
-| str   | str   | str       | *See below*           |
-| list  | *any* | list      | distributive          |
+| float | str   | int       | *See below*                 |
+| str   | int   | str       | *See below*                 |
+| str   | float | str       | *See below*                 |
+| str   | str   | str       | *See below*                 |
+| list  | *any* | list      | distributive                |
 
 A type error is raised on all other combinations
 
@@ -67,19 +67,19 @@ def poly_bit_or(x: Any, *args) -> Any:
 * BitOr(*x*, *y*&hellip;)
 * *x*.BitOr(*y*&hellip;)
 
-| x     | y     | returns   | operation             |
-|-------|-------|-----------|-----------------------|
-| int   | int   | int       | x | y                 |
-| int   | float | int       | x | y                 |
-| int   | str   | int       | *See below*           |
-| *any* | list  | list      | distributive          |
-| float | int   | int       | ToInteger(x) | y      |
-| float | float | int       | ToInteger(x) | ToInteger(y) |
-| float | str   | int       | *See below*           |
-| str   | int   | str       | *See below*           |
-| str   | float | str       | *See below*           |
-| str   | str   | str       | *See below*           |
-| list  | *any* | list      | distributive          |
+| x     | y     | returns   | operation                    |
+|-------|-------|-----------|------------------------------|
+| int   | int   | int       | x \\| y                       |
+| int   | float | int       | x \\| y                       |
+| int   | str   | int       | *See below*                  |
+| *any* | list  | list      | distributive                 |
+| float | int   | int       | ToInteger(x) \\| y            |
+| float | float | int       | ToInteger(x) \\| ToInteger(y) |
+| float | str   | int       | *See below*                  |
+| str   | int   | str       | *See below*                  |
+| str   | float | str       | *See below*                  |
+| str   | str   | str       | *See below*                  |
+| list  | *any* | list      | distributive                 |
 
 A type error is raised on all other combinations
 
@@ -108,19 +108,19 @@ def poly_bit_xor(x: Any, *args) -> Any:
 * BitXor(*x*, *y*&hellip;)
 * *x*.BitXor(*y*&hellip;)
 
-| x     | y     | returns   | operation             |
-|-------|-------|-----------|-----------------------|
-| int   | int   | int       | x ^ y                 |
-| int   | float | int       | x ^ y                 |
-| int   | str   | int       | *See below*           |
-| *any* | list  | list      | distributive          |
-| float | int   | int       | ToInteger(x) ^ y      |
+| x     | y     | returns   | operation                   |
+|-------|-------|-----------|-----------------------------|
+| int   | int   | int       | x ^ y                       |
+| int   | float | int       | x ^ y                       |
+| int   | str   | int       | *See below*                 |
+| *any* | list  | list      | distributive                |
+| float | int   | int       | ToInteger(x) ^ y            |
 | float | float | int       | ToInteger(x) ^ ToInteger(y) |
-| float | str   | int       | *See below*           |
-| str   | int   | str       | *See below*           |
-| str   | float | str       | *See below*           |
-| str   | str   | str       | *See below*           |
-| list  | *any* | list      | distributive          |
+| float | str   | int       | *See below*                 |
+| str   | int   | str       | *See below*                 |
+| str   | float | str       | *See below*                 |
+| str   | str   | str       | *See below*                 |
+| list  | *any* | list      | distributive                |
 
 A type error is raised on all other combinations
 
@@ -248,7 +248,7 @@ Also see `SetBit()` and `ClearBit()`
     if isinstance(x, (int, float)): return int(x) ^ (1 << index)
     return x
 
-def poly_test_bit(x: Any, index: int):
+def poly_is_bit_set(x: Any, index: int):
     """
 **Return `True` if the bit at index is one**
 
@@ -266,7 +266,7 @@ Also see `SetBit()`, `ClearBit()`, and `ToggleBit()`
 """
     if x is None: return False
     index = _clamp_bit_param(int_arg(index, "Index"), _MAX_BIT_INDEX)
-    if isinstance(x, list): return list(poly_test_bit(x1, index) for x1 in x)
+    if isinstance(x, list): return list(poly_is_bit_set(x1, index) for x1 in x)
     if isinstance(x, str): x = str_to_number(x)
     if isinstance(x, (int, float)): return ((int(x) >> index) & 1) == 1
     return x
@@ -582,7 +582,7 @@ def poly_extract_bits(x: Any, start: int, width: int) -> Any:
 *start* is the starting bit in value with zero being the least significant bit.
 Values up to 256 bits long are supported.
 
-If a single bit is being extracted, it is better to use `TestBit()`.
+If a single bit is being extracted, it is better to use `IsBitSet()`.
 
 ```vgr
 None.ExtractBits(0, 1) → None
@@ -592,7 +592,7 @@ Ord("123").ExtractBits(3, 4).ToInteger() → [1, 2, 3]
 {"a": 5}.ExtractBits(3, 4) → {"a": 5}
 ```
 
-Also see `SetBits()` and `TestBit()`
+Also see `SetBits()` and `IsBitSet()`
 """
     if x is None: return None
     start = _clamp_bit_param(int_arg(start, "Start"), _MAX_BIT_INDEX)

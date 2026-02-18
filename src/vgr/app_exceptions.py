@@ -106,7 +106,7 @@ class VgrException(Exception):
         if isinstance(e, UnexpectedToken):
             return f"Unexpected value {e.token.value!r}"
         if isinstance(e, UnexpectedCharacters):
-           return f"Unexpected value {self._char_at(e.pos_in_stream)!r}"
+            return f"Unexpected value {self._char_at(e.pos_in_stream)!r}"
         if isinstance(e, UnexpectedEOF):
             return "Unexpected end of input"
         if isinstance(e, UnexpectedInput):

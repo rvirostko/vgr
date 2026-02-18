@@ -240,7 +240,7 @@ None.LastItem() → None
 5.LastItem() → 5
 ```
 
-Also see `Item()` and `FistItem()`
+Also see `Item()` and `FirstItem()`
 """
     if not isinstance(x, list): return x
     return x[-1] if len(x) > 0 else None

@@ -35,7 +35,7 @@ from .bit_ops import (
     poly_rotate_right,
     poly_set_bit,
     poly_set_bits,
-    poly_test_bit,
+    poly_is_bit_set,
     poly_toggle_bit,
 )
 from .checksum import poly_checksum

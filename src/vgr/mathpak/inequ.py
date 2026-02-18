@@ -393,7 +393,7 @@ None.IsBetween() → True
 4.IsBetween(4.0.Succ(), 5.0.Pred()) → False
 ```
 
-Also see `Succ()` and `Pred()`, as well as `LessThan()` and `GreaterThan()` for conversion details
+Also see `Succ()` and `Pred()`, as well as `IsLessThan()` and `IsGreaterThan()` for conversion details
 """
     low, high = (y, z) if poly_lt(y, z) else (z, y)
     # We always want to use x as a base as it influences conversions
@@ -427,7 +427,7 @@ None.Clamp() → None
 4.Clamp(4.0.Succ(), 5.0.Pred()) → 4.000000000000001
 ```
 
-Also see `Succ()` and `Pred()` as well as `LessThan()` and `GreaterThan()` for conversion details
+Also see `Succ()` and `Pred()` as well as `IsLessThan()` and `IsGreaterThan()` for conversion details
 """
     low, high = (y, z) if poly_lt(y, z) else (z, y)
     # We always want to use x as a base as it influences conversions

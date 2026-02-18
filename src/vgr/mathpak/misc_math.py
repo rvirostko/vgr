@@ -49,6 +49,7 @@ None.Ceil() → None
 [7.0, -3, " -2.75 "].Ceil() → [7, -3, -2]
 {"a": 5}.Ceil() → {"a": 5}
 ```
+
 Also see `Floor()` and `Trunc()`
 """
     if x is None: return None

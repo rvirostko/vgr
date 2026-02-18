@@ -377,6 +377,7 @@ def poly_isempty(x: Any) -> bool:
 * *value*.IsEmpty()
 
 A value is considered empty if:
+
 * It is `None`
 * It is a list that has no items
 * It is a dictionary that has no attributes
@@ -415,6 +416,7 @@ def poly_notempty(x: Any) -> bool:
 * *value*.NotEmpty()
 
 A value is considered empty if:
+
 * It is a list that has one or more items
 * It is a dictionary that has one or more attributes
 * It is a string that consists of more than just space characters

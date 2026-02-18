@@ -70,6 +70,7 @@ without entering any information, the contents of *variable* remains
 unchanged. There is no limit on the length of user input, but it is a single line.
 
 Options are
+
 * [With] Echo - this is the default
 * [With] No Echo - no output is generated
 * Secure - typing is masked with asterisks

@@ -218,6 +218,7 @@ character-by-character basis.
 "Foo123".IsAlphaNumeric() → True
 "Foo 123".IsAlphaNumeric() → False
 ```
+
 Also see `IsAlpha()` and `IsNumeric()`
 """
     return _exec_bool_op(x, 'IsAlphaNnumeric', poly_isalnum, str.isalnum)
@@ -780,7 +781,10 @@ Also see `LeftStr()` and `RightStr()`
 _string_loc_ops = {
     (str, str)   : lambda _op, x, y,  sm: sm(x, y),
     (list, str)  : lambda  op, x, y, _sm: [op(x1, y) for x1 in x],
-    (dict, str)  : lambda  op, x, y, _sm: {key: op(value, y) for key, value in x.items() if isinstance(value, (str, list, dict))},
+    (dict, str)  : lambda  op, x, y, _sm: {
+                                            key: op(value, y) for key, value in x.items()
+                                                if isinstance(value, (str, list, dict))
+                                          },
 }
 
 def poly_count(x: Any, sub: Any=None) -> Any:
@@ -950,6 +954,7 @@ None.RFindStr("a") → None
 ["A.b.c", "X.y.z"].RFindStr(".") → [3, 3]
 123.RFindStr("1") → 123
 ```
+
 Also see `FindStr()` and `RIndexOf()`
 """
     if isinstance(x, (NoneType, bool, int, float)): return x

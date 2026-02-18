@@ -114,6 +114,7 @@ Exhibit a b
 a = 15
 b = 3
 ```
+
 ```vgr
 Set fn(a,b) -> a * b
 Exhibit fn
@@ -174,7 +175,8 @@ def execute_reset(ctx: ExecContext, statement: Tree) -> None:
 
 * Reset *option* [, *option*]&hellip; [;]
 
-Where *option* is-
+Where *option* is
+
 * Data - Resets all user set data except for user arguments
   and the settings for Debug, Verbose, and Echo
 * Includes - Clears the list of `@Include` files

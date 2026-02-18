@@ -141,28 +141,32 @@ def execute_sort(ctx: ExecContext, statement: Tree) -> None:
 * Sort [Variable | Var] *variable* _keys_ [_unique_] [_target_] [;]
 * Sort File *file_name* [*file_type*] _keys_ [_unique_] [_target_] [;]
 
-The _keys_ option
+The *keys* option
+
 * &hellip; [On | By] _key_spec_ [, _key_spec_ &hellip;] &hellip;
-* _key_spec_ : [Ascending | Descending] [Key] *expression*
+* *key_spec* : [Ascending | Descending] [Key] *expression*
 * Ascending and Descending may be abbreviated as Asc or Des
 * Ascending is the default ordering
 * When sorting non-dictionary items, no keys are required.
-  The only available key is _line_.
+  The only available key is *line*.
 
-The _unique_ option
+The *unique* option
+
 * &hellip; Unique &hellip;
 * &hellip; Unique On *expression* [, *expression* &hellip;] &hellip;
 * Without a list of keys, uniqueness performed on keys used to perform the sort
 * When sorting non-dictionary items, no keys are required.
-  The only available key is _line_.
+  The only available key is *line*.
 
-The _target_ option
+The *target* option
+
 * &hellip; [Into | Giving] [Variable | Var] *variable* &hellip;
 * &hellip; [Into | Giving] File *file_name* &hellip;
 * &hellip; [Into | Giving] File *file_name* [*file_type*] &hellip;
 * If omitted, sort is performed in-place
 
 The *file_type* option
+
 * &hellip; As *file_type* &hellip; where *file_type* is:\\
   &emsp;JSON or JSON Object (an array of objects)\\
   &emsp;JSON Object Per Line (each line is an object)\\

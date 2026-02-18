@@ -11,6 +11,7 @@ import os
 import re
 import shutil
 import sys
+import time
 
 from lark import Tree
 
@@ -308,7 +309,6 @@ def add_dd_constants(dd: DataDictionary, prefix: str) -> None:
     dd.set_var(json.loads(VgrExtension.read_resource_text(__package__, 'spinners.json')), prefix, 'spinner')
     dd.set_var('https://github.com/sindresorhus/cli-spinners/blob/main/spinners.json', prefix, 'spinners_source')
 
-import time
 def _print(*args: Any, flush: bool= False, sleep: float= 0.0, **kwargs: Any) -> None:
     """
     Print to the terminal, optionally flushing and sleeping after flush.
@@ -831,13 +831,13 @@ _Scrolling Commands_
 
 _Options Commands_
 
-* S7C1 [_on_off_] - Change between 7 and 8-bit control sequences
-* S8C1 [_on_off_] - Change between 7 and 8-bit control sequences
+* S7C1 [*on_off*] - Change between 7 and 8-bit control sequences
+* S8C1 [*on_off*] - Change between 7 and 8-bit control sequences
 * DECSCNM [expr] - Switch between normal and reverse mode
-* SmoothScroll [_on_off_] - Turn smooth scrolling on/off
-* OriginMode [_on_off_] - Turn origin mode on/off
-* AutoWrap [_on_off_] - Turn auto wrap on/off
-* InsertMode [_on_off_] - Toggle between insert and overwrite mode
+* SmoothScroll [*on_off*] - Turn smooth scrolling on/off
+* OriginMode [*on_off*] - Turn origin mode on/off
+* AutoWrap [*on_off*] - Turn auto wrap on/off
+* InsertMode [*on_off*] - Toggle between insert and overwrite mode
 * SoftReset - Perform a sort reset on the terminal's settings
 * HardReset - Perform a hard reset on the terminal's settings
 * AlignmentTest - Display an alignment test pattern
@@ -869,26 +869,26 @@ _Sending Control Characters_
 * SP - 0x20 (Space)
 * DEL - 0x7F (Delete)
 
-_Colors and Attrribute Commands_
+*Colors and Attrribute Commands*
 
 * Reset - Reset the colors and attributes
 * Style *style* - Intepret *style* as colors and attributes
-* Bold [_on_off_] - Turn bold on/off
-* Dim [_on_off_] - Turn dim on/off
-* Blink [_on_off_] - Turn blink on/off
-* [Italic | Italics] [_on_off_] - Turn italics on/off
-* [Underline | UL] [_on_off_] - Turn underline on/off
-* [Foreground | FG] [_color_] - Set the foreground color
-* [Background | BG] [_color_] - Set the background color
-* [Reverse | Rev] [_on_off_] - Turn reverse on/off
-* [Hidden | Hide] [_on_off_] - Turn hidden text on/off
-* [Strikethrough | Strikethru | Strikeout ] [_on_off_] - Turn strikethrough text on/off
-* [Double | Wide] [_on_off_] - Change between double and single wide characters
-* Single [_on_off_] - Change between double and single wide characters
-* HighTop [_on_off_] - change the double-high setting of the cursor's line
-* HighBottom | HighBot [_on_off_] - change the double-high setting of the cursor's line
+* Bold [*on_off*] - Turn bold on/off
+* Dim [*on_off*] - Turn dim on/off
+* Blink [*on_off*] - Turn blink on/off
+* [Italic | Italics] [*on_off*] - Turn italics on/off
+* [Underline | UL] [*on_off*] - Turn underline on/off
+* [Foreground | FG] [*color*] - Set the foreground color
+* [Background | BG] [*color*] - Set the background color
+* [Reverse | Rev] [*on_off*] - Turn reverse on/off
+* [Hidden | Hide] [*on_off*] - Turn hidden text on/off
+* [Strikethrough | Strikethru | Strikeout ] [*on_off*] - Turn strikethrough text on/off
+* [Double | Wide] [*on_off*] - Change between double and single wide characters
+* Single [*on_off*] - Change between double and single wide characters
+* HighTop [*on_off*] - change the double-high setting of the cursor's line
+* HighBottom | HighBot [*on_off*] - change the double-high setting of the cursor's line
 
-_Box and Line Drawing Commands_
+*Box and Line Drawing Commands*
 
 * [DrawBox | Box] [*style*,] *height*, *width*
 * [DrawHLine | HLine] [*style*,] *length*
