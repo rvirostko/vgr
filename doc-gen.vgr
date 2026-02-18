@@ -38,11 +38,13 @@ Tron
 // Documentation examples go here
 //-----------------------------------------------------------------------------
 
-Print None.SetBits(1, 0, 1)
-Print 0xEE55.SetBits(0, 15, 8).ToHex()
-Print 0xEE55.SetBits(255, 7, 8).ToHex()
-Print Ord("ABC").SetBits(3, 6, 2).Chr().Repr()
-Print {"a": 5}.SetBits(31, 5, 4).Repr()
+Print None.IsFinite().Repr()
+Print math.inf.IsFinite().Repr()
+Print " 0 ".IsFinite().Repr()
+Print 0.IsFinite().Repr()
+Print 1.0.IsFinite().Repr()
+Print True.IsFinite().Repr()
+Print False.IsFinite().Repr()
 
 //-----------------------------------------------------------------------------
 Troff

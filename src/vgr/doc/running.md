@@ -1,7 +1,6 @@
-
 ## Running VGR Scripts
 
-There are multiple ways VGR:
+There are multiple ways VGR scripts and commands.
 
 ### Statements on the command line
 
@@ -48,7 +47,7 @@ Hello World
 ### Statements from stdin
 
 ```Bash
-$cat set_vars.txt hello.txt | vgr
+echo 'Set h to "Hello"; Set w to "World"; Print h, w' | vgr
 Hello World
 ```
 
@@ -64,7 +63,7 @@ EOF
 
 ### Interactively: the REPL
 
-```Text
+```vgr
 vgr
 Type **exit** to exit
 vgr> Set h to "Hello"

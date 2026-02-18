@@ -13,13 +13,13 @@ There are three statements that change the behavior of subsequent statements.
 These statements take an optional expression which is evaluated as a boolean. If no expression is provided, the control is turned on.
 
 ```vgr
-vgr> Echo; Verbose;
+Echo; Verbose;
 Verbose;
 Verbose = True
-vgr> Print vgr.echo, vgr.verbose
+Print vgr.echo, vgr.verbose
 Print vgr.echo, vgr.verbose
 True True
-vgr> Verbose False; Echo 0;
+Verbose False; Echo 0;
 Verbose False;
 ```
 
@@ -30,10 +30,11 @@ Exit terminates the application unconditionally, while Assert does so only if a 
 * `Exit` : terminate with a zero return code
 * `Exit expression` : terminate with the exit code given by the expression. Non-numeric results are turned into booleans using Python's "trutiness" rules.
 
-```vgr
-./vgr.py -e "Exit" && echo "Exited"
+```Bash
+vgr --execute "Exit" && echo "Exited"
 Exited
-./vgr.py -e "Exit 17" || echo $?
+
+vgr --execute "Exit 17" || echo $?
 17
 ```
 
@@ -42,18 +43,16 @@ Exited
 * `Assert expression : message...` : This acts like _if not this, then printf the message and exit_. We'll demonstrate.
 
 ```vgr
-vgr> Set Limit to Inf
-vgr> Assert Limit Less Than (64 * 1024)
+Set Limit to Inf
+Assert Limit Less Than (64 * 1024)
 Line 1: Assert Limit Less Than (64 * 1024) failed
-$ echo $?
-1
 ```
 
 With a message you can customize the output
 
 ```vgr
-vgr> Set Limit to Inf
-vgr> Assert Limit Less Than (64 * 1024) : "The Limit was set to {}, which is too high!", Limit
+Set Limit to Inf
+Assert Limit Less Than (64 * 1024) : "The Limit was set to {}, which is too high!", Limit
 Line 1: The Limit was set to inf, which is too high!
 ```
 
@@ -99,7 +98,7 @@ When VGR exits, all opened files are closed automatically.
 
 After you've generated output files from statements, you can use VGR to create a ZIP file. The syntax is similar to `Open`, but you do need to specify what will be added to the file.
 
-```Text
+```vgr
 Create ZIP expression options...
 ```
 
@@ -132,13 +131,12 @@ If none of the `Include` patterns match, or if an `Exclude` removes everything, 
 >
 > Let's handle that "someday" in the comment...
 >
-> ```Text
+> ```vgr
 >  Comment "Report created by " + os.login;
 > ```
 >
 > Don't forget that there are predefined variables with information that you can
 > access: use `Exhibit` to see what's available!
-
 
 ### `SetVar()`
 
@@ -147,20 +145,18 @@ If none of the `Include` patterns match, or if an `Exclude` removes everything, 
 The argument is also different: it's not an expression, but a variable name, just like in a `Set` statement.
 
 ```vgr
-vgr> Set email To "robert@SAMPLE.com"
-vgr> Print email.Split("@").SetVar(split_email)
+Set email To "robert@SAMPLE.com"
+Print email.Split("@").SetVar(split_email)
       .Item(0).TitleCase()
       + "@" +
       split_email.Item(1).Lower()
 Robert@sample.com
 ```
 
-
 ## Comments
 
-True to its polyglot nature, three different commenting styles are available and may be freely intermixed.
+Three different commenting styles are available and may be freely intermixed.
 
-* SQL Style : Comments start with `--`
 * Shell Style : Comments start with `#`
 * 'C', Java, et al Style : Comments start with `//` or blocks between `/*` and `*/`
 

@@ -11,27 +11,27 @@ VGR has a hierarchical, global data model, viewed as variables. Some variables a
 
 Variables are case sensitive.
 
-```Text
-vgr> set Five to 5
-vgr> set five to 6
-vgr> print Five, five, FIVE
+```vgr
+Set Five To 5
+Set five To 6
+Print Five, five, FIVE
 5 6 None
 ```
 
 Variable names are hierachical.
 
-```Text
-vgr> set data.Five to 5
-vgr> set data.Six to 6
-vgr> print data
+```vgr
+Set data.Five To 5
+Set data.Six To 6
+Print data
 {'Five': 5, 'Six': 6}
 ```
 
 Note that you didn't need to create `data` first, and the same goes for deeper hierarchies.
 
-```Text
-vgr> set this.is.several.layers.deep = 5
-vgr> print this
+```vgr
+Set this.is.several.layers.deep = 5
+Print this
 {'is': {'several': {'layers': {'deep': 5}}}}
 ```
 
@@ -39,17 +39,17 @@ Print displays these variable paths as a Python dictionary, which is mostly inte
 
 Steps in a variable path can be expressed in _snake_ or _kabab_ case.
 
-```Text
-vgr> set _this.is-several.layers_._deep_ = 5
-vgr> print _this.is-several.layers_._deep_
+```vgr
+Set _this.is-several.layers_._deep_ = 5
+Print _this.is-several.layers_._deep_
 5
 ```
 
 Steps in the variable path can contain ASCII alphanumeric characters, and the dash or underscore characters. They can start with an underscore, but not a dash:
 
-```Text
-vgr> Set _valid = 0
-vgr> Set -not-valid = 0
+```vgr
+Set _valid = 0
+Set -not-valid = 0
 Set -not-valid = 0
     ^
 Unexpected input at line 1, column 5.
@@ -60,19 +60,21 @@ Expected NAME.
 
 The Unset statment is used to remove variables.
 
-```Text
-vgr> set data.Five to 5
-vgr> set data.Six to 6
-vgr> print data
+```vgr
+Set data.Five To 5
+Set data.Six To 6
+Print data
 {'Five': 5, 'Six': 6}
-vgr> unset data.Five
-vgr> print data
+
+Unset data.Five
+Print data
 {'Six': 6}
-vgr> unset data.Six
-vgr> print data
+Unset data.Six
+Print data
 {}
-vgr> unset data
-vgr> print data
+
+Unset data
+Print data
 None
 ```
 
@@ -82,12 +84,12 @@ If you ask to remove a variable that doesn't exist, or part of its path do not e
 
 Besides obvious things like keywords in the language, there are some names that look like variables but aren't. These are `None`, `Null`, `Inf`, `Nan`, `True`, and `False`. These are used in expressions, but can't be used in variables.
 
-```Text
-vgr> set True to False
-Error :  Invalid path: True contains reserved values
-vgr> Set my.inf = -1
-Error :  Invalid path: my.inf contains reserved values
-vgr> Set my._inf = -1
+```vgr
+Set True To False
+Error : Invalid path: True contains reserved values
+Set my.inf = -1
+Error : Invalid path: my.inf contains reserved values
+Set my._inf = -1
 ```
 
 ### Examining Variables
@@ -98,10 +100,10 @@ As shown earlier, the most common way looking at the contents of variables is `P
 
 `Print` works much like AWK's print command. You can print any number of variables or expressions separated by commas.
 
-```Text
-vgr> Set h to "Hello"
-vgr> Set w to "World"
-vgr> Print h, w
+```vgr
+Set h To "Hello"
+Set w To "World"
+Print h, w
 Hello World
 ```
 
@@ -109,16 +111,16 @@ Invoking `Print` without argument will just create a blank line... but not alway
 
 ```Bash
 export OFS=" | "
-vgr -e 'Set a to 5; Set b to 6; Print a, b'
+vgr --execute 'Set a to 5; Set b to 6; Print a, b'
 5 | 6
 ```
 
 Or you can change them at runtime:
 
-```Text
-vgr> Set env.OFS = " | "
-vgr> Set env.ORS = " |\n"
-vgr> Print "Hello", "World"
+```vgr
+Set env.OFS = " | "
+Set env.ORS = " |\n"
+Print "Hello", "World"
 Hello | World |
  ```
 
@@ -130,12 +132,13 @@ If you set either separators to an empty string or to `None` the default values 
 
 `Printf` uses [Python's str.format()](https://docs.python.org/3/library/string.html#formatstrings) to format data. The first argument is the format string, which may require additional expression depending upon its contents.
 
-```Text
-vgr> Set h to "Hello"
-vgr> Set w to "World"
-vgr> Printf "{} {}!\n", h, w
+```vgr
+Set h To "Hello"
+Set w To "World"
+Printf "{} {}!\n", h, w
 Hello World!
-vgr> Printf "{1}, {0}?\n", w, h
+
+Printf "{1}, {0}?\n", w, h
 Hello, World?
 ```
 
@@ -145,19 +148,20 @@ Hello, World?
 
 `Exhibit` is inspired by COBOL and displays information about variables. When looking at a single value, there is little difference from using `Print`:
 
-```Text
-vgr> Print h
+```vgr
+Print h
 Hello
-vgr> Exhibit h
+Exhibit h
 h = 'Hello'
 ```
 
 You can see a bigger difference when printing variables that are dictionaries:
 
-```Text
+```vgr
 Print math
 {'pi': 3.141592653589793, 'e': 2.718281828459045, 'tau': 6.283185307179586, 'inf': inf, 'nan': nan, 'neg_inf': -inf, 'float': {'max': 1.7976931348623157e+308, 'min': 2.2250738585072014e-308}, 'random': 0.8042746395530653, 'random100': 97}
-vgr> Exhibit math
+
+Exhibit math
 math.e = 2.718281828459045
 math.float.max = 1.7976931348623157e+308
 math.float.min = 2.2250738585072014e-308
