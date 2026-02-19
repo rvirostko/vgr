@@ -7,103 +7,33 @@ fi
 
 PROJECT_ROOT=$(pwd)
 
-OUTPUT_DIR="${PROJECT_ROOT}/dist"
-# Ensure output directory exists and is empty
-rm -rf "$OUTPUT_DIR"
-mkdir -p "$OUTPUT_DIR"
-
 if [[ -z "${VIRTUAL_ENV:-}" ]]; then
     echo "Run: source scripts/dev-setup" >&2
     exit 1
 fi
 
+OUTPUT_DIR="${PROJECT_ROOT}/dist"
+BUILD_DIR="${PROJECT_ROOT}/build"
+# Ensure output directories exists and are empty
+rm -rf "$OUTPUT_DIR" "$BUILD_DIR"
+mkdir -p "$OUTPUT_DIR"
+
 # Upgrade build tools
-pip install --upgrade pip setuptools wheel build
+pip install --quiet --upgrade pip setuptools wheel build
 
 # Build the wheel
-python3 -m build
+python3 -m build --quiet --wheel --outdir "$OUTPUT_DIR"
+rm -rf "$BUILD_DIR"
 
 WHEEL_FILE=$(ls -t "$OUTPUT_DIR"/*.whl | head -n1)
-echo "Created wheel $WHEEL_FILE"
-
-## Use the wheel to build a pyz with all the dependencies
-
-ENTRY_POINT=$(python3 - <<'EOF'
-try:
-    import tomllib as tomli  # Python 3.11+
-except ImportError:
-    import tomli  # fallback for older versions
-with open("pyproject.toml","rb") as f:
-    data = tomli.load(f)
-print(data["project"]["scripts"]["vgr"])
-EOF
-)
-echo "Entry point: $ENTRY_POINT"
-
-VERSION=$(python3 - <<'EOF'
-try:
-    import tomllib as tomli  # Python 3.11+
-except ImportError:
-    import tomli  # fallback for older versions
-with open("pyproject.toml","rb") as f:
-    data = tomli.load(f)
-print(data["project"]["version"])
-EOF
-)
-echo "Version: $VERSION"
-
-PYZ_NAME="vgr-${VERSION}.pyz"
-
-# Create temp build dir
-BUILD_DIR=$(mktemp -d)
-
-# Install dependencies there
-pip install -r "${PROJECT_ROOT}/requirements.txt" -t "$BUILD_DIR"
-
-# Remove __pycache__, tests, .dist-info directories which aren't needed
-find "$BUILD_DIR" \
-    -type d \
-    -name "tests" -or \
-    -name "__pycache__" -or \
-    -name "*.dist-info" \
-    -exec rm -rf {} +
-
-# Unpack wheel into build dir: includes source and resources
-unzip -q "$WHEEL_FILE" -d "$BUILD_DIR"
-
-# Build the pyz
-PYZ_PATH="$OUTPUT_DIR/$PYZ_NAME"
-echo "Building $PYZ_PATH..."
-python -m zipapp "$BUILD_DIR" \
-    --compress \
-    --output="$PYZ_PATH" \
-    --main="$ENTRY_POINT"
-
-# Create *nix wrapper for pyz
-SH_WRAPPER="$OUTPUT_DIR/vgr"
-echo "#!/bin/sh
-for cmd in python3.12 python3.11 python3.10 python3.9 python3.8 python3 python; do
-  if command -v \"\$cmd\" >/dev/null 2>&1; then
-    exec \"\$cmd\" \"\$(dirname \"\$0\")/$PYZ_NAME\" \"\$@\"
-  fi
-done
-echo \"Error: No suitable Python interpreter found\" >&2
-exit 1" > "$SH_WRAPPER"
-chmod u+x "$SH_WRAPPER"
-
-# Create Windows wrapper for pyz
-BAT_WRAPPER="$OUTPUT_DIR/vgr.bat"
-echo "@echo off
-python3 \"%~dp0\\$PYZ_NAME\" %*" > "$BAT_WRAPPER"
+VERSION=$(echo "$WHEEL_FILE" | sed -E 's@.+vgr-([0-9]+\.[0-9]+\.[0-9]+)-.+@\1@')
 
 # Zip up the samples
 SAMPLES_DIR="samples"
-SAMPLES_ZIP="$OUTPUT_DIR/vgr-samples.zip"
-echo "Building $SAMPLES_ZIP..."
+SAMPLES_ZIP="$OUTPUT_DIR/vgr-${VERSION}-samples.zip"
 cd "$SAMPLES_DIR"
-zip -r "$SAMPLES_ZIP" ./*
+zip -q -r "$SAMPLES_ZIP" ./*
 cd - >/dev/null
 
-# Clean up
-rm -rf "$BUILD_DIR"
-rm -rf .eggs *.egg-info src/*.egg-info
+# Copy over the wheel installer script
+cp "scripts/install-vgr" "$OUTPUT_DIR"
