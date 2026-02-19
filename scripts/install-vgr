@@ -15,9 +15,9 @@ With no version specified, installs the newest wheel matching:
   vgr-<x>.<y>.<z>-*.whl
 
 Options:
-  -g, --global        Install into the current Python environment
-  -r, --reinstall     Force reinstall (pip --force-reinstall)
-  -h, --help          Show help
+  --global        Install into the current Python environment
+  --reinstall     Force reinstall (pip --force-reinstall)
+  -h, --help      Show help
 EOF
 }
 
