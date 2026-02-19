@@ -95,7 +95,11 @@ class VGRCmdLine(CmdLine):
         }
 
     def run(self):
-        print_md('_Type **exit** to exit_')
+        if self._ctx.verbose:
+            print_md(f"PWD={os.getcwd()}")
+        else:
+            print_md(f"\n`VGR {__version__} ({__version_date__})`")
+        print_md('_Type **help** for more information_')
         return super().run()
 
     def execute_statements(self, text: str) -> bool:
@@ -277,7 +281,7 @@ def load_extensions(dd: DataDictionary, verbose: bool) -> VgrExtensionRegistry:
                 STATEMENT_HANDLERS[name] = handler
         for func_name, func in extn.functions().items():
             add_function(extn_name, func_name, func)
-    dd.set_var(extns, *('vgr', 'extensions'))
+    dd.set_var(list(list(extn) for extn in extns), *('vgr', 'extensions'))
     return VER
 
 def create_parser(extn_registry: VgrExtensionRegistry, debug: bool, verbose: bool) -> Lark:
