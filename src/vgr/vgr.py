@@ -15,7 +15,10 @@ from .app_exceptions import (
     VgrExitingException,
     VgrStatementAssert,
 )
-from .auto_doc import gen_auto_docs
+from .auto_doc import (
+    gen_auto_docs,
+    read_doc_file,
+)
 from .data_dict import DataDictionary
 from .dd_config import (
     dd_init,
@@ -80,18 +83,27 @@ class VGRCmdLine(CmdLine):
         self._history_filename = self._get_vgr_default('history', self._DEFAULT_HISTORY)
         self._max_history_entries = self._get_vgr_default('history_size', CmdLine._DEFAULT_HISTORY_SIZE)
         super().__init__()
+        self._heading_re = re.compile(r'^(#+)\s+(.*)$', re.MULTILINE)
+        self._anchor_link_re = re.compile(r'\[([^\]]+)\]\(#([^)]+)\)')
+        self._html_anchor_re = re.compile(r'<a\s+id="[^"]+"></a>', re.IGNORECASE)
+        self._collapse_newlines_re = re.compile(r'\n{2,}')
+        func_key = ("function", "func",)
+        op_key = ("operator", "ops", "op",)
+        stmt_key = ("statement", "stmt",)
         self._help_topics = {
-            ("cd",):               lambda _topic, _q: print_doc(self._exec_cd),
-            ("function",):         self._print_function_help,
-            ("help", "topics", "?", "/h", "/?") : lambda _topic, _q: print_doc(self._exec_help),
-            ("history",):          lambda _topic, _q: print_doc(self._exec_history),
-            ("multiline",):        lambda _topic, _q: print_doc(self._exec_multiline),
-            ("operator", "ops", "op"):  self._print_operator_help,
-            ("prompt",):           lambda _topic, _q: print_doc(self._exec_prompt),
-            ("pwd",):              lambda _topic, _q: print_doc(self._exec_pwd),
-            ("shell",):            lambda _topic, _q: print_doc(self._exec_subshell),
-            ("statement", "stmt"): self._print_statement_help,
-            ("version", "ver"):    self._print_version,
+            func_key:                  self._print_function_help,
+            ("help", "topics", "?",) : lambda _topic, _q: print_doc(self._exec_help),
+            op_key:                    self._print_operator_help,
+            ("repl",):                 self._print_repl_help,
+            stmt_key:                  self._print_statement_help,
+            ("running",):              self._print_running_help,
+            ("variables",):            self._print_variables_help,
+            ("list",):                 self._print_type_list,
+        }
+        self._list_topics = {
+            func_key:  self._list_functions,
+            op_key:    self._list_operators,
+            stmt_key:  self._list_statements,
         }
 
     def run(self):
@@ -131,37 +143,26 @@ class VGRCmdLine(CmdLine):
         """Look for a matching environment variable (uppercase) and return it or the default value"""
         return os.getenv('VGR_' + env_var.upper(), default)
 
-# TODO we can start to carve up the READ-ME into parts to add to
-# language topics.
-
-# TODO "help function(s)" should display info from doc (as with others)
     def _exec_help(self, *args) -> None:
         """
-**Language Topics**
+**Help Topics**
 
-* **function** : Search functions for help
-* **operator** : Search operators for help
-* **statement** : Search statements for help
+* **functions** : Show help on using functions or search for one by name
+* **list [functions | statements | operators]** : List the names of the available items
+* **operators** : Show help on using operators or search for one by name
+* **repl** : Show help on using the REPL
+* **running** : How to run VGR
+* **statements** : Show help on using statements or search for one by name
+* **variables** : Using variables in VGR
 
-If no value is provided with **function**, **operator**, or **statement**, a list
-of the associated items is displayed.
+If no value is provided with **function**, **operator**, or **statement**,
+some general information is displayed.
 
 **help** used with any other value searches through
 language features looking for an exact match.
 
-For example **help Add** with return informtion for `Add()` while
+For example **help Add** will return informtion for `Add()` while
 **help statement Add** is required to get information for the like-named statement.
-
-**REPL Topics**
-
-* **cd** : Change the current working directory
-* **history** : Display or control command line history
-* **multiline** : Turn on multiline editing mode
-* **prompt** : Define the input input prompt
-* **pwd** : Print the current working directory
-* **shell** : Work with the OS sub-shell
-* **topics** : What help topics are available
-* **version** : Print version informtion
 
 """
         if len(args) < 1:
@@ -177,12 +178,14 @@ For example **help Add** with return informtion for `Add()` while
         for key in sorted(self._help_topics.keys()):
             for topic_key in key:
                 # short topics need to be an exact match, longer ones can be fuzzy
-                if topic_key == topic  if len(topic) <= 4 else ratio(topic_key, topic) >= 70.0:
+                if self._fuzzy_match(topic_key, topic):
                     self._help_topics[key](topic, q)
                     return
         self._default_help_action(topic, q)
 
-    # TODO need a 'repl' that displays the info from above
+    def _fuzzy_match(self, key: str, s: str) -> bool:
+        # short items need to be an exact match, longer ones can be fuzzy
+        return key == s  if len(s) <= 4 else ratio(key, s) >= 70.0
 
     def _default_help_action(self, topic: str, q: str) -> None:
         # If no explicit topic that matches, then see what we can find
@@ -204,20 +207,61 @@ For example **help Add** with return informtion for `Add()` while
                     print_md('_Use **help topics** to list topics_')
                     print()
 
+    def _md_fixup(self, text: str) -> str:
+        text = self._anchor_link_re.sub(r'`\1`', text)
+        text = self._html_anchor_re.sub('', text)
+        text = self._heading_re.sub(lambda m: f"**{m.group(2).strip()}**", text)
+        return self._collapse_newlines_re.sub('\n\n', text)
+
+    def _print_md_doc(self, filename: str) -> None:
+        print()
+        print_md(self._md_fixup(read_doc_file(filename)))
+        print()
+
+    def _print_running_help(self, _topic: str, _q: str) -> None:
+        self._print_md_doc("running.md")
+
+    def _print_variables_help(self, _topic: str, _q: str) -> None:
+        self._print_md_doc("variables.md")
+
+    def _print_type_list(self, _topic: str, q: str) -> None:
+        sub_topic = q
+        for key in sorted(self._list_topics.keys()):
+            for list_key in key:
+                if self._fuzzy_match(list_key, sub_topic):
+                    self._list_topics[key]()
+                    return
+        self._default_help_action('', q)
+
+    def _print_repl_help(self, _topic: str, _q: str) -> None:
+        self._print_md_doc("repl.md")
+
     def _print_statement_help(self, _topic: str, q: str) -> None:
-        results = self._get_statement_help(q) if q else self._all_help(get_statement_entries())
-        self._display_statement_help(q, results)
+        if q:
+            self._display_statement_help(q, self._get_statement_help(q))
+        else:
+            self._print_md_doc("statements.md")
+
+    def _list_statements(self) -> None:
+        self._display_statement_help(None, self._all_help(get_statement_entries()))
 
     def _print_function_help(self, _topic: str, q: str) -> None:
-        results = self._get_function_help(q) if q else self._all_help(get_function_entries())
-        self._display_function_help(q, results)
+        if q:
+            self._display_function_help(q, self._get_function_help(q))
+        else:
+            self._print_md_doc("functions.md")
+
+    def _list_functions(self) -> None:
+        self._display_function_help(None, self._all_help(get_function_entries()))
 
     def _print_operator_help(self, _topic: str, q: str) -> None:
-        results = self._get_operator_help(q) if q else self._all_help(get_operator_entries())
-        self._display_operator_help(q, results)
+        if q:
+            self._display_operator_help(q, self._get_operator_help(q))
+        else:
+            self._print_md_doc("operators.md")
 
-    def _print_version(self, _topic: str, _q: str) -> None:
-        print_md(f'**{__version__} {__version_date__}**')
+    def _list_operators(self) -> None:
+        self._display_operator_help(None, self._all_help(get_operator_entries()))
 
     def _all_help(self, entries: list) -> list:
         return unique_by_func([(name, entries[name][0]) for name in sorted(entries.keys())])

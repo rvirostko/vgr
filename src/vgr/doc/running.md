@@ -1,17 +1,18 @@
 ## Running VGR Scripts
 
-There are multiple ways VGR scripts and commands.
+There are multiple ways VGR scripts and commands, from statements stored in
+files or interactively in the [REPL](#chapter-repl).
 
 ### Statements on the command line
 
-```Bash
+```shell
 vgr --execute 'Print "Hello World"'
 Hello World
 ```
 
 Multiple statements can be specified using semicolons:
 
-```Bash
+```shell
 vgr --execute 'Set h To "Hello"; Set w To "World"; Print h, w'
 Hello World
 ```
@@ -20,18 +21,18 @@ While semi-colons between statements are generally optional, they should be used
 
 ### Statements stored in a file
 
-```Bash
-echo 'Print "Hello World"'>hello.txt
-vgr --file hello.txt
+```shell
+echo 'Print "Hello World"'>hello.vgr
+vgr --file hello.vgr
 Hello World
 ```
 
 Multiple files can be run, with the internal variables and environment shared between them:
 
-```Bash
-echo 'Set h to "Hello"; Set w to "World"' > set_vars.txt
-echo 'Print h, w' > hello.txt
-vgr --file set_vars.txt --file hello.txt
+```shell
+echo 'Set h to "Hello"; Set w to "World"' > set_vars.vgr
+echo 'Print h, w' > hello.vgr
+vgr --file set_vars.vgr --file hello.vgr
 Hello World
 ```
 
@@ -39,21 +40,21 @@ There is also a `--include` option which works similarly to `--file` but prevent
 
 Additionally, the settings of variables can be passed in directly, but quotes must be escaped when setting string variables.
 
-```Bash
+```shell
 vgr --assign h=\"Hello\" --assign w=\"World\" --execute "Print h, w"
 Hello World
 ```
 
 ### Statements from stdin
 
-```Bash
+```shell
 echo 'Set h to "Hello"; Set w to "World"; Print h, w' | vgr
 Hello World
 ```
 
 ### Using 'Here' documents
 
-```Bash
+```shell
 vgr <<EOF || echo "FAILED"
 Set h to "Hello"
 Set w to "World"
@@ -64,8 +65,6 @@ EOF
 ### Interactively: the REPL
 
 ```vgr
-vgr
-Type **exit** to exit
 vgr> Set h to "Hello"
 vgr> Set w to "World"
 vgr> Print h, w
@@ -73,7 +72,7 @@ Hello World
 vgr>
 ```
 
-The REPL supports history, using `Ctrl-R` and the up and down arrows, as well as some basic file commands and a help system. Just type `help` to get more details.
+The REPL supports history, using `Ctrl-R` and the up and down arrows, as well as some basic file commands and a help system. Just type `help repl` to get more details.
 
 For more details on the command line options, use the `--help` option to get full, up-to-date details.
 

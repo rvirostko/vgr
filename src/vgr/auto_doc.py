@@ -32,8 +32,10 @@ def gen_auto_docs() -> None:
         _write_operators(f)
         _write_functions(f)
 
+# TODO need to expand links in copy doc
+
 def _write_cover_page(f) -> None:
-    f.write(_read_doc_file("cover_pg.md").format(__version__=__version__, __version_date__=__version_date__))
+    f.write(read_doc_file("cover_pg.md").format(__version__=__version__, __version_date__=__version_date__))
 
 def _write_toc(f) -> None:
     _write_page_break(f)
@@ -120,7 +122,7 @@ def _write_all_doc(f, entries: dict, anchor_prefix: str, is_function: bool=False
             f.write("See " + _link(f'`{primary_name}`', _anchor_for(primary_name)))
         f.write('\n</div>\n')
 
-def _read_doc_file(src_filename: str) -> str:
+def read_doc_file(src_filename: str) -> str:
     module_path = Path(__file__).resolve()
     src_file = Path(module_path.parent / "doc" / src_filename)
     if src_file.is_file():
@@ -130,7 +132,7 @@ def _read_doc_file(src_filename: str) -> str:
     return ''
 
 def _copy_doc_file(src_filename: str, output) -> None:
-    output.write(_read_doc_file(src_filename))
+    output.write(read_doc_file(src_filename))
 
 def _anchor_for(text: str) -> str:
     if text.endswith("()"): return "function-" + text[:-2].casefold()

@@ -144,15 +144,6 @@ class CmdLine:
         self._dispatch[cmd] = func
 
     def _exec_cd(self, *args) -> None:
-        """
-**REPL: Change the current working directory**
-
-* **cd** : changes to the user's home directory
-* **cd *dir*** : changes to the given directory
-
-Execution of statements are sandboxed to the current directory, so if you
-need to change location after starting a session you can use this command.
-"""
         values = self._parse(self._CD_PARSER, *args)
         if values is not None:
             path = os.path.abspath(os.path.expanduser(values.path))
@@ -165,22 +156,10 @@ need to change location after starting a session you can use this command.
                 print('You do not have permission to access', path)
 
     def _exec_pwd(self, *args) -> None:
-        """
-**REPL: Print the current working directory**
-
-* **pwd** : prints the name of the current directory
-"""
         values = self._parse(self._NO_ARGS_PARSER, *args)
         if values is not None: print(os.getcwd())
 
     def _exec_history(self, *args):
-        """
-**REPL: Command History**
-
-* **history** : display recent history
-* **history --clear** : clear history
-* **history --max *n*** : set the maximum commands saved
-"""
         values = self._parse(self._HISTORY_PARSER, *args)
         if values is not None:
             if all(value is None for value in vars(values).values()):
@@ -197,16 +176,6 @@ need to change location after starting a session you can use this command.
                     self.print_verbose('History max entries =', values.max)
 
     def _exec_multiline(self, *args):
-        """
-**REPL: Multiline Editing Mode**
-
-* **multiline** : display the current setting
-* **multiline [True | False]** : set multiline editing mode
-
-When multiline editing mode is on, you can create multiple line statements to be executed;
-Return starts a new line rather than executing the command.
-To execute commands in multiline editing mode, use **META-Return** instead.
-"""
         values = self._parse(self._MULTILINE_PARSER, *args)
         if values is not None:
             if values.multiline is not None: self.multiline = values.multiline
@@ -214,28 +183,6 @@ To execute commands in multiline editing mode, use **META-Return** instead.
             if self.multiline: print('Use Meta-Return to execute commands')
 
     def _exec_prompt(self, *args):
-        r"""
-**REPL: Change the Prompt**
-
-* **prompt** : print the template used to generate the interactive prompt
-* **prompt *template*** : set the prompt to the template
-
-The template supports a limited set of values that are defined by the
-Bash Shell:
-
-* **\d** - the date
-* **\e** - the escape character
-* **\h** - host name, short
-* **\H** - host name, full
-* **\n** - a new line
-* **\t** - the time
-* **\u** - user name
-* **\w** - current directory
-* **\W** - current directory, name only
-
-On start up, the prompt template comes from **VGR_PROMPT** in the environment.
-Changes made at runtime are not persistent.
-"""
         values = self._parse(self._PROMPT_PARSER, *args)
         if values is not None:
             if values.template is None:
@@ -245,14 +192,6 @@ Changes made at runtime are not persistent.
                 self.print_verbose(f'Prompt changed to {self.prompt!r}')
 
     def _exec_subshell(self, *args) -> None:
-        """
-**REPL: Open an OS sub-shell**
-
-* **shell** : open an interactive sub-shell
-* **shell** *command* [*arg*]&hellip;: run the command in a sub-shell
-
-You can use **!** as an alias for **shell**
-"""
         if os.name == "nt":
             ps_env = any(var.endswith("PSModulePath") for var in os.environ)
             ps = which("powershell.exe")
