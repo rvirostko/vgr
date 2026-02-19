@@ -106,6 +106,21 @@ if [ "$OKAY" -eq 1 ]; then
     unset NO_COLOR
 fi
 
+add_to_path() {
+    local dir="$1"
+    # Expand ~ to $HOME
+    dir="${dir/#\~/$HOME}"
+    # Only add if not already in PATH
+    case ":$PATH:" in
+        *":$dir:"*) return ;;  # already in PATH
+    esac
+    PATH="$dir:$PATH"
+}
+
 if [ "$OKAY" -eq 1 ]; then
-    echo "Use: python3 -m vgr"
+    add_to_path "$(pwd)/scripts"
+fi
+
+if [ "$OKAY" -eq 1 ]; then
+    vgr --version
 fi
