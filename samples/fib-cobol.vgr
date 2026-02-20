@@ -1,7 +1,7 @@
------------------------------------------------------------------------
--- Calculate and display Fibonacci numbers from fib(0) to fib(8)
--- Had to add commas between items in Display
------------------------------------------------------------------------
+//---------------------------------------------------------------------
+// Calculate and display Fibonacci numbers from fib(0) to fib(8)
+// Had to add commas between items in Display
+//---------------------------------------------------------------------
 
 PERFORM VARYING I FROM 0 BY 1 UNTIL I > 8
     IF I < 2
