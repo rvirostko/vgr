@@ -410,7 +410,7 @@ Also see `IsNotEmpty()`
 
 def poly_notempty(x: Any) -> bool:
     """
-**Test a value to see if it is *not empty***
+**Test a value to see if it is *not* empty**
 
 * NotEmpty(*value*)
 * *value*.NotEmpty()
