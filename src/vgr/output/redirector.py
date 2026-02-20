@@ -5,51 +5,75 @@ from io import UnsupportedOperation
 
 from ..mathpak import poly_type
 
+_STDIN = 'stdin'
+_STDOUT = 'stdout'
+_STDERR = 'stderr'
+_ALL_STREAMS = (_STDIN, _STDOUT, _STDERR)
+
+_OPEN_STREAMS = {}
+
 class Redirection():
     """Redirection for a standard stream (stdin, stdout, stderr)"""
     def __init__(self, name: str):
         if name is None: raise ValueError('Missing attribute name')
-        name = name.strip().lower()
-        if name not in ('stdin', 'stdout', 'stderr'): raise ValueError(f'Cannot redirect {name}')
+        assert name in _ALL_STREAMS
         self._name = name
-        self._redirection = None
-        self._shared = False
+        _OPEN_STREAMS[self._name] = None
+        self._shared = True
+        self._filename = None
+
+    def _stream(self) -> IOBase:
+        """Avoid 'pickle' issue with Dynamic value"""
+        return _OPEN_STREAMS[self._name]
 
     def file(self) -> IOBase:
-        return self._redirection if self._redirection else getattr(sys, self._name)
+        """Get the file associated with the redirection"""
+        return self._stream() if self._stream() else getattr(sys, self._name)
+
+    def filename(self) -> str:
+        """Get the file name associated with the redirection"""
+        return self._filename or ("<" + self._name + ">")
+
+    def isatty(self) -> bool:
+        return self.file().isatty()
 
     def redirect_to(self, *args, **kwargs):
+        """
+* With an file instance, redirection to this stream begins. This file is considered "shared".
+* With a file name, the file is opened and redirection begins. You can pass in a mode and encoding
+  keyword parameters. This file is considered "owned" by the redirection.
+"""
         if not args: return self
         first_arg = args[0]
-        if first_arg is None: return self.end_redirect()
+        # TODO do we even use this pattern?
         # Redirect a shared output
         if isinstance(first_arg, IOBase):
-            return self._redirect_to_file(first_arg, True)
+            return self._redirect(first_arg, None, True)
         # Redirect to an output we own
         if isinstance(first_arg, str):
-            return self._redirect_to_file(
-                open(first_arg,
-                    mode=kwargs.get('mode', 'w'),
-                    encoding=kwargs.get('encoding', 'utf-8')))
+            dest = open(first_arg, mode=kwargs.get('mode', 'w'), encoding=kwargs.get('encoding', 'utf-8'))
+            return self._redirect(dest, first_arg, False)
         raise TypeError(f'Unsupported argument type: {poly_type(first_arg)!r}')
 
-    def _redirect_to_file(self, destination: IOBase, shared: bool=False):
+    def _redirect(self, destination: IOBase, filename: str, shared: bool):
         self.end_redirect()
-        if destination:
-            self._redirection = destination
-            self._shared = shared
+        _OPEN_STREAMS[self._name] = destination
+        self._shared = shared
+        self._filename = filename
         return self
 
     def end_redirect(self):
+        """Close the active redirect if it is not shared"""
         try:
-            # Close the active redirection if we own it
-            if not self._shared and self._redirection and not self._redirection.closed:
-                self._redirection.flush()
-                self._redirection.close()
+            stream = self._stream()
+            if not self._shared and stream and not stream.closed:
+                stream.flush()
+                stream.close()
             return self
         finally:
-            self._redirection = None
-            self._shared = False
+            _OPEN_STREAMS[self._name] = None
+            self._shared = True
+            self._filename = None
 
 class IORedirector:
     """Singleton used to handle redirection that sits on top of stdin, stdout, stderr.
@@ -57,12 +81,6 @@ It does not change the actual versions in sys, but provides a layer in front of 
 
 The stdin(), stdout(), and stderr() methods are used to interact with the files.
 They are polymorphic:
-* With no arguments, you get the current stream
-* With an file instance, redirection to this stream begins. This file is considered "shared".
-* With a file name, the file is opened and redirection begins. You can pass in a mode and encoding
-  keyword parameters. This file is considered "owned" by the redirection.
-* With an argument of None, any current redirection is ended and you get the default stream.
-  Outputs owned by the redirection are closed, shared outputs simply stop being redirected.
 
 At process termination, all redirections are ended.
 """
@@ -75,20 +93,20 @@ At process termination, all redirections are ended.
 
     def __init__(self):
         if not hasattr(self, '_redirectors'):
-            self._redirectors = (Redirection('stdin'), Redirection('stdout'), Redirection('stderr'))
+            self._redirectors = {}
+            for name in ('stdin', 'stdout', 'stderr'): self._redirectors[name] = Redirection(name)
             atexit.register(self.end_redirects)
 
-    def stdin(self, *args, **kwargs) -> IOBase:
-        return self._redirectors[0].redirect_to(*args, **kwargs).file()
+    def get_stream(self, stream: str) -> Redirection: return self._redirectors[stream]
 
-    def stdout(self, *args, **kwargs) -> IOBase:
-        return self._redirectors[1].redirect_to(*args, **kwargs).file()
+    def stdin(self) -> Redirection: return self.get_stream('stdin')
 
-    def stderr(self, *args, **kwargs) -> IOBase:
-        return self._redirectors[2].redirect_to(*args, **kwargs).file()
+    def stdout(self) -> Redirection: return self.get_stream('stdout')
+
+    def stderr(self) -> Redirection: return self.get_stream('stderr')
 
     def end_redirects(self) -> None:
-        for redirector in self._redirectors:
+        for redirector in self._redirectors.values():
             try:
                 redirector.end_redirect()
             except (OSError, UnsupportedOperation, ValueError):

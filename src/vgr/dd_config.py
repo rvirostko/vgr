@@ -16,9 +16,10 @@ import sys
 import time
 import uuid
 
+from . import __version__, __version_date__
 from .data_dict import DataDictionary, DynamicValue, MAX_FRAMES
 from .exec_context import ExecContext
-from . import __version__, __version_date__
+from .redir import _REDIRECTOR
 
 VGR_PREFIX = 'vgr'
 INCLUDED_PATH = (VGR_PREFIX, 'included')
@@ -27,7 +28,6 @@ VER_DATE_PATH = (VGR_PREFIX, 'version_date')
 LOG_LEVEL_PATH = (VGR_PREFIX, 'log_level')
 EXEC_NAME_PATH = (VGR_PREFIX, 'python', 'executable')
 EXEC_VER_PATH = (VGR_PREFIX, 'python', 'version')
-MAX_FRAMES_PATH = (VGR_PREFIX, 'max_frames')
 
 _TIME_PREFIX = 'time'
 
@@ -134,22 +134,35 @@ _UUID_ENTRIES = {
 # The files that have been "@Include"d rather than "Source"d
 # NB: Files can look at INCLUDED_PATH to see if they
 #     are being included vs sourced
-_INCLUDES_PATH = (VGR_PREFIX, 'includes')
 _INCLUDED_FILES = []
+
+_STREAM_FILE = "file"
+_STREAM_ISATTY = "isatty"
+_VGR_ENTRIES = {
+    ("version", ):               __version__,
+    ("version_date", ):          __version_date__,
+    ("includes",):               DynamicValue(lambda: _INCLUDED_FILES),
+    ("stdin", _STREAM_FILE,):    DynamicValue(_REDIRECTOR.stdin().filename),
+    ("stdin", _STREAM_ISATTY,):  DynamicValue(_REDIRECTOR.stdin().isatty),
+    ("stdout", _STREAM_FILE,):   DynamicValue(_REDIRECTOR.stdout().filename),
+    ("stdout", _STREAM_ISATTY,): DynamicValue(_REDIRECTOR.stdout().isatty),
+    ("stderr", _STREAM_FILE,):   DynamicValue(_REDIRECTOR.stderr().filename),
+    ("stderr", _STREAM_ISATTY,): DynamicValue(_REDIRECTOR.stderr().isatty),
+    ('max_frames',):             MAX_FRAMES,
+
+}
 
 def dd_init(dd: DataDictionary) -> None:
     # Clear the whole thing out and have it set its defaults
     dd.reset()
     # Set up app area
     dd.add_immutable_prefix(VGR_PREFIX)
+    for path, value in _VGR_ENTRIES.items():
+        dd.set_var(value, VGR_PREFIX, *path)
     dd.set_var(False, *INCLUDED_PATH)
-    dd.set_var(DynamicValue(lambda: _INCLUDED_FILES), *_INCLUDES_PATH)
-    dd.set_var(__version__, *VER_PATH)
-    dd.set_var(__version_date__, *VER_DATE_PATH)
     dd.set_var(sys.executable, *EXEC_NAME_PATH)
     dd.set_var(f'{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}',
                *EXEC_VER_PATH)
-    dd.set_var(MAX_FRAMES, *MAX_FRAMES_PATH)
     # ... reg ex values
     dd.add_immutable_prefix(_RE_PREFIX)
     for flag in _RE_FLAGS:

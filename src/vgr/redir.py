@@ -17,11 +17,11 @@ from .output import IORedirector
 
 _REDIRECTOR = IORedirector()
 
-def stdout() -> IOBase:
-    return _REDIRECTOR.stdout()
+def stdin() -> IOBase: return _REDIRECTOR.stdin().file()
 
-def stderr() -> IOBase:
-    return _REDIRECTOR.stderr()
+def stdout() -> IOBase: return _REDIRECTOR.stdout().file()
+
+def stderr() -> IOBase: return _REDIRECTOR.stderr().file()
 
 def _p_xform(*args):
     """Little hack to override this special case data type"""
@@ -29,11 +29,11 @@ def _p_xform(*args):
 
 def print_stdout(*args, **kwargs) -> None:
     """Same as print() except that it can redirect to an output file"""
-    print(*_p_xform(*args), file=_REDIRECTOR.stdout(), **kwargs)
+    print(*_p_xform(*args), file=stdout(), **kwargs)
 
 def print_stderr(*args, **kwargs) -> None:
     """Same as print() except that it can redirect to an output file"""
-    print(*_p_xform(*args), file=_REDIRECTOR.stderr(), **kwargs)
+    print(*_p_xform(*args), file=stderr(), **kwargs)
 
 @bound_ops("Open")
 def execute_open(ctx: ExecContext, statement: Tree) -> None:
@@ -65,6 +65,7 @@ All redirection is closed at program termination.
 
 Also see `Close`, `Print`, and `Printf`.
 """
+    encoding = None # TODO we should be able to support encoding clause
     stream = _eval_stream_name(statement.children[0])
     filename = ctx.eval_filename_expr(statement.children[1])
     if stream == 'stdin':
@@ -76,7 +77,7 @@ Also see `Close`, `Print`, and `Printf`.
         if mode not in ('a', 'w', 'x'):
             raise VgrRuntimeError(statement.children[2], ValueError('Invalid output mode'))
     try:
-        getattr(_REDIRECTOR, stream)(prepare_path(filename), mode=mode)
+        _REDIRECTOR.get_stream(stream).redirect_to(prepare_path(filename, mode), mode=mode, encoding=encoding or 'utf-8')
         ctx.print_verbose(stream, "redirected to", filename)
     except OSError as e:
         # likely has something to do with the file, so point there
@@ -103,25 +104,26 @@ All redirection is closed at program termination.
 Also see `Open`
 """
     stream = _eval_stream_name(statement.children[0])
-    getattr(_REDIRECTOR, stream)(None)
+    _REDIRECTOR.get_stream(stream).end_redirect()
     ctx.print_verbose(stream, "closed")
 
 def close_all_redirects() -> None:
     _REDIRECTOR.end_redirects()
 
-def prepare_path(filename: str) -> str:
+def prepare_path(filename: str, mode: str) -> str:
     """
     Creates the directory structure required for the filename.
     Only works with paths relative to the CWD
     """
     full_path = expand_filename(verify_relative_path(filename))
     # Exclude last component, the file name
-    dir_path = os.path.dirname(full_path)
-    os.makedirs(dir_path, exist_ok=True)
-    return filename
+    if mode != 'r':
+        dir_path = os.path.dirname(full_path)
+        os.makedirs(dir_path, exist_ok=True)
+    return full_path
 
 def _eval_stream_name(node: Tree) -> str:
     """The node's data (name) is the stream name"""
     stream = node.data.lower()
     if stream in ('stderr', 'stdout', 'stdin'): return stream
-    raise ValueError(f'Unknown stream {stream}') # SNO
+    raise VgrRuntimeError(node, ValueError('Unknown stream name')) # SNO
