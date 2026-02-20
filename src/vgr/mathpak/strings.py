@@ -602,7 +602,7 @@ Also see `RemovePrefix()`
 def _exec_bool_str_op(x: Any, y: Any, name: str, op: Callable[[Any, Any], Any], string_op) -> Any:
     """For str/str functions that return a bool"""
     def flatten(arg):
-        return (y for a in arg for y in (flatten(a) if isinstance(a, list) else (a,)))
+        return [y for a in arg for y in (flatten(a) if isinstance(a, list) else [a])]
     if isinstance(x, list): return list(op(x1, y) for x1 in x)
     if isinstance(x, dict): return {key: op(value, y) for key, value in x.items() if isinstance(value, str)}
     if isinstance(x, str):
@@ -635,7 +635,7 @@ If *value* is neither a list, dictionary, or string, `False` is returned.
 
 Also see `EndsWith()`
 """
-    return _exec_bool_str_op(x, prefixes, "StartsWith", poly_startswith, str.startswith)
+    return _exec_bool_str_op(x, list(*prefixes), "StartsWith", poly_startswith, str.startswith)
 
 def poly_endswith(x: Any, *suffixes: Any) -> bool:
     """
@@ -660,7 +660,7 @@ If *value* is neither a list, dictionary, or string, `False` is returned.
 
 Also see `StartsWith()`
 """
-    return _exec_bool_str_op(x, suffixes, "EndsWith", poly_endswith, str.endswith)
+    return _exec_bool_str_op(x, list(*suffixes), "EndsWith", poly_endswith, str.endswith)
 
 _string_int_ops = {
     (str, int)   : lambda _op, x, y,  sm: sm(x, y),
