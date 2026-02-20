@@ -40,7 +40,7 @@ def ldap_escape(x: str) -> str:
 
 def _to_filter_list(first: str, *args) -> list:
     filters = list(_flatten(first))
-    filters.extend(_flatten(args))
+    filters.extend(_flatten(list(*args)))
     return [_ensure_parens(f) for f in filters]
 
 def ldap_and(first: str, *args) -> str:
@@ -65,7 +65,7 @@ def ldap_not(first: str, *args) -> str:
     return None if not filters else filters[0] if len(filters) == 1 else ldap_and(filters)
 
 def _gen_attr_op(prefix: str, operator: str, combiner: str, attr: str, *values: str) -> str:
-    escaped_values = [ldap_escape(v) for v in _flatten(values)]
+    escaped_values = [ldap_escape(v) for v in _flatten(list(*values))]
     if not escaped_values: raise ValueError(f'At least one value must be provided for attribute {attr!r}')
     filters = [f'{prefix}({attr}{operator}{v})' for v in escaped_values]
     if len(filters) == 1: return filters[0]
