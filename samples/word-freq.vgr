@@ -29,8 +29,8 @@ While True:
     # Print only if we found some words
     If counter.Length():
         # Using the keys and the values, along with the headers, determine the column widths
-        Set word_col_width = Max(counter.GetKeys().StrLen().Max(), word_header.StrLen()).Add(1)
-        Set count_col_width = Max(counter.GetValues().Max().ToString().StrLen(), count_header.StrLen()).Add(1)
+        Set word_col_width = Max(counter.GetKeys().StringLen().Max(), word_header.StringLen()).Add(1)
+        Set count_col_width = Max(counter.GetValues().Max().ToString().StringLen(), count_header.StringLen()).Add(1)
         # With the values, create a format string for Printf
         String "{} {:<" word_col_width "} {:>" count_col_width "}\n" Into fmt
         Print ""

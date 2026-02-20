@@ -42,40 +42,40 @@ _str_operations = {
 def _exec_str_op(x: Any, name: str, op: Callable[[Any], Any], string_op) -> Any:
     return _exec_x_op(x, name, op, string_op, _str_operations)
 
-def poly_strlen(x: Any) -> Any:
+def poly_stringlen(x: Any) -> Any:
     """
 **Return the length of a string**
 
-* StrLen(*value*)
-* *value*.StrLen()
+* StringLen(*value*)
+* *value*.StringLen()
 
 If *value* is of any type except string, `None` is returned.
 
 ```vgr
-"foo".StrLen() → 3
-7.StrLen() → None
-["cat", "kitten"].StrLen() → [3, 6]
+"foo".StringLen() → 3
+7.StringLen() → None
+["cat", "kitten"].StringLen() → [3, 6]
 ```
 
 Also see `Length()`
 """
-    return _exec_str_op(x, 'StrLen', poly_strlen, str.__len__) if isinstance(x, (str, list, dict)) else None
+    return _exec_str_op(x, 'StringLen', poly_stringlen, str.__len__) if isinstance(x, (str, list, dict)) else None
 
-def poly_strrev(x: Any) -> Any:
+def poly_reversestr(x: Any) -> Any:
     """
 **Returns the characters of the string in reverse order**
 
-* StrRev(*value*)
-* *value*.StrRev()
+* ReverseStr(*value*)
+* *value*.ReverseStr()
 
 ```vgr
-None.StrRev() → None
-123.StrRev() → 123
-"abc".StrRev() → cba
-["abc", "xyz"].StrRev() → ["cba", "zyx"]
+None.ReverseStr() → None
+123.ReverseStr() → 123
+"abc".ReverseStr() → cba
+["abc", "xyz"].ReverseStr() → ["cba", "zyx"]
 ```
 """
-    return _exec_str_op(x, 'StrRev', poly_strrev, lambda s: s[::-1])
+    return _exec_str_op(x, 'ReverseStr', poly_reversestr, lambda s: s[::-1])
 
 def poly_capitalize(x: Any) -> Any:
     """

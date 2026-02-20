@@ -4,7 +4,7 @@ Assert term.size.cols ≥ 80 And term.size.rows ≥ 24 : "Window too small for d
 Set iter To 16
 Set sleep_time To 5
 Let named_colors = term.color_names
-Let max_len = named_colors.StrLen().Max()
+Let max_len = named_colors.StringLen().Max()
 
 Term CursorHide
 Perform iter Times
@@ -22,7 +22,7 @@ Perform iter Times
     Next
     Set line = 19
     Set col = 1
-    Set bwidth = term.box_styles.StrLen().Max() + 2
+    Set bwidth = term.box_styles.StringLen().Max() + 2
     Set bheight = 3
     Term FG "bright white", BG "bright green"
     ForEach style In term.box_styles:

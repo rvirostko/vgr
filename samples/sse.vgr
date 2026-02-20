@@ -4,7 +4,7 @@
 //   * Source stack
 //   * Terminal functions including size retrieval
 //   * Terminal positioning
-//   * StrRev(), TranslateStr(), Min()/Max()
+//   * ReverseStr(), TranslateStr(), Min()/Max()
 //-----------------------------------------------------------------------------
 
 Reset Data
@@ -29,7 +29,7 @@ For scene = 0 To loops:
     Set line To ((term.size.rows - sse.Length()) / 3).ToInteger()
     If scene > 0:
         # Flip the art
-        Set sse To sse.StrRev().TranslateStr("/\\'`", "\\/`'")
+        Set sse To sse.ReverseStr().TranslateStr("/\\'`", "\\/`'")
         # Increase speed, but limit it
         Set fps = (fps * (5/4)).Min(600).ToInteger().Round(-1)
         # Pause for six frames

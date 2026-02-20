@@ -354,9 +354,9 @@ Set v_adder() -> Sum($args)
 [5, 6].Apply([adder, by_two], 5, 6) → [32, 34]
 [5, 6].Apply([by_two, adder], 5, 6) → [21, 23]
 
-Set slen(x, default_value) -> Type(x) Is "str" ? StrLen(x) : default_value.DefaultTo(0)
+Set slen(x, default_value) -> Type(x) Is "str" ? StringLen(x) : default_value.DefaultTo(0)
 ["hello", "world", 5].Length() → 3
-["hello", "world", 5].StrLen() → [5, 5, None]
+["hello", "world", 5].StringLen() → [5, 5, None]
 ["hello", "world", 5].Apply(slen) → [5, 5, 0]
 ["hello", "world", 5].Apply(slen, -1) → [5, 5, -1]
 ```
