@@ -7,6 +7,12 @@
 //   * ReverseStr(), TranslateStr(), Min()/Max()
 //-----------------------------------------------------------------------------
 
+# This is visual, so if it can't display anything...
+If !vgr.stdout.isatty:
+    Print "stdout is not a TTY"
+    Exit
+End
+
 Reset Data
 Assert vgr.source.FirstItem() is not None
 # ASCII art file should be stored in the same dir as this script

@@ -1,3 +1,9 @@
+# This is visual, so if it can't display anything...
+If !vgr.stdout.isatty:
+    Print "stdout is not a TTY"
+    Exit
+End
+
 Term GetWindowSize
 Assert term.size.cols ≥ 80 And term.size.rows ≥ 24 : "Window too small for demo"
 

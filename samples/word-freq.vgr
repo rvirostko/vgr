@@ -4,6 +4,12 @@
 #   * GetKeys()
 #   * GetValues()
 
+# This is interactive
+If !vgr.stdout.isatty:
+    Print "stdout is not a TTY"
+    Exit
+End
+
 Set non-alpha = CompilePattern("[^A-Za-z]")
 Set indent = " " * 3
 Set word_header = "Word"
