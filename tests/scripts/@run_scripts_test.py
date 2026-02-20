@@ -8,7 +8,9 @@ import sys
 import pytest
 
 SCRIPTS_DIR = Path(__file__).parent
-LOG_DIR = Path(__file__).resolve().parents[2] / "test-log"
+ROOT_DIR = Path(__file__).resolve().parents[2]
+LOG_DIR = ROOT_DIR / "test-log"
+SAMPLES_DIR = ROOT_DIR / "samples"
 
 def run_subprocess(cmd: list[str]) -> tuple[int, str, str]:
     """Run subprocess, always showing and saving output"""
@@ -34,7 +36,7 @@ def write_results(f: TextIOWrapper, stdout: str, stderr: str) -> None:
 
 @pytest.mark.parametrize(
     "path",
-    list(SCRIPTS_DIR.glob("*.vgr")),
+    list(SCRIPTS_DIR.glob("*.vgr")) + list(SAMPLES_DIR.glob("*.vgr")),
     ids=lambda p: p.name,
 )
 def test_vgr_files(path: Path):
