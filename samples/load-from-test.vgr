@@ -1,9 +1,9 @@
 
 Reset All
 
+# Some quick examples of comment style
 # "Modern" style comments
 // C style comments
--- SQL style comments
 /*
  * CPP style comments
  */
@@ -11,7 +11,7 @@ Reset All
 # Test end of line comments
 Pass   # "Modern"
 Pass   // C-style
-Pass   -- SQL style
+Pass   /* CPP-style */
 
 Set base To vgr.source.FirstItem().DirectoryName() + os.sep
 
@@ -22,7 +22,7 @@ Set bar To "//" + ("-" * 77)
 Print bar
 Load test.json.obj From base + "in.json"
 Exhibit test.json.obj
-Assert test.json.obj.Type() == "dict"
+Assert test.json.obj.Type() == "dictionary"
 Print bar
 Print ""
 
@@ -62,7 +62,7 @@ Print ""
 Print bar
 Load test.text From base + "objs.txt" Text
 Exhibit test.text
-Assert test.text.Type() == "str"
+Assert test.text.Type() == "string"
 Print bar
 Print ""
 
@@ -71,7 +71,7 @@ Print bar
 Load test.text From base + "objs.txt" Text Lines
 Exhibit test.text
 Assert test.text.Type() == "list"
-Assert test.text.FirstItem().Type() == "str"
+Assert test.text.FirstItem().Type() == "string"
 Print bar
 Print ""
 
