@@ -3,20 +3,20 @@
 # Test out Printf syntax
 # int, float, str, and array
 
--- Generate our "threes" data
+# Generate our "threes" data
     Set t.three_int To 3
-    Set t.three_float To t.three_int.float()
-    Set t.three_str To t.three_int.str()
+    Set t.three_float To t.three_int.ToFloat()
+    Set t.three_str To t.three_int.ToString()
     Set t.three_pad_str To " " + t.three_str + " "
     Set t.array1 To [t.three_int, t.three_float, t.three_str]
     Set t.array2 To [t.three_str, t.three_int, t.three_float]
 
--- Load the data into testing slots
+# Load the data into testing slots
     Set c1 To t.three_int
     Set c2 To t.three_float
     Set c3 To t.three_str
     Set c4 To t.three_pad_str
-    -- This is for output "columns"
+    # This is for output "columns"
     Set fmt To "\t{1!r} {0} {2!r} -> {3!r}"
     Set fmt4 To fmt.AppendStr(
         fmt.ReplaceStr("{2", "{4").ReplaceStr("{3", "{5"),
@@ -30,7 +30,7 @@
         fmt.ReplaceStr("{2", "{8").ReplaceStr("{3", "{9"),
         "\n")
 
--- Int to other values
+# Int to other values
     Set v To t.three_int
     Printf "\"{}\" tests-\n", v.Type()
     Printf fmt4, "==", v, c1, v == c1, c2, v == c2, c3, v == c3, c4, v == c4
@@ -41,7 +41,7 @@
     Printf fmt4, ">=", v, c1, v >= c1, c2, v >= c2, c3, v >= c3, c4, v >= c4
     Print ""
 
--- Float to other values
+# Float to other values
     Set v To t.three_float
     Printf "\"{}\" tests-\n", v.Type()
     Printf fmt4, "==", v, c1, v == c1, c2, v == c2, c3, v == c3, c4, v == c4
@@ -52,7 +52,7 @@
     Printf fmt4, ">=", v, c1, v >= c1, c2, v >= c2, c3, v >= c3, c4, v >= c4
     Print ""
 
--- In this case the str/pad_str will mismatch
+# In this case the str/pad_str will mismatch
     Set v To t.three_str
     Printf "\"{}\" tests-\n", v.Type()
     Printf fmt4, "==", v, c1, v == c1, c2, v == c2, c3, v == c3, c4, v == c4
@@ -70,7 +70,7 @@
     Printf fmt4, ">=", v, c1, v >= c1, c2, v >= c2, c3, v >= c3, c4, v >= c4
     Print ""
 
--- Make sure we have symetry with array
+# Make sure we have symetry with array
     Set v To t.array1; Set w To t.array2
     Printf "\"{}\"/\"{}\" tests-\n", v.Type(), w.Type()
     Set fmt += "\n"
@@ -88,6 +88,6 @@
     Printf fmt, ">=", w, v, w >= v
     Print ""
 
--- Use asserts to check these
+# Use asserts to check these
     Assert (v == t.three_int) == False : "Invalid array distribution for equals"
     Assert (t.three_float == v) == False : "Invaid array distribution for equals"
