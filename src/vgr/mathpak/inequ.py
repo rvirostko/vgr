@@ -20,22 +20,24 @@ def poly_eq(x: Any, y: Any) -> bool:
 * IsEqualTo(*x*, *y*)
 * *x*.IsEqualTo(*y*)
 
-| x     | y          | operation           |
-|-------|------------|---------------------|
-| None  | *any*      | y == None           |
-| *any* | None       | False               |
-| int   | int/float  | x == y              |
-| int   | str        | x == ToNumber(y)†   |
-| int   | list       | [x] == y‡           |
-| float | int/float  | x == y              |
-| float | str        | x == ToNumber(y)    |
-| float | list       | [x] == y            |
-| str   | int/float  | ToNumber(x) == y    |
-| str   | str        | x == y              |
-| str   | list       | [x] == y            |
-| list  | list       | x == y              |
-| list  | *any*      | x == [y]            |
-| dict  | dict       | x == y by attr      |
+Returns `True` if the *x* and *y* are considered equal.
+
+| Type(x)    | Type(y)       | Operation           |
+|------------|---------------|---------------------|
+| None       | *any*         | y == None           |
+| *any*      | None          | False               |
+| integer    | integer/float | x == y              |
+| integer    | string        | x == ToNumber(y)†   |
+| integer    | list          | [x] == y‡           |
+| float      | integer/float | x == y              |
+| float      | string        | x == ToNumber(y)    |
+| float      | list          | [x] == y            |
+| string     | integer/float | ToNumber(x) == y    |
+| string     | string        | x == y              |
+| string     | list          | [x] == y            |
+| list       | list          | x == y              |
+| list       | *any*         | x == [y]            |
+| dictionary | dictionary    | x == y by attribute |
 
 A type error is raised on all other combinations
 
@@ -114,22 +116,22 @@ def poly_ne(x: Any, y: Any) -> bool:
 * NotEqualTo(*x*, *y*)
 * *x*.NotEqualTo(*y*)
 
-| x     | y          | operation           |
-|-------|------------|---------------------|
-| None  | *any*      | y != None           |
-| *any* | None       | True                |
-| int   | int/float  | x != y              |
-| int   | str        | x != ToNumber(y)†   |
-| int   | list       | [x] != y‡           |
-| float | int/float  | x != y              |
-| float | str        | x != ToNumber(y)    |
-| float | list       | [x] != y            |
-| str   | int/float  | ToNumber(x) != y    |
-| str   | str        | x != y              |
-| str   | list       | [x] != y            |
-| list  | list       | x != y              |
-| list  | *any*      | x != [y]            |
-| dict  | dict       | x != y by attr      |
+| Type(x)    | Type(y)       | Operation           |
+|------------|---------------|---------------------|
+| None       | *any*         | y != None           |
+| *any*      | None          | True                |
+| integer    | integer/float | x != y              |
+| integer    | string        | x != ToNumber(y)†   |
+| integer    | list          | [x] != y‡           |
+| float      | integer/float | x != y              |
+| float      | string        | x != ToNumber(y)    |
+| float      | list          | [x] != y            |
+| string     | integer/float | ToNumber(x) != y    |
+| string     | string        | x != y              |
+| string     | list          | [x] != y            |
+| list       | list          | x != y              |
+| list       | *any*         | x != [y]            |
+| dictionary | dictionary    | x != y by attr      |
 
 A type error is raised on all other combinations
 
@@ -168,21 +170,21 @@ def poly_lt(x: Any, y: Any) -> bool:
 * IsLessThan(*x*, *y*)
 * *x*.IsLessThan(*y*)
 
-| x     | y          | operation          |
-|-------|------------|--------------------|
-| None  | *any*      | y != None          |
-| *any* | None       | False              |
-| int   | int/float  | x < y              |
-| int   | str        | x < ToNumber(y)†   |
-| int   | list       | [x] < y‡           |
-| float | int/float  | x < y              |
-| float | str        | x < ToNumber(y)    |
-| float | list       | [x] < y            |
-| str   | int/float  | ToNumber(x) < y    |
-| str   | str        | x < y              |
-| str   | list       | [x] < y            |
-| list  | list       | x < y              |
-| list  | *any*      | x < [y]            |
+| Type(x) | Type(y)       | Operation          |
+|---------|---------------|--------------------|
+| None    | *any*         | y != None          |
+| *any*   | None          | False              |
+| integer | integer/float | x < y              |
+| integer | string        | x < ToNumber(y)†   |
+| integer | list          | [x] < y‡           |
+| float   | integer/float | x < y              |
+| float   | string        | x < ToNumber(y)    |
+| float   | list          | [x] < y            |
+| string  | integer/float | ToNumber(x) < y    |
+| string  | string        | x < y              |
+| string  | list          | [x] < y            |
+| list    | list          | x < y              |
+| list    | *any*         | x < [y]            |
 
 A type error is raised on all other combinations
 
@@ -215,21 +217,21 @@ def poly_gt(x: Any, y: Any) -> Any:
 * IsGreaterThan(*x*, *y*)
 * *x*.IsGreaterThan(*y*)
 
-| x     | y          | operation          |
-|-------|------------|--------------------|
-| None  | *any*      | y != None          |
-| *any* | None       | True               |
-| int   | int/float  | x > y              |
-| int   | str        | x > ToNumber(y)†   |
-| int   | list       | [x] > y‡           |
-| float | int/float  | x > y              |
-| float | str        | x > ToNumber(y)    |
-| float | list       | [x] > y            |
-| str   | int/float  | ToNumber(x) > y    |
-| str   | str        | x > y              |
-| str   | list       | [x] > y            |
-| list  | list       | x > y              |
-| list  | *any*      | x > [y]            |
+| Type(x) | Type(y)       | Operation          |
+|---------|---------------|--------------------|
+| None    | *any*         | y != None          |
+| *any*   | None          | True               |
+| integer | integer/float | x > y              |
+| integer | string        | x > ToNumber(y)†   |
+| integer | list          | [x] > y‡           |
+| float   | integer/float | x > y              |
+| float   | string        | x > ToNumber(y)    |
+| float   | list          | [x] > y            |
+| string  | integer/float | ToNumber(x) > y    |
+| string  | string        | x > y              |
+| string  | list          | [x] > y            |
+| list    | list          | x > y              |
+| list    | *any*         | x > [y]            |
 
 A type error is raised on all other combinations
 
@@ -270,21 +272,21 @@ def poly_le(x: Any, y: Any) -> bool:
 * NotGreaterThan(*x*, *y*)
 * *x*.NotGreaterThan(*y*)
 
-| x     | y          | operation          |
-|-------|------------|--------------------|
-| None  | *any*      | True               |
-| *any* | None       | False              |
-| int   | int/float  | x <= y             |
-| int   | str        | x <= ToNumber(y)†  |
-| int   | list       | [x] <= y‡          |
-| float | int/float  | x <= y             |
-| float | str        | x <= ToNumber(y)   |
-| float | list       | [x] <= y           |
-| str   | int/float  | ToNumber(x) <= y   |
-| str   | str        | x <= y             |
-| str   | list       | [x] <= y           |
-| list  | list       | x <= y             |
-| list  | *any*      | x <= [y]           |
+| Type(x) | Type(y)       | Operation          |
+|---------|---------------|--------------------|
+| None    | *any*         | True               |
+| *any*   | None          | False              |
+| integer | integer/float | x <= y             |
+| integer | string        | x <= ToNumber(y)†  |
+| integer | list          | [x] <= y‡          |
+| float   | integer/float | x <= y             |
+| float   | string        | x <= ToNumber(y)   |
+| float   | list          | [x] <= y           |
+| string  | integer/float | ToNumber(x) <= y   |
+| string  | string        | x <= y             |
+| string  | list          | [x] <= y           |
+| list    | list          | x <= y             |
+| list    | *any*         | x <= [y]           |
 
 A type error is raised on all other combinations
 
@@ -325,21 +327,21 @@ def poly_ge(x: Any, y: Any) -> bool:
 * NotLessThan(*x*, *y*)
 * *x*.NotLessThan(*y*)
 
-| x     | y          | operation          |
-|-------|------------|--------------------|
-| None  | *any*      | y == None          |
-| *any* | None       | True               |
-| int   | int/float  | x >= y             |
-| int   | str        | x >= ToNumber(y)†  |
-| int   | list       | [x] >= y‡          |
-| float | int/float  | x >= y             |
-| float | str        | x >= ToNumber(y)   |
-| float | list       | [x] >= y           |
-| str   | int/float  | ToNumber(x) >= y   |
-| str   | str        | x >= y             |
-| str   | list       | [x] >= y           |
-| list  | list       | x >= y             |
-| list  | *any*      | x >= [y]           |
+| Type(x) | Type(y)       | Operation          |
+|---------|---------------|--------------------|
+| None    | *any*         | y == None          |
+| *any*   | None          | True               |
+| integer | integer/float | x >= y             |
+| integer | string        | x >= ToNumber(y)†  |
+| integer | list          | [x] >= y‡          |
+| float   | integer/float | x >= y             |
+| float   | string        | x >= ToNumber(y)   |
+| float   | list          | [x] >= y           |
+| string  | integer/float | ToNumber(x) >= y   |
+| string  | string        | x >= y             |
+| string  | list          | [x] >= y           |
+| list    | list          | x >= y             |
+| list    | *any*         | x >= [y]           |
 
 A type error is raised on all other combinations
 

@@ -18,23 +18,23 @@ def poly_sub(x: Any, *args):
 * Sub(*x*, *y*&hellip;)
 * *x*.Sub(*y*&hellip;)
 
-| x     | y     | returns   | operation                 |
-|-------|-------|-----------|---------------------------|
-| int   | int   | int       | x - y                     |
-| int   | float | float     | x - y                     |
-| int   | str   | int/float | x - ToNumber(y)           |
-| float | int   | float     | x - y                     |
-| float | float | float     | x - y                     |
-| float | str   | int/float | x - ToNumber(y)           |
-| str   | int   | int/float | ToNumber(x) - y           |
-| str   | float | int/float | ToNumber(x) - y           |
-| str   | str   | int/float | ToNumber(x) - ToNumber(y) |
-| list  | int   | list      | distributed               |
-| list  | float | list      | distributed               |
-| list  | str   | list      | distributed               |
-| dict  | str   | dict      | remove key y from x       |
-| dict  | list  | dict      | remove keys in y from x   |
-| dict  | dict  | dict      | remove keys in y from x   |
+| Type(x)    | Type(y)    | Returns       | Operation                 |
+|------------|------------|---------------|---------------------------|
+| integer    | integer    | integer       | x - y                     |
+| integer    | float      | float         | x - y                     |
+| integer    | string     | integer/float | x - ToNumber(y)           |
+| float      | integer    | float         | x - y                     |
+| float      | float      | float         | x - y                     |
+| float      | string     | integer/float | x - ToNumber(y)           |
+| string     | integer    | integer/float | ToNumber(x) - y           |
+| string     | float      | integer/float | ToNumber(x) - y           |
+| string     | string     | integer/float | ToNumber(x) - ToNumber(y) |
+| list       | integer    | list          | Distributed               |
+| list       | float      | list          | Distributed               |
+| list       | string     | list          | Distributed               |
+| dictionary | string     | dictionary    | Remove key y from x       |
+| dictionary | list       | dictionary    | Remove keys in y from x   |
+| dictionary | dictionary | dictionary    | Remove keys in y from x   |
 
 A type error is raised on all other combinations
 

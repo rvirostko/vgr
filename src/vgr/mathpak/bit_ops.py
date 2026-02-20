@@ -26,19 +26,19 @@ def poly_bit_and(x: Any, *args) -> Any:
 * BitAnd(*x*, *y*&hellip;)
 * *x*.BitAnd(*y*&hellip;)
 
-| x     | y     | returns   | operation                   |
-|-------|-------|-----------|-----------------------------|
-| int   | int   | int       | x & y                       |
-| int   | float | int       | x & y                       |
-| int   | str   | int       | *See below*                 |
-| *any* | list  | list      | distributive                |
-| float | int   | int       | ToInteger(x) & y            |
-| float | float | int       | ToInteger(x) & ToInteger(y) |
-| float | str   | int       | *See below*                 |
-| str   | int   | str       | *See below*                 |
-| str   | float | str       | *See below*                 |
-| str   | str   | str       | *See below*                 |
-| list  | *any* | list      | distributive                |
+| Type(x) | Type(y) | Returns | Operation                   |
+|---------|---------|---------|-----------------------------|
+| integer | integer | integer | x & y                       |
+| integer | float   | integer | x & y                       |
+| integer | string  | integer | *See below*                 |
+| *any*   | list    | list    | Distributed                 |
+| float   | integer | integer | ToInteger(x) & y            |
+| float   | float   | integer | ToInteger(x) & ToInteger(y) |
+| float   | string  | integer | *See below*                 |
+| string  | integer | string  | *See below*                 |
+| string  | float   | string  | *See below*                 |
+| string  | string  | string  | *See below*                 |
+| list    | *any*   | list    | Distributed                 |
 
 A type error is raised on all other combinations
 
@@ -67,19 +67,19 @@ def poly_bit_or(x: Any, *args) -> Any:
 * BitOr(*x*, *y*&hellip;)
 * *x*.BitOr(*y*&hellip;)
 
-| x     | y     | returns   | operation                    |
-|-------|-------|-----------|------------------------------|
-| int   | int   | int       | x \\| y                       |
-| int   | float | int       | x \\| y                       |
-| int   | str   | int       | *See below*                  |
-| *any* | list  | list      | distributive                 |
-| float | int   | int       | ToInteger(x) \\| y            |
-| float | float | int       | ToInteger(x) \\| ToInteger(y) |
-| float | str   | int       | *See below*                  |
-| str   | int   | str       | *See below*                  |
-| str   | float | str       | *See below*                  |
-| str   | str   | str       | *See below*                  |
-| list  | *any* | list      | distributive                 |
+| Type(x) | Type(y) | Returns   | Operation                    |
+|---------|---------|-----------|------------------------------|
+| integer | integer | integer   | x \\| y                       |
+| integer | float   | integer   | x \\| y                       |
+| integer | string  | integer   | *See below*                  |
+| *any*   | list    | list      | Distributed                  |
+| float   | integer | integer   | ToInteger(x) \\| y            |
+| float   | float   | integer   | ToInteger(x) \\| ToInteger(y) |
+| float   | string  | integer   | *See below*                  |
+| string  | integer | string    | *See below*                  |
+| string  | float   | string    | *See below*                  |
+| string  | string  | string    | *See below*                  |
+| list    | *any*   | list      | Distributed                  |
 
 A type error is raised on all other combinations
 
@@ -108,19 +108,19 @@ def poly_bit_xor(x: Any, *args) -> Any:
 * BitXor(*x*, *y*&hellip;)
 * *x*.BitXor(*y*&hellip;)
 
-| x     | y     | returns   | operation                   |
-|-------|-------|-----------|-----------------------------|
-| int   | int   | int       | x ^ y                       |
-| int   | float | int       | x ^ y                       |
-| int   | str   | int       | *See below*                 |
-| *any* | list  | list      | distributive                |
-| float | int   | int       | ToInteger(x) ^ y            |
-| float | float | int       | ToInteger(x) ^ ToInteger(y) |
-| float | str   | int       | *See below*                 |
-| str   | int   | str       | *See below*                 |
-| str   | float | str       | *See below*                 |
-| str   | str   | str       | *See below*                 |
-| list  | *any* | list      | distributive                |
+| Type(x) | Type(y) | Returns   | Operation                   |
+|---------|---------|-----------|-----------------------------|
+| integer | integer | integer   | x ^ y                       |
+| integer | float   | integer   | x ^ y                       |
+| integer | string  | integer   | *See below*                 |
+| *any*   | list    | list      | Distributed                 |
+| float   | integer | integer   | ToInteger(x) ^ y            |
+| float   | float   | integer   | ToInteger(x) ^ ToInteger(y) |
+| float   | string  | integer   | *See below*                 |
+| string  | integer | string    | *See below*                 |
+| string  | float   | string    | *See below*                 |
+| string  | string  | string    | *See below*                 |
+| list    | *any*   | list      | Distributed                 |
 
 A type error is raised on all other combinations
 

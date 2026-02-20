@@ -14,24 +14,24 @@ def poly_mul(x: Any, *args):
 * Mul(*x*, *y*&hellip;)
 * *x*.Mul(*y*&hellip;)
 
-| x     | y     | returns | operation           |
-|-------|-------|---------|---------------------|
-| int   | int   | int     | x * y               |
-| int   | float | float   | x * y               |
-| int   | str   | str     | string repetition   |
-| int   | list  | list    | distributive        |
-| float | int   | float   | x * y               |
-| float | float | float   | x * y               |
-| float | str   | str     | string repetition   |
-| float | list  | list    | distributive        |
-| str   | int   | str     | string repetition   |
-| str   | float | str     | string repetition   |
-| str   | str   | str     | string repetition   |
-| str   | list  | list    | distributive        |
-| list  | int   | list    | distributive        |
-| list  | float | list    | distributive        |
-| list  | str   | list    | distributive        |
-| list  | list  | list    | cartesian product   |
+| Type(x) | Type(y) | Returns | Operation           |
+|---------|---------|---------|---------------------|
+| integer | integer | integer | x * y               |
+| integer | float   | float   | x * y               |
+| integer | string  | string  | String repetition   |
+| integer | list    | list    | Distributed         |
+| float   | integer | float   | x * y               |
+| float   | float   | float   | x * y               |
+| float   | string  | string  | String repetition   |
+| float   | list    | list    | Distributed         |
+| string  | integer | string  | String repetition   |
+| string  | float   | string  | String repetition   |
+| string  | string  | string  | String repetition   |
+| string  | list    | list    | Distributed         |
+| list    | integer | list    | Distributed         |
+| list    | float   | list    | Distributed         |
+| list    | string  | list    | Distributed         |
+| list    | list    | list    | Cartesian product   |
 
 A type error is raised on all other combinations
 

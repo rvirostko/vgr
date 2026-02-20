@@ -18,20 +18,20 @@ def poly_div(x: Any, *args):
 * Div(*x*, *y*&hellip;)
 * *x*.Div(*y*&hellip;)
 
-| x     | y     | returns | operation                 |
-|-------|-------|---------|---------------------------|
-| int   | int   | float   | x / y                     |
-| int   | float | float   | x / y                     |
-| int   | str   | float   | x / ToNumber(y)           |
-| float | int   | float   | x / y                     |
-| float | float | float   | x / y                     |
-| float | str   | float   | x / ToNumber(y)           |
-| str   | int   | float   | ToNumber(x) / y           |
-| str   | float | float   | ToNumber(x) / y           |
-| str   | str   | float   | ToNumber(x) / ToNumber(y) |
-| list  | int   | list    | distributive              |
-| list  | float | list    | distributive              |
-| list  | str   | list    | distributive              |
+| Type(x) | Type(y) | Returns | Operation                 |
+|---------|---------|---------|---------------------------|
+| integer | integer | float   | x / y                     |
+| integer | float   | float   | x / y                     |
+| integer | string  | float   | x / ToNumber(y)           |
+| float   | integer | float   | x / y                     |
+| float   | float   | float   | x / y                     |
+| float   | string  | float   | x / ToNumber(y)           |
+| string  | integer | float   | ToNumber(x) / y           |
+| string  | float   | float   | ToNumber(x) / y           |
+| string  | string  | float   | ToNumber(x) / ToNumber(y) |
+| list    | integer | list    | Distributed               |
+| list    | float   | list    | Distributed               |
+| list    | string  | list    | Distributed               |
 
 A type error is raised on all other combinations
 
@@ -62,20 +62,20 @@ def poly_fdiv(x: Any, *args):
 Floor division returns the largest integer less than
 or equal to the result of the division.
 
-| x     | y     | returns   | operation                    |
-|-------|-------|-----------|------------------------------|
-| int   | int   | int       | x fdiv y                     |
-| int   | float | int/float | x fdiv y                     |
-| int   | str   | int/float | x fdiv ToNumber(y)           |
-| float | int   | float     | x fdiv y                     |
-| float | float | float     | x fdiv y                     |
-| float | str   | float     | x fdiv ToNumber(y)           |
-| str   | int   | int/float | ToNumber(x) fdiv y           |
-| str   | float | float     | ToNumber(x) fdiv y           |
-| str   | str   | int/float | ToNumber(x) fdiv ToNumber(y) |
-| list  | int   | list      | distributive                 |
-| list  | float | list      | distributive                 |
-| list  | str   | list      | distributive                 |
+| Type(x) | Type(y) | Returns       | Operation                    |
+|---------|---------|---------------|------------------------------|
+| integer | integer | integer       | x fdiv y                     |
+| integer | float   | integer/float | x fdiv y                     |
+| integer | string  | integer/float | x fdiv ToNumber(y)           |
+| float   | integer | float         | x fdiv y                     |
+| float   | float   | float         | x fdiv y                     |
+| float   | string  | float         | x fdiv ToNumber(y)           |
+| string  | integer | integer/float | ToNumber(x) fdiv y           |
+| string  | float   | float         | ToNumber(x) fdiv y           |
+| string  | string  | integer/float | ToNumber(x) fdiv ToNumber(y) |
+| list    | integer | list          | Distributed                  |
+| list    | float   | list          | Distributed                  |
+| list    | string  | list          | Distributed                  |
 
 A type error is raised on all other combinations
 
@@ -105,20 +105,20 @@ def poly_divmod(x: Any, y: Any) -> Any:
 
 Returns a two item list of [*x* fdiv *y*, *x* % *y*]
 
-| x     | y     | returns | operation                         |
-|-------|-------|---------|-----------------------------------|
-| int   | int   | list    | x divmod by y                     |
-| int   | float | list    | x divmod by y                     |
-| int   | str   | list    | x divmod by ToNumber(y)           |
-| float | int   | list    | x divmod by y                     |
-| float | float | list    | x divmod by y                     |
-| float | str   | list    | x divmod by ToNumber(y)           |
-| str   | int   | list    | ToNumber(x) divmod by y           |
-| str   | float | list    | ToNumber(x) divmod by y           |
-| str   | str   | list    | ToNumber(x) divmod by ToNumber(y) |
-| list  | int   | list    | distributive                      |
-| list  | float | list    | distributive                      |
-| list  | str   | list    | distributive                      |
+| Type(x) | Type(y) | Returns | Operation                         |
+|---------|---------|---------|-----------------------------------|
+| integer | integer | list    | x divmod by y                     |
+| integer | float   | list    | x divmod by y                     |
+| integer | string  | list    | x divmod by ToNumber(y)           |
+| float   | integer | list    | x divmod by y                     |
+| float   | float   | list    | x divmod by y                     |
+| float   | string  | list    | x divmod by ToNumber(y)           |
+| string  | integer | list    | ToNumber(x) divmod by y           |
+| string  | float   | list    | ToNumber(x) divmod by y           |
+| string  | string  | list    | ToNumber(x) divmod by ToNumber(y) |
+| list    | integer | list    | Distributed                       |
+| list    | float   | list    | Distributed                       |
+| list    | string  | list    | Distributed                       |
 
 A type error is raised on all other combinations
 

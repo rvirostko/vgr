@@ -21,20 +21,20 @@ def poly_mod(x: Any, *args):
 * Mod(*x*, *y*&hellip;)
 * *x*.Mod(*y*&hellip;)
 
-| x     | y     | returns | operation               |
-|-------|-------|---------|-------------------------|
-| int   | int   | float   | x % y                   |
-| int   | float | float   | x % y                   |
-| int   | str   | float   | x % ToFloat(y)          |
-| float | int   | float   | x % y                   |
-| float | float | float   | x % y                   |
-| float | str   | float   | x % ToFloat(y)          |
-| str   | int   | float   | ToFloat(x) % y          |
-| str   | float | float   | ToFloat(x) % y          |
-| str   | str   | float   | ToFloat(x) % ToFloat(y) |
-| list  | int   | list    | distributive            |
-| list  | float | list    | distributive            |
-| list  | str   | list    | distributive            |
+| Type(x) | Type(y) | Returns | Operation               |
+|---------|---------|---------|-------------------------|
+| integer | integer | float   | x % y                   |
+| integer | float   | float   | x % y                   |
+| integer | string  | float   | x % ToFloat(y)          |
+| float   | integer | float   | x % y                   |
+| float   | float   | float   | x % y                   |
+| float   | string  | float   | x % ToFloat(y)          |
+| string  | integer | float   | ToFloat(x) % y          |
+| string  | float   | float   | ToFloat(x) % y          |
+| string  | string  | float   | ToFloat(x) % ToFloat(y) |
+| list    | integer | list    | Distributed             |
+| list    | float   | list    | Distributed             |
+| list    | string  | list    | Distributed             |
 
 A type error is raised on all other combinations
 

@@ -13,25 +13,26 @@ def poly_add(x: Any, *args):
 * Add(*x*, *y*&hellip;)
 * *x*.Add(*y*&hellip;)
 
-| x     | y     | returns   | operation                |
-|-------|-------|-----------|--------------------------|
-| int   | int   | int       | x + y                    |
-| int   | float | float     | x + y                    |
-| int   | str   | int/float | x + ToNumber(y)          |
-| int   | list  | list      | distributive             |
-| float | int   | int/float | x + ToFloat(y)           |
-| float | float | float     | x + y                    |
-| float | str   | int/float | x + ToNumber(y)          |
-| float | list  | list      | distributive             |
-| str   | int   | str       | concat x and ToString(y) |
-| str   | float | str       | concat x and ToString(y) |
-| str   | str   | str       | concat x and y           |
-| str   | list  | list      | distributive             |
-| list  | int   | list      | distributive             |
-| list  | float | list      | distributive             |
-| list  | str   | list      | distributive             |
-| list  | list  | list      | union of lists           |
-| dict  | dict  | dict      | union of dicts           |
+| Type(x)    | Type(y)    | Returns       | Operation                |
+|------------|------------|---------------|--------------------------|
+| integer    | integer    | integer       | x + y                    |
+| integer    | float      | float         | x + y                    |
+| integer    | string     | integer/float | x + ToNumber(y)          |
+| integer    | list       | list          | Distributed              |
+| float      | integer    | integer/float | x + ToFloat(y)           |
+| float      | float      | float         | x + y                    |
+| float      | string     | integer/float | x + ToNumber(y)          |
+| float      | string     | float         | x + ToNumber(y)          |
+| float      | list       | list          | Distributed              |
+| string     | integer    | string        | concat x and ToString(y) |
+| string     | float      | string        | concat x and ToString(y) |
+| string     | string     | string        | concat x and y           |
+| string     | list       | list          | Distributed              |
+| list       | integer    | list          | Distributed              |
+| list       | float      | list          | Distributed              |
+| list       | string     | list          | Distributed              |
+| list       | list       | list          | union of lists           |
+| dictionary | dictionary | dictionary    | union of dicts           |
 
 A type error is raised on all other combinations
 

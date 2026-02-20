@@ -21,20 +21,20 @@ def poly_pow(x: Any, *args):
 * Pow(*x*, *y*&hellip;)
 * *x*.Pow(*y*&hellip;)
 
-| x     | y     | returns   | operation                  |
-|-------|-------|-----------|----------------------------|
-| int   | int   | float     | x ** y                     |
-| int   | float | float     | x ** y                     |
-| int   | str   | int/float | x ** ToNumber(y)           |
-| float | int   | float     | x ** y                     |
-| float | float | float     | x ** y                     |
-| float | str   | int/float | x ** ToNumber(y)           |
-| str   | int   | int/float | ToNumber(x) ** y           |
-| str   | float | float     | ToNumber(x) ** y           |
-| str   | str   | int/float | ToNumber(x) ** ToNumber(y) |
-| list  | int   | list      | distributed                |
-| list  | float | list      | distributed                |
-| list  | str   | list      | distributed                |
+| Type(x) | Type(y) | Returns       | Operation                  |
+|---------|---------|---------------|----------------------------|
+| integer | integer | float         | x ** y                     |
+| integer | float   | float         | x ** y                     |
+| integer | string  | integer/float | x ** ToNumber(y)           |
+| float   | integer | float         | x ** y                     |
+| float   | float   | float         | x ** y                     |
+| float   | string  | integer/float | x ** ToNumber(y)           |
+| string  | integer | integer/float | ToNumber(x) ** y           |
+| string  | float   | float         | ToNumber(x) ** y           |
+| string  | string  | integer/float | ToNumber(x) ** ToNumber(y) |
+| list    | integer | list          | Distributed                |
+| list    | float   | list          | Distributed                |
+| list    | string  | list          | Distributed                |
 
 A type error is raised on all other combinations
 

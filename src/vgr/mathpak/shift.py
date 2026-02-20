@@ -27,20 +27,20 @@ def poly_shl(x: Any, *args) -> Any:
 The values of both *x* and *y* are converted to
 integers to perform the operation.
 
-| x     | y     | returns | operation                    |
-|-------|-------|---------|------------------------------|
-| int   | int   | int     | x << y                       |
-| int   | float | int     | x << ToInteger(y)            |
-| int   | str   | int     | x << ToInteger(y)            |
-| float | int   | int     | ToInteger(x) << y            |
-| float | float | int     | ToInteger(x) << y            |
-| float | str   | int     | ToInteger(x) << ToInteger(y) |
-| str   | int   | int     | ToInteger(x) << y            |
-| str   | float | int     | ToInteger(x) << y            |
-| str   | str   | int     | ToInteger(x) << ToInteger(y) |
-| list  | int   | list    | distributed                  |
-| list  | float | list    | distributed                  |
-| list  | str   | list    | distributed                  |
+| Type(x) | Type(y) | Returns | Operation                    |
+|---------|---------|---------|------------------------------|
+| integer | integer | integer | x << y                       |
+| integer | float   | integer | x << ToInteger(y)            |
+| integer | string  | integer | x << ToInteger(y)            |
+| float   | integer | integer | ToInteger(x) << y            |
+| float   | float   | integer | ToInteger(x) << y            |
+| float   | string  | integer | ToInteger(x) << ToInteger(y) |
+| string  | integer | integer | ToInteger(x) << y            |
+| string  | float   | integer | ToInteger(x) << y            |
+| string  | string  | integer | ToInteger(x) << ToInteger(y) |
+| list    | integer | list    | Distributed                  |
+| list    | float   | list    | Distributed                  |
+| list    | string  | list    | Distributed                  |
 
 A type error is raised on all other combinations
 
@@ -69,20 +69,20 @@ def poly_shr(x: Any, *args):
 The values of both *x* and *y* are converted to
 integers to perform the operation.
 
-| x     | y     | returns | operation                    |
-|-------|-------|---------|------------------------------|
-| int   | int   | int     | x >> y                       |
-| int   | float | int     | x >> ToInteger(y)            |
-| int   | str   | int     | x >> ToInteger(y)            |
-| float | int   | int     | ToInteger(x) >> y            |
-| float | float | int     | ToInteger(x) >> ToInteger(y) |
-| float | str   | int     | ToInteger(x) >> ToInteger(y) |
-| str   | int   | int     | ToInteger(x) >> y            |
-| str   | float | int     | ToInteger(x) >> ToInteger(y) |
-| str   | str   | int     | ToInteger(x) >> ToInteger(y) |
-| list  | int   | list    | distributed                  |
-| list  | float | list    | distributed                  |
-| list  | str   | list    | distributed                  |
+| Type(x) | Type(y) | Returns | Operation                    |
+|---------|---------|---------|------------------------------|
+| integer | integer | integer | x >> y                       |
+| integer | float   | integer | x >> ToInteger(y)            |
+| integer | string  | integer | x >> ToInteger(y)            |
+| float   | integer | integer | ToInteger(x) >> y            |
+| float   | float   | integer | ToInteger(x) >> ToInteger(y) |
+| float   | string  | integer | ToInteger(x) >> ToInteger(y) |
+| string  | integer | integer | ToInteger(x) >> y            |
+| string  | float   | integer | ToInteger(x) >> ToInteger(y) |
+| string  | string  | integer | ToInteger(x) >> ToInteger(y) |
+| list    | integer | list    | Distributed                  |
+| list    | float   | list    | Distributed                  |
+| list    | string  | list    | Distributed                  |
 
 A type error is raised on all other combinations
 
