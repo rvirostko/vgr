@@ -658,8 +658,7 @@ def get_function_entries() -> dict[str, tuple[Callable[..., Any], str, str]]:
 
 # Needs to include all items bound to operators
 _OP_FUNCS: list[Callable[..., Any]] = [
-    # TODO why is this turned off?
-    #    def unary_not(self, tree): return NotOperation(tree)
+    poly_false, # ! (not)
     build_dict, # dict
     build_list, # array
     logical_and, # and_op
