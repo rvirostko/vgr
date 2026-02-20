@@ -30,7 +30,7 @@ Ldap Search Base Is formsys.base
 // Check the operation
 Assert groups.success : "Failed to get groups: {} (rc={})", groups.error, groups.result_code
 Sort groups.entries By ou
-Printf As Markdown "Filter: {}\n", filter.MdItalics()
+Printf As Markdown "Filter: {}\n", filter.MdEmphasis()
 Select ou.TitleCase() As "Group", uniqueMember.Length() As "Members", dn As "DN"
     From groups.entries
     For Batch Template
@@ -43,7 +43,7 @@ Define Function PrintPeople(filter):
         Giving people
     Assert people.success : "Failed to get people: {} (rc={})", groups.error, groups.result_code
     Sort people.entries By cn
-    Printf As Markdown "Filter: {}\n", filter.ReplaceStr("*", r"\*").MdItalics()
+    Printf As Markdown "Filter: {}\n", filter.ReplaceStr("*", r"\*").MdEmphasis()
     Select cn As "Name", mail.DefaultTo("") As "Email", telephoneNumber.FirstItem().DefaultTo("") As "Phone"
         From people.entries
         For Batch Template
