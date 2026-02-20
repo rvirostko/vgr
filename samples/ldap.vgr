@@ -20,7 +20,7 @@ Print ""
 // Simple listing of groups
 // Note that the "dn" is also returned: it is a synthetic attribute
 // and cannot be used in a filter
-Print "Groups"
+Print As Markdown "Groups".MdStrong()
 Set filter To "objectClass".LdapAttrEquals("groupOfUniqueNames")
 Ldap Search Base Is formsys.base
     Filter Is filter
@@ -50,10 +50,10 @@ Define Function PrintPeople(filter):
     Print ""
 End
 
-Print "People"
+Print As Markdown "People".MdStrong()
 Call PrintPeople Using "objectClass".LdapAttrEquals("person")
 
-Print "People with both mail and phone numbers"
+Print As Markdown "People with both mail and phone numbers".MdStrong()
 Call PrintPeople
     Using LdapFilterAnd("objectClass".LdapAttrEquals("person"),
                         "mail".LdapAttrExists(),
@@ -65,12 +65,13 @@ Set qbe = {
             "telephoneNumber": "*",
             "cn":              "*past*"
         }
-Printf "Query-by-example: {}\n",qbe
+Printf "Query-by-example:\n"
+Printf "{}\n", qbe.FormatJson()
 Call PrintPeople Using ToLdapFilter(qbe)
 
 // The Size Limit control the number of records returned
 // Additionally, when set to 1, the type of entries changes
-Print "Size Limit behavior"
+Print As Markdown "Size Limit behavior".MdStrong()
 ForEach limit In [0, 1, 2]:
     Ldap Search Base Is "ou=mathematicians," + formsys.base
         Scope Is ALL
