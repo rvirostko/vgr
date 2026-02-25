@@ -28,7 +28,7 @@ def _to_str(s):
 def _fmt(text: str, code: str) -> str:
     return _BLANK if len(text) == 0 else f"{code}{text}{code}"
 
-def md_strong(text: Any) -> Any:
+def md_strong(text: Any=None) -> Any:
     """
 **Format the text in Markdown as strong text**
 
@@ -42,7 +42,7 @@ def md_strong(text: Any) -> Any:
     if isinstance(text, list): return type(text)(md_strong(item) for item in text)
     return _fmt(_to_str(text), _MD_STRONG_DELIMITER)
 
-def md_emphasis(text: Any) -> Any:
+def md_emphasis(text: Any=None) -> Any:
     """
 **Format the text in Markdown as emphasised text**
 
@@ -56,7 +56,7 @@ def md_emphasis(text: Any) -> Any:
     if isinstance(text, list): return type(text)(md_emphasis(item) for item in text)
     return _fmt(_to_str(text), _MD_EMPHASIS_DELIMITER)
 
-def md_strikethrough(text: Any) -> Any:
+def md_strikethrough(text: Any=None) -> Any:
     """
 **Format the text in Markdown as strike-through**
 
@@ -70,7 +70,7 @@ def md_strikethrough(text: Any) -> Any:
     if isinstance(text, list): return type(text)(md_strikethrough(item) for item in text)
     return _fmt(_to_str(text), _MD_STRIKETHROUGH_DELIMITER)
 
-def md_code(text: Any) -> Any:
+def md_code(text: Any=None) -> Any:
     """
 **Format the text in Markdown as code text**
 
@@ -84,7 +84,7 @@ def md_code(text: Any) -> Any:
     if isinstance(text, list): return type(text)(md_code(item) for item in text)
     return _fmt(_to_str(text), _MD_CODE_DELIMITER)
 
-def md_link(text: Any, url: Any) -> Any:
+def md_link(text: Any=None, url: Any=None) -> Any:
     """
 **Format the text in Markdown as a link**
 
@@ -101,7 +101,7 @@ def md_link(text: Any, url: Any) -> Any:
     url = _to_str(url)
     return _BLANK if len(text) == 0 or len(url) == 0 else f"[{text}]({url})"
 
-def md_heading(text: Any, level: int=1) -> Any:
+def md_heading(text: Any=None, level: int=1) -> Any:
     """
 **Format the text in Markdown as a heading**
 
@@ -121,7 +121,7 @@ def md_heading(text: Any, level: int=1) -> Any:
     text = _to_str(text)
     return _BLANK if len(text) == 0 else f"{'#' * level} {text}\n"
 
-def md_blockquote(text: Any) -> Any:
+def md_blockquote(text: Any=None) -> Any:
     """
 **Format the text in Markdown as a block quote**
 
@@ -140,7 +140,7 @@ If *value* is a list, each element in it is formatted as part of the block.
     text = _to_str(text)
     return _BLANK if len(text) == 0 else md_blockquote(text.splitlines())
 
-def md_unordered_list(text: Any) -> Any:
+def md_unordered_list(text: Any=None) -> Any:
     """
 **Format the text in Markdown as an unordered list item**
 
@@ -159,7 +159,7 @@ If *value* is a list, each element in it is formated as a list item.
     text = _to_str(text)
     return _BLANK if len(text) == 0 else md_unordered_list(text.splitlines())
 
-def md_ordered_list(text: Any) -> Any:
+def md_ordered_list(text: Any=None) -> Any:
     """
 **Format the text in Markdown as an ordered list item**
 
@@ -182,7 +182,7 @@ If *value* is a list, each element in it is formated as a list item.
     text = _to_str(text)
     return _BLANK if len(text) == 0 else md_ordered_list(text.splitlines())
 
-def md_code_block(text: Any, lang: str=None) -> Any:
+def md_code_block(text: Any=None, lang: str=None) -> Any:
     """
 **Format the text in Markdown as a code block**
 

@@ -436,7 +436,7 @@ class OperationBinder(Transformer):
     def invoke_func(self, tree): return InvokeFunctionOperation(tree)
     def invoke_func_inline(self, tree): return InvokeInlineFunctionOperation(tree)
 
-    # method-style invocation: "foo".Upper()
+    # Transformational pipeline style: "foo".Upper()
     def dotfunction_call(self, tree):
         # The expression becomes the first argument to the function,
         # and it takes the place of the wrapper from parsing
@@ -445,7 +445,7 @@ class OperationBinder(Transformer):
         rc.children.insert(0, expr)
         return rc
 
-    # functional-style invocation: Upper("foo")
+    # Functional-style: Upper("foo")
     def function_call(self, tree):
         func = tree.children[0]
         return SimpleOperation(func, get_function_op(func.children.pop(0).value))

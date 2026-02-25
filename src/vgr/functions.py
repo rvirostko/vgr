@@ -742,14 +742,14 @@ def get_function_defs(weight: int=99) -> str:
     """Dynamically generate the LARK patterns for functions based on our dictionary"""
     weight = str(weight)
     return (
-                '// function-style invocation\n' +
+                '// Functional style\n' +
                 _gen_function_defs(weight, 'function', 'FNAME', False) +
                 "\n\n" +
-                '// method-style invocation\n' +
-                _gen_function_defs(weight, 'dotfunction', 'DFNAME', True)
+                '// Transformational pipeline style\n' +
+                _gen_function_defs(weight, 'dotfunction', 'DOT_FNAME', True)
            )
 
-def _gen_function_defs(weight: str, rule_name, group_label, dot_invocation: bool=False) -> str:
+def _gen_function_defs(weight: str, rule_name, group_label, dot_invocation: bool) -> str:
     # Group the functions acording to their argument counts
     # Take into account alias found in _FUNC_INDEX
     func_groups = defaultdict(list)
@@ -821,7 +821,13 @@ def _get_arg_range(op, dot_invocation: bool) -> tuple:
                 opt_args += 1
     if dot_invocation:
         # Because the function is applied to something, we adjust
-        req_args -= 1
-        # If the function can't be used in this manner, ignore it
-        if req_args < 0: return None
+        if req_args > 0:
+            req_args -= 1
+        else:
+            if opt_args > 0:
+                opt_args -= 1
+            else:
+                # If the function can't be used as a dot function
+                # because it has no args, so ignore it
+                return None
     return (req_args, _IS_VARARGS if positional else (req_args + opt_args))

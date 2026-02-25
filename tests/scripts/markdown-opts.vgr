@@ -1,0 +1,50 @@
+
+# Test the signatures and output equivalence of the Markdown functions
+
+Set text = "text"
+Set lang = "lang"
+Set level = 2
+Set url = "http://sample.org"
+
+Assert MdBlockQuote() == None.MdBlockQuote()
+Assert MdBlockQuote() == MdBlockQuote(None)
+Assert MdBlockQuote(text) == text.MdBlockQuote()
+
+Assert MdCode() == None.MdCode()
+Assert MdCode() == MdCode(None)
+Assert MdCode(text) == text.MdCode()
+
+Assert MdCodeBlock() == None.MdCodeBlock()
+Assert MdCodeBlock() == MdCodeBlock(None)
+Assert MdCodeBlock(text) == text.MdCodeBlock()
+Assert MdCodeBlock(text, lang) == text.MdCodeBlock(lang)
+
+Assert MdEmphasis() == None.MdEmphasis()
+Assert MdEmphasis() == MdEmphasis(None)
+Assert MdEmphasis(text) == text.MdEmphasis()
+
+Assert MdHeading() == None.MdHeading()
+Assert MdHeading() == MdHeading(None)
+Assert MdHeading(text) == text.MdHeading()
+Assert MdHeading(text, level) == text.MdHeading(level)
+
+Assert MdLink() == None.MdLink()
+Assert MdLink() == MdLink(None)
+Assert MdLink(text) == text.MdLink()
+Assert MdLink(text, url) == text.MdLink(url)
+
+Assert MdOrderedList() == None.MdOrderedList()
+Assert MdOrderedList() == MdOrderedList(None)
+Assert MdOrderedList(text) == text.MdOrderedList()
+
+Assert MdStrikeThrough() == None.MdStrikeThrough()
+Assert MdStrikeThrough() == MdStrikeThrough(None)
+Assert MdStrikeThrough(text) == text.MdStrikeThrough()
+
+Assert MdStrong() == None.MdStrong()
+Assert MdStrong() == MdStrong(None)
+Assert MdStrong(text) == text.MdStrong()
+
+Assert MdUnorderedList() == None.MdUnorderedList()
+Assert MdUnorderedList() == MdUnorderedList(None)
+Assert MdUnorderedList(text) == text.MdUnorderedList()
