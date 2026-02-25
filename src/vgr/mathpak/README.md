@@ -13,6 +13,5 @@
 
   ```_Any_ + None   → None```
 
-
 * Arithmetic operations can work with strings, which are cast compatibly
 * Operations should be distributive over list and tuple
