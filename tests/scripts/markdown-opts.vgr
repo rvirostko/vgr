@@ -6,6 +6,8 @@ Set lang = "lang"
 Set level = 2
 Set url = "http://sample.org"
 
+Tron
+
 Assert MdBlockQuote() == None.MdBlockQuote()
 Assert MdBlockQuote() == MdBlockQuote(None)
 Assert MdBlockQuote(text) == text.MdBlockQuote()
@@ -48,3 +50,5 @@ Assert MdStrong(text) == text.MdStrong()
 Assert MdUnorderedList() == None.MdUnorderedList()
 Assert MdUnorderedList() == MdUnorderedList(None)
 Assert MdUnorderedList(text) == text.MdUnorderedList()
+
+Troff

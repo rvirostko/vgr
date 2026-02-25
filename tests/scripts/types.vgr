@@ -1,4 +1,6 @@
 
+Tron
+
 Set f(x) -> x
 Set p To CompilePattern("x")
 
@@ -46,3 +48,5 @@ Assert 0.IsNan() Is False
 Assert 0.IsZero()
 Assert Zero.IsZero()
 Assert 1.IsZero() Is False
+
+Troff
