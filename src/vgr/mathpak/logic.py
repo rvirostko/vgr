@@ -6,7 +6,7 @@ from typing import Any
 
 from .common import bound_ops
 
-def poly_true(x: Any) -> bool:
+def poly_true(x: Any=None) -> bool:
     """
 **Check for logical True**
 
@@ -36,7 +36,7 @@ Also see `ToBoolean()`
     return True
 
 @bound_ops("!", "！", "¬")
-def poly_false(x: Any) -> bool:
+def poly_false(x: Any=None) -> bool:
     """
 **Logical Negation (Not) operation**
 

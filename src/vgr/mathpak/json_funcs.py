@@ -2,11 +2,12 @@
 JSON (dict) related functions
 """
 
+from typing import Any
 import json
 
 from .common import int_arg, bool_arg
 
-def parse_json(s):
+def parse_json(s: Any=None) -> dict:
     """
 **Parse a string as JSON**
 
@@ -18,7 +19,7 @@ Returns `None` if input is `None`.
 """
     return None if s is None else json.loads(s)
 
-def strip_nulls(obj):
+def strip_nulls(obj: Any=None) -> Any:
     """
 **Recursively remove `None` values from dictionaries and lists**
 
@@ -32,7 +33,7 @@ def strip_nulls(obj):
         return list(strip_nulls(v) for v in obj if v is not None)
     return obj
 
-def format_json(obj, indent: int=2, sort_keys: bool=True):
+def format_json(obj: Any=None, indent: int=2, sort_keys: bool=True) -> Any:
     """
 Format the object as a JSON string
 
@@ -51,7 +52,7 @@ Format the object as a JSON string
     sort_keys = bool_arg(sort_keys, "SortKeys")
     return None if obj is None else json.dumps(to_json(obj), indent=indent, default=str, sort_keys=sort_keys)
 
-def to_json_string(obj):
+def to_json_string(obj: Any=None) -> str:
     """
 **Format the object as a compact JSON string**
 
@@ -65,7 +66,7 @@ def to_json_string(obj):
 """
     return None if obj is None else json.dumps(to_json(obj), separators=(',', ':'), default=str, ensure_ascii=False)
 
-def to_json(obj):
+def to_json(obj: Any=None) -> dict:
     """
 **Convert the object into a JSON (dictionary or list) object**
 

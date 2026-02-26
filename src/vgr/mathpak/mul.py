@@ -5,7 +5,7 @@ import itertools
 from .common import bound_ops, dist_x, dist_y, X_None_Op, Y_None_Op, get_operation, str_to_int
 
 @bound_ops("*", "×")
-def poly_mul(x: Any, *args):
+def poly_mul(*args):
     """
 **Multiplication operation**
 
@@ -47,7 +47,7 @@ None * "5" → None
 [1, 2] * [5, 7] → [[1, 5], [1, 7], [2, 5], [2, 7]]
 ```
 """
-    return reduce(_mul, args, x)
+    return reduce(_mul, args[1:], args[0]) if args else None
 
 def _mul(x: Any, y: Any) -> Any:
     operation = get_operation(x, y, mul_operations)

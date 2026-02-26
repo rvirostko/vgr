@@ -31,7 +31,7 @@ _TIME_UNITS_FACTOR = [
     ('ns', 1 / 1_000_000)
 ]
 
-def duration_to_ms(duration: Any) -> int:
+def duration_to_ms(duration: Any=None) -> int:
     """
 **Convert a Vault duration value to milliseconds**
 
@@ -71,7 +71,7 @@ String values are converted as per the Vault specification for duration strings.
         position = match.end()
     return int(total_milliseconds)
 
-def ms_to_duration(ms: Any) -> str:
+def ms_to_duration(ms: Any=None) -> str:
     """
 **Converts a duration in milliseconds into a Vault duration string**
 
@@ -135,7 +135,7 @@ def _find_flat_data(obj, *full_path) -> dict:
         return obj
     return {}
 
-def extract_kv_data(obj) -> dict:
+def extract_kv_data(obj: Any=None) -> dict:
     """
 **Find a *data* key in a dictionary**
 
@@ -153,7 +153,7 @@ Also see `ExtractKVMetadata()`
 """
     return _find_flat_data(obj, "data", "data")
 
-def extract_kv_metadata(obj) -> dict:
+def extract_kv_metadata(obj: Any=None) -> dict:
     """
 **Find a *metadata* or *custom_metadata* key in a dictionary**
 

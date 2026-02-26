@@ -217,7 +217,11 @@ from .strings import (
     poly_zfill,
 )
 from .sub import poly_sub
-from .time_funcs import format_duration, format_timestamp
+from .time_funcs import (
+    format_duration,
+    format_timestamp,
+    time_now,
+)
 from .type import poly_type
 from .types import (
     poly_bool,

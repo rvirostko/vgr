@@ -28,7 +28,7 @@ Returns:
     if not x: raise ValueError('Filter cannot be empty')
     return x if (x.startswith('(') or x.startswith('!()')) and x.endswith(')') else f'({x})'
 
-def ldap_escape(x: str) -> str:
+def ldap_escape(x: str=None) -> str:
     """
 **Escape special characters in an LDAP filter value**
 """
@@ -38,30 +38,32 @@ def ldap_escape(x: str) -> str:
              .replace(')', r'\29') \
              .replace('\0', r'\00')
 
-def _to_filter_list(first: str, *args) -> list:
-    filters = list(_flatten(first))
-    filters.extend(_flatten(args))
+def _to_filter_list(*args) -> list:
+    filters = list(_flatten(args))
     return [_ensure_parens(f) for f in filters]
 
-def ldap_and(first: str, *args) -> str:
+def ldap_and(*args) -> str:
     """
 **Combine two or more LDAP filter expressions with a logical AND**
 """
-    filters = _to_filter_list(first, args)
+    if not args: return None
+    filters = _to_filter_list(args)
     return None if not filters else filters[0] if len(filters) == 1 else f'(&{"".join(filters)})'
 
-def ldap_or(first: str, *args) -> str:
+def ldap_or(*args) -> str:
     """
 **Combine two or more LDAP filter expressions with a logical OR**
 """
-    filters = _to_filter_list(first, args)
+    if not args: return None
+    filters = _to_filter_list(args)
     return None if not filters else filters[0] if len(filters) == 1 else f'(|{"".join(filters)})'
 
-def ldap_not(first: str, *args) -> str:
+def ldap_not(*args) -> str:
     """
 **Negate an LDAP filter expression**
 """
-    filters = [f'(!{f})' for f in _to_filter_list(first, args)]
+    if not args: return None
+    filters = [f'(!{f})' for f in _to_filter_list(args)]
     return None if not filters else filters[0] if len(filters) == 1 else ldap_and(filters)
 
 def _gen_attr_op(prefix: str, operator: str, combiner: str, attr: str, *values: str) -> str:
@@ -71,11 +73,10 @@ def _gen_attr_op(prefix: str, operator: str, combiner: str, attr: str, *values: 
     if len(filters) == 1: return filters[0]
     return f"({combiner}{''.join(filters)})"
 
-def _gen_attr_ineq(prefix: str, operator: str, attr: str, value: str) -> str:
-    if value is None: raise ValueError(f'Value must be provided for attribute {attr!r}')
-    return f'{prefix}({attr}{operator}{ldap_escape(value)})'
+def _gen_attr_ineq(prefix: str, operator: str, attr: str, *values: str) -> str:
+    return _gen_attr_op(prefix, operator, '&', attr, *values)
 
-def attr_equals(attr: str, *values: str) -> str:
+def attr_equals(*args) -> str:
     """
 **Generate a filter for equality of an attribute with one or more values**
 
@@ -84,9 +85,10 @@ def attr_equals(attr: str, *values: str) -> str:
 ```
 
 """
-    return _gen_attr_op('', '=', '|', attr, *values)
+    if len(args) < 2: return None
+    return _gen_attr_op('', '=', '|', args[0], *args[1:])
 
-def attr_not_equals(attr: str, *values: str) -> str:
+def attr_not_equals(*args) -> str:
     """
 **Generate a filter for inequality of an attribute with one or more values**
 
@@ -95,9 +97,10 @@ def attr_not_equals(attr: str, *values: str) -> str:
 ```
 
 """
-    return _gen_attr_op('!', '=', '&', attr, *values)
+    if len(args) < 2: return None
+    return _gen_attr_op('!', '=', '&', args[0], *args[1:])
 
-def attr_match(attr: str, *values: str) -> str:
+def attr_match(*args) -> str:
     """
 **Generate a filter for approximate match of an attribute with one or more values**
 
@@ -106,9 +109,10 @@ def attr_match(attr: str, *values: str) -> str:
 ```
 
 """
-    return _gen_attr_op('', '~=', '|', attr, *values)
+    if len(args) < 2: return None
+    return _gen_attr_op('', '~=', '|', args[0], *args[1:])
 
-def attr_lessthan(attr: str, value: str) -> str:
+def attr_lessthan(*args) -> str:
     """
 **Generate a filter for less-than comparison of an attribute**
 
@@ -117,9 +121,10 @@ def attr_lessthan(attr: str, value: str) -> str:
 ```
 
 """
-    return _gen_attr_ineq('!', '>=', attr, value)
+    if len(args) < 2: return None
+    return _gen_attr_ineq('!', '>=', args[0], *args[1:])
 
-def attr_greaterthan(attr: str, value: str) -> str:
+def attr_greaterthan(*args) -> str:
     """
 **Generate a filter for greater-than comparison of an attribute**
 
@@ -128,9 +133,10 @@ def attr_greaterthan(attr: str, value: str) -> str:
 ```
 
 """
-    return _gen_attr_ineq('!', '<=', attr, value)
+    if len(args) < 2: return None
+    return _gen_attr_ineq('!', '<=', args[0], *args[1:])
 
-def attr_lessthaneq(attr: str, value: str) -> str:
+def attr_lessthaneq(*args) -> str:
     """
 **Generate a filter for less-than or equal-to comparison of an attribute**
 
@@ -139,9 +145,10 @@ def attr_lessthaneq(attr: str, value: str) -> str:
 ```
 
 """
-    return _gen_attr_ineq('', '<=', attr, value)
+    if len(args) < 2: return None
+    return _gen_attr_ineq('', '<=', args[0], *args[1:])
 
-def attr_greaterthaneq(attr: str, value: str) -> str:
+def attr_greaterthaneq(*args) -> str:
     """
 **Generate a filter for greater-than or equal-to comparison of an attribute**
 
@@ -150,9 +157,10 @@ def attr_greaterthaneq(attr: str, value: str) -> str:
 ```
 
 """
-    return _gen_attr_ineq('', '>=', attr, value)
+    if len(args) < 2: return None
+    return _gen_attr_ineq('', '>=', args[0], *args[1:])
 
-def attr_between(attr: str, low_value: str, high_value: str) -> str:
+def attr_between(attr: str=None, low_value: str=None, high_value: str=None) -> str:
     """
 **Generate a filter for an attribute being inside a range**
 
@@ -161,9 +169,10 @@ def attr_between(attr: str, low_value: str, high_value: str) -> str:
 ```
 
 """
+    if attr is None: return None
     return ldap_and(attr_greaterthaneq(attr, low_value), attr_lessthaneq(attr, high_value))
 
-def attr_exists(attr: str) -> str:
+def attr_exists(attr: str=None) -> str:
     """
 **Generate a filter for an attribute having any value**
 
@@ -174,7 +183,7 @@ def attr_exists(attr: str) -> str:
 """
     return attr_equals(attr, '*')
 
-def attr_not_exists(attr: str) -> str:
+def attr_not_exists(attr: str=None) -> str:
     """
 **Generate a filter for an attribute not having any value**
 
@@ -279,7 +288,7 @@ def _reduce_attr_tokens_to_filter(attr: str, parts: List[str]) -> str:
         return _token_to_filter(attr, "")
     return groups[0] if len(groups) == 1 else ldap_or(groups[0], *groups[1:])
 
-def qbe_to_filter(qbe: Dict[Any, Any]) -> str:
+def qbe_to_filter(qbe: Dict[Any, Any]=None) -> str:
     """
 *Converts a dictionary to a query-by-example filter*
 

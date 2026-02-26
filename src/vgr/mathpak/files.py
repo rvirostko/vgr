@@ -7,7 +7,7 @@ from typing import Any
 
 from .type import poly_type
 
-def dir_name(path: Any) -> Any:
+def dir_name(path: Any=None) -> Any:
     """
 **Returns the directory part of a path**
 
@@ -22,7 +22,7 @@ If path is empty "." is used, matching UNIX behavior.
     if not isinstance(path, str): raise ValueError(f'DirName on {poly_type(path)!r} not possible')
     return os.path.dirname(verify_relative_path(path)) or '.'
 
-def base_name(path: Any) -> Any:
+def base_name(path: Any=None) -> Any:
     """
 **Returns the final component of a path**
 
@@ -35,7 +35,7 @@ def base_name(path: Any) -> Any:
     if not isinstance(path, str): raise ValueError(f'BaseName on {poly_type(path)!r} not possible')
     return os.path.basename(verify_relative_path(path))
 
-def file_exists(path: Any) -> Any:
+def file_exists(path: Any=None) -> Any:
     """
 **Does a path exists**
 
@@ -48,7 +48,7 @@ def file_exists(path: Any) -> Any:
     if not isinstance(path, str): raise ValueError(f'FileExists on {poly_type(path)!r} not possible')
     return os.path.exists(verify_relative_path(path))
 
-def is_file(path: Any) -> Any:
+def is_file(path: Any=None) -> Any:
     """
 **Checks to see if a file exists and is a regular file**
 
@@ -61,7 +61,7 @@ def is_file(path: Any) -> Any:
     if not isinstance(path, str): raise ValueError(f'IsFile on {poly_type(path)!r} not possible')
     return os.path.isfile(verify_relative_path(path))
 
-def is_dir(path: Any) -> Any:
+def is_dir(path: Any=None) -> Any:
     """
 **Checks to see if a path exists and is a directory**
 
@@ -74,7 +74,7 @@ def is_dir(path: Any) -> Any:
     if not isinstance(path, str): raise ValueError(f'IsDirectory on {poly_type(path)!r} not possible')
     return os.path.isdir(verify_relative_path(path))
 
-def remove_file(path: Any) -> Any:
+def remove_file(path: Any=None) -> Any:
     """
 **Removes a file, returning status**
 

@@ -9,7 +9,7 @@ from .common import NoneType
 from .type import poly_type
 from .types import poly_int
 
-def poly_bin(x: Any) -> Any:
+def poly_bin(x: Any=None) -> Any:
     """
 **Convert an integer number to a binary string**
 
@@ -35,7 +35,7 @@ Also see `ToOctal()` and `ToHex()`
     if isinstance(x, list): return list(poly_bin(x1) for x1 in x)
     raise TypeError(f'Binary format with {poly_type(x)!r} not supported')
 
-def poly_oct(x: Any) -> Any:
+def poly_oct(x: Any=None) -> Any:
     """
 **Convert an integer number to an octal string**
 
@@ -61,7 +61,7 @@ Also see `ToBinary()` and `ToHex()`
     if isinstance(x, list): return list(poly_oct(x1) for x1 in x)
     raise TypeError(f'Octal format with {poly_type(x)!r} not supported')
 
-def poly_hex(x: Any) -> Any:
+def poly_hex(x: Any=None) -> Any:
     """
 **Convert an integer number to a hexadecimal string**
 
@@ -87,7 +87,7 @@ Also see `ToBinary()` and `ToOctal()`
     if isinstance(x, list): return list(poly_hex(x1) for x1 in x)
     raise TypeError(f'Hexadecimal format with {poly_type(x)!r} not supported')
 
-def poly_parse_int(x: Any, base: Any=10) -> Any:
+def poly_parse_int(x: Any=None, base: Any=10) -> Any:
     """
 **Convert a non-numeric value into an integer**
 
@@ -126,7 +126,7 @@ Also see `ParseBinary()`, `ParseOctal()`, `ParseHex()`
     if isinstance(x, list): return list(poly_parse_int(x1, base) for x1 in x)
     raise TypeError(f'Parsing from {poly_type(x)!r} not supported')
 
-def poly_parse_bin(x: Any) -> Any:
+def poly_parse_bin(x: Any=None) -> Any:
     """
 **A specialized version of `ParseInt()` for base 2**
 
@@ -149,7 +149,7 @@ Also see `ParseInt()`
 """
     return poly_parse_int(x, 2)
 
-def poly_parse_oct(x: Any) -> Any:
+def poly_parse_oct(x: Any=None) -> Any:
     """
 **A specialized version of `ParseInt()` for base 8**
 
@@ -173,7 +173,7 @@ Also see `ParseInt()`
 """
     return poly_parse_int(x, 8)
 
-def poly_parse_hex(x: Any) -> Any:
+def poly_parse_hex(x: Any=None) -> Any:
     """
 **A specialized version of `ParseInt()` for base 16**
 
@@ -197,7 +197,7 @@ Also see `ParseInt()`
 """
     return poly_parse_int(x, 16)
 
-def poly_base64_encode(x: Any, charset: str = "utf-8") -> Any:
+def poly_base64_encode(x: Any=None, charset: str = "utf-8") -> Any:
     """
 **Encode a string using base 64 encoding**
 
@@ -228,7 +228,7 @@ Also see `Base64Decode()`
     if isinstance(x, str): return base64.b64encode(x.encode()).decode(_check_charset(charset))
     raise TypeError(f'Base64 encoding of {poly_type(x)!r} not supported')
 
-def poly_base64_decode(x: Any, charset: str = "utf-8") -> Any:
+def poly_base64_decode(x: Any=None, charset: str = "utf-8") -> Any:
     """
 **Decode a string using base 64 encoding**
 
@@ -260,7 +260,7 @@ Also see `Base64Encode()`
         return '' if not x else base64.b64decode(x).decode(_check_charset(charset))
     raise TypeError(f'Base64 decoding of {poly_type(x)!r} not supported')
 
-def poly_hex_encode(x: Any, charset: str = "utf-8") -> str:
+def poly_hex_encode(x: Any=None, charset: str = "utf-8") -> str:
     """
 **Encode a string as a series of hexidecimal characters**
 
@@ -290,7 +290,7 @@ Also see `HexDecode()`
     if isinstance(x, str): return x.encode(_check_charset(charset)).hex()
     raise TypeError(f'Hex encoding of {poly_type(x)!r} not supported')
 
-def poly_hex_decode(x: Any, charset: str = "utf-8") -> str:
+def poly_hex_decode(x: Any=None, charset: str = "utf-8") -> str:
     """
 **Decode a string of hexidecimal characters into a string**
 

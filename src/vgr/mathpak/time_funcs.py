@@ -4,13 +4,27 @@ Time related functions
 
 from datetime import datetime
 from typing import Any
+import time
 
 from .common import int_arg, str_arg, dist_x
 from .type import poly_type
 
 _DEFAULT_TS_FORMAT = '%FT%T'
 
-def format_duration(x: Any, y: Any=0) -> Any:
+def time_now() -> int:
+    """
+**Return the Unix Epoch time in seconds**
+
+```vgr
+**TOD**
+```
+
+Also see `FormatTimestamp()`
+    """
+    return int(time.time()) # Unix Epoch time
+
+
+def format_duration(x: Any=None, y: Any=None) -> Any:
     """
 **Format the duration between two timestamps**
 
@@ -52,7 +66,7 @@ now.FormatDuration(now + 8_192) → "2h 16m 32s"
     if isinstance(x, list): return dist_x(format_duration, x, y)
     raise TypeError(f'Unsupported type for timestamp: {poly_type(x)!r}')
 
-def format_timestamp(x: Any, y: Any=None) -> Any:
+def format_timestamp(x: Any=None, y: Any=None) -> Any:
     """
 **Format a value as a timestamp**
 

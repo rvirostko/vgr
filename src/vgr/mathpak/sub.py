@@ -9,7 +9,7 @@ from .common import (
 )
 
 @bound_ops("-", "－")
-def poly_sub(x: Any, *args):
+def poly_sub(*args):
     """
 **Subtraction operation**
 
@@ -50,7 +50,7 @@ None - "5" → -5
 {"a": 5, "b": 7, "c": 11} - {"a": None, "b": None} → {"c": 11}
 ```
 """
-    return reduce(_sub, args, x)
+    return reduce(_sub, args[1:], args[0]) if args else None
 
 def _sub(x: Any, y: Any) -> Any:
     operation = get_operation(x, y, sub_operations, numeric_operations)

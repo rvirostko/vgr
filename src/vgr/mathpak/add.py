@@ -4,7 +4,7 @@ from typing import Any
 from .common import bound_ops, get_operation, numeric_operations, dist_x, dist_y, str_to_number
 
 @bound_ops("+", "＋")
-def poly_add(x: Any, *args):
+def poly_add(*args):
     """
 **Addition/concatenation operation**
 
@@ -51,7 +51,7 @@ None + "5" → "5"
 Also see `ToNumber()` and `ToString()` for conversion details
 
 """
-    return reduce(_add, args, x)
+    return reduce(_add, args[1:], args[0]) if args else None
 
 def _add(x: Any, y: Any) -> Any:
     operation = get_operation(x, y, _add_operations, numeric_operations)
@@ -69,7 +69,7 @@ _add_operations = {
     (dict, dict): lambda _, x, y: {**x, **y}
 }
 
-def poly_sum(x: Any, *args) -> Any:
+def poly_sum(*args) -> Any:
     """
 **Recursively sum lists of numbers**
 
@@ -96,7 +96,7 @@ True.Sum(True, None, True) → 3
 ["cat", "dog", "fish"].Sum() → 0
 ```
 """
-    return _sum(x) + sum(_sum(arg) for arg in args)
+    return _sum(args[0]) + sum(_sum(arg) for arg in args[1:]) if args else 0
 
 def _sum(obj):
     if obj is None: return 0

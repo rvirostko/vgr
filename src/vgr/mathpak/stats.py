@@ -10,7 +10,7 @@ from .common import str_to_number
 from .inequ import poly_lt, poly_gt
 from .type import poly_type
 
-def poly_max(x: Any, *args: Any) -> Any:
+def poly_max(*args: Any) -> Any:
     """
 **Return the largest item in collection or an assembly of data**
 
@@ -18,13 +18,9 @@ def poly_max(x: Any, *args: Any) -> Any:
 **TODO**
 ```
 """
-    if not args:
-        if isinstance(x, list):
-            return max(x, key=cmp_to_key(_cmp_to_key_asc), default=None)
-        return x
-    return max(_flatten((x, *args)), key=cmp_to_key(_cmp_to_key_asc), default=None)
+    return max(_flatten(args), key=cmp_to_key(_cmp_to_key_asc), default=None) if args else None
 
-def poly_min(x: Any, *args: Any) -> Any:
+def poly_min(*args: Any) -> Any:
     """
 **Return the smallest item in collection or an assembly of data**
 
@@ -32,13 +28,9 @@ def poly_min(x: Any, *args: Any) -> Any:
 **TODO**
 ```
 """
-    if not args:
-        if isinstance(x, list):
-            return min(x, key=cmp_to_key(_cmp_to_key_asc), default=None)
-        return x
-    return min(_flatten((x, *args)), key=cmp_to_key(_cmp_to_key_asc), default=None)
+    return min(_flatten(args), key=cmp_to_key(_cmp_to_key_asc), default=None) if args else None
 
-def poly_mean(x: Any, *data: Any) -> Any:
+def poly_mean(*args: Any) -> Any:
     """
 **Calculte the arithimethic mean in a collection or an assembly of data**
 
@@ -46,10 +38,10 @@ def poly_mean(x: Any, *data: Any) -> Any:
 **TODO**
 ```
 """
-    data = _coerce_to_numbers(_filter_none(_flatten((x, *data))))
-    return statistics.mean(data) if data else None
+    args = _coerce_to_numbers(_filter_none(_flatten(args))) if args else None
+    return statistics.mean(args) if args else None
 
-def poly_median(x: Any, *data: Any) -> Any:
+def poly_median(*args: Any) -> Any:
     """
 **Return the median value in a collection or an assembly of data**
 
@@ -57,10 +49,10 @@ def poly_median(x: Any, *data: Any) -> Any:
 **TODO**
 ```
 """
-    data = _coerce_to_numbers(_filter_none(_flatten((x, *data))))
-    return statistics.median(data) if data else None
+    args = _coerce_to_numbers(_filter_none(_flatten(args))) if args else None
+    return statistics.median(args) if args else None
 
-def poly_mode(x: Any, *data: Any) -> Any:
+def poly_mode(*args: Any) -> Any:
     """
 **Return the mode of a collection or an assembly of data**
 
@@ -68,10 +60,10 @@ def poly_mode(x: Any, *data: Any) -> Any:
 **TODO**
 ```
 """
-    data = _coerce_to_numbers(_filter_none(_flatten((x, *data))))
-    return statistics.mode(data) if data else None
+    args = _coerce_to_numbers(_filter_none(_flatten(args))) if args else None
+    return statistics.mode(args) if args else None
 
-def poly_multimode(x: Any, *data: Any) -> Any:
+def poly_multimode(*args: Any) -> Any:
     """
 **Return a list of modes of a collection or an assembly of data**
 
@@ -79,10 +71,10 @@ def poly_multimode(x: Any, *data: Any) -> Any:
 **TODO**
 ```
 """
-    data = _coerce_to_numbers(_filter_none(_flatten((x, *data))))
-    return statistics.multimode(data) if data else None
+    args = _coerce_to_numbers(_filter_none(_flatten(args))) if args else None
+    return statistics.multimode(args) if args else None
 
-def poly_stdev(x: Any, *data: Any) -> Any:
+def poly_stdev(*args: Any) -> Any:
     """
 **Return the sample standard deviation for a collection or an assembly of data**
 
@@ -90,10 +82,10 @@ def poly_stdev(x: Any, *data: Any) -> Any:
 **TODO**
 ```
 """
-    data = _coerce_to_numbers(_filter_none(_flatten((x, *data))))
-    return statistics.stdev(data) if data else None
+    args = _coerce_to_numbers(_filter_none(_flatten(args))) if args else None
+    return statistics.stdev(args) if args and len(args) > 1 else None
 
-def poly_variance(x: Any, *data: Any) -> Any:
+def poly_variance(*args: Any) -> Any:
     """
 **Return the sample variance for a collection or an assembly of data**
 
@@ -101,10 +93,10 @@ def poly_variance(x: Any, *data: Any) -> Any:
 **TODO**
 ```
 """
-    data = _coerce_to_numbers(_filter_none(_flatten((x, *data))))
-    return statistics.variance(data) if data else None
+    args = _coerce_to_numbers(_filter_none(_flatten(args))) if args else None
+    return statistics.variance(args) if args and len(args) > 1 else None
 
-def poly_pstdev(x: Any, *data: Any) -> Any:
+def poly_pstdev(*args: Any) -> Any:
     """
 **Return the population standard deviation for a collection or an assembly of data**
 
@@ -112,10 +104,10 @@ def poly_pstdev(x: Any, *data: Any) -> Any:
 **TODO**
 ```
 """
-    data = _coerce_to_numbers(_filter_none(_flatten((x, *data))))
-    return statistics.pstdev(data) if data else None
+    args = _coerce_to_numbers(_filter_none(_flatten(args))) if args else None
+    return statistics.pstdev(args) if args else None
 
-def poly_pvariance(x: Any, *data: Any) -> Any:
+def poly_pvariance(*args: Any) -> Any:
     """
 **Return the population variance for a collection or an assembly of data**
 
@@ -123,8 +115,8 @@ def poly_pvariance(x: Any, *data: Any) -> Any:
 **TODO**
 ```
 """
-    data = _coerce_to_numbers(_filter_none(_flatten((x, *data))))
-    return statistics.pvariance(data) if data else None
+    args = _coerce_to_numbers(_filter_none(_flatten(args))) if args else None
+    return statistics.pvariance(args) if args else None
 
 def _coerce_to_numbers(values):
     result = []

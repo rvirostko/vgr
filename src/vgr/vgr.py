@@ -169,8 +169,8 @@ For example **help Add** will return informtion for `Add()` while
             topic = "help"
             q = ""
         else:
-            topic = args[0].strip().lower()
-            targs = args[1:]
+            topic, *targs = args
+            topic = topic.strip().lower()
             q = (' '.join(targs) if targs else '').strip()
         if bool(re.search(r"\([^)]*\)$", topic)):
             self._print_function_help("", topic + ' ' + q)

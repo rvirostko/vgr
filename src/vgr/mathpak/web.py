@@ -9,7 +9,7 @@ from urllib.error import URLError
 from .common import dist_x, str_arg
 from .types import poly_bool
 
-def parse_url(url: Any, remove_nulls: bool=True) -> Any:
+def parse_url(url: Any=None, remove_nulls: bool=True) -> Any:
     """
 **Decompose a URL string and return a dictionary of its components**
 
@@ -70,7 +70,7 @@ parsed.fragment → "frag"
             "error_msg": str(e),
         }
 
-def encode_url(url: str, safe: str="/") -> str:
+def encode_url(url: str=None, safe: str="/") -> str:
     """
 **Encode reserved characters in a full or partial URL**
 

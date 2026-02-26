@@ -9,7 +9,7 @@ import re
 from .common import NoneType
 from .type import poly_type
 
-def poly_is_pattern(x:Any) -> bool:
+def poly_is_pattern(x:Any=None) -> bool:
     """
 **Is a value a pre-compiled regular expression pattern**
 
@@ -25,7 +25,7 @@ Also see `CompilePattern()`
 """
     return isinstance(x, re.Pattern)
 
-def compile_pattern(x: Any, flags: int=0) -> Any:
+def compile_pattern(x: Any=None, flags: int=0) -> Any:
     """
 **Create a pre-compiled regular expression pattern**
 
@@ -53,7 +53,7 @@ Also see `RegexReplace()` and `IsPattern()`
         return list(compile_pattern(x1, flags) for x1 in x)
     raise ValueError(f'Cannot Compile {poly_type(x)!r} to a Pattern')
 
-def poly_regex_replace(x: Any, *args) -> Any:
+def poly_regex_replace(*args) -> Any:
     """
 **Regular Expression replacement**
 
@@ -83,6 +83,8 @@ Capture groups can be referenced in the replacement.
 
 Also see `CompilePattern()`
 """
+    if not args: return None
+    x, *args = args
     if not args: return x
     if len(args) == 1: return _regex_replace(x, args[0], '')
     if len(args) == 2: return _regex_replace(x, args[0], args[1]) # pattern and replacement

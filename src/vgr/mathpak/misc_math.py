@@ -6,7 +6,7 @@ import math
 from .common import bound_ops, str_to_number, dist_x
 from .type import poly_type
 
-def poly_abs(x: Any) -> Any:
+def poly_abs(x: Any=None) -> Any:
     """
 **Return the absolute value of a value**
 
@@ -30,7 +30,7 @@ None.Abs() → None
     return abs(x) if hasattr(x, '__abs__') else _dist(poly_abs, x)
 
 @bound_ops("⌈...⌉")
-def poly_ceil(x: Any) -> Any:
+def poly_ceil(x: Any=None) -> Any:
     """
 **Returns the least integer greater than or equal to a value**
 
@@ -56,7 +56,7 @@ Also see `Floor()` and `Trunc()`
     if isinstance(x, str): return poly_ceil(str_to_number(x))
     return math.ceil(x) if hasattr(x, '__ceil__') else _dist(poly_ceil, x)
 
-def poly_trunc(x: Any) -> Any:
+def poly_trunc(x: Any=None) -> Any:
     """
 **Truncates a value to the lowest integer towards zero**
 
@@ -78,7 +78,7 @@ Also see `Ceil()` and `Floor()`
     return math.trunc(x) if hasattr(x, '__trunc__') else _dist(poly_trunc, x)
 
 @bound_ops("⌊...⌋")
-def poly_floor(x: Any) -> Any:
+def poly_floor(x: Any=None) -> Any:
     """
 **Returns the least integer less than or equal to a value**
 
@@ -110,7 +110,7 @@ def arithmetic_round(n: float, ndigits: int = 0) -> float:
     p = 10 ** ndigits
     return int(n * p + 0.5 if n >= 0 else n * p - 0.5) / p
 
-def poly_round(x: Any, ndigits: int=0) -> Any:
+def poly_round(x: Any=None, ndigits: int=0) -> Any:
     """
 **Arithmetic rounding of a number to a given number of decimal places or power of ten**
 
@@ -163,7 +163,7 @@ def _get_multiple_arg(multiple: Any) -> Any:
     multiple = abs(multiple)
     return 1 if multiple == 0 else multiple
 
-def poly_round_multiple(x: Any, multiple: Any=1) -> Any:
+def poly_round_multiple(x: Any=None, multiple: Any=1) -> Any:
     """
 **Arithmetic rounding of a number using a _multiple_ value to align the result**
 
@@ -210,7 +210,7 @@ Also see `Round()`
     if isinstance(x, list): return dist_x(poly_round_multiple, x, multiple)
     return x
 
-def poly_floor_multiple(x: Any, multiple: Any=1) -> Any:
+def poly_floor_multiple(x: Any=None, multiple: Any=1) -> Any:
     """
 **Floor of a number using a _multiple_ value to align the result**
 
@@ -257,7 +257,7 @@ Also see `Floor()` and `CeilMultiple()`
     if isinstance(x, list): return dist_x(poly_floor_multiple, x, multiple)
     return x
 
-def poly_ceil_multiple(x: Any, multiple: Any=1) -> Any:
+def poly_ceil_multiple(x: Any=None, multiple: Any=1) -> Any:
     """
 **Ceil of a number using a _multiple_ value to align the result**
 
@@ -305,7 +305,7 @@ def _dist(op: Callable[[Any], Any], x: Any) -> Any:
     # Distribute the operation over the collection
     return list(op(x1) for x1 in x) if isinstance(x, list) else x
 
-def poly_pred(x: Any) -> Any:
+def poly_pred(x: Any=None) -> Any:
     """
 **Return the arithmetic predecessor of a value**
 
@@ -333,7 +333,7 @@ Also see `Succ()`
     if isinstance(x, list): return list(poly_pred(x1) for x1 in x)
     return x
 
-def poly_succ(x: Any) -> Any:
+def poly_succ(x: Any=None) -> Any:
     """
 **Return the arithmetic successor of a value**
 

@@ -13,7 +13,7 @@ from .common import (
 )
 
 @bound_ops("%")
-def poly_mod(x: Any, *args):
+def poly_mod(*args):
     """
 **Modulo operation**
 
@@ -48,7 +48,7 @@ None % "5" → 0
 [5, 7] % 3 → [2, 1]
 ```
 """
-    return reduce(_mod, args, x)
+    return reduce(_mod, args[1:], args[0]) if args else None
 
 def _mod(x: Any, y: Any) -> Any:
     operation = get_operation(x, y, mod_operations, numeric_operations)

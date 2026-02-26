@@ -7,7 +7,7 @@ from .common import str_to_number, bool_arg, dist_x
 from .inequ import poly_lt, poly_gt, poly_eq, poly_ne
 from .type import poly_type
 
-def poly_reverse(x: Any) -> Any:
+def poly_reverse(x: Any=None) -> Any:
     """
 **Reverses the contents of a list or string**
 
@@ -28,7 +28,7 @@ If *value* is an ordinal rather than a list, it is returned unchanged.
     if isinstance(x, str): return x[::-1]
     return x
 
-def poly_ascii(x: Any) -> str:
+def poly_ascii(x: Any=None) -> str:
     """
 **Returns a printable ASCII string for an item**
 
@@ -46,7 +46,7 @@ with backslash sequences.
 """
     return ascii(x)
 
-def poly_hash(x: Any) -> int:
+def poly_hash(x: Any=None) -> int:
     """
 **Returns the internal hashcode for an object**
 
@@ -64,7 +64,7 @@ Cannot be applied to lists or dictionaries.
 """
     return hash(x)
 
-def poly_clone(x: Any) -> Any:
+def poly_clone(x: Any=None) -> Any:
     """
 **Ceates a copy of complex objects**
 
@@ -109,7 +109,7 @@ Also see `Id()` and `Hash()`
     if isinstance(x, (list, dict)): return copy(x)
     return x
 
-def poly_repr(x: Any) -> str:
+def poly_repr(x: Any=None) -> str:
     """
 **Returns a string representation of an item**
 
@@ -135,7 +135,7 @@ Also see `Ascii()`
     if isinstance(x, list): return '[' + ', '.join(poly_repr(x1) for x1 in x) + ']'
     return repr(x)
 
-def poly_sort(x: Any, unique: bool=False, reverse: bool=False) -> Any:
+def poly_sort(x: Any=None, unique: bool=False, reverse: bool=False) -> Any:
     """
 **Sort lists and strings with unique and reverse**
 
@@ -167,7 +167,7 @@ Also see `Unique()`
         return _unique_sorted(rc) if unique else rc
     return x
 
-def poly_getitem(x:Any, index: Any) -> Any:
+def poly_getitem(x:Any=None, index: Any=0) -> Any:
     """
 **Return the N-th item from a list**
 
@@ -198,7 +198,7 @@ Also see `FirstItem()` and `LastItem()`
     i: int = int(index) if isinstance(index, (int, float)) else str_to_number(index) if isinstance(index, str) else None
     return x[i] if i is not None and 0 <= i < len(x) else None
 
-def poly_firstitem(x: Any) -> Any:
+def poly_firstitem(x: Any=None) -> Any:
     """
 **Return the first item from a list**
 
@@ -221,7 +221,7 @@ Also see `Item()` and `LastItem()`
 """
     return poly_getitem(x, 0)
 
-def poly_lastitem(x: Any) -> Any:
+def poly_lastitem(x: Any=None) -> Any:
     """
 **Return the last item from a list**
 
@@ -245,7 +245,7 @@ Also see `Item()` and `FirstItem()`
     if not isinstance(x, list): return x
     return x[-1] if len(x) > 0 else None
 
-def poly_unique(x: Any) -> Any:
+def poly_unique(x: Any=None) -> Any:
     """
 **A unique that works with lists or strings**
 

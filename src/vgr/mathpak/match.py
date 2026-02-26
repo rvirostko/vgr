@@ -10,7 +10,7 @@ from .common import bound_ops, NoneType
 from .type import poly_type
 
 @bound_ops("Matches Any", "~")
-def poly_matches(x: Any, *args) -> Any:
+def poly_matches(*args) -> Any:
     """
 **Perform a regular expression match**
 
@@ -52,11 +52,13 @@ equality comparison.
 
 Also see operators `!~` and `~*`
 """
+    if not args: return False
+    x, *args = args
     if not args: args = [None]
     return _do_match(x, args[0] if len(args) == 0 else [*args])
 
 @bound_ops("~*")
-def poly_imatches(x: Any, y: Any) -> Any:
+def poly_imatches(x: Any=None, y: Any=None) -> Any:
     """
 **Perform a case independent regular expression match**
 
@@ -77,7 +79,7 @@ Also see operators `~` and `!~*`
     return _do_match(x, y, True)
 
 @bound_ops("Matches All")
-def poly_matches_all(x: Any, *args) -> Any:
+def poly_matches_all(*args) -> Any:
     """
 **Perform a regular expression match**
 
@@ -98,11 +100,13 @@ of is provided, *all* must match.
 
 Also see `Matches Any` and `!~`
 """
+    if not args: return False
+    x, *args = args
     if not args: args = [None]
     return _do_match(x, args[0] if len(args) == 0 else [*args], False, True)
 
 @bound_ops("!~")
-def poly_not_matches(x: Any, y: Any) -> Any:
+def poly_not_matches(x: Any=None, y: Any=None) -> Any:
     """
 **Perform a negated regular expression match**
 
@@ -123,7 +127,7 @@ Also see operators `~` and `!~*`
     return not _do_match(x, y)
 
 @bound_ops("!~*")
-def poly_not_imatches(x: Any, y: Any) -> Any:
+def poly_not_imatches(x: Any=None, y: Any=None) -> Any:
     """
 **Perform a negated case independent regular expression match**
 

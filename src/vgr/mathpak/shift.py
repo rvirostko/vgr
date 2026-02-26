@@ -16,7 +16,7 @@ from .common import (
 )
 
 @bound_ops("<<")
-def poly_shl(x: Any, *args) -> Any:
+def poly_shl(*args) -> Any:
     """
 **Bitwise Shift Left operation**
 
@@ -55,10 +55,10 @@ None << "2" → 0
 
 Also see `RightShift()`
 """
-    return reduce(_shl, args, x)
+    return reduce(_shl, args[1:], args[0]) if args else _shr(None, None)
 
 @bound_ops(">>")
-def poly_shr(x: Any, *args):
+def poly_shr(*args):
     """
 **Bitwise Shift Right operation**
 
@@ -97,7 +97,7 @@ None >> "2" → 0
 
 Also see `LeftShift()`
 """
-    return reduce(_shr, args, x)
+    return reduce(_shr, args[1:], args[0]) if args else _shr(None, None)
 
 def _shl(x: Any, y: Any) -> Any:
     operation = get_operation(x, y, shift_operations)

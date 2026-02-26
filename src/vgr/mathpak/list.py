@@ -17,7 +17,7 @@ from .common import (
 from ..vgr_callable import VgrCallable
 
 @bound_ops("[...]")
-def build_list(*values: Any) -> list[Any]:
+def build_list(*args: Any) -> list[Any]:
     """
 **Create a list from the collected values**
 
@@ -62,9 +62,9 @@ List(2, 3, [4]) → [2, 3, [4]]
 Also see `Append`, `Insert`, `Prepend`, `Remove`, and `Replace` statements,
 and the `List()` and `ToList()` functions
 """
-    return list(values)
+    return list(args)
 
-def poly_islist(x: Any) -> bool:
+def poly_islist(x: Any=None) -> bool:
     """
 **Is the value a list**
 
@@ -82,7 +82,7 @@ Also see `ToList()`
 """
     return isinstance(x, list)
 
-def poly_list(x: Any) -> list:
+def poly_list(x: Any=None) -> list:
     """
 **Converts a value to a list**
 
@@ -108,7 +108,7 @@ Also see `IsList()`
     if isinstance(x, dict): return [[key, x[key]] for key in sorted(x)] if x else []
     return [x]
 
-def poly_list_append(x: Any, *args) -> list:
+def poly_list_append(*args) -> list:
     """
 **Adds items to the end of a list**
 
@@ -132,11 +132,12 @@ fruits.ListAppend("cantoloupe", "pear")
 Also see `ListPrepend()`
 and the `Append` statement, which acts directly on a variable
 """
-    x: list = copy(poly_list(x))
-    for arg in args: x.append(arg)
+    if not args: return []
+    x: list = copy(poly_list(args[0]))
+    for arg in args[1:]: x.append(arg)
     return x
 
-def poly_list_prepend(x: Any, *args) -> list:
+def poly_list_prepend(*args) -> list:
     """
 **Adds items to the start of a list**
 
@@ -160,14 +161,15 @@ fruits.ListPrepend("cantoloupe", "pear")
 Also see `ListAppend()`
 and the `Prepend` statement, which acts directly on a variable
 """
-    x: list = copy(poly_list(x))
+    if not args: return []
+    x: list = copy(poly_list(args[0]))
     index = 0
-    for arg in args:
+    for arg in args[1:]:
         x.insert(index, arg)
         index += 1
     return x
 
-def poly_list_remove_first(x: Any) -> list:
+def poly_list_remove_first(x: Any=None) -> list:
     """
 **Removes the first item from a list**
 
@@ -191,7 +193,7 @@ and the`Remove` statement, which acts directly on a variable
     if len(x) > 0: x.pop(0)
     return x
 
-def poly_list_remove_last(x: Any) -> list:
+def poly_list_remove_last(x: Any=None) -> list:
     """
 **Removes the last item from a list**
 
@@ -215,7 +217,7 @@ and the`Remove` statement, which acts directly on a variable
     if len(x) > 0: x.pop()
     return x
 
-def poly_list_remove(x: Any, index: int=0) -> list:
+def poly_list_remove(x: Any=None, index: int=0) -> list:
     """
 **Removes an item from a list by index**
 
@@ -246,7 +248,7 @@ and the `Remove` statement, which acts directly on a variable
             x.pop(index)
     return x
 
-def poly_list_replace(x: Any, index, value: Any=None) -> list:
+def poly_list_replace(x: Any=None, index: Any=0, value: Any=None) -> list:
     """
 **Replace an item in a list by index**
 
@@ -274,12 +276,12 @@ and the `Replace` statement, which acts directly on a variable
     x: list = poly_list(x)
     if index is not None:
         index = int_arg(index, "Index")
-        if 0 <= index < len(x):
+        if 0 <= index <= len(x):
             x = copy(x)
             x[index] = value
     return x
 
-def poly_list_insert(x: Any, index, *values) -> list:
+def poly_list_insert(*args) -> list:
     """
 **Insert items into a list by index**
 
@@ -307,10 +309,12 @@ fruits.ListInsert(5, "cantoloupe") → ["apple", "banana", "orange"]
 Also see `ListReplace()`
 and the `Insert` statement, which acts directly on a variable
 """
+    x, index = (args + (None, 0))[:2]
+    values = args[2:]
     x: list = poly_list(x)
     if index is not None:
         index = int_arg(index, "Index")
-        if 0 <= index < len(x):
+        if 0 <= index <= len(x):
             x = copy(x)
             for value in values:
                 x.insert(index, value)
@@ -431,7 +435,7 @@ Also see `Apply()`
         return acc
     return _combine_it(acc, x)
 
-def poly_combine_lists(first: Any, *rest) -> Any:
+def poly_combine_lists(*args) -> list:
     """
 **Combine elements of collections into a list of lists**
 
@@ -458,5 +462,6 @@ CombineLists([1, 2, 3]) → [[1], [2], [3]]
 """
     def normalize(x):
         return x if isinstance(x, Iterable) and not isinstance(x, (str, bytes, bytearray)) else [x]
-    iterables = [normalize(first)] + [normalize(arg) for arg in rest]
+    if not args: return []
+    iterables = [normalize(args[0])] + [normalize(arg) for arg in args[1:]]
     return list(map(list, zip_longest(*iterables)))

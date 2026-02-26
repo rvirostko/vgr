@@ -4,7 +4,7 @@ import re
 
 from ..vgr_callable import VgrCallable
 
-def poly_type(x: Any) -> str:
+def poly_type(x: Any=None) -> str:
     """
 **Return the internal data type of an item**
 

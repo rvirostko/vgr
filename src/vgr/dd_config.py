@@ -13,13 +13,13 @@ import re
 import socket
 import string
 import sys
-import time
 import uuid
 
 from . import __version__, __version_date__
 from .data_dict import DataDictionary, DynamicValue, MAX_FRAMES
 from .exec_context import ExecContext
 from .redir import _REDIRECTOR
+from .mathpak import time_now
 
 VGR_PREFIX = 'vgr'
 INCLUDED_PATH = (VGR_PREFIX, 'included')
@@ -49,7 +49,7 @@ _FORMAT = "format"
 _TODAY = "today"
 _TIME_ENTRIES = {
     ("dst",):                       DynamicValue(lambda: bool(datetime.now().astimezone().dst())),
-    ("now",):                       DynamicValue(lambda: int(time.time())), # Unix Epoch time
+    ("now",):                       DynamicValue(time_now), # Unix Epoch time
     ("sec_per_day",):               60 * 60 * 24,
     ("sec_per_hr",):                60 * 60,
     ("tz_name", ):                  DynamicValue(lambda: datetime.now().astimezone().tzname()),

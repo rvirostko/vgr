@@ -11,7 +11,7 @@ from .inequ import poly_eq
 from .type import poly_type
 
 @bound_ops("Is In", "∈")
-def poly_in(x: Any, y: Any) -> bool:
+def poly_in(x: Any=None, y: Any=None) -> bool:
     """
 **Is a value contained in another value or collection**
 
@@ -45,7 +45,7 @@ Also see `IsNotIn()` and `ContainsAny()`
     return _is_in(x, y, False)
 
 @bound_ops("Is Not In", "∉")
-def poly_not_in(x: Any, y: Any) -> Any:
+def poly_not_in(x: Any=None, y: Any=None) -> Any:
     """
 **Is a value _not_ contained in another value or collection**
 
@@ -79,7 +79,7 @@ Also see `IsIn()`
     return not _is_in(x, y, False)
 
 @bound_ops("Contains Any")
-def poly_contains_any(x: Any, y: Any) -> Any:
+def poly_contains_any(x: Any=None, y: Any=None) -> Any:
     """
 **Is a value contained in another value or collection**
 
@@ -115,7 +115,7 @@ Also see `ContainsAll()` and `IsIn()`
     return _is_in(y, x, False)
 
 @bound_ops("Contains All")
-def poly_contains_all(x: Any, y: Any) -> Any:
+def poly_contains_all(x: Any=None, y: Any=None) -> Any:
     """
 **Is a value contained in another value or collection**
 

@@ -8,7 +8,7 @@ import math
 from .common import str_to_number, bound_ops
 
 @bound_ops("Is Equal To", "==", "⩵", "Equals", "Is")
-def poly_eq(x: Any, y: Any) -> bool:
+def poly_eq(x: Any=None, y: Any=None) -> bool:
     """
 **Equality comparison**
 
@@ -75,7 +75,7 @@ None == "5" → False
     return override(poly_eq, x, y) if override else x == y
 
 @bound_ops("===")
-def poly_exact_eq(x: Any, y: Any) -> bool:
+def poly_exact_eq(x: Any=None, y: Any=None) -> bool:
     """
 **Exact equality comparison**
 
@@ -103,7 +103,7 @@ Also see `==`
     return override(poly_exact_eq, x, y) if override else x == y
 
 @bound_ops("Is Not Equal To", "!=", "≠", "<>", "¬=")
-def poly_ne(x: Any, y: Any) -> bool:
+def poly_ne(x: Any=None, y: Any=None) -> bool:
     """
 **Not equals comparison**
 
@@ -160,7 +160,7 @@ None != "5" → True
     return not poly_eq(x, y)
 
 @bound_ops("Is Less Than", "<", "＜")
-def poly_lt(x: Any, y: Any) -> bool:
+def poly_lt(x: Any=None, y: Any=None) -> bool:
     """
 **Less than comparison**
 
@@ -207,7 +207,7 @@ performed between corresponding elements.
     return override(poly_lt, x, y) if override else x < y
 
 @bound_ops("Is Greater Than", ">", "＞")
-def poly_gt(x: Any, y: Any) -> Any:
+def poly_gt(x: Any=None, y: Any=None) -> Any:
     """
 **Greater than comparison**
 
@@ -260,7 +260,7 @@ None > "5" → True
     return override(poly_gt, x, y) if override else x > y
 
 @bound_ops("<=", "Is Not Greater Than", "≤", "¬>", "!>")
-def poly_le(x: Any, y: Any) -> bool:
+def poly_le(x: Any=None, y: Any=None) -> bool:
     """
 **Less than or equal to comparison**
 
@@ -315,7 +315,7 @@ None <= "5" → True
     return override(poly_le, x, y) if override else x <= y
 
 @bound_ops(">=", "Is Not Less Than", "≥", "¬<", "!<")
-def poly_ge(x: Any, y: Any) -> bool:
+def poly_ge(x: Any=None, y: Any=None) -> bool:
     """
 **Greater than or equal to comparison**
 
@@ -369,7 +369,7 @@ None >= "5" → False
     override = _overrides.get((type(x), type(y)))
     return override(poly_ge, x, y) if override else x >= y
 
-def poly_between(x: Any, y: Any=None, z: Any=None) -> bool:
+def poly_between(x: Any=None, y: Any=None, z: Any=None) -> bool:
     """
 **Determine if a value is within an inclusive range**
 
@@ -401,7 +401,7 @@ Also see `Succ()` and `Pred()`, as well as `IsLessThan()` and `IsGreaterThan()` 
     # We always want to use x as a base as it influences conversions
     return poly_ge(x, low) and poly_le(x, high)
 
-def poly_clamp(x: Any, y: Any=None, z: Any=None) -> Any:
+def poly_clamp(x: Any=None, y: Any=None, z: Any=None) -> Any:
     """
 **Constrain a value within an inclusive range**
 

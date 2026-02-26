@@ -177,7 +177,7 @@ def _merge_dict(a: dict, b: dict) -> dict:
     return a
 
 
-def poly_isdict(x: Any) -> bool:
+def poly_isdict(x: Any=None) -> bool:
     """
 **Is a value a dictionary**
 
@@ -195,7 +195,7 @@ Also see `Type()`
 """
     return isinstance(x, dict)
 
-def poly_getkeyvalue(data: Any, path: Any, default_value: Any=None) -> Any:
+def poly_getkeyvalue(data: Any=None, path: Any=None, default_value: Any=None) -> Any:
     """
 **Traverse a path in a dictionary and return its value**
 
@@ -237,7 +237,7 @@ Also see `SetKeyValue()` and `LookupItem()`
     found, rc = _deref(data, path)
     return copy(rc if found else default_value)
 
-def poly_setkeyvalue(data: Any, path: Any, value: Any=None) -> Any:
+def poly_setkeyvalue(data: Any=None, path: Any=None, value: Any=None) -> Any:
     """
 **Traverse a path in a dictionary and set a value**
 
@@ -304,7 +304,7 @@ Also see `GetKeyValue()`
     d[key] = value
     return data
 
-def poly_getkeys(data: Any) -> list:
+def poly_getkeys(data: Any=None) -> list:
     """
 **Retrieve the keys used in a dictionary**
 
@@ -334,7 +334,7 @@ Also see `GetValues()`
         return list(keys)
     return []
 
-def poly_getvalues(data: Any) -> list:
+def poly_getvalues(data: Any=None) -> list:
     """
 **Return a list of all the values in a dictionary**
 
@@ -364,7 +364,7 @@ Also see `GetKeys()`
         return values
     return []
 
-def poly_removekey(data: Any, path: Any) -> Any:
+def poly_removekey(data: Any=None, path: Any=None) -> Any:
     """
 **Remove a key from a dictionary**
 
@@ -419,7 +419,7 @@ Also see `SetKeyValue()`
     return data
 
 @requires_exec_context
-def poly_lookupitem(x: Any, path: Any, values: Any=None, limit: Any=None, *, ctx=None) -> Any:
+def poly_lookupitem(x: Any=None, path: Any=None, values: Any=None, limit: Any=None, *, ctx=None) -> Any:
     """
 **Find a matching entries in a list by value**
 

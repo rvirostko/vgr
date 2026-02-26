@@ -13,7 +13,7 @@ from .common import (
 )
 
 @bound_ops("**")
-def poly_pow(x: Any, *args):
+def poly_pow(*args) -> Any:
     """
 **Raise a value to a power**
 
@@ -49,7 +49,7 @@ None ** "5" → 0
 25 ** .5 → 5.0
 ```
 """
-    return reduce(_pow, args, x)
+    return reduce(_pow, args[1:], args[0]) if args else None
 
 def _pow(x: Any, y: Any) -> Any:
     operation = get_operation(x, y, pow_operations, numeric_operations)

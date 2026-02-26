@@ -1,0 +1,395 @@
+
+# Test the signatures and output equivalence of some of the math functions
+
+Set r = "r"
+Set s = "s"
+Set x = 2
+Set y = 3
+Set z = 4
+
+Tron
+
+Assert Add() == None
+Assert Add() == None.Add()
+Assert Add() == Add(None)
+Assert Add(x) == x.Add()
+Assert Add(x, y) == x.Add(y)
+Assert Add(x, y, z) == x.Add(y, z)
+
+Assert Sum() == 0
+Assert Sum() == None.Sum()
+Assert Sum() == Sum(None)
+Assert Sum(x) == x.Sum()
+Assert Sum(x, y) == x.Sum(y)
+Assert Sum(x, y, z) == x.Sum(y, z)
+
+Assert Sub() == None
+Assert Sub() == None.Sub()
+Assert Sub() == Sub(None)
+Assert Sub(x) == x.Sub()
+Assert Sub(x, y) == x.Sub(y)
+Assert Sub(x, y, z) == x.Sub(y, z)
+
+Assert Mul() == None
+Assert Mul() == None.Mul()
+Assert Mul() == Mul(None)
+Assert Mul(x) == x.Mul()
+Assert Mul(x, y) == x.Mul(y)
+Assert Mul(x, y, z) == x.Mul(y, z)
+
+Assert Div() == None
+Assert Div() == None.Div()
+Assert Div() == Div(None)
+Assert Div(x) == x.Div()
+Assert Div(x, y) == x.Div(y)
+Assert Div(x, y, z) == x.Div(y, z)
+
+Assert FloorDiv() == None
+Assert FloorDiv() == None.FloorDiv()
+Assert FloorDiv() == FloorDiv(None)
+Assert FloorDiv(x) == x.FloorDiv()
+Assert FloorDiv(x, y) == x.FloorDiv(y)
+Assert FloorDiv(x, y, z) == x.FloorDiv(y, z)
+
+Assert LeftShift() == None
+Assert LeftShift() == None.LeftShift()
+Assert LeftShift() == LeftShift(None)
+Assert LeftShift(x) == x.LeftShift()
+Assert LeftShift(x, y) == x.LeftShift(y)
+Assert LeftShift(x, y, z) == x.LeftShift(y, z)
+
+Assert RightShift() == None
+Assert RightShift() == None.RightShift()
+Assert RightShift() == RightShift(None)
+Assert RightShift(x) == x.RightShift()
+Assert RightShift(x, y) == x.RightShift(y)
+Assert RightShift(x, y, z) == x.RightShift(y, z)
+
+Assert Mod() == None
+Assert Mod() == None.Mod()
+Assert Mod() == Mod(None)
+Assert Mod(x) == x.Mod()
+Assert Mod(x, y) == x.Mod(y)
+Assert Mod(x, y, z) == x.Mod(y, z)
+
+Assert DivMod() == [0, 0]
+Assert DivMod() == None.DivMod()
+Assert DivMod() == DivMod(None)
+Assert DivMod(x) == x.DivMod()
+Assert DivMod(x, y) == x.DivMod(y)
+
+Assert Pow() == None
+Assert Pow() == None.Pow()
+Assert Pow() == Pow(None)
+Assert Pow(x) == x.Pow()
+Assert Pow(x, y) == x.Pow(y)
+Assert Pow(x, y, z) == x.Pow(y, z)
+
+Assert Max() == None
+Assert Max() == None.Max()
+Assert Max() == Max(None)
+Assert Max(x) == x.Max()
+Assert Max(x, y) == x.Max(y)
+Assert Max(x, y, z) == x.Max(y, z)
+Assert Max(x, y, z) == [x, y].Max(z)
+Assert Max([x, y], z) == x.Max([y, z])
+
+Assert Min() == None
+Assert Min() == None.Min()
+Assert Min() == Min(None)
+Assert Min(x) == x.Min()
+Assert Min(x, y) == x.Min(y)
+Assert Min(x, y, z) == x.Min(y, z)
+Assert Min(x, y, z) == [x, y].Min(z)
+Assert Min([x, y], z) == x.Min([y, z])
+
+Assert Mean() == None
+Assert Mean() == None.Mean()
+Assert Mean() == Mean(None)
+Assert Mean(x) == x.Mean()
+Assert Mean(x, y) == x.Mean(y)
+Assert Mean(x, y, z) == x.Mean(y, z)
+Assert Mean(x, y, z) == [x, y].Mean(z)
+Assert Mean([x, y], z) == x.Mean([y, z])
+
+Assert Median() == None
+Assert Median() == None.Median()
+Assert Median() == Median(None)
+Assert Median(x) == x.Median()
+Assert Median(x, y) == x.Median(y)
+Assert Median(x, y, z) == x.Median(y, z)
+Assert Median(x, y, z) == [x, y].Median(z)
+Assert Median([x, y], z) == x.Median([y, z])
+
+Assert Mode() == None
+Assert Mode() == None.Mode()
+Assert Mode() == Mode(None)
+Assert Mode(x) == x.Mode()
+Assert Mode(x, y) == x.Mode(y)
+Assert Mode(x, y, z) == x.Mode(y, z)
+Assert Mode(x, y, z) == [x, y].Mode(z)
+Assert Mode([x, y], z) == x.Mode([y, z])
+
+Assert MultiMode() == None
+Assert MultiMode() == None.MultiMode()
+Assert MultiMode() == MultiMode(None)
+Assert MultiMode(x) == x.MultiMode()
+Assert MultiMode(x, y) == x.MultiMode(y)
+Assert MultiMode(x, y, z) == x.MultiMode(y, z)
+Assert MultiMode(x, y, z) == [x, y].MultiMode(z)
+Assert MultiMode([x, y], z) == x.MultiMode([y, z])
+
+Assert Stdev() == None
+Assert Stdev() == None.Stdev()
+Assert Stdev() == Stdev(None)
+Assert Stdev(x) == x.Stdev()
+Assert Stdev(x, y) == x.Stdev(y)
+Assert Stdev(x, y, z) == x.Stdev(y, z)
+Assert Stdev(x, y, z) == [x, y].Stdev(z)
+Assert Stdev([x, y], z) == x.Stdev([y, z])
+
+Assert Variance() == None
+Assert Variance() == None.Variance()
+Assert Variance() == Variance(None)
+Assert Variance(x) == x.Variance()
+Assert Variance(x, y) == x.Variance(y)
+Assert Variance(x, y, z) == x.Variance(y, z)
+Assert Variance(x, y, z) == [x, y].Variance(z)
+Assert Variance([x, y], z) == x.Variance([y, z])
+
+Assert PStdev() == None
+Assert PStdev() == None.PStdev()
+Assert PStdev() == PStdev(None)
+Assert PStdev(x) == x.PStdev()
+Assert PStdev(x, y) == x.PStdev(y)
+Assert PStdev(x, y, z) == x.PStdev(y, z)
+Assert PStdev(x, y, z) == [x, y].PStdev(z)
+Assert PStdev([x, y], z) == x.PStdev([y, z])
+
+Assert PVariance() == None
+Assert PVariance() == None.PVariance()
+Assert PVariance() == PVariance(None)
+Assert PVariance(x) == x.PVariance()
+Assert PVariance(x, y) == x.PVariance(y)
+Assert PVariance(x, y, z) == x.PVariance(y, z)
+Assert PVariance(x, y, z) == [x, y].PVariance(z)
+Assert PVariance([x, y], z) == x.PVariance([y, z])
+
+Assert Abs() == None
+Assert Abs() == None.Abs()
+Assert Abs() == Abs(None)
+Assert Abs(x) == x.Abs()
+
+Assert Ceil() == None
+Assert Ceil() == None.Ceil()
+Assert Ceil() == Ceil(None)
+Assert Ceil(x) == x.Ceil()
+
+Assert CeilMultiple() == None
+Assert CeilMultiple() == None.CeilMultiple()
+Assert CeilMultiple() == CeilMultiple(None)
+Assert CeilMultiple(x) == x.CeilMultiple()
+
+Assert Floor() == None
+Assert Floor() == None.Floor()
+Assert Floor() == Floor(None)
+Assert Floor(x) == x.Floor()
+
+Assert FloorMultiple() == None
+Assert FloorMultiple() == None.FloorMultiple()
+Assert FloorMultiple() == FloorMultiple(None)
+Assert FloorMultiple(x) == x.FloorMultiple()
+
+Assert Round() == None
+Assert Round() == None.Round()
+Assert Round() == Round(None)
+Assert Round(x) == x.Round()
+
+Assert RoundMultiple() == None
+Assert RoundMultiple() == None.RoundMultiple()
+Assert RoundMultiple() == RoundMultiple(None)
+Assert RoundMultiple(x) == x.RoundMultiple()
+
+Assert Trunc() == None
+Assert Trunc() == None.Trunc()
+Assert Trunc() == Trunc(None)
+Assert Trunc(x) == x.Trunc()
+
+Assert Pred() == None
+Assert Pred() == None.Pred()
+Assert Pred() == Pred(None)
+Assert Pred(x) == x.Pred()
+
+Assert Succ() == None
+Assert Succ() == None.Succ()
+Assert Succ() == Succ(None)
+Assert Succ(x) == x.Succ()
+
+Assert BitAnd() == None
+Assert BitAnd() == None.BitAnd()
+Assert BitAnd() == BitAnd(None)
+Assert BitAnd(x) == x.BitAnd()
+Assert BitAnd(x, y) == x.BitAnd(y)
+Assert BitAnd(x, y, z) == x.BitAnd(y, z)
+
+Assert BitOr() == None
+Assert BitOr() == None.BitOr()
+Assert BitOr() == BitOr(None)
+Assert BitOr(x) == x.BitOr()
+Assert BitOr(x, y) == x.BitOr(y)
+Assert BitOr(x, y, z) == x.BitOr(y, z)
+
+Assert BitXor() == None
+Assert BitXor() == None.BitXor()
+Assert BitXor() == BitXor(None)
+Assert BitXor(x) == x.BitXor()
+Assert BitXor(x, y) == x.BitXor(y)
+Assert BitXor(x, y, z) == x.BitXor(y, z)
+
+Assert BitNot() == None
+Assert BitNot() == None.BitNot()
+Assert BitNot() == BitNot(None)
+Assert BitNot(x) == x.BitNot()
+
+Assert SetBit() == None
+Assert SetBit() == None.SetBit()
+Assert SetBit() == SetBit(None)
+Assert SetBit(x) == x.SetBit()
+
+Assert ClearBit() == None
+Assert ClearBit() == None.ClearBit()
+Assert ClearBit() == ClearBit(None)
+Assert ClearBit(x) == x.ClearBit()
+
+Assert ToggleBit() == None
+Assert ToggleBit() == None.ToggleBit()
+Assert ToggleBit() == ToggleBit(None)
+Assert ToggleBit(x) == x.ToggleBit()
+
+Assert IsBitSet() == False
+Assert IsBitSet() == None.IsBitSet()
+Assert IsBitSet() == IsBitSet(None)
+Assert IsBitSet(x) == x.IsBitSet()
+
+Assert CountOneBits() == 0
+Assert CountOneBits() == None.CountOneBits()
+Assert CountOneBits() == CountOneBits(None)
+Assert CountOneBits(x) == x.CountOneBits()
+
+Assert CountZeroBits() == 0
+Assert CountZeroBits() == None.CountZeroBits()
+Assert CountZeroBits() == CountZeroBits(None)
+Assert CountZeroBits(x) == x.CountZeroBits()
+
+Assert CountLeadingZeroBits() == 0
+Assert CountLeadingZeroBits() == None.CountLeadingZeroBits()
+Assert CountLeadingZeroBits() == CountLeadingZeroBits(None)
+Assert CountLeadingZeroBits(x) == x.CountLeadingZeroBits()
+
+Assert CountTrailingZeroBits() == 0
+Assert CountTrailingZeroBits() == None.CountTrailingZeroBits()
+Assert CountTrailingZeroBits() == CountTrailingZeroBits(None)
+Assert CountTrailingZeroBits(x) == x.CountTrailingZeroBits()
+
+Assert HighestOneBit() == None
+Assert HighestOneBit() == None.HighestOneBit()
+Assert HighestOneBit() == HighestOneBit(None)
+Assert HighestOneBit(x) == x.HighestOneBit()
+
+Assert LowestOneBit() == None
+Assert LowestOneBit() == None.LowestOneBit()
+Assert LowestOneBit() == LowestOneBit(None)
+Assert LowestOneBit(x) == x.LowestOneBit()
+
+Assert RotateLeft() == None
+Assert RotateLeft() == None.RotateLeft()
+Assert RotateLeft() == RotateLeft(None)
+Assert RotateLeft(x) == x.RotateLeft()
+
+Assert RotateRight() == None
+Assert RotateRight() == None.RotateRight()
+Assert RotateRight() == RotateRight(None)
+Assert RotateRight(x) == x.RotateRight()
+
+Assert ReverseBits() == None
+Assert ReverseBits() == None.ReverseBits()
+Assert ReverseBits() == ReverseBits(None)
+Assert ReverseBits(x) == x.ReverseBits()
+
+Assert ReverseBytes() == None
+Assert ReverseBytes() == None.ReverseBytes()
+Assert ReverseBytes() == ReverseBytes(None)
+Assert ReverseBytes(x) == x.ReverseBytes()
+
+Assert SetBits() == None
+Assert SetBits() == None.SetBits()
+Assert SetBits() == SetBits(None)
+Assert SetBits(x) == x.SetBits()
+
+Assert ExtractBits() == None
+Assert ExtractBits() == None.ExtractBits()
+Assert ExtractBits() == ExtractBits(None)
+Assert ExtractBits(x) == x.ExtractBits()
+
+Assert Matches() == False
+Assert Matches() == None.Matches()
+Assert Matches() == Matches(None)
+Assert Matches(s) == s.Matches()
+
+Assert MatchesAll() == False
+Assert MatchesAll() == None.MatchesAll()
+Assert MatchesAll() == MatchesAll(None)
+Assert MatchesAll(s) == s.MatchesAll()
+Assert MatchesAll(s, r) == s.MatchesAll(r)
+
+Assert IsEqualTo() == True # None == None
+Assert IsEqualTo() == None.IsEqualTo()
+Assert IsEqualTo() == IsEqualTo(None)
+Assert IsEqualTo(s) == s.IsEqualTo()
+Assert IsEqualTo(s, r) == s.IsEqualTo(r)
+
+Assert IsNotEqualTo() == False # None != None
+Assert IsNotEqualTo() == None.IsNotEqualTo()
+Assert IsNotEqualTo() == IsNotEqualTo(None)
+Assert IsNotEqualTo(s) == s.IsNotEqualTo()
+Assert IsNotEqualTo(s, r) == s.IsNotEqualTo(r)
+
+Assert IsLessThan() == False # None < None
+Assert IsLessThan() == None.IsLessThan()
+Assert IsLessThan() == IsLessThan(None)
+Assert IsLessThan(s) == s.IsLessThan()
+Assert IsLessThan(s, r) == s.IsLessThan(r)
+
+Assert IsNotLessThan() == True # None >= None
+Assert IsNotLessThan() == None.IsNotLessThan()
+Assert IsNotLessThan() == IsNotLessThan(None)
+Assert IsNotLessThan(s) == s.IsNotLessThan()
+Assert IsNotLessThan(s, r) == s.IsNotLessThan(r)
+
+Assert IsGreaterThan() == False # None > None
+Assert IsGreaterThan() == None.IsGreaterThan()
+Assert IsGreaterThan() == IsGreaterThan(None)
+Assert IsGreaterThan(s) == s.IsGreaterThan()
+Assert IsGreaterThan(s, r) == s.IsGreaterThan(r)
+
+Assert IsNotGreaterThan() == True # None <= None
+Assert IsNotGreaterThan() == None.IsNotGreaterThan()
+Assert IsNotGreaterThan() == IsNotGreaterThan(None)
+Assert IsNotGreaterThan(s) == s.IsNotGreaterThan()
+Assert IsNotGreaterThan(s, r) == s.IsNotGreaterThan(r)
+
+Assert IsBetween() == True
+Assert IsBetween() == None.IsBetween()
+Assert IsBetween() == IsBetween(None)
+Assert IsBetween(s) == s.IsBetween()
+Assert IsBetween(s, r) == s.IsBetween(r)
+Assert IsBetween(s, s, r) == s.IsBetween(s, r)
+
+Assert Clamp() == None
+Assert Clamp() == None.Clamp()
+Assert Clamp() == Clamp(None)
+Assert Clamp(s) == s.Clamp()
+Assert Clamp(s, r) == s.Clamp(r)
+Assert Clamp(s, s, r) == s.Clamp(s, r)
+
+Troff

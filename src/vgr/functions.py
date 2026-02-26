@@ -225,12 +225,13 @@ from .mathpak import (
     poly_zfill,
     remove_file,
     strip_nulls,
+    time_now,
     to_json_string,
     to_json,
 )
 from .vgr_callable import VgrCallable
 
-def _default_to(value: Any, default: Any) -> Any:
+def _default_to(value: Any=None, default: Any=None) -> Any:
     """
 **Returns the default if a value is `None`**
 
@@ -243,7 +244,7 @@ def _default_to(value: Any, default: Any) -> Any:
 """
     return default if value is None else value
 
-def _is_function(obj: Any) -> Any:
+def _is_function(obj: Any=None) -> Any:
     """
 **Is a value a function**
 
@@ -258,7 +259,7 @@ f.IsFunction() → True
 """
     return isinstance(obj, VgrCallable)
 
-def _id(obj: Any) -> Any:
+def _id(obj: Any=None) -> Any:
     """
 **Returns the internal, unique ID used by the value**
 
@@ -271,7 +272,7 @@ def _id(obj: Any) -> Any:
 """
     return id(obj)
 
-def _enumerate(obj: Any, start_at: int=0) -> Any:
+def _enumerate(obj: Any=None, start_at: int=0) -> Any:
     """
 **Create an enumeration for a collection**
 
@@ -302,7 +303,7 @@ math.float.Enumerate(1) → [[1, "max", 1.7976931348623157e+308],
         return [[i, x] for i, x in enumerate(obj, start=start_at)]
     return [[start_at, obj]]
 
-def _negate(x: Any) -> Any:
+def _negate(x: Any=None) -> Any:
     """
 **Returns the negation of a value**
 
@@ -328,7 +329,7 @@ The *value*'s type determines what is returned:
     if isinstance(x, dict): return {k: _negate(v) for k, v in x.items()}
     return x
 
-def _slice(x: Any, start: int=None, stop: int=None, step: int=None) -> Any:
+def _slice(x: Any=None, start: int=None, stop: int=None, step: int=None) -> Any:
     """
 **Extract a portion of a list or string**
 
@@ -353,7 +354,7 @@ def _slice(x: Any, start: int=None, stop: int=None, step: int=None) -> Any:
     if isinstance(x, Iterable): return list(list(x)[start:stop:step])
     return x
 
-def _length(x: Any) -> bool:
+def _length(x: Any=None) -> bool:
     """
 **Return the length of an an item**
 
@@ -612,6 +613,7 @@ _BUILT_IN_FUNCS: dict[str, Callable[..., Any]] = {
     "Succ":           poly_succ,
     "Sum":            poly_sum,
     "SwapCase":       poly_swapcase,
+    "Timestamp":      time_now,
     "TitleCase":      poly_title,
     "ToBinary":       poly_bin,
     "ToBoolean":      poly_bool,
@@ -829,5 +831,5 @@ def _get_arg_range(op, dot_invocation: bool) -> tuple:
             else:
                 # If the function can't be used as a dot function
                 # because it has no args, so ignore it
-                return None
+                if not positional: return None
     return (req_args, _IS_VARARGS if positional else (req_args + opt_args))

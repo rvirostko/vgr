@@ -4,6 +4,7 @@ Checksum function
 
 import hashlib
 import json
+from typing import Any
 
 import _hashlib
 
@@ -11,7 +12,7 @@ from .common import str_arg
 
 _DEFAULT_ALGO = 'md5'
 
-def poly_checksum(x, algo: str=_DEFAULT_ALGO) -> str:
+def poly_checksum(x: Any=None, algo: str=_DEFAULT_ALGO) -> str:
     """
 **Generate a checksum string for a value**
 

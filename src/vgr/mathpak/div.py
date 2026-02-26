@@ -1,5 +1,6 @@
 from functools import reduce
 from typing import Any
+from math import nan
 
 from .common import (
     bound_ops,
@@ -9,7 +10,7 @@ from .common import (
 )
 
 @bound_ops("/", "÷")
-def poly_div(x: Any, *args):
+def poly_div(*args):
     """
 **Division operation**
 
@@ -46,13 +47,16 @@ None / "2" → 0.0
 
 Also see `FloorDiv()` and `DivMod()`
 """
-    return reduce(_div, args, x)
+    return reduce(_div, args[1:], args[0]) if args else None
 
 def _div(x: Any, y: Any) -> Any:
     operation = get_operation(x, y, div_operations, numeric_operations)
-    return operation(_div, x, y) if operation else x / y
+    try:
+        return operation(_div, x, y) if operation else x / y
+    except ZeroDivisionError:
+        return nan
 
-def poly_fdiv(x: Any, *args):
+def poly_fdiv(*args):
     """
 **Floor division operation**
 
@@ -90,13 +94,16 @@ None.FloorDiv("2") → 0
 
 Also `Div()` and `DivMod()`
 """
-    return reduce(_fdiv, args, x)
+    return reduce(_fdiv, args[1:], args[0]) if args else None
 
 def _fdiv(x: Any, y: Any) -> Any:
     operation = get_operation(x, y, div_operations, numeric_operations)
-    return operation(_fdiv, x, y) if operation else x // y
+    try:
+        return operation(_fdiv, x, y) if operation else x // y
+    except ZeroDivisionError:
+        return nan
 
-def poly_divmod(x: Any, y: Any) -> Any:
+def poly_divmod(x: Any=None, y: Any=1) -> Any:
     """
 **Division/modulo operation**
 
@@ -134,7 +141,10 @@ None.DivMod("2") → [0, 0]
 Also `Div()` and `Mod()`
 """
     operation = get_operation(x, y, div_operations, numeric_operations)
-    return operation(poly_divmod, x, y) if operation else list(divmod(x, y))
+    try:
+        return operation(poly_divmod, x, y) if operation else list(divmod(x, y))
+    except ZeroDivisionError:
+        return nan
 
 div_operations = {
     (str, str): lambda op, x, y: op(empty_is_zero(x), empty_is_zero(y)),
