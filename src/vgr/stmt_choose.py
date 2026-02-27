@@ -6,10 +6,6 @@ from typing import Any
 
 from lark import Tree
 
-from .app_exceptions import (
-    VgrStatementBreak,
-    VgrStatementContinue,
-)
 from .evaluate import bind_operations
 from .exec_context import ExecContext
 from .mathpak import (
@@ -261,21 +257,10 @@ def _exec_choose(ctx: ExecContext, do_all: bool, statement_children, desired_val
                 ctx.echo_source(when_block, when_block.children[0])
                 chosen_block = values_children
         # If a block of statements was chosen execute them
-        # Nested "break" and "continue" statments can be used to change execution
         if chosen_block is not None:
-            try:
-                choice_made = True
-                ctx.dispatch_statements(chosen_block)
-                # do_all can let multiple when blocks execute, but
-                # when it is off, the first one chosen ends the loop
-                if not do_all: break
-            except VgrStatementContinue as e:
-                e.validate_for_block()
-                # continue with the next when check
-                if do_all: continue
-                # continue with the next statement
-                break
-            except VgrStatementBreak as e:
-                e.validate_for_block()
-                break
+            choice_made = True
+            ctx.dispatch_statements(chosen_block)
+            # do_all can let multiple when blocks execute, but
+            # when it is off, the first one chosen ends the loop
+            if not do_all: break
     # end of "for when_block"
