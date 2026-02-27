@@ -1,0 +1,113 @@
+# Negative Tests for typed break/continue statements
+# These will parse, but not execute.
+# Exits prevent tests from hanging should they
+# accidentally succeed
+
+// -- BASIC --
+
+# Can only use Break/Continue, Exit/Continue Do, and Exit/Continue While
+Do While True: Exit For;     Exit; Loop
+Do While True: Continue For; Exit; Loop
+
+# Can only use Break/Continue and Exit/Continue Do
+Do Until False: Exit For;       Exit; Loop
+Do Until False: Continue For;   Exit; Loop
+Do Until False: Exit While;     Exit; Loop
+Do Until False: Continue While; Exit; Loop
+
+# Can only use Break/Continue and Exit/Continue For
+For x = 1 To 3: Exit Do;        Exit; Next
+For x = 1 To 3: Continue Do;    Exit; Next
+For x = 1 To 3: Exit While;     Exit; Next
+For x = 1 To 3: Continue While; Exit; Next
+
+// -- COBOL --
+
+# Can only use Break/Continue
+Perform 3 Times: Exit Do;        Exit; End-Perform
+Perform 3 Times: Continue Do;    Exit; End-Perform
+Perform 3 Times: Exit While;     Exit; End-Perform
+Perform 3 Times: Continue While; Exit; End-Perform
+Perform 3 Times: Exit For;       Exit; End-Perform
+Perform 3 Times: Continue For;   Exit; End-Perform
+
+Perform Until False: Exit Do;        Exit; End-Perform
+Perform Until False: Continue Do;    Exit; End-Perform
+Perform Until False: Exit While;     Exit; End-Perform
+Perform Until False: Continue While; Exit; End-Perform
+Perform Until False: Exit For;       Exit; End-Perform
+Perform Until False: Continue For;   Exit; End-Perform
+
+Perform Varying x From 1 By 1 Until x > 3: Exit Do;        Exit; End-Perform
+Perform Varying x From 1 By 1 Until x > 3: Continue Do;    Exit; End-Perform
+Perform Varying x From 1 By 1 Until x > 3: Exit While;     Exit; End-Perform
+Perform Varying x From 1 By 1 Until x > 3: Continue While; Exit; End-Perform
+Perform Varying x From 1 By 1 Until x > 3: Exit For;       Exit; End-Perform
+Perform Varying x From 1 By 1 Until x > 3: Continue For;   Exit; End-Perform
+
+# Not valid in Evaluate outside of a loop
+Evaluate True: When True: Break; End-Evaluate
+Evaluate True: When True: Continue; End-Evaluate
+
+// -- VGR --
+
+# Can't just be free-floating
+Break;
+Exit Do;
+Exit For;
+Exit While;
+Continue;
+Continue Do;
+Continue For;
+Continue While;
+
+# Not valid in an If or Unless outside of a loop
+# (no need to test all variants...)
+If True: Break;                Exit; End
+If True: Continue;             Exit; End
+If False: Nop; Else: Break;    Exit; End
+If False: Nop; Else: Continue; Exit; End
+Unless False: Break;           Exit; End
+Unless False: Continue;        Exit; End
+
+# Not valid in a Choose and Choose Using outside of a loop
+Choose: When True: Break;    End
+Choose: When True: Continue; End
+Choose Using True: When True: Break;    End
+Choose Using True: When True: Continue; End
+
+# Only Break/Continue valid in VGR loops
+Do Forever: Exit Do;        Exit; End
+Do Forever: Continue Do;    Exit; End
+Do Forever: Exit For;       Exit; End
+Do Forever: Continue For;   Exit; End
+Do Forever: Exit While;     Exit; End
+Do Forever: Continue While; Exit; End
+
+Repeat 3 Times: Exit Do;        Exit; End
+Repeat 3 Times: Continue Do;    Exit; End
+Repeat 3 Times: Exit For;       Exit; End
+Repeat 3 Times: Continue For;   Exit; End
+Repeat 3 Times: Exit While;     Exit; End
+Repeat 3 Times: Continue While; Exit; End
+
+Until False: Exit Do;        Exit; End
+Until False: Continue Do;    Exit; End
+Until False: Exit For;       Exit; End
+Until False: Continue For;   Exit; End
+Until False: Exit While;     Exit; End
+Until False: Continue While; Exit; End
+
+While True: Exit Do;        Exit; End
+While True: Continue Do;    Exit; End
+While True: Exit For;       Exit; End
+While True: Continue For;   Exit; End
+While True: Exit While;     Exit; End
+While True: Continue While; Exit; End
+
+ForEach x in [1]: Exit Do;        Exit; End
+ForEach x in [1]: Continue Do;    Exit; End
+ForEach x in [1]: Exit For;       Exit; End
+ForEach x in [1]: Continue For;   Exit; End
+ForEach x in [1]: Exit While;     Exit; End
+ForEach x in [1]: Continue While; Exit; End
