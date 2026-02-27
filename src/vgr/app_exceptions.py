@@ -1,3 +1,4 @@
+from enum import Enum, auto
 from typing import Any
 import re
 import sys
@@ -144,25 +145,43 @@ class VgrStatementAssert(VgrExitingException):
     def __init__(self, statement: Tree, message):
         super().__init__(VgrExitingException.EXIT_FAILED, statement, message)
 
-class VgrStatementBreak(VgrException):
+class BlockType(Enum):
+    ALL_BLOCKS = auto() # Can break/continue any control context
+    DO_LOOP = auto() # BASIC
+    FOR_LOOP = auto() # BASIC
+    WHILE_LOOP = auto() # BASIC
+    PERFORM = auto() # COBOL
+
+class VgrFlowControlException(VgrException):
+    def __init__(self, statement: Tree, msg: str, block_type: BlockType=BlockType.ALL_BLOCKS):
+        super().__init__(statement, Exception(msg), *SSM.current)
+        self._block_type = block_type
+
+    def validate_for_block(self, block_types=BlockType.ALL_BLOCKS) -> None:
+        if self._block_type == BlockType.ALL_BLOCKS: return
+        if isinstance(block_types, BlockType) and self._block_type == block_types: return
+        if isinstance(block_types, tuple) and self._block_type in block_types: return
+        raise VgrRuntimeError(self.node, ValueError('Type not compatible with surrounding block')) from self
+
+class VgrStatementBreak(VgrFlowControlException):
     """
     Thrown on a "break" to unwind the control block
     NB: root exception is for when it is used inappropriately
     """
-    def __init__(self, statement: Tree):
-        super().__init__(statement, Exception('Break used outside control statement'), *SSM.current)
+    def __init__(self, statement: Tree, block_type: BlockType=BlockType.ALL_BLOCKS):
+        super().__init__(statement, 'Misplaced Break', block_type)
 
-class VgrStatementContinue(VgrException):
+class VgrStatementContinue(VgrFlowControlException):
     """
     Thrown on a "continue" to unwind the control block
     NB: root exception is for when it is used inappropriately
     """
-    def __init__(self, statement: Tree):
-        super().__init__(statement, Exception('Continue used outside control statement'), *SSM.current)
+    def __init__(self, statement: Tree, block_type: BlockType=BlockType.ALL_BLOCKS):
+        super().__init__(statement, 'Misplaced Continue', block_type)
 
-class VgrStatementReturn(VgrException):
+class VgrStatementReturn(VgrFlowControlException):
     """Raised when a returning a value from a function or exiting a procedure"""
 
     def __init__(self, return_value: Any, statement: Tree):
-        super().__init__(statement, Exception('Return used outside function/procedure'), *SSM.current)
+        super().__init__(statement, 'Misplaced Return')
         self.return_value = return_value

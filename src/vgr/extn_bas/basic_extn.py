@@ -6,10 +6,14 @@ from typing import Dict, Callable
 
 from ..extn import VgrExtension
 from .stmts import (
-    execute_continue,
+    execute_continue_do,
+    execute_continue_for,
+    execute_continue_while,
     execute_do_until,
     execute_do_while,
-    execute_exit,
+    execute_exit_do,
+    execute_exit_for,
+    execute_exit_while,
     execute_for_next,
     execute_let,
     execute_troff,
@@ -17,15 +21,19 @@ from .stmts import (
 )
 
 _HANDLERS = {
-    'basic_continue':    execute_continue,
-    'basic_do_until':    execute_do_until,
-    'basic_do_while':    execute_do_while,
-    'basic_for_next_by': execute_for_next,
-    'basic_for_next':    execute_for_next,
-    'basic_exit':        execute_exit,
-    'basic_let':         execute_let,
-    'basic_troff':       execute_troff,
-    'basic_tron':        execute_tron,
+    'basic_continue_do':    execute_continue_do,
+    'basic_continue_for':   execute_continue_for,
+    'basic_continue_while': execute_continue_while,
+    'basic_do_until':       execute_do_until,
+    'basic_do_while':       execute_do_while,
+    'basic_for_next_by':    execute_for_next,
+    'basic_for_next':       execute_for_next,
+    'basic_exit_do':        execute_exit_do,
+    'basic_exit_for':       execute_exit_for,
+    'basic_exit_while':     execute_exit_while,
+    'basic_let':            execute_let,
+    'basic_troff':          execute_troff,
+    'basic_tron':           execute_tron,
 }
 
 class BasicExtension(VgrExtension):

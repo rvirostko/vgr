@@ -6,7 +6,7 @@ import math
 
 from lark import Tree
 
-from ..app_exceptions import VgrStatementBreak, VgrStatementContinue
+from ..app_exceptions import VgrStatementBreak, VgrStatementContinue, BlockType
 from ..evaluate import get_writable_var_path
 from ..exec_context import ExecContext
 from ..stmt_exec import bind_operations, exec_loop, LOOP_META_PATH, set_loop_meta
@@ -35,7 +35,8 @@ following it are skipped, and the expression is checked again.
 ```
 
 """
-    exec_loop(ctx, statement, True)
+    # Allow Exit/Continue Do and Exit/Continue While in addition to the default Break/Continue
+    exec_loop(ctx, statement, True, (BlockType.DO_LOOP, BlockType.WHILE_LOOP))
 
 @control_statement
 @bound_ops("Do Until")
@@ -56,7 +57,8 @@ following it are skipped, and the expression is checked again.
 ```
 
 """
-    exec_loop(ctx, statement, False)
+    # Allow Exit/Continue Do in addition to the default Break/Continue
+    exec_loop(ctx, statement, False, BlockType.DO_LOOP)
 
 @control_statement
 @bound_ops("For Next")
@@ -122,17 +124,20 @@ Next
             ctx.set_var(value, *var_path)
             try:
                 ctx.dispatch_statements(statement.children[cindex:])
-            except VgrStatementBreak:
+            except VgrStatementBreak as e:
+                # Can be either a Break or Exit For
+                e.validate_for_block(BlockType.FOR_LOOP)
                 return
-            except VgrStatementContinue:
-                pass
+            except VgrStatementContinue as e:
+                # Can be either a Continue or Continue For
+                e.validate_for_block(BlockType.FOR_LOOP)
             value += inc
             i += 1
     finally:
         ctx.dd.pop_frame()
 
 @bound_ops("Exit Block")
-def execute_exit(_: ExecContext, statement: Tree) -> None:
+def execute_exit_do(_: ExecContext, statement: Tree) -> None:
     """
 **Exits the current block of statements**
 
@@ -142,18 +147,23 @@ def execute_exit(_: ExecContext, statement: Tree) -> None:
 
 BASIC variants of `Break`.
 
-Note that the scope portion of the statement is not respected; the current
-block is exited without regards to type.
-
 ```vgr
 **TODO**
 ```
 
 """
-    raise VgrStatementBreak(statement)
+    raise VgrStatementBreak(statement, BlockType.DO_LOOP)
+
+# Doc merged with Do
+def execute_exit_for(_: ExecContext, statement: Tree) -> None:
+    raise VgrStatementBreak(statement, BlockType.FOR_LOOP)
+
+# Doc merged with Do
+def execute_exit_while(_: ExecContext, statement: Tree) -> None:
+    raise VgrStatementBreak(statement, BlockType.WHILE_LOOP)
 
 @bound_ops("Continue Block")
-def execute_continue(_: ExecContext, statement: Tree) -> None:
+def execute_continue_do(_: ExecContext, statement: Tree) -> None:
     """
 **Cause the current loop to to start again**
 
@@ -163,15 +173,20 @@ def execute_continue(_: ExecContext, statement: Tree) -> None:
 
 BASIC variants of `Continue`.
 
-Note that the scope portion of the statement is not respected; the current
-block is restarted without regards to type.
-
 ```vgr
 **TODO**
 ```
 
 """
-    raise VgrStatementContinue(statement)
+    raise VgrStatementContinue(statement, BlockType.DO_LOOP)
+
+# Doc merged with Do
+def execute_continue_for(_: ExecContext, statement: Tree) -> None:
+    raise VgrStatementContinue(statement, BlockType.FOR_LOOP)
+
+# Doc merged with Do
+def execute_continue_while(_: ExecContext, statement: Tree) -> None:
+    raise VgrStatementContinue(statement, BlockType.WHILE_LOOP)
 
 @bound_ops("Let")
 def execute_let(ctx: ExecContext, statement: Tree) -> None:

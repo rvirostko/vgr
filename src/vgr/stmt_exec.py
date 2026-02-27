@@ -11,6 +11,7 @@ import warnings
 from lark import Lark, Tree, Token, Transformer, v_args, exceptions
 
 from .app_exceptions import (
+    BlockType,
     VgrException,
     VgrRuntimeError,
     VgrStatementBreak,
@@ -428,10 +429,11 @@ Also see `Break` and `Continue`
             set_loop_meta(meta, i)
             try:
                 ctx.dispatch_statements(statement.children)
-            except VgrStatementBreak:
+            except VgrStatementBreak as e:
+                e.validate_for_block()
                 return
-            except VgrStatementContinue:
-                continue
+            except VgrStatementContinue as e:
+                e.validate_for_block()
             i += 1
     finally:
         ctx.dd.pop_frame()
@@ -498,7 +500,7 @@ Also see `Break` and `Continue`
 """
     exec_if_else(ctx, statement, False)
 
-def exec_loop(ctx: ExecContext, statement: Tree, desired_value: bool) -> None:
+def exec_loop(ctx: ExecContext, statement: Tree, desired_value: bool, block_types=BlockType.ALL_BLOCKS) -> None:
     """Internal implemenation for loops with a predicate"""
     ctx.echo_source(statement, statement.children[1])
     predicate = bind_operations(statement.children[0])
@@ -511,10 +513,11 @@ def exec_loop(ctx: ExecContext, statement: Tree, desired_value: bool) -> None:
             set_loop_meta(meta, i)
             try:
                 ctx.dispatch_statements(statement.children[1:])
-            except VgrStatementBreak:
+            except VgrStatementBreak as e:
+                e.validate_for_block(block_types)
                 return
-            except VgrStatementContinue:
-                continue
+            except VgrStatementContinue as e:
+                e.validate_for_block(block_types)
             i += 1
     finally:
         ctx.dd.pop_frame()
@@ -537,10 +540,11 @@ def exec_repeat(ctx: ExecContext, statement: Tree) -> None:
                     set_loop_meta(meta, i, length)
                     try:
                         ctx.dispatch_statements(statement.children[1:])
-                    except VgrStatementBreak:
+                    except VgrStatementBreak as e:
+                        e.validate_for_block()
                         return
-                    except VgrStatementContinue:
-                        pass
+                    except VgrStatementContinue as e:
+                        e.validate_for_block()
                     counter -= 1
                     i += 1
             finally:
@@ -724,10 +728,11 @@ Also see `Break` and `Continue`
                 ctx.set_var(value, *var_path)
                 try:
                     ctx.dispatch_statements(statement.children[2:])
-                except VgrStatementBreak:
+                except VgrStatementBreak as e:
+                    e.validate_for_block()
                     return
-                except VgrStatementContinue:
-                    continue
+                except VgrStatementContinue as e:
+                    e.validate_for_block()
         finally:
             ctx.dd.pop_frame()
 

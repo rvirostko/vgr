@@ -134,7 +134,7 @@ def execute_perform_until(ctx: ExecContext, statement: Tree) -> None:
   End-Perform [;]
 
 The block of statements is executed until *expression* evaluates to True.
-If a `Break` or `Next Sentence` is encountered, looping ends regardless of the
+If a `Break` is encountered, looping ends regardless of the
 expression's value. If `Continue` is encountered, statements
 following it are skipped, and *expression* is checked again.
 
@@ -170,7 +170,7 @@ def execute_perform_times(ctx: ExecContext, statement: Tree) -> None:
 The block of statements is executed the given number of times.
 The *expression* is evaluated and converted to an integer, rounding down.
 For any statements to execute, the value must be greater than or equal to one.
-If `Break` or `Next Sentence` is encountered, looping ends regardless of the
+If `Break` is encountered, looping ends regardless of the
 expression's value. If `Continue` is encountered, statements
 following it are skipped and looping continues.
 
@@ -205,7 +205,7 @@ def execute_perform_varying(ctx: ExecContext, statement: Tree) -> None:
   &emsp;&emsp;_statement_&hellip;\\
   End-Perform [;]
 
-If a `Break` or `Next Sentence` is encountered, looping ends regardless of the
+If a `Break` is encountered, looping ends regardless of the
 expression's value. If `Continue` is encountered, statements
 following it are skipped and looping continues.
 
@@ -266,10 +266,11 @@ Also see `For Next`
             if test_before and poly_true(ctx.eval_expr(predicate)): return
             try:
                 ctx.dispatch_statements(statement.children[cindex:])
-            except VgrStatementBreak:
+            except VgrStatementBreak as e:
+                e.validate_for_block()
                 return
-            except VgrStatementContinue:
-                pass
+            except VgrStatementContinue as e:
+                e.validate_for_block()
             value += inc
             if not test_before and poly_true(ctx.eval_expr(predicate)): return
             i += 1
@@ -298,23 +299,6 @@ distance → 21.213203435596427
 Also see `Set` and `Move`
 """
     execute_set(ctx, statement)
-
-@bound_ops("Next Sentence")
-def execute_next_sentence(_: ExecContext, statement: Tree) -> None:
-    """
-**Exits the current block of statements**
-
-* Next Sentence [;]
-
-Can be used with conditional and looping statements
-
-```vgr
-**TODO**
-```
-
-Also see `Break`
-"""
-    raise VgrStatementBreak(statement)
 
 @control_statement
 @bound_ops("If End-If")
@@ -861,8 +845,6 @@ If none of the `When` clauses match the desired value the `When Other` cause,
 if provided, is selected. Note that this clause _must_ be the last `When`
 cause, and that at least one other `When` must be specified.
 
-In addition to `Next Sentence`, `Break` and `Continue` can be used within blocks of statements.
-
 ```vgr
 Move time.today.month To month
 Evaluate month
@@ -923,10 +905,6 @@ Also see `Choose` and `Choose Using`
             ctx.echo_source(block, block.children[0])
             choosen_block = iter(block.children)
         # If a block of statements was choosen execute them
-        # Nested "break" and "continue" statments can be used to end execution
         if choosen_block is not None:
-            try:
-                ctx.dispatch_statements(choosen_block)
-            except (VgrStatementBreak, VgrStatementContinue):
-                pass
+            ctx.dispatch_statements(choosen_block)
             return

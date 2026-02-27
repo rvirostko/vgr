@@ -14,7 +14,6 @@
     | cobol_inc
     | cobol_move_to
     | cobol_mul_by
-    | cobol_next_sentence
     | cobol_perform_times
     | cobol_perform_until
     | cobol_perform_varying
@@ -56,8 +55,6 @@ cobol_perform_varying: "Perform"i varying_test_type? "Varying"i var_name "From"i
 
 cobol_if: "If"i expr ":"? statement+ cobol_else_clause? "End-If"i _SEMICOLON?
 cobol_else_clause: "Else"i ":"? statement+ -> else
-
-cobol_next_sentence: "Next"i "Sentence"i _SEMICOLON?
 
 cobol_exhibit: "Exhibit"i "*" _SEMICOLON? // exhibit all
     | "Exhibit"i var_name (_COMMA? var_name)* _SEMICOLON?

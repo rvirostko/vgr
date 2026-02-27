@@ -1,0 +1,243 @@
+
+# Test general and specific "break" and "continue" usage
+# in all control loops. These are all positive tests.
+# Assertions are placed in "dead code" locations to make
+# sure the statements take the correct action.
+
+Declare continued, broke
+
+Define Function start_test(name):
+    Print name
+    Set continued To False
+    Set broke To False
+End
+
+Define Function end_test():
+    Assert continued : "Test never hit Continue"
+    Assert broke : "Test never hit Break"
+End
+
+Call start_test("Do While (BASIC, block=Do)")
+Do While True:
+    If $loop.first:
+        Set continued = True
+        Continue Do
+        Assert False: "Continue Do failed"
+    Else:
+        Set broke = True
+        Exit Do
+        Assert False: "Exit Do failed"
+    End
+    Assert False: "Reached unexpected location"
+Loop
+Call end_test()
+
+Call start_test("Do While (BASIC, block=While)")
+Do While True:
+    If $loop.first:
+        Set continued = True
+        Continue While
+        Assert False: "Continue Do failed"
+    Else:
+        Set broke = True
+        Exit While
+        Assert False: "Exit Do failed"
+    End
+    Assert False: "Reached unexpected location"
+Loop
+Call end_test()
+
+Call start_test("Do While (VGR)")
+Do While True:
+    If $loop.first:
+        Set continued = True
+        Continue
+        Assert False: "Continue failed"
+    Else:
+        Set broke = True
+        Break
+        Assert False: "Break failed"
+    End
+    Assert False: "Reached unexpected location"
+Loop
+Call end_test()
+
+Call start_test("Do Until (BASIC, block=Do)")
+Do Until False:
+    If $loop.first:
+        Set continued = True
+        Continue Do
+        Assert False: "Continue Do failed"
+    Else:
+        Set broke = True
+        Exit Do
+        Assert False: "Exit Do failed"
+    End
+    Assert False: "Reached unexpected location"
+Loop
+Call end_test()
+
+Call start_test("Do Until (VGR)")
+Do Until False:
+    If $loop.first:
+        Set continued = True
+        Continue
+        Assert False: "Continue failed"
+    Else:
+        Set broke = True
+        Break
+        Assert False: "Break failed"
+    End
+    Assert False: "Reached unexpected location"
+Loop
+Call end_test()
+
+Call start_test("For Next (BASIC, block=For)")
+For x = 1 To 3:
+    If $loop.first:
+        Set continued = True
+        Continue For
+        Assert False: "Continue For failed"
+    Else:
+        Set broke = True
+        Exit For
+        Assert False: "Exit For failed"
+    End
+    Assert False: "Reached unexpected location"
+Next
+Call end_test()
+
+Call start_test("For Next (VGR)")
+For x = 1 To 3:
+    If $loop.first:
+        Set continued = True
+        Continue
+        Assert False: "Continue failed"
+    Else:
+        Set broke = True
+        Break
+        Assert False: "Break failed"
+    End
+    Assert False: "Reached unexpected location"
+Next
+Call end_test()
+
+Call start_test("Perform Times (COBOL)")
+Perform 3 Times:
+    If $loop.first:
+        Set continued = True
+        Continue
+        Assert False: "Continue failed"
+    Else:
+        Set broke = True
+        Break
+        Assert False: "Break failed"
+    End
+    Assert False: "Reached unexpected location"
+End-Perform
+Call end_test()
+
+Call start_test("Perform Until (COBOL)")
+Perform Until False:
+    If $loop.first:
+        Set continued = True
+        Continue
+        Assert False: "Continue failed"
+    Else:
+        Set broke = True
+        Break
+        Assert False: "Break failed"
+    End
+    Assert False: "Reached unexpected location"
+End-Perform
+Call end_test()
+
+Call start_test("Perform Varying (COBOL)")
+Perform Varying x From 1 By 1 Until x > 3:
+    If $loop.first:
+        Set continued = True
+        Continue
+        Assert False: "Continue failed"
+    Else:
+        Set broke = True
+        Break
+        Assert False: "Break failed"
+    End
+    Assert False: "Reached unexpected location"
+End-Perform
+Call end_test()
+
+Call start_test("Do Forever (VGR)")
+Do Forever:
+    If $loop.first:
+        Set continued = True
+        Continue
+        Assert False: "Continue failed"
+    Else:
+        Set broke = True
+        Break
+        Assert False: "Break failed"
+    End
+    Assert False: "Reached unexpected location"
+End
+Call end_test()
+
+Call start_test("Repeat Times (VGR)")
+Repeat 3 Times:
+    If $loop.first:
+        Set continued = True
+        Continue
+        Assert False: "Continue failed"
+    Else:
+        Set broke = True
+        Break
+        Assert False: "Break failed"
+    End
+    Assert False: "Reached unexpected location"
+End
+Call end_test()
+
+Call start_test("Until (VGR)")
+Until False :
+    If $loop.first:
+        Set continued = True
+        Continue
+        Assert False: "Continue failed"
+    Else:
+        Set broke = True
+        Break
+        Assert False: "Break failed"
+    End
+    Assert False: "Reached unexpected location"
+End
+Call end_test()
+
+Call start_test("While (VGR)")
+While True :
+    If $loop.first:
+        Set continued = True
+        Continue
+        Assert False: "Continue failed"
+    Else:
+        Set broke = True
+        Break
+        Assert False: "Break failed"
+    End
+    Assert False: "Reached unexpected location"
+End
+Call end_test()
+
+Call start_test("ForEach (VGR)")
+ForEach x in [1, 2, 3] :
+    If $loop.first:
+        Set continued = True
+        Continue
+        Assert False: "Continue failed"
+    Else:
+        Set broke = True
+        Break
+        Assert False: "Break failed"
+    End
+    Assert False: "Reached unexpected location"
+End
+Call end_test()
