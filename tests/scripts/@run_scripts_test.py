@@ -65,10 +65,12 @@ def test_vgr_statements(path: Path):
         with (LOG_DIR / (path.name + ".txt")).open("w", encoding="utf-8") as f:
             for i, line in enumerate(fh, 1):
                 line = line.strip()
-                if line and not line.startswith("#"):
-                    code, stdout, stderr = run_subprocess(["--execute", line])
+                if not line or line.startswith("#") or line.startswith("//") or (line.startswith("/*") and line.endswith("*/")):
+                    print(line)
+                else:
+                    code, stdout, stderr = run_subprocess(["--echo", "--execute", line])
                     write_results(f, stdout, stderr)
                     if "!" in path.name:
-                        assert code != 0, f"! Expected failure but line succeeded: {path.name!r}:{i}"
+                        assert code != 0, f"! Expected failure but line {i} succeeded: {path.name!r}:{i}"
                     else:
-                        assert code == 0, f"! Expected success but line failed: {path.name!r}:{i}"
+                        assert code == 0, f"! Expected success but line {i} failed: {path.name!r}:{i}"
