@@ -8,25 +8,31 @@
     | basic_troff
     | basic_tron
 
+// Note:
+// An optional ":" is allowed following control statements.
+// While not part of the BASIC syntax, most VGR syntax uses it, so it is
+// optional here to prevent excessive syntax errors. The same goes with "End".
 
-// Note the "addition" of the optional colon following the control statements
-// While not part of the BASIC syntax, VGR common syntax uses it, so it is
-// optional here to prevent excessive syntax errors.
-basic_do_while: "Do"i "While"i expr ":"? statement+ "Loop"i _SEMICOLON?
-basic_do_until: "Do"i "Until"i expr ":"? statement+ "Loop"i _SEMICOLON?
-basic_for_next_by: "For"i var_name "=" expr "To"i expr "By"i expr ":"? statement+ "Next"i _SEMICOLON?
-basic_for_next: "For"i var_name "=" expr "To"i expr ":"? statement+ "Next"i _SEMICOLON?
+// The defining BASIC-ness is the Do/Loop bracketing, which affects the
+// Exit/Continue that can be used within them.
+// Note that the "Do ... While/Until expr" variants are not supported.
+basic_do_while: "Do"i "While"i expr ":"? statement+ ("Loop"i | "End"i) _SEMICOLON?
+basic_do_until: "Do"i "Until"i expr ":"? statement+ ("Loop"i | "End"i) _SEMICOLON?
+
+basic_for_next_by: "For"i var_name "=" expr "To"i expr ("By"i | "Step"i) expr ":"? statement+ ("Next"i | "End"i) _SEMICOLON?
+basic_for_next: "For"i var_name "=" expr "To"i expr ":"? statement+ ("Next"i | "End"i) _SEMICOLON?
+
+// Note that these patterns can span across line and possibly
+// incorrectly associate statements. While unlikely, as the code
+// following an Exit/Continue should be dead code, it is possible.
 basic_exit: "Exit"i "Do"i _SEMICOLON? -> basic_exit_do
     | "Exit"i "For"i _SEMICOLON? -> basic_exit_for
     | "Exit"i "While"i _SEMICOLON? -> basic_exit_while
 basic_continue: "Continue"i "Do"i _SEMICOLON? -> basic_continue_do
     | "Continue"i "For"i _SEMICOLON? -> basic_continue_for
     | "Continue"i "While"i _SEMICOLON? -> basic_continue_while
+
 basic_let: "Let"i var_name "=" expr _SEMICOLON?
+
 basic_troff: "Troff"i _SEMICOLON?
 basic_tron: "Tron"i _SEMICOLON?
-
-// Prototype not working: conflicts with the "Select" statement
-// basic_select_case: "Select"i "Case"i expr ":"? case_values_block+ case_else_block? "End"i "Select"i _SEMICOLON? -> choose_using
-// case_values_block: "Case"i value_list ":"? statement+ -> values_block
-// case_else_block: "Case"i "Else"i ":"? statement+ -> otherwise_block
