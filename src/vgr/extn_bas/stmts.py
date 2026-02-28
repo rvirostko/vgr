@@ -61,7 +61,7 @@ following it are skipped, and the expression is checked again.
     exec_loop(ctx, statement, False, BlockType.DO_LOOP)
 
 @control_statement
-@bound_ops("For Next")
+@bound_ops("For Next", "For Each")
 def execute_for_next(ctx: ExecContext, statement: Tree) -> None:
     """
 **A BASIC-style For-Next Loop**
@@ -69,19 +69,23 @@ def execute_for_next(ctx: ExecContext, statement: Tree) -> None:
 * For *variable* = *expression* To *expression* [:]\\
   &emsp;&emsp;*statement*&hellip;\\
   Next [;]
-* For *variable* = *expression* To *expression* By *expression* [:]\\
+* For *variable* = *expression* To *expression* Step *expression* [:]\\
+  &emsp;&emsp;*statement*&hellip;\\
+  Next [;]
+* For Each *variable* In *expression* [:]\\
   &emsp;&emsp;*statement*&hellip;\\
   Next [;]
 
-The block of statements is executed until the limit is exceeded.
+The block of statements is executed until the limit is exceeded or
+in the case of `For Each`, the input is exhausted.
 If `Break` is encountered, looping ends regardless of the
 limit's value. If `Continue` is encountered, statements
 following it are skipped and looping proceeds.
 
-Statements have access to the *$loop* variable, including *index*, *length*, _first_, and _last_.
+Statements have access to the *$loop* variable, including *index*, *length*, *first*, and *last*.
 
 ```vgr
-For x = 2.0 To 4.0 By .5
+For x = 2.0 To 4.0 Step .5
     Print x, $loop
 Next
 
@@ -90,7 +94,17 @@ Next
 3.0 {'index': 2, 'first': False, 'last': False, 'length': 5}
 3.5 {'index': 3, 'first': False, 'last': False, 'length': 5}
 4.0 {'index': 4, 'first': False, 'last': True, 'length': 5}
+
+For Each a In ["A", "B", "C"]
+    Print a, $loop
+Next
+
+A {'index': 0, 'first': True, 'last': False, 'length': 3}
+B {'index': 1, 'first': False, 'last': False, 'length': 3}
+C {'index': 2, 'first': False, 'last': True, 'length': 3}
 ```
+
+Also see `Perform Varying` and `ForEach`.
 """
     # Echo the control portion, not the statements
     ctx.echo_source(statement, statement.children[-1])

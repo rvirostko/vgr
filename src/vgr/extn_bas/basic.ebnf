@@ -3,6 +3,7 @@
     | basic_do_while
     | basic_for_next_by
     | basic_for_next
+    | basic_for_each
     | basic_exit
     | basic_let
     | basic_troff
@@ -19,10 +20,12 @@
 basic_do_while: "Do"i "While"i expr ":"? statement+ ("Loop"i | "End"i) _SEMICOLON?
 basic_do_until: "Do"i "Until"i expr ":"? statement+ ("Loop"i | "End"i) _SEMICOLON?
 
-basic_for_next_by: "For"i var_name "=" expr "To"i expr ("By"i | "Step"i) expr ":"? statement+ ("Next"i | "End"i) _SEMICOLON?
+basic_for_next_by: "For"i var_name "=" expr "To"i expr "Step"i expr ":"? statement+ ("Next"i | "End"i) _SEMICOLON?
 basic_for_next: "For"i var_name "=" expr "To"i expr ":"? statement+ ("Next"i | "End"i) _SEMICOLON?
+# Note: this is just an alias to VGR's statement
+basic_for_each: "For"i "Each"i var_name "In"i expr ":"? statement+ ("Next"i | "End"i) _SEMICOLON? -> foreach
 
-// Note that these patterns can span across line and possibly
+// Note that these patterns can span across lines and possibly
 // incorrectly associate statements. While unlikely, as the code
 // following an Exit/Continue should be dead code, it is possible.
 basic_exit: "Exit"i "Do"i _SEMICOLON? -> basic_exit_do
