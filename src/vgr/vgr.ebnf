@@ -104,14 +104,17 @@ declare: "Declare"i var_name (_COMMA var_name)* _SEMICOLON?
 def_statements: "Define"i? "Function"i var_name def_params? ":"? def_body "End"i _SEMICOLON? -> def_function
 def_params: "(" (NAME (_COMMA NAME)*)? ")" -> params
 def_body: statement+ -> body
-foreach_statement: "ForEach"i var_name "In"i expr ("Do"i | ":")? statement+ "End"i _SEMICOLON? -> foreach
+foreach_statement: "ForEach"i var_name "In"i expr ":"? statement+ "End"i _SEMICOLON? -> foreach
 forever_loop: "Do"i "Forever"i ":"? statement+ "End"i _SEMICOLON? -> forever
-if_statement: "If"i expr ("Then"i | "Do"i | ":")? statement+ else_clause? "End"i _SEMICOLON? -> if
-else_clause: "Else"i ("Do"i | ":")? statement+ -> else
-repeat_statement: "Repeat"i expr ("Time"i | "Times"i)? ("Do"i | ":")? statement+ "End"i _SEMICOLON? -> repeat
-unless_statement: "Unless"i expr ("Do"i | ":")? statement+ "End"i _SEMICOLON? -> unless
-until_statement: "Until"i expr ("Do"i | ":")? statement+ "End"i _SEMICOLON? -> until
-while_statement: "While"i expr ("Do"i | ":")? statement+ "End"i _SEMICOLON? -> while
+
+// The addition of the optional "Then" allows a BASIC-like If syntax usage
+if_statement: "If"i expr ("Then"i | ":")? statement+ else_clause? "End"i _SEMICOLON? -> if
+else_clause: "Else"i ":"? statement+ -> else
+
+repeat_statement: "Repeat"i expr ("Time"i | "Times"i)? ":"? statement+ "End"i _SEMICOLON? -> repeat
+unless_statement: "Unless"i expr ":"? statement+ "End"i _SEMICOLON? -> unless
+until_statement: "Until"i expr ":"? statement+ "End"i _SEMICOLON? -> until
+while_statement: "While"i expr ":"? statement+ "End"i _SEMICOLON? -> while
 
 break: "Break"i _SEMICOLON?
 continue: "Continue"i _SEMICOLON?
