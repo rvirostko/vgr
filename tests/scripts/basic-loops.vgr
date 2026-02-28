@@ -1,0 +1,66 @@
+
+# Test out various syntax options for BASIC loops
+
+Tron
+
+# Do While
+Let x = 0
+Do While x < 1:
+    Let x = x + 1
+Loop
+
+Let x = 0
+Do While x < 1
+    Let x = x + 1
+Loop
+
+Let x = 0
+Do While x < 1
+    Let x = x + 1
+End
+
+# Do Until
+Let x = 0
+Do Until x == 1:
+    Let x = x + 1
+Loop
+
+Let x = 0
+Do Until x == 1
+    Let x = x + 1
+Loop
+
+Let x = 0
+Do Until x == 1
+    Let x = x + 1
+End
+
+# For-Next
+For x = 0 To 1:
+    NOP
+Next
+
+For x = 0 To 1
+    NOP
+Next
+
+For x = 0 To 1
+    NOP
+End
+
+# For-Next w/By
+For x = 0 To 1 By 1:
+    NOP
+Next
+
+For x = 0 To 1 Step 1:
+    NOP
+Next
+
+For x = 0 To 1 By 1
+    NOP
+Next
+
+For x = 0 To 1 By 1
+    NOP
+End
