@@ -678,7 +678,7 @@ A {'index': 0, 'first': True, 'last': False, 'length': 3}
 B {'index': 1, 'first': False, 'last': False, 'length': 3}
 C {'index': 2, 'first': False, 'last': True, 'length': 3}
 
-ForEach kv_pair in math:
+ForEach kv_pair In math:
     If $loop.first: Print "-" * 60; End
     Print kv_pair
     If $loop.last: Print "-" * 60; End
