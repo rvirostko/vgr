@@ -10,9 +10,9 @@ LET fib0 = 0
 LET fib1 = 0
 LET i = 0
 DO WHILE i <= 8
-    IF i > 0 AND i <= 2 DO
+    IF i > 0 AND i <= 2
         LET fib2 = 1
-    ELSE DO
+    ELSE
         LET fib2 = fib0 + fib1
     END
     LET fib0 = fib1
