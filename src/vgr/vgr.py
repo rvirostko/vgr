@@ -68,7 +68,6 @@ from . import __version__, __version_date__, __description__
 LOG = logging.getLogger()
 
 class VGRCmdLine(CmdLine):
-    _EXIT_PATTERN = re.compile(r"^\s*exit\b", re.IGNORECASE)
     _DEFAULT_HISTORY = '~/.vgr_history'
     _DEFAULT_PROMPT = 'vgr> '
 
@@ -115,9 +114,10 @@ class VGRCmdLine(CmdLine):
         return super().run()
 
     def execute_statements(self, text: str) -> bool:
-        if self._EXIT_PATTERN.match(text): return False
         try:
             self._ctx.execute_statements(text.rstrip(), '<repl>')
+        except VgrExitingException as e:
+            return False
         except VgrException as e:
             if self._ctx.debug:
                 traceback.print_exc(file=sys.stderr)
