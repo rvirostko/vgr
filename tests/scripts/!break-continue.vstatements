@@ -20,6 +20,10 @@ For x = 1 To 3: Exit Do;        Exit; Next
 For x = 1 To 3: Continue Do;    Exit; Next
 For x = 1 To 3: Exit While;     Exit; Next
 For x = 1 To 3: Continue While; Exit; Next
+For Each x in [1]: Exit Do;        Exit; Next
+For Each x in [1]: Continue Do;    Exit; Next
+For Each x in [1]: Exit While;     Exit; Next
+For Each x in [1]: Continue While; Exit; Next
 
 // -- COBOL --
 
@@ -76,9 +80,8 @@ Choose: When True: Continue; End
 Choose Using True: When True: Break;    End
 Choose Using True: When True: Continue; End
 
-# Only Break/Continue valid in VGR loops
-Do Forever: Exit Do;        Exit; End
-Do Forever: Continue Do;    Exit; End
+# Break/Continue valid in VGR loops, and any type that
+# matches the "verb"
 Do Forever: Exit For;       Exit; End
 Do Forever: Continue For;   Exit; End
 Do Forever: Exit While;     Exit; End
@@ -102,12 +105,8 @@ While True: Exit Do;        Exit; End
 While True: Continue Do;    Exit; End
 While True: Exit For;       Exit; End
 While True: Continue For;   Exit; End
-While True: Exit While;     Exit; End
-While True: Continue While; Exit; End
 
 ForEach x in [1]: Exit Do;        Exit; End
 ForEach x in [1]: Continue Do;    Exit; End
-ForEach x in [1]: Exit For;       Exit; End
-ForEach x in [1]: Continue For;   Exit; End
 ForEach x in [1]: Exit While;     Exit; End
 ForEach x in [1]: Continue While; Exit; End

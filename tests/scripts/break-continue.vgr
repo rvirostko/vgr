@@ -107,6 +107,21 @@ For x = 1 To 3:
 Next
 Call end_test()
 
+Call start_test("For Each (Basic, block=for)")
+For Each x in [1, 2, 3]
+    If $loop.first:
+        Set continued = True
+        Continue For
+        Assert False: "Continue For failed"
+    Else:
+        Set broke = True
+        Exit For
+        Assert False: "Break For failed"
+    End
+    Assert False: "Reached unexpected location"
+Next
+Call end_test()
+
 Call start_test("For Next (VGR)")
 For x = 1 To 3:
     If $loop.first:
@@ -182,6 +197,21 @@ Do Forever:
 End
 Call end_test()
 
+Call start_test("Do Forever (VGR, block=Do)")
+Do Forever:
+    If $loop.first:
+        Set continued = True
+        Continue Do
+        Assert False: "Continue Do failed"
+    Else:
+        Set broke = True
+        Exit Do
+        Assert False: "Exit Do failed"
+    End
+    Assert False: "Reached unexpected location"
+End
+Call end_test()
+
 Call start_test("Repeat Times (VGR)")
 Repeat 3 Times:
     If $loop.first:
@@ -227,6 +257,21 @@ While True :
 End
 Call end_test()
 
+Call start_test("While (VGR, block=While)")
+While True :
+    If $loop.first:
+        Set continued = True
+        Continue While
+        Assert False: "Continue While failed"
+    Else:
+        Set broke = True
+        Exit While
+        Assert False: "Exit While failed"
+    End
+    Assert False: "Reached unexpected location"
+End
+Call end_test()
+
 Call start_test("ForEach (VGR)")
 ForEach x in [1, 2, 3] :
     If $loop.first:
@@ -237,6 +282,21 @@ ForEach x in [1, 2, 3] :
         Set broke = True
         Break
         Assert False: "Break failed"
+    End
+    Assert False: "Reached unexpected location"
+End
+Call end_test()
+
+Call start_test("ForEach (VGR, block=for)")
+ForEach x in [1, 2, 3] :
+    If $loop.first:
+        Set continued = True
+        Continue For
+        Assert False: "Continue For failed"
+    Else:
+        Set broke = True
+        Exit For
+        Assert False: "Exit For failed"
     End
     Assert False: "Reached unexpected location"
 End
