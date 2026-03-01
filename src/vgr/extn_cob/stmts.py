@@ -15,6 +15,7 @@ from ..app_exceptions import (
     VgrRuntimeError,
     VgrStatementBreak,
     VgrStatementContinue,
+    VgrStatementReturn,
 )
 from ..evaluate import bind_operations, do_set, get_writable_var_path, _var_name_path
 from ..exec_context import ExecContext
@@ -148,6 +149,35 @@ Also see `Break` and `Continue`
     if cmd == 'cobol_exit_perform':
         raise VgrStatementBreak(statement, BlockType.PERFORM)
     raise ValueError(f'Unhandled type {cmd!r}') # SNO
+
+@bound_ops("Exit Program")
+def execute_exit_program(ctx: ExecContext, statement: Tree) -> None:
+    """
+**Return control to the caller of a function or to the operating system**
+
+* Exit Program [;]
+* Goback [;]
+
+If used within a function, the function ends, returning `None`.
+If used at the global level, the program ends, exiting with a return code of zero.
+
+```vgr
+Print "Hello"
+Exit Program # Returns to the operating system
+
+Define Function hello():
+    Print "Hello"
+    Exit Program    # Returns None from the function
+    Print "Goodbye" # Never executed
+End
+
+Call hello
+```
+
+Also see `Exit` and `Return`
+"""
+    if ctx.dd.in_local_frame: raise VgrStatementReturn(None, statement)
+    raise VgrExitingException(VgrExitingException.EXIT_SUCCESS, statement)
 
 @bound_ops("Stop Run")
 def execute_stop_run(_: ExecContext, statement: Tree) -> None:

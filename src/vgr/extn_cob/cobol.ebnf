@@ -8,7 +8,7 @@
     | cobol_div_by
     | cobol_div_into
     | cobol_evaluate
-    | cobol_exit_perform
+    | cobol_exit
     | cobol_exhibit
     | cobol_if
     | cobol_inc
@@ -47,8 +47,9 @@ cobol_dec: "Set"i "Variable"i? var_name "Down"i "By"i expr _SEMICOLON?
 
 cobol_stop_run: "Stop"i "Run"i _SEMICOLON?
 
-cobol_exit_perform: "Exit"i "Perform"i "Cycle"i _SEMICOLON? -> cobol_exit_perform_cycle
-    | "Exit"i "Perform"i _SEMICOLON?
+cobol_exit: "Exit"i "Perform"i "Cycle"i _SEMICOLON? -> cobol_exit_perform_cycle
+    | "Exit"i "Perform"i _SEMICOLON? -> cobol_exit_perform
+    | ("Exit"i "Program"i | "Goback"i) _SEMICOLON? -> cobol_exit_program
 
 // NB: Performs contain non-standard ":" separator (optional) to be compatible with other block statements
 cobol_perform_times: "Perform"i expr ("Time"i | "Times"i) ":"? statement+ "End-Perform"i _SEMICOLON?
