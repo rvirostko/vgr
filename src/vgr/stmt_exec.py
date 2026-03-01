@@ -287,14 +287,14 @@ def execute_break(_: ExecContext, statement: Tree) -> None:
 
 * Break [;]
 
-Can be used with `If`, `Unless`, `While`, `Until`, and `ForEach` statements
+Used with `While`, `Until`, `ForEach` and other looping statements
 
 ```vgr
 **TODO**
 ```
 
 """
-    raise VgrStatementBreak(statement)
+    raise VgrStatementBreak(statement, BlockType.ALL_BLOCKS)
 
 @bound_ops("Continue")
 def execute_continue(_: ExecContext, statement: Tree) -> None:
@@ -308,7 +308,7 @@ def execute_continue(_: ExecContext, statement: Tree) -> None:
 ```
 
 """
-    raise VgrStatementContinue(statement)
+    raise VgrStatementContinue(statement, BlockType.ALL_BLOCKS)
 
 @bound_ops("Pass", "NOP")
 def execute_pass(_: ExecContext, __: Tree) -> None:

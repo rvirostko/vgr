@@ -6,24 +6,30 @@
 // -- BASIC --
 
 # Can only use Break/Continue, Exit/Continue Do, and Exit/Continue While
-Do While True: Exit For;     Exit; Loop
-Do While True: Continue For; Exit; Loop
+Do While True: Exit For;           Exit; Loop
+Do While True: Continue For;       Exit; Loop
+Do While True: Exit Perform;       Exit; Loop
+Do While True: Exit Perform Cycle; Exit; Loop
 
 # Can only use Break/Continue and Exit/Continue Do
-Do Until False: Exit For;       Exit; Loop
-Do Until False: Continue For;   Exit; Loop
-Do Until False: Exit While;     Exit; Loop
-Do Until False: Continue While; Exit; Loop
+Do Until False: Exit For;           Exit; Loop
+Do Until False: Continue For;       Exit; Loop
+Do Until False: Exit While;         Exit; Loop
+Do Until False: Continue While;     Exit; Loop
+Do Until False: Exit Perform;       Exit; Loop
+Do Until False: Exit Perform Cycle; Exit; Loop
 
 # Can only use Break/Continue and Exit/Continue For
-For x = 1 To 3: Exit Do;        Exit; Next
-For x = 1 To 3: Continue Do;    Exit; Next
-For x = 1 To 3: Exit While;     Exit; Next
-For x = 1 To 3: Continue While; Exit; Next
-For Each x in [1]: Exit Do;        Exit; Next
-For Each x in [1]: Continue Do;    Exit; Next
-For Each x in [1]: Exit While;     Exit; Next
-For Each x in [1]: Continue While; Exit; Next
+For x = 1 To 3: Exit Do;               Exit; Next
+For x = 1 To 3: Continue Do;           Exit; Next
+For x = 1 To 3: Exit While;            Exit; Next
+For x = 1 To 3: Continue While;        Exit; Next
+For Each x in [1]: Exit Do;            Exit; Next
+For Each x in [1]: Continue Do;        Exit; Next
+For Each x in [1]: Exit While;         Exit; Next
+For Each x in [1]: Continue While;     Exit; Next
+For Each x in [1]: Exit Perform;       Exit; Next
+For Each x in [1]: Exit Perform Cycle; Exit; Next
 
 // -- COBOL --
 
@@ -60,10 +66,12 @@ Break;
 Exit Do;
 Exit For;
 Exit While;
+Exit Perform;
 Continue;
 Continue Do;
 Continue For;
 Continue While;
+Exit Perform Cycle;
 
 # Not valid in an If or Unless outside of a loop
 # (no need to test all variants...)
@@ -82,31 +90,41 @@ Choose Using True: When True: Continue; End
 
 # Break/Continue valid in VGR loops, and any type that
 # matches the "verb"
-Do Forever: Exit For;       Exit; End
-Do Forever: Continue For;   Exit; End
-Do Forever: Exit While;     Exit; End
-Do Forever: Continue While; Exit; End
+Do Forever: Exit For;           Exit; End
+Do Forever: Continue For;       Exit; End
+Do Forever: Exit While;         Exit; End
+Do Forever: Continue While;     Exit; End
+Do Forever: Exit Perform;       Exit; End
+Do Forever: Exit Perform Cycle; Exit; End
 
-Repeat 3 Times: Exit Do;        Exit; End
-Repeat 3 Times: Continue Do;    Exit; End
-Repeat 3 Times: Exit For;       Exit; End
-Repeat 3 Times: Continue For;   Exit; End
-Repeat 3 Times: Exit While;     Exit; End
-Repeat 3 Times: Continue While; Exit; End
+Repeat 3 Times: Exit Do;            Exit; End
+Repeat 3 Times: Continue Do;        Exit; End
+Repeat 3 Times: Exit For;           Exit; End
+Repeat 3 Times: Continue For;       Exit; End
+Repeat 3 Times: Exit While;         Exit; End
+Repeat 3 Times: Continue While;     Exit; End
+Repeat 3 Times: Exit Perform;       Exit; End
+Repeat 3 Times: Exit Perform Cycle; Exit; End
 
-Until False: Exit Do;        Exit; End
-Until False: Continue Do;    Exit; End
-Until False: Exit For;       Exit; End
-Until False: Continue For;   Exit; End
-Until False: Exit While;     Exit; End
-Until False: Continue While; Exit; End
+Until False: Exit Do;            Exit; End
+Until False: Continue Do;        Exit; End
+Until False: Exit For;           Exit; End
+Until False: Continue For;       Exit; End
+Until False: Exit While;         Exit; End
+Until False: Continue While;     Exit; End
+Until False: Exit Perform;       Exit; End
+Until False: Exit Perform Cycle; Exit; End
 
-While True: Exit Do;        Exit; End
-While True: Continue Do;    Exit; End
-While True: Exit For;       Exit; End
-While True: Continue For;   Exit; End
+While True: Exit Do;            Exit; End
+While True: Continue Do;        Exit; End
+While True: Exit For;           Exit; End
+While True: Continue For;       Exit; End
+While True: Exit Perform;       Exit; End
+While True: Exit Perform Cycle; Exit; End
 
-ForEach x in [1]: Exit Do;        Exit; End
-ForEach x in [1]: Continue Do;    Exit; End
-ForEach x in [1]: Exit While;     Exit; End
-ForEach x in [1]: Continue While; Exit; End
+ForEach x in [1]: Exit Do;            Exit; End
+ForEach x in [1]: Continue Do;        Exit; End
+ForEach x in [1]: Exit While;         Exit; End
+ForEach x in [1]: Continue While;     Exit; End
+ForEach x in [1]: Exit Perform;       Exit; End
+ForEach x in [1]: Exit Perform Cycle; Exit; End

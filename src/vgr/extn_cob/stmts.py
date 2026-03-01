@@ -9,7 +9,13 @@ import sys
 from lark import Tree
 import pwinput
 
-from ..app_exceptions import VgrExitingException, VgrStatementBreak, VgrStatementContinue, VgrRuntimeError
+from ..app_exceptions import (
+    BlockType,
+    VgrExitingException,
+    VgrRuntimeError,
+    VgrStatementBreak,
+    VgrStatementContinue,
+)
 from ..evaluate import bind_operations, do_set, get_writable_var_path, _var_name_path
 from ..exec_context import ExecContext
 from ..mathpak import (
@@ -106,8 +112,45 @@ Also see `FormatTimestamp()`
         line = line.rstrip('\n') if line else line
         if line: do_set(ctx, line, *var_path)
 
+@bound_ops("Exit Perform")
+def execute_exit_perform(_: ExecContext, statement: Tree) -> None:
+    """
+**Affects the execution of a Perform loop**
+
+* Exit Perform [;] *Exit the containing loop*
+* Exit Perform Cycle[;] *Continue loop from the start*
+
+```vgr
+Perform 3 Times:
+    Display "a"
+    Exit Perform
+    Display "b" # Never executes
+End-Perform
+a
+```
+
+```vgr
+Perform 3 Times:
+    Display "a"
+    Exit Perform Cycle
+    Display "b" # Never executes
+End-Perform
+a
+a
+a
+```
+
+Also see `Break` and `Continue`
+"""
+    cmd = statement.data
+    if cmd == 'cobol_exit_perform_cycle':
+        raise VgrStatementContinue(statement, BlockType.PERFORM)
+    if cmd == 'cobol_exit_perform':
+        raise VgrStatementBreak(statement, BlockType.PERFORM)
+    raise ValueError(f'Unhandled type {cmd!r}') # SNO
+
 @bound_ops("Stop Run")
-def execute_exit(_: ExecContext, statement: Tree) -> None:
+def execute_stop_run(_: ExecContext, statement: Tree) -> None:
     """
 **Terminate execution**
 
@@ -154,8 +197,10 @@ End-Perform
 4 : 16
 5 : 25
 ```
+
+Also see `Exit Perform`
 """
-    exec_loop(ctx, statement, False)
+    exec_loop(ctx, statement, False, BlockType.PERFORM)
 
 @control_statement
 @bound_ops("Perform Times")
@@ -190,7 +235,7 @@ End-Perform
 
 Also see `Repeat`
 """
-    exec_repeat(ctx, statement)
+    exec_repeat(ctx, statement, BlockType.PERFORM)
 
 @control_statement
 @bound_ops("Perform Varying")
@@ -236,7 +281,7 @@ End-Perform
 10 {'index': 4, 'first': False}
 ```
 
-Also see `For Next`
+Also see `For Next` and `Exit Perform`
 """
     # Echo the control portion, not the statements
     ctx.echo_source(statement, statement.children[-1])
@@ -267,10 +312,10 @@ Also see `For Next`
             try:
                 ctx.dispatch_statements(statement.children[cindex:])
             except VgrStatementBreak as e:
-                e.validate_for_block()
+                e.validate_for_block(BlockType.PERFORM)
                 return
             except VgrStatementContinue as e:
-                e.validate_for_block()
+                e.validate_for_block(BlockType.PERFORM)
             value += inc
             if not test_before and poly_true(ctx.eval_expr(predicate)): return
             i += 1
@@ -363,7 +408,7 @@ End-Perform
 78.125 : 6103.515625
 ```
 
-Also see `Set Down`, `-`, and `Set`
+Also see `Exit Perform`, `Set Down`, `-`, and `Set`
 """
     var_path = get_writable_var_path(ctx, statement.children[0])
     x = poly_number(ctx.get_var(*var_path)) or 0

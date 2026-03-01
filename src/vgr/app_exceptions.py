@@ -157,7 +157,7 @@ class VgrFlowControlException(VgrException):
         super().__init__(statement, Exception(msg), *SSM.current)
         self._block_type = block_type
 
-    def validate_for_block(self, block_types=BlockType.ALL_BLOCKS) -> None:
+    def validate_for_block(self, block_types: BlockType) -> None:
         if self._block_type == BlockType.ALL_BLOCKS: return
         if isinstance(block_types, BlockType) and self._block_type == block_types: return
         if isinstance(block_types, tuple) and self._block_type in block_types: return
@@ -168,7 +168,7 @@ class VgrStatementBreak(VgrFlowControlException):
     Thrown on a "break" to unwind the control block
     NB: root exception is for when it is used inappropriately
     """
-    def __init__(self, statement: Tree, block_type: BlockType=BlockType.ALL_BLOCKS):
+    def __init__(self, statement: Tree, block_type: BlockType):
         super().__init__(statement, 'Misplaced Break', block_type)
 
 class VgrStatementContinue(VgrFlowControlException):
@@ -176,7 +176,7 @@ class VgrStatementContinue(VgrFlowControlException):
     Thrown on a "continue" to unwind the control block
     NB: root exception is for when it is used inappropriately
     """
-    def __init__(self, statement: Tree, block_type: BlockType=BlockType.ALL_BLOCKS):
+    def __init__(self, statement: Tree, block_type: BlockType):
         super().__init__(statement, 'Misplaced Continue', block_type)
 
 class VgrStatementReturn(VgrFlowControlException):
