@@ -430,10 +430,10 @@ Also see `Break` and `Continue`
             try:
                 ctx.dispatch_statements(statement.children)
             except VgrStatementBreak as e:
-                e.validate_for_block()
+                e.validate_for_block(BlockType.DO_LOOP)
                 return
             except VgrStatementContinue as e:
-                e.validate_for_block()
+                e.validate_for_block(BlockType.DO_LOOP)
             i += 1
     finally:
         ctx.dd.pop_frame()
@@ -455,12 +455,12 @@ def execute_if(ctx: ExecContext, statement: Tree) -> None:
     """
 **Conditionally execute a block of statements**
 
-* If *expression* [Then | Do | :]\\
+* If *expression* [Then | :]\\
   &emsp;&emsp;_statement_&hellip;\\
   End [;]
-* If *expression* [Then | Do | :]\\
+* If *expression* [Then | :]\\
   &emsp;&emsp;_statement_&hellip;\\
-  Else [Do | :]\\
+  Else [:]\\
   &emsp;&emsp;_statement_&hellip;\\
   End [;]
 
@@ -556,7 +556,7 @@ def execute_while(ctx: ExecContext, statement: Tree) -> None:
     """
 **Repeatedly execute a block of statements while a condition exists**
 
-* While *expression* [Do | :]\\
+* While *expression* [:]\\
   &emsp;&emsp;_statement_&hellip;\\
   End [;]
 
@@ -568,7 +568,7 @@ following it are skipped, and the expression is checked again.
 
 ```vgr
 Set x To 0
-While x < 50 Do
+While x < 50:
     Print x, ":", x.Pow(2), $loop
     Set x += 10
 End
@@ -582,7 +582,7 @@ End
 
 Also see `Until` in addition to `Break` and `Continue`
 """
-    exec_loop(ctx, statement, True)
+    exec_loop(ctx, statement, True, BlockType.WHILE_LOOP)
 
 @control_statement
 @bound_ops("Until")
@@ -590,7 +590,7 @@ def execute_until(ctx: ExecContext, statement: Tree) -> None:
     """
 **Repeatedly execute a block of statements until a condition is reached**
 
-* Until *expression* [Do | :]\\
+* Until *expression* [:]\\
   &emsp;&emsp;_statement_&hellip;\\
   End [;]
 
@@ -601,7 +601,7 @@ following it are skipped, and the expression is checked again.
 
 ```vgr
 Set x To 0
-Until x >= 50 Do
+Until x >= 50
     Print x, ":", x.Pow(2), $loop
     Set x += 10
 End
@@ -623,7 +623,7 @@ def execute_repeat(ctx: ExecContext, statement: Tree) -> None:
     """
 **Execute a block of statements a fixed number of times**
 
-* Repeat *expression* [Do | :]\\
+* Repeat *expression* [:]\\
   &emsp;&emsp;_statement_&hellip;\\
   End [;]
 
@@ -654,7 +654,7 @@ def execute_foreach(ctx: ExecContext, statement: Tree) -> None:
     """
 **Iterate over a list of values**
 
-* ForEach *variable* In *expression* [Do | :]\\
+* ForEach *variable* In *expression* [:]\\
   &emsp;&emsp;_statement_&hellip;\\
   End [;]
 
@@ -729,10 +729,10 @@ Also see `Break` and `Continue`
                 try:
                     ctx.dispatch_statements(statement.children[2:])
                 except VgrStatementBreak as e:
-                    e.validate_for_block()
+                    e.validate_for_block(BlockType.FOR_LOOP)
                     return
                 except VgrStatementContinue as e:
-                    e.validate_for_block()
+                    e.validate_for_block(BlockType.FOR_LOOP)
         finally:
             ctx.dd.pop_frame()
 
