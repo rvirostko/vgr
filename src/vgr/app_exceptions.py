@@ -161,7 +161,7 @@ class VgrFlowControlException(VgrException):
         if self._block_type == BlockType.ALL_BLOCKS: return
         if isinstance(block_types, BlockType) and self._block_type == block_types: return
         if isinstance(block_types, tuple) and self._block_type in block_types: return
-        raise VgrRuntimeError(self.node, ValueError('Type not compatible with surrounding block')) from self
+        raise VgrRuntimeError(self.node, ValueError('Type not compatible with surrounding loop')) from self
 
 class VgrStatementBreak(VgrFlowControlException):
     """
