@@ -522,7 +522,7 @@ def exec_loop(ctx: ExecContext, statement: Tree, desired_value: bool, block_type
     finally:
         ctx.dd.pop_frame()
 
-def exec_repeat(ctx: ExecContext, statement: Tree) -> None:
+def exec_repeat(ctx: ExecContext, statement: Tree, block_types=BlockType.ALL_BLOCKS) -> None:
     """Internal implementation for loops with a fixed count"""
     ctx.echo_source(statement, statement.children[1])
     counter = poly_int(ctx.eval_expr(bind_operations(statement.children[0])))
@@ -541,10 +541,10 @@ def exec_repeat(ctx: ExecContext, statement: Tree) -> None:
                     try:
                         ctx.dispatch_statements(statement.children[1:])
                     except VgrStatementBreak as e:
-                        e.validate_for_block()
+                        e.validate_for_block(block_types)
                         return
                     except VgrStatementContinue as e:
-                        e.validate_for_block()
+                        e.validate_for_block(block_types)
                     counter -= 1
                     i += 1
             finally:
