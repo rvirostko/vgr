@@ -435,7 +435,7 @@ Also see `Succ()` and `Pred()` as well as `IsLessThan()` and `IsGreaterThan()` f
     # We always want to use x as a base as it influences conversions
     return low if poly_lt(x, low) else high if poly_gt(x, high) else x
 
-@bound_ops("Is Negative")
+@bound_ops('Is Negative', 'Is Not Positive')
 def poly_isnegative(x: Any=None) -> Any:
     """
 **Is the value less than zero**
@@ -469,7 +469,7 @@ Also see `Is Negative` and `Sign()`
 """
     return isinstance(x, (str, int, float)) and poly_lt(x, 0)
 
-@bound_ops("Is Positive")
+@bound_ops('Is Positive', 'Is Not Negative')
 def poly_ispositive(x: Any=None) -> Any:
     """
 **Is the value less than zero**
