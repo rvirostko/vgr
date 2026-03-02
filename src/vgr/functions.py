@@ -116,10 +116,12 @@ from .mathpak import (
     poly_islist,
     poly_islower,
     poly_isnan,
+    poly_isnegative,
     poly_isnone,
     poly_isnotnone,
     poly_isnumber,
     poly_isnumeric,
+    poly_ispositive,
     poly_isprintable,
     poly_isspace,
     poly_isstr,
@@ -500,6 +502,7 @@ _BUILT_IN_FUNCS: dict[str, Callable[..., Any]] = {
     "IsList":         poly_islist,
     "IsLower":        poly_islower,
     "IsNan":          poly_isnan,
+    "IsNegative":     poly_isnegative,
     "IsNone":         poly_isnone,
     "IsNotEmpty":     poly_notempty,
     "IsNotEqualTo":   poly_ne,
@@ -510,6 +513,7 @@ _BUILT_IN_FUNCS: dict[str, Callable[..., Any]] = {
     "IsNumber":       poly_isnumber,
     "IsNumeric":      poly_isnumeric,
     "IsPattern":      poly_is_pattern,
+    "IsPositive":     poly_ispositive,
     "IsPrintable":    poly_isprintable,
     "IsSpace":        poly_isspace,
     "IsString":       poly_isstr,
@@ -678,6 +682,8 @@ _OP_FUNCS: list[Callable[..., Any]] = [
     poly_gt, # gt_op
     poly_imatches, # imatches_op
     poly_in, # in_op
+    poly_isnegative, # is_negative_op
+    poly_ispositive, # is_positive_op
     poly_le, # le_op
     poly_lt, # lt_op
     poly_matches_all, # matches_all_op

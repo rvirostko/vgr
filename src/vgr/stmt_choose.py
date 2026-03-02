@@ -16,6 +16,8 @@ from .mathpak import (
     poly_ge,
     poly_gt,
     poly_isempty,
+    poly_isnegative,
+    poly_ispositive,
     poly_le,
     poly_lt,
     poly_matches,
@@ -80,12 +82,14 @@ Also see `Choose Using`
 # Operation mapping for choose "when" comparisons
 _CHOOSE_OPS = {
     # top-level block names
-    'values_block':       poly_eq,
+    'is_empty_block':     poly_isempty,
+    'is_neg_block':       poly_isnegative,
+    'is_not_empty_block': poly_notempty,
+    'is_pos_block':       poly_ispositive,
+    'not_range_block':    poly_false,
     'not_values_block':   poly_ne,
     'range_block':        poly_true,
-    'not_range_block':    poly_false,
-    'is_empty_block':     poly_isempty,
-    'is_not_empty_block': poly_notempty,
+    'values_block':       poly_eq,
     # Found in ineq_block
     'op_ge':              poly_ge,
     'op_gt':              poly_gt,
@@ -111,6 +115,8 @@ def execute_choose_using(ctx: ExecContext, statement: Tree) -> None:
 
 * Choose [All] Using *expression* :\\
   &emsp;&emsp;When [Not] Empty : _statement_&hellip;\\
+  &emsp;&emsp;When [Not] Negative : _statement_&hellip;\\
+  &emsp;&emsp;When [Not] Positive : _statement_&hellip;\\
   &emsp;&emsp;When [Not] *expression* [, *expression*]&hellip; : _statement_&hellip;\\
   &emsp;&emsp;When [Not] *expression* [To | Through | Thru] *expression* : _statement_&hellip;\\
   &emsp;&emsp;When [< | Less Than] *expression*: _statement_&hellip;\\
@@ -203,7 +209,7 @@ def _exec_choose(ctx: ExecContext, do_all: bool, statement_children, desired_val
                 # points to the following statements
                 chosen_block = choice_children
         # This section is for tests that don't use an expression
-        elif when_block.data in ['is_empty_block', 'is_not_empty_block']:
+        elif when_block.data in ['is_empty_block', 'is_not_empty_block', 'is_neg_block', 'is_pos_block']:
             test_op = _CHOOSE_OPS.get(when_block.data)
             if test_op(desired_value):
                 ctx.echo_source(when_block, when_block.children[0])

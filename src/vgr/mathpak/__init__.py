@@ -94,6 +94,8 @@ from .inequ import (
     poly_exact_eq,
     poly_ge,
     poly_gt,
+    poly_isnegative,
+    poly_ispositive,
     poly_le,
     poly_lt,
     poly_ne,

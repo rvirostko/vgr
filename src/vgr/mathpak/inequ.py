@@ -435,6 +435,74 @@ Also see `Succ()` and `Pred()` as well as `IsLessThan()` and `IsGreaterThan()` f
     # We always want to use x as a base as it influences conversions
     return low if poly_lt(x, low) else high if poly_gt(x, high) else x
 
+@bound_ops("Is Negative")
+def poly_isnegative(x: Any=None) -> Any:
+    """
+**Is the value less than zero**
+
+* *value* Is Negative
+* *value* Is Not Positive
+* IsNegative(*value*)
+* *value*.IsNegative()
+
+Strings will be converted to numbers.
+Note that zero is neither positive nor negative.
+
+```vgr
+ForEach v In [ None, List(), Dictionary(), -1, Zero, 1 ]:
+  Choose Using v:
+    When Is Negative: Print v.Repr(), "is negative"
+    When Is Positive: Print v.Repr(), "is positive"
+    Otherwise: Print v.Repr(), "is neither negative nor positive"
+  End
+End
+
+None is neither negative nor positive
+[] is neither negative nor positive
+{} is neither negative nor positive
+-1 is negative
+0 is neither negative nor positive
+1 is positive
+```
+
+Also see `Is Negative` and `Sign()`
+"""
+    return isinstance(x, (str, int, float)) and poly_lt(x, 0)
+
+@bound_ops("Is Positive")
+def poly_ispositive(x: Any=None) -> Any:
+    """
+**Is the value less than zero**
+
+* *value* Is Positive
+* *value* Is Not Negative
+* IsPositive(*value*)
+* *value*.IsPositive()
+
+Strings will be converted to numbers.
+Note that zero is neither positive nor negative.
+
+```vgr
+ForEach v In [ None, List(), Dictionary(), -1, Zero, 1 ]:
+  Choose Using v:
+    When Is Negative: Print v.Repr(), "is negative"
+    When Is Positive: Print v.Repr(), "is positive"
+    Otherwise: Print v.Repr(), "is neither negative nor positive"
+  End
+End
+
+None is neither negative nor positive
+[] is neither negative nor positive
+{} is neither negative nor positive
+-1 is negative
+0 is neither negative nor positive
+1 is positive
+```
+
+Also see `Is Positive` and `Sign()`
+"""
+    return isinstance(x, (str, int, float)) and poly_gt(x, 0)
+
 def _str_num_op(op: Callable[[Any, Any], Any], x: str, y: Any) -> Any:
     """See if the string can be converted to a number before applying the operation"""
     try:

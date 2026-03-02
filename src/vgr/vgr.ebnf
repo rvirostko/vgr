@@ -142,6 +142,8 @@ choose_all: "All"i
 choice_block: "When"i expr ":" statement+
 values_block: "When"i "Is"i? "Empty"i ":" statement+ -> is_empty_block
     | "When"i "Is"i? "Not"i "Empty"i ":" statement+ -> is_not_empty_block
+    | "When"i "Is"i? ("Positive"i | "Not"i "Negative"i) ":" statement+ -> is_pos_block
+    | "When"i "Is"i? ("Negative"i | "Not"i "Positive"i) ":" statement+ -> is_neg_block
     | "When"i value_list ":" statement+
     | "When"i "Not"i value_list ":" statement+ -> not_values_block
     | "When"i expr ("Through"i | "Thru"i | "To"i) expr ":" statement+ -> range_block
@@ -360,6 +362,8 @@ ternary: expr "?" expr ":" expr -> c_ternary
     | expr2 "." "@" var_name "(" (expr (_COMMA expr)*)? ")" -> invoke_func_inline
     | "@" var_name "(" (expr (_COMMA expr)*)? ")" -> invoke_func
     | function -> function_call
+    | expr2 "Is"i ("Negative"i | "Not"i "Positive"i) -> is_negative_op
+    | expr2 "Is"i ("Positive"i | "Not"i "Negative"i) -> is_positive_op
     // Polymorphic operations than *could* be chained
     | expr2 ("+" | "\uFF0B") expr2 -> add_op // Unicode ＋ (fullwidth plus)
     | expr2 ("-" | "\u2212" | "\uFF0D") expr2 -> sub_op // Unicode − (minus sign) and － (fullwidth minus)
