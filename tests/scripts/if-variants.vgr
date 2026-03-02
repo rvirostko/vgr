@@ -1,0 +1,47 @@
+# Different "If" syntax
+
+# VGR
+If True Then
+    Print "Hello"
+End
+
+If True:
+    Print "Hello"
+End
+
+If True
+    Print "Hello"
+End
+
+If False
+    Print "Goodbye"
+Else:
+    Print "Hello"
+End
+
+If False
+    Print "Goodbye"
+Else
+    Print "Hello"
+End
+
+# COBOL
+If True:
+    Print "Hello"
+End-If
+
+If True
+    Print "Hello"
+End-If
+
+If False
+    Print "Goodbye"
+Else:
+    Print "Hello"
+End-If
+
+If False
+    Print "Goodbye"
+Else
+    Print "Hello"
+End-If
