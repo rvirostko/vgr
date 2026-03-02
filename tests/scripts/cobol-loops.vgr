@@ -1,0 +1,69 @@
+
+# Test out various syntax options for COBOL loops
+
+Tron
+
+# Perform Times
+Perform 1 Time:
+    Display "Hello"
+End-Perform
+
+Perform 2 Times:
+    Display "Hello"
+End-Perform
+
+Perform 3 Times
+    Display "Hello"
+End-Perform
+
+Perform 3 Times
+    Display "Hello"
+End
+
+# Perform Until
+Move Zero To x
+Perform Until x > 0:
+    Display "Hello"
+    Add 1 To x
+End-Perform
+
+Move Zero To x
+Perform Until x > 0
+    Display "Hello"
+    Add 1 To x
+End-Perform
+
+Move Zero To x
+Perform Until x > 0
+    Display "Hello"
+    Add 1 To x
+End
+
+# Perform Varying
+Perform Varying x From Zero By 1 Until x > 0:
+    Display "Hello"
+End-Perform
+
+Perform Varying x From Zero By 1 Until x > 0
+    Display "Hello"
+End-Perform
+
+Perform Varying x From Zero By 1 Until x > 0
+    Display "Hello"
+End
+
+Perform With Test Before Varying x From Zero By 1 Until x > 0
+    Display "Hello"
+End-Perform
+
+Perform Test Before Varying x From Zero By 1 Until x > 0
+    Display "Hello"
+End-Perform
+
+Perform With Test After Varying x From Zero By 1 Until x > 0
+    Display "Hello"
+End-Perform
+
+Perform Test After Varying x From Zero By 1 Until x > 0
+    Display "Hello"
+End-Perform

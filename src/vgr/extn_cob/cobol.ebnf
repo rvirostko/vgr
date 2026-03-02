@@ -52,9 +52,9 @@ cobol_exit: "Exit"i "Perform"i "Cycle"i _SEMICOLON? -> cobol_exit_perform_cycle
     | ("Exit"i "Program"i | "Goback"i) _SEMICOLON? -> cobol_exit_program
 
 // NB: Performs contain non-standard ":" separator (optional) to be compatible with other block statements
-cobol_perform_times: "Perform"i expr ("Time"i | "Times"i) ":"? statement+ "End-Perform"i _SEMICOLON?
-cobol_perform_until: "Perform"i "Until"i expr ":"? statement+ "End-Perform"i _SEMICOLON?
-cobol_perform_varying: "Perform"i varying_test_type? "Varying"i var_name "From"i expr "By"i expr "Until"i expr ":"? statement+ "End-Perform"i _SEMICOLON?
+cobol_perform_times: "Perform"i expr ("Time"i | "Times"i) ":"? statement+ ("End-Perform"i | "End"i)? _SEMICOLON?
+cobol_perform_until: "Perform"i "Until"i expr ":"? statement+ ("End-Perform"i | "End"i)? _SEMICOLON?
+cobol_perform_varying: "Perform"i varying_test_type? "Varying"i var_name "From"i expr "By"i expr "Until"i expr ":"? statement+ ("End-Perform"i | "End"i)? _SEMICOLON?
 ?varying_test_type: "With"i? "Test"i "Before"i -> test_before
     | "With"i? "Test"i "After"i -> test_after
 
