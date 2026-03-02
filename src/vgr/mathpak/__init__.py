@@ -152,7 +152,7 @@ from .mul import poly_mul
 from .pow import poly_pow
 from .reg_ex import (
     compile_pattern,
-    poly_is_pattern,
+    poly_ispattern,
     poly_regex_replace,
 )
 from .shift import poly_shl, poly_shr
