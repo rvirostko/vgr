@@ -110,7 +110,7 @@ cobol_move_corr: ("Corresponding"i | "Corr"i)
 //   * Does not support "Also"
 //   * Muliple (fall-thru) "When" blocks not supported
 //   * "Any" is not supported
-// NB: Performs contain non-standard ":" separator (optional) to be compatible with other block statements
+// NB: Evaluate contain non-standard ":" separator (optional) to be compatible with other block statements
 // See https://www.ibm.com/docs/en/cobol-zos/6.3.0?topic=statements-evaluate-statement
 cobol_evaluate: "Evaluate"i expr ":"? (cobol_when_block | cobol_when_thru_block)+ cobol_when_other? "End-Evaluate"i _SEMICOLON? -> cobol_evaluate
 cobol_when_thru_block: "When"i expr ("Through"i | "Thru"i) expr ":"? statement+
