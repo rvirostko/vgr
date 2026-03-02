@@ -111,6 +111,7 @@ from .mathpak import (
     poly_isempty,
     poly_isfinite,
     poly_isfloat,
+    poly_iseven,
     poly_isinf,
     poly_isint,
     poly_islist,
@@ -121,6 +122,7 @@ from .mathpak import (
     poly_isnotnone,
     poly_isnumber,
     poly_isnumeric,
+    poly_isodd,
     poly_ispositive,
     poly_isprintable,
     poly_isspace,
@@ -489,6 +491,7 @@ _BUILT_IN_FUNCS: dict[str, Callable[..., Any]] = {
     "IsDirectory":    is_dir,
     "IsEmpty":        poly_isempty,
     "IsEqualTo":      poly_eq,
+    "IsEven":         poly_iseven,
     "IsFalse":        poly_false,
     "IsFile":         is_file,
     "IsFinite":       poly_isfinite,
@@ -512,6 +515,7 @@ _BUILT_IN_FUNCS: dict[str, Callable[..., Any]] = {
     "IsNotNone":      poly_isnotnone,
     "IsNumber":       poly_isnumber,
     "IsNumeric":      poly_isnumeric,
+    "IsOdd":          poly_isodd,
     "IsPattern":      poly_is_pattern,
     "IsPositive":     poly_ispositive,
     "IsPrintable":    poly_isprintable,
@@ -682,7 +686,9 @@ _OP_FUNCS: list[Callable[..., Any]] = [
     poly_gt, # gt_op
     poly_imatches, # imatches_op
     poly_in, # in_op
+    poly_iseven, # is_even_op
     poly_isnegative, # is_negative_op
+    poly_isodd, # is_odd_op
     poly_ispositive, # is_positive_op
     poly_le, # le_op
     poly_lt, # lt_op

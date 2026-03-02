@@ -36,7 +36,9 @@ from .mathpak import (
     poly_gt,
     poly_imatches,
     poly_in,
+    poly_iseven,
     poly_isnegative,
+    poly_isodd,
     poly_ispositive,
     poly_le,
     poly_lt,
@@ -426,6 +428,8 @@ class OperationBinder(Transformer):
     def floor_op(self, tree): return SimpleOperation(tree, poly_floor)
     def is_negative_op(self, tree): return SimpleOperation(tree, poly_isnegative)
     def is_positive_op(self, tree): return SimpleOperation(tree, poly_ispositive)
+    def is_even_op(self, tree): return SimpleOperation(tree, poly_iseven)
+    def is_odd_op(self, tree): return SimpleOperation(tree, poly_isodd)
 
     # Ternary operations: indicies are for predicate, true-side, false-side
     def c_ternary(self, tree): return Ternary(tree, (0, 1, 2))

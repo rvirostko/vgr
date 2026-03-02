@@ -143,7 +143,11 @@ from .misc_math import (
     poly_succ,
     poly_trunc,
 )
-from .mod import poly_mod
+from .mod import (
+    poly_iseven,
+    poly_isodd,
+    poly_mod,
+)
 from .mul import poly_mul
 from .pow import poly_pow
 from .reg_ex import (

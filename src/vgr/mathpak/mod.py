@@ -10,6 +10,7 @@ from .common import (
     empty_is_zero,
     get_operation,
     numeric_operations,
+    str_to_number,
 )
 
 @bound_ops("%")
@@ -57,3 +58,89 @@ def _mod(x: Any, y: Any) -> Any:
 mod_operations = {
     (str, str): lambda op, x, y: op(empty_is_zero(x), empty_is_zero(y)),
 }
+
+@bound_ops('Is Even', 'Is Not Odd')
+def poly_iseven(x: Any) -> bool:
+    """
+**Is the value an even integral value**
+
+* *value* Is Even
+* *value* Is Not Odd
+* IsEven(*value*)
+* *value*.IsEven()
+
+Strings are converted to numbers.
+Only integral values can be even numbers.
+
+```vgr
+ForEach v In [ None, List(), Dictionary(), -1, Zero, 1.5, 2 ]:
+    Choose Using v:
+        When Is Even:
+            Print v.Repr(), "is even"
+        When Is Odd:
+            Print v.Repr(), "is odd"
+        Otherwise:
+            Print v.Repr(), "is neither odd nor even"
+    End
+End
+
+None is neither odd nor even
+[] is neither odd nor even
+{} is neither odd nor even
+-1 is odd
+0 is even
+1.5 is neither odd nor even
+2 is even
+```
+
+Also see `Is Odd` and `Mod()`
+"""
+    return _check_parity(x, 0)
+
+@bound_ops('Is Odd', 'Is Not Even')
+def poly_isodd(x: Any) -> bool:
+    """
+**Is the value an odd integral value**
+
+* *value* Is Odd
+* *value* Is Not Even
+* IsOdd(*value*)
+* *value*.IsOdd()
+
+Strings are converted to numbers.
+Only integral values can be odd numbers.
+
+```vgr
+ForEach v In [ None, List(), Dictionary(), -1, Zero, 1.5, 2 ]:
+    Choose Using v:
+        When Is Even:
+            Print v.Repr(), "is even"
+        When Is Odd:
+            Print v.Repr(), "is odd"
+        Otherwise:
+            Print v.Repr(), "is neither odd nor even"
+    End
+End
+
+None is neither odd nor even
+[] is neither odd nor even
+{} is neither odd nor even
+-1 is odd
+0 is even
+1.5 is neither odd nor even
+2 is even
+```
+
+Also see `Is Even` and `Mod()`
+"""
+    return _check_parity(x, 1)
+
+_NUMERIC_TYPES = (int, float, str)
+def _check_parity(x: Any, remainder: int) -> bool:
+    if not isinstance(x, _NUMERIC_TYPES): return False
+    if isinstance(x, str):
+        try:
+            x = str_to_number(x)
+        except ValueError:
+            return False
+    return x % 2 == remainder if isinstance(x, int) or (isinstance(x, float) and x.is_integer()) else False
