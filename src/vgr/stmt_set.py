@@ -283,6 +283,7 @@ After the data is loaded, the following metadata values are available:
 > directory separator. Since the backslash is an escape character, if you use
 > it in a string, you will either need to double it or use a _raw string_.
 
+Also see `ParseCSV()`, `ParseHCL()`, `ParseINI()`, `ParseJSON()`, and `ParseYAML()`
 """
     def is_valid_encoding(name: str) -> bool:
         try:
