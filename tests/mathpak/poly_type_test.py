@@ -1,6 +1,6 @@
 import pytest
 
-from vgr.mathpak import poly_type, compile_pattern
+from vgr.builtins import poly_type, compile_pattern
 
 @pytest.mark.parametrize(
     "x, expected",

@@ -2,12 +2,12 @@
 A DataExtractor that iterates over items store in a list
 """
 
+from .builtins import poly_list
 from .data_xtract import (
     DataExtractor,
     InfoOutput,
     QueryFilter,
 )
-from .mathpak import poly_list
 
 class InMemoryExtractor(DataExtractor):
     """

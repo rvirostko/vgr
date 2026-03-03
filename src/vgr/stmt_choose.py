@@ -6,9 +6,7 @@ from typing import Any
 
 from lark import Tree
 
-from .evaluate import bind_operations
-from .exec_context import ExecContext
-from .mathpak import (
+from .builtins import (
     bound_ops,
     poly_contains_any,
     poly_eq,
@@ -28,6 +26,8 @@ from .mathpak import (
     poly_notempty,
     poly_true,
 )
+from .evaluate import bind_operations
+from .exec_context import ExecContext
 from .tags import control_statement
 
 @control_statement

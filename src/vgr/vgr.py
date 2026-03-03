@@ -19,6 +19,10 @@ from .auto_doc import (
     gen_auto_docs,
     read_doc_file,
 )
+from .builtins import (
+    poly_repr,
+    poly_type,
+)
 from .data_dict import DataDictionary
 from .dd_config import (
     dd_init,
@@ -47,10 +51,6 @@ from .functions import (
 )
 from .interactive import CmdLine, ArgumentParser, ParserBuilder
 from .log_config import init_logging, set_logging_level
-from .mathpak import (
-    poly_repr,
-    poly_type,
-)
 from .redir import print_stderr
 from .exec_context import ExecContext
 from .stmt_exec import (

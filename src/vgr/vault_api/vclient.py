@@ -10,8 +10,8 @@ import http.client
 import json
 import logging
 
+from ..builtins import poly_type
 from .util import encode_url
-from ..mathpak import poly_type
 
 _MIME_JSON: str = 'application/json'
 _MIME_JSON_PATCH: str = 'application/merge-patch+json'

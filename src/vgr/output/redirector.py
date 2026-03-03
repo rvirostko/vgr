@@ -3,7 +3,7 @@ import sys
 from io import IOBase
 from io import UnsupportedOperation
 
-from ..mathpak import poly_type
+from ..builtins import poly_type
 
 _STDIN = 'stdin'
 _STDOUT = 'stdout'

@@ -1,6 +1,6 @@
 import pytest
 
-from vgr.mathpak import poly_combine_lists
+from vgr.builtins import poly_combine_lists
 
 @pytest.mark.parametrize(
     "inputs, expected",

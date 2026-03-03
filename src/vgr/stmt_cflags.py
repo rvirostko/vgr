@@ -4,9 +4,9 @@ Contains the implementation for the ECHO, DEBUG and VERBOSE statements
 
 from lark import Tree, Token
 
+from .builtins import bound_ops
 from .evaluate import bind_operations
 from .exec_context import ExecContext
-from .mathpak import bound_ops
 from .redir import print_stderr
 from .tags import control_statement
 

@@ -5,7 +5,7 @@ Functions applicable to Vault data types.
 from typing import Any
 import re
 
-from ..mathpak import poly_type, poly_floor_multiple
+from ..builtins import poly_type, poly_floor_multiple
 
 # Used in str -> ms
 _DURATION_STR_PATTERN = re.compile(r'(-?\d+\.?\d*)(ns|us|µs|ms|s|m|h|d)?', re.IGNORECASE)

@@ -13,8 +13,8 @@ from .app_exceptions import (
     VgrStatementContinue,
     VgrStatementReturn,
 )
+from .builtins import poly_type
 from .exec_context import ExecContext
-from .mathpak import poly_type
 from .vgr_callable import VgrCallable
 
 class AbstractUserCallable(VgrCallable):

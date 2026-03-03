@@ -13,7 +13,7 @@ from ..stmt_exec import bind_operations, exec_loop, LOOP_META_PATH, set_loop_met
 from ..stmt_set import execute_set
 from ..tags import control_statement
 
-from ..mathpak import bound_ops
+from ..builtins import bound_ops
 
 @control_statement
 @bound_ops("Do While")

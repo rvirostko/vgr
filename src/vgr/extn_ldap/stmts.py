@@ -8,14 +8,7 @@ import os
 from lark import Tree
 from ldap3 import ANONYMOUS, SIMPLE, NTLM, BASE, LEVEL, SUBTREE, ALL_ATTRIBUTES, NO_ATTRIBUTES, DEREF_ALWAYS, DEREF_NEVER
 from ..app_exceptions import VgrRuntimeError
-from ..data_dict import DataDictionary, DynamicValue
-from ..evaluate import (
-    _var_name_path,
-    do_set,
-    get_writable_var_path,
-)
-from ..exec_context import ExecContext
-from ..mathpak import (
+from ..builtins import (
     bound_ops,
     poly_bool,
     poly_int,
@@ -25,6 +18,13 @@ from ..mathpak import (
     poly_strip,
     poly_type,
 )
+from ..data_dict import DataDictionary, DynamicValue
+from ..evaluate import (
+    _var_name_path,
+    do_set,
+    get_writable_var_path,
+)
+from ..exec_context import ExecContext
 
 from .ldap_client import LdapClientManager, validate_ldap_url
 

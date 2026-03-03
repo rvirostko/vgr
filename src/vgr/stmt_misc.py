@@ -6,8 +6,8 @@ import time
 
 from lark import Tree
 
+from .builtins import bound_ops
 from .exec_context import ExecContext
-from .mathpak import bound_ops
 
 @bound_ops("Sleep")
 def execute_sleep(ctx: ExecContext, statement: Tree) -> None:

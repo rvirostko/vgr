@@ -9,10 +9,10 @@ import re
 from lark import Tree, Token, Transformer, Visitor, v_args
 
 from .app_exceptions import VgrRuntimeError
+from .builtins import poly_false, bound_ops, poly_type
 from .data_xtract import QueryFilter, InfoOutput, DataExtractor, EndExtractException
 from .evaluate import bind_operations
 from .exec_context import ExecContext
-from .mathpak import poly_false, bound_ops, poly_type
 from .output import (
     CSVRecordWriter,
     JSONRecordWriter,

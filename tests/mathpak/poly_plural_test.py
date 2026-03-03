@@ -1,6 +1,6 @@
 import pytest
 
-from vgr.mathpak import poly_plural
+from vgr.builtins import poly_plural
 
 @pytest.mark.parametrize(
     "x, plural, singular, expected",

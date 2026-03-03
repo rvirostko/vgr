@@ -7,7 +7,7 @@ import sys
 
 from lark import Tree, Token
 
-from .mathpak import poly_type
+from .builtins import poly_type
 from .redir import print_stderr
 
 def print_tree(item: Any, indent=2) -> None:

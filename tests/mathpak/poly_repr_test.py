@@ -1,6 +1,6 @@
 import pytest
 
-from vgr.mathpak import poly_repr
+from vgr.builtins import poly_repr
 
 @pytest.mark.parametrize("input_obj, expected", [
     ('hello', r'"hello"'),

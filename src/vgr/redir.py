@@ -11,8 +11,8 @@ import re
 from lark import Tree
 
 from .app_exceptions import VgrRuntimeError
+from .builtins import bound_ops, verify_relative_path, expand_filename
 from .exec_context import ExecContext
-from .mathpak import bound_ops, verify_relative_path, expand_filename
 from .output import IORedirector
 
 _REDIRECTOR = IORedirector()

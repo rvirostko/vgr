@@ -19,7 +19,7 @@ from ..app_exceptions import VgrRuntimeError
 from ..data_dict import DataDictionary
 from ..exec_context import ExecContext
 from ..extn import VgrExtension
-from ..mathpak import bound_ops
+from ..builtins import bound_ops
 from ..redir import stdout
 
 from .xterm_colors import TERM_COLORS, AUX_COLORS

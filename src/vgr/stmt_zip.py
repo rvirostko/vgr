@@ -11,8 +11,8 @@ import zipfile
 from lark import Tree
 
 from .app_exceptions import VgrRuntimeError
+from .builtins import bound_ops, poly_type, verify_relative_path
 from .exec_context import ExecContext
-from .mathpak import bound_ops, poly_type, verify_relative_path
 from .redir import prepare_path
 
 @bound_ops("Create ZIP")

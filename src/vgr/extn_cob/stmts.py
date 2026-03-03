@@ -19,7 +19,7 @@ from ..app_exceptions import (
 )
 from ..evaluate import bind_operations, do_set, get_writable_var_path, _var_name_path
 from ..exec_context import ExecContext
-from ..mathpak import (
+from ..builtins import (
     bound_ops,
     poly_add,
     poly_div,

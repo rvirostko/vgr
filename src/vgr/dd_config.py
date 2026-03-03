@@ -16,10 +16,10 @@ import sys
 import uuid
 
 from . import __version__, __version_date__
+from .builtins import time_now
 from .data_dict import DataDictionary, DynamicValue, MAX_FRAMES
 from .exec_context import ExecContext
 from .redir import _REDIRECTOR
-from .mathpak import time_now
 
 VGR_PREFIX = 'vgr'
 INCLUDED_PATH = (VGR_PREFIX, 'included')

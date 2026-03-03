@@ -9,11 +9,11 @@ import sys
 
 from lark import Tree
 
+from .builtins import poly_format, bound_ops
 from .dd_config import OFS_PATH, ORS_PATH
-from .redir import print_stdout, print_stderr
-from .exec_context import ExecContext
-from .mathpak import poly_format, bound_ops
 from .doc_help import print_md
+from .exec_context import ExecContext
+from .redir import print_stdout, print_stderr
 
 def _extract_args(tree: Tree) -> tuple:
     if not tree.children: return 'stdout', []

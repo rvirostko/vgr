@@ -9,7 +9,7 @@ from functools import lru_cache
 from typing import Any, Callable
 import inspect
 
-from .mathpak import (
+from .builtins import (
     base_name,
     bound_ops,
     build_dict,
@@ -721,7 +721,7 @@ def function_names_pattern() -> str:
 def get_operator_entries() -> dict[str, tuple]:
     entries = {}
     for func in _OP_FUNCS:
-        # See mathpak/common for the bound_ops decorator
+        # See builtins/common for the bound_ops decorator
         if hasattr(func, 'bound_ops'):
             for op in func.bound_ops:
                 entries[op] = (func, op.lower().replace(' ', ''), (func.__doc__ or '').lower())

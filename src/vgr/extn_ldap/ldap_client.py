@@ -21,7 +21,7 @@ from ldap3.core.exceptions import (
     LDAPExceptionError,
 )
 
-from ..mathpak import poly_clamp
+from ..builtins import poly_clamp
 
 # Testing
 # See: https://www.forumsys.com/2022/05/10/online-ldap-test-server/

@@ -4,9 +4,9 @@ Vault extension to the grammar
 
 from typing import Dict, Callable
 
+from ..builtins import bound_ops
 from ..extn import VgrExtension
 from ..data_dict import DataDictionary
-from ..mathpak import bound_ops
 
 from .functions import (
     duration_to_ms,

@@ -32,7 +32,7 @@ from .evaluate import (
     get_writable_var_path,
 )
 from .exec_context import ExecContext
-from .mathpak import (
+from .builtins import (
     bound_ops,
     build_dict,
     expand_filename,
@@ -981,7 +981,7 @@ STATEMENT_HANDLERS = {
 def get_statement_entries() -> list:
     entries = {}
     for _, func in STATEMENT_HANDLERS.items():
-        # See mathpak/common for the bound_ops decorator
+        # See builtins/common for the bound_ops decorator
         if hasattr(func, 'bound_ops'):
             for op in func.bound_ops:
                 entries[op] = (func, op.lower().replace(' ', ''), (func.__doc__ or '').lower())

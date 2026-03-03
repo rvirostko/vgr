@@ -5,9 +5,9 @@ Implementation of Log statements
 import logging
 from lark import Tree
 
+from .builtins import poly_format, bound_ops
 from .dd_config import LOG_LEVEL_PATH
 from .exec_context import ExecContext
-from .mathpak import poly_format, bound_ops
 
 _USER_LOGGER = logging.getLogger('vgr_user')
 # TODO need to get level, then convert to a string to set in DD

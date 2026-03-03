@@ -13,7 +13,7 @@ from typing import (
 )
 import copy
 
-from .mathpak import poly_repr
+from .builtins import poly_repr
 
 # These values are INTENTIALLY omitted from keys()!
 GOBAL_CONTEXT = '$global'
