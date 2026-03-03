@@ -42,7 +42,7 @@ include-package-data = true
 where = ["src"]
 
 [tool.setuptools.package-data]
-"vgr" = ["*.ini", "*.ebnf", "**/*.ebnf", "**/*.ini", "**/*.json"]
+"vgr" = ["*.ini", "*.lark", "**/*.lark", "**/*.ini", "**/*.json"]
 
 [tool.pytest.ini_options]
 minversion = "8.0"

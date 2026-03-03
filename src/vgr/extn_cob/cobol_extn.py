@@ -71,7 +71,7 @@ class CobolExtension(VgrExtension):
         return True
 
     def grammar(self) -> str:
-        return self.read_resource_text(__package__, 'cobol.ebnf')
+        return self.read_resource_text(__package__, 'cobol.lark')
 
     def statement_handlers(self) -> Dict[str, Callable]:
         return _HANDLERS

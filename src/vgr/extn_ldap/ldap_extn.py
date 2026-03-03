@@ -64,7 +64,7 @@ class LdapExtension(VgrExtension):
         return True
 
     def grammar(self) -> str:
-        return self.read_resource_text(__package__, 'ldap.ebnf')
+        return self.read_resource_text(__package__, 'ldap.lark')
 
     def functions(self) -> Dict[str, Callable]:
         return _FUNCTIONS

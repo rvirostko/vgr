@@ -31,7 +31,7 @@ class TermExtension(VgrExtension):
         return True
 
     def grammar(self) -> str:
-        return self.read_resource_text(__package__, 'term.ebnf')
+        return self.read_resource_text(__package__, 'term.lark')
 
     def functions(self) -> Dict[str, Callable]:
         return _FUNCTIONS

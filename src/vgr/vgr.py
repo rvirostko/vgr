@@ -343,7 +343,7 @@ def create_parser(extn_registry: VgrExtensionRegistry, debug: bool, verbose: boo
     print_debug(debug, 'EXTN_STATMENTS =', extn_statements)
     print_debug(debug, 'EXTN_FROM =', extn_from)
     print_debug(debug, 'EXTN_GRAMMAR =', extn_grammar)
-    grammar = VgrExtension.read_resource_text(__package__, 'vgr.ebnf')
+    grammar = VgrExtension.read_resource_text(__package__, 'vgr.lark')
     # NB: we can't just use str.format() because the grammar
     #     contains "{" and "}"
     for tag, value in (('{EXTN_STATEMENTS}', extn_statements),
