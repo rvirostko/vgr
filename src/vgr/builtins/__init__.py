@@ -101,7 +101,11 @@ from .inequ import (
     poly_ne,
 )
 from .is_in import poly_in, poly_not_in, poly_contains_all, poly_contains_any
-from .json_funcs import format_json, parse_json, strip_nulls, to_json, to_json_string
+from .json_funcs import (
+    format_json,
+    strip_nulls,
+    to_json_string,
+)
 from .list import (
     build_list,
     poly_apply,
@@ -149,6 +153,18 @@ from .mod import (
     poly_mod,
 )
 from .mul import poly_mul
+from .parse import (
+    poly_parse_csv,
+    poly_parse_hcl,
+    poly_parse_ini,
+    poly_parse_json,
+    poly_parse_yaml,
+    parse_csv,
+    parse_hcl,
+    parse_ini,
+    parse_json,
+    parse_yaml,
+)
 from .pow import poly_pow
 from .reg_ex import (
     compile_pattern,

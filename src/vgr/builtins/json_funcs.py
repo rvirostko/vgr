@@ -7,18 +7,6 @@ import json
 
 from .common import int_arg, bool_arg
 
-def parse_json(s: Any=None) -> dict:
-    """
-**Parse a string as JSON**
-
-Returns `None` if input is `None`.
-
-```vgr
-**TODO**
-```
-"""
-    return None if s is None else json.loads(s)
-
 def strip_nulls(obj: Any=None) -> Any:
     """
 **Recursively remove `None` values from dictionaries and lists**
@@ -50,7 +38,7 @@ Format the object as a JSON string
 """
     indent = None if indent is None else int_arg(indent, 'Indent')
     sort_keys = bool_arg(sort_keys, "SortKeys")
-    return None if obj is None else json.dumps(to_json(obj), indent=indent, default=str, sort_keys=sort_keys)
+    return None if obj is None else json.dumps(_to_json(obj), indent=indent, default=str, sort_keys=sort_keys)
 
 def to_json_string(obj: Any=None) -> str:
     """
@@ -64,19 +52,7 @@ def to_json_string(obj: Any=None) -> str:
 ```
 
 """
-    return None if obj is None else json.dumps(to_json(obj), separators=(',', ':'), default=str, ensure_ascii=False)
+    return None if obj is None else json.dumps(_to_json(obj), separators=(',', ':'), default=str, ensure_ascii=False)
 
-def to_json(obj: Any=None) -> dict:
-    """
-**Convert the object into a JSON (dictionary or list) object**
-
-* ToJSON(*value*)
-* *value*.ToJSON()
-
-Scalar values are wrapped into an object.
-
-```vgr
-**TODO**
-```
-"""
+def _to_json(obj: Any=None) -> dict:
     return obj if isinstance(obj, (dict, list)) else { "value": obj }

@@ -5,19 +5,18 @@ Includes the implemenation for SET/UNSET, MOVE, and LOAD FROM.
 from io import TextIOWrapper
 from typing import Any
 import codecs
-import configparser
-import csv
-import json
 import os
-
-import hcl2
-import yaml
 
 from lark import Tree
 
 from .app_exceptions import VgrRuntimeError
 from .builtins import (
     bound_ops,
+    parse_csv,
+    parse_hcl,
+    parse_ini,
+    parse_json,
+    parse_yaml,
     poly_add,
     poly_bit_and,
     poly_bit_or,
@@ -352,33 +351,29 @@ Returns a tuple with the data and metadata used for the $load variable:
 * $load.records  - number of top-level records
 
 """
-    data = None
-    keys = None
-    if dtype.startswith('text_'):
-        data = file.read()
-        data = data.splitlines() if dtype == 'text_lines' else data
+    data = file.read()
+    if dtype == 'text_file':
+        pass # data alread read in
+    elif dtype == 'text_lines':
+        data = data.splitlines()
     elif dtype == 'json_object':
-        data = json.load(file)
+        data = parse_json(data)
     elif dtype == 'json_objects':
-        data = [json.loads(line) for line in file if line.strip()]
+        data = [parse_json(line) for line in data.splitlines() if line.strip()]
     elif dtype == 'csv_file':
-        reader = csv.DictReader(file)
-        keys = reader.fieldnames or []
-        data = list(reader)
+        data = parse_csv(data)
     elif dtype == 'yaml_file':
-        data = yaml.safe_load(file)
+        data = parse_yaml(data)
     elif dtype == 'hcl_file':
-        data = hcl2.load(file)
+        data = parse_hcl(data)
     elif dtype == 'ini_file':
-        parser = configparser.ConfigParser()
-        parser.read_file(file)
-        data = { section: dict(parser.items(section)) for section in parser.sections() }
+        data = parse_ini(data)
     else:
         raise ValueError(f'Unknown file content type {dtype!r}') # SNO
     return (data,
             {
                 'filename': filename,
                 'format':   dtype.split('_')[0],
-                'keys':     poly_getkeys(data) if keys is None else keys,
+                'keys':     poly_getkeys(data),
                 'records':  len(data) if isinstance(data, list) else 1
             })
