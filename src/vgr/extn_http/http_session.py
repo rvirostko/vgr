@@ -8,7 +8,7 @@ import ssl
 
 import httpx
 
-from .curl_data import (
+from .http_data import (
     HttpData,
     Setting,
 )

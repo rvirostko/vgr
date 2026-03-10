@@ -28,7 +28,7 @@ class HttpExtension(VgrExtension):
         return True
 
     def grammar(self) -> str:
-        return self.read_resource_text(__package__, 'curl.lark')
+        return self.read_resource_text(__package__, 'http.lark')
 
     def statement_handlers(self) -> Dict[str, Callable]:
         return _HANDLERS

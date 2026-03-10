@@ -11,12 +11,12 @@ from urllib.parse import (
 
 from lark import Tree
 
-from .curl_data import (
+from .http_data import (
     HttpData,
     Setting,
 )
 
-from .curl_session import (
+from .http_session import (
     HttpSessionManager,
     HttpSession
 )
