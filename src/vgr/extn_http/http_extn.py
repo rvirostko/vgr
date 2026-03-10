@@ -7,7 +7,7 @@ from typing import Dict, Callable
 from ..extn import VgrExtension
 from ..data_dict import DataDictionary
 
-from .t import (
+from .http_stmts import (
     http_initialize,
     execute_connect,
     execute_disconnect,
