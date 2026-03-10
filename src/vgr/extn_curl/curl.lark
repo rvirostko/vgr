@@ -1,0 +1,167 @@
+// Grammar for the Curl statement family
+//
+// Three top-level statements:
+//   curl_connect    — establishes a named httpx.Client connection (connection pool)
+//   curl_disconnect — tears down a named connection
+//   curl_request     — performs a single HTTP interaction (GET, POST, etc.)
+//
+// Options are grouped into reusable rule sets:
+//   curl_conn_opt   — options valid only at connect time (connection-level concerns)
+//   curl_auth_opt   — authentication options, valid for both connect and request
+//   curl_req_opt    — request-level options, valid for both connect and request
+//   curl_request_opt — options valid only on an request (body, giving, using)
+//
+// General conventions:
+//   - Options are separated by optional commas (linguistic alignment)
+//   - Semicolons optionally terminate statements
+//   - "Is"/"Are" are optional softening words throughout
+//   - Boolean options follow a trinary model: bare = True, "Is <expr>" = explicit,
+//     absent = None (httpx default applies). Conflicts are bind-time errors.
+//   - Last-write for non-bool options is a bind-time conflict error to prevent
+//     non-astonishing behavior in failing scripts.
+
+?curl_statements: curl_connect | curl_disconnect | curl_request
+
+//----------------------------------------------------------------------------
+// Connect
+// Establishes a named httpx.Client with a base URL and shared defaults.
+// The base URL must resolve to a string with a valid scheme (http/https).
+// Handler enforces trailing slash on base URL before passing to httpx.Client.
+// Named via "As <expr>" for reference in subsequent curl_request statements.
+//----------------------------------------------------------------------------
+curl_connect: "Curl"i "Connect"i ("To"i | "URL"i "Is"i?)? expr (_COMMA? curl_conn_arg)* _SEMICOLON?
+
+?curl_conn_arg: curl_conn_opt
+    | curl_auth_opt
+    | curl_req_opt
+    | "As"i expr -> copt_connection_name // names the connection
+
+//----------------------------------------------------------------------------
+// Disconnect
+// Tears down a named connection, closing the underlying httpx.Client and
+// releasing pooled connections.
+//----------------------------------------------------------------------------
+curl_disconnect: "Curl"i "Disconnect"i "From"i? expr _SEMICOLON?
+
+//----------------------------------------------------------------------------
+// Request
+// Performs a single HTTP interaction against an optional named connection.
+// Method is either a keyword or a dynamic expr (validated at execution time).
+// URL rules:
+//   - With "Using": expr is a path appended to the connection base URL.
+//     Handler enforces no double-slash at the join point.
+//   - Without "Using": expr must be a fully qualified URL including scheme.
+//     A missing or invalid URL is a bind-time error — it cannot be defaulted.
+//----------------------------------------------------------------------------
+curl_request: "Curl"i ("Method"i "Is"?)? curl_method _COMMA? ("URL"i "Is"i?)? expr (_COMMA? curl_request_arg)* _SEMICOLON?
+
+// Method as keyword (preferred — unambiguous, readable) or dynamic expr.
+// Dynamic expr must resolve to a valid HTTP method string at execution time.
+?curl_method: "Get"i    -> cmethod_get
+    | "Post"i           -> cmethod_post
+    | "Put"i            -> cmethod_put
+    | "Patch"i          -> cmethod_patch
+    | "Delete"i         -> cmethod_delete
+    | "Head"i           -> cmethod_head
+    | expr              -> cmethod_dynamic
+
+?curl_request_arg: curl_auth_opt
+    | curl_req_opt
+    | curl_request_opt
+
+
+
+//----------------------------------------------------------------------------
+// curl_conn_opt — connection-level options (connect only)
+// These govern the httpx.Client itself, not individual requests.
+// SSL options apply to all requests made on this connection.
+// HTTP version constrains the entire connection pool.
+//
+// * Verify SSL : SSL verification — trinary bool. Bare form implies True.
+//   "Is False" disables verification (use with caution).
+//   Conflicts with CA Certificate Is (which implies verification on) are bind-time errors.
+// * CA Certificate :in-memory PEM string, NOT a file path.
+//   Passed to ssl.SSLContext.load_verify_locations(cadata=...).
+//   Implies Verify SSL Is True. Conflicts with Verify SSL Is False.
+// * Connect Timeout : governs connection establishment only.
+//   Separated from read/write timeouts as it is a pool-level concern.
+// * HTTP Version : protocol version — constrains the entire connection pool.
+//   Constrained values: 1, 1.1, 2 — other values are bind-time errors.
+//----------------------------------------------------------------------------
+?curl_conn_opt: ("Verify"i "SSL"i) ("Is"i expr)?   -> copt_verify_ssl      // bool
+    | "CA"i ("Certificate"i | "Cert"i) "Is"i? expr -> copt_ca_cert         // string: PEM content
+    | "Connect"i "Timeout"i "Is"i? expr            -> copt_connect_timeout // int/float: seconds
+    | "HTTP"i "Version"i? "Is"i? expr               -> copt_http_version    // constrained: 1, 1.1, 2
+
+// ---------------------------------------------------------------------------
+// curl_auth_opt — authentication options (connect and request)
+// User, Password, and Authentication Is work together.
+// Authentication Is is constrained to "basic" and "digest".
+// User and Password without Authentication Is defaults to "basic".
+// Handler composes httpx auth object from the three at execution time.
+// ---------------------------------------------------------------------------
+?curl_auth_opt: "User"i "Is"i? expr                         -> copt_user     // string
+    | "Password"i "Is"i? expr                               -> copt_password // string
+    | ("Authentication"i | "Auth"i) "Is"i? curl_auth_method -> copt_authentication
+
+?curl_auth_method: "Basic"i -> cauth_basic
+    | "Digest"i             -> cauth_digest
+    | expr                  -> cauth_dynamic
+
+// ---------------------------------------------------------------------------
+// curl_req_opt — request-level options (connect and request)
+// At connect level these become httpx.Client defaults, merged with
+// per-request values at request time (request-level takes priority).
+//
+// * Header/Headers : string "name:value", list[string], dict
+// * Parameter/Parameters : string "name=value", list[string], dict
+// * Timeout : Total timeout — covers the full request lifecycle.
+//   A missing timeout is acceptable — httpx default applies.
+// * Read/Write Timeout : Read and write timeouts — per-request data
+//   transfer concerns.
+// * Follow Redirect : Redirect following — trinary bool. httpx defaults
+//   to False (does not follow redirects). Bare form implies True.
+// * Maximum redirect : only meaningful when Follow Redirects is True.
+//   Present without Follow Redirects is a bind-time warning, not error.
+// ---------------------------------------------------------------------------
+?curl_req_opt: ("Header"i | "Headers"i) ("Is"i | "Are"i)? expr  -> copt_headers // by type
+    | ("Parameter"i | "Parameters"i) ("Is"i | "Are"i)? expr     -> copt_parameters // by type
+    | "Timeout"i "Is"i? expr              -> copt_timeout          // int/float: seconds
+    | "Read"i "Timeout"i "Is"i? expr      -> copt_read_timeout     // int/float: seconds
+    | "Write"i "Timeout"i "Is"i? expr     -> copt_write_timeout    // int/float: seconds
+    | "Follow"i "Redirect"i ("Is"i expr)? -> copt_follow_redirects // bool
+    | ("Maximum"i | "Max"i) ("Redirect"i | "Redirects"i) "Is"i? expr  -> copt_max_redirects // int
+
+//----------------------------------------------------------------------------
+// curl_request_opt — request-only options
+//
+// * Using : Named connection reference — the expr must resolve to a
+//   known connection name.
+// * Body : Body content.
+//   Without As clause - type-driven defaulting rules
+//     * dict, list → JSON serialized,
+//       Content-Type: application/json
+//     * str → UTF-8 encoded,
+//       Content-Type: text/plain; charset=utf-8
+//     * int, float, bool → str() then UTF-8,
+//       Content-Type: text/plain; charset=utf-8
+//     * None → no body transmitted,
+//       Content-Type set only if Header clause present
+//   With As clause — overrides defaulting:
+//     * "json" → dict or list required, JSON serialized
+//     * "form" → dict required, URL-encoded,
+//       Content-Type: application/x-www-form-urlencoded
+//     * "text" → str required, UTF-8 encoded
+//     * "xml" → str required, UTF-8 encoded
+//     * other → treated as literal MIME type, expr must resolve to text,
+//       then converted to bytes
+//   Explicit Header "Content-Type" Is conflicts with Body Is ... As ... and
+//   is a bind-time conflict error.
+// * Giving : Result binding — stores the full result (status, headers, body)
+//   in the given variable path. HTTP errors (4xx, 5xx) and transport failures
+//   are stored as failure results, not raised as exceptions.
+//   Scripts determine error handling.
+//----------------------------------------------------------------------------
+?curl_request_opt: "Using"i "Connection"i? expr -> copt_connection_name // string
+    | "Body"i "Is"i? expr ("As"i expr)?         -> copt_body   // see type rules above
+    | "Giving"i var_name                        -> copt_giving // variable path

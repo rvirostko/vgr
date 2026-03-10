@@ -37,14 +37,16 @@ Tron
 //-----------------------------------------------------------------------------
 // Documentation examples go here
 //-----------------------------------------------------------------------------
-
-Print None.IsFinite().Repr()
-Print math.inf.IsFinite().Repr()
-Print " 0 ".IsFinite().Repr()
-Print 0.IsFinite().Repr()
-Print 1.0.IsFinite().Repr()
-Print True.IsFinite().Repr()
-Print False.IsFinite().Repr()
+ForEach v In [ None, List(), Dictionary(), -1, Zero, 1.5, 2 ]:
+    Choose Using v:
+        When Is Even:
+            Print v.Repr(), "is even"
+        When Is Odd:
+            Print v.Repr(), "is odd"
+        Otherwise:
+            Print v.Repr(), "is neither even nor odd"
+    End
+End
 
 //-----------------------------------------------------------------------------
 Troff

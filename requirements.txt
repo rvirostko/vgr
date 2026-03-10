@@ -1,4 +1,5 @@
 blessed>1.23.0; sys_platform == "win32"
+httpx[http2]>=0.28.1
 Jinja2>=3.1.6
 lark>=1.2.2
 ldap3>=2.9.1

@@ -444,3 +444,16 @@ Also see `IsEmpty()`
     if isinstance(x, str): return len(x) > 0 and not x.isspace()
     if isinstance(x, (int, float)): return bool(x)
     return x is not None
+
+def default_to(value: Any=None, default: Any=None) -> Any:
+    """
+**Returns the default if a value is `None`**
+
+* DefaultTo(*value*, *default*)
+* *value*.DefaultTo(*default*)
+
+```vgr
+**TODO**
+```
+"""
+    return default if value is None else value

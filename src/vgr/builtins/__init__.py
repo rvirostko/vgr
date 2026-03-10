@@ -246,6 +246,7 @@ from .time_funcs import (
 )
 from .type import poly_type
 from .types import (
+    default_to,
     poly_bool,
     poly_float,
     poly_int,

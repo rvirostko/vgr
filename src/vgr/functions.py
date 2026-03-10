@@ -15,6 +15,7 @@ from .builtins import (
     build_dict,
     build_list,
     compile_pattern,
+    default_to,
     dir_name,
     encode_url,
     file_exists,
@@ -238,19 +239,6 @@ from .builtins import (
 )
 from .vgr_callable import VgrCallable
 
-def _default_to(value: Any=None, default: Any=None) -> Any:
-    """
-**Returns the default if a value is `None`**
-
-* DefaultTo(*value*, *default*)
-* *value*.DefaultTo(*default*)
-
-```vgr
-**TODO**
-```
-"""
-    return default if value is None else value
-
 def _is_function(obj: Any=None) -> Any:
     """
 **Is a value a function**
@@ -453,7 +441,7 @@ _BUILT_IN_FUNCS: dict[str, Callable[..., Any]] = {
     "CountOneBits":   poly_count_ones,
     "CountTrailingZeroBits": poly_count_trailing_zeros,
     "CountZeroBits":  poly_count_zeros,
-    "DefaultTo":      _default_to,
+    "DefaultTo":      default_to,
     "Dictionary":     poly_dict_create,
     "DirectoryName":  dir_name,
     "Div":            poly_div,
