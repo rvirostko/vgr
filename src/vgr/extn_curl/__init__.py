@@ -1,5 +1,5 @@
 """
-Curl language extensions
+HTTP language extensions
 """
 
-from .curl_extn import CurlExtension
+from .curl_extn import HttpExtension

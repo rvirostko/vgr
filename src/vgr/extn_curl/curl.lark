@@ -1,15 +1,15 @@
-// Grammar for the Curl statement family
+// Grammar for the Http statement family
 //
 // Three top-level statements:
-//   curl_connect    — establishes a named httpx.Client connection (connection pool)
-//   curl_disconnect — tears down a named connection
-//   curl_request     — performs a single HTTP interaction (GET, POST, etc.)
+//   http_connect    — establishes a named httpx.Client connection (connection pool)
+//   http_disconnect — tears down a named connection
+//   http_request     — performs a single HTTP interaction (GET, POST, etc.)
 //
 // Options are grouped into reusable rule sets:
-//   curl_conn_opt   — options valid only at connect time (connection-level concerns)
-//   curl_auth_opt   — authentication options, valid for both connect and request
-//   curl_req_opt    — request-level options, valid for both connect and request
-//   curl_request_opt — options valid only on an request (body, giving, using)
+//   http_conn_opt   — options valid only at connect time (connection-level concerns)
+//   http_auth_opt   — authentication options, valid for both connect and request
+//   http_req_opt    — request-level options, valid for both connect and request
+//   http_request_opt — options valid only on an request (body, giving, using)
 //
 // General conventions:
 //   - Options are separated by optional commas (linguistic alignment)
@@ -20,28 +20,28 @@
 //   - Last-write for non-bool options is a bind-time conflict error to prevent
 //     non-astonishing behavior in failing scripts.
 
-?curl_statements: curl_connect | curl_disconnect | curl_request
+?http_statements: http_connect | http_disconnect | http_request
 
 //----------------------------------------------------------------------------
 // Connect
 // Establishes a named httpx.Client with a base URL and shared defaults.
 // The base URL must resolve to a string with a valid scheme (http/https).
 // Handler enforces trailing slash on base URL before passing to httpx.Client.
-// Named via "As <expr>" for reference in subsequent curl_request statements.
+// Named via "As <expr>" for reference in subsequent http_request statements.
 //----------------------------------------------------------------------------
-curl_connect: "Curl"i "Connect"i ("To"i | "URL"i "Is"i?)? expr (_COMMA? curl_conn_arg)* _SEMICOLON?
+http_connect: "Http"i "Connect"i ("To"i | "URL"i "Is"i?)? expr (_COMMA? http_conn_arg)* _SEMICOLON?
 
-?curl_conn_arg: curl_conn_opt
-    | curl_auth_opt
-    | curl_req_opt
-    | "As"i expr -> copt_connection_name // names the connection
+?http_conn_arg: http_conn_opt
+    | http_auth_opt
+    | http_req_opt
+    | "As"i expr -> hopt_connection_name // names the connection
 
 //----------------------------------------------------------------------------
 // Disconnect
 // Tears down a named connection, closing the underlying httpx.Client and
 // releasing pooled connections.
 //----------------------------------------------------------------------------
-curl_disconnect: "Curl"i "Disconnect"i "From"i? expr _SEMICOLON?
+http_disconnect: "Http"i "Disconnect"i "From"i? expr _SEMICOLON?
 
 //----------------------------------------------------------------------------
 // Request
@@ -53,26 +53,26 @@ curl_disconnect: "Curl"i "Disconnect"i "From"i? expr _SEMICOLON?
 //   - Without "Using": expr must be a fully qualified URL including scheme.
 //     A missing or invalid URL is a bind-time error — it cannot be defaulted.
 //----------------------------------------------------------------------------
-curl_request: "Curl"i ("Method"i "Is"?)? curl_method _COMMA? ("URL"i "Is"i?)? expr (_COMMA? curl_request_arg)* _SEMICOLON?
+http_request: "Http"i ("Method"i "Is"?)? http_method _COMMA? ("URL"i "Is"i?)? expr (_COMMA? http_request_arg)* _SEMICOLON?
 
 // Method as keyword (preferred — unambiguous, readable) or dynamic expr.
 // Dynamic expr must resolve to a valid HTTP method string at execution time.
-?curl_method: "Get"i    -> cmethod_get
-    | "Post"i           -> cmethod_post
-    | "Put"i            -> cmethod_put
-    | "Patch"i          -> cmethod_patch
-    | "Delete"i         -> cmethod_delete
-    | "Head"i           -> cmethod_head
-    | expr              -> cmethod_dynamic
+?http_method: "Get"i    -> hmethod_get
+    | "Post"i           -> hmethod_post
+    | "Put"i            -> hmethod_put
+    | "Patch"i          -> hmethod_patch
+    | "Delete"i         -> hmethod_delete
+    | "Head"i           -> hmethod_head
+    | expr              -> hmethod_dynamic
 
-?curl_request_arg: curl_auth_opt
-    | curl_req_opt
-    | curl_request_opt
+?http_request_arg: http_auth_opt
+    | http_req_opt
+    | http_request_opt
 
 
 
 //----------------------------------------------------------------------------
-// curl_conn_opt — connection-level options (connect only)
+// http_conn_opt — connection-level options (connect only)
 // These govern the httpx.Client itself, not individual requests.
 // SSL options apply to all requests made on this connection.
 // HTTP version constrains the entire connection pool.
@@ -88,28 +88,28 @@ curl_request: "Curl"i ("Method"i "Is"?)? curl_method _COMMA? ("URL"i "Is"i?)? ex
 // * HTTP Version : protocol version — constrains the entire connection pool.
 //   Constrained values: 1, 1.1, 2 — other values are bind-time errors.
 //----------------------------------------------------------------------------
-?curl_conn_opt: ("Verify"i "SSL"i) ("Is"i expr)?   -> copt_verify_ssl      // bool
-    | "CA"i ("Certificate"i | "Cert"i) "Is"i? expr -> copt_ca_cert         // string: PEM content
-    | "Connect"i "Timeout"i "Is"i? expr            -> copt_connect_timeout // int/float: seconds
-    | "HTTP"i "Version"i? "Is"i? expr               -> copt_http_version    // constrained: 1, 1.1, 2
+?http_conn_opt: ("Verify"i "SSL"i) ("Is"i expr)?   -> hopt_verify_ssl      // bool
+    | "CA"i ("Certificate"i | "Cert"i) "Is"i? expr -> hopt_ca_cert         // string: PEM content
+    | "Connect"i "Timeout"i "Is"i? expr            -> hopt_connect_timeout // int/float: seconds
+    | "HTTP"i "Version"i? "Is"i? expr              -> hopt_http_version    // constrained: 1, 1.1, 2
 
 // ---------------------------------------------------------------------------
-// curl_auth_opt — authentication options (connect and request)
+// http_auth_opt — authentication options (connect and request)
 // User, Password, and Authentication Is work together.
 // Authentication Is is constrained to "basic" and "digest".
 // User and Password without Authentication Is defaults to "basic".
 // Handler composes httpx auth object from the three at execution time.
 // ---------------------------------------------------------------------------
-?curl_auth_opt: "User"i "Is"i? expr                         -> copt_user     // string
-    | "Password"i "Is"i? expr                               -> copt_password // string
-    | ("Authentication"i | "Auth"i) "Is"i? curl_auth_method -> copt_authentication
+?http_auth_opt: "User"i "Is"i? expr                         -> hopt_user     // string
+    | "Password"i "Is"i? expr                               -> hopt_password // string
+    | ("Authentication"i | "Auth"i) "Is"i? http_auth_method -> hopt_authentication
 
-?curl_auth_method: "Basic"i -> cauth_basic
-    | "Digest"i             -> cauth_digest
-    | expr                  -> cauth_dynamic
+?http_auth_method: "Basic"i -> hauth_basic
+    | "Digest"i             -> hauth_digest
+    | expr                  -> hauth_dynamic
 
 // ---------------------------------------------------------------------------
-// curl_req_opt — request-level options (connect and request)
+// http_req_opt — request-level options (connect and request)
 // At connect level these become httpx.Client defaults, merged with
 // per-request values at request time (request-level takes priority).
 //
@@ -124,16 +124,16 @@ curl_request: "Curl"i ("Method"i "Is"?)? curl_method _COMMA? ("URL"i "Is"i?)? ex
 // * Maximum redirect : only meaningful when Follow Redirects is True.
 //   Present without Follow Redirects is a bind-time warning, not error.
 // ---------------------------------------------------------------------------
-?curl_req_opt: ("Header"i | "Headers"i) ("Is"i | "Are"i)? expr  -> copt_headers // by type
-    | ("Parameter"i | "Parameters"i) ("Is"i | "Are"i)? expr     -> copt_parameters // by type
-    | "Timeout"i "Is"i? expr              -> copt_timeout          // int/float: seconds
-    | "Read"i "Timeout"i "Is"i? expr      -> copt_read_timeout     // int/float: seconds
-    | "Write"i "Timeout"i "Is"i? expr     -> copt_write_timeout    // int/float: seconds
-    | "Follow"i "Redirect"i ("Is"i expr)? -> copt_follow_redirects // bool
-    | ("Maximum"i | "Max"i) ("Redirect"i | "Redirects"i) "Is"i? expr  -> copt_max_redirects // int
+?http_req_opt: ("Header"i | "Headers"i) ("Is"i | "Are"i)? expr  -> hopt_headers // by type
+    | ("Parameter"i | "Parameters"i) ("Is"i | "Are"i)? expr     -> hopt_parameters // by type
+    | "Timeout"i "Is"i? expr              -> hopt_timeout          // int/float: seconds
+    | "Read"i "Timeout"i "Is"i? expr      -> hopt_read_timeout     // int/float: seconds
+    | "Write"i "Timeout"i "Is"i? expr     -> hopt_write_timeout    // int/float: seconds
+    | "Follow"i "Redirect"i ("Is"i expr)? -> hopt_follow_redirects // bool
+    | ("Maximum"i | "Max"i) ("Redirect"i | "Redirects"i) "Is"i? expr  -> hopt_max_redirects // int
 
 //----------------------------------------------------------------------------
-// curl_request_opt — request-only options
+// http_request_opt — request-only options
 //
 // * Using : Named connection reference — the expr must resolve to a
 //   known connection name.
@@ -162,6 +162,6 @@ curl_request: "Curl"i ("Method"i "Is"?)? curl_method _COMMA? ("URL"i "Is"i?)? ex
 //   are stored as failure results, not raised as exceptions.
 //   Scripts determine error handling.
 //----------------------------------------------------------------------------
-?curl_request_opt: "Using"i "Connection"i? expr -> copt_connection_name // string
-    | "Body"i "Is"i? expr ("As"i expr)?         -> copt_body   // see type rules above
-    | "Giving"i var_name                        -> copt_giving // variable path
+?http_request_opt: "Using"i "Connection"i? expr -> hopt_connection_name // string
+    | "Body"i "Is"i? expr ("As"i expr)?         -> hopt_body   // see type rules above
+    | "Giving"i var_name                        -> hopt_giving // variable path

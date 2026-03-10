@@ -1,5 +1,5 @@
 """
-The underlying session and session manager for Curl statements
+The underlying session and session manager for Http statements
 """
 
 from typing import Optional, Dict
@@ -9,21 +9,21 @@ import ssl
 import httpx
 
 from .curl_data import (
-    CurlData,
+    HttpData,
     Setting,
 )
 
 _LOG = logging.getLogger(__name__)
 
-class CurlSession:
+class HttpSession:
 
-    def __init__(self, data: CurlData) -> None:
+    def __init__(self, data: HttpData) -> None:
         self.data   = data
         self.client = self._build_client()
 
-    def execute(self, request_data: CurlData) -> httpx.Response:
+    def execute(self, request_data: HttpData) -> httpx.Response:
         """
-        Execute an HTTP request from a parsed request CurlData.
+        Execute an HTTP request from a parsed request HttpData.
         httpx merges request-level headers, params, auth and timeout
         with session-level values automatically — no manual merge needed.
         Single auto-reconnect on stale connection.
@@ -44,7 +44,7 @@ class CurlSession:
             self._error(repr(e))
             raise
 
-    def _build_request_kwargs(self, data: CurlData) -> dict:
+    def _build_request_kwargs(self, data: HttpData) -> dict:
         """
         Build per-request kwargs for client.request().
         Only non-None values are included — session-level values
@@ -60,12 +60,15 @@ class CurlSession:
         if data.follow_redirects is not None: kwargs['follow_redirects'] = data.follow_redirects.value
         if data.max_redirects is not None: kwargs['max_redirects'] = data.max_redirects.value
         # body handled separately — type-driven content-type rules apply
-        if not CurlData.is_missing(data.body):
+        if not HttpData.is_missing(data.body):
             kwargs.update(self._build_body(data.body))
         return kwargs
 
     def _build_body(self, body: Setting) -> dict:
-        pass  # TODO: type-driven body + As rules
+        value = body.value
+        if isinstance(value, (dict, list)): return {'json':    value}
+        if isinstance(value, (str, bytes)): return {'content': value}
+        return {}
 
     def close(self) -> None:
         self._info('Closing session to ', self.data.url.value)
@@ -76,7 +79,7 @@ class CurlSession:
         finally:
             self.client = None
 
-    def _build_result(self, data: CurlData, response: httpx.Response, failure: Exception=None) -> dict:
+    def _build_result(self, data: HttpData, response: httpx.Response, failure: Exception=None) -> dict:
         """
         Normalize an httpx Response into the DSL result structure.
         reason is present only when something went wrong — None means clean.
@@ -151,7 +154,7 @@ class CurlSession:
         return None if all(v is None for v in (total, connect, read, write)) else \
                httpx.Timeout(timeout=total, connect=connect, read=read, write=write)
 
-    def _build_request_timeout(self, data: CurlData) -> httpx.Timeout:
+    def _build_request_timeout(self, data: HttpData) -> httpx.Timeout:
         total = data.timeout.value         if data.timeout         else None
         read  = data.read_timeout.value    if data.read_timeout    else total
         write = data.write_timeout.value   if data.write_timeout   else total
@@ -165,24 +168,24 @@ class CurlSession:
         verify_ssl False → False
         otherwise        → True (httpx default)
         """
-        if not CurlData.is_missing(self.data.ca_cert):
+        if not HttpData.is_missing(self.data.ca_cert):
             context = ssl.create_default_context()
             context.load_verify_locations(cadata=self.data.ca_cert.value)
             return context
         return self.data.verify_ssl.value if self.data.verify_ssl is not None else True
 
-    def _build_auth(self, data: CurlData):
+    def _build_auth(self, data: HttpData):
         """
-        Build request-level auth from action CurlData.
+        Build request-level auth from action HttpData.
         Same logic as session-level auth construction.
         Returns None if neither user nor password is set — session auth applies.
         """
-        if CurlData.is_missing(data.user) and CurlData.is_missing(data.password):
+        if HttpData.is_missing(data.user) and HttpData.is_missing(data.password):
             return None
-        user = data.user.value     if not CurlData.is_missing(data.user)     else ''
-        pwd  = data.password.value if not CurlData.is_missing(data.password) else ''
+        user = data.user.value     if not HttpData.is_missing(data.user)     else ''
+        pwd  = data.password.value if not HttpData.is_missing(data.password) else ''
         return httpx.DigestAuth(user, pwd) if (
-            not CurlData.is_missing(data.authentication) and
+            not HttpData.is_missing(data.authentication) and
             data.authentication.value == 'digest'
         ) else httpx.BasicAuth(user, pwd)
 
@@ -191,7 +194,7 @@ class CurlSession:
         Derive http1/http2 kwargs from http_version Setting.
         Returns empty dict when unset — httpx defaults apply (http1=True, http2=False).
         """
-        if not CurlData.is_missing(self.data.http_version):
+        if not HttpData.is_missing(self.data.http_version):
             v = self.data.http_version.value
             if v in ('1.0', '1.1'): return {'http1': True,  'http2': False}
             if v == '2':             return {'http1': False, 'http2': True}
@@ -217,17 +220,17 @@ class CurlSession:
             _LOG.debug(''.join(str(arg) for arg in args))
 
 
-class CurlSessionManager:
+class HttpSessionManager:
 
     def __init__(self):
-        self._sessions: Dict[str, CurlSession] = {}
+        self._sessions: Dict[str, HttpSession] = {}
 
-    def connect(self, data: CurlData) -> CurlSession:
+    def connect(self, data: HttpData) -> HttpSession:
         """Create and store a session under the given name."""
         name = self._normalize_name(data.connection_name.value)
         # if we had one previously, close it
         self.disconnect(name)
-        session = CurlSession(data)
+        session = HttpSession(data)
         self._sessions[name] = session
         return session
 
@@ -237,11 +240,11 @@ class CurlSessionManager:
         if name in self._sessions:
             self._sessions.pop(name).close()
 
-    def get_session(self, name: str) -> CurlSession:
+    def get_session(self, name: str) -> HttpSession:
         """Return the session for the given name."""
         return self._sessions.get(self._normalize_name(name), None)
 
     def _normalize_name(self, name: Optional[str]) -> str:
         if not name or name.isspace() == '':
-            raise ValueError('Missing name for Curl session')
+            raise ValueError('Missing name for Http session')
         return name.strip()

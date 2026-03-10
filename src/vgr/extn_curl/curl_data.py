@@ -1,6 +1,6 @@
 """
-CurlData is a collection of the parsed and processed options
-from Curl statements
+HttpData is a collection of the parsed and processed options
+from Http statements
 """
 
 from collections import namedtuple
@@ -23,13 +23,13 @@ class Setting(namedtuple('Setting', ['value', 'tree'])):
         return self.value is None or (isinstance(self.value, str) and poly_isempty(self.value))
 
 # ---------------------------------------------------------------------------
-# CurlData — single combined dataclass for all options.
+# HttpData — single combined dataclass for all options.
 # Fields primed to None, meaning "not provided by user, apply default".
 # User-supplied None is treated the same as not provided.
 # Headers and parameters accumulate across multiple clauses.
 # ---------------------------------------------------------------------------
 @dataclass
-class CurlData:
+class HttpData:
     # positional - required for requests only
     method:             Setting = None
 
@@ -92,4 +92,4 @@ class CurlData:
                 parts.append(f'{f.name}=<Tree:{value.data}>')
             else:
                 parts.append(f'{f.name}={value!r}')
-        return f'CurlData({", ".join(parts)})'
+        return f'HttpData({", ".join(parts)})'

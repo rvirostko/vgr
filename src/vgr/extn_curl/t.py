@@ -1,5 +1,5 @@
 """
-Handlers for Curl statements
+Handlers for Http statements
 """
 
 from typing import Any
@@ -12,13 +12,13 @@ from urllib.parse import (
 from lark import Tree
 
 from .curl_data import (
-    CurlData,
+    HttpData,
     Setting,
 )
 
 from .curl_session import (
-    CurlSessionManager,
-    CurlSession
+    HttpSessionManager,
+    HttpSession
 )
 
 from ..app_exceptions import VgrRuntimeError
@@ -49,47 +49,105 @@ _ALLOWABLE_AUTHS = {'Basic', 'Digest'}
 _HTTP_VERSIONS = {'1': '1.0', '1.0': '1.0', '1.1': '1.1', '2': '2', '2.0': '2'}
 _VALID_SCHEMES = {'http', 'https'}
 
-_CURL_PREFIX = 'curl'
-_DEFAULT_GIVING_PATH = (_CURL_PREFIX, 'result')
+_CONSTANTS = [
+    # content types
+    (("type", "json"),          "application/json"),
+    (("type", "form"),          "application/x-www-form-urlencoded"),
+    (("type", "text"),          "text/plain"),
+    (("type", "html"),          "text/html"),
+    (("type", "xml"),           "text/xml"),
+    (("type", "binary"),        "application/octet-stream"),
+    (("type", "multipart"),     "multipart/form-data"),
 
-_SESSIONS = CurlSessionManager()
+    # common header names
+    (("header", "content_type"),        "Content-Type"),
+    (("header", "accept"),              "Accept"),
+    (("header", "authorization"),       "Authorization"),
+    (("header", "user_agent"),          "User-Agent"),
+    (("header", "cache_control"),       "Cache-Control"),
+    (("header", "accept_encoding"),     "Accept-Encoding"),
+    (("header", "content_encoding"),    "Content-Encoding"),
+    (("header", "content_length"),      "Content-Length"),
+    (("header", "location"),            "Location"),
+    (("header", "x_request_id"),        "X-Request-Id"),
 
-def curl_initialize(dd: DataDictionary) -> None:
-    dd.add_immutable_prefix(_CURL_PREFIX)
+    # auth schemes
+    (("auth", "basic"),     "basic"),
+    (("auth", "digest"),    "digest"),
+
+    # http versions
+    (("version", "http1"),  "1.0"),
+    (("version", "http11"), "1.1"),
+    (("version", "http2"),  "2"),
+
+    # status codes
+    (("status", "ok"),                  200),
+    (("status", "created"),             201),
+    (("status", "accepted"),            202),
+    (("status", "no_content"),          204),
+    (("status", "moved"),               301),
+    (("status", "found"),               302),
+    (("status", "not_modified"),        304),
+    (("status", "bad_request"),         400),
+    (("status", "unauthorized"),        401),
+    (("status", "forbidden"),           403),
+    (("status", "not_found"),           404),
+    (("status", "method_not_allowed"),  405),
+    (("status", "conflict"),            409),
+    (("status", "unprocessable"),       422),
+    (("status", "too_many_requests"),   429),
+    (("status", "server_error"),        500),
+    (("status", "bad_gateway"),         502),
+    (("status", "unavailable"),         503),
+    (("status", "gateway_timeout"),     504),
+
+    # retryable status codes
+    (("retryable",),    [429, 500, 502, 503, 504]),
+]
+
+_HTTP_PREFIX = 'http'
+_DEFAULT_GIVING_PATH = (_HTTP_PREFIX, 'result')
+
+_SESSIONS = HttpSessionManager()
+
+def http_initialize(dd: DataDictionary) -> None:
+    dd.add_immutable_prefix(_HTTP_PREFIX)
+    for path, value in _CONSTANTS:
+        dd.set_var(value, _HTTP_PREFIX, *path)
     dd.set_var(None, *_DEFAULT_GIVING_PATH)
 
-@bound_ops("Curl Connect")
+@bound_ops("Http Connect")
 def execute_connect(ctx: ExecContext, statement: Tree) -> None:
-    data = CurlData()
+    data = HttpData()
     _handle_url(ctx, statement.children[0], data, name='Connect URL')
     _normalize_base_url(ctx, data)
     for child in statement.children[1:]:
         _dispatch_option(ctx, child, data)
-    if CurlData.is_missing(data.connection_name):
-        raise VgrRuntimeError(CurlData.tree_for(data.connection_name, statement), ValueError('Missing connection name'))
+    if HttpData.is_missing(data.connection_name):
+        raise VgrRuntimeError(HttpData.tree_for(data.connection_name, statement), ValueError('Missing connection name'))
     _SESSIONS.connect(data)
 
-@bound_ops("Curl Disconnect")
+@bound_ops("Http Disconnect")
 def execute_disconnect(ctx: ExecContext, statement: Tree) -> None:
-    data = CurlData()
+    data = HttpData()
     _handle_connection_name(ctx, statement.children[0], data)
     try:
         _SESSIONS.disconnect(data.connection_name.value)
     finally:
         do_set(ctx, None, *_DEFAULT_GIVING_PATH)
 
-@bound_ops("Curl Request")
+@bound_ops("Http Request")
 def execute_request(ctx: ExecContext, statement: Tree) -> None:
-    data = CurlData()
+    data = HttpData()
     # First position arg is the method
     method_arg = statement.children[0]
-    data.method = Setting(_handle_constrained_opt(ctx, method_arg, 'cmethod_', 'Method', _ALLOWABLE_METHODS).upper(), method_arg)
+    data.method = Setting(_handle_constrained_opt(ctx, method_arg, 'hmethod_', 'Method', _ALLOWABLE_METHODS).upper(), method_arg)
     # Second positional arg is the URL (full or fragment)
     _handle_url(ctx, statement.children[1], data, name='Request URL')
     # Rest of args are optional
     for child in statement.children[2:]:
         _dispatch_option(ctx, child, data)
-    if CurlData.is_missing(data.connection_name):
+    if HttpData.is_missing(data.connection_name):
         # if no "Using <name>" then this is a stand alone session
         _normalize_base_url(ctx, data)
         # TODO
@@ -104,7 +162,7 @@ def execute_request(ctx: ExecContext, statement: Tree) -> None:
         print("!!", result)
     # TODO: handle Giving via ctx
 
-def _combine_url(_ctx: ExecContext, session_data: CurlData, request_data: CurlData) -> str:
+def _combine_url(_ctx: ExecContext, session_data: HttpData, request_data: HttpData) -> str:
     """
     Combine session base URL with request URL.
     If request URL contains scheme/host they must match the base — error if not.
@@ -185,13 +243,13 @@ def _resolve_timeout(ctx: ExecContext, opt: Tree, name: str) -> Setting:
         value = poly_clamp(_to_number(expr, name, value), 0, 300) # zero (default) to 5 minutes
     return Setting(value, opt)
 
-def _handle_url(ctx: ExecContext, expr: Tree, data: CurlData, name: str = 'URL') -> None:
+def _handle_url(ctx: ExecContext, expr: Tree, data: HttpData, name: str = 'URL') -> None:
     rc = ctx.eval_expr(expr)
     if rc is None or not isinstance(rc, str) or poly_isempty(rc):
         raise VgrRuntimeError(expr, ValueError(f'{name} is required and cannot be blank'))
     data.url = Setting(poly_strip(rc), expr)
 
-def _normalize_base_url(ctx: ExecContext, data: CurlData) -> None:
+def _normalize_base_url(ctx: ExecContext, data: HttpData) -> None:
     parsed = urlparse(data.url.value)
     scheme = parsed.scheme.strip().lower()
     if scheme not in _VALID_SCHEMES:
@@ -208,40 +266,40 @@ def _normalize_base_url(ctx: ExecContext, data: CurlData) -> None:
     port = f':{parsed.port}' if parsed.port else ''
     data.url = Setting(f'{scheme}://{host}{port}{path}', data.url.tree)
 
-def _handle_connection_name(ctx: ExecContext, opt: Tree, data: CurlData) -> None:
+def _handle_connection_name(ctx: ExecContext, opt: Tree, data: HttpData) -> None:
     # NB: opt can be either an option (connect and request)
     #     or a child of the statement (disconnect)
     value = _check_str(ctx.eval_expr_or_const(opt), opt, 'Connection name')
     _check_for_duplicate(data.connection_name, opt, 'Connection name')
     data.connection_name = Setting(value, opt)
 
-def _handle_verify_ssl(ctx: ExecContext, opt: Tree, data: CurlData) -> None:
+def _handle_verify_ssl(ctx: ExecContext, opt: Tree, data: HttpData) -> None:
     value = _resolve_bool(ctx, opt, 'Verify SSL')
     _check_for_duplicate(data.verify_ssl, opt, 'Verify SSL')
     data.verify_ssl = Setting(value, opt)
 
-def _handle_ca_cert(ctx: ExecContext, opt: Tree, data: CurlData) -> None:
+def _handle_ca_cert(ctx: ExecContext, opt: Tree, data: HttpData) -> None:
     value = _resolve_opt_str(ctx, opt, 'CA Certificate')
     _check_for_duplicate(data.ca_cert, opt, 'CA Certificate')
     data.ca_cert = Setting(value, opt)
 
-def _handle_connect_timeout(ctx: ExecContext, opt: Tree, data: CurlData) -> None:
+def _handle_connect_timeout(ctx: ExecContext, opt: Tree, data: HttpData) -> None:
     _check_for_duplicate(data.connect_timeout, opt, 'Connect Timeout')
     data.connect_timeout = _resolve_timeout(ctx, opt, 'Connect Timeout')
 
-def _handle_timeout(ctx: ExecContext, opt: Tree, data: CurlData) -> None:
+def _handle_timeout(ctx: ExecContext, opt: Tree, data: HttpData) -> None:
     _check_for_duplicate(data.timeout, opt, 'Timeout')
     data.timeout = _resolve_timeout(ctx, opt, 'Timeout')
 
-def _handle_read_timeout(ctx: ExecContext, opt: Tree, data: CurlData) -> None:
+def _handle_read_timeout(ctx: ExecContext, opt: Tree, data: HttpData) -> None:
     _check_for_duplicate(data.read_timeout, opt, 'Read Timeout')
     data.read_timeout = _resolve_timeout(ctx, opt, 'Read Timeout')
 
-def _handle_write_timeout(ctx: ExecContext, opt: Tree, data: CurlData) -> None:
+def _handle_write_timeout(ctx: ExecContext, opt: Tree, data: HttpData) -> None:
     _check_for_duplicate(data.write_timeout, opt, 'Write Timeout')
     data.write_timeout = _resolve_timeout(ctx, opt, 'Write Timeout')
 
-def _handle_http_version(ctx: ExecContext, opt: Tree, data: CurlData) -> None:
+def _handle_http_version(ctx: ExecContext, opt: Tree, data: HttpData) -> None:
     _check_for_duplicate(data.http_version, opt, 'HTTP Version')
     expr = opt.children[0]
     rc = ctx.eval_expr(expr)
@@ -251,20 +309,20 @@ def _handle_http_version(ctx: ExecContext, opt: Tree, data: CurlData) -> None:
         raise VgrRuntimeError(expr, ValueError(f'Invalid HTTP Version {rc!r}'))
     data.http_version = Setting(canonical, opt)
 
-def _handle_user(ctx: ExecContext, opt: Tree, data: CurlData) -> None:
+def _handle_user(ctx: ExecContext, opt: Tree, data: HttpData) -> None:
     _check_for_duplicate(data.user, opt, 'User')
     value = _resolve_opt_str(ctx, opt, 'User')
     data.user = Setting(value, opt)
 
-def _handle_password(ctx: ExecContext, opt: Tree, data: CurlData) -> None:
+def _handle_password(ctx: ExecContext, opt: Tree, data: HttpData) -> None:
     _check_for_duplicate(data.password, opt, 'Password')
     value = _resolve_opt_str(ctx, opt, 'Password')
     data.password = Setting(value, opt)
 
-def _handle_authentication(ctx: ExecContext, node: Tree, data: CurlData) -> None:
+def _handle_authentication(ctx: ExecContext, node: Tree, data: HttpData) -> None:
     _check_for_duplicate(data.authentication, node, 'Authentication')
     opt = node.children[0]
-    data.authentication = Setting(_handle_constrained_opt(ctx, opt, 'cauth_', 'Authentication', _ALLOWABLE_AUTHS).lower(), opt)
+    data.authentication = Setting(_handle_constrained_opt(ctx, opt, 'hauth_', 'Authentication', _ALLOWABLE_AUTHS).lower(), opt)
 
 def _handle_constrained_opt(ctx: ExecContext, opt: Tree, prefix: str, name: str, allowable_values) -> str:
     key = opt.data.removeprefix(prefix)
@@ -278,12 +336,12 @@ def _handle_constrained_opt(ctx: ExecContext, opt: Tree, prefix: str, name: str,
         raise VgrRuntimeError(opt, ValueError(f'{name} must be one of {", ".join(allowable_values)}; got {value!r}'))
     return value
 
-def _handle_follow_redirects(ctx: ExecContext, opt: Tree, data: CurlData) -> None:
+def _handle_follow_redirects(ctx: ExecContext, opt: Tree, data: HttpData) -> None:
     value = _resolve_bool(ctx, opt, 'Follow Redirects')
     _check_for_duplicate(data.follow_redirects, opt, 'Follow Redirects')
     data.follow_redirects = Setting(value, opt)
 
-def _handle_max_redirects(ctx: ExecContext, opt: Tree, data: CurlData) -> None:
+def _handle_max_redirects(ctx: ExecContext, opt: Tree, data: HttpData) -> None:
     _check_for_duplicate(data.max_redirects, opt, 'Maximum Redirects')
     expr = opt.children[0]
     value = ctx.eval_expr_or_const(expr)
@@ -313,16 +371,16 @@ def _update_dict(target: dict, k: str, v:str) -> None:
     if poly_isempty(k): return
     target[k] = default_to(v, '')
 
-def _handle_headers(ctx: ExecContext, opt: Tree, data: CurlData) -> None:
+def _handle_headers(ctx: ExecContext, opt: Tree, data: HttpData) -> None:
     _handle_kv_option(ctx, opt, data.headers, 'Headers', ':')
 
-def _handle_parameters(ctx: ExecContext, opt: Tree, data: CurlData) -> None:
+def _handle_parameters(ctx: ExecContext, opt: Tree, data: HttpData) -> None:
     _handle_kv_option(ctx, opt, data.parameters, 'Parameters', '=')
 
-def _handle_body(ctx: ExecContext, opt: Tree, data: CurlData) -> None:
+def _handle_body(ctx: ExecContext, opt: Tree, data: HttpData) -> None:
     pass  # TODO: body + As type-driven rules
 
-def _handle_giving(ctx: ExecContext, opt: Tree, data: CurlData) -> None:
+def _handle_giving(ctx: ExecContext, opt: Tree, data: HttpData) -> None:
     _check_for_duplicate(data.giving, opt, 'Giving')
     data.giving = opt
 
@@ -331,26 +389,26 @@ def _handle_giving(ctx: ExecContext, opt: Tree, data: CurlData) -> None:
 # ---------------------------------------------------------------------------
 
 _OPTION_HANDLERS = {
-    'copt_authentication':   _handle_authentication,
-    'copt_body':             _handle_body,
-    'copt_ca_cert':          _handle_ca_cert,
-    'copt_connect_timeout':  _handle_connect_timeout,
-    'copt_connection_name':  lambda ctx, opt, data: _handle_connection_name(ctx, opt.children[0], data),
-    'copt_follow_redirects': _handle_follow_redirects,
-    'copt_giving':           _handle_giving,
-    'copt_headers':          _handle_headers,
-    'copt_http_version':     _handle_http_version,
-    'copt_max_redirects':    _handle_max_redirects,
-    'copt_parameters':       _handle_parameters,
-    'copt_password':         _handle_password,
-    'copt_read_timeout':     _handle_read_timeout,
-    'copt_timeout':          _handle_timeout,
-    'copt_user':             _handle_user,
-    'copt_verify_ssl':       _handle_verify_ssl,
-    'copt_write_timeout':    _handle_write_timeout,
+    'hopt_authentication':   _handle_authentication,
+    'hopt_body':             _handle_body,
+    'hopt_ca_cert':          _handle_ca_cert,
+    'hopt_connect_timeout':  _handle_connect_timeout,
+    'hopt_connection_name':  lambda ctx, opt, data: _handle_connection_name(ctx, opt.children[0], data),
+    'hopt_follow_redirects': _handle_follow_redirects,
+    'hopt_giving':           _handle_giving,
+    'hopt_headers':          _handle_headers,
+    'hopt_http_version':     _handle_http_version,
+    'hopt_max_redirects':    _handle_max_redirects,
+    'hopt_parameters':       _handle_parameters,
+    'hopt_password':         _handle_password,
+    'hopt_read_timeout':     _handle_read_timeout,
+    'hopt_timeout':          _handle_timeout,
+    'hopt_user':             _handle_user,
+    'hopt_verify_ssl':       _handle_verify_ssl,
+    'hopt_write_timeout':    _handle_write_timeout,
 }
 
-def _dispatch_option(ctx: ExecContext, node: Tree, data: CurlData) -> None:
+def _dispatch_option(ctx: ExecContext, node: Tree, data: HttpData) -> None:
     opt_key = node.data
     handler = _OPTION_HANDLERS.get(opt_key)
     if handler is None: raise VgrRuntimeError(node, ValueError(f'Option {opt_key!r} not handled')) # SNO
@@ -360,7 +418,7 @@ def _dispatch_option(ctx: ExecContext, node: Tree, data: CurlData) -> None:
 # Phase 2 — cross-field validation
 # ---------------------------------------------------------------------------
 
-def _validate_merged(ctx: ExecContext, statement: Tree, data: CurlData) -> None:
+def _validate_merged(ctx: ExecContext, statement: Tree, data: HttpData) -> None:
     """
     Post-merge cross-field validation.
     Called after connect session defaults and action overrides are combined.
@@ -378,12 +436,12 @@ def _validate_merged(ctx: ExecContext, statement: Tree, data: CurlData) -> None:
 # ---------------------------------------------------------------------------
 # Merge — combine session (connect) defaults with request overrides
 # ---------------------------------------------------------------------------
-def _merge(session: CurlData, request: CurlData) -> CurlData:
+def _merge(session: HttpData, request: HttpData) -> HttpData:
     def _pick(vrequest: Setting, vsession: Setting) -> Setting:
         return vsession if vrequest.is_missing() else vrequest
 
     # URL needs to be a smarter merge
-    return CurlData(
+    return HttpData(
         # TODO wrong: url needs to be an intelligent merge
         url              = _pick(request.url, session.url),
         verify_ssl       = _pick(request.verify_ssl, session.verify_ssl),
