@@ -700,7 +700,6 @@ _OP_FUNCS: list[Callable[..., Any]] = [
     poly_sub, # sub_op
     # def c_ternary(self, tree): return Ternary(tree, (0, 1, 2))
     # def py_ternary(self, tree): return Ternary(tree, (1, 0, 2))
-    # def set_var(self, tree): return SetVarOperation(tree)
 ]
 
 def function_names_pattern() -> str:

@@ -138,21 +138,6 @@ If none of the `Include` patterns match, or if an `Exclude` removes everything, 
 > Don't forget that there are predefined variables with information that you can
 > access: use `Exhibit` to see what's available!
 
-### `SetVar()`
-
-`SetVar()` stores intermediate values for later use, often in the same statement. Although it looks like a function, it operates differently. Instead of changing the current result as most functions do, it stores a copy of the results.
-
-The argument is also different: it's not an expression, but a variable name, just like in a `Set` statement.
-
-```vgr
-Set email To "robert@SAMPLE.com"
-Print email.Split("@").SetVar(split_email)
-      .Item(0).TitleCase()
-      + "@" +
-      split_email.Item(1).Lower()
-Robert@sample.com
-```
-
 ## Comments
 
 Three different commenting styles are available and may be freely intermixed.

@@ -180,21 +180,6 @@ class VarRef(Operation):
     def op_name(self) -> str:
         return 'var_ref'
 
-class SetVarOperation(Operation):
-    """
-    Evaluate an expression, storing its value in a variable
-    before returning it
-    """
-    def execute(self, ctx: ExecContext, args: list) -> Any:
-        # <expr>.SetVar(<var_name>)
-        value = ctx.eval_expr(args[0])
-        var_path = get_writable_var_path(ctx, args[1])
-        do_set(ctx, value, *var_path)
-        return value
-
-    def op_name(self) -> str:
-        return 'set_var'
-
 def get_function(ctx: ExecContext, statement: Tree):
     fn = ctx.get_var(*_var_name_path(statement))
     if fn is None:
@@ -440,7 +425,6 @@ class OperationBinder(Transformer):
     def dict(self, tree): return SimpleOperation(tree, build_dict)
     def deref(self, tree): return SimpleOperation(tree, deref_var)
     def var_ref(self, tree): return VarRef(tree)
-    def set_var(self, tree): return SetVarOperation(tree)
     def invoke_func(self, tree): return InvokeFunctionOperation(tree)
     def invoke_func_inline(self, tree): return InvokeInlineFunctionOperation(tree)
 
