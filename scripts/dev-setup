@@ -122,5 +122,5 @@ if [ "$OKAY" -eq 1 ]; then
 fi
 
 if [ "$OKAY" -eq 1 ]; then
-    vgr --version
+    python3 -m vgr --version
 fi
