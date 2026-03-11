@@ -412,8 +412,8 @@ def poly_notempty(x: Any=None) -> bool:
     """
 **Test a value to see if it is *not* empty**
 
-* NotEmpty(*value*)
-* *value*.NotEmpty()
+* IsNotEmpty(*value*)
+* *value*.IsNotEmpty()
 
 A value is considered empty if:
 
