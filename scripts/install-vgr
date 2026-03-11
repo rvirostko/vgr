@@ -149,5 +149,5 @@ if [[ $GLOBAL_INSTALL -eq 0 ]]; then
         ACTIVATE_PATH="$VENV_NAME/Scripts/activate"
     fi
     echo "Use source $ACTIVATE_PATH to activate environment"
-    echo "  or $BINDIR/gr to run without activation"
+    echo "  or $BINDIR/vgr to run without activation"
 fi
