@@ -42,7 +42,10 @@ def write_results(f: TextIOWrapper, stdout: str, stderr: str) -> None:
 def test_vgr_files(path: Path):
     """Execute .vgr files via --file"""
     LOG_DIR.mkdir(exist_ok=True)
-    code, stdout, stderr = run_subprocess(["--file", str(path)])
+    code, stdout, stderr = run_subprocess([
+        "--assign", "dev_test=True", # scripts may alter behavior based on this
+        "--file", str(path)
+    ])
     with (LOG_DIR / (path.name + ".txt")).open("w", encoding="utf-8") as f: write_results(f, stdout, stderr)
     if "!" in path.name:
         assert code != 0, f"! Expected failure but got success for {path.name!r}"
@@ -68,7 +71,11 @@ def test_vgr_statements(path: Path):
                 if not line or line.startswith("#") or line.startswith("//") or (line.startswith("/*") and line.endswith("*/")):
                     print(line)
                 else:
-                    code, stdout, stderr = run_subprocess(["--echo", "--execute", line])
+                    code, stdout, stderr = run_subprocess([
+                        "--echo",
+                        "--assign", "dev_test=True", # scripts may alter behavior based on this
+                        "--execute", line
+                    ])
                     write_results(f, stdout, stderr)
                     if "!" in path.name:
                         assert code != 0, f"! Expected failure but line {i} succeeded: {path.name!r}:{i}"
