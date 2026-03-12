@@ -1,0 +1,197 @@
+// -------------------------------------------------------------------------
+// http_tests.vgr — HTTP Statement Test Script
+// Tests parsing and execution against httpbin.org
+// -------------------------------------------------------------------------
+
+// -------------------------------------------------------------------------
+// Test 1: Simple standalone GET
+// -------------------------------------------------------------------------
+Http Get URL Is "https://httpbin.org/get"
+
+exhibit http.result
+
+Assert http.result.reason Is None : "Test 1 failed: {}", http.result.reason
+Assert http.result.status_code == http.status.ok :
+    "Test 1: Expected {}, got {}", http.status.ok, http.result.status_code
+Print "Test 1 passed"
+
+// -------------------------------------------------------------------------
+// Test 2: GET with single parameters
+// -------------------------------------------------------------------------
+Http Get URL Is "https://httpbin.org/get"
+    Parameter "page=1"
+    Parameter "q=hello world"
+Assert http.result.reason Is None : "Test 2 failed: {}", http.result.reason
+Assert http.result.response.GetKeyValue(["args", "page"]) == "1" : "Test 2: page param missing or wrong"
+Assert http.result.response.GetKeyValue(["args", "q"]) == "hello world" : "Test 2: q param missing or wrong"
+Print "Test 2 passed"
+
+// -------------------------------------------------------------------------
+// Test 3: GET with bulk parameters
+// -------------------------------------------------------------------------
+Http Get URL Is "https://httpbin.org/get"
+    Parameters {
+            "page": "2",
+            "q": "bulk params"
+    }
+Assert http.result.reason Is None : "Test 3 failed: {}", http.result.reason
+Assert http.result.response.GetKeyValue(["args", "page"]) == "2" : "Test 3: page param wrong"
+Assert http.result.response.GetKeyValue(["args", "q"]) == "bulk params" : "Test 3: q param wrong"
+Print "Test 3 passed"
+
+// -------------------------------------------------------------------------
+// Test 4: GET with custom header — httpbin echoes headers back
+// -------------------------------------------------------------------------
+Http Get URL Is "https://httpbin.org/headers"
+    Header " X-Test-Header : HelloWorld "
+Assert http.result.reason Is None : "Test 4 failed: {}", http.result.reason
+Assert http.result.response.GetKeyValue(["headers", "X-Test-Header"]) == "HelloWorld" : "Test 4: header missing or wrong"
+Print "Test 4 passed"
+
+// -------------------------------------------------------------------------
+// Test 5: POST with JSON body
+// -------------------------------------------------------------------------
+Http Post URL Is "https://httpbin.org/post"
+    Body Is {"name": "alice", "role": "admin"}
+    Header "Content-Type: application/json"
+
+Assert http.result.reason Is None : "Test 5 failed: {}", http.result.reason
+Assert http.result.status_code == http.status.ok :
+    "Test 5: Expected {}, got {}", http.status.ok, http.result.status_code
+Assert http.result.response.GetKeyValue(["json", "name"]) == "alice" : "Test 5: json body missing or wrong"
+Print "Test 5 passed"
+
+// -------------------------------------------------------------------------
+// Test 6: Basic auth — httpbin returns "okay" on match
+// -------------------------------------------------------------------------
+Http Get URL Is "https://httpbin.org/basic-auth/testuser/testpass"
+    User Is "testuser"
+    Password Is "testpass"
+
+Assert http.result.reason Is None : "Test 6 failed: {}", http.result.reason
+Assert http.result.status_code == http.status.ok :
+    "Test 6: Expected {}, got {}", http.status.ok, http.result.status_code
+Assert http.result.response.GetKeyValue("authenticated") == True : "Test 6: not authenticated"
+Print "Test 6 passed"
+
+// -------------------------------------------------------------------------
+// Test 7: Expected "not found" — reason should be set, script continues
+// -------------------------------------------------------------------------
+Http Get URL Is "https://httpbin.org/status/404"
+
+Assert http.result.status_code == http.status.not_found :
+     "Test 7: Expected {}, got {}", http.status.not_found, http.result.status_code
+Assert http.result.reason Is Not None :
+    "Test 7: Expected non-null reason for {}", http.status.not_found
+Print "Test 7 passed: not found correctly returned as result"
+
+// -------------------------------------------------------------------------
+// Test 8: Timeout — delay endpoint with short timeout
+// expects transport failure result, not an exception
+// -------------------------------------------------------------------------
+Http Get URL Is "https://httpbin.org/delay/5"
+    Timeout Is 1
+
+Assert http.result.reason Is Not None : "Test 8: Expected transport failure reason"
+Assert http.result.status_code Is None : "Test 8: Expected no status code on timeout"
+Printf "Test 8 passed: timeout reason: {}\n", http.result.reason
+
+// -------------------------------------------------------------------------
+// Test 9: Session connect, GET, disconnect
+// -------------------------------------------------------------------------
+Http Connect "https://httpbin.org/"
+    Timeout Is 10.0
+    As httpbin
+
+Http Get URL Is "get"
+    Using httpbin
+    Giving result.session_get
+
+Assert result.session_get.reason Is None : "Test 9 failed: {}", result.session_get.reason
+Assert result.session_get.status_code == http.status.ok :
+    "Test 9: Expected {}, got {}", http.status.ok, result.session_get.status_code
+Print "Test 9 passed"
+
+Http Disconnect httpbin
+
+// -------------------------------------------------------------------------
+// Test 10: Session with URL params — override one, keep one, add one
+// -------------------------------------------------------------------------
+Http Connect "https://httpbin.org/?api_version=1&format=json"
+    Timeout Is 10.0
+    As httpbin
+
+Http Get URL Is "get"
+    Parameter "api_version=2"
+    Parameter "page=1"
+    Using httpbin
+    Giving result.param_test
+
+Assert result.param_test.reason Is None : "Test 10 failed: {}", result.param_test.reason
+Assert result.param_test.response.GetKeyValue(["args", "api_version"]) == "2" : "Test 10: api_version not overridden"
+Assert result.param_test.response.GetKeyValue(["args", "format"]) == "json" : "Test 10: format not carried through"
+Assert result.param_test.response.GetKeyValue(["args", "page"]) == "1" : "Test 10: page param missing"
+Print "Test 10 passed"
+
+Http Disconnect httpbin
+
+// -------------------------------------------------------------------------
+// Test 11: Session with Basic auth
+// -------------------------------------------------------------------------
+Http Connect "https://httpbin.org/"
+    User Is "bob"
+    Password Is "secret"
+    Timeout Is 10.0
+    As httpbin
+
+Http Get URL Is "basic-auth/bob/secret"
+    Using httpbin
+    Giving result.auth_test
+
+Assert result.auth_test.reason Is None : "Test 11 failed: {}", result.auth_test.reason
+Assert result.auth_test.response.GetKeyValue("authenticated") == True : "Test 11: not authenticated"
+Print "Test 11 passed"
+
+Http Disconnect httpbin
+
+// -------------------------------------------------------------------------
+// Test 12: Content type detection — JSON response
+// -------------------------------------------------------------------------
+Http Get URL Is "https://httpbin.org/get"
+
+Assert http.result.content_type == "json" : "Test 12: Expected json content_type, got {}", http.result.content_type
+Print "Test 12 passed"
+
+// -------------------------------------------------------------------------
+// Test 13: DELETE
+// -------------------------------------------------------------------------
+Http Delete URL Is "https://httpbin.org/delete"
+
+Assert http.result.reason Is None : "Test 13 failed: {}", http.result.reason
+Assert http.result.status_code == http.status.ok :
+    "Test 13: Expected {}, got {}", http.status.ok, http.result.status_code
+Print "Test 13 passed"
+
+// -------------------------------------------------------------------------
+// Test 14: PUT with body
+// -------------------------------------------------------------------------
+Http Put URL Is "https://httpbin.org/put"
+    Body Is {"key": "value"}
+    Header "Content-Type: application/json"
+
+Assert http.result.reason Is None : "Test 14 failed: {}", http.result.reason
+Assert http.result.response.GetKeyValue(["json", "key"]) == "value" : "Test 14: body not echoed correctly"
+Print "Test 14 passed"
+
+// -------------------------------------------------------------------------
+// Test 15: PATCH with body
+// -------------------------------------------------------------------------
+Http Patch URL Is "https://httpbin.org/patch"
+    Body Is {"status": "updated"}
+    Header "Content-Type: application/json"
+
+Assert http.result.reason Is None : "Test 15 failed: {}", http.result.reason
+Assert http.result.response.GetKeyValue(["json", "status"]) == "updated" : "Test 15: body not echoed correctly"
+Print "Test 15 passed"
+
+Printf "\nAll tests passed.\n"

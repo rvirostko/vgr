@@ -1,0 +1,210 @@
+// -------------------------------------------------------------------------
+// http_param_tests.vgr — Parameter-focused HTTP Statement Test Script
+// Tests against the GitHub public REST API.
+//
+// Authentication is optional — if GITHUB_TOKEN is set in the environment
+// the session will be authenticated (higher rate limits, more endpoints).
+// Without a token, public endpoints are used with a 60 req/hour limit.
+//
+// Set token: export GITHUB_TOKEN=your_token_here
+//
+// GitHub API notes:
+//   Base URL:  https://api.github.com/
+//   Required header: Accept: application/vnd.github+json
+//   Pagination: page, per_page parameters
+//   All responses are JSON
+// -------------------------------------------------------------------------
+
+// -------------------------------------------------------------------------
+// Helper — returns Bearer auth header string if token is set, else None
+// None header is silently ignored by the Http statement
+// -------------------------------------------------------------------------
+Define Function GitHubAuthHeader():
+    Return env.GITHUB_TOKEN ? "Authorization: Bearer {}".Format(env.GITHUB_TOKEN) : None
+End
+
+// -------------------------------------------------------------------------
+// Establish session
+// -------------------------------------------------------------------------
+Http Connect "https://api.github.com/"
+    Header @GitHubAuthHeader()
+    Header "Accept: application/vnd.github+json"
+    Header "X-GitHub-Api-Version: 2022-11-28"
+    Timeout Is 15.0
+    As github
+
+Printf "GitHub session established (authenticated={})\n", env.GITHUB_TOKEN Is Not None
+
+// -------------------------------------------------------------------------
+// Test 1: Basic paginated list — per_page and page
+// Mirrors: sysparm_limit and sysparm_offset in ServiceNow
+// -------------------------------------------------------------------------
+Http Get URL Is "repos/octocat/Hello-World/issues"
+    Parameter "per_page=5"
+    Parameter "page=1"
+    Parameter "state=open"
+    Using github
+    Giving result.issues_p1
+
+Assert result.issues_p1.reason Is None : "Test 1 failed: {}", result.issues_p1.reason
+Assert result.issues_p1.status_code == 200 : "Test 1: Expected 200, got {}", result.issues_p1.status_code
+Assert result.issues_p1.content_type == "json" : "Test 1: Expected json response"
+Print "Test 1 passed: paginated list"
+
+// -------------------------------------------------------------------------
+// Test 2: Second page — verify pagination works
+// Mirrors: sysparm_offset advancing through result sets
+// -------------------------------------------------------------------------
+Http Get URL Is "repos/octocat/Hello-World/issues"
+    Parameter "per_page=5"
+    Parameter "page=2"
+    Parameter "state=open"
+    Using github
+    Giving result.issues_p2
+
+Assert result.issues_p2.reason Is None : "Test 2 failed: {}", result.issues_p2.reason
+Assert result.issues_p2.status_code == 200 : "Test 2: Expected 200, got {}", result.issues_p2.status_code
+Print "Test 2 passed: second page"
+
+// -------------------------------------------------------------------------
+// Test 3: Bulk parameters as dict
+// Mirrors passing a full sysparm dict in one go
+// -------------------------------------------------------------------------
+Http Get URL Is "repos/octocat/Hello-World/issues"
+    Parameters {"per_page": "5", "page": "1", "state": "closed", "sort": "updated"}
+    Using github
+    Giving result.issues_bulk
+
+Assert result.issues_bulk.reason Is None : "Test 3 failed: {}", result.issues_bulk.reason
+Assert result.issues_bulk.status_code == 200 : "Test 3: Expected 200, got {}", result.issues_bulk.status_code
+Print "Test 3 passed: bulk parameters dict"
+
+// -------------------------------------------------------------------------
+// Test 4: Mix of session headers and per-request parameters
+// Verify session Accept header carries through alongside request params
+// Mirrors ServiceNow session with per-request sysparm_fields
+// -------------------------------------------------------------------------
+Http Get URL Is "repos/octocat/Hello-World/commits"
+    Parameter "per_page=3"
+    Parameter "page=1"
+    Using github
+    Giving result.commits
+
+Assert result.commits.reason Is None : "Test 4 failed: {}", result.commits.reason
+Assert result.commits.status_code == 200 : "Test 4: Expected 200, got {}", result.commits.status_code
+Assert result.commits.response Is Not None : "Test 4: Expected response data"
+Print "Test 4 passed: session headers + request params"
+
+// -------------------------------------------------------------------------
+// Test 5: Parameters embedded in connect URL — verify extraction
+// per_page param in connect URL should carry to all requests
+// request param should not conflict
+// -------------------------------------------------------------------------
+Http Disconnect github
+
+Http Connect "https://api.github.com/?per_page=3"
+    Header @GitHubAuthHeader()
+    Header "Accept: application/vnd.github+json"
+    Header "X-GitHub-Api-Version: 2022-11-28"
+    Timeout Is 15.0
+    As github_defaults
+
+Http Get URL Is "repos/octocat/Hello-World/issues"
+    Parameter "state=closed"
+    Using github_defaults
+    Giving result.url_params
+
+Assert result.url_params.reason Is None : "Test 5 failed: {}", result.url_params.reason
+Assert result.url_params.status_code == 200 : "Test 5: Expected 200, got {}", result.url_params.status_code
+Assert result.url_params.response Is Not None : "Test 5: Expected response data"
+Print "Test 5 passed: connect URL params extracted and carried through"
+
+Http Disconnect github_defaults
+
+// -------------------------------------------------------------------------
+// Test 6: Override a connect-level URL param in request
+// per_page=3 from connect URL, overridden to per_page=10 in request
+// -------------------------------------------------------------------------
+Http Connect "https://api.github.com/?per_page=3"
+    Header @GitHubAuthHeader()
+    Header "Accept: application/vnd.github+json"
+    Header "X-GitHub-Api-Version: 2022-11-28"
+    Timeout Is 15.0
+    As github_override
+
+Http Get URL Is "repos/octocat/Hello-World/issues"
+    Parameter "per_page=10"
+    Parameter "state=closed"
+    Using github_override
+    Giving result.overridden
+
+Assert result.overridden.reason Is None : "Test 6 failed: {}", result.overridden.reason
+Assert result.overridden.status_code == 200 : "Test 6: Expected 200, got {}", result.overridden.status_code
+Print "Test 6 passed: request param overrides connect URL param"
+
+Http Disconnect github_override
+
+// -------------------------------------------------------------------------
+// Test 7: Standalone GET with parameters — no session
+// Mirrors a one-off ServiceNow query without a persistent connection
+// -------------------------------------------------------------------------
+Http Get URL Is "https://api.github.com/repos/octocat/Hello-World/issues"
+    Parameter "per_page=2"
+    Parameter "state=open"
+    Header "Accept: application/vnd.github+json"
+    Header @GitHubAuthHeader()
+    Giving result.standalone
+
+Assert result.standalone.reason Is None : "Test 7 failed: {}", result.standalone.reason
+Assert result.standalone.status_code == 200 : "Test 7: Expected 200, got {}", result.standalone.status_code
+Print "Test 7 passed: standalone GET with parameters"
+
+// -------------------------------------------------------------------------
+// Test 8: Query string in request URL path — verify extraction and merge
+// Mirrors a ServiceNow URL pasted directly from a browser
+// -------------------------------------------------------------------------
+Http Connect "https://api.github.com/"
+    Header @GitHubAuthHeader()
+    Header "Accept: application/vnd.github+json"
+    Header "X-GitHub-Api-Version: 2022-11-28"
+    Timeout Is 15.0
+    As github
+
+Http Get URL Is "repos/octocat/Hello-World/issues?state=closed&per_page=3"
+    Using github
+    Giving result.url_query
+
+Assert result.url_query.reason Is None : "Test 8 failed: {}", result.url_query.reason
+Assert result.url_query.status_code == 200 : "Test 8: Expected 200, got {}", result.url_query.status_code
+Print "Test 8 passed: query string in request URL extracted and merged"
+
+// -------------------------------------------------------------------------
+// Test 9: Nested JSON navigation
+// Mirrors navigating a ServiceNow result record's fields
+// -------------------------------------------------------------------------
+Http Get URL Is "repos/octocat/Hello-World/issues"
+    Parameter "per_page=1"
+    Parameter "state=open"
+    Using github
+    Giving result.single_issue
+
+Assert result.single_issue.reason Is None : "Test 9 failed: {}", result.single_issue.reason
+Assert result.single_issue.status_code == 200 : "Test 9: Expected 200, got {}", result.single_issue.status_code
+Assert result.single_issue.response.GetKeyValue("url") Is Not None : "Test 9: Expected url in response"
+Printf "Test 9 passed: first issue url={}\n", result.single_issue.response.GetKeyValue("url")
+
+// -------------------------------------------------------------------------
+// Test 10: Response headers — verify accessible
+// Mirrors checking ServiceNow response headers for quota/status info
+// -------------------------------------------------------------------------
+Http Get URL Is "repos/octocat/Hello-World"
+    Using github
+    Giving result.repo
+
+Assert result.repo.reason Is None : "Test 10 failed: {}", result.repo.reason
+Assert result.repo.headers.GetKeyValue("x-ratelimit-remaining") Is Not None : "Test 10: Expected rate limit header"
+Printf "Test 10 passed: rate limit remaining={}\n", result.repo.headers.GetKeyValue("x-ratelimit-remaining")
+
+Http Disconnect github
+
+Printf "\nAll parameter tests passed.\n"

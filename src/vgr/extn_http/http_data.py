@@ -15,7 +15,6 @@ from ..builtins import poly_isempty
 # The tree node is retained only for conflict/error reporting during
 # cross field validation. After that, tree references are no longer needed.
 # ---------------------------------------------------------------------------
-#Setting = namedtuple('Setting', ['value', 'tree'])
 class Setting(namedtuple('Setting', ['value', 'tree'])):
     @property
     def is_missing(self) -> bool:
@@ -61,7 +60,7 @@ class HttpData:
 
     # request only
     body:               Setting = None   # TODO: body + As handling
-    giving:             Tree = None # TODO make into setting, clean up _str_
+    giving:             Setting = None   # value is tuple/path
 
     @staticmethod
     def is_missing(setting: Setting) -> bool:

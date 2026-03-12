@@ -21,6 +21,12 @@ class HttpSession:
         self.data   = data
         self.client = self._build_client()
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        self.close()
+
     def execute(self, request_data: HttpData) -> httpx.Response:
         """
         Execute an HTTP request from a parsed request HttpData.
@@ -35,14 +41,13 @@ class HttpSession:
         kwargs = self._build_request_kwargs(request_data)
         try:
             try:
-                return self.client.request(method, url, **kwargs)
+                return self._build_result(request_data, self.client.request(method, url, **kwargs))
             except (httpx.ConnectError, httpx.RemoteProtocolError) as e:
                 self._warn(f"Connection stale during {method} request to {url}: {e}; reconnecting")
                 self._reconnect()
-                return self.client.request(method, url, **kwargs)
+                return self._build_result(request_data, self.client.request(method, url, **kwargs))
         except httpx.TransportError as e:
-            self._error(repr(e))
-            raise
+                return self._build_result(request_data, None, e)
 
     def _build_request_kwargs(self, data: HttpData) -> dict:
         """

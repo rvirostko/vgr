@@ -4,8 +4,9 @@ Handlers for Http statements
 
 from typing import Any
 from urllib.parse import (
-    urlparse,
     parse_qs,
+    ParseResult,
+    urlparse,
     urlunparse,
 )
 
@@ -17,8 +18,8 @@ from .http_data import (
 )
 
 from .http_session import (
+    HttpSession,
     HttpSessionManager,
-    HttpSession
 )
 
 from ..app_exceptions import VgrRuntimeError
@@ -39,15 +40,27 @@ from ..builtins import (
 from ..data_dict import DataDictionary
 from ..exec_context import ExecContext
 from ..evaluate import (
-#    _var_name_path,
+    _var_name_path,
     do_set,
-#    get_writable_var_path,
+    get_writable_var_path,
 )
 
 _ALLOWABLE_METHODS = { 'Get', 'Post', 'Put', 'Patch', 'Delete', 'Head' }
-_ALLOWABLE_AUTHS = {'Basic', 'Digest'}
-_HTTP_VERSIONS = {'1': '1.0', '1.0': '1.0', '1.1': '1.1', '2': '2', '2.0': '2'}
-_VALID_SCHEMES = {'http', 'https'}
+_AUTH_BASIC = 'Basic'
+_AUTH_DIGEST = 'Digest'
+_ALLOWABLE_AUTHS = { _AUTH_BASIC, _AUTH_DIGEST }
+_HTTP_VERSIONS = {
+    '1':   '1.0',
+    '1.0': '1.0',
+    '1.1': '1.1',
+    '2':   '2',
+    '2.0': '2'
+}
+_VALID_SCHEMES = { 'http', 'https' }
+_SCHEME_DEFAULT_PORTS = {
+    'http':  80,
+    'https': 443,
+}
 
 _CONSTANTS = [
     # content types
@@ -72,8 +85,8 @@ _CONSTANTS = [
     (("header", "x_request_id"),        "X-Request-Id"),
 
     # auth schemes
-    (("auth", "basic"),     "basic"),
-    (("auth", "digest"),    "digest"),
+    (("auth", "basic"),     _AUTH_BASIC),
+    (("auth", "digest"),    _AUTH_DIGEST),
 
     # http versions
     (("version", "http1"),  "1.0"),
@@ -100,9 +113,8 @@ _CONSTANTS = [
     (("status", "bad_gateway"),         502),
     (("status", "unavailable"),         503),
     (("status", "gateway_timeout"),     504),
-
     # retryable status codes
-    (("retryable",),    [429, 500, 502, 503, 504]),
+    (("status", "retryable",),          [429, 500, 502, 503, 504]),
 ]
 
 _HTTP_PREFIX = 'http'
@@ -118,9 +130,17 @@ def http_initialize(dd: DataDictionary) -> None:
 
 @bound_ops("Http Connect")
 def execute_connect(ctx: ExecContext, statement: Tree) -> None:
+    """
+*Create a reusable Http connection to a host or service*
+
+* Http Connect
+
+Also see `Http Request` and `Http Disconnect`
+"""
     data = HttpData()
-    _handle_url(ctx, statement.children[0], data, name='Connect URL')
-    _normalize_base_url(ctx, data)
+    _handle_url(ctx, statement.children[0], data)
+    _extract_url_params(data)
+    _parse_and_validate_url(ctx, data)
     for child in statement.children[1:]:
         _dispatch_option(ctx, child, data)
     if HttpData.is_missing(data.connection_name):
@@ -129,73 +149,63 @@ def execute_connect(ctx: ExecContext, statement: Tree) -> None:
 
 @bound_ops("Http Disconnect")
 def execute_disconnect(ctx: ExecContext, statement: Tree) -> None:
+    """
+*Close an Http connection to a host or service*
+
+* Http Disconnect
+
+Also see `Http Connect`
+"""
     data = HttpData()
     _handle_connection_name(ctx, statement.children[0], data)
-    try:
-        _SESSIONS.disconnect(data.connection_name.value)
-    finally:
-        do_set(ctx, None, *_DEFAULT_GIVING_PATH)
+    _SESSIONS.disconnect(data.connection_name.value)
 
 @bound_ops("Http Request")
 def execute_request(ctx: ExecContext, statement: Tree) -> None:
-    data = HttpData()
+    """
+*Execute an Http request on a host or service*
+
+* Http *method*
+
+Also see `Http Connect` and `Http Disconnect`
+"""
+    request_data = HttpData()
     # First position arg is the method
     method_arg = statement.children[0]
-    data.method = Setting(_handle_constrained_opt(ctx, method_arg, 'hmethod_', 'Method', _ALLOWABLE_METHODS).upper(), method_arg)
+    request_data.method = Setting(_handle_constrained_opt(ctx, method_arg, 'hmethod_', 'Method', _ALLOWABLE_METHODS).upper(), method_arg)
     # Second positional arg is the URL (full or fragment)
-    _handle_url(ctx, statement.children[1], data, name='Request URL')
+    _handle_url(ctx, statement.children[1], request_data)
+    _extract_url_params(request_data)
     # Rest of args are optional
     for child in statement.children[2:]:
-        _dispatch_option(ctx, child, data)
-    if HttpData.is_missing(data.connection_name):
+        _dispatch_option(ctx, child, request_data)
+    result = None
+    if HttpData.is_missing(request_data.connection_name):
         # if no "Using <name>" then this is a stand alone session
-        _normalize_base_url(ctx, data)
-        # TODO
+        _parse_and_validate_url(ctx, request_data)
+        request_data = _apply_request_defaults(statement, request_data)
+        with HttpSession(request_data) as session:
+            result = session.execute(request_data)
     else:
-        name = data.connection_name.value
+        name = request_data.connection_name.value
         session = _SESSIONS.get_session(name)
         if not session:
-            raise VgrRuntimeError(data.connection_name.tree, ValueError(f'Session {name!r} not found'))
-        # TODO check for conflicts session.data
-        data.url = Setting(_combine_url(ctx, session.data, data), data.url.tree)
-        result = session.execute(data)
-        print("!!", result)
-    # TODO: handle Giving via ctx
+            raise VgrRuntimeError(request_data.connection_name.tree, ValueError(f'Session {name!r} not found'))
+        request_data = _apply_request_defaults(statement, _merge(session.data, request_data))
+        result = session.execute(request_data)
+    do_set(ctx, result, *request_data.giving.value)
 
-def _combine_url(_ctx: ExecContext, session_data: HttpData, request_data: HttpData) -> str:
-    """
-    Combine session base URL with request URL.
-    If request URL contains scheme/host they must match the base — error if not.
-    Path is combined: leading slash replaces base path, no leading slash appends.
-    Query params are extracted into request_data.parameters — handled via normal merge.
-    Fragment is discarded with warning.
-    Returns the combined URL string (no query string — params passed separately to httpx).
-    """
-    base    = urlparse(session_data.url.value)
-    request = urlparse(request_data.url.value)
-    # if scheme present in request, must match base
-    if request.scheme and request.scheme != base.scheme:
-        raise VgrRuntimeError(
-            request_data.url.tree,
-            ValueError(f'Request scheme {request.scheme!r} does not match session scheme {base.scheme!r}')
-        )
-    # if host present in request, must match base
-    if request.netloc and request.netloc.lower() != base.netloc.lower():
-        raise VgrRuntimeError(
-            request_data.url.tree,
-            ValueError(f'Request host {request.netloc!r} does not match session host {base.netloc!r}')
-        )
-# TODO
-#    if request.fragment:
-#        ctx.warn(request_data.url.tree, f'Request URL fragment {request.fragment!r} ignored')
-    # extract query params into request parameters — explicit Parameter clauses override
-    if request.query:
-        for key, values in parse_qs(request.query, keep_blank_values=True).items():
-            request_data.parameters.setdefault(key, values[-1])
-    # combine paths — leading slash replaces, no leading slash appends
-    path = request.path or ''
-    combined_path = path if path.startswith('/') else base.path + path
-    return urlunparse((base.scheme, base.netloc, combined_path, '', '', ''))
+def _apply_request_defaults(statement: Tree, data: HttpData) -> HttpData:
+    # Need a giving variable
+    if HttpData.is_missing(data.giving):
+        data.giving = Setting(_DEFAULT_GIVING_PATH, statement)
+    # User implies an auth type and maybe a password
+    if not HttpData.is_missing(data.user):
+        if HttpData.is_missing(data.authentication):
+            data.authentication = Setting(_AUTH_BASIC, statement)
+        if HttpData.is_missing(data.password):
+            data.password = Setting('', statement)
+    return data
 
 def _check_for_duplicate(existing: Setting, incoming: Tree, name: str) -> None:
     if existing is not None and existing.value is not None:
@@ -243,28 +253,34 @@ def _resolve_timeout(ctx: ExecContext, opt: Tree, name: str) -> Setting:
         value = poly_clamp(_to_number(expr, name, value), 0, 300) # zero (default) to 5 minutes
     return Setting(value, opt)
 
-def _handle_url(ctx: ExecContext, expr: Tree, data: HttpData, name: str = 'URL') -> None:
-    rc = ctx.eval_expr(expr)
-    if rc is None or not isinstance(rc, str) or poly_isempty(rc):
-        raise VgrRuntimeError(expr, ValueError(f'{name} is required and cannot be blank'))
-    data.url = Setting(poly_strip(rc), expr)
+def _handle_url(ctx: ExecContext, expr: Tree, data: HttpData) -> None:
+    # NB: no need to check for duplicates as URLs are positional args
+    value = ctx.eval_expr(expr)
+    data.url = Setting('' if value is None else poly_strip(str(value)), expr)
 
-def _normalize_base_url(ctx: ExecContext, data: HttpData) -> None:
+def _extract_url_params(data: HttpData) -> None:
     parsed = urlparse(data.url.value)
-    scheme = parsed.scheme.strip().lower()
-    if scheme not in _VALID_SCHEMES:
-        raise VgrRuntimeError(data.url.tree, ValueError(f'URL scheme must be http or https; found {scheme!r}'))
-    host = parsed.netloc.strip().lower()
-    if not host:
-        raise VgrRuntimeError(data.url.tree, ValueError(f'URL must include a host; got {data.url.value!r}'))
-    if parsed.fragment:
-        ctx.print_verbose(f'URL fragment {parsed.fragment!r} ignored')
     if parsed.query:
         for key, values in parse_qs(parsed.query, keep_blank_values=True).items():
             data.parameters[key] = values[-1]  # last value wins
-    path = (parsed.path or '/').rstrip('/') + '/'
-    port = f':{parsed.port}' if parsed.port else ''
-    data.url = Setting(f'{scheme}://{host}{port}{path}', data.url.tree)
+
+def _parse_and_validate_url(ctx: ExecContext, data: HttpData) -> None:
+    """Used when a full URL is required"""
+    parsed = urlparse(data.url.value)
+    scheme = parsed.scheme.lower()
+    if not scheme:
+        raise VgrRuntimeError(data.url.tree, ValueError('URL requires scheme'))
+    if scheme not in _VALID_SCHEMES:
+        raise VgrRuntimeError(data.url.tree, ValueError('Invalid URL scheme'))
+    host = parsed.netloc.strip()
+    if not host:
+        raise VgrRuntimeError(data.url.tree, ValueError('URL requires host name'))
+    if parsed.fragment:
+        ctx.print_verbose(f'URL fragment in {data.url.value!r} ignored')
+    data.url = Setting(urlunparse((parsed.scheme, parsed.netloc, parsed.path, '', '', '')), data.url.tree)
+
+def _resolved_port(parsed: ParseResult) -> int:
+    return parsed.port or _SCHEME_DEFAULT_PORTS.get(parsed.scheme)
 
 def _handle_connection_name(ctx: ExecContext, opt: Tree, data: HttpData) -> None:
     # NB: opt can be either an option (connect and request)
@@ -363,13 +379,12 @@ def _handle_kv_option(ctx: ExecContext, opt: Tree, data: dict, name: str, separa
             raise VgrRuntimeError(expr, TypeError(f'Type {poly_type(value)!r} unsupported for {name}'))
 
 def _extract_kv_entry(target: dict, value: str, separator: str) -> None:
-    if poly_isempty(value): return
-    parts = value.split(separator, 1)
-    _update_dict(target, poly_strip(parts[0]), parts[1] if len(parts) == 2 else '')
+    if not poly_isempty(value):
+        parts = value.split(separator, 1)
+        _update_dict(target, parts[0], parts[1] if len(parts) == 2 else '')
 
-def _update_dict(target: dict, k: str, v:str) -> None:
-    if poly_isempty(k): return
-    target[k] = default_to(v, '')
+def _update_dict(target: dict, key: str, value:str) -> None:
+    if not poly_isempty(key): target[key.strip()] = default_to(value, '').strip()
 
 def _handle_headers(ctx: ExecContext, opt: Tree, data: HttpData) -> None:
     _handle_kv_option(ctx, opt, data.headers, 'Headers', ':')
@@ -378,11 +393,19 @@ def _handle_parameters(ctx: ExecContext, opt: Tree, data: HttpData) -> None:
     _handle_kv_option(ctx, opt, data.parameters, 'Parameters', '=')
 
 def _handle_body(ctx: ExecContext, opt: Tree, data: HttpData) -> None:
-    pass  # TODO: body + As type-driven rules
+    _check_for_duplicate(data.body, opt, 'Body')
+    data.body = Setting(ctx.eval_expr(opt.children[0]), opt)
 
 def _handle_giving(ctx: ExecContext, opt: Tree, data: HttpData) -> None:
     _check_for_duplicate(data.giving, opt, 'Giving')
-    data.giving = opt
+    var = opt.children[0]
+    path = None
+    try:
+        path = get_writable_var_path(ctx, var)
+    except VgrRuntimeError:
+        path = _var_name_path(var)
+        if path != _DEFAULT_GIVING_PATH: raise
+    data.giving = Setting(path, opt)
 
 # ---------------------------------------------------------------------------
 # Option dispatch table
@@ -415,35 +438,14 @@ def _dispatch_option(ctx: ExecContext, node: Tree, data: HttpData) -> None:
     handler(ctx, node, data)
 
 # ---------------------------------------------------------------------------
-# Phase 2 — cross-field validation
-# ---------------------------------------------------------------------------
-
-def _validate_merged(ctx: ExecContext, statement: Tree, data: HttpData) -> None:
-    """
-    Post-merge cross-field validation.
-    Called after connect session defaults and action overrides are combined.
-    Errors here point to the statement as a whole — no single option to blame.
-    """
-    has_user = data.user is not None and data.user.value is not None
-    has_pass = data.password is not None and data.password.value is not None
-    has_auth = data.authentication is not None and data.authentication.value is not None
-    if has_user or has_pass or has_auth:
-        if not has_user:
-            raise VgrRuntimeError(statement, ValueError('Authentication incomplete: User not provided'))
-        if not has_pass:
-            raise VgrRuntimeError(statement, ValueError('Authentication incomplete: Password not provided'))
-
-# ---------------------------------------------------------------------------
 # Merge — combine session (connect) defaults with request overrides
 # ---------------------------------------------------------------------------
 def _merge(session: HttpData, request: HttpData) -> HttpData:
     def _pick(vrequest: Setting, vsession: Setting) -> Setting:
-        return vsession if vrequest.is_missing() else vrequest
-
-    # URL needs to be a smarter merge
+        return vsession if HttpData.is_missing(vrequest) else vrequest
     return HttpData(
-        # TODO wrong: url needs to be an intelligent merge
-        url              = _pick(request.url, session.url),
+        method           = request.method,
+        url              = Setting(_combine_url(session, request), request.url.tree),
         verify_ssl       = _pick(request.verify_ssl, session.verify_ssl),
         ca_cert          = _pick(request.ca_cert, session.ca_cert),
         connect_timeout  = _pick(request.connect_timeout, session.connect_timeout),
@@ -460,4 +462,48 @@ def _merge(session: HttpData, request: HttpData) -> HttpData:
         parameters       = {**session.parameters, **request.parameters},
         connection_name  = request.connection_name,
         body             = request.body,
+        giving           = request.giving,
     )
+
+def _combine_url(session_data: HttpData, request_data: HttpData) -> str:
+    """
+    Combine session base URL with request URL.
+    If request URL contains scheme/host they must match the base — error if not.
+    Path is combined: leading slash replaces base path, no leading slash appends.
+    Query params are extracted into request_data.parameters — handled via normal merge.
+    Fragment is discarded with warning.
+    Returns the combined URL string (no query string — params passed separately to httpx).
+    """
+    base = urlparse(session_data.url.value)
+    request = urlparse(request_data.url.value)
+    # if scheme present in request, must match base
+    if request.scheme and request.scheme != base.scheme:
+        raise VgrRuntimeError(
+            request_data.url.tree,
+            ValueError(f'Request scheme {request.scheme!r} does not match session scheme {base.scheme!r}')
+        )
+    # if host present in request, must match base
+    if request.netloc:
+        if request.netloc.lower() != base.netloc.lower():
+            raise VgrRuntimeError(
+                request_data.url.tree,
+                ValueError(f'Request host {request.netloc!r} does not match session host {base.netloc!r}')
+            )
+        if _resolved_port(base) != _resolved_port(request):
+            raise VgrRuntimeError(
+                request_data.url.tree,
+                ValueError('Request port does not match session port')
+            )
+    path = None
+    if request.path:
+        # If request path start with '/' then it is a full override
+        if request.path.startswith('/'):
+            path = request.path
+        else:
+            # request path is relative to base path
+            path = (base.path if base.path.endswith('/') else base.path + '/') + request.path
+    else:
+        # There is not request path, so use the base path
+        path = base.path
+    # NB: port is part of netloc
+    return urlunparse((base.scheme, base.netloc, path, '', '', ''))

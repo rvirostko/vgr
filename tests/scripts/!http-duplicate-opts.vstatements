@@ -1,0 +1,104 @@
+# http_duplicate_opts.vstatements — Duplicate option negative tests
+# Each line is expected to fail with a conflict/bind-time error
+# URLs are localhost — requests are not expected to succeed
+# Tests cover Http Connect and Http Get (representative of all action methods)
+
+# -------------------------------------------------------------------------
+# Http Connect — duplicate options
+# -------------------------------------------------------------------------
+
+# duplicate URL (As is required to distinguish sessions)
+Http Connect "http://localhost/" As "s1" As "s2"
+
+# duplicate Verify SSL
+Http Connect "http://localhost/" Verify SSL Verify SSL Is False As "s1"
+
+# duplicate CA Certificate
+Http Connect "http://localhost/" CA Certificate Is "pem1" CA Certificate Is "pem2" As "s1"
+
+# duplicate Connect Timeout
+Http Connect "http://localhost/" Connect Timeout Is 5.0 Connect Timeout Is 10.0 As "s1"
+
+# duplicate HTTP Version
+Http Connect "http://localhost/" HTTP Version Is 1.1 HTTP Version Is 2 As "s1"
+
+# duplicate User
+Http Connect "http://localhost/" User Is "alice" User Is "bob" As "s1"
+
+# duplicate Password
+Http Connect "http://localhost/" Password Is "foo" Password Is "bar" As "s1"
+
+# duplicate Authentication
+Http Connect "http://localhost/" Authentication Is "basic" Authentication Is "digest" As "s1"
+
+# duplicate Timeout
+Http Connect "http://localhost/" Timeout Is 5.0 Timeout Is 10.0 As "s1"
+
+# duplicate Read Timeout
+Http Connect "http://localhost/" Read Timeout Is 5.0 Read Timeout Is 10.0 As "s1"
+
+# duplicate Write Timeout
+Http Connect "http://localhost/" Write Timeout Is 5.0 Write Timeout Is 10.0 As "s1"
+
+# duplicate Follow Redirects
+Http Connect "http://localhost/" Follow Redirects Follow Redirects Is False As "s1"
+
+# duplicate Maximum Redirects
+Http Connect "http://localhost/" Maximum Redirects Is 5 Maximum Redirects Is 10 As "s1"
+
+# -------------------------------------------------------------------------
+# Http Connect — cross-field conflicts
+# -------------------------------------------------------------------------
+
+# CA Certificate conflicts with Verify SSL Is False
+Http Connect "http://localhost/" CA Certificate Is "pem" Verify SSL Is False As "s1"
+
+# -------------------------------------------------------------------------
+# Http Get — duplicate options
+# -------------------------------------------------------------------------
+
+# duplicate URL Is
+Http Get URL Is "http://localhost/" URL Is "http://localhost/other" Giving result
+
+# duplicate Using
+Http Get URL Is "http://localhost/" Using session1 Using session2 Giving result
+
+# duplicate Body
+Http Get URL Is "http://localhost/" Body Is "foo" Body Is "bar" Giving result
+
+# duplicate Giving
+Http Get URL Is "http://localhost/" Giving result.a Giving result.b
+
+# duplicate User
+Http Get URL Is "http://localhost/" User Is "alice" User Is "bob" Giving result
+
+# duplicate Password
+Http Get URL Is "http://localhost/" Password Is "foo" Password Is "bar" Giving result
+
+# duplicate Authentication
+Http Get URL Is "http://localhost/" Authentication Is "basic" Authentication Is "digest" Giving result
+
+# duplicate Timeout
+Http Get URL Is "http://localhost/" Timeout Is 5.0 Timeout Is 10.0 Giving result
+
+# duplicate Read Timeout
+Http Get URL Is "http://localhost/" Read Timeout Is 5.0 Read Timeout Is 10.0 Giving result
+
+# duplicate Write Timeout
+Http Get URL Is "http://localhost/" Write Timeout Is 5.0 Write Timeout Is 10.0 Giving result
+
+# duplicate Follow Redirects
+Http Get URL Is "http://localhost/" Follow Redirects Follow Redirects Is False Giving result
+
+# duplicate Maximum Redirects
+Http Get URL Is "http://localhost/" Maximum Redirects Is 5 Maximum Redirects Is 10 Giving result
+
+# -------------------------------------------------------------------------
+# Http Get — cross-field conflicts
+# -------------------------------------------------------------------------
+
+# CA Certificate conflicts with Verify SSL Is False
+Http Get URL Is "http://localhost/" CA Certificate Is "pem" Verify SSL Is False Giving result
+
+# Maximum Redirects with Follow Redirects Is False
+Http Get URL Is "http://localhost/" Maximum Redirects Is 5 Follow Redirects Is False Giving result
