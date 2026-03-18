@@ -827,7 +827,7 @@ fruit_colors.CountOf("grape") → 0
 ```
 """
     if x is None: return 0
-    if isinstance(x, list): return sum(1 for x1 in x if poly_eq(sub, x1))
+    if isinstance(x, list): return sum(1 for x1 in x if poly_eq(x1, sub))
     if isinstance(x, dict): return 1 if sub in x else 0
     x = str(x)
     if len(x) == 0: return 0
@@ -869,7 +869,7 @@ fruit_colors.IndexOf("grape") → -1 // key not present
 Also see `RIndexOf()` and `FindStr()`
 """
     if x is None: return -1
-    if isinstance(x, list): return next((i for i, x1 in enumerate(x) if poly_eq(sub, x1)), -1)
+    if isinstance(x, list): return next((i for i, x1 in enumerate(x) if poly_eq(x1, sub)), -1)
     if isinstance(x, dict): return 0 if sub in x else -1
     x = str(x)
     if len(x) == 0: return -1
@@ -911,7 +911,7 @@ fruit_colors.RIndexOf("grape") → -1 // key not present
 Also see `IndexOf()` and `RFindStr()`
 """
     if x is None: return -1
-    if isinstance(x, list): return next((i for i in range(len(x) - 1, -1, -1) if poly_eq(sub, x[i])), -1)
+    if isinstance(x, list): return next((i for i in range(len(x) - 1, -1, -1) if poly_eq(x[i], sub)), -1)
     if isinstance(x, dict): return 0 if sub in x else -1
     x = str(x)
     if len(x) == 0: return -1

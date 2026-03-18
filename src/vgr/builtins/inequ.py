@@ -5,7 +5,11 @@ Polymorphic inequality operators
 from typing import Any, Callable, Iterable
 import math
 
-from .common import str_to_number, bound_ops
+from .common import (
+    str_to_bool,
+    str_to_number,
+    bound_ops,
+)
 
 @bound_ops("Is Equal To", "==", "⩵", "Equals", "Is")
 def poly_eq(x: Any=None, y: Any=None) -> bool:
@@ -517,6 +521,28 @@ def _num_str_op(op: Callable[[Any, Any], Any], x: Any, y: str) -> Any:
     except ValueError:
         return op(str(x), y)
 
+def _str_bool_op(op: Callable[[Any, Any], Any], x: str, y: bool) -> Any:
+    try:
+        # "1" == True
+        return op(str_to_number(x), y)
+    except ValueError:
+        try:
+            # "False" == False
+            return op(str_to_bool(x), y)
+        except ValueError:
+            return op(x, str(y))
+
+def _bool_str_op(op: Callable[[Any, Any], Any], x: bool, y: str) -> Any:
+    try:
+        # False == "0"
+        return op(x, str_to_number(y))
+    except ValueError:
+        try:
+            # False == "False"
+            return op(x, str_to_bool(y))
+        except ValueError:
+            return op(str(x), y)
+
 def _lex_comp(cmp: Callable[[Any, Any], bool], x: Iterable, y: Iterable) -> bool:
     """Performs lexicographic comparison on non-scalar iterables using cmp for element-wise comparison."""
     for xi, yi in zip(x, y):
@@ -529,10 +555,12 @@ def _lex_comp(cmp: Callable[[Any, Any], bool], x: Iterable, y: Iterable) -> bool
 
 # Most items do a "natural" compare, except numeric/string and all collections
 _overrides = {
+    (bool, str): _bool_str_op,
     (int, str): _num_str_op,
     (int, list): lambda op, x, y: _lex_comp(op, [x], y),
     (float, str): _num_str_op,
     (float, list): lambda op, x, y: _lex_comp(op, [x], y),
+    (str, bool): _str_bool_op,
     (str, int): _str_num_op,
     (str, float): _str_num_op,
     (str, list): lambda op, x, y: _lex_comp(op, [x], y),
