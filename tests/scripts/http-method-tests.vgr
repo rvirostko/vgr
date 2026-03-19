@@ -1,0 +1,42 @@
+// -------------------------------------------------------------------------
+// http-method-tests.vgr — Method Test Script
+// Tests all keyword methods and dynamic method handling
+// Uses httpbin.org /anything which accepts any HTTP method
+// and echoes back the method name under response.method
+// -------------------------------------------------------------------------
+
+Set host To "httpbin.org"
+Set anything_url To "https://{}/anything".Format(host)
+
+Define Function CheckMethod(test_no, expected):
+    If http.result.status_code Is http.status.method_not_allowed:
+        Set received To http.result.method
+    Else
+        Assert http.result.reason Is None : "Test {} failed: {}", test_no, http.result.reason
+        Assert http.result.status_code == http.status.ok : "Test {}: Expected {}, got {}", test_no, http.status.ok, http.result.status_code
+        Set received To http.result.response.method.DefaultTo(http.result.method)
+    End
+    Assert received == expected : "Test {}: Expected {!r}, received {!r}", test_no, expected, received
+    Printf "Test {} passed: {}\n", test_no, expected
+End
+
+// Using keywords
+Set n To 1
+Http Delete anything_url;                Call CheckMethod(n, "DELETE");  Add 1 To n;
+Http Get anything_url;                   Call CheckMethod(n, "GET");     Add 1 To n;
+Http Head "https://{}/get".Format(host); Call CheckMethod(n, "HEAD");    Add 1 To n
+Http List anything_url;                  Call CheckMethod(n, "LIST");    Add 1 To n;
+Http Options anything_url;               Call CheckMethod(n, "OPTIONS");
+# Additional check
+Assert http.result.headers.Allow.Split(",").Strip() Contains "OPTIONS" : "Test {}: Did not return OPTIONS", n; Add 1 To n
+Http Patch anything_url;                 Call CheckMethod(n, "PATCH");   Add 1 To n;
+Http Post anything_url;                  Call CheckMethod(n, "POST");    Add 1 To n;
+Http Put anything_url;                   Call CheckMethod(n, "PUT");     Add 1 To n;
+Http Trace anything_url;                 Call CheckMethod(n, "TRACE");   Add 1 To n;
+
+// Using dynamic methods
+Http "purge" anything_url;               Call CheckMethod(n, "PURGE");   Add 1 To n;
+Http " SEARCH " anything_url;            Call CheckMethod(n, "SEARCH");  Add 1 To n;
+Http " get " anything_url;               Call CheckMethod(n, "GET");     Add 1 To n;
+
+Print "All method tests passed"
