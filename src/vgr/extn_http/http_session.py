@@ -103,7 +103,7 @@ class HttpSession:
             "url":          data.url.value,
             "method":       data.method.value,
             "status_code":  response.status_code,
-            "headers":      dict(response.headers.items()),
+            "headers":      {key.title() : value for key, value in response.headers.items()}
         }
         if not response.is_success:
             result["reason"] = response.reason_phrase
