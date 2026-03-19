@@ -10,6 +10,8 @@ from lark import Tree
 
 from ..builtins import poly_isempty
 
+_REDACTED_FIELDS = {'password'}
+
 # ---------------------------------------------------------------------------
 # Setting — carries a resolved value and its source tree node.
 # The tree node is retained only for conflict/error reporting during
@@ -59,7 +61,7 @@ class HttpData:
     parameters:         dict = field(default_factory=dict)
 
     # request only
-    body:               Setting = None   # TODO: body + As handling
+    body:               Setting = None
     giving:             Setting = None   # value is tuple/path
 
     @staticmethod
@@ -83,12 +85,13 @@ class HttpData:
             if isinstance(value, Setting):
                 if value.value is None:
                     continue
-                parts.append(f'{f.name}={value.value!r}')
+                if f.name in _REDACTED_FIELDS:
+                    parts.append(f'{f.name}={"*" * len(str(value.value))}')
+                else:
+                    parts.append(f'{f.name}={value.value!r}')
             elif isinstance(value, dict):
                 if value:
                     parts.append(f'{f.name}={value!r}')
-            elif isinstance(value, Tree): # TODO
-                parts.append(f'{f.name}=<Tree:{value.data}>')
             else:
                 parts.append(f'{f.name}={value!r}')
         return f'HttpData({", ".join(parts)})'
