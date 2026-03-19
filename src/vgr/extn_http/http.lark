@@ -53,23 +53,25 @@ http_disconnect: "Http"i "Disconnect"i "From"i? expr _SEMICOLON?
 //   - Without "Using": expr must be a fully qualified URL including scheme.
 //     A missing or invalid URL is a bind-time error — it cannot be defaulted.
 //----------------------------------------------------------------------------
-http_request: "Http"i ("Method"i "Is"?)? http_method _COMMA? ("URL"i "Is"i?)? expr (_COMMA? http_request_arg)* _SEMICOLON?
+http_request: "Http"i (("Method"i | "Request"i) "Is"?)? http_method _COMMA? ("URL"i "Is"i?)? expr (_COMMA? http_request_arg)* _SEMICOLON?
 
 // Method as keyword (preferred — unambiguous, readable) or dynamic expr.
-// Dynamic expr must resolve to a valid HTTP method string at execution time.
+// Dynamic expr resolved to a HTTP method string at execution time.
+// NB: Connect (in RFC9110) conflicts with the connect statement; quote it
 ?http_method: "Get"i    -> hmethod_get
     | "Post"i           -> hmethod_post
     | "Put"i            -> hmethod_put
     | "Patch"i          -> hmethod_patch
     | "Delete"i         -> hmethod_delete
     | "Head"i           -> hmethod_head
-    | expr              -> hmethod_dynamic
+    | "Options"i        -> hmethod_options
+    | "Trace"i          -> hmethod_trace
+    | "List"i           -> hmethod_list # not RFC9110 but common
+    | expr              -> hmethod_dynamic # can be any value
 
 ?http_request_arg: http_auth_opt
     | http_req_opt
     | http_request_opt
-
-
 
 //----------------------------------------------------------------------------
 // http_conn_opt — connection-level options (connect only)
@@ -125,7 +127,7 @@ http_request: "Http"i ("Method"i "Is"?)? http_method _COMMA? ("URL"i "Is"i?)? ex
 //   Present without Follow Redirects is a bind-time warning, not error.
 // ---------------------------------------------------------------------------
 ?http_req_opt: ("Header"i | "Headers"i) ("Is"i | "Are"i)? expr  -> hopt_headers // by type
-    | ("Parameter"i | "Parameters"i) ("Is"i | "Are"i)? expr     -> hopt_parameters // by type
+    | ("Param"i | "Parameter"i | "Parameters"i) ("Is"i | "Are"i)? expr     -> hopt_parameters // by type
     | "Timeout"i "Is"i? expr              -> hopt_timeout          // int/float: seconds
     | "Read"i "Timeout"i "Is"i? expr      -> hopt_read_timeout     // int/float: seconds
     | "Write"i "Timeout"i "Is"i? expr     -> hopt_write_timeout    // int/float: seconds
@@ -153,5 +155,5 @@ http_request: "Http"i ("Method"i "Is"?)? http_method _COMMA? ("URL"i "Is"i?)? ex
 //   Scripts determine error handling.
 //----------------------------------------------------------------------------
 ?http_request_opt: "Using"i "Connection"i? expr -> hopt_connection_name // string
-    | "Body"i "Is"i? expr                       -> hopt_body   // see type rules above
+    | ("Data"i | "Body"i) "Is"i? expr           -> hopt_body   // see type rules above
     | "Giving"i var_name                        -> hopt_giving // variable path
