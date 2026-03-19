@@ -45,7 +45,6 @@ from ..evaluate import (
     get_writable_var_path,
 )
 
-_ALLOWABLE_METHODS = { 'Get', 'Post', 'Put', 'Patch', 'Delete', 'Head' }
 _AUTH_BASIC = 'Basic'
 _AUTH_DIGEST = 'Digest'
 _ALLOWABLE_AUTHS = { _AUTH_BASIC, _AUTH_DIGEST }
@@ -172,7 +171,7 @@ Also see `Http Connect` and `Http Disconnect`
     request_data = HttpData()
     # First position arg is the method
     method_arg = statement.children[0]
-    request_data.method = Setting(_handle_constrained_opt(ctx, method_arg, 'hmethod_', 'Method', _ALLOWABLE_METHODS).upper(), method_arg)
+    request_data.method = Setting(_handle_keyword_opt(ctx, method_arg, 'hmethod_', 'Method').strip().upper(), method_arg)
     # Second positional arg is the URL (full or fragment)
     _handle_url(ctx, statement.children[1], request_data)
     _extract_url_params(request_data)
@@ -184,6 +183,7 @@ Also see `Http Connect` and `Http Disconnect`
         # if no "Using <name>" then this is a stand alone session
         _parse_and_validate_url(ctx, request_data)
         request_data = _apply_request_defaults(statement, request_data)
+        ctx.print_verbose(request_data)
         with HttpSession(request_data) as session:
             result = session.execute(request_data)
     else:
@@ -192,6 +192,7 @@ Also see `Http Connect` and `Http Disconnect`
         if not session:
             raise VgrRuntimeError(request_data.connection_name.tree, ValueError(f'Session {name!r} not found'))
         request_data = _apply_request_defaults(statement, _merge(session.data, request_data))
+        ctx.print_verbose(request_data)
         result = session.execute(request_data)
     do_set(ctx, result, *request_data.giving.value)
 
@@ -338,9 +339,9 @@ def _handle_password(ctx: ExecContext, opt: Tree, data: HttpData) -> None:
 def _handle_authentication(ctx: ExecContext, node: Tree, data: HttpData) -> None:
     _check_for_duplicate(data.authentication, node, 'Authentication')
     opt = node.children[0]
-    data.authentication = Setting(_handle_constrained_opt(ctx, opt, 'hauth_', 'Authentication', _ALLOWABLE_AUTHS).lower(), opt)
+    data.authentication = Setting(_handle_keyword_opt(ctx, opt, 'hauth_', 'Authentication', _ALLOWABLE_AUTHS).lower(), opt)
 
-def _handle_constrained_opt(ctx: ExecContext, opt: Tree, prefix: str, name: str, allowable_values) -> str:
+def _handle_keyword_opt(ctx: ExecContext, opt: Tree, prefix: str, name: str, allowable_values=None) -> str:
     key = opt.data.removeprefix(prefix)
     if key == 'dynamic':
         # expression used for value
@@ -348,8 +349,9 @@ def _handle_constrained_opt(ctx: ExecContext, opt: Tree, prefix: str, name: str,
     else:
         # Simple keyword specified
         value = key
-    if value.capitalize() not in allowable_values:
-        raise VgrRuntimeError(opt, ValueError(f'{name} must be one of {", ".join(allowable_values)}; got {value!r}'))
+    if allowable_values:
+        if value.capitalize() not in allowable_values:
+            raise VgrRuntimeError(opt, ValueError(f'{name} must be one of {", ".join(allowable_values)}; got {value!r}'))
     return value
 
 def _handle_follow_redirects(ctx: ExecContext, opt: Tree, data: HttpData) -> None:
@@ -365,32 +367,34 @@ def _handle_max_redirects(ctx: ExecContext, opt: Tree, data: HttpData) -> None:
         value = poly_clamp(int(_to_number(expr, 'Maximum Redirects', value)), 0, 99)
     data.max_redirects = Setting(value, opt)
 
-def _handle_kv_option(ctx: ExecContext, opt: Tree, data: dict, name: str, separator: str) -> None:
+def _handle_kv_option(ctx: ExecContext, opt: Tree, data: dict, name: str, separator: str, strip_value: bool) -> None:
     expr = opt.children[0]
     value = ctx.eval_expr(expr)
     if value is not None:
         if isinstance(value, dict):
-            for k, v in value.items(): _update_dict(data, str(k), str(default_to(v, '')))
+            for k, v in value.items(): _update_dict(data, str(k), str(default_to(v, '')), strip_value)
         elif isinstance(value, list):
-            for item in strip_nulls(value): _extract_kv_entry(data, str(item), separator)
+            for item in strip_nulls(value): _extract_kv_entry(data, str(item), separator, strip_value)
         elif isinstance(value, (str, int, float, bool)):
-            _extract_kv_entry(data, str(value), separator)
+            _extract_kv_entry(data, str(value), separator, strip_value)
         else:
             raise VgrRuntimeError(expr, TypeError(f'Type {poly_type(value)!r} unsupported for {name}'))
 
-def _extract_kv_entry(target: dict, value: str, separator: str) -> None:
+def _extract_kv_entry(target: dict, value: str, separator: str, strip_value: bool) -> None:
     if not poly_isempty(value):
         parts = value.split(separator, 1)
-        _update_dict(target, parts[0], parts[1] if len(parts) == 2 else '')
+        _update_dict(target, parts[0], parts[1] if len(parts) == 2 else '', strip_value)
 
-def _update_dict(target: dict, key: str, value:str) -> None:
-    if not poly_isempty(key): target[key.strip()] = default_to(value, '').strip()
+def _update_dict(target: dict, key: str, value:str, strip_value: bool) -> None:
+    if not poly_isempty(key):
+        value = default_to(value, '')
+        target[key.strip()] = value.strip() if strip_value else value
 
 def _handle_headers(ctx: ExecContext, opt: Tree, data: HttpData) -> None:
-    _handle_kv_option(ctx, opt, data.headers, 'Headers', ':')
+    _handle_kv_option(ctx, opt, data.headers, 'Headers', ':', True)
 
 def _handle_parameters(ctx: ExecContext, opt: Tree, data: HttpData) -> None:
-    _handle_kv_option(ctx, opt, data.parameters, 'Parameters', '=')
+    _handle_kv_option(ctx, opt, data.parameters, 'Parameters', '=', False)
 
 def _handle_body(ctx: ExecContext, opt: Tree, data: HttpData) -> None:
     _check_for_duplicate(data.body, opt, 'Body')
