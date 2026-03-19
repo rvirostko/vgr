@@ -63,6 +63,14 @@ Set mixed To {
 }
 ```
 
+> **Using Non-String Keys**\\
+> Although integers, floats, and booleans can be used
+> as keys the practice is not recommended. Because of the way
+> dictionaries work, values such as `True`, `1`, and `1.0` are
+> all equivalent keys. To use them as separate values, make sure
+> that you use `ToString()` to convert the key before using it in
+> a dictionary.
+
 Also see `Dictionary()`, `GetKeyValue()`, and `LookupItem()`
 """
     # Values is alternating pairs of key/values
@@ -119,6 +127,14 @@ Print records.FormatJson()
   }
 ]
 ```
+
+> **Using Non-String Keys**\\
+> Although integers, floats, and booleans can be used
+> as keys the practice is not recommended. Because of the way
+> dictionaries work, values such as `True`, `1`, and `1.0` are
+> all equivalent keys. To use them as separate values, make sure
+> that you use `ToString()` to convert the key before using it in
+> a dictionary.
 
 Also see `CombineLists()`
 """
