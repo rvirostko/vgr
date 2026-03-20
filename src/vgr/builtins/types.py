@@ -98,7 +98,7 @@ Also see `Type()`, `IsInteger()`, `IsFloat()`, `IsNumber()`, and `IsString()`
 # Unique sentinel object
 _SENTINEL = object()
 
-def poly_float(x: Any=None, default: Any = _SENTINEL) -> Any:
+def poly_float(x: Any=None, default: Any=_SENTINEL) -> Any:
     """
 **Converts the value to a floating point number**
 
