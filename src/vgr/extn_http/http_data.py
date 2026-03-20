@@ -72,6 +72,13 @@ class HttpData:
         """
         return setting is None or setting.is_missing
 
+    def get_content_type(self) -> str:
+        return self.headers.get('Content-Type', '') if self.headers else None
+
+    def _set_content_type(self, value: str) -> None:
+        if self.headers is None: self.headers = {}
+        self.headers['Content-Type'] = value.strip() if value else None
+
     @staticmethod
     def tree_for(setting: Setting, default_tree: Tree) -> Tree:
         return setting.tree if setting is not None and setting.tree is not None else default_tree

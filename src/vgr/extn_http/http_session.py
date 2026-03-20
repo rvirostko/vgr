@@ -3,6 +3,7 @@ The underlying session and session manager for Http statements
 """
 
 from typing import Optional, Dict
+import json
 import logging
 import ssl
 
@@ -10,7 +11,6 @@ import httpx
 
 from .http_data import (
     HttpData,
-    Setting,
 )
 
 _LOG = logging.getLogger(__name__)
@@ -56,7 +56,6 @@ class HttpSession:
         already on the client are left to httpx's own merge logic.
         """
         kwargs = {}
-        if data.headers: kwargs['headers'] = data.headers
         if data.parameters: kwargs['params'] = data.parameters
         auth = self._build_auth(data)
         if auth is not None: kwargs['auth'] = auth
@@ -66,14 +65,48 @@ class HttpSession:
         if data.max_redirects is not None: kwargs['max_redirects'] = data.max_redirects.value
         # body handled separately — type-driven content-type rules apply
         if not HttpData.is_missing(data.body):
-            kwargs.update(self._build_body(data.body))
+            kwargs.update(self._build_body(data))
+        # headers last because building the body can change things
+        if data.headers: kwargs['headers'] = data.headers
         return kwargs
 
-    def _build_body(self, body: Setting) -> dict:
-        value = body.value
-        if isinstance(value, (dict, list)): return {'json':    value}
-        if isinstance(value, (str, bytes)): return {'content': value}
-        return {}
+    def _build_body(self, data: HttpData) -> dict:
+        if HttpData.is_missing(data.body): return {}
+        content_type = self._parse_content_type(data.get_content_type())
+        is_json = 'json' in content_type
+        charset = content_type[2]
+        value = data.body.value
+        if isinstance(value, (dict, list)) and content_type is None:
+            # RFC 8259 mandates UTF-8 on the wire
+            data.set_content_type('application/json; charset=utf-8')
+            self._info('Setting Content-Type to ', data.get_content_type())
+            is_json = True
+        if is_json:
+            return { 'content': json.dumps(value, indent=None, allow_nan=False).encode('utf-8', errors="replace")}
+        # Any other Content-Type is treated as string-ish
+        if value is None: return {}
+        # Do a more complicated stringification for these
+        if isinstance(value, (dict, list)):
+            value = json.dumps(value, indent=None, allow_nan=False)
+        else:
+            value = str(value)
+        # Encode using the given (or default) characterset
+        return { 'content': value.encode(charset, errors="replace") }
+
+    def _parse_content_type(self, content_type: str) -> tuple[str, str, str]:
+        charset = 'utf-8'
+        if not content_type: return ('', '', charset)
+        parts = content_type.split(';')
+        mime  = parts[0].strip().lower()
+        mime_parts = mime.split('/', 1)
+        if len(mime_parts) != 2: return ('', '', charset)
+        mime_type, mime_subtype = mime_parts[0].strip(), mime_parts[1].strip()
+        for param in parts[1:]:
+            key, _, val = param.strip().partition('=')
+            if key.strip().lower() == 'charset':
+                charset = val.strip().lower()
+                break
+        return (mime_type, mime_subtype, charset)
 
     def close(self) -> None:
         self._info('Closing session to ', self.data.url.value)
