@@ -235,7 +235,6 @@ from .builtins import (
     remove_file,
     strip_nulls,
     time_now,
-    to_json_string,
 )
 from .vgr_callable import VgrCallable
 
@@ -459,7 +458,7 @@ _BUILT_IN_FUNCS: dict[str, Callable[..., Any]] = {
     "FloorMultiple":  poly_floor_multiple,
     "Format":         poly_format,
     "FormatDuration": format_duration,
-    "FormatJSON":     format_json,
+    "FormatJson":     format_json,
     "FormatTimestamp":format_timestamp,
     "GetKeys":        poly_getkeys,
     "GetKeyValue":    poly_getkeyvalue,
@@ -624,7 +623,6 @@ _BUILT_IN_FUNCS: dict[str, Callable[..., Any]] = {
     "ToggleBit":      poly_toggle_bit,
     "ToHex":          poly_hex,
     "ToInteger":      poly_int,
-    "ToJSONStr":      to_json_string,
     "ToList":         poly_list,
     "ToNumber":       poly_number,
     "ToOctal":        poly_oct,

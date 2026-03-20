@@ -37,16 +37,17 @@ Tron
 //-----------------------------------------------------------------------------
 // Documentation examples go here
 //-----------------------------------------------------------------------------
-ForEach v In [ None, List(), Dictionary(), -1, Zero, 1.5, 2 ]:
-    Choose Using v:
-        When Is Even:
-            Print v.Repr(), "is even"
-        When Is Odd:
-            Print v.Repr(), "is odd"
-        Otherwise:
-            Print v.Repr(), "is neither even nor odd"
-    End
-End
+
+Print None.FormatJson().Repr()
+Print 5.FormatJson().Repr()
+Print 5.1.FormatJson().Repr()
+Print [5, 10, 15].FormatJson().Repr()
+Print [5, 10, 15].FormatJson(None).Repr()
+Print {"c": "sea", "b": "bee", "a": "eh"}.FormatJson(4)
+Print {"c": "sea", "b": "bee", "a": "eh"}.FormatJson(4, False)
+
+Print [True, "Hello", None].FormatJson(None).Repr()
+
 
 //-----------------------------------------------------------------------------
 Troff
