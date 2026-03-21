@@ -3,194 +3,365 @@
 // Tests parsing and execution against httpbin.org
 // -------------------------------------------------------------------------
 
-// -------------------------------------------------------------------------
-// Test 1: Simple standalone GET
-// -------------------------------------------------------------------------
-Http Get URL Is "https://httpbin.org/get"
+Define Function AssertResult(test_no):
+    Call AssertReason(test_no, None)
+    Call AssertStatus(test_no, http.status.ok)
+End
 
-Assert http.result.reason Is None : "Test 1 failed: {}", http.result.reason
-Assert http.result.status_code == http.status.ok :
-    "Test 1: Expected {}, got {}", http.status.ok, http.result.status_code
-Print "Test 1 passed"
+Define Function PrintPassed(test_no):
+    Print "Test", test_no, "passed"
+End
+
+Define Function AssertStatus(test_no, expected):
+    Set received To http.result.status_code
+    Print "Status Code"
+    Print "\tReceived    :", Repr(received)
+    Print "\tExpected    :", Repr(expected)
+    Assert http.result.status_code == expected : "Test {}: Expected status code {!r}, got {!r}", test_no, expected, received
+End
+
+Define Function AssertReason(test_no, expected):
+    Set received To http.result.reason
+    Print "Reason"
+    Print "\tReceived    :", Repr(received)
+    Print "\tExpected    :", Repr(expected)
+    Assert received == expected : "Test {}: Expected reason {!r}, got {!r}", test_no, expected, received
+End
+
+Define Function AssertAnyReason(test_no):
+    Set received To http.result.reason
+    Print "Reason"
+    Print "\tReceived    :", Repr(received)
+    Assert received Is Not None : "Test {}: Expected a reason, got {!r}", test_no, received
+End
+
+Define Function CheckParam(test_no, key, expected):
+    Set received To http.result.response.args.GetKeyValue(key)
+    Print "Paramater", Repr(key)
+    Print "\tReceived    :", Repr(received)
+    Print "\tExpected    :", Repr(expected)
+    Assert received == expected : "Test {}: For parameter {!r} expected {!r}, received {!r}", test_no, key, expected, received
+End
+
+Define Function CheckHeader(test_no, key, expected):
+    Set received To http.result.response.headers.GetKeyValue(key)
+    Print "Header", Repr(key)
+    Print "\tReceived    :", Repr(received)
+    Print "\tExpected    :", Repr(expected)
+    Assert received == expected : "Test {}: For header {!r} expected {!r}, received {!r}", test_no, key, expected, received
+End
+
+Define Function CheckJson(test_no, key, expected):
+    Set received To http.result.response.json.GetKeyValue(key)
+    Print "Json", Repr(key)
+    Print "\tReceived    :", Repr(received)
+    Print "\tExpected    :", Repr(expected)
+    Assert received == expected : "Test {}: For json key {!r} expected {!r}, received {!r}", test_no, key, expected, received
+End
+
+Define Function CheckAuthenticated(test_no, expected):
+    Set received To http.result.response.authenticated
+    Print "Authenticated"
+    Print "\tReceived    :", Repr(received)
+    Print "\tExpected    :", Repr(expected)
+    Assert received == expected : "Test {}: For authenticated expected {!r}, received {!r}", test_no, expected, received
+End
+
+Set n To 1
 
 // -------------------------------------------------------------------------
-// Test 2: GET with single parameters
+// Simple standalone GET
 // -------------------------------------------------------------------------
-Http Get URL Is "https://httpbin.org/get"
+Http Get "https://httpbin.org/get"
+Call AssertResult(n)
+Call PrintPassed(n)
+Add 1 to n
+
+// -------------------------------------------------------------------------
+// GET with single parameters
+// -------------------------------------------------------------------------
+Http Get "https://httpbin.org/get"
     Parameter "page=1"
     Parameter "q=hello world"
-Assert http.result.reason Is None : "Test 2 failed: {}", http.result.reason
-Assert http.result.response.GetKeyValue(["args", "page"]) == "1" : "Test 2: page param missing or wrong"
-Assert http.result.response.GetKeyValue(["args", "q"]) == "hello world" : "Test 2: q param missing or wrong"
-Print "Test 2 passed"
+Call AssertResult(n)
+Call CheckParam(n, "page", "1")
+Call CheckParam(n, "q", "hello world")
+Call PrintPassed(n)
+Add 1 to n
 
 // -------------------------------------------------------------------------
-// Test 3: GET with bulk parameters
+// GET with bulk parameters
 // -------------------------------------------------------------------------
-Http Get URL Is "https://httpbin.org/get"
+Http Get "https://httpbin.org/get"
     Parameters {
             "page": "2",
             "q": "bulk params"
     }
-Assert http.result.reason Is None : "Test 3 failed: {}", http.result.reason
-Assert http.result.response.GetKeyValue(["args", "page"]) == "2" : "Test 3: page param wrong"
-Assert http.result.response.GetKeyValue(["args", "q"]) == "bulk params" : "Test 3: q param wrong"
-Print "Test 3 passed"
+Call AssertResult(n)
+Call CheckParam(n, "page", "2")
+Call CheckParam(n, "q", "bulk params")
+Call PrintPassed(n)
+Add 1 to n
 
 // -------------------------------------------------------------------------
-// Test 4: GET with custom header — httpbin echoes headers back
+// GET with custom header — httpbin echoes headers back
 // -------------------------------------------------------------------------
-Http Get URL Is "https://httpbin.org/headers"
+Http Get "https://httpbin.org/headers"
     Header " X-Test-Header : HelloWorld "
-Assert http.result.reason Is None : "Test 4 failed: {}", http.result.reason
-Assert http.result.response.GetKeyValue(["headers", "X-Test-Header"]) == "HelloWorld" : "Test 4: header missing or wrong"
-Print "Test 4 passed"
+Call AssertResult(n)
+Call CheckHeader(n, "X-Test-Header", "HelloWorld")
+Call PrintPassed(n)
+Add 1 to n
 
 // -------------------------------------------------------------------------
-// Test 5: POST with JSON body
+// POST with JSON body
 // -------------------------------------------------------------------------
-Http Post URL Is "https://httpbin.org/post"
+Http Post "https://httpbin.org/post"
     Body Is {"name": "alice", "role": "admin"}
     Header "Content-Type: application/json"
-
-Assert http.result.reason Is None : "Test 5 failed: {}", http.result.reason
-Assert http.result.status_code == http.status.ok :
-    "Test 5: Expected {}, got {}", http.status.ok, http.result.status_code
-Assert http.result.response.GetKeyValue(["json", "name"]) == "alice" : "Test 5: json body missing or wrong"
-Print "Test 5 passed"
-
-// -------------------------------------------------------------------------
-// Test 6: Basic auth — httpbin returns "okay" on match
-// -------------------------------------------------------------------------
-Http Get URL Is "https://httpbin.org/basic-auth/testuser/testpass"
-    User Is "testuser"
-    Password Is "testpass"
-
-Assert http.result.reason Is None : "Test 6 failed: {}", http.result.reason
-Assert http.result.status_code == http.status.ok :
-    "Test 6: Expected {}, got {}", http.status.ok, http.result.status_code
-Assert http.result.response.GetKeyValue("authenticated") == True : "Test 6: not authenticated"
-Print "Test 6 passed"
+Call AssertResult(n)
+Call CheckJson(n, "name", "alice")
+Call CheckJson(n, "role", "admin")
+Call PrintPassed(n)
+Add 1 to n
 
 // -------------------------------------------------------------------------
-// Test 7: Expected "not found" — reason should be set, script continues
+// Basic auth
+// -------------------------------------------------------------------------
+Set user To "testuser"
+Set password To "testpass"
+Http Get "https://httpbin.org/basic-auth/{}/{}".Format(user, password)
+    User Is user
+    Password Is password
+    Auth Is Basic
+Call AssertResult(n)
+Call CheckAuthenticated(n, True)
+Call PrintPassed(n)
+Add 1 to n
+
+// -------------------------------------------------------------------------
+// Basic auth - failure
+// -------------------------------------------------------------------------
+Set user To "testuser"
+Set password To "testpass"
+Http Get "https://httpbin.org/basic-auth/{}/{}".Format(user, password)
+    User Is user
+    Password Is "BAD"
+    # Auth Is Basic - this is the default
+Call AssertStatus(n, http.status.unauthorized)
+Call CheckAuthenticated(n, None)
+Call PrintPassed(n)
+Add 1 to n
+
+// -------------------------------------------------------------------------
+// Digest auth
+// -------------------------------------------------------------------------
+Http Get "https://httpbin.org/digest-auth/auth/{}/{}".Format(user, password)
+    User Is user
+    Password Is password
+    Auth Is Digest
+Call AssertResult(n)
+Call CheckAuthenticated(n, True)
+Call PrintPassed(n)
+Add 1 to n
+
+// -------------------------------------------------------------------------
+// Expected "not found" — reason should be set, script continues
 // -------------------------------------------------------------------------
 Http Get URL Is "https://httpbin.org/status/404"
-
-Assert http.result.status_code == http.status.not_found :
-     "Test 7: Expected {}, got {}", http.status.not_found, http.result.status_code
-Assert http.result.reason Is Not None :
-    "Test 7: Expected non-null reason for {}", http.status.not_found
-Print "Test 7 passed: not found correctly returned as result"
+Call AssertStatus(n, http.status.not_found)
+Call AssertReason(n, "NOT FOUND")
+Call PrintPassed(n)
+Add 1 to n
 
 // -------------------------------------------------------------------------
-// Test 8: Timeout — delay endpoint with short timeout
+// Timeout — delay endpoint with short timeout
 // expects transport failure result, not an exception
 // -------------------------------------------------------------------------
-Http Get URL Is "https://httpbin.org/delay/5"
-    Timeout Is 1
-
-Assert http.result.reason Is Not None : "Test 8: Expected transport failure reason"
-Assert http.result.status_code Is None : "Test 8: Expected no status code on timeout"
-Printf "Test 8 passed: timeout reason: {}\n", http.result.reason
+Http Get URL Is "https://httpbin.org/delay/5" Timeout Is 1
+Call AssertStatus(n, None)
+Call AssertReason(n, "The read operation timed out")
+Call PrintPassed(n)
+Add 1 to n
 
 // -------------------------------------------------------------------------
-// Test 9: Session connect, GET, disconnect
+// Session connect, GET, disconnect
 // -------------------------------------------------------------------------
-Http Connect "https://httpbin.org/"
-    Timeout Is 10.0
-    As httpbin
-
-Http Get URL Is "get"
-    Using httpbin
-    Giving result.session_get
-
-Assert result.session_get.reason Is None : "Test 9 failed: {}", result.session_get.reason
-Assert result.session_get.status_code == http.status.ok :
-    "Test 9: Expected {}, got {}", http.status.ok, result.session_get.status_code
-Print "Test 9 passed"
-
+Http Connect "https://httpbin.org/" Timeout Is 10.0 As httpbin
+Http Get URL Is "get" Using httpbin
+Call AssertResult(n)
 Http Disconnect httpbin
+Call PrintPassed(n)
+Add 1 to n
 
 // -------------------------------------------------------------------------
-// Test 10: Session with URL params — override one, keep one, add one
+// Session with URL params — override one, keep one, add one
 // -------------------------------------------------------------------------
 Http Connect "https://httpbin.org/?api_version=1&format=json"
     Timeout Is 10.0
     As httpbin
-
 Http Get URL Is "get"
     Parameter "api_version=2"
     Parameter "page=1"
     Using httpbin
-    Giving result.param_test
-
-Assert result.param_test.reason Is None : "Test 10 failed: {}", result.param_test.reason
-Assert result.param_test.response.GetKeyValue(["args", "api_version"]) == "2" : "Test 10: api_version not overridden"
-Assert result.param_test.response.GetKeyValue(["args", "format"]) == "json" : "Test 10: format not carried through"
-Assert result.param_test.response.GetKeyValue(["args", "page"]) == "1" : "Test 10: page param missing"
-Print "Test 10 passed"
-
+Call AssertResult(n)
+Call CheckParam(n, "format", "json") # From connect
+Call CheckParam(n, "page", "1") # From request
+Call CheckParam(n, "api_version", "2") # request overrides connect
+Call PrintPassed(n)
+Add 1 to n
 Http Disconnect httpbin
 
 // -------------------------------------------------------------------------
-// Test 11: Session with Basic auth
+// Session with Basic auth
 // -------------------------------------------------------------------------
+Set user To "bob"
+Set password To "secret"
 Http Connect "https://httpbin.org/"
-    User Is "bob"
-    Password Is "secret"
+    User Is user
+    Password Is password
     Timeout Is 10.0
     As httpbin
-
-Http Get URL Is "basic-auth/bob/secret"
-    Using httpbin
-    Giving result.auth_test
-
-Assert result.auth_test.reason Is None : "Test 11 failed: {}", result.auth_test.reason
-Assert result.auth_test.response.GetKeyValue("authenticated") == True : "Test 11: not authenticated"
-Print "Test 11 passed"
-
+# Credentials come from connect
+Http Get "basic-auth/{}/{}".Format(user, password) Using httpbin
+Call AssertResult(n)
+Call CheckAuthenticated(n, True)
+Call PrintPassed(n)
+Add 1 to n
 Http Disconnect httpbin
 
 // -------------------------------------------------------------------------
-// Test 12: Content type detection — JSON response
+// Follow Redirects - off
 // -------------------------------------------------------------------------
-Http Get URL Is "https://httpbin.org/get"
-
-Set content_type To http.result.headers.GetKeyValue(http.header.content_type)
-Assert "json" Is In content_type : "Test 12: Expected json content_type, got {}", content_type
-Print "Test 12 passed"
+Http Connect "https://httpbin.org/"
+    Follow Redirects Is False
+    As httpbin
+Http Get "redirect/1" Using httpbin
+Call AssertStatus(n, http.status.found)
+Call PrintPassed(n)
+Add 1 to n
+Http Disconnect httpbin
 
 // -------------------------------------------------------------------------
-// Test 13: DELETE
+// Follow Redirects - on, unlimited
+// -------------------------------------------------------------------------
+Http Connect "https://httpbin.org/"
+    Follow Redirects
+    As httpbin
+Http Get "redirect/5" Using httpbin
+Call AssertResult(n)
+Call PrintPassed(n)
+Add 1 to n
+Http Disconnect httpbin
+
+// -------------------------------------------------------------------------
+// Follow Redirects - on, limited
+// -------------------------------------------------------------------------
+Http Connect "https://httpbin.org/"
+    Follow Redirects
+    Max Redirects Is 3
+    As httpbin
+Http Get "redirect/5" Using httpbin
+Print http.result.FormatJson()
+Call AssertStatus(n, None)
+Call AssertReason(n, "Exceeded maximum allowed redirects")
+Call PrintPassed(n)
+Add 1 to n
+Http Disconnect httpbin
+
+// -------------------------------------------------------------------------
+// DELETE
 // -------------------------------------------------------------------------
 Http Delete URL Is "https://httpbin.org/delete"
-
-Assert http.result.reason Is None : "Test 13 failed: {}", http.result.reason
-Assert http.result.status_code == http.status.ok :
-    "Test 13: Expected {}, got {}", http.status.ok, http.result.status_code
-Print "Test 13 passed"
+Call AssertResult(n)
+Call PrintPassed(n)
+Add 1 to n
 
 // -------------------------------------------------------------------------
-// Test 14: PUT with body
+// PUT with body
 // -------------------------------------------------------------------------
 Http Put URL Is "https://httpbin.org/put"
-    Body Is {"key": "value"}
+    Body Is { "key": "value" }
     Header "Content-Type: application/json"
-
-Assert http.result.reason Is None : "Test 14 failed: {}", http.result.reason
-Assert http.result.response.GetKeyValue(["json", "key"]) == "value" : "Test 14: body not echoed correctly"
-Print "Test 14 passed"
+Call AssertResult(n)
+Call CheckJson(n, "key", "value")
+Call PrintPassed(n)
+Add 1 to n
 
 // -------------------------------------------------------------------------
-// Test 15: PATCH with body
+// PATCH with body
 // -------------------------------------------------------------------------
 Http Patch URL Is "https://httpbin.org/patch"
-    Body Is {"status": "updated"}
+    Body Is { "status": "updated" }
     Header "Content-Type: application/json"
+Call AssertResult(n)
+Call CheckJson(n, "status", "updated")
+Call PrintPassed(n)
+Add 1 to n
 
-Assert http.result.reason Is None : "Test 15 failed: {}", http.result.reason
-Assert http.result.response.GetKeyValue(["json", "status"]) == "updated" : "Test 15: body not echoed correctly"
-Print "Test 15 passed"
 
-Printf "\nAll tests passed.\n"
+// -------------------------------------------------------------------------
+// Giving tests - positive only
+// -------------------------------------------------------------------------
+# We can always restate the default and have it work
+Http Get "https://httpbin.org/get" Giving http.result
+Call AssertResult(n)
+Call PrintPassed(n)
+Add 1 to n
+
+# We can specify our own writable var
+Unset froboz
+Assert froboz Is None
+Http Get "https://httpbin.org/get" Giving froboz
+Assert froboz Is Not None
+Call PrintPassed(n)
+Add 1 to n
+
+// -------------------------------------------------------------------------
+// HTTP version
+// -------------------------------------------------------------------------
+ForEach test_case in [[1, 1.1], [1.1, 1.1], [2, 2], [" 2 ", 2]]:
+    Set version To test_case.FirstItem()
+    Set expected To "HTTP/" + test_case.LastItem()
+    Http Connect "https://httpbin.org"
+        HTTP-Version Is version
+        As httpbin
+    Http Get "get" Using httpbin
+    Call AssertResult(n)
+    Set received To http.result.http_version
+    Print "HTTP version"
+    Print "\tRequested   :", Repr(version)
+    Print "\tReceived    :", Repr(received)
+    Print "\tExpected    :", Repr(expected)
+    Assert received == expected
+    Call PrintPassed(n)
+    Add 1 to n
+End
+
+// -------------------------------------------------------------------------
+// Verify SSL
+// -------------------------------------------------------------------------
+ForEach host In [
+        "expired.badssl.com",
+        "self-signed.badssl.com",
+        "wrong.host.badssl.com",
+    ]:
+    ForEach verify In [ True, False ]:
+        Http Connect "https://" + host Verify SSL Is verify Timeout Is 10.0
+            As ssl_test_conn
+        Http Get URL Is "/"
+            Using ssl_test_conn
+        Printf "https://{} - Verify SSL is {}\n", host, verify
+        If verify:
+            Call AssertStatus(n, None)
+            Call AssertAnyReason(n)
+        Else:
+            Call AssertStatus(n, http.status.ok)
+            Call AssertReason(n, None)
+        End
+        Call PrintPassed(n)
+        Add 1 to n
+    End
+End
+
+Print "All tests passed"

@@ -1,0 +1,6 @@
+
+# Can't set immutable output
+Http Get "https://httpbin.org/get" Giving math.pi
+
+# Bad HTTP version number
+Http Get "https://httpbin.org/get" Http Version is 17

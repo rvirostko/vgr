@@ -14,7 +14,7 @@ Http Connect "http://localhost/" As "s1" As "s2"
 Http Connect "http://localhost/" Verify SSL Verify SSL Is False As "s1"
 
 # duplicate CA Certificate
-Http Connect "http://localhost/" CA Certificate Is "pem1" CA Certificate Is "pem2" As "s1"
+# Http Connect "http://localhost/" CA Certificate Is "pem1" CA Certificate Is "pem2" As "s1"
 
 # duplicate Connect Timeout
 Http Connect "http://localhost/" Connect Timeout Is 5.0 Connect Timeout Is 10.0 As "s1"
@@ -51,7 +51,7 @@ Http Connect "http://localhost/" Maximum Redirects Is 5 Maximum Redirects Is 10 
 # -------------------------------------------------------------------------
 
 # CA Certificate conflicts with Verify SSL Is False
-Http Connect "http://localhost/" CA Certificate Is "pem" Verify SSL Is False As "s1"
+# Http Connect "http://localhost/" CA Certificate Is "pem" Verify SSL Is False As "s1"
 
 # -------------------------------------------------------------------------
 # Http Get — duplicate options
@@ -98,7 +98,7 @@ Http Get URL Is "http://localhost/" Maximum Redirects Is 5 Maximum Redirects Is 
 # -------------------------------------------------------------------------
 
 # CA Certificate conflicts with Verify SSL Is False
-Http Get URL Is "http://localhost/" CA Certificate Is "pem" Verify SSL Is False Giving result
+# Http Get URL Is "http://localhost/" CA Certificate Is "pem" Verify SSL Is False Giving result
 
 # Maximum Redirects with Follow Redirects Is False
 Http Get URL Is "http://localhost/" Maximum Redirects Is 5 Follow Redirects Is False Giving result

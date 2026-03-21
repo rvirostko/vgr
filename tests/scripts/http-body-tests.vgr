@@ -18,7 +18,7 @@ Define Function CheckDataResponse(test_no, expected, expected_type):
     Set received To http.result.response.data
     Set received_type To http.result.response.headers.GetKeyValue(http.header.content_type)
     Print "\tContent-Type:", Repr(received_type)
-    Print "\tRecieved    :", Repr(received)
+    Print "\tReceived    :", Repr(received)
     Print "\tExpected    :", Repr(expected)
     Assert received_type == expected_type : "Test {}: For data expected {!r} type, received {!r}", test_no, expected_type, received_type
     Assert received == expected : "Test {}: For data expected {!r}, received {!r}", test_no, expected, received
@@ -31,7 +31,7 @@ Define Function CheckJsonResponse(test_no, expected, expected_type):
     Set received To http.result.response.json
     Set received_type To http.result.response.headers.GetKeyValue(http.header.content_type)
     Print "\tContent-Type:", Repr(received_type)
-    Print "\tRecieved    :", Repr(received)
+    Print "\tReceived    :", Repr(received)
     Print "\tExpected    :", Repr(expected)
     Assert received_type == expected_type : "Test {}: For data expected {!r} type, received {!r}", test_no, expected_type, received_type
     Assert received == expected : "Test {}: For data expected {!r}, received {!r}", test_no, expected, received

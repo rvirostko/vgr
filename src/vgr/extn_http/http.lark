@@ -58,15 +58,15 @@ http_request: "Http"i (("Method"i | "Request"i) "Is"?)? http_method _COMMA? ("UR
 // Method as keyword (preferred — unambiguous, readable) or dynamic expr.
 // Dynamic expr resolved to a HTTP method string at execution time.
 // NB: Connect (in RFC9110) conflicts with the connect statement; quote it
-?http_method: "Get"i    -> hmethod_get
+?http_method: "Delete"i -> hmethod_delete
+    | "Get"i            -> hmethod_get
+    | "Head"i           -> hmethod_head
+    | "List"i           -> hmethod_list # not RFC9110 but common
+    | "Options"i        -> hmethod_options
+    | "Patch"i          -> hmethod_patch
     | "Post"i           -> hmethod_post
     | "Put"i            -> hmethod_put
-    | "Patch"i          -> hmethod_patch
-    | "Delete"i         -> hmethod_delete
-    | "Head"i           -> hmethod_head
-    | "Options"i        -> hmethod_options
     | "Trace"i          -> hmethod_trace
-    | "List"i           -> hmethod_list # not RFC9110 but common
     | expr              -> hmethod_dynamic # can be any value
 
 ?http_request_arg: http_auth_opt
@@ -89,11 +89,15 @@ http_request: "Http"i (("Method"i | "Request"i) "Is"?)? http_method _COMMA? ("UR
 //   Separated from read/write timeouts as it is a pool-level concern.
 // * HTTP Version : protocol version — constrains the entire connection pool.
 //   Constrained values: 1, 1.1, 2 — other values are bind-time errors.
+// * Maximum redirect : only meaningful when Follow Redirects is True.
 //----------------------------------------------------------------------------
-?http_conn_opt: ("Verify"i "SSL"i) ("Is"i expr)?   -> hopt_verify_ssl      // bool
-    | "CA"i ("Certificate"i | "Cert"i) "Is"i? expr -> hopt_ca_cert         // string: PEM content
+?http_conn_opt: ("Verify"i "SSL"i) ("Is"i? expr)?  -> hopt_verify_ssl      // bool
     | "Connect"i "Timeout"i "Is"i? expr            -> hopt_connect_timeout // int/float: seconds
-    | "HTTP"i "Version"i? "Is"i? expr              -> hopt_http_version    // constrained: 1, 1.1, 2
+    | "HTTP-Version"i "Is"i? expr              -> hopt_http_version    // constrained: 1, 1.1, 2
+    | ("Maximum"i | "Max"i) ("Redirect"i | "Redirects"i) "Is"i? expr  -> hopt_max_redirects // int
+
+// Disable until we have a proper usecase to test...
+//    | "CA"i ("Certificate"i | "Cert"i) "Is"i? expr -> hopt_ca_cert         // string: PEM content
 
 // ---------------------------------------------------------------------------
 // http_auth_opt — authentication options (connect and request)
@@ -123,16 +127,13 @@ http_request: "Http"i (("Method"i | "Request"i) "Is"?)? http_method _COMMA? ("UR
 //   transfer concerns.
 // * Follow Redirect : Redirect following — trinary bool. httpx defaults
 //   to False (does not follow redirects). Bare form implies True.
-// * Maximum redirect : only meaningful when Follow Redirects is True.
-//   Present without Follow Redirects is a bind-time warning, not error.
 // ---------------------------------------------------------------------------
 ?http_req_opt: ("Header"i | "Headers"i) ("Is"i | "Are"i)? expr  -> hopt_headers // by type
     | ("Param"i | "Parameter"i | "Parameters"i) ("Is"i | "Are"i)? expr     -> hopt_parameters // by type
     | "Timeout"i "Is"i? expr              -> hopt_timeout          // int/float: seconds
     | "Read"i "Timeout"i "Is"i? expr      -> hopt_read_timeout     // int/float: seconds
     | "Write"i "Timeout"i "Is"i? expr     -> hopt_write_timeout    // int/float: seconds
-    | "Follow"i "Redirect"i ("Is"i expr)? -> hopt_follow_redirects // bool
-    | ("Maximum"i | "Max"i) ("Redirect"i | "Redirects"i) "Is"i? expr  -> hopt_max_redirects // int
+    | "Follow"i ("Redirect"i | "Redirects"i) ("Is"i? expr)? -> hopt_follow_redirects // bool
 
 //----------------------------------------------------------------------------
 // http_request_opt — request-only options

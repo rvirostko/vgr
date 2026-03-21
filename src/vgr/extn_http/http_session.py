@@ -33,7 +33,7 @@ class HttpSession:
         httpx merges request-level headers, params, auth and timeout
         with session-level values automatically — no manual merge needed.
         Single auto-reconnect on stale connection.
-        Unrecoverable errors propagate to the handler for DSL failure normalization.
+        Unrecoverable errors propagate to the handler for failure normalization.
         """
         method = request_data.method.value
         url = request_data.url.value
@@ -46,6 +46,8 @@ class HttpSession:
                 self._warn(f"Connection stale during {method} request to {url}: {e}; reconnecting")
                 self._reconnect()
                 return self._build_result(request_data, self.client.request(method, url, **kwargs))
+        except httpx.TooManyRedirects as e:
+            return self._build_result(request_data, None, e)
         except httpx.TransportError as e:
                 return self._build_result(request_data, None, e)
 
@@ -62,7 +64,6 @@ class HttpSession:
         timeout = self._build_request_timeout(data)
         if timeout is not None: kwargs['timeout'] = timeout
         if data.follow_redirects is not None: kwargs['follow_redirects'] = data.follow_redirects.value
-        if data.max_redirects is not None: kwargs['max_redirects'] = data.max_redirects.value
         # body handled separately — type-driven content-type rules apply
         if not HttpData.is_missing(data.body):
             kwargs.update(self._build_body(data))
@@ -119,24 +120,40 @@ class HttpSession:
 
     def _build_result(self, data: HttpData, response: httpx.Response, failure: Exception=None) -> dict:
         """
-        Normalize an httpx Response into the DSL result structure.
+        Normalize an httpx Response into the result structure.
         reason is present only when something went wrong — None means clean.
-        On transport failure, data fields are omitted — None derefs are safe in DSL.
+        On transport failure, data fields are omitted.
         """
         if response is None:
             return {
-                "method": data.method.value,
-                "url":    data.url.value,
-                "reason": str(failure) if failure else "Unknown transport failure",
+                "method":           data.method.value,
+                "request-url":      data.url.value,
+                "reason":           str(failure).rstrip('.') if failure else "Unknown transport failure",
+                # These are all false because we have no status code
+                "is_client_error":  False,
+                "is_error":         False,
+                "is_informational": False,
+                "is_redirect":      False,
+                "is_server_error":  False,
+                "is_success":       False,
             }
         content_type = response.headers.get("content-type", "").split(";")[0].strip().lower()
         body = self._decode_body(response, content_type)
         result = {
-            "response":     body,
-            "url":          data.url.value,
-            "method":       data.method.value,
-            "status_code":  response.status_code,
-            "headers":      {key.title() : value for key, value in response.headers.items()}
+            "response":         body,
+            "url":              response.url,
+            "request-url":      response.request.url,
+            "method":           response.request.method,
+            "status_code":      response.status_code,
+            "headers":          { key.title() : value for key, value in response.headers.items() },
+            "http_version":     response.http_version,
+            "is_client_error":  response.is_client_error,
+            "is_closed":        response.is_closed,
+            "is_error":         response.is_error,
+            "is_informational": response.is_informational,
+            "is_redirect":      response.is_redirect,
+            "is_server_error":  response.is_server_error,
+            "is_success":       response.is_success,
         }
         if not response.is_success:
             result["reason"] = response.reason_phrase
@@ -144,13 +161,13 @@ class HttpSession:
 
     def _decode_body(self, response: httpx.Response, content_type: str) -> tuple[str, any]:
         """
-        Decode response body into a DSL-compatible type.
+        Decode response body into a compatible type.
         json    → dict or list
         text/*  → str
-        other   → hex string of raw bytes (DSL hex routines handle further processing)
+        other   → hex string of raw bytes (hex routines handle further processing)
         Falls back gracefully — JSON parse failure drops to text,
         text decode failure drops to hex.
-        CSV, XML, and other structured formats are left as text for DSL routines to parse.
+        CSV, XML, and other structured formats are left as text for routines to parse.
         """
         if "json" in content_type:
             try:
