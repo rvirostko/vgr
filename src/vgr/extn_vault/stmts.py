@@ -80,16 +80,22 @@ def execute_connect(ctx: ExecContext, statement: Tree) -> None:
 
 Also see `Vault Disconnect`
 """
-    addr = token = conn_name = timeout = blocksize = None
+    conn_name = timeout = blocksize = None
+    # If not provided, we use our environment
+    addr = ctx.get_var('env', 'VAULT_ADDR')
+    token = ctx.get_var('env', 'VAULT_TOKEN')
+    conn_name = _get_conn_name({})
     for child in statement.children:
         if isinstance(child, Tree):
             name: str = child.data
             if name == 'conn_addr':
-                addr = _resolve_str_arg(ctx, child.children[0], 'Vault Address')
+                # None means use default
+                addr = _resolve_str_arg(ctx, child.children[0], 'Vault Address', True) or addr
             elif name == 'conn_token':
-                token = _resolve_str_arg(ctx, child.children[0], 'Vault Token')
+                token = _resolve_str_arg(ctx, child.children[0], 'Vault Token', True) # okay to be None!
             elif name == 'conn_name':
-                conn_name = _resolve_str_arg(ctx, child.children[0], 'Vault Connection Name')
+                # None means use default
+                conn_name = _resolve_str_arg(ctx, child.children[0], 'Vault Connection Name', True) or conn_name
             elif name == 'conn_timeout':
                 v = _resolve_int_arg(ctx, child.children[0], 'Vault Connection Timeout', True)
                 timeout = None if v is None else poly_clamp(v, 1, 600) # 1 sec to 10 minutes
@@ -100,12 +106,14 @@ Also see `Vault Disconnect`
                 raise VgrRuntimeError(child, NotImplementedError(f'Argument {name!r} not handled')) # SNO
         else:
             raise VgrRuntimeError(child, ValueError(f'Unexpected Vault argument {child!r}')) # SNO
-    conn_name = conn_name or _get_conn_name({})
-    client = _CONNECTIONS.connect(conn_name, addr, token)
-    if timeout is not None:
-        client.timeout = timeout
-    if blocksize is not None:
-        client.blocksize = blocksize
+    try:
+        client = _CONNECTIONS.connect(conn_name, addr, token)
+        if timeout is not None:
+            client.timeout = timeout
+        if blocksize is not None:
+            client.blocksize = blocksize
+    except ValueError as e:
+        raise VgrRuntimeError(statement, e) from e
     _STATE.default_connection = conn_name
     _set_result(ctx, {}, None)
 
