@@ -2,7 +2,6 @@
 Manage named VaultClient instances
 """
 
-import os
 from typing import Optional, Dict
 
 from .vclient import VaultClient
@@ -15,12 +14,7 @@ class VaultClientManager:
     def connect(self, name: str, addr: str=None, token: str=None) -> VaultClient:
         """Create and store a VaultClient under the given name."""
         name = self._normalize_name(name)
-        addr = addr or os.environ.get('VAULT_ADDR')
-        token = token or os.environ.get('VAULT_TOKEN')
-        if not addr:
-            raise ValueError('Vault address must be provided or set via VAULT_ADDR')
-        if not token:
-            raise ValueError('Vault token must be provided or set via VAULT_TOKEN')
+        if addr is None: raise ValueError('Vault address must be provided')
         # if we had one previously, close it
         self.disconnect(name)
         client = VaultClient(addr, token)
@@ -40,6 +34,6 @@ class VaultClientManager:
         return self._connections[name] if name in self._connections else self.connect(name)
 
     def _normalize_name(self, name: Optional[str]) -> str:
-        if not name or name.isspace() == '':
+        if name is None or name.isspace():
             raise ValueError('Missing name for Vault connection')
         return name.strip()
