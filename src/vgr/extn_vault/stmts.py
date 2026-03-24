@@ -12,6 +12,7 @@ from ..builtins import (
     poly_clamp,
     poly_int,
     poly_list,
+    poly_number,
     poly_type,
 )
 from ..data_dict import DataDictionary, DynamicValue
@@ -81,7 +82,7 @@ def execute_connect(ctx: ExecContext, statement: Tree) -> None:
 Also see `Vault Disconnect`
 """
     conn_name = timeout = blocksize = None
-    # If not provided, we use our environment
+    # If not provided, we use our (inherited and mutable) environment
     addr = ctx.get_var('env', 'VAULT_ADDR')
     token = ctx.get_var('env', 'VAULT_TOKEN')
     conn_name = _get_conn_name({})
@@ -97,8 +98,8 @@ Also see `Vault Disconnect`
                 # None means use default
                 conn_name = _resolve_str_arg(ctx, child.children[0], 'Vault Connection Name', True) or conn_name
             elif name == 'conn_timeout':
-                v = _resolve_int_arg(ctx, child.children[0], 'Vault Connection Timeout', True)
-                timeout = None if v is None else poly_clamp(v, 1, 600) # 1 sec to 10 minutes
+                v = _resolve_number_arg(ctx, child.children[0], 'Vault Connection Timeout', True)
+                timeout = None if v is None else poly_clamp(v, 0.001, 600.0) # 1 msec to 10 minutes
             elif name == 'conn_blocksize':
                 v = _resolve_int_arg(ctx, child.children[0], 'Vault Connection Blocksize', True)
                 blocksize = None if v is None else poly_clamp(v, 256, 1024 * 512) # 256 bytes to 512k
@@ -1434,10 +1435,13 @@ def _resolve_str_arg(ctx: ExecContext, expr: Tree, name: str, allow_none: bool=F
     return rc
 
 def _resolve_int_arg(ctx: ExecContext, expr: Tree, name: str, allow_none: bool=False) -> int:
+    return int(_resolve_number_arg(ctx, expr, name, allow_none))
+
+def _resolve_number_arg(ctx: ExecContext, expr: Tree, name: str, allow_none: bool=False) -> Any:
     rc = ctx.eval_expr_or_const(expr)
+    if isinstance(rc, (str, int, float)): return poly_number(rc)
     if rc is None and allow_none: return None
-    if not isinstance(rc, (int, float, str)): raise TypeError(f'{name} must be a number or string; found {poly_type(rc)!r}')
-    return poly_int(rc)
+    raise TypeError(f'{name} must be a number or string; found {poly_type(rc)!r}')
 
 def _allowed_args(args: dict, *allowed_keys) -> None:
     """Raise an error if any key in args is not in allowed_keys."""
