@@ -62,6 +62,7 @@ _add_operations = {
     (float, list): dist_y,
     (str, str): lambda _, x, y: x + y,
     (str, int): lambda _, x, y: x + str(y),
+    (str, bool): lambda _, x, y: x + str(y),
     (str, float): lambda _, x, y: x + str(y),
     (str, list): dist_y,
     (list, int): dist_x,
