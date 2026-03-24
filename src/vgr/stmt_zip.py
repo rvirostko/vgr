@@ -49,7 +49,7 @@ If `Comment` is specified multiple times, only the last one is used.
 > **Windows Note**\\
 > If you hard code paths, please use the slash as a universal
 > directory separator. Since the backslash is an escape character, if you use
-> it in a string, you will either need to double it or use a _raw string_.
+> it in a string, you will either need to double it or use a *raw string*.
 """
     zip_name = ctx.eval_filename_expr(statement.children[0])
     include_patterns: list[str] = []

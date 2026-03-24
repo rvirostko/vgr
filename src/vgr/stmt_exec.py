@@ -215,7 +215,7 @@ input/output redirection.
 > **Windows Note**\\
 > If you hard code paths, please use the slash as a universal
 > directory separator. Since the backslash is an escape character, if you use
-> it in a string, you will either need to double it or use a _raw string_.
+> it in a string, you will either need to double it or use a *raw string*.
 
 ```vgr
 **TODO**
@@ -243,7 +243,7 @@ cleared by `Reset`.
 > **Windows Note**\\
 > If you hard code paths, please use the slash as a universal
 > directory separator. Since the backslash is an escape character, if you use
-> it in a string, you will either need to double it or use a _raw string_.
+> it in a string, you will either need to double it or use a *raw string*.
 
 Also see `Source` and `Reset`
 """
