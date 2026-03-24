@@ -62,10 +62,9 @@ class VaultStatusException(http.client.HTTPException):
 class VaultClient():
 
     def __init__(self, addr: str, token: str, default_ns: str=None):
-        if not addr: raise ValueError("Vault host address not provided")
-        if not token: raise ValueError("Vault token not provided")
-        self._token = token
+        if addr is None: raise ValueError("Vault host address not provided")
         self._addr = addr
+        self._token = token # This may be None or blank for auth requests
         p = urlparse(addr)
         if not p.scheme: p = urlparse("https://" + addr)
         if p.scheme and not p.netloc:
@@ -128,10 +127,11 @@ class VaultClient():
         namespace = self._ns(namespace)
         self._info(method, ' ', self._addr, url, ' (X-Vault-Namespace=\'', namespace, '\')')
         headers = {
-            'X-Vault-Token': self._token,
             'X-Vault-Namespace': namespace,
             'Accept': f'{_MIME_JSON}; charset={_UTF_8}'
         }
+        # NB: may be empty/None for auth requests
+        if self._token: headers['X-Vault-Token'] = self._token
         data_bytes = None
         if data is not None:
             mime_type = _MIME_JSON_PATCH if method == _M_PATCH else _MIME_JSON
