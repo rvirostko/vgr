@@ -178,6 +178,7 @@ numeric_operations = {
     (str, int): lambda op, x, y: op(str_to_number(x), y),
     (str, float): lambda op, x, y: op(str_to_number(x), y),
     (str, str): lambda op, x, y: op(str_to_number(x), str_to_number(y)),
+    (list, bool): dist_x,
     (list, int): dist_x,
     (list, float): dist_x,
     (list, str): dist_x,
