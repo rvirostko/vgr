@@ -78,7 +78,6 @@ class VGRCmdLine(CmdLine):
     def __init__(self, ctx: ExecContext):
         assert ctx
         self._ctx = ctx
-        self._prompt = self._get_vgr_default('prompt', self._DEFAULT_PROMPT)
         self._history_filename = self._get_vgr_default('history', self._DEFAULT_HISTORY)
         self._max_history_entries = self._get_vgr_default('history_size', CmdLine._DEFAULT_HISTORY_SIZE)
         super().__init__()
@@ -138,6 +137,10 @@ class VGRCmdLine(CmdLine):
             print(e, file=sys.stderr)
         else:
             print(e.args[0] if e.args else f'{poly_type(e)!r}', file=sys.stderr)
+
+    def get_prompt(self) -> str:
+        prompt = self._ctx.get_var("env", "VGR_PROMPT")
+        return self._DEFAULT_PROMPT if prompt is None else prompt
 
     def _get_vgr_default(self, env_var: str, default: Any) -> str:
         """Look for a matching environment variable (uppercase) and return it or the default value"""

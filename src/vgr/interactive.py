@@ -104,9 +104,6 @@ class CmdLine:
     _MULTILINE_PARSER: ArgumentParser = (ParserBuilder()
                     .argument('multiline', nargs=OPTIONAL, type=poly_bool)
                     .parser())
-    _PROMPT_PARSER: ArgumentParser = (ParserBuilder()
-                    .argument('template', nargs=OPTIONAL, type=str)
-                    .parser())
     _NO_ARGS_PARSER: ArgumentParser = ParserBuilder().parser()
 
     _PROMPT_ESCAPES = {
@@ -124,7 +121,6 @@ class CmdLine:
     }
 
     def __init__(self):
-        self._prompt = self._prompt or '> '
         self._history_filename = self._history_filename or '.history'
         self._max_history_entries = self._max_history_entries or 100
         self.print_verbose("Loading history from", self.history_filename)
@@ -136,7 +132,6 @@ class CmdLine:
         self.add_cmd("help", self._exec_help)
         self.add_cmd("history", self._exec_history)
         self.add_cmd("multiline", self._exec_multiline)
-        self.add_cmd("prompt", self._exec_prompt)
         self.add_cmd("pwd", self._exec_pwd)
         self.add_cmd("shell", self._exec_subshell)
 
@@ -181,15 +176,6 @@ class CmdLine:
             if values.multiline is not None: self.multiline = values.multiline
             self.print_verbose('Multiline mode is', self.multiline)
             if self.multiline: print('Use Meta-Return to execute commands')
-
-    def _exec_prompt(self, *args):
-        values = self._parse(self._PROMPT_PARSER, *args)
-        if values is not None:
-            if values.template is None:
-                print(f'prompt is {self.prompt!r}')
-            else:
-                self._prompt = values.template
-                self.print_verbose(f'Prompt changed to {self.prompt!r}')
 
     def _exec_subshell(self, *args) -> None:
         if os.name == "nt":
@@ -245,7 +231,7 @@ class CmdLine:
         # does not handle other backslash escaping or anything sophisticated
         return re.sub(r'[\\](.)',
                     lambda match : self._PROMPT_ESCAPES.get(match.group(1), lambda : match.group(1))(),
-                    self.prompt)
+                    self.get_prompt())
 
     def _parse(self, parser: ArgumentParser, *args) -> Namespace:
         try:
@@ -263,8 +249,8 @@ class CmdLine:
     @abstractmethod
     def execute_statements(self, text: str) -> bool: pass
 
-    @property
-    def prompt(self) -> str: return self._prompt
+    @abstractmethod
+    def get_prompt(self) -> str: pass
 
     @property
     def history_filename(self) -> str: return expand_filename(self._history_filename)
