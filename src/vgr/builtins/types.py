@@ -341,6 +341,11 @@ If *value* is `None` it is left as `None`.
 ```vgr
 **TODO**
 ```
+> **Note**\\
+> With a list, `ToString()` works distributively, applying the
+> operation to each item in the list in turn. To turn the
+> list into a single string, consider using `FormatJson()`.
+
 """
     if x is None: return None
     if isinstance(x, bytes): return x.decode('utf-8')
