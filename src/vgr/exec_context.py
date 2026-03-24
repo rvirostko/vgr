@@ -88,7 +88,7 @@ class ExecContext(ABC):
 
     @debug.setter
     def debug(self, v: bool) -> None:
-        """Turn verbose mode on or off"""
+        """Turn debug mode on or off"""
         self._debug = bool(v)
 
     @abstractmethod
