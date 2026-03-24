@@ -116,7 +116,7 @@ class VGRCmdLine(CmdLine):
     def execute_statements(self, text: str) -> bool:
         try:
             self._ctx.execute_statements(text.rstrip(), '<repl>')
-        except VgrExitingException as e:
+        except VgrExitingException:
             return False
         except VgrException as e:
             if self._ctx.debug:
