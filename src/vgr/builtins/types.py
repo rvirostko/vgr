@@ -116,7 +116,7 @@ to a number. It can be any value, including `None`.
 **TODO**
 ```
 """
-    if poly_isnumber(x): return float(x)
+    if isinstance(x, (bool, int, float)): return float(x)
     if poly_isstr(x):
         try:
             return float(str_to_number(x))
@@ -159,7 +159,7 @@ to a number. It can be any value, including `None`.
 **TODO**
 ```
 """
-    if poly_isnumber(x): return int(x)
+    if isinstance(x, (bool, int, float)): return int(x)
     if poly_isstr(x):
         try:
             return int(str_to_number(x))
@@ -204,7 +204,8 @@ to a number. It can be any value, including `None`.
 
 Also see `ToInteger()` and `ToFloat()`
 """
-    if poly_isnumber(x): return x
+    if isinstance(x, bool): return int(x)
+    if isinstance(x, (int, float)): return x
     if poly_isstr(x):
         try:
             return str_to_number(x)
