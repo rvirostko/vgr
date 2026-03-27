@@ -8,14 +8,14 @@ from ..builtins import bound_ops
 from ..extn import VgrExtension
 from ..data_dict import DataDictionary
 
-from .functions import (
+from .vault_functions import (
     duration_to_ms,
     extract_kv_data,
     extract_kv_metadata,
     ms_to_duration
 )
 
-from .stmts import (
+from .vault_stmts import (
     execute_api_delete,
     execute_api_get,
     execute_api_list,

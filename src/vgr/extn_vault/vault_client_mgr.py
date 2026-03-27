@@ -4,7 +4,7 @@ Manage named VaultClient instances
 
 from typing import Optional, Dict
 
-from .vclient import VaultClient
+from .vault_client import VaultClient
 
 class VaultClientManager:
 
