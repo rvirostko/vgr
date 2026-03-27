@@ -333,7 +333,6 @@ def load_extensions(dd: DataDictionary, verbose: bool) -> VgrExtensionRegistry:
 
 def create_parser(extn_registry: VgrExtensionRegistry, debug: bool, verbose: bool) -> Lark:
     if verbose: print_stderr('Creating parser...')
-    extn_from = ''
     extn_statements = ''
     extn_grammar = ''
     for name, instance in extn_registry:
