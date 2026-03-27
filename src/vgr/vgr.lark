@@ -259,7 +259,7 @@ select: "Select"i outputs? from_clause where_clause? product_clause? limit_claus
 output: expr
     | expr "As"i expr -> output_as
 
-?from_clause: "From"i (expr_from | file_from {EXTN_FROM})
+?from_clause: "From"i (expr_from | file_from)
 expr_from: expr ("As"i expr)?
 file_from: "File"i expr ("As"i expr)?
     | "File"i expr load_source_type ("As"i expr)? -> file_from_typed

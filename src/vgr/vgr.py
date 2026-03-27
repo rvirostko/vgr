@@ -320,7 +320,7 @@ def load_extensions(dd: DataDictionary, verbose: bool) -> VgrExtensionRegistry:
     VER.load(dd, __package__, 'extensions.ini')
     extns = []
     for extn_name, extn in VER:
-        extns.append((extn_name, f'{extn.__class__.__module__}.{extn.__class__.__qualname__}',extn.adds_statements(), extn.extends_select(), ))
+        extns.append((extn_name, f'{extn.__class__.__module__}.{extn.__class__.__qualname__}', extn.adds_statements(), ))
         if extn.adds_statements():
             for name, handler in extn.statement_handlers().items():
                 if name in STATEMENT_HANDLERS:
@@ -337,20 +337,17 @@ def create_parser(extn_registry: VgrExtensionRegistry, debug: bool, verbose: boo
     extn_statements = ''
     extn_grammar = ''
     for name, instance in extn_registry:
-        # By convention, if an extension says it has statements or extends the From clause
+        # By convention, if an extension says it has statements
         # it should have a like named rule in its grammar
-        if instance.extends_select(): extn_from += f' | {name}_from'
         if instance.adds_statements(): extn_statements += f'| {name}_statements'
         extn_grammar += instance.grammar()
         if not extn_grammar.endswith('/n'): extn_grammar += '\n'
     print_debug(debug, 'EXTN_STATMENTS =', extn_statements)
-    print_debug(debug, 'EXTN_FROM =', extn_from)
     print_debug(debug, 'EXTN_GRAMMAR =', extn_grammar)
     grammar = VgrExtension.read_resource_text(__package__, 'vgr.lark')
     # NB: we can't just use str.format() because the grammar
     #     contains "{" and "}"
     for tag, value in (('{EXTN_STATEMENTS}', extn_statements),
-                       ('{EXTN_FROM}', extn_from),
                        ('{EXTN_GRAMMAR}', extn_grammar),
                        ('{FUNCTIONS}', get_function_defs())):
         grammar = grammar.replace(tag, value)

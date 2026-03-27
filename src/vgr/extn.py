@@ -22,13 +22,6 @@ class VgrExtension:
         return
     #pylint: enable=unused-argument
 
-    def extends_select(self) -> bool:
-        """
-        Does the extension extend the select statement
-        that, does it provide an extractor.
-        """
-        return False
-
     def adds_statements(self) -> bool:
         """
         Does the extension add statements to the grammar?

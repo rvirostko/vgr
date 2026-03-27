@@ -255,9 +255,6 @@ STATEMENT_HANDLERS = {
     'vault_update_ns'              : execute_update_ns,
 }
 
-# Used with Select statement's From clause
-_TARGETS = ('ns', 'mount', 'aws', 'kv', 'ldap', 'db', 'db_role')
-
 _FUNCTIONS = {
     "DurationToMs"      : duration_to_ms,
     "ExtractKVMetadata" : extract_kv_metadata,
@@ -270,16 +267,11 @@ class VaultExtension(VgrExtension):
     def initialize(self, dd: DataDictionary) -> None:
         vault_initialize(dd)
 
-    def extends_select(self):
-        return True
-
     def adds_statements(self):
         return True
 
     def grammar(self) -> str:
-        g = self.read_resource_text(__package__, 'vault.lark')
-        g += 'vault_from: "Vault"i VAULT_TARGET\n'
-        return g + 'VAULT_TARGET: ' + ' | '.join(tuple(f'"{t}"i' for t in _TARGETS))
+        return self.read_resource_text(__package__, 'vault.lark')
 
     def functions(self) -> Dict[str, Callable]:
         return _FUNCTIONS
