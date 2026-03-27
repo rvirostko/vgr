@@ -5,7 +5,7 @@ Define the BASIC extension
 from typing import Dict, Callable
 
 from ..extn import VgrExtension
-from .stmts import (
+from .basic_stmts import (
     execute_continue_do,
     execute_continue_for,
     execute_continue_while,

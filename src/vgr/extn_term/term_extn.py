@@ -7,7 +7,7 @@ from typing import Dict, Callable
 from ..extn import VgrExtension
 from ..data_dict import DataDictionary
 
-from .stmts import (
+from .term_stmts import (
     execute_term_statement,
     add_dd_constants
 )

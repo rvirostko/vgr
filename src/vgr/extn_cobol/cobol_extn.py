@@ -5,7 +5,7 @@ Defines the COBOL extension
 from typing import Dict, Callable
 
 from ..extn import VgrExtension
-from .stmts import (
+from .cobol_stmts import (
     execute_accept,
     execute_add_giving,
     execute_add_to,

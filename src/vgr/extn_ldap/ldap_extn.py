@@ -14,7 +14,7 @@ from .stmts import (
     ldap_initialize,
 )
 
-from .functions import (
+from .ldap_functions import (
     attr_between,
     attr_equals,
     attr_exists,
