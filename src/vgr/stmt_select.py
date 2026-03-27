@@ -25,7 +25,6 @@ from .redir import stdout, stderr
 from .stmt_set import load_data_type, load_file_as
 from .tags import control_statement
 from .xtract_memory import InMemoryExtractor
-from .xtract_vault import VAULT_TARGETS, VaultDataExtractor
 
 _ROWID_PATH = ('$rowid', ) # NB: zero based
 _DEFAULT_TARGET_NAME = '$record'
@@ -156,11 +155,9 @@ class SelectAnalyzer(Visitor):
 
     def add_implicit(self, tree: Tree) -> Tree:
         """Should only be applied to the outputs and predicates after analysis!"""
-        from_type = self.from_opts['type']
         target = self.from_opts[_TARGET]
         # Expected contents: top level keys for current frame all the way to global
         valid_contexts = self.ctx.dd.keys()
-        if from_type == 'from_vault': valid_contexts += VAULT_TARGETS
         return ImplicitContextAdder().add_contexts(tree, target, valid_contexts)
 
     def output(self, node: Tree):
@@ -263,12 +260,6 @@ class SelectAnalyzer(Visitor):
             return target
         except ValueError as e:
             raise VgrRuntimeError(node, e) from e
-
-    def from_vault(self, node: Tree):
-        """... From Vault <vault-target> ..."""
-        node = bind_operations(node)
-        self.from_opts['type'] = 'vault'
-        self.from_opts[_TARGET] = node.children[0].value.lower()
 
     def where_clause(self, node: Tree):
         """... Where expr (, expr)* ..."""
@@ -559,9 +550,6 @@ def create_extractor(ctx: ExecContext, opts: dict) -> DataExtractor:
     """
     xtype = opts['type']
     target = opts[_TARGET]
-    if xtype == 'vault':
-        # TODO Much more complicated in the future...
-        return VaultDataExtractor(target)
     if xtype == 'memory':
         data = opts.get(_DATA, None)
         if data:
