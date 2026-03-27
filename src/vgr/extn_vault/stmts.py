@@ -18,7 +18,7 @@ from ..builtins import (
 from ..data_dict import DataDictionary, DynamicValue
 from ..evaluate import do_set, _var_name_path
 from ..exec_context import ExecContext
-from ..vault_api.client_mgr import VaultClientManager
+from .client_mgr import VaultClientManager
 
 from .functions import extract_kv_data, extract_kv_metadata, add_kv_cas
 

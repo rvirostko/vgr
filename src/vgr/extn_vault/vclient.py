@@ -9,9 +9,9 @@ from urllib.parse import urlparse
 import http.client
 import json
 import logging
+import urllib
 
 from ..builtins import poly_type
-from .util import encode_url
 
 _MIME_JSON: str = 'application/json'
 _MIME_JSON_PATCH: str = 'application/merge-patch+json'
@@ -58,6 +58,8 @@ class VaultStatusException(http.client.HTTPException):
         if self.response_body:
             msg += f' - {self.response_body}'
         return msg
+
+def _encode_url(s: str) -> str: return urllib.parse.quote(s)
 
 class VaultClient():
 
@@ -215,13 +217,13 @@ class VaultClient():
                 self._conn = None
 
     def create_namespace(self, new_namespace: str, metadata: Dict[str, Any]=None, parent_namespace: str=None) -> Dict[str, Any]:
-        return self.do_post(encode_url(f'/v1/sys/namespaces/{new_namespace}'), _create_metadata(metadata), parent_namespace)
+        return self.do_post(_encode_url(f'/v1/sys/namespaces/{new_namespace}'), _create_metadata(metadata), parent_namespace)
 
     def read_namespace(self, namespace: str, parent_namespace: str=None) -> Dict[str, Any]:
-        return self.do_get(encode_url(f'/v1/sys/namespaces/{namespace}'), parent_namespace)
+        return self.do_get(_encode_url(f'/v1/sys/namespaces/{namespace}'), parent_namespace)
 
     def update_namespace(self, namespace: str, metadata: Dict[str, Any]=None, parent_namespace: str=None) -> Dict[str, Any]:
-        return self.do_patch(encode_url(f'/v1/sys/namespaces/{namespace}'), _create_metadata(metadata), parent_namespace)
+        return self.do_patch(_encode_url(f'/v1/sys/namespaces/{namespace}'), _create_metadata(metadata), parent_namespace)
 
     def delete_namespace(self, namespace: str, parent_namespace: str=None) -> Dict[str, Any]:
         return self.do_delete(f'/v1/sys/namespaces/{namespace}', parent_namespace)
@@ -230,27 +232,27 @@ class VaultClient():
         return self.do_list('/v1/sys/namespaces', namespace)
 
     def lock_namespace(self, namespace: str) -> Dict[str, Any]:
-        return self.do_post(encode_url('/v1/sys/namespaces/api-lock/lock'), None, namespace)
+        return self.do_post(_encode_url('/v1/sys/namespaces/api-lock/lock'), None, namespace)
 
     def unlock_namespace(self, namespace: str, unlock_key: Any) -> Dict[str, Any]:
-        return self.do_post(encode_url('/v1/sys/namespaces/api-lock/unlock'), _create_unlock(unlock_key), namespace)
+        return self.do_post(_encode_url('/v1/sys/namespaces/api-lock/unlock'), _create_unlock(unlock_key), namespace)
 
     def create_mount(self, mount_point: str, data: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         mount_point = self._fix_mount_point(mount_point).removesuffix('/')
-        return self.do_post(encode_url(f'/v1/sys/mounts/{mount_point}'), data, namespace)
+        return self.do_post(_encode_url(f'/v1/sys/mounts/{mount_point}'), data, namespace)
         # See https://github.com/hashicorp/terraform-provider-vault/issues/677#issuecomment-609116328
 
     def read_mount(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_get(encode_url(f'/v1/sys/mounts/{mount_point}'), namespace)
+        return self.do_get(_encode_url(f'/v1/sys/mounts/{mount_point}'), namespace)
 
     def update_mount(self, mount_point: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_post(encode_url(f'/v1/sys/mounts/{mount_point}'), config, namespace)
+        return self.do_post(_encode_url(f'/v1/sys/mounts/{mount_point}'), config, namespace)
 
     def delete_mount(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_delete(encode_url(f'/v1/sys/mounts/{mount_point}'), namespace)
+        return self.do_delete(_encode_url(f'/v1/sys/mounts/{mount_point}'), namespace)
 
     def list_mounts(self, namespace :str) ->  Dict[str, Any]:
         return self.do_get('/v1/sys/mounts', namespace)
@@ -265,24 +267,24 @@ class VaultClient():
     def read_kv2_config(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
         mount_point = self._fix_mount_point(mount_point)
         # https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#read-kv-engine-configuration
-        return self.do_get(encode_url(f'/v1/{mount_point}config'), namespace)
+        return self.do_get(_encode_url(f'/v1/{mount_point}config'), namespace)
 
     def update_kv2_config(self, mount_point: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         mount_point = self._fix_mount_point(mount_point)
         # https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#configure-the-kv-engine
-        return self.do_post(encode_url(f'/v1/{mount_point}config'), config, namespace)
+        return self.do_post(_encode_url(f'/v1/{mount_point}config'), config, namespace)
 
     def create_kv2_secret(self, mount_point: str, path: str, data: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         mount_point = self._fix_mount_point(mount_point)
         path = self._fix_kv_path(path)
         # https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#create-update-secret
-        return self.do_post(encode_url(f'/v1/{mount_point}data{path}'), _create_kv_data(data), namespace)
+        return self.do_post(_encode_url(f'/v1/{mount_point}data{path}'), _create_kv_data(data), namespace)
 
     def read_kv2_secret(self, mount_point: str, path: str, version: int=None, namespace: str=None) -> Dict[str, Any]:
         mount_point = self._fix_mount_point(mount_point)
         path = self._fix_kv_path(path)
         # https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#read-secret-version
-        return self.do_get(encode_url(f'/v1/{mount_point}data{path}') + (f'?version={version}' if version else ''), namespace)
+        return self.do_get(_encode_url(f'/v1/{mount_point}data{path}') + (f'?version={version}' if version else ''), namespace)
 
     def update_kv2_secret(self, mount_point: str, path: str, data: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         return self.create_kv2_secret(mount_point, path, data, namespace)
@@ -291,7 +293,7 @@ class VaultClient():
         mount_point = self._fix_mount_point(mount_point)
         path = self._fix_kv_path(path)
         # https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#patch-secret
-        return self.do_patch(encode_url(f'/v1/{mount_point}data{path}'), _create_kv_data(data), namespace)
+        return self.do_patch(_encode_url(f'/v1/{mount_point}data{path}'), _create_kv_data(data), namespace)
 
     def delete_kv2_secret(self, mount_point: str, path: str, data: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         """Soft delete of current or specified versions"""
@@ -300,10 +302,10 @@ class VaultClient():
         if data is None or not 'versions' in data:
             # Delete the latest version
             # https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#delete-latest-version-of-secret
-            return self.do_delete(encode_url(f'/v1/{mount_point}data{path}'), namespace)
+            return self.do_delete(_encode_url(f'/v1/{mount_point}data{path}'), namespace)
         # Delete the specified versions
         # https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#delete-secret-versions
-        return self.do_post(encode_url(f'/v1/{mount_point}delete{path}'), {'versions': data['versions']}, namespace)
+        return self.do_post(_encode_url(f'/v1/{mount_point}delete{path}'), {'versions': data['versions']}, namespace)
 
     def undelete_kv2_secret(self, mount_point: str, path: str, data: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         mount_point = self._fix_mount_point(mount_point)
@@ -311,7 +313,7 @@ class VaultClient():
         if data is None or not 'versions' in data:
             raise ValueError('versions required for undelete')
         # https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#undelete-secret-versions
-        return self.do_post(encode_url(f'/v1/{mount_point}undelete{path}'), {'versions': data['versions']}, namespace)
+        return self.do_post(_encode_url(f'/v1/{mount_point}undelete{path}'), {'versions': data['versions']}, namespace)
 
     def destroy_kv2_secret(self, mount_point: str, path: str, data: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         mount_point = self._fix_mount_point(mount_point)
@@ -319,7 +321,7 @@ class VaultClient():
         if data is None or not 'versions' in data:
             raise ValueError('versions required for destroy')
         # https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#destroy-secret-versions
-        return self.make_request(encode_url(f'/v1/{mount_point}destroy{path}'),
+        return self.make_request(_encode_url(f'/v1/{mount_point}destroy{path}'),
                                 "PUT", # That's what the docs say
                                 {'versions': data['versions']},
                                 namespace)
@@ -328,20 +330,20 @@ class VaultClient():
         mount_point = self._fix_mount_point(mount_point)
         path = self._fix_kv_path(path)
         # https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#list-secrets
-        return self.do_list(encode_url(f'/v1/{mount_point}metadata{path}'), namespace)
+        return self.do_list(_encode_url(f'/v1/{mount_point}metadata{path}'), namespace)
 
     def create_kv2_metadata(self, mount_point: str, path: str, metadata: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         mount_point = self._fix_mount_point(mount_point)
         path = self._fix_kv_path(path)
         # https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#create-update-metadata
         # NB: only supports the custom metadata part ATM, not other things like CAS et al
-        return self.do_post(encode_url(f'/v1/{mount_point}metadata{path}'), _create_metadata(metadata), namespace)
+        return self.do_post(_encode_url(f'/v1/{mount_point}metadata{path}'), _create_metadata(metadata), namespace)
 
     def read_kv2_metadata(self, mount_point: str, path: str, namespace: str=None) -> Dict[str, Any]:
         mount_point = self._fix_mount_point(mount_point)
         path = self._fix_kv_path(path)
         # https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#read-secret-metadata
-        return self.do_get(encode_url(f'/v1/{mount_point}metadata{path}'), namespace)
+        return self.do_get(_encode_url(f'/v1/{mount_point}metadata{path}'), namespace)
 
     def update_kv2_metadata(self, mount_point: str, path: str, metadata: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         return self.create_kv2_metadata(mount_point, path, metadata, namespace)
@@ -351,53 +353,53 @@ class VaultClient():
         path = self._fix_kv_path(path)
         # https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#patch-metadata
         # NB: only supports the custom metadata part ATM, not other things like CAS et al
-        return self.do_patch(encode_url(f'/v1/{mount_point}metadata{path}'), _create_metadata(metadata), namespace)
+        return self.do_patch(_encode_url(f'/v1/{mount_point}metadata{path}'), _create_metadata(metadata), namespace)
 
     def delete_kv2_metadata(self, mount_point: str, path: str, namespace: str=None) -> Dict[str, Any]:
         mount_point = self._fix_mount_point(mount_point)
         # https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#delete-metadata-and-all-versions
-        return self.do_delete(encode_url(f'/v1/{mount_point}metadata{path}'), namespace)
+        return self.do_delete(_encode_url(f'/v1/{mount_point}metadata{path}'), namespace)
 
     def get_kv2_subkeys(self, namespace: str, mount_point: str, path: str) -> list:
         mount_point = self._fix_mount_point(mount_point)
         path = self._fix_kv_path(path)
         # https://developer.hashicorp.com/vault/api-docs/secret/kv/kv-v2#read-secret-subkeys
-        return  self.do_get(encode_url(f'/v1/{mount_point}subkeys{path}') + '?depth=1', namespace)
+        return  self.do_get(_encode_url(f'/v1/{mount_point}subkeys{path}') + '?depth=1', namespace)
 
     def read_aws_config(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
         """
         Read the AWS secrets engine configuration for the given mount point.
         """
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_get(encode_url(f'/v1/{mount_point}config'), namespace)
+        return self.do_get(_encode_url(f'/v1/{mount_point}config'), namespace)
 
     def update_aws_config(self, mount_point: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         """
         Update the AWS secrets engine configuration for the given mount point.
         """
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_post(encode_url(f'/v1/{mount_point}config'), config, namespace)
+        return self.do_post(_encode_url(f'/v1/{mount_point}config'), config, namespace)
 
     def delete_aws_config(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
         """
         Delete the AWS secrets engine configuration for the given mount point.
         """
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_delete(encode_url(f'/v1/{mount_point}config'), namespace)
+        return self.do_delete(_encode_url(f'/v1/{mount_point}config'), namespace)
 
     def create_aws_role(self, mount_point: str, role_name: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         """
         Create or update an AWS role at the given mount point.
         """
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_post(encode_url(f'/v1/{mount_point}roles/{role_name}'), config, namespace)
+        return self.do_post(_encode_url(f'/v1/{mount_point}roles/{role_name}'), config, namespace)
 
     def read_aws_role(self, mount_point: str, role_name: str, namespace: str=None) -> Dict[str, Any]:
         """
         Read an AWS role definition from the given mount point.
         """
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_get(encode_url(f'/v1/{mount_point}roles/{role_name}'), namespace)
+        return self.do_get(_encode_url(f'/v1/{mount_point}roles/{role_name}'), namespace)
 
     def update_aws_role(self, mount_point: str, role_name: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         """
@@ -410,42 +412,42 @@ class VaultClient():
         Delete an AWS role from the given mount point.
         """
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_delete(encode_url(f'/v1/{mount_point}roles/{role_name}'), namespace)
+        return self.do_delete(_encode_url(f'/v1/{mount_point}roles/{role_name}'), namespace)
 
     def list_aws_roles(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
         """
         List AWS roles at the given mount point.
         """
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_list(encode_url(f'/v1/{mount_point}roles'), namespace)
+        return self.do_list(_encode_url(f'/v1/{mount_point}roles'), namespace)
 
     def generate_aws_credentials(self, mount_point: str, role_name: str, namespace: str=None) -> Dict[str, Any]:
         """
         Generate AWS credentials for the given role at the mount point.
         """
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_get(encode_url(f'/v1/{mount_point}creds/{role_name}'), namespace)
+        return self.do_get(_encode_url(f'/v1/{mount_point}creds/{role_name}'), namespace)
 
     def read_ldap_config(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
         """
         Read the LDAP secrets engine configuration for the given mount point.
         """
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_get(encode_url(f'/v1/{mount_point}config'), namespace)
+        return self.do_get(_encode_url(f'/v1/{mount_point}config'), namespace)
 
     def update_ldap_config(self, mount_point: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         """
         Update the LDAP secrets engine configuration for the given mount point.
         """
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_post(encode_url(f'/v1/{mount_point}config'), config, namespace)
+        return self.do_post(_encode_url(f'/v1/{mount_point}config'), config, namespace)
 
     def delete_ldap_config(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
         """
         Delete the LDAP secrets engine configuration for the given mount point.
         """
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_delete(encode_url(f'/v1/{mount_point}config'), namespace)
+        return self.do_delete(_encode_url(f'/v1/{mount_point}config'), namespace)
 
     def create_ldap_library(self, mount_point: str, name: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         """
@@ -453,7 +455,7 @@ class VaultClient():
         """
         # https://developer.hashicorp.com/vault/api-docs/secret/ldap
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_post(encode_url(f'/v1/{mount_point}library/{name}'), config, namespace)
+        return self.do_post(_encode_url(f'/v1/{mount_point}library/{name}'), config, namespace)
 
     def read_ldap_library(self, mount_point: str, name: str, namespace: str=None) -> Dict[str, Any]:
         """
@@ -461,7 +463,7 @@ class VaultClient():
         """
         # https://developer.hashicorp.com/vault/api-docs/secret/ldap
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_get(encode_url(f'/v1/{mount_point}library/{name}'), namespace)
+        return self.do_get(_encode_url(f'/v1/{mount_point}library/{name}'), namespace)
 
     def update_ldap_library(self, mount_point: str, name: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         """
@@ -476,7 +478,7 @@ class VaultClient():
         """
         # https://developer.hashicorp.com/vault/api-docs/secret/ldap
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_delete(encode_url(f'/v1/{mount_point}library/{name}'), namespace)
+        return self.do_delete(_encode_url(f'/v1/{mount_point}library/{name}'), namespace)
 
     def list_ldap_libraries(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
         """
@@ -484,7 +486,7 @@ class VaultClient():
         """
         # https://developer.hashicorp.com/vault/api-docs/secret/ldap
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_list(encode_url(f'/v1/{mount_point}library'), namespace)
+        return self.do_list(_encode_url(f'/v1/{mount_point}library'), namespace)
 
     def create_ldap_role(self, mount_point: str, name: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         """
@@ -492,7 +494,7 @@ class VaultClient():
         """
         # https://developer.hashicorp.com/vault/api-docs/secret/ldap
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_post(encode_url(f'/v1/{mount_point}static-cred/{name}'), config, namespace)
+        return self.do_post(_encode_url(f'/v1/{mount_point}static-cred/{name}'), config, namespace)
 
     def read_ldap_role(self, mount_point: str, name: str, namespace: str=None) -> Dict[str, Any]:
         """
@@ -500,7 +502,7 @@ class VaultClient():
         """
         # https://developer.hashicorp.com/vault/api-docs/secret/ldap
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_get(encode_url(f'/v1/{mount_point}static-cred/{name}'), namespace)
+        return self.do_get(_encode_url(f'/v1/{mount_point}static-cred/{name}'), namespace)
 
     def update_ldap_role(self, mount_point: str, name: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         """
@@ -515,7 +517,7 @@ class VaultClient():
         """
         # https://developer.hashicorp.com/vault/api-docs/secret/ldap
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_delete(encode_url(f'/v1/{mount_point}static-cred/{name}'), namespace)
+        return self.do_delete(_encode_url(f'/v1/{mount_point}static-cred/{name}'), namespace)
 
     def list_ldap_roles(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
         """
@@ -523,7 +525,7 @@ class VaultClient():
         """
         # https://developer.hashicorp.com/vault/api-docs/secret/ldap
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_list(encode_url(f'/v1/{mount_point}static-cred'), namespace)
+        return self.do_list(_encode_url(f'/v1/{mount_point}static-cred'), namespace)
 
     def rotate_ldap_role(self, mount_point: str, name: str, namespace: str=None) -> Dict[str, Any]:
         """
@@ -531,17 +533,17 @@ class VaultClient():
         """
         # https://developer.hashicorp.com/vault/api-docs/secret/ldap
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_post(encode_url(f'/v1/{mount_point}static-cred/{name}/rotate'), None, namespace)
+        return self.do_post(_encode_url(f'/v1/{mount_point}static-cred/{name}/rotate'), None, namespace)
 
     def create_database_connection(self, mount_point: str, name: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         # https://developer.hashicorp.com/vault/api-docs/secret/databases#configure-connection
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_post(encode_url(f'/v1/{mount_point}config/{name}'), config, namespace)
+        return self.do_post(_encode_url(f'/v1/{mount_point}config/{name}'), config, namespace)
 
     def read_database_connection(self, mount_point: str, name:str, namespace: str=None) -> Dict[str, Any]:
         # https://developer.hashicorp.com/vault/api-docs/secret/databases#read-connection
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_get(encode_url(f'/v1/{mount_point}config/{name}'), namespace)
+        return self.do_get(_encode_url(f'/v1/{mount_point}config/{name}'), namespace)
 
     def update_database_connection(self, mount_point: str, name: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         # https://developer.hashicorp.com/vault/api-docs/secret/databases#configure-connection
@@ -550,22 +552,22 @@ class VaultClient():
     def delete_database_connection(self, mount_point: str, name:str, namespace: str=None) -> Dict[str, Any]:
         # https://developer.hashicorp.com/vault/api-docs/secret/databases#delete-connection
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_delete(encode_url(f'/v1/{mount_point}config/{name}'), namespace)
+        return self.do_delete(_encode_url(f'/v1/{mount_point}config/{name}'), namespace)
 
     def list_database_connections(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
         # https://developer.hashicorp.com/vault/api-docs/secret/databases#list-connections
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_list(encode_url(f'/v1/{mount_point}config'), namespace)
+        return self.do_list(_encode_url(f'/v1/{mount_point}config'), namespace)
 
     def reset_database_connection(self, mount_point: str, name: str, namespace: str=None) -> Dict[str, Any]:
         # https://developer.hashicorp.com/vault/api-docs/secret/databases#reset-connection
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_post(encode_url(f'/v1/{mount_point}reset/{name}'), None, namespace)
+        return self.do_post(_encode_url(f'/v1/{mount_point}reset/{name}'), None, namespace)
 
     def rotate_database_connection_creds(self, mount_point: str, name: str, namespace: str=None) -> Dict[str, Any]:
         # https://developer.hashicorp.com/vault/api-docs/secret/databases#rotate-root-credentials
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_post(encode_url(f'/v1/{mount_point}rotate-root/{name}'), None, namespace)
+        return self.do_post(_encode_url(f'/v1/{mount_point}rotate-root/{name}'), None, namespace)
 
     def _static_pfx(self, path: str, is_static: bool) -> str:
         return "static-" + path if is_static else path
@@ -573,12 +575,12 @@ class VaultClient():
     def create_database_role(self, mount_point: str, role_name: str, is_static: bool, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         # https://developer.hashicorp.com/vault/api-docs/secret/databases#create-role
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_post(encode_url(f'/v1/{mount_point}{self._static_pfx("roles", is_static)}/{role_name}'), config, namespace)
+        return self.do_post(_encode_url(f'/v1/{mount_point}{self._static_pfx("roles", is_static)}/{role_name}'), config, namespace)
 
     def read_database_role(self, mount_point: str, role_name: str, is_static: bool, namespace: str=None) -> Dict[str, Any]:
         # https://developer.hashicorp.com/vault/api-docs/secret/databases#read-role
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_get(encode_url(f'/v1/{mount_point}{self._static_pfx("roles", is_static)}/{role_name}'), namespace)
+        return self.do_get(_encode_url(f'/v1/{mount_point}{self._static_pfx("roles", is_static)}/{role_name}'), namespace)
 
     def update_database_role(self, mount_point: str, role_name: str, is_static: bool, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         # https://developer.hashicorp.com/vault/api-docs/secret/databases#create-role
@@ -587,21 +589,21 @@ class VaultClient():
     def delete_database_role(self, mount_point: str, role_name: str, is_static: bool, namespace: str=None) -> Dict[str, Any]:
         # https://developer.hashicorp.com/vault/api-docs/secret/databases#delete-role
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_delete(encode_url(f'/v1/{mount_point}{self._static_pfx("roles", is_static)}/{role_name}'), namespace)
+        return self.do_delete(_encode_url(f'/v1/{mount_point}{self._static_pfx("roles", is_static)}/{role_name}'), namespace)
 
     def list_database_roles(self, mount_point: str, is_static: bool, namespace: str=None) -> Dict[str, Any]:
         # https://developer.hashicorp.com/vault/api-docs/secret/databases#delete-role
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_list(encode_url(f'/v1/{mount_point}{self._static_pfx("roles", is_static)}'), namespace)
+        return self.do_list(_encode_url(f'/v1/{mount_point}{self._static_pfx("roles", is_static)}'), namespace)
 
     def generate_database_role_credentials(self, mount_point: str, role_name: str, is_static: bool, namespace: str=None) -> Dict[str, Any]:
         # https://developer.hashicorp.com/vault/api-docs/secret/databases#generate-credentials
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_get(encode_url(f'/v1/{mount_point}{self._static_pfx("creds", is_static)}/{role_name}'), namespace)
+        return self.do_get(_encode_url(f'/v1/{mount_point}{self._static_pfx("creds", is_static)}/{role_name}'), namespace)
 
     def rotate_database_static_role_credentials(self, mount_point: str, role_name: str, namespace: str=None) -> Dict[str, Any]:
         # https://developer.hashicorp.com/vault/api-docs/secret/databases#rotate-static-role-credentials        mount_point = self._fix_mount_point(mount_point)
-        return self.do_post(encode_url(f'/v1/{mount_point}rotate-role/{role_name}'), None, namespace)
+        return self.do_post(_encode_url(f'/v1/{mount_point}rotate-role/{role_name}'), None, namespace)
 
     def __enter__(self):
         return self.open()
