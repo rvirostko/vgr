@@ -58,6 +58,14 @@ class QueryFilter(ABC):
 
 class DataExtractor(ABC):
 
+    def __init__(self):
+        super().__init__()
+        self._attrs = []
+
+    @property
+    def attrs(self) -> list[str]:
+        return self._attrs
+
     def start(self, io: InfoOutput) -> None:
         """Override if your class requires some activity before extracting"""
 
