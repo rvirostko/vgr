@@ -24,22 +24,7 @@ FLOAT_NUMBER: "-"? (_SPECIAL_DEC _EXP_PART | _DECIMAL _EXP_PART?)
 // This becomes either a FLOAT or INT (when no decimal referenced) at runtime
 SUPERSCRIPT_FLOAT: /⁽[⁺⁻]?(?:[⁰¹²³⁴⁵⁶⁷⁸⁹]+(·[⁰¹²³⁴⁵⁶⁷⁸⁹]+)?|·[⁰¹²³⁴⁵⁶⁷⁸⁹]+)⁾|[⁺⁻]?(?:[⁰¹²³⁴⁵⁶⁷⁸⁹]+(·[⁰¹²³⁴⁵⁶⁷⁸⁹]+)?|·[⁰¹²³⁴⁵⁶⁷⁸⁹]+)/
 
-// TODO needs to be moved to code and injected here...
-// NAMEs are generally "snake case", "kabab case", and mixed version of the two, with some limitations.
-// For "kabab", it cannot start with a hyphen and an alpha character must follow a hyphen.
-// This is an attempt to prevent some subtraction operations from looking like identifiers
-// The following characters are permitted:
-//     * '$' in the first position only
-//     * '_'
-//     * Latin characters (A-Z, a-z, \u00C0-\u00FF, \u0100-\u017F, \u0180-\u024F, \u1E00-\u1EFF)
-//     * ASCII digits (0-9) except for the first character
-//     * Greek letters (\u0370-\u03FF)
-//     * Mathematical alphanumeric symbols (\U0001D400-\U0001D7FF - supplementary plane / 32bit Unicode)
-//     * Optional suffix of one or more prime indicators (\u2032), double thru quad prime indicators (\u2033, \u2034, \u2057),
-//       or a single subscripted digit (\u2080-\u2089)
-// NB: Lark uses the Python re module, which cannot handle Unicode character classes like \u1D400-\u1D7FF
-//     in the standard way for supplementary characters unless the Python build fully supports UTF-32 internally.
-NAME: /[A-Za-z$_\u00C0-\u00FF\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF\u0370-\u03FF\U0001D400-\U0001D7FF](?:[A-Za-z0-9_\u00C0-\u00FF\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF\u0370-\u03FF\U0001D400-\U0001D7FF]|-+[A-Za-z\u00C0-\u00FF\u0100-\u017F\u0180-\u024F\u1E00-\u1EFF\u0370-\u03FF\U0001D400-\U0001D7FF])*(?:\u2032+|[\u2033\u2034\u2057\u2080-\u2089])?(?<!-)/
+NAME: /{VAR_NAME}/
 
 opt_statements: statement*
 statements: statement+
@@ -252,12 +237,13 @@ list_replace: "Replace"i ("Position"i | "Index"i)? expr "In"i "List"i? var_name 
 list_all: "All"i
 ?list_giving: "Giving"i var_name
 
-select: "Select"i outputs? from_clause where_clause? product_clause? limit_clause? for_clause? _SEMICOLON?
+select: "Select"i select_outputs from_clause where_clause? product_clause? limit_clause? for_clause? _SEMICOLON?
 
-?outputs: output (_COMMA output)* _COMMA?
+?select_outputs: select_output (_COMMA select_output)* _COMMA?
 
-output: expr
+select_output: "*"    -> output_all
     | expr "As"i expr -> output_as
+    | expr            -> output
 
 ?from_clause: "From"i (expr_from | file_from)
 expr_from: expr ("As"i expr)?
@@ -319,9 +305,9 @@ for_text: "Text"i (_COMMA? for_text_option (_COMMA for_text_option)*)?
     | ("No"i | "Omit"i) "Headers"i ("Is"i? expr)? -> omit_headers
     | "Exclude"i ("Nulls"i | "Null"i "Values"i) ("Is"i? expr)? -> exclude_nulls
     | "Include"i ("Nulls"i | "Null"i "Values"i) ("Is"i? expr)? -> include_nulls
-    | "Field"i "Seperator"i "Is"i? expr -> field_sep
-    | "Header"i "Seperator"i "Is"i? expr -> header_sep
-    | "Record"i "Seperator"i "Is"i? expr -> record_sep
+    | "Field"i "Separator"i "Is"i? expr -> field_sep
+    | "Header"i "Separator"i "Is"i? expr -> header_sep
+    | "Record"i "Separator"i "Is"i? expr -> record_sep
 
 // Either LIMIT <number> (OFFSET <number>)?
 // or FETCH FIRST <number> ROWS ONLY
