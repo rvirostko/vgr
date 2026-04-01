@@ -1,0 +1,60 @@
+
+Set filename To vgr.source.FirstItem().DirectoryName() + "/people.json"
+Set limit To 10
+
+Display "Reading from ", filename, "..."
+Load people From File filename
+Display $load.records, " record", $load.records.Plural()
+
+Display Newline, "Original, first ", limit
+Select
+    RightJustify($rowid + 1, 2) As "",
+    RightJustify(age.DefaultTo(Space), 3) As "Age",
+    last_name.DefaultTo(Space) As "Last Name",
+    first_name.DefaultTo(Space) As "First Name"
+From people As person
+Limit limit
+For Batch Template
+
+Sort Variable people On age Into Variable people_by_age
+Display Newline, "By Age, first ", limit, " (not null)"
+Select
+    RightJustify($rowid + 1, 2) As "",
+    RightJustify(age.DefaultTo(Space), 3) As "Age",
+    last_name.DefaultTo(Space) As "Last Name",
+    first_name.DefaultTo(Space) As "First Name"
+From people_by_age As person
+Where age Is Not None
+Limit limit
+For Batch Template
+
+Sort Variable people On last_name, first_name Into Variable people_by_names
+Display Newline, "By Name, first ", limit
+Select
+    RightJustify($rowid + 1, 2) As "",
+    last_name.DefaultTo(Space) As "Last Name",
+    first_name.DefaultTo(Space) As "First Name",
+    RightJustify(age.DefaultTo(Space), 3) As "Age"
+From people_by_names As person
+Where last_name Is Not None
+Limit limit
+For Batch Template
+
+Define Function ExtractAges(data_in):
+    Set ages To []
+    ForEach item In data_in:
+        Append item.age To ages
+    End
+    Return ages.StripNulls()
+End
+
+Display Newline, "All ages from raw data", Newline, @ExtractAges(people)
+
+// <list>.sort([<unique>[, <reverse>]])
+Display Newline, "Unique ages using Sort()", Newline, @ExtractAges(people).Sort(True)
+
+Sort Variable people
+    On age
+    Unique On age
+    Into Variable by_age
+Display Newline, "Unique ages using Sort statement", Newline, @ExtractAges(by_age)
