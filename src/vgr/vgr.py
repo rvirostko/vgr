@@ -61,6 +61,7 @@ from .stmt_exec import (
     get_statement_entries,
     STATEMENT_HANDLERS,
 )
+from .var_name import VAR_NAME
 from .vscode_extn import create_vscode_extension
 
 from . import __version__, __version_date__, __description__
@@ -348,7 +349,8 @@ def create_parser(extn_registry: VgrExtensionRegistry, debug: bool, verbose: boo
     #     contains "{" and "}"
     for tag, value in (('{EXTN_STATEMENTS}', extn_statements),
                        ('{EXTN_GRAMMAR}', extn_grammar),
-                       ('{FUNCTIONS}', get_function_defs())):
+                       ('{FUNCTIONS}', get_function_defs()),
+                       ('{VAR_NAME}', VAR_NAME)):
         grammar = grammar.replace(tag, value)
     print_debug(debug, 'GRAMMAR =\n', grammar)
     return Lark(grammar,
