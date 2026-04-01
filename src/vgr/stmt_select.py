@@ -6,11 +6,27 @@ from typing import Any
 from copy import deepcopy
 import re
 
-from lark import Tree, Token, Transformer, Visitor, v_args
+from lark import (
+    Tree,
+    Token,
+    Transformer,
+    Visitor,
+    v_args,
+)
+from lark.tree import Meta
 
 from .app_exceptions import VgrRuntimeError
-from .builtins import poly_false, bound_ops, poly_type
-from .data_xtract import QueryFilter, InfoOutput, DataExtractor, EndExtractException
+from .builtins import (
+    bound_ops,
+    poly_false,
+    poly_type,
+)
+from .data_xtract import (
+    DataExtractor,
+    EndExtractException,
+    InfoOutput,
+    QueryFilter,
+)
 from .evaluate import bind_operations
 from .exec_context import ExecContext
 from .output import (
@@ -24,6 +40,7 @@ from .output import RecordWriter, RecordLimiter, RecordCartesianProduct
 from .redir import stdout, stderr
 from .stmt_set import load_data_type, load_file_as
 from .tags import control_statement
+from .var_name import VAR_NAME
 from .xtract_memory import InMemoryExtractor
 
 _ROWID_PATH = ('$rowid', ) # NB: zero based
@@ -33,11 +50,36 @@ _DATA = 'data'
 _FILE = 'file'
 _TARGET = 'target'
 
+def create_var_ref(statement, *names):
+    # Extract metadata from source statement
+    src_meta = statement.meta
+    # Create tokens with position info
+    tokens = [
+        Token('NAME', name,
+              line=src_meta.line,
+              column=src_meta.column,
+              end_line=src_meta.end_line,
+              end_column=src_meta.end_column,
+              start_pos=src_meta.start_pos,
+              end_pos=src_meta.end_pos)
+        for name in names
+    ]
+    # Create meta object
+    meta = Meta()
+    meta.line = src_meta.line
+    meta.column = src_meta.column
+    meta.end_line = src_meta.end_line
+    meta.end_column = src_meta.end_column
+    meta.start_pos = src_meta.start_pos
+    meta.end_pos = src_meta.end_pos
+    return Tree('var_ref', tokens, meta=meta)
+
 class SelectAnalyzer(Visitor):
 
-    # NB: Need to keep in sync with grammar
-    # TODO it is out of sync
-    _VAR_NAME = re.compile(r'[A-Za-z_](?:[A-Za-z0-9_]|-+[A-Za-z])*(?:\u2032+|[\u2033\u2034\u2057\u2080-\u2089])?')
+    # Unique object to mark "*" in columns
+    _ALL_COLS = object()
+
+    _VAR_NAME = re.compile(VAR_NAME)
 
     _BOOL_OPTS = (
         'array_wrapper',
@@ -99,13 +141,18 @@ class SelectAnalyzer(Visitor):
         super().__init__()
         self._ctx = ctx
         self._predicates = []
+        self._predicates_bound = False
         self._from_opts = {}
         self._output_statements = []
+        self._output_statements_bound = False
         self._output_controls = {}
         self._output_opts = {}
-        self._headers = [] # TODO why a sep item here?
+        self._headers = []
+        # set in analyze()
+        self._select_statement = None
 
     def analyze(self, tree: Tree):
+        self._select_statement = tree
         self.visit(tree)
         return self
 
@@ -117,16 +164,48 @@ class SelectAnalyzer(Visitor):
     def from_opts(self) -> dict:
         return self._from_opts
 
-    @property
-    def output_opts(self) -> dict:
+    def create_output_opts(self, attrs: list[str]) -> dict:
+        # We add these here because they get passed to down to
+        # writers et al for possible extra output (mostly Templates)
+        self._output_opts['debug'] = self.ctx.debug
+        self._output_opts['verbose'] = self.ctx.verbose
+        # We need to expand the "*"s in headers and output statements
+        if self._ALL_COLS in self._headers:
+            attr_statement = []
+            target = self._from_opts[_TARGET]
+            if not attrs:
+                # The the only attr is the value associated with the "For ... As <target>"
+                attrs = [target]
+                attr_statement = [ create_var_ref(self._select_statement, target) ]
+            else:
+                attr_statement = [ create_var_ref(self._select_statement, target, attr) for attr in attrs ]
+            headers = []
+            outputs_statements = []
+            i = 0
+            while i < len(self._headers):
+                header = self._headers[i]
+                if header == self._ALL_COLS:
+                    headers.extend(attrs)
+                    outputs_statements.extend(attr_statement)
+                else:
+                    headers.append(header)
+                    outputs_statements.append(self._output_statements[i])
+                i += 1
+            self._headers = headers
+            self._output_statements = outputs_statements
+        self._output_opts['headers'] = self.make_cols_names_unique(self._headers)
         return self._output_opts
 
-    @property
-    def output_statements(self) -> list:
+    def get_output_statements(self) -> list:
+        if not self._output_statements_bound:
+            self._output_statements = [bind_operations(self.add_implicit(o)) for o in self._output_statements]
+            self._output_statements_bound = True
         return self._output_statements
 
-    @property
-    def predicates(self) -> list:
+    def get_predicates(self) -> list:
+        if not self._predicates_bound:
+            self._predicates = [bind_operations(self.add_implicit(p)) for p in self._predicates]
+            self._predicates_bound = True
         return self._predicates
 
     @property
@@ -140,22 +219,10 @@ class SelectAnalyzer(Visitor):
         """
         Everything else should have been handled by other visitors
         """
-        # We add these here because they get passed to down to
-        # writers et al for possible extra output (mostly Templates)
-        self.output_opts['debug'] = self.ctx.debug
-        self.output_opts['verbose'] = self.ctx.verbose
-        # If there were no output statements (Select From...)
-        # we are extracting the entire record and the target
-        # name is the name for the columns
-        if not self.output_statements:
-            self._headers.append(self.from_opts[_TARGET])
-        self.output_opts['headers'] = self.make_cols_names_unique(self._headers)
-        self._output_statements = [bind_operations(self.add_implicit(o)) for o in self.output_statements]
-        self._predicates = [bind_operations(self.add_implicit(p)) for p in self.predicates]
 
     def add_implicit(self, tree: Tree) -> Tree:
-        """Should only be applied to the outputs and predicates after analysis!"""
-        target = self.from_opts[_TARGET]
+        """Should only be applied to the outputs and predicates after analysis and "*" expansion!"""
+        target = self._from_opts[_TARGET]
         # Expected contents: top level keys for current frame all the way to global
         valid_contexts = self.ctx.dd.keys()
         return ImplicitContextAdder().add_contexts(tree, target, valid_contexts)
@@ -167,8 +234,17 @@ class SelectAnalyzer(Visitor):
         """
         # NB: do not bind
         expr = node.children[0]
-        self.output_statements.append(expr)
+        self._output_statements.append(expr)
         self._headers.append(self.get_default_col_name(expr))
+
+    def output_all(self, _node: Tree):
+        """
+        ... * ...
+        An entry that represents all input columns
+        """
+        # Add place holders we'll expand later
+        self._output_statements.append(None)
+        self._headers.append(self._ALL_COLS)
 
     def output_as(self, node: Tree):
         """
@@ -176,7 +252,7 @@ class SelectAnalyzer(Visitor):
         Column is explicity named
         """
         # NB: do not bind
-        self.output_statements.append(node.children[0])
+        self._output_statements.append(node.children[0])
         # If it is an output_as, it will have two children:
         # The second child is the "as"
         # NB: if blank, it will get a default later
@@ -224,27 +300,27 @@ class SelectAnalyzer(Visitor):
     def expr_from(self, node: Tree):
         """... From <expr> [As <target>] ..."""
         node = bind_operations(node)
-        self.from_opts['type'] = 'memory'
-        self.from_opts[_DATA] = node.children[0]
-        self.from_opts[_TARGET] = self._get_target_name(node.children[1]) if len(node.children) > 1 else _DEFAULT_TARGET_NAME
+        self._from_opts['type'] = 'memory'
+        self._from_opts[_DATA] = node.children[0]
+        self._from_opts[_TARGET] = self._get_target_name(node.children[1]) if len(node.children) > 1 else _DEFAULT_TARGET_NAME
 
     def file_from(self, node: Tree):
         """... From File <filename> [As <target>] ..."""
         node = bind_operations(node)
-        self.from_opts['type'] = 'memory'
+        self._from_opts['type'] = 'memory'
         filename = self.ctx.eval_filename_expr(bind_operations(node.children[0]))
-        self.from_opts[_FILE] = filename
-        self.from_opts['dtype'] = load_data_type(filename, None)
-        self.from_opts[_TARGET] = self._get_target_name(node.children[1]) if len(node.children) > 1 else _DEFAULT_TARGET_NAME
+        self._from_opts[_FILE] = filename
+        self._from_opts['dtype'] = load_data_type(filename, None)
+        self._from_opts[_TARGET] = self._get_target_name(node.children[1]) if len(node.children) > 1 else _DEFAULT_TARGET_NAME
 
     def file_from_typed(self, node: Tree):
         """... From File <filename> <source_type> [As <target>] ..."""
         node = bind_operations(node)
-        self.from_opts['type'] = 'memory'
+        self._from_opts['type'] = 'memory'
         filename = self.ctx.eval_filename_expr(bind_operations(node.children[0]))
-        self.from_opts[_FILE] = filename
-        self.from_opts['dtype'] = load_data_type(filename, node.children[1])
-        self.from_opts[_TARGET] = self._get_target_name(node.children[2]) if len(node.children) > 2 else _DEFAULT_TARGET_NAME
+        self._from_opts[_FILE] = filename
+        self._from_opts['dtype'] = load_data_type(filename, node.children[1])
+        self._from_opts[_TARGET] = self._get_target_name(node.children[2]) if len(node.children) > 2 else _DEFAULT_TARGET_NAME
 
     def _get_target_name(self, node: Tree) -> str:
         target = self.ctx.eval_expr_or_const(bind_operations(node))
@@ -270,8 +346,8 @@ class SelectAnalyzer(Visitor):
         """... Limit <limit> (Offset <offset>)? ..."""
         node = bind_operations(node)
         children = node.children
-        if len(children) >= 1: self.output_controls['limit'] = self.ctx.eval_to_int(children[0], 'Limit', True)
-        if len(children) >= 2: self.output_controls['offset'] = self.ctx.eval_to_int(node.children[1], 'Offset', True)
+        if len(children) >= 1: self._output_controls['limit'] = self.ctx.eval_to_int(children[0], 'Limit', True)
+        if len(children) >= 2: self._output_controls['offset'] = self.ctx.eval_to_int(node.children[1], 'Offset', True)
 
     def product_clause(self, node: Tree):
         node = bind_operations(node)
@@ -280,37 +356,37 @@ class SelectAnalyzer(Visitor):
     def for_text(self, node: Tree):
         """... For Text <opts>* ..."""
         node = bind_operations(node)
-        self.output_opts['type'] = 'text'
+        self._output_opts['type'] = 'text'
         self._parse_output_ops(node)
 
     def for_json(self, node: Tree):
         """... For JSON <opts>* ..."""
         node = bind_operations(node)
-        self.output_opts['type'] = 'json'
+        self._output_opts['type'] = 'json'
         self._parse_output_ops(node)
 
     def for_csv(self, node: Tree):
         """... For CSV <opts>* ..."""
         node = bind_operations(node)
-        self.output_opts['type'] = 'csv'
+        self._output_opts['type'] = 'csv'
         self._parse_output_ops(node)
 
     def for_markdown(self, node: Tree):
         """... For Markdown <opts>* ..."""
         node = bind_operations(node)
-        self.output_opts['type'] = 'markdown'
+        self._output_opts['type'] = 'markdown'
         self._parse_output_ops(node)
 
     def for_template(self, node: Tree):
         """... For [Record|Batch]? Template <template_filename> <opts>* ..."""
         node = bind_operations(node)
-        self.output_opts['type'] = 'template'
+        self._output_opts['type'] = 'template'
         for i, child in enumerate(node.children):
             if self.is_tree(child, 'batch') or self.is_tree(child, 'record'):
-                self.output_opts['template_type'] = child.data.lower()
+                self._output_opts['template_type'] = child.data.lower()
                 continue
             if self.is_tree(child, 'template_filename'):
-                self.output_opts['template_filename'] = self.ctx.eval_filename_expr(child.children[0])
+                self._output_opts['template_filename'] = self.ctx.eval_filename_expr(child.children[0])
                 continue
             # remainder are options...
             self._parse_output_ops(node, i)
@@ -326,25 +402,25 @@ class SelectAnalyzer(Visitor):
             name: str = c.data
             # First generic options
             if name in self._BOOL_OPTS:
-                self.output_opts[name] = self._bool_arg(c, self._display_name(name))
+                self._output_opts[name] = self._bool_arg(c, self._display_name(name))
                 continue
             if name in self._NEG_BOOL_OPTS:
-                self.output_opts[self._NEG_BOOL_OPTS[name]] = not self._bool_arg(c, self._display_name(name))
+                self._output_opts[self._NEG_BOOL_OPTS[name]] = not self._bool_arg(c, self._display_name(name))
                 continue
             if name in self._STR_OPTS:
-                self.output_opts[name] = self._str_arg(c, self._display_name(name))
+                self._output_opts[name] = self._str_arg(c, self._display_name(name))
                 continue
             # Now the special cases
             if name == 'root':
-                self.output_opts[name] = self._str_arg(c, 'Root', 'result')
+                self._output_opts[name] = self._str_arg(c, 'Root', 'result')
                 continue
             if name == 'indent':
-                self.output_opts[name] = self._int_arg(c, 'Indent', 2)
+                self._output_opts[name] = self._int_arg(c, 'Indent', 2)
                 continue
             if name == 'quoting':
-                self.output_opts[name] = c.children[0].value.lower()
+                self._output_opts[name] = c.children[0].value.lower()
                 continue
-            raise NotImplementedError(f'Output option {name!r} of type {self.output_opts["type"]}') #SNO
+            raise NotImplementedError(f'Output option {name!r} of type {self._output_opts["type"]}') #SNO
 
     def _bool_arg(self, node:Tree, name: str) -> bool:
         return self.ctx.eval_to_bool(node.children[0], name, True) if node.children else True
@@ -397,7 +473,7 @@ class ImplicitContextAdder(Transformer):
 @bound_ops("Select")
 def execute_select(ctx: ExecContext, statement: Tree):
     """
-**A Select statement for lists, files, and data sources**
+**A Select statement to compose, filter, and output data**
 
 ```vgr
 **TODO**
@@ -410,15 +486,16 @@ def execute_select(ctx: ExecContext, statement: Tree):
         # (notably in the outputs and the predicates) and
         # that is by design, so don't panic
         ctx.print_tree(statement)
-        output_opts = select.output_opts
         from_opts = select.from_opts
         ctx.dd.declare_var(True, (from_opts[_TARGET],))
+        extractor = create_extractor(ctx, from_opts)
+        if ctx.debug: ctx.print_debug(repr(extractor))
+        # create the final outputs
+        output_opts = select.create_output_opts(extractor.attrs)
         # If the type was not set, we use the default
         output_opts['type'] = output_opts.get('type', 'csv')
         writer = create_writer(output_opts, select.output_controls)
         if ctx.debug: ctx.print_debug(repr(writer))
-        extractor = create_extractor(ctx, from_opts)
-        if ctx.debug: ctx.print_debug(repr(extractor))
         QueryRunner(ctx, select, writer).run_extraction(extractor)
     finally:
         ctx.dd.pop_frame()
@@ -494,12 +571,13 @@ class QueryRunner(QueryFilter, InfoOutput):
         # but it is not prescriptive: False does not mean stop...
         # Evaluate all predicates: first failure causes the
         # record to be skipped.
-        predicates = self._select.predicates
+        predicates = self._select.get_predicates()
         if predicates:
             for predicate in predicates:
                 if poly_false(self.ctx.eval_expr(predicate)): return False
         record: list = None
-        outputs = self._select.output_statements
+        outputs = self._select.get_output_statements()
+        # TODO this likely no longer applies
         if outputs:
             record = [ self.ctx.eval_expr(expr) for expr in outputs ]
         else:
@@ -553,7 +631,7 @@ def create_extractor(ctx: ExecContext, opts: dict) -> DataExtractor:
     if xtype == 'memory':
         data = opts.get(_DATA, None)
         if data:
-            return InMemoryExtractor(ctx.eval_expr(data), target)
+            return InMemoryExtractor(target, ctx.eval_expr(data))
         filename = opts.get(_FILE, None)
         if filename:
             # TODO need input encoding opt, default to utf-8-sig
@@ -563,10 +641,11 @@ def create_extractor(ctx: ExecContext, opts: dict) -> DataExtractor:
                     data, _metadata = load_file_as(filename, f, opts['dtype'])
             except Exception as e:
                 raise ValueError(f'While reading {filename!r}: {str(e)}') from e
+            # TODO whis is this here?
             if not isinstance(data, list):
                 data = [data] if isinstance(data, dict) else [{'value' : data}]
             if ctx.verbose: ctx.print_verbose('Read', len(data), 'Records ' if len(data) != 1 else 'Record', 'From', filename)
-            return InMemoryExtractor(data, target)
+            return InMemoryExtractor(target, data)
         raise NotImplementedError(f'Extractor type {xtype!r} : no data and no file') #SNO
     raise NotImplementedError(f'Extractor type {xtype!r}') #SNO
 
