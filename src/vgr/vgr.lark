@@ -81,6 +81,10 @@ statements: statement+
 // Some common patterns
 ?giving_clause: "Giving"i var_name
 ?option_value: "Is"i? expr
+stderr: ("Error"i | "stderr"i)
+stdout: ("Output"i | "stdout"i | "sysprint"i)
+stdin: ("Input"i | "stdin"i | "sysin"i)
+encoding: "Encoding"i option_value
 
 block_statement: "Begin"i ":"? statement+ "End"i _SEMICOLON? -> block
 call: "Call"i "Function"i? var_name ("(" (expr (_COMMA expr)*)? ")")? _SEMICOLON?
@@ -175,8 +179,8 @@ source: "Source"i ("File"i | "Files"i)? expr (_COMMA expr)* _SEMICOLON?
 include: "@Include"i ("File"i | "Files"i)? expr (_COMMA expr)* _SEMICOLON?
 
 load_from: "Load"i "Variable"i? var_name ("From"i | "With"i) "File"i? expr (_COMMA? load_from_opts)* _SEMICOLON?
-?load_from_opts: ("Type"i "Is"i? | "As"i)? load_source_type
-    | "Encoding"i option_value -> encoding
+?load_from_opts: encoding
+    | ("Type"i "Is"i? | "As"i)? load_source_type
 load_source_type: "CSV"i -> csv_file
     | "HCL"i -> hcl_file
     | "INI"i -> ini_file
@@ -190,9 +194,9 @@ assert: "Assert"i expr (":" expr (_COMMA expr)*)? _SEMICOLON?
 
 print: "Print"i print_channel? expr (_COMMA expr)* _SEMICOLON?
 printf: "Printf"i print_channel? expr (_COMMA expr)* _SEMICOLON?
-?print_channel: ("On"i | "To"i)? ("Error"i | "stderr"i) -> stderr
-    | ("On"i | "To"i)? ("Output"i | "stdout"i | "sysprint"i) -> stdout
-    | "As"? "Markdown"i -> markdown
+?print_channel: ("On"i | "To"i)? stderr
+    | ("On"i | "To"i)? stdout
+    | "As"i? "Markdown"i -> markdown
 
 log: "Log"i log_level expr (_COMMA expr)* _SEMICOLON?
    | "Log"i "Level"i log_level _SEMICOLON? -> log_setlevel
@@ -201,16 +205,13 @@ log: "Log"i log_level expr (_COMMA expr)* _SEMICOLON?
     | ("Warn"i | "Warning"i) -> warn
     | "Error"i -> error
 
-open: "Open"i io_type "File"i? expr open_ext? _SEMICOLON?
-close: "Close"i io_type "File"i? _SEMICOLON?
-?io_type: ("Error"i | "stderr"i) -> stderr
-    | ("Output"i | "stdout"i | "sysprint"i) -> stdout
-    | ("Input"i | "stdin"i | "sysin"i) -> stdin
-?open_ext: ("Append"i | "Extend"i | "a"i) -> a
+open: "Open"i (stderr | stdout | stdin) "File"i? expr (_COMMA? open_option (_COMMA open_option)*)? _SEMICOLON?
+?open_option: encoding
+    | ("Append"i | "Extend"i | "a"i) -> a
     | ("Overwrite"i | "w"i) -> w
     | ("No"i "Overwrite"i | "x"i) -> x
     | ("Read"i | "r"i) -> r
-// TODO    "Encoding"i option_value -> encoding
+close: "Close"i (stderr | stdout | stdin) "File"i? _SEMICOLON?
 
 zip: "Create"i "Zip"i "File"i? expr (_COMMA? zip_option (_COMMA zip_option)*)? _SEMICOLON?
 ?zip_option: "Comment"i option_value -> comment

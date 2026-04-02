@@ -70,7 +70,7 @@ cobol_exhibit: "Exhibit"i "*" _SEMICOLON? // exhibit all
 //
 // See https://www.ibm.com/docs/en/cobol-zos/6.3.0?topic=statements-display-statement
 cobol_display_on: "Display"i expr (_COMMA? expr)* cobol_display_opt* _SEMICOLON?
-?cobol_display_opt: ("Upon"i | "On"i) io_type -> upon
+?cobol_display_opt: ("Upon"i | "On"i) (stderr | stdout | stdin) -> upon
     | "With"i? "No"i "Advancing"i -> no_advance
 
 // Notes :
