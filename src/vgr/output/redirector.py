@@ -3,8 +3,6 @@ import sys
 from io import IOBase
 from io import UnsupportedOperation
 
-from ..builtins import poly_type
-
 _STDIN = 'stdin'
 _STDOUT = 'stdout'
 _STDERR = 'stderr'
@@ -19,7 +17,6 @@ class Redirection():
         assert name in _ALL_STREAMS
         self._name = name
         _OPEN_STREAMS[self._name] = None
-        self._shared = True
         self._filename = None
 
     def _stream(self) -> IOBase:
@@ -44,35 +41,27 @@ class Redirection():
   keyword parameters. This file is considered "owned" by the redirection.
 """
         if not args: return self
-        first_arg = args[0]
-        # TODO do we even use this pattern?
-        # Redirect a shared output
-        if isinstance(first_arg, IOBase):
-            return self._redirect(first_arg, None, True)
-        # Redirect to an output we own
-        if isinstance(first_arg, str):
-            dest = open(first_arg, mode=kwargs.get('mode', 'w'), encoding=kwargs.get('encoding', 'utf-8'))
-            return self._redirect(dest, first_arg, False)
-        raise TypeError(f'Unsupported argument type: {poly_type(first_arg)!r}')
-
-    def _redirect(self, destination: IOBase, filename: str, shared: bool):
+        filename = args[0]
+        dest = open(filename,
+                    mode=kwargs.get('mode', 'w'),
+                    encoding=kwargs.get('encoding', 'utf-8'),
+                    errors=kwargs.get('errors', 'replace'))
         self.end_redirect()
-        _OPEN_STREAMS[self._name] = destination
-        self._shared = shared
+        _OPEN_STREAMS[self._name] = dest
         self._filename = filename
         return self
 
     def end_redirect(self):
         """Close the active redirect if it is not shared"""
         try:
+            # This gets the value from _OPEN_STREAMS...
             stream = self._stream()
-            if not self._shared and stream and not stream.closed:
+            if stream and not stream.closed:
                 stream.flush()
                 stream.close()
             return self
         finally:
             _OPEN_STREAMS[self._name] = None
-            self._shared = True
             self._filename = None
 
 class IORedirector:
