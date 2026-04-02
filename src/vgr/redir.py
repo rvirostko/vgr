@@ -12,6 +12,7 @@ from lark import Tree
 
 from .app_exceptions import VgrRuntimeError
 from .builtins import bound_ops, verify_relative_path, expand_filename
+from .encoding import parse_encoding
 from .exec_context import ExecContext
 from .output import IORedirector
 
@@ -40,19 +41,31 @@ def execute_open(ctx: ExecContext, statement: Tree) -> None:
     """
 **Send output to a file**
 
-* Open [Output | Error] [File] *file_name* [Overwrite] [;]
-* Open [Output | Error] [File] *file_name* No Overwrite [;]
-* Open [Output | Error] [File] *file_name* [Extend | Append] [;]
+* Open [Output | Error | Input] [File] *file_name* [options...,]* [;]
 
 The *file_name* argument is a string for the file to be opened.
 
-If output is already being sent to another file, it is closed first.
+If another file is already open, it is closed first.
+All opened files are closed at program termination.
 
-When `Extend` or `Append` is used, output is added to the end of an existing file.
-When `No Overwrite` is used, the open fails if the file already exists.
-Otherwise, if `Overwrite` is used or no option is given the contents of existing files are truncated.
+**Options**
 
-All redirection is closed at program termination.
+* `Append` or `Extend` : output is added to the end of an existing file.
+  Used with `Output` and `Error`. Can be abbreviated as `A`.
+* `Overwrite` : overwrite existing files, which is the default.
+  Used with `Output` and `Error`. Can be abbreviated as `W`.
+* `No Overwrite` : operation fails if the file already exists.
+  Used with `Output` and `Error`. Can be abbreviated as `X`.
+* `Read` : can only be used with `Input`.
+  This is the default mode for `Input`.
+* `Encoding [Is] expr` : Set the encoding for the file.
+  The default is *UTF-8*.
+
+**Stream Aliases**
+
+* `stdout` or `sysprint` for `Output`
+* `stderr` for `Error`
+* `stdin` or `sysin` for `Input`
 
 > **Windows Note**\\
 > If you hard code paths, please use the slash as a universal
@@ -60,24 +73,43 @@ All redirection is closed at program termination.
 > it in a string, you will either need to double it or use a *raw string*.
 
 ```vgr
-**TODO**
+Open Output File "out.txt" Append
+    # added to end of file
+    Print "Hello, World"
+    # does not appear in file
+    Print Error "-No errors-"
+Close Output File
 ```
+
+> **Note**\\
+> The indention of statements inside an `Open` and `Close`
+> is a convention, not a requirement.
 
 Also see `Close`, `Print`, and `Printf`.
 """
-    encoding = None # TODO we should be able to support encoding clause
     stream = _eval_stream_name(statement.children[0])
     filename = ctx.eval_filename_expr(statement.children[1])
-    if stream == 'stdin':
-        mode = statement.children[2].data.lower() if len(statement.children) > 2 else 'r'
-        if mode not in ('r'):
-            raise VgrRuntimeError(statement.children[2], ValueError('Invalid input mode'))
-    else:
-        mode = statement.children[2].data.lower() if len(statement.children) > 2 else 'w'
-        if mode not in ('a', 'w', 'x'):
-            raise VgrRuntimeError(statement.children[2], ValueError('Invalid output mode'))
+    mode = None
+    encoding = None
+    for child in statement.children[2:]:
+        name = child.data.lower()
+        if name in ('a', 'w', 'x'):
+            if stream == 'stdin': raise VgrRuntimeError(child, ValueError('Invalid input mode'))
+            mode = name
+        elif name in ('r'):
+            if stream != 'stdin': raise VgrRuntimeError(child, ValueError('Invalid output mode'))
+        elif name == 'encoding':
+            encoding = parse_encoding(ctx, child)
+        else:
+            raise VgrRuntimeError(child, ValueError(f'Option {name!r} not handled')) # SNO
+    mode = mode or ('r' if stream == 'stdin' else 'w')
+    encoding = encoding or 'utf-8'
     try:
-        _REDIRECTOR.get_stream(stream).redirect_to(prepare_path(filename, mode), mode=mode, encoding=encoding or 'utf-8')
+        _REDIRECTOR.get_stream(stream).redirect_to(
+            prepare_path(filename, mode),
+            mode=mode,
+            encoding=encoding,
+            errors='backslashreplace' if ctx.debug else 'replace')
         ctx.print_verbose(stream, "redirected to", filename)
     except OSError as e:
         # likely has something to do with the file, so point there
@@ -90,18 +122,27 @@ def execute_close(ctx: ExecContext, statement: Tree) -> None:
     """
 **Close output to a file**
 
-* Close Output [File] [;]
-* Close Error [File] [;]
+* Close [Output | Error | Input] [File] [;]
 
-Once closed, command output and errors resumes their default destinations.
+Once closed, the stream resumes it default.
 
-All redirection is closed at program termination.
+If not already open, the command is ignored.
+All opened files are closed at program termination.
 
 ```vgr
-**TODO**
+Open Output File "out.txt" Append
+    # added to end of file
+    Print "Hello, World"
+Close Output File
+# does not appear in file
+Print "Hello, Again"
 ```
 
-Also see `Open`
+> **Note**\\
+> The indention of statements inside an `Open` and `Close`
+> is a convention, not a requirement.
+
+Also see `Open` and `Reset`
 """
     stream = _eval_stream_name(statement.children[0])
     _REDIRECTOR.get_stream(stream).end_redirect()
