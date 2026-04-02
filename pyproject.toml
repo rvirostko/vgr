@@ -27,6 +27,44 @@ dependencies = [
     "RapidFuzz>=3.13.0",
     "rich>=13.9.4"
 ]
+keywords = ["etl", "data", "parsing", "automation", "vault", "reporting"]
+# PyPI classifiers
+classifiers = [
+    "Development Status :: 4 - Beta",
+
+    # Audience
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "Intended Audience :: Information Technology",
+
+    # Topics
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Security",
+    "Topic :: Software Development :: Interpreters",
+    "Topic :: System :: Networking",
+    "Topic :: System :: Systems Administration",
+    "Topic :: Text Processing :: Filters",
+    "Topic :: Utilities",
+
+    # Python versions
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+
+    # Environment
+    "Environment :: Console",
+    "Operating System :: OS Independent",
+]
+
+# Project URLs (shown in PyPI, accessible via metadata)
+[project.urls]
+Homepage = "https://github.com/rvirostko/vgr"
+#Documentation = "https://vgr.readthedocs.io"
+Repository = "https://github.com/rvirostko/vgr"
+#Issues = "https://github.com/yourusername/vgr/issues"
+#Changelog = "https://github.com/yourusername/vgr/blob/main/CHANGELOG.md"
 
 [project.scripts]
 vgr = "vgr.vgr:main"
