@@ -4,7 +4,6 @@ Includes the implemenation for SET/UNSET, MOVE, and LOAD FROM.
 
 from io import TextIOWrapper
 from typing import Any
-import codecs
 import os
 
 from lark import Tree
@@ -31,7 +30,6 @@ from .builtins import (
     poly_shl,
     poly_shr,
     poly_sub,
-    poly_type,
 )
 from .dd_config import (
     clear_includes,
@@ -39,6 +37,7 @@ from .dd_config import (
     get_user_args,
     set_user_args,
 )
+from .encoding import parse_encoding
 from .evaluate import do_set, do_unset, get_writable_var_path, create_param_list
 from .exec_context import ExecContext
 from .redir import close_all_redirects
@@ -285,12 +284,6 @@ After the data is loaded, the following metadata values are available:
 
 Also see `ParseCSV()`, `ParseHCL()`, `ParseINI()`, `ParseJSON()`, and `ParseYAML()`
 """
-    def is_valid_encoding(name: str) -> bool:
-        try:
-            codecs.lookup(name)
-            return True
-        except LookupError:
-            return False
     var_path = get_writable_var_path(ctx, statement.children[0])
     fn_child = statement.children[1]
     filename = ctx.eval_filename_expr(fn_child)
@@ -298,17 +291,7 @@ Also see `ParseCSV()`, `ParseHCL()`, `ParseINI()`, `ParseJSON()`, and `ParseYAML
     encoding = None
     for opt in statement.children[2:]:
         if opt.data == "encoding":
-            expr = opt.children[0]
-            encoding = ctx.eval_expr_or_const(expr)
-            if encoding is not None:
-                if not isinstance(encoding, str):
-                    raise VgrRuntimeError(expr, TypeError(f'Encoding must be a string, found {poly_type(encoding)}'))
-                encoding = encoding.strip()
-                if encoding:
-                    if not is_valid_encoding(encoding):
-                        raise VgrRuntimeError(expr, TypeError(f'Encoding {encoding!r} is not valid'))
-                else:
-                    encoding = None
+            encoding = parse_encoding(ctx, opt)
         else:
             if ftype:
                 raise VgrRuntimeError(opt, ValueError('Duplicate file type specified'))
