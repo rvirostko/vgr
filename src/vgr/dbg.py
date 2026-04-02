@@ -3,7 +3,6 @@ Code used for development testing
 """
 
 from typing import Any
-import sys
 
 from lark import Tree, Token
 
@@ -23,7 +22,7 @@ def print_tree(item: Any, indent=2) -> None:
             pos_info = ''
         print_stderr(f'{prefix}({tree.data}:{op}{pos_info}', end=('\n' if tree.children else ''))
         for child in tree.children: print_tree(child, indent + 2)
-        print(f'{prefix if tree.children else ""})', file=sys.stderr)  # close the rule
+        print_stderr(f'{prefix if tree.children else ""})')  # close the rule
     else:
         if isinstance(item, Token):
             token: Token = item
