@@ -5,11 +5,15 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "vgr"
 version = "1.1.11"
-description = "VGR - A scripting language"
+description = "VGR - A Scripting Language"
 readme = "README.md"
 requires-python = ">=3.9"
-license = { file = "LICENSE.txt" }
-authors = [{ name = "Ross Virostko", email = "ross.virostko@citizensbank.com" }]
+license = "LicenseRef-Hippocratic-HL3"
+license-files = ["LICENSE.md"]
+authors = [
+    { name = "Ross Virostko", email = "ross.virostko@citizensbank.com" },
+    { name = "Ross Virostko", email = "rvirostko@icloud.com" },
+]
 dependencies = [
     "blessed>1.23.0; sys_platform == 'win32'",
     "httpx[http2]>=0.28.1",

@@ -50,6 +50,10 @@ from .functions import (
     get_operator_entries,
 )
 from .interactive import CmdLine, ArgumentParser, ParserBuilder
+from .dist_meta import (
+    read_license_file,
+    get_authors,
+)
 from .log_config import init_logging, set_logging_level
 from .redir import print_stderr
 from .exec_context import ExecContext
@@ -96,6 +100,8 @@ class VGRCmdLine(CmdLine):
             ("repl",):                 self._print_repl_help,
             stmt_key:                  self._print_statement_help,
             ("running",):              self._print_running_help,
+            ("license",):              self._print_license_help,
+            ("authors",):              self._print_authors_help,
             ("variables",):            self._print_variables_help,
             ("list",):                 self._print_type_list,
         }
@@ -158,6 +164,8 @@ class VGRCmdLine(CmdLine):
 * **running** : How to run VGR
 * **statements** : Show help on using statements or search for one by name
 * **variables** : Using variables in VGR
+* **license** : The license which governs VGR's use
+* **authors** : VGR's authors
 
 If no value is provided with **function**, **operator**, or **statement**,
 some general information is displayed.
@@ -224,6 +232,15 @@ For example **help Add** will return informtion for `Add()` while
 
     def _print_running_help(self, _topic: str, _q: str) -> None:
         self._print_md_doc("running.md")
+
+    def _print_license_help(self, _topic: str, _q: str) -> None:
+        print()
+        print_md(self._md_fixup(read_license_file()))
+        print()
+
+    def _print_authors_help(self, _topic: str, _q: str) -> None:
+        print_md(self._md_fixup(get_authors()))
+        print()
 
     def _print_variables_help(self, _topic: str, _q: str) -> None:
         self._print_md_doc("variables.md")
