@@ -151,7 +151,6 @@ class JSONRecordWriter(FileRecordWriter):
             self.print(json.dumps(obj,
                         indent=self._writer.indent,
                         sort_keys=self._writer.sort_keys,
-                        ensure_ascii=self._writer.encode_ascii,
                         separators=self._separators,
                         default=str))
             self.flush()
@@ -180,7 +179,6 @@ class JSONRecordWriter(FileRecordWriter):
             self.print(json.dumps(obj,
                         indent=self._writer.indent,
                         sort_keys=self._writer.sort_keys,
-                        ensure_ascii=self._writer.encode_ascii,
                         separators=self._separators,
                         default=str))
             self.flush()
@@ -190,7 +188,6 @@ class JSONRecordWriter(FileRecordWriter):
             self.println(json.dumps(obj,
                         indent=None,
                         sort_keys=self._writer.sort_keys,
-                        ensure_ascii=self._writer.encode_ascii,
                         separators=self._separators,
                         default=str))
             self.flush()

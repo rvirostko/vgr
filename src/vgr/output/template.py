@@ -1,11 +1,11 @@
 """
 A RecordWriter that uses Jinja2 to produce output.
-It can operate in either a one-by-one record or batch mode.
+It can operate in either in record-by-record or batch mode.
 """
 
-import traceback
 from io import FileIO
 from typing import Any
+import traceback
 import inspect
 import sys
 
@@ -92,7 +92,6 @@ class TemplateRecordWriter(FileRecordWriter):
     _BATCH_DEFAULT_TEMPLATE = """{%- if record_keys and record_data -%}
 {%- set ns = namespace(fmt="",col_widths=[],bar="") -%}
 {%- set box = namespace(H="\u2500", V="\u2502", DR="\u250C", DL="\u2510", UR="\u2514", UL="\u2518", X="\u253C", T="\u252C", B="\u2534", L="\u251C", R="\u2524" ) -%}
-{%- if encode_ascii -%}{%- set box = namespace(H="-", V="|", DR="+", DL="+", UR="+", UL="+", X="+", T="+", B="+", L="|", R="|" ) -%}{%- endif -%}
 {%- set ns.col_widths = record_keys | map("string") | map("length") | list -%}
 {%- for row in record_data -%}
     {% set data_widths = row | map("string") | map("length") | list -%}
@@ -123,7 +122,6 @@ class TemplateRecordWriter(FileRecordWriter):
     _DEFAULT_TEMPLATE = """{%- if record_keys and record_data %}
 {%- set ns = namespace(fmt="",key_width=0,data_width=0,bar="") -%}
 {%- set box = namespace(H="\u2500", V="\u2502", DR="\u250C", DL="\u2510", UR="\u2514", UL="\u2518", X="\u253C", T="\u252C", B="\u2534", L="\u251C", R="\u2524" ) -%}
-{%- if encode_ascii -%}{%- set box = namespace(H="-", V="|", DR="+", DL="+", UR="+", UL="+", X="+", T="+", B="+", L="|", R="|" ) -%}{%- endif -%}
 {% set key_width = record_keys | map("string") | map("length") | max -%}
 {% set data_width = record_data | map("string") | map("length") | max -%}
 {%- set ns.fmt = box.V ~ " {:<" ~ key_width ~ "." ~ key_width ~ "} " ~ box.V ~ " {:<" ~ data_width ~ "." ~ data_width ~ "} " ~ box.V -%}
@@ -178,16 +176,14 @@ class TemplateRecordWriter(FileRecordWriter):
     def _render(self, data: Any) -> None:
         try:
             self.print(
-                self._to_ascii(
-                    self._template.render(
-                        debug=self.debug,
-                        verbose=self.verbose,
-                        is_batch=self._is_batch,
-                        encode_ascii=self.encode_ascii,
-                        include_headers=self.include_headers,
-                        record_keys=self.headers,
-                        record_data=data
-            )))
+                self._template.render(
+                    debug=self.debug,
+                    verbose=self.verbose,
+                    is_batch=self._is_batch,
+                    include_headers=self.include_headers,
+                    record_keys=self.headers,
+                    record_data=data
+            ))
         except Exception as e:
             traceback.print_exc(file=sys.stderr)
             raise e

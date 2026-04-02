@@ -86,7 +86,6 @@ class SelectAnalyzer(Visitor):
         'auto_escape',
         'chain_undefined',
         'compact',
-        'encode_ascii',
         'include_headers',
         'include_nulls',
         'keep_last_newline',
@@ -97,7 +96,6 @@ class SelectAnalyzer(Visitor):
 
     _NEG_BOOL_OPTS = {
         # The option to what it negates
-        'encode_unicode'  : 'encode_ascii',
         'exclude_nulls'   : 'include_nulls',
         'no_array_wrapper': 'array_wrapper',
         'omit_headers'    : 'include_headers',
@@ -118,8 +116,6 @@ class SelectAnalyzer(Visitor):
         'array_wrapper'    : 'Array Wrapper',
         'auto_escape'      : 'Auto Escape',
         'chain_undefined'  : 'Chain Undefined Variables',
-        'encode_ascii'     : 'Encode ASCII',
-        'encode_unicode'   : 'Encode Unicode',
         'escapechar'       : 'Escape Character',
         'exclude_nulls'    : 'Exclude Nulls',
         'field_sep'        : 'Field Separator',

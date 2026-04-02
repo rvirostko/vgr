@@ -1,4 +1,5 @@
 """
+Base classes for writing structured records
 """
 
 from abc import ABC, abstractmethod
@@ -7,7 +8,6 @@ from io import IOBase
 from typing import Any
 import json
 import sys
-import unicodedata
 
 class RecordWriter(ABC):
 
@@ -127,7 +127,6 @@ class FileRecordWriter(RecordWriter):
 
     def __init__(self, file: IOBase=sys.stdout):
         self._file = file
-        self._encode_ascii = False
         self._headers = []
         self._include_headers = True
         super().__init__()
@@ -148,14 +147,6 @@ class FileRecordWriter(RecordWriter):
     def include_headers(self, enable: bool):
         self._include_headers = bool(enable)
 
-    @property
-    def encode_ascii(self) -> bool:
-        return self._encode_ascii
-
-    @encode_ascii.setter
-    def encode_ascii(self, enable: bool):
-        self._encode_ascii = bool(enable)
-
     def start(self) -> bool:
         if self._headers and self._include_headers: self.write_headers()
         return True
@@ -171,7 +162,7 @@ class FileRecordWriter(RecordWriter):
             super().close()
 
     def write_headers(self):
-        """This class doesn't write out headers at all"""
+        """This class doesn't write out headers"""
 
     def print(self, *args: any) -> None:
         """Utility method: does not add separator or line ending"""
@@ -184,19 +175,8 @@ class FileRecordWriter(RecordWriter):
     def flush(self) -> None:
         if self._file: self._file.flush()
 
-    def _to_ascii(self, text: str) -> str:
-        """
-        If the underlying formatter cannot enforce ASCII on its own, call
-        this method to convert it. Non-ASCII is converted to \\uNNNN escape sequences.
-        Conversion will only be performed if required, but skip it if
-        you know you can.
-        """
-        if text and self.encode_ascii:
-            return unicodedata.normalize("NFKD", text).encode("ascii", "replace").decode("ascii")
-        return text
-
     def _attrs(self) -> list:
-        return super()._attrs() + ['encode_ascii', 'headers', 'include_headers']
+        return super()._attrs() + ['headers', 'include_headers']
 
     @classmethod
     def stringify(cls, obj: Any) -> str:

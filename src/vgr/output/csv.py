@@ -115,7 +115,7 @@ class CSVRecordWriter(FileRecordWriter):
         return True
 
     def _flush_str(self) -> None:
-        self.print(self._to_ascii(self._outstr.getvalue()))
+        self.print(self._outstr.getvalue())
         # Clear the buffer and reset to start
         self._outstr.truncate(0)
         self._outstr.seek(0)

@@ -70,26 +70,18 @@ class TextRecordWriter(FileRecordWriter):
             for header, item in zip(self.headers, record):
                 if self.include_nulls or item is not None:
                     if first:
-                        self._print(header, self._header_sep, self.stringify(item))
+                        self.print(header, self._header_sep, self.stringify(item))
                         first = False
                     else:
-                        self._print(self._field_sep, header, self._header_sep, self.stringify(item))
+                        self.print(self._field_sep, header, self._header_sep, self.stringify(item))
         else:
             for item in record:
                 if self.include_nulls or item is not None:
                     if first:
-                        self._print(self.stringify(item))
+                        self.print(self.stringify(item))
                         first = False
                     else:
-                        self._print(self._field_sep, self.stringify(item))
+                        self.print(self._field_sep, self.stringify(item))
         # Only print a record sep if we printed anything
-        if not first: self._print(self.record_sep)
+        if not first: self.print(self.record_sep)
         return True
-
-    def _print(self, *args: any) -> None:
-        """Apply to_ascii() to all args if applicable"""
-        for arg in args:
-            if self.encode_ascii:
-                super().print(self._to_ascii(arg))
-            else:
-                super().print(arg)

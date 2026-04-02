@@ -18,12 +18,6 @@ class MarkdownRecordWriter(FileRecordWriter):
         self.println(self.__BAR)
         return True
 
-    def print(self, *args):
-        if self.encode_ascii:
-            super().print(self._to_ascii(a) for a in args)
-        else:
-            super().print(*args)
-
     def write_headers(self):
         if self.write(self._headers):
             for _ in self._headers:  self.print('|-')
