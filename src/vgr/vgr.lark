@@ -180,7 +180,7 @@ include: "@Include"i ("File"i | "Files"i)? expr (_COMMA expr)* _SEMICOLON?
 
 load_from: "Load"i "Variable"i? var_name ("From"i | "With"i) "File"i? expr (_COMMA? load_from_opts)* _SEMICOLON?
 ?load_from_opts: encoding
-    | ("Type"i "Is"i? | "As"i)? load_source_type
+    | ("Type"i "Is"i?)? load_source_type
 load_source_type: "CSV"i -> csv_file
     | "HCL"i -> hcl_file
     | "INI"i -> ini_file
@@ -252,8 +252,7 @@ select_output: "*"    -> output_all
 
 ?from_clause: "From"i (expr_from | file_from)
 expr_from: expr as_clause?
-file_from: "File"i expr as_clause?
-    | "File"i expr load_source_type as_clause? -> file_from_typed
+file_from: "File"i expr (_COMMA? (load_from_opts | as_clause))*
 ?as_clause: "As"i expr
 
 where_clause: "Where"i expr (_COMMA expr)*

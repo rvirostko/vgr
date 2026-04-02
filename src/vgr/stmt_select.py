@@ -27,6 +27,7 @@ from .data_xtract import (
     InfoOutput,
     QueryFilter,
 )
+from .encoding import parse_encoding
 from .evaluate import bind_operations
 from .exec_context import ExecContext
 from .output import (
@@ -46,9 +47,11 @@ from .xtract_memory import InMemoryExtractor
 _ROWID_PATH = ('$rowid', ) # NB: zero based
 _DEFAULT_TARGET_NAME = '$record'
 
-_DATA = 'data'
-_FILE = 'file'
-_TARGET = 'target'
+_TARGET = 'target' # the "From .. As" name
+_FILE = 'file' # the data file's name
+_DTYPE = 'dtype' # the data file's type
+_ENCODING = 'encoding'# encoding used to read data file
+_DATA = 'data' # what we'll iterate over
 
 def create_var_ref(statement, *names):
     # Extract metadata from source statement
@@ -301,22 +304,25 @@ class SelectAnalyzer(Visitor):
         self._from_opts[_TARGET] = self._get_target_name(node.children[1]) if len(node.children) > 1 else _DEFAULT_TARGET_NAME
 
     def file_from(self, node: Tree):
-        """... From File <filename> [As <target>] ..."""
+        """... From File <filename> [<source_type>] [Encoding Is <expr>] [As <target>] ..."""
         node = bind_operations(node)
         self._from_opts['type'] = 'memory'
         filename = self.ctx.eval_filename_expr(bind_operations(node.children[0]))
         self._from_opts[_FILE] = filename
-        self._from_opts['dtype'] = load_data_type(filename, None)
-        self._from_opts[_TARGET] = self._get_target_name(node.children[1]) if len(node.children) > 1 else _DEFAULT_TARGET_NAME
-
-    def file_from_typed(self, node: Tree):
-        """... From File <filename> <source_type> [As <target>] ..."""
-        node = bind_operations(node)
-        self._from_opts['type'] = 'memory'
-        filename = self.ctx.eval_filename_expr(bind_operations(node.children[0]))
-        self._from_opts[_FILE] = filename
-        self._from_opts['dtype'] = load_data_type(filename, node.children[1])
-        self._from_opts[_TARGET] = self._get_target_name(node.children[2]) if len(node.children) > 2 else _DEFAULT_TARGET_NAME
+        encoding = None
+        target = None
+        dtype = None
+        for child in node.children[1:]:
+            name = child.data.lower()
+            if name == 'encoding':
+                encoding = parse_encoding(self._ctx, child)
+            elif name == 'var_ref':
+                target = self._get_target_name(child)
+            else:
+                dtype = load_data_type(filename, name)
+        self._from_opts[_DTYPE] = dtype or load_data_type(filename, None)
+        self._from_opts[_ENCODING] = encoding or 'utf-8-sig'
+        self._from_opts[_TARGET] = target or _DEFAULT_TARGET_NAME
 
     def _get_target_name(self, node: Tree) -> str:
         target = self.ctx.eval_expr_or_const(bind_operations(node))
@@ -630,11 +636,9 @@ def create_extractor(ctx: ExecContext, opts: dict) -> DataExtractor:
             return InMemoryExtractor(target, ctx.eval_expr(data))
         filename = opts.get(_FILE, None)
         if filename:
-            # TODO need input encoding opt, default to utf-8-sig
             try:
-                with open(filename, 'r', encoding='utf-8-sig') as f:
-                    # TODO future: bind metadata to "$load"
-                    data, _metadata = load_file_as(filename, f, opts['dtype'])
+                with open(filename, 'r', encoding=opts[_ENCODING]) as f:
+                    data, _metadata = load_file_as(filename, f, opts[_DTYPE])
             except Exception as e:
                 raise ValueError(f'While reading {filename!r}: {str(e)}') from e
             # TODO whis is this here?
