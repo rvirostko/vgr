@@ -220,12 +220,13 @@ zip: "Create"i "Zip"i "File"i? expr (_COMMA? zip_option (_COMMA zip_option)*)? _
 
 exit: "Exit"i expr? _SEMICOLON?
 
-sort: "Sort"i sort_source sort_keys? unique_clause? sort_target? _SEMICOLON?
+sort: "Sort"i sort_source sort_keys? unique_clause? sort_giving? _SEMICOLON?
 sort_source: sort_obj -> source
-sort_target: ("Into"i | "Giving"i) sort_obj -> target
-?sort_obj: sort_file | sort_var
-sort_file: "File"i expr ("As"i? load_source_type)? -> file
-sort_var: "Variable"i? var_name -> var
+sort_giving: "Giving"i sort_obj -> target
+// TODO needs encoding and to match Load syntax
+?sort_obj: "File"i expr ("As"i? load_source_type)? -> file
+    | "Variable"i? var_name -> var
+
 sort_keys: ("On"i | "By"i) sort_key (_COMMA sort_key)* -> keys
 sort_key: sort_dir? "Key"i? expr -> key
 ?sort_dir: sort_asc | sort_des
