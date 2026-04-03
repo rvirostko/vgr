@@ -292,11 +292,9 @@ Also see `ParseCSV()`, `ParseHCL()`, `ParseINI()`, `ParseJSON()`, and `ParseYAML
         if opt.data == "encoding":
             encoding = parse_encoding(ctx, opt)
         else:
-            if ftype:
-                raise VgrRuntimeError(opt, ValueError('Duplicate file type specified'))
             ftype = opt.data
     try:
-        with open(filename, 'r', encoding=encoding or 'utf-8-sig') as f:
+        with open(filename, 'r', encoding=encoding or 'utf-8-sig', errors='backslashreplace' if ctx.debug else 'replace') as f:
             data, metadata = load_file_as(filename, f, load_data_type(filename, ftype))
             ctx.set_var(data, *var_path)
             # Try to make the meta variable a local if possible
