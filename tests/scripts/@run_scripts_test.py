@@ -16,7 +16,11 @@ def run_subprocess(cmd: list[str]) -> tuple[int, str, str]:
     """Run subprocess, always showing and saving output"""
     cmd_line = [sys.executable, "-m", "vgr"]
     cmd_line.extend(cmd)
-    result = subprocess.run(cmd_line, capture_output=True, text=True, check=False)
+    result = subprocess.run(cmd_line,
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.STDOUT,
+                            text=True,
+                            check=False)
     # Always print outputs for inspection (requires pytest -s to work?)
     print(result.stdout, end="", file=sys.stdout)
     print(result.stderr, end="", file=sys.stderr)
