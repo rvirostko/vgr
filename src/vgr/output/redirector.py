@@ -42,9 +42,10 @@ class Redirection():
 """
         if not args: return self
         filename = args[0]
+        mode = kwargs.get('mode', 'w')
         dest = open(filename,
-                    mode=kwargs.get('mode', 'w'),
-                    encoding=kwargs.get('encoding', 'utf-8'),
+                    mode=mode,
+                    encoding=kwargs.get('encoding', 'utf-8-sig' if mode == 'r' else 'utf-8'),
                     errors=kwargs.get('errors', 'replace'))
         self.end_redirect()
         _OPEN_STREAMS[self._name] = dest
