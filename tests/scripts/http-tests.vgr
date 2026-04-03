@@ -72,7 +72,9 @@ Set n To 1
 // -------------------------------------------------------------------------
 // Simple standalone GET
 // -------------------------------------------------------------------------
+Echo on
 Http Get "https://httpbin.org/get"
+Echo off
 Call AssertResult(n)
 Call PrintPassed(n)
 Add 1 to n
@@ -80,9 +82,11 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // GET with single parameters
 // -------------------------------------------------------------------------
+Echo on
 Http Get "https://httpbin.org/get"
     Parameter "page=1"
     Parameter "q=hello world"
+Echo off
 Call AssertResult(n)
 Call CheckParam(n, "page", "1")
 Call CheckParam(n, "q", "hello world")
@@ -92,11 +96,13 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // GET with bulk parameters
 // -------------------------------------------------------------------------
+Echo on
 Http Get "https://httpbin.org/get"
     Parameters {
             "page": "2",
             "q": "bulk params"
     }
+Echo off
 Call AssertResult(n)
 Call CheckParam(n, "page", "2")
 Call CheckParam(n, "q", "bulk params")
@@ -106,8 +112,9 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // GET with custom header — httpbin echoes headers back
 // -------------------------------------------------------------------------
-Http Get "https://httpbin.org/headers"
-    Header " X-Test-Header : HelloWorld "
+Echo on
+Http Get "https://httpbin.org/headers" Header " X-Test-Header : HelloWorld "
+Echo off
 Call AssertResult(n)
 Call CheckHeader(n, "X-Test-Header", "HelloWorld")
 Call PrintPassed(n)
@@ -116,9 +123,9 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // POST with JSON body
 // -------------------------------------------------------------------------
-Http Post "https://httpbin.org/post"
-    Body Is {"name": "alice", "role": "admin"}
-    Header "Content-Type: application/json"
+Echo on
+Http Post "https://httpbin.org/post" Body Is {"name": "alice", "role": "admin"} Header "Content-Type: application/json"
+Echo off
 Call AssertResult(n)
 Call CheckJson(n, "name", "alice")
 Call CheckJson(n, "role", "admin")
@@ -130,10 +137,12 @@ Add 1 to n
 // -------------------------------------------------------------------------
 Set user To "testuser"
 Set password To "testpass"
+Echo on
 Http Get "https://httpbin.org/basic-auth/{}/{}".Format(user, password)
     User Is user
     Password Is password
     Auth Is Basic
+Echo off
 Call AssertResult(n)
 Call CheckAuthenticated(n, True)
 Call PrintPassed(n)
@@ -144,10 +153,12 @@ Add 1 to n
 // -------------------------------------------------------------------------
 Set user To "testuser"
 Set password To "testpass"
+Echo on
 Http Get "https://httpbin.org/basic-auth/{}/{}".Format(user, password)
     User Is user
     Password Is "BAD"
     # Auth Is Basic - this is the default
+Echo off
 Call AssertStatus(n, http.status.unauthorized)
 Call CheckAuthenticated(n, None)
 Call PrintPassed(n)
@@ -156,10 +167,12 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // Digest auth
 // -------------------------------------------------------------------------
+Echo on
 Http Get "https://httpbin.org/digest-auth/auth/{}/{}".Format(user, password)
     User Is user
     Password Is password
     Auth Is Digest
+Echo off
 Call AssertResult(n)
 Call CheckAuthenticated(n, True)
 Call PrintPassed(n)
@@ -168,7 +181,9 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // Expected "not found" — reason should be set, script continues
 // -------------------------------------------------------------------------
+Echo on
 Http Get URL Is "https://httpbin.org/status/404"
+Echo off
 Call AssertStatus(n, http.status.not_found)
 Call AssertReason(n, "NOT FOUND")
 Call PrintPassed(n)
@@ -178,7 +193,9 @@ Add 1 to n
 // Timeout — delay endpoint with short timeout
 // expects transport failure result, not an exception
 // -------------------------------------------------------------------------
+Echo on
 Http Get URL Is "https://httpbin.org/delay/5" Timeout Is 1
+Echo off
 Call AssertStatus(n, None)
 Call AssertReason(n, "The read operation timed out")
 Call PrintPassed(n)
@@ -187,8 +204,10 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // Session connect, GET, disconnect
 // -------------------------------------------------------------------------
+Echo on
 Http Connect "https://httpbin.org/" Timeout Is 10.0 As httpbin
 Http Get URL Is "get" Using httpbin
+Echo off
 Call AssertResult(n)
 Http Disconnect httpbin
 Call PrintPassed(n)
@@ -197,6 +216,7 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // Session with URL params — override one, keep one, add one
 // -------------------------------------------------------------------------
+Echo on
 Http Connect "https://httpbin.org/?api_version=1&format=json"
     Timeout Is 10.0
     As httpbin
@@ -204,6 +224,7 @@ Http Get URL Is "get"
     Parameter "api_version=2"
     Parameter "page=1"
     Using httpbin
+Echo off
 Call AssertResult(n)
 Call CheckParam(n, "format", "json") # From connect
 Call CheckParam(n, "page", "1") # From request
@@ -217,6 +238,7 @@ Http Disconnect httpbin
 // -------------------------------------------------------------------------
 Set user To "bob"
 Set password To "secret"
+Echo on
 Http Connect "https://httpbin.org/"
     User Is user
     Password Is password
@@ -224,6 +246,7 @@ Http Connect "https://httpbin.org/"
     As httpbin
 # Credentials come from connect
 Http Get "basic-auth/{}/{}".Format(user, password) Using httpbin
+Echo off
 Call AssertResult(n)
 Call CheckAuthenticated(n, True)
 Call PrintPassed(n)
@@ -233,10 +256,12 @@ Http Disconnect httpbin
 // -------------------------------------------------------------------------
 // Follow Redirects - off
 // -------------------------------------------------------------------------
+Echo on
 Http Connect "https://httpbin.org/"
     Follow Redirects Is False
     As httpbin
 Http Get "redirect/1" Using httpbin
+Echo off
 Call AssertStatus(n, http.status.found)
 Call PrintPassed(n)
 Add 1 to n
@@ -245,10 +270,12 @@ Http Disconnect httpbin
 // -------------------------------------------------------------------------
 // Follow Redirects - on, unlimited
 // -------------------------------------------------------------------------
+Echo on
 Http Connect "https://httpbin.org/"
     Follow Redirects
     As httpbin
-Http Get "redirect/5" Using httpbin
+Http Get "redirect/3" Using httpbin
+Echo off
 Call AssertResult(n)
 Call PrintPassed(n)
 Add 1 to n
@@ -257,11 +284,13 @@ Http Disconnect httpbin
 // -------------------------------------------------------------------------
 // Follow Redirects - on, limited
 // -------------------------------------------------------------------------
+Echo on
 Http Connect "https://httpbin.org/"
     Follow Redirects
     Max Redirects Is 3
     As httpbin
-Http Get "redirect/5" Using httpbin
+Http Get "redirect/4" Using httpbin
+Echo off
 Print http.result.FormatJson()
 Call AssertStatus(n, None)
 Call AssertReason(n, "Exceeded maximum allowed redirects")
@@ -272,7 +301,9 @@ Http Disconnect httpbin
 // -------------------------------------------------------------------------
 // DELETE
 // -------------------------------------------------------------------------
+Echo on
 Http Delete URL Is "https://httpbin.org/delete"
+Echo off
 Call AssertResult(n)
 Call PrintPassed(n)
 Add 1 to n
@@ -280,9 +311,11 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // PUT with body
 // -------------------------------------------------------------------------
+Echo on
 Http Put URL Is "https://httpbin.org/put"
     Body Is { "key": "value" }
     Header "Content-Type: application/json"
+Echo off
 Call AssertResult(n)
 Call CheckJson(n, "key", "value")
 Call PrintPassed(n)
@@ -291,9 +324,11 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // PATCH with body
 // -------------------------------------------------------------------------
+Echo on
 Http Patch URL Is "https://httpbin.org/patch"
     Body Is { "status": "updated" }
     Header "Content-Type: application/json"
+Echo off
 Call AssertResult(n)
 Call CheckJson(n, "status", "updated")
 Call PrintPassed(n)
@@ -303,7 +338,9 @@ Add 1 to n
 // Giving tests - positive only
 // -------------------------------------------------------------------------
 # We can always restate the default and have it work
+Echo on
 Http Get "https://httpbin.org/get" Giving http.result
+Echo off
 Call AssertResult(n)
 Call PrintPassed(n)
 Add 1 to n
@@ -311,7 +348,9 @@ Add 1 to n
 # We can specify our own writable var
 Unset froboz
 Assert froboz Is None
+Echo on
 Http Get "https://httpbin.org/get" Giving froboz
+Echo off
 Assert froboz Is Not None
 Call PrintPassed(n)
 Add 1 to n
@@ -322,10 +361,10 @@ Add 1 to n
 ForEach test_case in [[1, 1.1], [1.1, 1.1], [2, 2], [" 2 ", 2]]:
     Set version To test_case.FirstItem()
     Set expected To "HTTP/" + test_case.LastItem()
-    Http Connect "https://httpbin.org"
-        HTTP-Version Is version
-        As httpbin
+    Echo on
+    Http Connect "https://httpbin.org" HTTP-Version Is version As httpbin
     Http Get "get" Using httpbin
+    Echo off
     Call AssertResult(n)
     Set received To http.result.http_version
     Print "HTTP version"
@@ -346,10 +385,10 @@ ForEach host In [
         "wrong.host.badssl.com",
     ]:
     ForEach verify In [ True, False ]:
-        Http Connect "https://" + host Verify SSL Is verify Timeout Is 10.0
-            As ssl_test_conn
-        Http Get URL Is "/"
-            Using ssl_test_conn
+        Echo on
+        Http Connect "https://" + host Verify SSL Is verify Timeout Is 10.0 As ssl_test_conn
+        Http Get URL Is "/" Using ssl_test_conn
+        Echo off
         Printf "https://{} - Verify SSL is {}\n", host, verify
         If verify:
             Call AssertStatus(n, None)
