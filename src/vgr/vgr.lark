@@ -158,16 +158,15 @@ pass: ("Pass"i | "Nop"i) _SEMICOLON?
 
 sleep: "Sleep"i "For"i? expr ("Seconds"i | "Second"i)? _SEMICOLON?
 
-set:  ("Set"i "Variable"i?)? var_name ("=" | "To"i) expr _SEMICOLON?
-    | ("Set"i "Variable"i?)? var_name ("=" | "To"i)? def_params? ("->" | "=>" | "\u2192") expr _SEMICOLON? -> set_arrow
-    | ("Set"i "Variable"i?)? var_name ("=" | "To"i)? def_params? ("->" | "=>" | "\u2192") "Compile"i "(" expr ")" _SEMICOLON? -> compile_arrow
-    | ("Set"i "Variable"i?)? var_name IN_PLACE_OP expr _SEMICOLON?
+set:  "Set"i? var_name ("=" | "To"i) expr _SEMICOLON?
+    | "Set"i? var_name ("=" | "To"i)? def_params? ("->" | "=>" | "\u2192") expr _SEMICOLON? -> set_arrow
+    | "Set"i? var_name ("=" | "To"i)? def_params? ("->" | "=>" | "\u2192") "Compile"i "(" expr ")" _SEMICOLON? -> compile_arrow
+    | "Set"i? var_name IN_PLACE_OP expr _SEMICOLON?
 IN_PLACE_OP: ("+=" | "-=" | "*=" | "/=" | "%=" | "**=" | "&=" | "|=" | "^=" | "<<=" | ">>=" )
 
-swap: "Swap"i "Variable"i? var_name "With"i "Variable"i? var_name _SEMICOLON?
-    | "Swap"i "Variables"i? var_name "And"i var_name _SEMICOLON?
+swap: "Swap"i var_name ("With"i | "And"i) var_name _SEMICOLON?
 
-unset: "Unset"i "Variable"i? var_name (_COMMA var_name)* _SEMICOLON?
+unset: "Unset"i var_name (_COMMA var_name)* _SEMICOLON?
 
 reset: "Reset"i reset_opt (_COMMA? reset_opt)* _SEMICOLON?
 ?reset_opt: "All"i -> all
@@ -178,7 +177,7 @@ reset: "Reset"i reset_opt (_COMMA? reset_opt)* _SEMICOLON?
 source: "Source"i ("File"i | "Files"i)? expr (_COMMA expr)* _SEMICOLON?
 include: "@Include"i ("File"i | "Files"i)? expr (_COMMA expr)* _SEMICOLON?
 
-load_from: "Load"i "Variable"i? var_name ("From"i | "With"i) "File"i? expr (_COMMA? load_from_opts)* _SEMICOLON?
+load_from: "Load"i var_name ("From"i | "With"i) "File"i? expr (_COMMA? load_from_opts)* _SEMICOLON?
 ?load_from_opts: encoding
     | ("Type"i "Is"i?)? load_source_type
 load_source_type: "CSV"i -> csv_file
@@ -225,7 +224,7 @@ sort_source: sort_obj -> source
 sort_giving: "Giving"i sort_obj -> target
 // TODO needs encoding and to match Load syntax
 ?sort_obj: "File"i expr ("As"i? load_source_type)? -> file
-    | "Variable"i? var_name -> var
+    | var_name -> var
 
 sort_keys: ("On"i | "By"i) sort_key (_COMMA sort_key)* -> keys
 sort_key: sort_dir? "Key"i? expr -> key

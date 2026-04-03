@@ -41,9 +41,8 @@ cobol_accept_option: "With"i? "Echo"i -> echo // AcuCobol (plus a "with")
 //     Does not support Rounded or On Size Error clauses
 cobol_compute: "Compute"i var_name ("=" | "Equal"i) expr "End-Compute"i? _SEMICOLON?
 
-// NB: Variable are not define in COBOL, but its presence allows this to match the general set statement
-cobol_inc: "Set"i "Variable"i? var_name "Up"i "By"i expr _SEMICOLON?
-cobol_dec: "Set"i "Variable"i? var_name "Down"i "By"i expr _SEMICOLON?
+cobol_inc: "Set"i var_name "Up"i "By"i expr _SEMICOLON?
+cobol_dec: "Set"i var_name "Down"i "By"i expr _SEMICOLON?
 
 cobol_stop_run: "Stop"i "Run"i _SEMICOLON?
 
