@@ -138,7 +138,7 @@ def execute_sort(ctx: ExecContext, statement: Tree) -> None:
     """
 **Sort the contents of a list or a file**
 
-* Sort [Variable | Var] *variable* _keys_ [_unique_] [_target_] [;]
+* Sort *variable* _keys_ [_unique_] [_target_] [;]
 * Sort File *file_name* [*file_type*] _keys_ [_unique_] [_target_] [;]
 
 The *keys* option
@@ -160,9 +160,9 @@ The *unique* option
 
 The *target* option
 
-* &hellip; [Into | Giving] [Variable | Var] *variable* &hellip;
-* &hellip; [Into | Giving] File *file_name* &hellip;
-* &hellip; [Into | Giving] File *file_name* [*file_type*] &hellip;
+* &hellip; Giving *variable* &hellip;
+* &hellip; Giving File *file_name* &hellip;
+* &hellip; Giving File *file_name* [*file_type*] &hellip;
 * If omitted, sort is performed in-place
 
 The *file_type* option
@@ -177,7 +177,7 @@ The *file_type* option
 
 ```vgr
 # Sort the contents of a variable and write to a file
-Sort persons On Key fname, lname Into File "persons.sorted" As Json
+Sort persons On Key fname, lname Giving File "persons.sorted" As Json
 
 # Sort a CSV file in place
 Sort File export + ".dat" As CSV On Asc Key id, Des env
