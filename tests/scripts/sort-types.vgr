@@ -32,7 +32,7 @@ End
 #-------------------------------------------------------------------------------
 Display Newline "Sorting HCL data" Upon Output
 Set fn = data + "animals.hcl"
-Open Output fn
+Open Output fn Overwrite Encoding "UTF-8"
 Printf "{}", """\
 animals = [
   { name = "elephant", legs = 4 },
@@ -50,7 +50,7 @@ Call sort_and_check(t.animals)
 #-------------------------------------------------------------------------------
 Display Newline "Sorting INI data" Upon Output
 Set fn = data + "animals.ini"
-Open Output fn
+Open Output fn, Overwrite, Encoding Is "ASCII"
 Printf "{}", """\
 [animal.1]
 name=elephant
@@ -77,7 +77,7 @@ Call sort_and_check(t.GetValues())
 #-------------------------------------------------------------------------------
 Display Newline "Sorting JSON data" Upon Output
 Set fn = data + "animals.json"
-Open Output fn
+Open Output fn Encoding Is "UTF-8" Overwrite
 Printf "{}", """\
 [
   { "name": "elephant", "legs": 4 },
@@ -93,7 +93,7 @@ Call sort_file_and_check(fn)
 #-------------------------------------------------------------------------------
 Display Newline "Sorting CSV data" Upon Output
 Set fn = data + "animals.csv"
-Open Output fn
+Open Output fn Encoding Is "UTF-8"
 Printf "{}", """\
 name,legs
 elephant,4
@@ -108,7 +108,7 @@ Call sort_file_and_check(fn)
 #-------------------------------------------------------------------------------
 Display Newline "Sorting TEXT data" Upon Output
 Set fn = data + "animals.text"
-Open Output fn
+Open Output fn Encoding Is "ASCII"
 Printf "{}", """\
 elephant
 dog

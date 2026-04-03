@@ -204,8 +204,7 @@ log: "Log"i log_level expr (_COMMA expr)* _SEMICOLON?
     | ("Warn"i | "Warning"i) -> warn
     | "Error"i -> error
 
-// TODO simplify pattern - see load
-open: "Open"i (stderr | stdout | stdin) "File"i? expr (_COMMA? open_option (_COMMA open_option)*)? _SEMICOLON?
+open: "Open"i (stderr | stdout | stdin) "File"i? expr (_COMMA? open_option)* _SEMICOLON?
 ?open_option: encoding
     | ("Append"i | "Extend"i | "a"i) -> a
     | ("Overwrite"i | "w"i) -> w
@@ -213,8 +212,7 @@ open: "Open"i (stderr | stdout | stdin) "File"i? expr (_COMMA? open_option (_COM
     | ("Read"i | "r"i) -> r
 close: "Close"i (stderr | stdout | stdin) "File"i? _SEMICOLON?
 
-// TODO simplify pattern - see load
-zip: "Create"i "Zip"i "File"i? expr (_COMMA? zip_option (_COMMA zip_option)*)? _SEMICOLON?
+zip: "Create"i "Zip"i "File"i? expr (_COMMA? zip_option)* _SEMICOLON?
 ?zip_option: "Comment"i option_value -> comment
     | "Include"i "Is"i? expr+ -> include
     | "Exclude"i "Is"i? expr+ -> exclude
