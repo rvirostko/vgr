@@ -14,10 +14,10 @@ If !vgr.stdout.isatty:
 End
 
 Reset Data
-Assert vgr.source.FirstItem() is not None
+Assert vgr.source.FirstItem() Is Not None
 # ASCII art file should be stored in the same dir as this script
 # so use the source name's directory to always find it
-Load sse from vgr.source.FirstItem().DirectoryName() + "/NCC-1701A.txt" As Text Lines
+Load sse from vgr.source.FirstItem().DirectoryName() + "/NCC-1701A.txt" Type Is Text Lines
 Set sse_max To sse.StringLen().Max()
 Set sse To sse.LeftJustify(sse_max)
 
@@ -31,7 +31,7 @@ Term BG "Gray15", FG "Green3", Clear, CursorHide
 For scene = 0 To loops:
     # We recalc line on every scene in case for when the window is resized
     Term GetTermSize
-    Assert term.size is not None: "Can't determine screen size"
+    Assert term.size Is Not None: "Can't determine screen size"
     Set line To ((term.size.rows - sse.Length()) / 3).ToInteger()
     If scene > 0:
         # Flip the art
