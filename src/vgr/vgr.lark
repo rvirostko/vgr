@@ -204,6 +204,7 @@ log: "Log"i log_level expr (_COMMA expr)* _SEMICOLON?
     | ("Warn"i | "Warning"i) -> warn
     | "Error"i -> error
 
+// TODO simplify pattern - see load
 open: "Open"i (stderr | stdout | stdin) "File"i? expr (_COMMA? open_option (_COMMA open_option)*)? _SEMICOLON?
 ?open_option: encoding
     | ("Append"i | "Extend"i | "a"i) -> a
@@ -212,6 +213,7 @@ open: "Open"i (stderr | stdout | stdin) "File"i? expr (_COMMA? open_option (_COM
     | ("Read"i | "r"i) -> r
 close: "Close"i (stderr | stdout | stdin) "File"i? _SEMICOLON?
 
+// TODO simplify pattern - see load
 zip: "Create"i "Zip"i "File"i? expr (_COMMA? zip_option (_COMMA zip_option)*)? _SEMICOLON?
 ?zip_option: "Comment"i option_value -> comment
     | "Include"i "Is"i? expr+ -> include
@@ -222,15 +224,12 @@ exit: "Exit"i expr? _SEMICOLON?
 sort: "Sort"i sort_source sort_keys? unique_clause? sort_giving? _SEMICOLON?
 sort_source: sort_obj -> source
 sort_giving: "Giving"i sort_obj -> target
-// TODO needs encoding and to match Load syntax
-?sort_obj: "File"i expr ("As"i? load_source_type)? -> file
+?sort_obj: "File"i expr (_COMMA? load_from_opts)* -> file
     | var_name -> var
-
 sort_keys: ("On"i | "By"i) sort_key (_COMMA sort_key)* -> keys
 sort_key: sort_dir? "Key"i? expr -> key
-?sort_dir: sort_asc | sort_des
-sort_asc: "Ascending"i | "Asc"i -> asc
-sort_des: "Descending"i | "Des"i -> des
+?sort_dir: ("Ascending"i | "Asc"i) -> sort_asc
+    | ("Descending"i | "Des"i) -> sort_des
 unique_clause: "Unique"i ("On"i expr (_COMMA expr)*)? -> unique
 
 list_append: "Append"i list_all? expr "To"i "List"i? var_name _SEMICOLON?

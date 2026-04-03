@@ -15,15 +15,17 @@ from .builtins import (
     poly_type,
 )
 from .data_dict import DataDictionary
+from .encoding import parse_encoding
 from .evaluate import bind_operations, do_set
 from .exec_context import ExecContext
 from .output import CSVRecordWriter, JSONRecordWriter, TextRecordWriter
 from .stmt_set import load_file_as, load_data_type
 
-_TYPE = 'type'     # will be _VAR or _FILE
-_VAR = 'var'       # read from/write to a varialbe
-_FILE = 'file'     # read from/write to a file
-_DTYPE = 'dtype'   # data type (CSV, JSON, et al)
+_TYPE = 'type'         # will be _VAR or _FILE
+_VAR = 'var'           # read from/write to a varialbe
+_FILE = 'file'         # read from/write to a file
+_DTYPE = 'dtype'       # data type for file (CSV, JSON, et al)
+_ENCODING = 'encoding' # encoding used by file
 _FIELDS = 'fields'
 _SORT_COLS = 'sort_cols'     # list of columns used in sorting
 _SORT_FLAGS = 'sort_flags'   # matching list of sort order bools (T -> asc)
@@ -68,39 +70,40 @@ class SortAnalyzer(Visitor):
             self._source[_IN_PLACE] = True
             for a in [_TYPE, _VAR, _FILE, _DTYPE]:
                 if a in self._source: self._target[a] = self._source[a]
+        # TODO what does this mean? Actionable or just an NB?
         # if input is text
         #   if we don't have any cols, add [row/asc]
         #   else we prune to 1, we'll use that as the "name" if we write to CSV/JSON
 
     def source(self, node: Tree):
         """
-        ...file "data.json"...
-        ...file "data.csv" as csv...
-        ...var my_in...
+        ...File "data.json"...
+        ...File "data.csv" Type CSV...
+        ...my_var...
         """
         self._store_io(node.children[0], self._source)
 
     def target(self, node: Tree):
         """
         ...Giving File "data.json"...
-        ...Giving File "data.csv" as csv... # TODO
+        ...Giving File "data.csv" Type CSV...
         ...Giving my_var...
         """
         self._store_io(node.children[0], self._target)
 
     def key(self, node: Tree):
         """
-        ...on key id_num...
-        ...on ascending key id_num...
-        ...on descending key id_num...
+        ...On Key id_num...
+        ...On Ascending Key id_num...
+        ...On Descending Key id_num...
         """
         self._source[_SORT_COLS].append(self._get_key("Sort key", node.children[-1]))
         self._source[_SORT_FLAGS].append(node.children[0].data == 'sort_asc' if len(node.children) == 2 else True)
 
     def unique(self, node: Tree):
         """
-        ...unique...
-        ...unique on last_name, first_name...
+        ...Unique...
+        ...Unique On last_name, first_name...
         """
         self._target[_UNIQUE] = True
         if len(node.children) > 0:
@@ -121,17 +124,27 @@ class SortAnalyzer(Visitor):
     def _store_io(self, node: Tree, io: dict) -> None:
         """
         ...File "data.json"...
-        ...File "data.csv" as csv... # TODO
+        ...File "data.csv" Type Is CSV [Encoding Is "ASCII"]...
         ...my_var...
         """
-        io[_TYPE] = node.data
-        if node.data == 'file':
-            io[_FILE] = self.ctx.eval_filename_expr(bind_operations(node.children[0]))
-            io[_DTYPE] = load_data_type(io[_FILE], node.children[1] if len(node.children) == 2 else None)
-        elif node.data == 'var':
-            io[_VAR] = list(name.value for name in node.children[0].children)
+        iotype = node.data
+        if iotype == _FILE:
+            io[_TYPE] = iotype
+            io[iotype] = self.ctx.eval_filename_expr(bind_operations(node.children[0]))
+            ftype = None
+            for child in node.children[1:]:
+                name = child.data.lower()
+                if name == "encoding":
+                    io[_ENCODING] = parse_encoding(self._ctx, bind_operations(child))
+                else:
+                    ftype = name
+            io[_DTYPE] = load_data_type(io[iotype], ftype)
+        elif iotype == _VAR:
+            io[_TYPE] = iotype
+            # Extract the path (which seems risky...)
+            io[iotype] = list(name.value for name in node.children[0].children)
         else:
-            raise NotImplementedError(f'Sort source/target {node.data!r} not implemented') # SNO
+            raise VgrRuntimeError(node, NotImplementedError('Sort type not implemented')) # SNO
 
 @bound_ops("Sort")
 def execute_sort(ctx: ExecContext, statement: Tree) -> None:
@@ -167,22 +180,24 @@ The *target* option
 
 The *file_type* option
 
-* &hellip; As *file_type* &hellip; where *file_type* is:\\
+* &hellip; Type [Is] *file_type* [Encoding [Is] *encoding*] &hellip;
+* *file_type* is one of:\\
   &emsp;JSON or JSON Object (an array of objects)\\
   &emsp;JSON Object Per Line (each line is an object)\\
   &emsp;CSV (CSV data)\\
   &emsp;Text Lines (each item a line of text)\\
   &emsp;Text (entire object as text)
-* If no file type is given it is guessed from *file_name*'s extension
+* If no file type is given it is determined from *file_name*'s extension
+* *encoding* is a valid file type encoding with *UTF-8* as the default
 
 ```vgr
 # Sort the contents of a variable and write to a file
-Sort persons On Key fname, lname Giving File "persons.sorted" As Json
+Sort persons On Key fname, lname Giving File "persons.sorted" Type Is Json
 
 # Sort a CSV file in place
-Sort File export + ".dat" As CSV On Asc Key id, Des env
+Sort File export + ".dat" Type Is CSV On Asc Key id, Des env
 
-# Sort/unique
+# Sort with unique
 Sort accts On acct_nbr Unique
 ```
 
@@ -198,10 +213,10 @@ Also see `Sort()` and `Unique()`
     if ctx.verbose:
         ctx.print_verbose("Sort Source =", poly_repr(source))
         ctx.print_verbose("Sort Target =", poly_repr(target))
-    data = _do_sort(ctx.dd, data, source, target)
-    _write_data(ctx, data, target)
+    data = _do_sort(ctx, data, source, target)
+    _write_data(ctx, data, target, source.get(_ENCODING, None))
 
-def _do_sort(_: DataDictionary, data: list, source: dict, target: dict) -> list:
+def _do_sort(_ctx: ExecContext, data: list, source: dict, target: dict) -> list:
     if source[_DTYPE] == 'text_file':
         sort_flags = source[_SORT_FLAGS]
         data = poly_sort(data, target[_UNIQUE], len(sort_flags) != 0 and not any(sort_flags))
@@ -212,7 +227,7 @@ def _do_sort(_: DataDictionary, data: list, source: dict, target: dict) -> list:
     return data
 
 def _read_data(ctx: ExecContext, source: dict) -> list:
-    if source[_TYPE] == 'var':
+    if source[_TYPE] == _VAR:
         data = ctx.get_var(*source[_VAR])
         if not source[_IN_PLACE]:
             data = copy.deepcopy(data)
@@ -231,11 +246,9 @@ def _read_data(ctx: ExecContext, source: dict) -> list:
             # while unlikely (maybe?) we need to support non-string ordinals as keys
             source[_FIELDS] = sorted(data[0].keys(), key=lambda x: '' if x is None else str(x))
     else:
-        # TODO encoding
-        # defaults to utf-8-sig
         try:
             filename = source[_FILE]
-            with open(filename, 'r', encoding='utf-8-sig') as f:
+            with open(filename, 'r', encoding=source.get(_ENCODING, 'utf-8-sig'), errors='backslashreplace' if ctx.debug else 'replace') as f:
                 data, metadata = load_file_as(filename, f, source[_DTYPE])
             source[_FIELDS] = metadata['keys']
             data = data if isinstance(data, list) else [] if data is None else [data]
@@ -247,13 +260,14 @@ def _read_data(ctx: ExecContext, source: dict) -> list:
     source[_FIELDS] = _append_unique(source[_SORT_COLS], source[_FIELDS])
     return data
 
-def _write_data(ctx: ExecContext, data: list, target: dict) -> None:
+def _write_data(ctx: ExecContext, data: list, target: dict, input_encoding: str) -> None:
     if target[_TYPE] == 'var':
         # Very simple, just store it
         do_set(ctx, data, *target[_VAR])
         return
-    # TODO encoding option
-    with open(target[_FILE], 'w', encoding='utf-8-sig') as f:
+    # The user can either change the encoding or we can use the input's or default to UTF-8
+    encoding = target.get(_ENCODING, input_encoding or 'utf-8') # NB: We down write BOMs by default
+    with open(target[_FILE], 'w', encoding=encoding, errors='backslashreplace' if ctx.debug else 'replace') as f:
         # build a writer and send the data to it
         dtype = target[_DTYPE]
         headers = target[_FIELDS]
@@ -278,7 +292,7 @@ def _write_data(ctx: ExecContext, data: list, target: dict) -> None:
                 rw.write([row.get(p, None) for p in headers] if isinstance(row, dict) else [row])
             rw.finish()
             return
-        raise ValueError(f'Sort: Unsupported file type {dtype!r} for writing')
+        raise ValueError(f'Sort: {dtype!r} not supported for writing')
 
 def _append_unique(x: list, y: list) -> list:
     return x + [x1 for x1 in y if x1 not in x]

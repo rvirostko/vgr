@@ -5,7 +5,9 @@ Set data To vgr.source.FirstItem().DirectoryName() + os.sep + "data" + os.sep
 Define Function sort_and_check(var):
     Display "Sorting data in memory" Upon Output
     Assert var.IsList() And var.FirstItem().IsDictionary()
-    Sort var On Key name
+    Echo On
+    Sort var On Asc Key name
+    Echo Off
     Select name, legs From var For Batch Template
     Assert var.Length() ≥ 3
     Assert var.FirstItem().name ≤ var.LastItem().name
@@ -16,7 +18,9 @@ End
 #-------------------------------------------------------------------------------
 Define Function sort_file_and_check(fn):
     Display "Sorting file in place" Upon Output
+    Echo On
     Sort File fn On Key name
+    Echo Off
     Load t With File fn
     Select name, legs From t For Batch Template
     Assert $load.records ≥ 3
@@ -111,14 +115,36 @@ dog
 cat
 sparrow"""
 Close Output
+Echo On
 Sort File fn # No keys in text file
+Echo Off
 # "Text Lines" results in a per-line list rather than a single string
 Load t With File fn Text Lines
 Assert t.IsList()
 Assert t.FirstItem().IsString()
-Sort t # No keys required/allowed with an array of strings
+# No keys required with an array of strings
+# but the only legal value is "line" (in lowercase)
+Sort t
 Select Line From t as Line For Batch Template
 Assert t.Length() ≥ 3
 Assert t.FirstItem() ≤ t.LastItem()
+Assert t.Item(1).IsBetween(t.FirstItem(), t.LastItem())
+#-------------------------------------------------------------------------------
+# Should be same as the short version
+Echo On
+Sort t On Asc Key line Giving lines_out
+Echo Off
+Select Line From t as Line For Batch Template
+Assert lines_out.Length() ≥ 3
+Assert lines_out.FirstItem() ≤ lines_out.LastItem()
+Assert lines_out.Item(1).IsBetween(lines_out.FirstItem(), lines_out.LastItem())
+#-------------------------------------------------------------------------------
+# Now reverse the sort
+Echo On
+Sort t On Des /*Key*/ line # key is optional
+Echo Off
+Select Line From t as Line For Batch Template
+Assert t.Length() ≥ 3
+Assert t.FirstItem() ≥ t.LastItem()
 Assert t.Item(1).IsBetween(t.FirstItem(), t.LastItem())
 #-------------------------------------------------------------------------------
