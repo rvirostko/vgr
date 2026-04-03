@@ -637,7 +637,7 @@ def create_extractor(ctx: ExecContext, opts: dict) -> DataExtractor:
         filename = opts.get(_FILE, None)
         if filename:
             try:
-                with open(filename, 'r', encoding=opts[_ENCODING]) as f:
+                with open(filename, 'r', encoding=opts.get(_ENCODING, 'utf-8-sig'), errors='backslashreplace' if ctx.debug else 'replace') as f:
                     data, _metadata = load_file_as(filename, f, opts[_DTYPE])
             except Exception as e:
                 raise ValueError(f'While reading {filename!r}: {str(e)}') from e
