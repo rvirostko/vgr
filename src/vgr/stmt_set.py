@@ -215,8 +215,7 @@ def execute_swap(ctx: ExecContext, statement: Tree) -> None:
     """
 **Exchange the values of two variables**
 
-* Swap [Varaible] *x* With *y* [;]
-* Swap [Variables] *x* And *y* [;]
+* Swap *variable1* [With | And] *variable2* [;]
 
 Both variables must be mutable.
 
@@ -237,7 +236,7 @@ def execute_load_from(ctx: ExecContext, statement: Tree) -> None:
 **Assign a value to a variable from a file**
 
 * Load *variable* From [File] *file_name*\\
-  &emsp;&emsp;[Type [Is] | [As]] *file_type*\\
+  &emsp;&emsp;[Type [Is]] *file_type*\\
   &emsp;&emsp;[Encoding [Is] _encoding_]\\
   [;]
 
