@@ -22,7 +22,7 @@ def gen_auto_docs() -> None:
     _STATEMENTS.extend(get_statement_entries().keys())
     _OPERATORS.extend(get_operator_entries().keys())
     path = Path("vgr-" + __version__ + ".md")
-    with path.open("w", encoding="utf-8", newline="\n") as f:
+    with path.open("w", encoding="utf-8", newline="\n", errors='backslashreplace') as f:
         _write_cover_page(f)
         _write_toc(f)
         _write_running(f)
@@ -126,7 +126,7 @@ def read_doc_file(src_filename: str) -> str:
     module_path = Path(__file__).resolve()
     src_file = Path(module_path.parent / "doc" / src_filename)
     if src_file.is_file():
-        with open(src_file, 'r', encoding='utf-8') as file_in:
+        with open(src_file, 'r', encoding='utf-8', errors='backslashreplace') as file_in:
             return file_in.read().rstrip() + '\n'
     print(f"Did not find {src_file}", file=sys.stdout)
     return ''

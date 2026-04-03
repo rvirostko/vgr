@@ -57,7 +57,7 @@ class LimitedFileHistory(FileHistory):
     def load_history_strings(self) -> Iterable[list]:
         if not os.path.exists(self.filename): return
         count = 0
-        with open(self.filename, "r", encoding="utf-8") as f:
+        with open(self.filename, "r", encoding="utf-8", errors='backslashreplace') as f:
             for line in f:
                 line = line.strip()
                 if line:
@@ -71,7 +71,7 @@ class LimitedFileHistory(FileHistory):
     def store_string(self, _string: str) -> None:
         if len(self._loaded_strings) > self.max_length:
             self._loaded_strings = self._loaded_strings[:self.max_length]
-        with open(self.filename, "w", encoding="utf-8") as f:
+        with open(self.filename, "w", encoding="utf-8", errors='backslashreplace') as f:
             for e in self._loaded_strings:
                 # Serialize using repr() so it can be read by ast.literal_eval
                 f.write(f'{e!r}\n')
@@ -79,7 +79,7 @@ class LimitedFileHistory(FileHistory):
     def clear(self) -> None:
         """Clear the history"""
         self._loaded_strings = []
-        with open(self.filename, "w", encoding="utf-8") as f:
+        with open(self.filename, "w", encoding="utf-8", errors='backslashreplace') as f:
             f.close()
 
 class VgrHistory(LimitedFileHistory):

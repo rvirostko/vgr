@@ -271,7 +271,10 @@ def do_source(ctx: ExecContext, path: Path, included: bool=False) -> None:
         raise PermissionError(0, f'File {filename!r} not readable')
     statements = None
     if ctx.verbose: ctx.print_verbose('Executing statements from ', poly_repr(filename), '...')
-    with open(path, 'r', encoding='utf-8-sig') as f:
+    # If we replace the errors, it probably won't parse (unless it is in a comment)
+    # but this way the user can find the error line, rather than getting a
+    # cryptic error from the read
+    with open(path, 'r', encoding='utf-8-sig', errors='backslashreplace') as f:
         statements = f.read()
     tval = ctx.get_var(*INCLUDED_PATH)
     try:

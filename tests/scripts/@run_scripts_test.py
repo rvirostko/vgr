@@ -46,7 +46,7 @@ def test_vgr_files(path: Path):
         "--assign", "dev_test=True", # scripts may alter behavior based on this
         "--file", str(path)
     ])
-    with (LOG_DIR / (path.name + ".txt")).open("w", encoding="utf-8") as f: write_results(f, stdout, stderr)
+    with (LOG_DIR / (path.name + ".txt")).open("w", encoding="utf-8", errors='backslashreplace') as f: write_results(f, stdout, stderr)
     if "!" in path.name:
         assert code != 0, f"! Expected failure but got success for {path.name!r}"
     else:
@@ -65,7 +65,7 @@ def test_vgr_statements(path: Path):
     """Execute line-by-line via --execute"""
     LOG_DIR.mkdir(exist_ok=True)
     with path.open() as fh:
-        with (LOG_DIR / (path.name + ".txt")).open("w", encoding="utf-8") as f:
+        with (LOG_DIR / (path.name + ".txt")).open("w", encoding="utf-8", errors='backslashreplace') as f:
             for i, line in enumerate(fh, 1):
                 line = line.strip()
                 if not line or line.startswith("#") or line.startswith("//") or (line.startswith("/*") and line.endswith("*/")):

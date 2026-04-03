@@ -48,7 +48,7 @@ def init_logging(logfile: str, append: bool=True):
     handler = logging.FileHandler(
                 logfile,
                 mode='a' if append else 'w',
-                encoding='utf-8'
+                encoding='utf-8', errors='backslashreplace'
                 )
     handler.setLevel(logging.NOTSET) # No filtering by the handler, only loggers
     handler.setFormatter(VgrLogFormatter('%(asctime)s %(levelname)-5s %(message)s'))

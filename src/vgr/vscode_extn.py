@@ -148,12 +148,12 @@ def create_vscode_extension(keyword_pattern: str, function_pattern: str) -> None
     out_dir = "vgr-syntax"
     # Ensure base folder structure
     os.makedirs(out_dir, exist_ok=True)
-    with open(os.path.join(out_dir, "package.json"), "w", encoding="utf-8") as f:
+    with open(os.path.join(out_dir, "package.json"), "w", encoding="utf-8", errors='backslashreplace') as f:
         json.dump(_PACKAGE, f, indent=4)
-    with open(os.path.join(out_dir, "language-configuration.json"), "w", encoding="utf-8") as f:
+    with open(os.path.join(out_dir, "language-configuration.json"), "w", encoding="utf-8", errors='backslashreplace') as f:
         json.dump(_LANG_CONFIG, f, indent=4)
     syntaxes_dir = os.path.join(out_dir, "syntaxes")
     os.makedirs(syntaxes_dir, exist_ok=True)
     grammar_json = _vscode_syntax_highlighting(keyword_pattern, function_pattern)
-    with open(os.path.join(syntaxes_dir, "vgr.tmLanguage.json"), "w", encoding="utf-8") as f:
+    with open(os.path.join(syntaxes_dir, "vgr.tmLanguage.json"), "w", encoding="utf-8", errors='backslashreplace') as f:
         f.write(grammar_json)
