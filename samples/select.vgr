@@ -18,9 +18,6 @@ Select *
 From [ True, False, None, Inf, vgr.version ] As Data
 For Batch Template
 
-Exit # TODO
-
-
 Print """
 Not that the From ... As name has to be a variable name.
 It is not a label."""
@@ -173,9 +170,9 @@ Where (age Is None Or first_name Is None) And email Is Not None
 Limit 5
 For Text
     Include Headers, Exclude Nulls,
-    Field Separator Is "!!", # TODO not working
-    Header Separator Is "!!", # TODO not working
-    Record Separator Is Newline + Newline # TODO not working
+    Field Separator Is "!!",
+    Header Separator Is "::",
+    Record Separator Is "<" + Newline
 
 Print """
 The result of Select can be sent to a specific destination

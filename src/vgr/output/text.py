@@ -22,12 +22,12 @@ class TextRecordWriter(FileRecordWriter):
 
     def __init__(self, file: FileIO=sys.stdout, **kwargs):
         super().__init__(file)
-        self._setattrs(**kwargs)
         self._header_sep = ':'
         self._field_sep = ' '
         self._record_sep = '\n'
         self._include_nulls = True
         self.include_headers = False
+        self._setattrs(**kwargs)
 
     def _attrs(self) -> list:
         return super()._attrs() + ['include_nulls', 'header_sep', 'field_sep', 'record_sep']
