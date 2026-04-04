@@ -1,14 +1,12 @@
 
 Print """"
-The default variable name is $record
-TODO Not working"""
+The default variable name is $record"""
 Select *
 From 1 /* As $record */
 For Batch Template
 
 Print """
-Ordinals are treated as a single entry array
-TODO Not working"""
+Ordinals are treated as a single entry array"""
 Select *
 From "A"
 For Batch Template
@@ -19,6 +17,9 @@ but including dictionaries change this behavior"""
 Select *
 From [ True, False, None, Inf, vgr.version ] As Data
 For Batch Template
+
+Exit # TODO
+
 
 Print """
 Not that the From ... As name has to be a variable name.

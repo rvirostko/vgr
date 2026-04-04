@@ -32,9 +32,9 @@ class InMemoryExtractor(DataExtractor):
             self._as_kv = True
         else:
             # data was either None or an ordinal
-            # so there is no attribute to work with,
+            # so there are no attributes to work with,
             # just the thing itself
-            self._attrs = [ target ]
+            self._attrs = [ ]
 
     def __len__(self):
         return len(self._data)
