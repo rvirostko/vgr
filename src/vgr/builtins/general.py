@@ -61,6 +61,8 @@ Cannot be applied to lists or dictionaries.
 5.Hash() → 5
 5.0.Hash() → 5
 ```
+
+Also see `Id()`
 """
     return hash(x)
 

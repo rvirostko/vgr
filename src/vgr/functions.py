@@ -260,9 +260,18 @@ def _id(obj: Any=None) -> Any:
 * Id(*value*)
 * *value*.Id()
 
+This can be used in debugging but is of limited values in scripts.
+
 ```vgr
-**TODO**
+None.Id() → 4387076688
+5.Id() → 4374194608
+5.1.Id() → 4669058608
+[5, 10, 15].Id() → 4682578560
+"frog".Id() → 4682576368
+{"c": "sea", "b": True, "a": 1}.Id() → 4682896960
 ```
+
+Also see `Hash()`
 """
     return id(obj)
 
@@ -313,7 +322,11 @@ The *value*'s type determines what is returned:
 * Lists and Dictionaries : distributed negation
 
 ```vgr
-**TODO**
+None.Negate() → True
+5.Negate() → -5
+5.1.Negate() → -5.1
+[5, 10, 15].Negate() → [-5, -10, -15]
+{"c": "sea", "b": True, "a": 1}.Negate() → {"c": "sea", "b": False, "a": -1}
 ```
 """
     if x is None: return True
@@ -360,7 +373,12 @@ For dictionaries, the number of attributes is returned.
 For all other values `None` is returned.
 
 ```vgr
-**TODO**
+None.Length() → None
+5.Length() → None
+5.1.Length() → None
+[5, 10, 15].Length() → 3
+"frog".Length() → 4
+{"c": "sea", "b": True, "a": 1}.Length() → 3
 ```
 """
     return len(x) if hasattr(x, '__len__') else None

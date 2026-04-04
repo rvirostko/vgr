@@ -38,16 +38,12 @@ Tron
 // Documentation examples go here
 //-----------------------------------------------------------------------------
 
-Print None.FormatJson().Repr()
-Print 5.FormatJson().Repr()
-Print 5.1.FormatJson().Repr()
-Print [5, 10, 15].FormatJson().Repr()
-Print [5, 10, 15].FormatJson(None).Repr()
-Print {"c": "sea", "b": "bee", "a": "eh"}.FormatJson(4)
-Print {"c": "sea", "b": "bee", "a": "eh"}.FormatJson(4, False)
-
-Print [True, "Hello", None].FormatJson(None).Repr()
-
+Print None.Id().Repr()
+Print 5.Id().Repr()
+Print 5.1.Id().Repr()
+Print [5, 10, 15].Id().Repr()
+Print "frog".Id().Repr()
+Print {"c": "sea", "b": True, "a": 1}.Id().Repr()
 
 //-----------------------------------------------------------------------------
 Troff
