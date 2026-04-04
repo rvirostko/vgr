@@ -239,7 +239,7 @@ list_remove_last: "Remove"i "Last"i "Item"i? "From"i "List"i? var_name giving_cl
 list_replace: "Replace"i ("Position"i | "Index"i)? expr "In"i "List"i? var_name "With"i expr giving_clause? _SEMICOLON?
 list_all: "All"i
 
-select: "Select"i select_outputs from_clause where_clause? product_clause? limit_clause? for_clause? _SEMICOLON?
+select: "Select"i select_outputs from_clause where_clause? product_clause? limit_clause? for_clause? into_clause? _SEMICOLON?
 
 ?select_outputs: select_output (_COMMA select_output)* _COMMA?
 
@@ -251,6 +251,8 @@ select_output: "*"    -> output_all
 expr_from: expr as_clause?
 file_from: "File"i expr (_COMMA? (load_from_opts | as_clause))*
 ?as_clause: "As"i expr
+
+into_clause: "Into"i (var_name | "File"i (stdout | stderr | expr (_COMMA? encoding)?))
 
 where_clause: "Where"i expr (_COMMA expr)*
 

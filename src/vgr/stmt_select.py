@@ -2,8 +2,9 @@
 Implementation of the SELECT statement
 """
 
-from typing import Any
 from copy import deepcopy
+from io import StringIO
+from typing import Any
 import re
 
 from lark import (
@@ -19,6 +20,7 @@ from .app_exceptions import VgrRuntimeError
 from .builtins import (
     bound_ops,
     poly_false,
+    poly_plural,
     poly_type,
 )
 from .data_xtract import (
@@ -38,8 +40,16 @@ from .output import (
     TextRecordWriter,
 )
 from .output import RecordWriter, RecordLimiter, RecordCartesianProduct
-from .redir import stdout, stderr
-from .stmt_set import load_data_type, load_file_as
+from .redir import (
+    prepare_path,
+    stderr,
+    stdout,
+)
+from .stmt_set import (
+    get_writable_var_path,
+    load_data_type,
+    load_file_as,
+)
 from .tags import control_statement
 from .var_name import VAR_NAME
 from .xtract_memory import InMemoryExtractor
@@ -47,8 +57,10 @@ from .xtract_memory import InMemoryExtractor
 _ROWID_PATH = ('$rowid', ) # NB: zero based
 _DEFAULT_TARGET_NAME = '$record'
 
+_TYPE = 'type'
 _TARGET = 'target' # the "From .. As" name
 _FILE = 'file' # the data file's name
+_VAR = 'var'
 _DTYPE = 'dtype' # the data file's type
 _ENCODING = 'encoding'# encoding used to read data file
 _DATA = 'data' # what we'll iterate over
@@ -142,6 +154,7 @@ class SelectAnalyzer(Visitor):
         self._predicates = []
         self._predicates_bound = False
         self._from_opts = {}
+        self._into_opts = {}
         self._output_statements = []
         self._output_statements_bound = False
         self._output_controls = {}
@@ -162,6 +175,10 @@ class SelectAnalyzer(Visitor):
     @property
     def from_opts(self) -> dict:
         return self._from_opts
+
+    @property
+    def into_opts(self) -> dict:
+        return self._into_opts
 
     def create_output_opts(self, attrs: list[str]) -> dict:
         # We add these here because they get passed to down to
@@ -299,14 +316,14 @@ class SelectAnalyzer(Visitor):
     def expr_from(self, node: Tree):
         """... From <expr> [As <target>] ..."""
         node = bind_operations(node)
-        self._from_opts['type'] = 'memory'
+        self._from_opts[_TYPE] = 'memory'
         self._from_opts[_DATA] = node.children[0]
         self._from_opts[_TARGET] = self._get_target_name(node.children[1]) if len(node.children) > 1 else _DEFAULT_TARGET_NAME
 
     def file_from(self, node: Tree):
         """... From File <filename> [<source_type>] [Encoding Is <expr>] [As <target>] ..."""
         node = bind_operations(node)
-        self._from_opts['type'] = 'memory'
+        self._from_opts[_TYPE] = 'memory'
         filename = self.ctx.eval_filename_expr(bind_operations(node.children[0]))
         self._from_opts[_FILE] = filename
         encoding = None
@@ -315,7 +332,7 @@ class SelectAnalyzer(Visitor):
         for child in node.children[1:]:
             name = child.data.lower()
             if name == 'encoding':
-                encoding = parse_encoding(self._ctx, child)
+                encoding = parse_encoding(self._ctx, bind_operations(child))
             elif name == 'var_ref':
                 target = self._get_target_name(child)
             else:
@@ -358,31 +375,31 @@ class SelectAnalyzer(Visitor):
     def for_text(self, node: Tree):
         """... For Text <opts>* ..."""
         node = bind_operations(node)
-        self._output_opts['type'] = 'text'
+        self._output_opts[_TYPE] = 'text'
         self._parse_output_ops(node)
 
     def for_json(self, node: Tree):
         """... For JSON <opts>* ..."""
         node = bind_operations(node)
-        self._output_opts['type'] = 'json'
+        self._output_opts[_TYPE] = 'json'
         self._parse_output_ops(node)
 
     def for_csv(self, node: Tree):
         """... For CSV <opts>* ..."""
         node = bind_operations(node)
-        self._output_opts['type'] = 'csv'
+        self._output_opts[_TYPE] = 'csv'
         self._parse_output_ops(node)
 
     def for_markdown(self, node: Tree):
         """... For Markdown <opts>* ..."""
         node = bind_operations(node)
-        self._output_opts['type'] = 'markdown'
+        self._output_opts[_TYPE] = 'markdown'
         self._parse_output_ops(node)
 
     def for_template(self, node: Tree):
         """... For [Record|Batch]? Template <template_filename> <opts>* ..."""
         node = bind_operations(node)
-        self._output_opts['type'] = 'template'
+        self._output_opts[_TYPE] = 'template'
         for i, child in enumerate(node.children):
             if self.is_tree(child, 'batch') or self.is_tree(child, 'record'):
                 self._output_opts['template_type'] = child.data.lower()
@@ -393,6 +410,26 @@ class SelectAnalyzer(Visitor):
             # remainder are options...
             self._parse_output_ops(node, i)
             break
+
+    def into_clause(self, node: Tree):
+        """... into_clause: "Into"i (var_name | "File"i (stdout | stderr | expr (_COMMA? encoding)?))"""
+        first_child = node.children[0]
+        into_type = first_child.data if isinstance(first_child, Tree) else ""
+        if into_type in ('stdout', 'stderr'):
+            self._into_opts[_TYPE] = into_type
+        elif into_type == 'var_name':
+            self._into_opts[_TYPE] = _VAR
+            self._into_opts[_VAR] = get_writable_var_path(self.ctx, first_child)
+        else:
+            filename = self.ctx.eval_filename_expr(bind_operations(first_child))
+            self._into_opts[_TYPE] = _FILE
+            self._into_opts[_FILE] = filename
+            for child in node.children[1:]:
+                name = child.data.lower()
+                if name == 'encoding':
+                    self._into_opts[_ENCODING] = parse_encoding(self._ctx, bind_operations(child))
+                    continue
+                raise NotImplementedError(f'Into option {name!r}') #SNO
 
     def _display_name(self, name: str) -> str:
         """Util to print nice looking error msgs"""
@@ -481,6 +518,9 @@ def execute_select(ctx: ExecContext, statement: Tree):
 **TODO**
 ```
 """
+    into_opts = {}
+    buffer_data = None
+    dest = None
     ctx.dd.push_frame([(_ROWID_PATH, 0)])
     try:
         select = SelectAnalyzer(ctx).analyze(statement)
@@ -495,12 +535,36 @@ def execute_select(ctx: ExecContext, statement: Tree):
         # create the final outputs
         output_opts = select.create_output_opts(extractor.attrs)
         # If the type was not set, we use the default
-        output_opts['type'] = output_opts.get('type', 'csv')
-        writer = create_writer(output_opts, select.output_controls)
-        if ctx.debug: ctx.print_debug(repr(writer))
-        QueryRunner(ctx, select, writer).run_extraction(extractor)
+        output_opts[_TYPE] = output_opts.get(_TYPE, 'csv')
+        def exec_query(dest):
+            writer = create_writer(output_opts, select.output_controls, dest)
+            if ctx.debug: ctx.print_debug(repr(writer))
+            QueryRunner(ctx, select, writer).run_extraction(extractor)
+        into_opts = select.into_opts
+        dest = into_opts.get(_TYPE, 'stdout')
+        if dest == 'stdout':
+            exec_query(stdout())
+        elif dest == 'stderr':
+            exec_query(stderr())
+        elif dest == _FILE:
+            mode = 'w'
+            with open(prepare_path(into_opts[_FILE], mode),
+                      mode,
+                      encoding=into_opts.get(_ENCODING, 'utf-8'),
+                      errors='backslashreplace' if ctx.debug else 'replace') as f:
+                exec_query(f)
+        elif dest == _VAR:
+            with StringIO() as buffer:
+                exec_query(buffer)
+                buffer_data = buffer.getvalue()
+        else:
+            raise TypeError(f"Destination type {dest!r} not handled") # SNO
     finally:
         ctx.dd.pop_frame()
+    # Now that we are out of the local frame for the select
+    # we can set a value the user can access
+    if dest == _VAR:
+        ctx.set_var(buffer_data, *into_opts[_VAR])
 
 class QueryRunner(QueryFilter, InfoOutput):
     def __init__(self, ctx: ExecContext, select: SelectAnalyzer, writer: RecordWriter):
@@ -628,7 +692,7 @@ def create_extractor(ctx: ExecContext, opts: dict) -> DataExtractor:
     """
     Using the options, create an extractor for data.
     """
-    xtype = opts['type']
+    xtype = opts[_TYPE]
     target = opts[_TARGET]
     if xtype == 'memory':
         data = opts.get(_DATA, None)
@@ -636,39 +700,40 @@ def create_extractor(ctx: ExecContext, opts: dict) -> DataExtractor:
             return InMemoryExtractor(target, ctx.eval_expr(data))
         filename = opts.get(_FILE, None)
         if filename:
+            metadata = None
             try:
                 with open(filename, 'r', encoding=opts.get(_ENCODING, 'utf-8-sig'), errors='backslashreplace' if ctx.debug else 'replace') as f:
-                    data, _metadata = load_file_as(filename, f, opts[_DTYPE])
+                    data, metadata = load_file_as(filename, f, opts[_DTYPE])
             except Exception as e:
                 raise ValueError(f'While reading {filename!r}: {str(e)}') from e
-            # TODO whis is this here?
-            if not isinstance(data, list):
-                data = [data] if isinstance(data, dict) else [{'value' : data}]
-            if ctx.verbose: ctx.print_verbose('Read', len(data), 'Records ' if len(data) != 1 else 'Record', 'From', filename)
+            if not isinstance(data, (list, dict)): data = [data]
+            if ctx.verbose:
+                records = metadata['records']
+                ctx.print_verbose('Read', records, poly_plural(records,'Records', 'Record'), 'From', metadata['filename'])
             return InMemoryExtractor(target, data)
         raise NotImplementedError(f'Extractor type {xtype!r} : no data and no file') #SNO
     raise NotImplementedError(f'Extractor type {xtype!r}') #SNO
 
-def create_writer(opts: dict, controls: dict) -> RecordWriter:
+def create_writer(opts: dict, controls: dict, dest) -> RecordWriter:
     """
     Using the options, create and configure a writer instance.
     opts - options that define the type and configure the writer
     controls - used in wrapper creation and configuration
     """
     writer: RecordWriter = None
-    otype = opts['type']
+    otype = opts[_TYPE]
     if otype == 'json':
-        writer = JSONRecordWriter(stdout(), stderr=stderr(), **opts)
+        writer = JSONRecordWriter(dest, stderr=stderr(), **opts)
     elif otype == 'markdown':
-        writer = MarkdownRecordWriter(stdout(), stderr=stderr(), **opts)
+        writer = MarkdownRecordWriter(dest, stderr=stderr(), **opts)
     elif otype in ('template', 'template-batch'):
         if otype == 'template-batch': opts['template_type'] = 'batch'
-        writer = TemplateRecordWriter(stdout(), stderr=stderr(), **opts)
+        writer = TemplateRecordWriter(dest, stderr=stderr(), **opts)
     elif otype == 'text':
-        writer = TextRecordWriter(stdout(), stderr=stderr(), **opts)
+        writer = TextRecordWriter(dest, stderr=stderr(), **opts)
     else:
         # CSV is the ultimate fallback
-        writer = CSVRecordWriter(stdout(), stderr=stderr(), **opts)
+        writer = CSVRecordWriter(dest, stderr=stderr(), **opts)
     # Order is important since projections can generate more than one row
     # It depends upon how you want to interpret the limit/offset, and that is TBD
     # TODO option on "product" like "before or after limit"

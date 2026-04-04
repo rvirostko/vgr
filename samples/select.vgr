@@ -1,0 +1,219 @@
+
+Print """"
+The default variable name is $record
+TODO Not working"""
+Select *
+From 1 /* As $record */
+For Batch Template
+
+Print """
+Ordinals are treated as a single entry array
+TODO Not working"""
+Select *
+From "A"
+For Batch Template
+
+Print """
+Arrays can contain mixed types
+but including dictionaries change this behavior"""
+Select *
+From [ True, False, None, Inf, vgr.version ] As Data
+For Batch Template
+
+Print """
+Not that the From ... As name has to be a variable name.
+It is not a label."""
+Select *
+From [ True, False ] As "A_Boolean" /* variable name, not a label */
+For Batch Template
+
+Print """
+The * can be used multiple times, as can any column.
+Select will give the columns unique labels if there are
+collisions."""
+Select
+    *, *
+From [ True, False ]
+For Batch Template
+
+Print """
+Select maintains a variable reflecting the current
+row number. $rowid starts at zero."""
+Select
+    $rowid, *
+From [ "A", "B", "C" ] As Character
+For Batch Template
+
+Print """
+$rowid reflects the input sequence, not the output"""
+Select
+    $rowid, *
+From [ "A", "B", "C" ] As Character
+Where Character >= "B"
+For Batch Template
+
+Define Function row_number():
+    Set rc To counter
+    Add 1 To counter
+    Return rc
+End
+
+Print """
+You can use a function to number output rows.
+Also, you can use any variable, constant, or expression
+as a column value."""
+Set counter To 1
+Select
+    @row_number() As "Output Row",
+    $rowid As "Input Row",
+    *
+From [ "A", "B", "C", "D" ] As Character
+Where Character Is Not In ["B", "D"]
+For Batch Template
+
+Print """
+You can directly use the variable in an expression
+instead of using "*".
+Note that the labels for columns can be unquoted but
+only if they do not collide with a variable in use."""
+Select
+    Character.Repr() As Value, /* can be quoted or not */
+    Character.Upper().Repr() As "Upper",
+    Character.Lower().Repr() As "Lower"
+From [ "A", "b", "c", "D" ] As Character
+Where Character.Upper() Is Not In ["B", "D"]
+For Batch Template
+
+Print """
+There is a special case for using a single dictionary:
+Select iterates over the keys and values in the dictionary
+just like ForEach
+Note: the full names of the properties are "$record.key" and "$record.value"
+  The Select automatically add the correct prefix as long as the
+  name does not collide with a variable that is alread set."""
+Select
+    key, value
+From {"first_name":"Bailey","last_name":"Cisco","email":"bciscoa@deviantart.com","position":"Director of Sales","age":47}
+For Batch Template
+
+Print """
+Select is typically used from a list of data structured as a list of dictionaries"""
+Set filename To vgr.source.FirstItem().DirectoryName() + "/people.json"
+Load people From File filename
+
+Select *
+From people
+Limit 5 /* limits the number of rows output */
+For Batch Template
+# Also available:
+# Limit <value> Offset <value> : skip of the first N rows
+# Fetch First <value> Rows Only : Limit alias, but SQL compatible
+
+Print """
+Use column labels and expressions to format the data."""
+Select
+    RightJustify(age.DefaultTo(Space), 3) As "age".Capitalize(), /* labels are expressions */
+    last_name.DefaultTo(Space) As "Last Name",
+    first_name.DefaultTo(Space) As "First Name",
+    position.DefaultTo(Space) As "Position",
+    email.DefaultTo(Space) As "Email"
+From people As person
+Limit 5
+For Batch Template
+
+Print """
+Select can read directly from a file."""
+Select
+    RightJustify($rowid + 1, 3) As "Row",
+    RightJustify(age.DefaultTo(Space), 3) As "age".Capitalize(), /* labels are expressions */
+    last_name.DefaultTo(Space) As "Last Name",
+    first_name.DefaultTo(Space) As "First Name",
+    email.DefaultTo(Space) As "Email"
+From File filename
+    Type is JSON Encoding Is "UTF-8" /* optional values */
+Where (age Is None Or first_name Is None) And email Is Not None
+Limit 5
+For Batch Template
+
+Print """
+Data can be written in multiple formats.
+
+JSON-"""
+Select *
+From File filename
+Where (age Is None Or first_name Is None) And email Is Not None
+Limit 5
+For JSON
+    Compact, Sort Keys, Exclude Nulls
+
+Print """
+CSV-"""
+Select *
+From File filename
+Where (age Is None Or first_name Is None) And email Is Not None
+Limit 5
+For CSV
+    Include Headers, Quote Nonnumeric
+
+Print """
+Markdown-"""
+Select *
+From File filename
+Where (age Is None Or first_name Is None) And email Is Not None
+Limit 5
+For Markdown
+    Include Headers
+
+Print """
+Text-"""
+Select *
+From File filename
+Where (age Is None Or first_name Is None) And email Is Not None
+Limit 5
+For Text
+    Include Headers, Exclude Nulls,
+    Field Separator Is "!!", # TODO not working
+    Header Separator Is "!!", # TODO not working
+    Record Separator Is Newline + Newline # TODO not working
+
+Print """
+The result of Select can be sent to a specific destination
+using the Into clause.
+
+To stdout (the default)-"""
+Select *
+From File filename
+Limit 5
+For CSV
+Into File Output /* this is the default */
+
+Print """
+To stderr-"""
+Select *
+From File filename
+Limit 5
+For CSV
+Into File Error
+
+Print """
+To a file-"""
+Set output_file To "out.data"
+Select *
+From File filename
+Limit 5
+For CSV
+Into File output_file Encoding Is "ASCII" /* encoding is optional */
+Load data_in From File output_file Type Is Text /* but we could read as CSV if we wanted */
+Printf "{}", data_in
+Assert RemoveFile(output_file)
+Unset data_in
+
+Print """
+To a variable (as text)-"""
+Select *
+From File filename
+Limit 5
+For CSV
+Into select_out
+Printf "{}", select_out
+Unset select_out
