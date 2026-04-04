@@ -22,8 +22,8 @@ def run_subprocess(cmd: list[str]) -> tuple[int, str, str]:
                             text=True,
                             check=False)
     # Always print outputs for inspection (requires pytest -s to work?)
-    print(result.stdout, end="", file=sys.stdout)
-    print(result.stderr, end="", file=sys.stderr)
+    if result.stdout: print(result.stdout, end="", file=sys.stdout)
+    if result.stderr: print(result.stderr, end="", file=sys.stderr)
     return result.returncode, result.stdout, result.stderr
 
 def write_results(f: TextIOWrapper, stdout: str, stderr: str) -> None:
