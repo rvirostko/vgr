@@ -249,7 +249,6 @@ class NotOperation(Operation):
     def op_name(self) -> str:
         return 'not'
 
-# TODO needs to move for doc reasons...
 class Ternary(Operation):
     """
     Instance that handles the implemenation of ternary expressions.
