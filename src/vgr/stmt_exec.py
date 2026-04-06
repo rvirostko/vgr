@@ -293,7 +293,14 @@ def execute_break(_: ExecContext, statement: Tree) -> None:
 Used with `While`, `Until`, `ForEach` and other looping statements
 
 ```vgr
-**TODO**
+Set i To Zero
+While True:
+    Add 1 to i
+    If i ** 2 > 50:
+        Break
+    End
+End
+Printf "First integer whose square exceeds 50 is {}\n", i
 ```
 
 """
@@ -307,7 +314,17 @@ def execute_continue(_: ExecContext, statement: Tree) -> None:
 * Continue [;]
 
 ```vgr
-**TODO**
+Set evens To []
+Set i To Zero
+While i < 20:
+    Add 1 To i
+    If i Is Odd:
+        Continue
+    End
+    Append i To evens
+End
+
+Print "Even numbers up to 20: {}\n", evens
 ```
 
 """
