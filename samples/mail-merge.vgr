@@ -1,0 +1,65 @@
+# Example of passing in values via the command line:
+# today=`date +"%Y-%m-%d"`
+# subj="Hello Again!"
+# python3 -m vgr "${today}" "${subj}" mail-template.txt
+
+Set today = args.Item(0).DefaultTo(time.now.FormatTimestamp(time.format.ymd))
+Set subj = args.Item(1).DefaultTo("Hello")
+If args.Item(2) is None:
+    Print "Using default template."
+    Set mail_template To """
+-- TO : {1}
+-- SUBJ: {2}
+-- BODY
+Dear {0},
+
+Just wanted to say hello.
+-- END
+"""
+Else:
+    Set form_file To args.Item(2)
+    Printf "Loading template {!r}...", form_file
+    Load mail_template
+        With form_file
+        Type Is Text
+    Print " done."
+End
+
+Set data_file To vgr.source.FirstItem().DirectoryName() + "/people.json"
+Assert data_file.FileExists() :
+    "Please run from the same directory where {} is stored", data_file
+
+Printf "Loading data..."
+Load People
+    With data_file
+    Type Is Json
+Print " done."
+Printf "{} total records\n", People.Length()
+
+Printf "Sorting..."
+Sort People
+    By Asc Key last_name,
+       Asc Key first_name
+    Unique
+Print " done."
+
+// Use the template as a "printf" per person
+Printf "Merging..."
+Select mail_template.Format(first_name, email, subj)
+    From People As person
+    // Exclude records with incomplete information
+    Where first_name Is Not Null
+           And email Is Not Null
+    For Text
+    Into File today + " - mail-output.txt"
+Print " done."
+
+// Write a file that contains all the skipped records
+Printf "Writing skipped..."
+Select $rowid as "ROW", first_name As "FNAME", last_name As "LNAME", email as "EMAIL"
+    From People as person
+    Where first_name Is Null
+            Or email Is Null
+    For CSV
+    Into File today + " - skipped.csv"
+Print " done."
