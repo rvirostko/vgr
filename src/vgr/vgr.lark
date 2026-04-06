@@ -252,7 +252,7 @@ expr_from: expr as_clause?
 file_from: "File"i expr (_COMMA? (load_from_opts | as_clause))*
 ?as_clause: "As"i expr
 
-into_clause: "Into"i (var_name | "File"i (stdout | stderr | expr (_COMMA? encoding)?))
+into_clause: "Into"i (var_name | "File"i (stdout | stderr | expr (_COMMA? open_option)*))
 
 where_clause: "Where"i expr (_COMMA expr)*
 

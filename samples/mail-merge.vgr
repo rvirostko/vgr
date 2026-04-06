@@ -51,7 +51,10 @@ Select mail_template.Format(first_name, email, subj)
     Where first_name Is Not Null
            And email Is Not Null
     For Text
-    Into File today + " - mail-output.txt"
+    // Overwrite is the default mode
+    // Into uses the same set as the Open statement
+    // (Overwrite, No Overwrite, Append, but not Read)
+    Into File today + " - mail-output.txt" Overwrite
 Print " done."
 
 // Write a file that contains all the skipped records
@@ -61,5 +64,5 @@ Select $rowid as "ROW", first_name As "FNAME", last_name As "LNAME", email as "E
     Where first_name Is Null
             Or email Is Null
     For CSV
-    Into File today + " - skipped.csv"
+    Into File today + " - skipped.csv" Overwrite
 Print " done."

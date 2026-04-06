@@ -60,10 +60,12 @@ _DEFAULT_TARGET_NAME = '$record'
 _TYPE = 'type'
 _TARGET = 'target' # the "From .. As" name
 _FILE = 'file' # the data file's name
+_FMODE = 'fmode' # the open mode for files
 _VAR = 'var'
 _DTYPE = 'dtype' # the data file's type
 _ENCODING = 'encoding'# encoding used to read data file
 _DATA = 'data' # what we'll iterate over
+_SRC = 'src' # source context for errors
 
 def create_var_ref(statement, *names):
     # Extract metadata from source statement
@@ -412,8 +414,9 @@ class SelectAnalyzer(Visitor):
             break
 
     def into_clause(self, node: Tree):
-        """... into_clause: "Into"i (var_name | "File"i (stdout | stderr | expr (_COMMA? encoding)?))"""
+        """... into_clause: "Into"i (var_name | "File"i (stdout | stderr | expr (_COMMA? open_option)*))"""
         first_child = node.children[0]
+        self._into_opts[_SRC] = first_child
         into_type = first_child.data if isinstance(first_child, Tree) else ""
         if into_type in ('stdout', 'stderr'):
             self._into_opts[_TYPE] = into_type
@@ -424,12 +427,18 @@ class SelectAnalyzer(Visitor):
             filename = self.ctx.eval_filename_expr(bind_operations(first_child))
             self._into_opts[_TYPE] = _FILE
             self._into_opts[_FILE] = filename
+            self._into_opts[_FMODE] = 'w'
             for child in node.children[1:]:
                 name = child.data.lower()
                 if name == 'encoding':
                     self._into_opts[_ENCODING] = parse_encoding(self._ctx, bind_operations(child))
                     continue
-                raise NotImplementedError(f'Into option {name!r}') #SNO
+                if name in ('a', 'w', 'x'): # Append, overwrite, no-overwrite
+                    self._into_opts[_FMODE] = name
+                    continue
+                if name == 'r': # read mode?!?
+                    raise VgrRuntimeError(node, TypeError('Illegal file mode'))
+                raise VgrRuntimeError(node, NotImplementedError(f'Into option {name!r}')) #SNO
 
     def _display_name(self, name: str) -> str:
         """Util to print nice looking error msgs"""
@@ -547,12 +556,15 @@ def execute_select(ctx: ExecContext, statement: Tree):
         elif dest == 'stderr':
             exec_query(stderr())
         elif dest == _FILE:
-            mode = 'w'
-            with open(prepare_path(into_opts[_FILE], mode),
-                      mode,
-                      encoding=into_opts.get(_ENCODING, 'utf-8'),
-                      errors='backslashreplace' if ctx.debug else 'replace') as f:
-                exec_query(f)
+            mode = into_opts[_FMODE]
+            try:
+                f = open(prepare_path(into_opts[_FILE], mode),
+                        mode,
+                        encoding=into_opts.get(_ENCODING, 'utf-8'),
+                        errors='backslashreplace' if ctx.debug else 'replace')
+            except OSError as e:
+                raise VgrRuntimeError(into_opts[_SRC], e) from e
+            with f: exec_query(f)
         elif dest == _VAR:
             with StringIO() as buffer:
                 exec_query(buffer)
