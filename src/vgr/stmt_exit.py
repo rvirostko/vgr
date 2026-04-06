@@ -13,6 +13,7 @@ from .app_exceptions import (
 )
 from .builtins import (
     bound_ops,
+    poly_bool,
     poly_int,
     poly_notempty,
     poly_true,
@@ -36,21 +37,36 @@ The default return code is zero.
 Note that in this specific case `True` returns zero and `False` returns one.
 
 ```vgr
-**TODO**
+Exit → 0
+Exit None → 0
+Exit True → 0
+Exit "true" → 0
+Exit False → 1
+Exit "False" → 1
+Exit 5 → 5
+Exit -5.1 → -5
+Exit " 5 " → 5
 ```
 
 Also see `Assert`
 """
+    def bool_return(x) -> int: return VgrExitingException.EXIT_SUCCESS if poly_true(poly_bool(x)) else VgrExitingException.EXIT_FAILED
+    # If no argument provided, then "success"
     rc = VgrExitingException.EXIT_SUCCESS
-    msg = 'Exiting'
     if statement.children:
         x = ctx.eval_expr(statement.children[0])
+        # Generally, None or python truthiness return "success"
+        # If the value can be converted to an int, for example "5" then
+        # that number is returned.
         if x is not None:
-            try:
-                rc = poly_int(x)
-            except ValueError:
-                rc = VgrExitingException.EXIT_SUCCESS if poly_true(x) else VgrExitingException.EXIT_FAILED
-            msg = f'Exiting with rc = {rc}'
+            if isinstance(x, bool):
+                rc = bool_return(x)
+            else:
+                try:
+                    rc = poly_int(x)
+                except ValueError:
+                    rc = bool_return(x)
+    msg = f'Exiting with rc = {rc}'
     _LOG.info('%s(%s): %s', SSM.current[0], statement.meta.line, msg.strip())
     raise VgrExitingException(rc, statement, msg)
 
