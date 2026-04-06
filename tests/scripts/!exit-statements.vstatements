@@ -1,0 +1,5 @@
+Verbose; Exit False
+Verbose; Exit "False"
+Verbose; Exit 5
+Verbose; Exit -5.1
+Verbose; Exit " 5 "

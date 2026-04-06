@@ -1,0 +1,4 @@
+Verbose; Exit
+Verbose; Exit None
+Verbose; Exit True
+Verbose; Exit "true"
