@@ -48,7 +48,7 @@ Exit -5.1 → -5
 Exit " 5 " → 5
 ```
 
-Also see `Assert`
+Also see `Assert`, `ToBoolean()`, and `ToInteger()`
 """
     def bool_return(x) -> int: return VgrExitingException.EXIT_SUCCESS if poly_true(poly_bool(x)) else VgrExitingException.EXIT_FAILED
     # If no argument provided, then "success"
