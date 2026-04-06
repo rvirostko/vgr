@@ -1,0 +1,12 @@
+Define Function NoReturn(x):
+    NOP
+End
+
+Define Function Sqrt(x):
+    Return x·⁵
+End
+
+Echo On
+Assert @NoReturn(5) Is None
+Assert @Sqrt(16) Is 4
+Echo Off

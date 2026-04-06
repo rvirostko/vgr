@@ -114,11 +114,20 @@ def execute_return(ctx: ExecContext, statement: Tree) -> None:
 * Return [;]
 * Return *expression* [;]
 
-If *expression* is not provided, or if a function does not contain a return,
+If *expression* is not provided, or if a function does not contain a `Return`,
 the return values is always `None`.
 
 ```vgr
-**TODO**
+Define Function NoReturn(x):
+    NOP
+End
+
+Define Function Sqrt(x):
+    Return x·⁵
+End
+
+Assert @NoReturn(5) Is None
+Assert @Sqrt(16) Is 4
 ```
 
 """
