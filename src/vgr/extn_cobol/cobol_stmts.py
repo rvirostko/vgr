@@ -188,10 +188,6 @@ def execute_stop_run(_: ExecContext, statement: Tree) -> None:
 
 Ends the program with an exit code of zero.
 
-```vgr
-**TODO**
-```
-
 Also see `Exit`
 """
     raise VgrExitingException(VgrExitingException.EXIT_SUCCESS, statement)
