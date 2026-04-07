@@ -31,9 +31,18 @@ expression's value. If a `Continue` is encountered, statements
 following it are skipped, and the expression is checked again.
 
 ```vgr
-**TODO**
+words = ["apple", "banana", "cherry", None]
+index = 0
+Do While words.Item(index):
+    # NB: $loop is available, but only index and first values
+    word = words.Item(index)
+    reversed_word = Reverse(word)
+    Print "Original:", word, "\\nReversed:", reversed_word
+    index += 1
+Loop
 ```
 
+Also see `Do Until`, `Continue`, and `Break`
 """
     # Allow Exit/Continue Do and Exit/Continue While in addition to the default Break/Continue
     exec_loop(ctx, statement, True, (BlockType.DO_LOOP, BlockType.WHILE_LOOP))
@@ -53,9 +62,19 @@ expression's value. If a `Continue` is encountered, statements
 following it are skipped, and the expression is checked again.
 
 ```vgr
-**TODO**
+# Collect characters from input until a vowel is found
+input_str = "bcdfghjklmnpqrustvwxyz"
+collected = ""
+index = 0
+Do Until Lower(SubStr(input_str, index)) Is In "aeiou":
+    # NB: $loop is available, but only index and first values
+    collected += SubStr(input_str, index)
+    index += 1
+Loop
+Print "Input:", Repr(input_str), "\\nBefore vowel:", Repr(collected)
 ```
 
+Also see `Do While`, `Continue`, and `Break`
 """
     # Allow Exit/Continue Do in addition to the default Break/Continue
     exec_loop(ctx, statement, False, BlockType.DO_LOOP)
@@ -155,16 +174,14 @@ def execute_exit_do(_: ExecContext, statement: Tree) -> None:
     """
 **Exits the current block of statements**
 
-* Exit Do [;]
-* Exit For [;]
-* Exit While [;]
+* Exit [Do | For | While] [;]
 
 BASIC variants of `Break`.
 
-```vgr
-**TODO**
-```
+The type following `Exit` must match the innermost loop.
+If not, a runtime error is generated.
 
+Also see `Break`
 """
     raise VgrStatementBreak(statement, BlockType.DO_LOOP)
 
@@ -181,16 +198,14 @@ def execute_continue_do(_: ExecContext, statement: Tree) -> None:
     """
 **Cause the current loop to to start again**
 
-* Continue Do [;]
-* Continue For [;]
-* Continue While [;]
+* Continue [Do | For | While] [;]
 
 BASIC variants of `Continue`.
 
-```vgr
-**TODO**
-```
+The type following `Continue` must match the innermost loop.
+If not, a runtime error is generated.
 
+Also see `Continue`
 """
     raise VgrStatementContinue(statement, BlockType.DO_LOOP)
 
@@ -230,11 +245,7 @@ def execute_troff(ctx: ExecContext, _: Tree) -> None:
 
 * Troff [;]
 
-BASIC equivalent of `Echo False`
-
-```vgr
-**TODO**
-```
+BASIC equivalent of `Echo Off`
 
 Also see `Echo`
 """
@@ -249,11 +260,7 @@ def execute_tron(ctx: ExecContext, _: Tree) -> None:
 
 * Tron [;]
 
-BASIC equivalent of `Echo True`
-
-```vgr
-**TODO**
-```
+BASIC equivalent of `Echo On`
 
 Also see `Echo`
 """
