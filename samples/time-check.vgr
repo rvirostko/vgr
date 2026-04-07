@@ -1,0 +1,15 @@
+Define Function CheckIfTime():
+    Set day-of-week To time.today.dow
+    Set hour-of-day To time.today.hour-of-day
+    # Return True if Wednesday from 2-4㏘ or Thursday from noon to 1㏘
+    If day-of-week Is "Wednesday" Then
+        Return hour-of-day Is In [14, 15]
+    Else
+        If day-of-week Is "Thursday" Then
+            Return hour-of-day Is 12
+        End
+    End
+    Return False
+End
+
+Print "Time Check is", @CheckIfTime()
