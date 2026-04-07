@@ -382,7 +382,7 @@ End
 """
 
 @control_statement
-@bound_ops("Begin End")
+@bound_ops("Begin", "Block")
 def execute_block(ctx: ExecContext, statement: Tree) -> None:
     """
 **Defines a group of statements with local variable scoping**
@@ -392,7 +392,17 @@ def execute_block(ctx: ExecContext, statement: Tree) -> None:
   End [;]
 
 ```vgr
-**TODO**
+Set counter To Zero
+While counter < 3:
+    Begin
+        Set temp To counter * 2
+        Exhibit counter temp
+    End
+    # temp is scoped to Begin/End
+    Assert temp Is Null
+    Add 1 to counter
+End
+Print "Final counter:", counter
 ```
 
 Also see `Declare`
@@ -414,7 +424,7 @@ def execute_declare_local(ctx: ExecContext, statement: Tree) -> None:
 * Declare _name_,&hellip; [;]
 * Declare _name_,&hellip; [As] [Local | Global] [;]
 
-Local variables can only be declared inside a function.
+Local variables can only be declared inside a function or a `Begin`/`End` block.
 
 ```vgr
 Exhibit frog bog
@@ -589,7 +599,7 @@ Set is_valid(item) -> /* logic here */
 Set result To None
 Set attempts To Zero
 Unless result Is Not None Or attempts > 42:
-    For item in items:
+    ForEach item In items:
         Add 1 To attempts
         Choose Using item
             When Is "skip":  Continue
