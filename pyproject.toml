@@ -71,7 +71,8 @@ vgr = "vgr.vgr:main"
 
 [project.optional-dependencies]
 dev = [
-    "pytest>=8.2.0"
+    "pytest>=8.2.0",
+    "pytest-cov"
 ]
 extras = [
     "pyperclip>=1.11.0",

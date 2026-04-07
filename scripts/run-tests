@@ -6,4 +6,5 @@ if [ ! -d "./src/vgr" ]; then
 fi
 
 python3 -m pip install -q .[dev]
-pytest -s
+
+pytest -s --cov=vgr --cov-branch --cov-report=xml
