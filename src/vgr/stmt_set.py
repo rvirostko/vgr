@@ -199,7 +199,7 @@ Where *option* is
             dd_init(ctx.dd)
             set_user_args(ctx, t_args)
         if s in ('all', 'includes'):
-            ctx.print_verbose('Clearing includes')
+            ctx.print_verbose('Resetting includes')
             clear_includes()
         if s in ('all', 'args'):
             ctx.print_verbose('Resetting user args')
