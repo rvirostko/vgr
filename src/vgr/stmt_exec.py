@@ -412,11 +412,37 @@ def execute_declare_local(ctx: ExecContext, statement: Tree) -> None:
 **Establishes a name as a variable, optionally establishing scope**
 
 * Declare _name_,&hellip; [;]
-* Declare _name_,&hellip; [As] Local [;]
-* Declare _name_,&hellip; [As] Global [;]
+* Declare _name_,&hellip; [As] [Local | Global] [;]
+
+Local variables can only be declared inside a function.
 
 ```vgr
-**TODO**
+Exhibit frog bog
+frog = -not set-
+bog = -not set-
+Declare frog bog As Global
+Exhibit frog bog
+frog = None
+bog = None
+
+Define Function sqr(x):
+    Set frog = x.Pow(2)
+    Return frog
+End
+Print @sqr(5)
+25
+Exhibit frog
+frog = 25
+
+Define Function sqr2(x):
+    Declare frog Local
+    Set frog = x.Pow(2)
+    Return frog
+End
+Print @sqr2(6)
+36
+Exhibit frog
+frog = 25
 ```
 
 """
@@ -517,12 +543,26 @@ def execute_if(ctx: ExecContext, statement: Tree) -> None:
   End [;]
 
 If the expression evaluates to `True` the first block of statements is executed.
-If it evaluates to `False`, the second block of statements—if provided—is executed.
+If it evaluates to `False`, the second block of statements–if provided–is executed.
 If `Break` or `Continue` is encountered, statements
 following it are skipped. Execution resumes after the `End`.
 
 ```vgr
-**TODO**
+Define Function CheckIfTime():
+    Set day-of-week To time.today.dow
+    Set hour-of-day To time.today.hour-of-day
+    # Return True if Wednesday from 2-4㏘ or Thursday from noon to 1㏘
+    If day-of-week Is "Wednesday" Then
+        Return hour-of-day Is In [14, 15]
+    Else
+        If day-of-week Is "Thursday" Then
+            Return hour-of-day Is 12
+        End
+    End
+    Return False
+End
+
+Print "Time Check is", @CheckIfTime()
 ```
 
 Also see `Break` and `Continue`
