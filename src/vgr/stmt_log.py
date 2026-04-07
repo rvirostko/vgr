@@ -10,7 +10,6 @@ from .dd_config import LOG_LEVEL_PATH
 from .exec_context import ExecContext
 
 _USER_LOGGER = logging.getLogger('vgr_user')
-# TODO need to get level, then convert to a string to set in DD
 
 _LOG_FUNCTION = {
     "Debug":   _USER_LOGGER.debug,
@@ -55,7 +54,17 @@ a manner similar to `Printf`.
 Formatting syntax is that used in `Printf` and `Format()`
 
 ```vgr
-**TODO**
+# Set the logging level
+Log Level Info
+
+# Log a simple informational message
+Log Info "Application started"
+
+# Log a formatted debug message with multiple values
+Log Debug "User {} has {} unread messages", username, unread_count
+
+# Log an error with a calculation and its result
+Log Error "Unexpected value : {!r}", result
 ```
 
 Also see `Print` and `Format()` for formatting details
