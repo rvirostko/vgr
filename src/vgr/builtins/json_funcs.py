@@ -11,8 +11,54 @@ def strip_nulls(obj: Any=None) -> Any:
     """
 **Recursively remove `None` values from dictionaries and lists**
 
+* StripNulls(*value*)
+* *value*.StripNulls()
+
 ```vgr
-**TODO**
+StripNulls(None) → None
+StripNulls(False) → False
+StripNulls(5) → 5
+StripNulls(5.1) → 5.1
+StripNulls("hello") → "hello"
+[1, None, "text", None, {"a": None, "b": 2}, [None, 3, None], False].StripNulls()
+  → [1, "text", {"b": 2}, [3], False]
+
+Set data To {
+  "name": "alpha",
+  "count": null,
+  "tags": [
+    "one",
+    null,
+    "two",
+    null
+  ],
+  "meta": {
+    "owner": null,
+    "active": true,
+    "notes": [
+      null,
+      "ok",
+      null
+    ]
+  },
+  "value": 3.14,
+  "empty": null
+}
+data.StripNulls() →
+{
+  "name": "alpha",
+  "tags": [
+    "one",
+    "two"
+  ],
+  "meta": {
+    "active": true,
+    "notes": [
+      "ok"
+    ]
+  },
+  "value": 3.14
+}
 ```
 """
     if isinstance(obj, dict):
@@ -23,7 +69,7 @@ def strip_nulls(obj: Any=None) -> Any:
 
 def format_json(obj: Any=None, indent: int=2, sort_keys: bool=False) -> Any:
     """
-Format the object as a JSON string
+**Format the object as a JSON string**
 
 * FormatJson(*value*)
 * FormatJson(*value*, *indent*)
