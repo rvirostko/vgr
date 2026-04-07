@@ -4,7 +4,6 @@ It also generates the grammar fragments used to identify the functions.
 """
 
 from collections import defaultdict
-from collections.abc import Sequence, Iterable
 from functools import lru_cache
 from typing import Any, Callable
 import inspect
@@ -207,6 +206,7 @@ from .builtins import (
     poly_shorten,
     poly_shr,
     poly_sign,
+    poly_slice,
     poly_sort,
     poly_split,
     poly_splitlines,
@@ -334,31 +334,6 @@ None.Negate() → True
     if isinstance(x, (int, float)): return -x
     if isinstance(x, list): return list(_negate(x1) for x1 in x)
     if isinstance(x, dict): return {k: _negate(v) for k, v in x.items()}
-    return x
-
-def _slice(x: Any=None, start: int=None, stop: int=None, step: int=None) -> Any:
-    """
-**Extract a portion of a list or string**
-
-* *value*.Slice()
-* *value*.Slice(*start*)
-* *value*.Slice(*start*, *stop*)
-* *value*.Slice(*start*, *stop*, *step*)
-
-```vgr
-**TODO**
-```
-"""
-    start = int_arg(start, "Start") if start is not None else None
-    stop = int_arg(stop, "Stop") if stop is not None else None
-    step = int_arg(step, "Step") if step is not None else None
-    if x is None: return None
-    # Treat bytes and bytearray like strings (return same type)
-    if isinstance(x, (str, bytes, bytearray)): return x[start:stop:step]
-    # Accept any object that supports slicing via __getitem__
-    if isinstance(x, Sequence): return list(x[start:stop:step])
-    # Convert iterable to list then slice
-    if isinstance(x, Iterable): return list(list(x)[start:stop:step])
     return x
 
 def _length(x: Any=None) -> bool:
@@ -619,7 +594,7 @@ _BUILT_IN_FUNCS: dict[str, Callable[..., Any]] = {
     "SetKeyValue":    poly_setkeyvalue,
     "ShortenStr":     poly_shorten,
     "Sign":           poly_sign,
-    "Slice":          _slice,
+    "Slice":          poly_slice,
     "Sort":           poly_sort,
     "Split":          poly_split,
     "SplitLines":     poly_splitlines,

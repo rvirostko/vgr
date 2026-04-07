@@ -171,6 +171,7 @@ from .reg_ex import (
     poly_regex_replace,
 )
 from .shift import poly_shl, poly_shr
+from .slice import poly_slice
 from .stats import (
     poly_max,
     poly_mean,
