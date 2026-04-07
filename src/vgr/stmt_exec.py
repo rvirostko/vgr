@@ -212,16 +212,29 @@ Each argument is evaluated to a file name. Statements in the file
 are executed, inheriting the current state of all variable and
 input/output redirection.
 
+If *file_name* does not include a path, the *VGR_PATH* defined
+in the environment is searched for the file. If not found initially,
+and the file does not contain an extension, the search is performed
+again using an extension of *vgr*.
+
 > **Windows Note**\\
 > If you hard code paths, please use the slash as a universal
 > directory separator. Since the backslash is an escape character, if you use
 > it in a string, you will either need to double it or use a *raw string*.
 
 ```vgr
-**TODO**
+Source None # ignored
+Source File "init.vgr"
+Source Files "step1.vgr", "step2.vgr"
+Source "session_" + session_id
+
+# Looks only for file in the same directory as the
+# current source
+Set filename To vgr.source.FirstItem().DirectoryName() + "/people.vgr"
+Source filename
 ```
 
-Also see `@Include` and `Reset`
+Also see `@Include`, `Reset`, and `DirectoryName()`
 """
     for child in statement.children:
         try:
@@ -240,10 +253,29 @@ def execute_include(ctx: ExecContext, statement: Tree) -> None:
 Similar to `Source` but files are only included once per run, unless
 cleared by `Reset`.
 
+If *file_name* does not include a path, the *VGR_PATH* defined
+in the environment is searched for the file. If not found initially,
+and the file does not contain an extension, the search is performed
+again using an extension of *vgr*.
+
 > **Windows Note**\\
 > If you hard code paths, please use the slash as a universal
 > directory separator. Since the backslash is an escape character, if you use
 > it in a string, you will either need to double it or use a *raw string*.
+
+```vgr
+Verbose
+Verbose = True
+@Include None
+@Include File "init.vgr"
+Executing statements from "/Users/tc/VGR/init.vgr"...
+@Include File "init.vgr"
+Skipping "/Users/tc/VGR/init.vgr": previously included
+Reset Includes
+Resetting includes
+@Include File "init.vgr"
+Executing statements from "/Users/tc/VGR/init.vgr"...
+```
 
 Also see `Source` and `Reset`
 """
@@ -256,7 +288,7 @@ Also see `Source` and `Reset`
 
 def do_include(ctx: ExecContext, path: Path) -> None:
     if is_included(path):
-        if ctx.verbose: ctx.print_verbose('Skipping ', poly_repr(path), ': previously included')
+        if ctx.verbose: ctx.print_verbose(f'Skipping {poly_repr(str(path))}: previously included')
     else:
         do_source(ctx, path, True)
         add_include(path)
@@ -270,7 +302,7 @@ def do_source(ctx: ExecContext, path: Path, included: bool=False) -> None:
     if not os.access(path, os.R_OK):
         raise PermissionError(0, f'File {filename!r} not readable')
     statements = None
-    if ctx.verbose: ctx.print_verbose('Executing statements from ', poly_repr(filename), '...')
+    if ctx.verbose: ctx.print_verbose(f'Executing statements from {poly_repr(filename)}...')
     # If we replace the errors, it probably won't parse (unless it is in a comment)
     # but this way the user can find the error line, rather than getting a
     # cryptic error from the read
