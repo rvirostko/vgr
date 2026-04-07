@@ -545,7 +545,24 @@ expression's value. If `Continue` is encountered, statements
 following it are skipped, and the expression is checked again.
 
 ```vgr
-**TODO**
+Set is_valid(item) -> /* logic here */
+Set result To None
+Set attempts To Zero
+Unless result Is Not None Or attempts > 42:
+    For item in items:
+        Add 1 To attempts
+        Choose Using item
+            When Is "skip":  Continue
+            When Is "fatal": Break
+            Otherwise:
+                If @is_valid(item):
+                    result = item
+                End
+        End
+    End
+End
+Print "Result:", result
+Print "Attempts:", attempts
 ```
 
 Also see `Break` and `Continue`
