@@ -306,7 +306,7 @@ def do_source(ctx: ExecContext, path: Path, included: bool=False) -> None:
     # If we replace the errors, it probably won't parse (unless it is in a comment)
     # but this way the user can find the error line, rather than getting a
     # cryptic error from the read
-    with open(path, 'r', encoding='utf-8-sig', errors='backslashreplace') as f:
+    with open(path, 'r', encoding='utf-8', errors='backslashreplace') as f:
         statements = f.read()
     tval = ctx.get_var(*INCLUDED_PATH)
     try:

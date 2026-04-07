@@ -60,7 +60,7 @@ class VgrExtension:
         if isinstance(resource, (pathlib.PosixPath, pathlib.PurePosixPath)):
             return resource.read_text('utf-8')
         if isinstance(resource, (pathlib.WindowsPath, pathlib.PureWindowsPath)):
-            return resource.read_text('utf-8-sig')
+            return resource.read_text('utf-8')
         # Something inside a zip-like file
         if isinstance(resource, zipfile.Path):
             path, internal_path = VgrExtension._split_archive_path(str(resource))
