@@ -173,9 +173,11 @@ reset: "Reset"i reset_opt (_COMMA? reset_opt)* _SEMICOLON?
     | "Data"i -> data
     | "Args"i -> args
     | "Output"i -> output
+    | ("Include"i | "Includes"i) -> includes
 
-source: "Source"i ("File"i | "Files"i)? expr (_COMMA expr)* _SEMICOLON?
-include: "@Include"i ("File"i | "Files"i)? expr (_COMMA expr)* _SEMICOLON?
+source: "Source"i ("File"i | "Files"i)? expr (_COMMA? expr)* _SEMICOLON?
+include: "@Include"i ("File"i | "Files"i)? expr (_COMMA? expr)* _SEMICOLON?
+
 
 load_from: "Load"i var_name ("From"i | "With"i) "File"i? expr (_COMMA? load_from_opts)* _SEMICOLON?
 ?load_from_opts: encoding
