@@ -83,7 +83,7 @@ from .stmt_log import (
     execute_log,
     execute_log_setlevel,
 )
-from .stmt_misc import execute_sleep
+from .stmt_sleep import execute_sleep
 from .stmt_print import (
     execute_print,
     execute_printf,
