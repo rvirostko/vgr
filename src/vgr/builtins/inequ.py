@@ -66,6 +66,9 @@ None == "5" → False
 {"a": 5, "b": 7} == {"b": 7, "a": 5} → True
 {"a": 5, "b": 7, "c": 11} == {"c": 13, "b": 7, "a": 5} → False
 ```
+
+Also see the `!=` and '===' operators
+
 """
     # None is only equal to itself
     if x is None: return y is None
@@ -93,7 +96,7 @@ types of the two values match. No conversions are performed.
 5 === "5" -> False
 ```
 
-Also see `==`
+Also see the `==` and `!=` operators
 """
     # None is only equal to itself
     if x is None: return y is None
@@ -160,6 +163,8 @@ None != "5" → True
 {"a": 5, "b": 7} != {"b": 7, "a": 5} → False
 {"a": 5, "b": 7, "c": 11} != {"c": 13, "b": 7, "a": 5} → True
 ```
+
+Also see the `==` and '===' operators
 """
     return not poly_eq(x, y)
 
@@ -200,9 +205,17 @@ a string.
 performed between corresponding elements.
 
 ```vgr
-**TODO**
+None < None → False
+None < 5 → True
+None < "5" → True
+5 < " 5.0" → False
+"5" < "5.0" → True
+5 < [5] → False
+[5, 7] < [5, "7"] → False
+[5, 8] < [5, "7"] → False
 ```
 
+Also see the `>` and '<=' operators
 """
     # None is less than everything except itself
     if x is None: return y is not None
@@ -256,6 +269,8 @@ None > "5" → True
 [5, 7] > [5, "7"] → False
 [5, 8] > [5, "7"] → True
 ```
+
+Also see the `<` and '>=' operators
 """
     # Everything is greater than None (except itself which is just equal)
     if x is None: return y is not None
@@ -311,6 +326,8 @@ None <= "5" → True
 [5, 7] <= [5, "7"] → True
 [5, 8] <= [5, "7"] → False
 ```
+
+Also see the `<` and '>=' operators
 """
     # None is less than everything or equal to itself
     if x is None: return True
@@ -366,6 +383,8 @@ None >= "5" → False
 [5, 7] >= [5, "7"] → True
 [5, 7] >= [5, "8"] → False
 ```
+
+Also see the `>` and '<=' operators
 """
     # Everything is greater than None and it is equal to itself
     if x is None: return y is None
