@@ -10,7 +10,6 @@ from .builtins import(
 )
 from .evaluate import(
     bind_operations,
-    eval_expr_or_const,
 )
 from .exec_context import ExecContext
 from .redir import print_stderr
@@ -107,4 +106,4 @@ Also see `Echo` and `Debug`
 
 def _flag_value(ctx: ExecContext, statement: Tree) -> bool:
     # default behavior for a flag is a request to turn on
-    return poly_bool(eval_expr_or_const(ctx, statement.children[0])) if statement.children else True
+    return poly_bool(ctx.eval_expr_or_const(statement.children[0])) if statement.children else True
