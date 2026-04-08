@@ -67,7 +67,7 @@ None == "5" → False
 {"a": 5, "b": 7, "c": 11} == {"c": 13, "b": 7, "a": 5} → False
 ```
 
-Also see the `!=` and '===' operators
+Also see the `!=` and `===` operators
 
 """
     # None is only equal to itself
@@ -164,7 +164,7 @@ None != "5" → True
 {"a": 5, "b": 7, "c": 11} != {"c": 13, "b": 7, "a": 5} → True
 ```
 
-Also see the `==` and '===' operators
+Also see the `==` and `===` operators
 """
     return not poly_eq(x, y)
 
@@ -215,7 +215,7 @@ None < "5" → True
 [5, 8] < [5, "7"] → False
 ```
 
-Also see the `>` and '<=' operators
+Also see the `>` and `<=` operators
 """
     # None is less than everything except itself
     if x is None: return y is not None
@@ -270,7 +270,7 @@ None > "5" → True
 [5, 8] > [5, "7"] → True
 ```
 
-Also see the `<` and '>=' operators
+Also see the `<` and `>=` operators
 """
     # Everything is greater than None (except itself which is just equal)
     if x is None: return y is not None
@@ -327,7 +327,7 @@ None <= "5" → True
 [5, 8] <= [5, "7"] → False
 ```
 
-Also see the `<` and '>=' operators
+Also see the `<` and `>=` operators
 """
     # None is less than everything or equal to itself
     if x is None: return True
@@ -384,7 +384,7 @@ None >= "5" → False
 [5, 7] >= [5, "8"] → False
 ```
 
-Also see the `>` and '<=' operators
+Also see the `>` and `<=` operators
 """
     # Everything is greater than None and it is equal to itself
     if x is None: return y is None
@@ -495,7 +495,7 @@ Also see `Is Negative` and `Sign()`
 @bound_ops('Is Positive', 'Is Not Negative')
 def poly_ispositive(x: Any=None) -> Any:
     """
-**Is the value less than zero**
+**Is the value greater than zero**
 
 * *value* Is Positive
 * *value* Is Not Negative
