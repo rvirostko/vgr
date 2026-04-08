@@ -11,7 +11,7 @@ def dir_name(path: Any=None) -> Any:
     """
 **Returns the directory part of a path**
 
-If path is empty "." is used, matching UNIX behavior.
+If path is empty "." is returned, matching UNIX behavior.
 
 ```vgr
 **TODO**
@@ -37,7 +37,7 @@ def base_name(path: Any=None) -> Any:
 
 def file_exists(path: Any=None) -> Any:
     """
-**Does a path exists**
+**Does a path exist**
 
 ```vgr
 **TODO**
@@ -50,7 +50,7 @@ def file_exists(path: Any=None) -> Any:
 
 def is_file(path: Any=None) -> Any:
     """
-**Checks to see if a file exists and is a regular file**
+**Checks to see if a file exists and is it a regular file**
 
 ```vgr
 **TODO**
@@ -63,7 +63,7 @@ def is_file(path: Any=None) -> Any:
 
 def is_dir(path: Any=None) -> Any:
     """
-**Checks to see if a path exists and is a directory**
+**Checks to see if a path exist and is it a directory**
 
 ```vgr
 **TODO**

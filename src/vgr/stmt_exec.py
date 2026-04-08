@@ -333,7 +333,7 @@ While True:
         Break
     End
 End
-Printf "First integer whose square exceeds 50 is {}\n", i
+Printf "First integer whose square exceeds 50 is {}\\n", i
 ```
 
 """
@@ -357,7 +357,7 @@ While i < 20:
     Append i To evens
 End
 
-Print "Even numbers up to 20: {}\n", evens
+Print "Even numbers up to 20: {}\\n", evens
 ```
 
 """

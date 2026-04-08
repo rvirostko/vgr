@@ -150,7 +150,6 @@ if provided, is selected. Note that this clause _must_ follow all the `When`
 causes, and that at least one `When` must be specified. When `All` is specified
 `Otherwise` is skipped if another `When` clause has matched.
 
-Both `Break` and `Continue` can be used within blocks of statements.
 While complicated expressions can be used as the values in `When` it is recommended
 that constant or references to constants be used.
 

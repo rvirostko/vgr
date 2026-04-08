@@ -72,7 +72,7 @@ _add_operations = {
 
 def poly_sum(*args) -> Any:
     """
-**Recursively sum lists of numbers**
+**Recursively sums lists of numbers**
 
 * Sum(*values*&hellip;)
 * *values*.Sum()

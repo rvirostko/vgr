@@ -31,7 +31,7 @@ If *value* is an ordinal rather than a list, it is returned unchanged.
 5.Reverse() → 5
 5.0.Reverse() → 5.0
 ["five", 5, 5.0].Reverse() → [5.0, 5, "five"]
-"One Two".Reverse() → "owT nenO"
+"One Two".Reverse() → "owT enO"
 ```
 """
     if isinstance(x, list): return list(reversed(x))
@@ -67,6 +67,30 @@ None.Negate() → True
     if isinstance(x, list): return list(poly_negate(x1) for x1 in x)
     if isinstance(x, dict): return {k: poly_negate(v) for k, v in x.items()}
     return x
+
+def poly_length(x: Any=None) -> Any:
+    """
+**Return the length of an an item**
+
+* Length(*value*)
+* *value*.Length()
+
+Returns the length of lists and strings.
+For dictionaries, the number of attributes is returned.
+For all other values `None` is returned.
+
+```vgr
+None.Length() → None
+5.Length() → None
+5.1.Length() → None
+[5, 10, 15].Length() → 3
+"frog".Length() → 4
+{"c": "sea", "b": True, "a": 1}.Length() → 3
+```
+
+Also see `StringLen()`
+"""
+    return len(x) if hasattr(x, '__len__') else None
 
 def poly_ascii(x: Any=None) -> str:
     """

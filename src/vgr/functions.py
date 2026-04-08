@@ -130,6 +130,7 @@ from .builtins import (
     poly_lastitem,
     poly_le,
     poly_leftstr,
+    poly_length,
     poly_list_append,
     poly_list_insert,
     poly_list_prepend,
@@ -234,6 +235,8 @@ from .builtins import (
 )
 from .vgr_callable import VgrCallable
 
+# Note: This needs to stay here because
+# builtins doesn't know about VgrCallable
 def _is_function(obj: Any=None) -> Any:
     """
 **Is a value a function**
@@ -248,29 +251,6 @@ f.IsFunction() → True
 ```
 """
     return isinstance(obj, VgrCallable)
-
-# TODO move? do we have a poly_length() already?
-def _length(x: Any=None) -> bool:
-    """
-**Return the length of an an item**
-
-* Length(*value*)
-* *value*.Length()
-
-Returns the length of lists and strings.
-For dictionaries, the number of attributes is returned.
-For all other values `None` is returned.
-
-```vgr
-None.Length() → None
-5.Length() → None
-5.1.Length() → None
-[5, 10, 15].Length() → 3
-"frog".Length() → 4
-{"c": "sea", "b": True, "a": 1}.Length() → 3
-```
-"""
-    return len(x) if hasattr(x, '__len__') else None
 
 _BUILT_IN_FUNCS: dict[str, Callable[..., Any]] = {
     "Abs":            poly_abs,
@@ -387,7 +367,7 @@ _BUILT_IN_FUNCS: dict[str, Callable[..., Any]] = {
     "LeftShift":      poly_shl,
     "LeftStr":        poly_leftstr,
     "LeftStrip":      poly_lstrip,
-    "Length":         _length,
+    "Length":         poly_length,
     "List":           build_list,
     "ListAppend":     poly_list_append,
     "ListInsert":     poly_list_insert,
@@ -534,8 +514,7 @@ def add_builtin_functions() -> None:
 
 def add_function(extn_name: str, name: str, function: Callable) -> None:
     lc = name.lower()
-    if lc in _FUNC_INDEX:
-        raise ValueError(f'Extension {extn_name!r} tried to redefine {name!r}')
+    if lc in _FUNC_INDEX: raise ValueError(f'Extension {extn_name!r} tried to redefine {name!r}')
     _FUNC_OPS[name] = function
     _FUNC_INDEX[lc] = name
 
@@ -545,7 +524,7 @@ _IS_VARARGS = float('inf')
 def get_function(name: str) -> tuple[str, Callable[..., Any]]:
     """Get the entry for the named function: (canonical_name, function)"""
     canonical_name = _FUNC_INDEX.get(name.lower(), None)
-    if canonical_name is None: return None
+    if canonical_name is None: raise ValueError(f'Function {name!r} has no canonical name') # SNO
     return (canonical_name, _FUNC_OPS.get(canonical_name))
 
 def get_function_op(name: str) -> Callable[..., Any]:

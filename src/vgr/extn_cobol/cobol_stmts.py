@@ -786,8 +786,8 @@ portion is displayed on its own line.
 With a single argument of *\\** all variables are displayed.
 
 Unlike `Display` et al, the values display are the _representation_ of the data, not
-its printable value. This lets you diferentiate between an integer and a string, and
-see control characters.
+its printable value. This lets you diferentiate between an integer and a string as
+well as seeing control characters.
 
 ```vgr
 Exhibit math.pi math.e

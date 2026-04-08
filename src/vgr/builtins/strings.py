@@ -71,9 +71,11 @@ def poly_reversestr(x: Any=None) -> Any:
 ```vgr
 None.ReverseStr() → None
 123.ReverseStr() → 123
-"abc".ReverseStr() → cba
+"abc".ReverseStr() → "cba"
 ["abc", "xyz"].ReverseStr() → ["cba", "zyx"]
 ```
+
+Also see `Reverse()`
 """
     return _exec_str_op(x, 'ReverseStr', poly_reversestr, lambda s: s[::-1])
 
@@ -99,19 +101,19 @@ def poly_casefold(x: Any=None) -> Any:
     """
 **Return a caseless version of a string**
 
-* Casefold(*value*)
-* *value*.Casefold()
+* CaseFold(*value*)
+* *value*.CaseFold()
 
 ```vgr
-None.Casefold() → None
-"aBc".Casefold() → "abc"
-"The Title".Casefold() → "the title"
-"the TITLE".Casefold() → "the title"
-["Abc", "Xyz"].Casefold() → ["abc", "xyz"]
-123.Casefold() → 123
+None.CaseFold() → None
+"aBc".CaseFold() → "abc"
+"The Title".CaseFold() → "the title"
+"the TITLE".CaseFold() → "the title"
+["Abc", "Xyz"].CaseFold() → ["abc", "xyz"]
+123.CaseFold() → 123
 ```
 """
-    return _exec_str_op(x, 'Casefold', poly_casefold, str.casefold)
+    return _exec_str_op(x, 'CaseFold', poly_casefold, str.casefold)
 
 def poly_lower(x: Any=None) -> Any:
     """
@@ -243,7 +245,7 @@ are alphabetic and there is at least one character in the string.
 
 def poly_isascii(x: Any=None) -> Any:
     """
-**Is a value a string composed of all ASCII character**
+**Is a value a string composed of all ASCII characters**
 
 * IsAscii(*value*)
 * *value*.IsAscii()
@@ -777,7 +779,7 @@ None.SubStr() → None
 123.SubStr(2, 1) → 123
 ```
 
-Also see `LeftStr()` and `RightStr()`
+Also see `LeftStr()`, `RightStr()`, and `Slice()`
 """
     # For these types, the operation is idempotent
     if isinstance(x, (NoneType, bool, int, float)): return x
@@ -1553,7 +1555,7 @@ Also see `Chr()`
 
 def poly_chr(x: Any=None) -> Any:
     """
-**Convert a number to single character string**
+**Convert a number to a single character string**
 
 * Chr(*value*)
 * *value*.Chr()

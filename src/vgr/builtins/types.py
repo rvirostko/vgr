@@ -53,9 +53,9 @@ When converting strings to booleans, comparisons are made
 independent of case after leading and trailing
 whitespace is removed.
 
-* 'true', 't', 'yes', 'y', or 'on' return `True`
-* 'false', 'f', 'no', 'n' or 'off' return `False`
-* If none of the above, it is converted to a number, then a bool.
+* 'true', 'yes', or 'on' return `True`
+* 'false', 'no', or 'off' return `False`
+* If none of the above, it is converted to a number, then a boolean.
 
 If it is a non-convertable type then `True` is returned, as any
 non-`None` value is consider `True`.
