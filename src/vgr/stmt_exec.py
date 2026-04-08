@@ -36,6 +36,7 @@ from .builtins import (
     bound_ops,
     build_dict,
     expand_filename,
+    poly_bool,
     poly_int,
     poly_list,
     poly_number,
@@ -1172,7 +1173,7 @@ class DefaultExecContext(ExecContext):
         if rc is None and allow_none: return None
         if not isinstance(rc, (bool, int, float, str)):
             raise VgrRuntimeError(expr, TypeError(f'{name} must be a boolean; found {poly_type(rc)!r}'))
-        return poly_true(rc)
+        return poly_bool(rc)
 
     def get_source(self, tree, end_tree = None) -> str:
         return (SSM.source_for(tree, end_tree) or '').strip()
