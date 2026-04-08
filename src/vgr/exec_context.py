@@ -70,6 +70,9 @@ class ExecContext(ABC):
     def eval_to_number(self, expr: Tree, name: str, allow_none: bool=False): pass
 
     @abstractmethod
+    def eval_to_bool(self, expr: Tree, name: str, allow_none: bool=False) -> bool: pass
+
+    @abstractmethod
     def get_source(self, tree, end_tree = None) -> str: pass
 
     @property
