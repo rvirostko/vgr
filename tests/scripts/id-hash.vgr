@@ -1,0 +1,22 @@
+
+// Simple loop to test type acceptance for hashable types
+ForEach item in [None, True, False, 0, 1, -.1, "", "foo", CompilePattern("foo")]
+    Print Repr(item), Type(item), Id(item), Hash(item)
+    Assert Hash(item) Is Not None
+End
+
+// Non-hashable types
+ForEach item in [[], [5], {}, {"a": 5}]
+    Print Repr(item), Type(item), Id(item), Hash(item)
+    Assert Hash(item) Is None
+End
+
+# Hash has to be equal regardless of origin
+Assert Hash(True) == Hash(!False)
+Assert Hash("foo") == Hash("f" + "oo")
+Assert Hash(0) == Hash(-1 + 1)
+
+Set z = [ {"a" : 1} ]
+Set z′ = z.Clone() // shallow clone
+Assert z.Id() Is Not z′.Id() // different lists
+Assert z.FirstItem().Id() Is z′.FirstItem().Id() // same contents

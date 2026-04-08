@@ -92,6 +92,7 @@ from .builtins import (
     poly_hex_encode,
     poly_hex,
     poly_highest_one_bit,
+    poly_id,
     poly_in,
     poly_index,
     poly_int,
@@ -247,28 +248,6 @@ f.IsFunction() → True
 """
     return isinstance(obj, VgrCallable)
 
-def _id(obj: Any=None) -> Any:
-    """
-**Returns the internal, unique ID used by the value**
-
-* Id(*value*)
-* *value*.Id()
-
-This can be used in debugging but is of limited values in scripts.
-
-```vgr
-None.Id() → 4387076688
-5.Id() → 4374194608
-5.1.Id() → 4669058608
-[5, 10, 15].Id() → 4682578560
-"frog".Id() → 4682576368
-{"c": "sea", "b": True, "a": 1}.Id() → 4682896960
-```
-
-Also see `Hash()`
-"""
-    return id(obj)
-
 def _enumerate(obj: Any=None, start_at: int=0) -> Any:
     """
 **Create an enumeration for a collection**
@@ -415,7 +394,7 @@ _BUILT_IN_FUNCS: dict[str, Callable[..., Any]] = {
     "HexDecode":      poly_hex_decode,
     "HexEncode":      poly_hex_encode,
     "HighestOneBit":  poly_highest_one_bit,
-    "Id":             _id,
+    "Id":             poly_id,
     "IndexOf":        poly_index,
     "IsAlpha":        poly_isalpha,
     "IsAlphaNumeric": poly_isalnum,

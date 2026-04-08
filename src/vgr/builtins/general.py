@@ -64,7 +64,29 @@ Cannot be applied to lists or dictionaries.
 
 Also see `Id()`
 """
-    return hash(x)
+    return None if isinstance(x, (list, dict)) else hash(x)
+
+def poly_id(obj: Any=None) -> Any:
+    """
+**Returns the internal, unique ID used by the value**
+
+* Id(*value*)
+* *value*.Id()
+
+This can be used in debugging but is of limited values in scripts.
+
+```vgr
+None.Id() → 4387076688
+5.Id() → 4374194608
+5.1.Id() → 4669058608
+[5, 10, 15].Id() → 4682578560
+"frog".Id() → 4682576368
+{"c": "sea", "b": True, "a": 1}.Id() → 4682896960
+```
+
+Also see `Hash()`
+"""
+    return id(obj)
 
 def poly_clone(x: Any=None) -> Any:
     """

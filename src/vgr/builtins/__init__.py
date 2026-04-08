@@ -81,6 +81,7 @@ from .general import (
     poly_firstitem,
     poly_getitem,
     poly_hash,
+    poly_id,
     poly_lastitem,
     poly_repr,
     poly_reverse,
