@@ -237,10 +237,56 @@ class AndOperation(Operation):
 * *x* ∧ *y*
 
 The values for *x* and *y*  are evaluated as booleans.
+A full `And` expression can contain more than two operands.
+
+***Optimized Evaluation : Short-Circuit Behavior***
+
+The logical AND operation uses short-circuit evaluation:
+Evaluation of operands ends after the first *False* result is
+encountered.
+
+* *x* is evaluated first and tested using `IsTrue()`
+* If the result is *False*, *False* is returned and *y* is not evaluated
+* If the result is *True*, *y* is evaluated and its value determines the result
+
+Expressions that call functions and have side effects beyond a returned
+value may produce unexpected results because of this behavior.
 
 ```vgr
-**TODO**
+# None is always False
+None && True → False
+
+# Numbers: zero is False, non-zero is True
+0 && True → False
+0.0 && True → False
+1 && True → True
+-3 && True → True
+2.5 && True → True
+
+# All strings are True
+"" && True → True
+"false" && True → True
+
+# Lists and dictionaries are True
+[] && True → True
+{} && True → True
 ```
+
+```vgr
+Set gcounter = 0
+Define Function gcount()
+    Add 1 to gcounter
+    Return IsZero(gcounter % 2)
+End
+
+Print @gcount() && @gcount() && @gcount()
+False
+Print gcounter
+1
+```
+
+Also see `And` and `IsTrue()`
+
 """
         for arg in args:
             # Short circuit, ending evaluation after first False
@@ -270,16 +316,48 @@ The logical OR operation uses short-circuit evaluation:
 Evaluation of operands ends after the first *True* result is
 encountered.
 
-* *x* is evaluated first and coerced to a boolean
+* *x* is evaluated first and tested using `IsTrue()`
 * If the result is *True*, *True* is returned and *y* is not evaluated
-* If the result is *False*, *y* is evaluated and value determines the result
+* If the result is *False*, *y* is evaluated and its value determines the result
 
 Expressions that call functions and have side effects beyond a returned
 value may produce unexpected results because of this behavior.
 
 ```vgr
-**TODO**
+# None is always False
+None Or True → True
+None Or False → False
+
+# Non-zero numbers are True
+0 || False → False
+0 || True → True
+0.0 || False → False
+0.0 || True → True
+
+# All strings are True
+"" || False → True
+"true" || False → True
+" false " || False → True
+
+# Lists and dictionaries are True
+[] || False → True
+{} || False → True
 ```
+
+```vgr
+Set gcounter = 0
+Define Function gcount()
+    Add 1 to gcounter
+    Return IsZero(gcounter % 2)
+End
+
+Print @gcount() || @gcount() || @gcount()
+True
+Print gcounter
+2
+```
+
+Also see `And` and `IsTrue()`
 """
         for arg in args:
             # Short circuit, ending evaluation after first True
