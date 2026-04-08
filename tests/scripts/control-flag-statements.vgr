@@ -1,0 +1,75 @@
+
+# Make sure the reset does what we expect
+Reset All
+Assert vgr.debug == False
+Assert vgr.verbose == False
+Assert vgr.echo == False
+
+// Echo statement - positive
+Echo;          Assert vgr.echo; Reset All // Default behavior
+Echo True;     Assert vgr.echo; Reset All // Constant keyword
+Echo On;       Assert vgr.echo; Reset All // Pseudo keyword
+Echo Yes;      Assert vgr.echo; Reset All // Pseudo keyword
+Echo 1;        Assert vgr.echo; Reset All // True int
+Echo -1.1;     Assert vgr.echo; Reset All // True float
+Echo " true "; Assert vgr.echo; Reset All // ToBoolean() behavior
+Echo " ON ";   Assert vgr.echo; Reset All // ToBoolean() behavior
+Echo " YeS ";  Assert vgr.echo; Reset All // ToBoolean() behavior
+Echo "frog";   Assert vgr.echo; Reset All // String truthiness
+
+// Echo statement - negative
+Echo True; Echo False;     Assert !vgr.echo // Constant keyword
+Echo True; Echo None;      Assert !vgr.echo // Constant keyword
+Echo True; Echo Off;       Assert !vgr.echo // Pseudo keyword
+Echo True; Echo No;        Assert !vgr.echo // Pseudo keyword
+Echo True; Echo 0;         Assert !vgr.echo // True int
+Echo True; Echo 0.0;       Assert !vgr.echo // True float
+Echo True; Echo " false "; Assert !vgr.echo // ToBoolean() behavior
+Echo True; Echo " off";    Assert !vgr.echo // ToBoolean() behavior
+Echo True; Echo "No ";     Assert !vgr.echo // ToBoolean() behavior
+
+// Debug statement - positive
+Debug;          Assert vgr.debug; Reset All // Default behavior
+Debug True;     Assert vgr.debug; Reset All // Constant keyword
+Debug On;       Assert vgr.debug; Reset All // Pseudo keyword
+Debug Yes;      Assert vgr.debug; Reset All // Pseudo keyword
+Debug 1;        Assert vgr.debug; Reset All // True int
+Debug -1.1;     Assert vgr.debug; Reset All // True float
+Debug " true "; Assert vgr.debug; Reset All // ToBoolean() behavior
+Debug " ON ";   Assert vgr.debug; Reset All // ToBoolean() behavior
+Debug " YeS ";  Assert vgr.debug; Reset All // ToBoolean() behavior
+Debug "frog";   Assert vgr.debug; Reset All // String truthiness
+
+// Debug statement - negative
+Debug True; Debug False;     Assert !vgr.debug // Constant keyword
+Debug True; Debug None;      Assert !vgr.debug // Constant keyword
+Debug True; Debug Off;       Assert !vgr.debug // Pseudo keyword
+Debug True; Debug No;        Assert !vgr.debug // Pseudo keyword
+Debug True; Debug 0;         Assert !vgr.debug // True int
+Debug True; Debug 0.0;       Assert !vgr.debug // True float
+Debug True; Debug " false "; Assert !vgr.debug // ToBoolean() behavior
+Debug True; Debug " off";    Assert !vgr.debug // ToBoolean() behavior
+Debug True; Debug "No ";     Assert !vgr.debug // ToBoolean() behavior
+
+// Verbose statement - positive
+Verbose;          Assert vgr.verbose; Reset All // Default behavior
+Verbose True;     Assert vgr.verbose; Reset All // Constant keyword
+Verbose On;       Assert vgr.verbose; Reset All // Pseudo keyword
+Verbose Yes;      Assert vgr.verbose; Reset All // Pseudo keyword
+Verbose 1;        Assert vgr.verbose; Reset All // True int
+Verbose -1.1;     Assert vgr.verbose; Reset All // True float
+Verbose " true "; Assert vgr.verbose; Reset All // ToBoolean() behavior
+Verbose " ON ";   Assert vgr.verbose; Reset All // ToBoolean() behavior
+Verbose " YeS ";  Assert vgr.verbose; Reset All // ToBoolean() behavior
+Verbose "frog";   Assert vgr.verbose; Reset All // String truthiness
+
+// Verbose statement - negative
+Verbose True; Verbose False;     Assert !vgr.verbose // Constant keyword
+Verbose True; Verbose None;      Assert !vgr.verbose // Constant keyword
+Verbose True; Verbose Off;       Assert !vgr.verbose // Pseudo keyword
+Verbose True; Verbose No;        Assert !vgr.verbose // Pseudo keyword
+Verbose True; Verbose 0;         Assert !vgr.verbose // True int
+Verbose True; Verbose 0.0;       Assert !vgr.verbose // True float
+Verbose True; Verbose " false "; Assert !vgr.verbose // ToBoolean() behavior
+Verbose True; Verbose " off";    Assert !vgr.verbose // ToBoolean() behavior
+Verbose True; Verbose "No ";     Assert !vgr.verbose // ToBoolean() behavior
