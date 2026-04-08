@@ -29,7 +29,7 @@ True.IsTrue() → True
 False.IsTrue() → False
 ```
 
-Also see `ToBoolean()`
+Also see `ToBoolean()` and `IsFalse()`
 """
     if x is None: return False
     if isinstance(x, (int, float)): return bool(x)
@@ -61,7 +61,7 @@ True.IsFalse() → False
 False.IsFalse() → True
 ```
 
-Also see `ToBoolean()`
+Also see `ToBoolean()` and `IsTrue()`
 """
     if x is None: return True
     if isinstance(x, (int, float)): return not bool(x)
