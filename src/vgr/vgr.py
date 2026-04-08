@@ -47,6 +47,8 @@ from .functions import (
     function_names_pattern,
     get_function_defs,
     get_function_entries,
+)
+from .operators import (
     get_operator_entries,
 )
 from .interactive import CmdLine, ArgumentParser, ParserBuilder

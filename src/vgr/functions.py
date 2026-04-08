@@ -10,8 +10,6 @@ import inspect
 
 from .builtins import (
     base_name,
-    bound_ops,
-    build_dict,
     build_list,
     compile_pattern,
     default_to,
@@ -73,7 +71,6 @@ from .builtins import (
     poly_divmod,
     poly_endswith,
     poly_eq,
-    poly_exact_eq,
     poly_expandtabs,
     poly_extract_bits,
     poly_false,
@@ -95,7 +92,6 @@ from .builtins import (
     poly_hex_encode,
     poly_hex,
     poly_highest_one_bit,
-    poly_imatches,
     poly_in,
     poly_index,
     poly_int,
@@ -158,9 +154,7 @@ from .builtins import (
     poly_mul,
     poly_multimode,
     poly_ne,
-    poly_not_imatches,
     poly_not_in,
-    poly_not_matches,
     poly_notempty,
     poly_number,
     poly_oct,
@@ -306,6 +300,8 @@ math.float.Enumerate(1) → [[1, "max", 1.7976931348623157e+308],
         return [[i, x] for i, x in enumerate(obj, start=start_at)]
     return [[start_at, obj]]
 
+# TODO move?
+# TODO is this connected to the NotOperation?
 def _negate(x: Any=None) -> Any:
     """
 **Returns the negation of a value**
@@ -336,6 +332,7 @@ None.Negate() → True
     if isinstance(x, dict): return {k: _negate(v) for k, v in x.items()}
     return x
 
+# TODO move? do we have a poly_length() already?
 def _length(x: Any=None) -> bool:
     """
 **Return the length of an an item**
@@ -357,48 +354,6 @@ None.Length() → None
 ```
 """
     return len(x) if hasattr(x, '__len__') else None
-
-@bound_ops("Or", "||", "∨")
-def logical_or(eval_arg, args: list) -> Any:
-    """
-**Logical Or operation**
-
-* *x* || *y*
-* *x* Or *y*
-* *x* ∨ *y*
-
-The values for *x* and *y*  are evaluated as booleans.
-
-```vgr
-**TODO**
-```
-"""
-    # NOTE! args is from the parse tree,
-    #       not the evaluated expressions
-    for arg in args:
-        if eval_arg(arg): return True
-    return False
-
-@bound_ops("And", "&&", "∧")
-def logical_and(eval_arg, args: list) -> Any:
-    """
-**Logical And operation**
-
-* *x* && *y*
-* *x* And *y*
-* *x* ∧ *y*
-
-The values for *x* and *y*  are evaluated as booleans.
-
-```vgr
-**TODO**
-```
-"""
-    # NOTE! args is from the parse tree,
-    #       not the evaluated expressions
-    for arg in args:
-        if not eval_arg(arg): return False
-    return True
 
 _BUILT_IN_FUNCS: dict[str, Callable[..., Any]] = {
     "Abs":            poly_abs,
@@ -649,50 +604,6 @@ def get_function_entries() -> dict[str, tuple[Callable[..., Any], str, str]]:
         for name, func in _FUNC_OPS.items()
     }
 
-# Needs to include all items bound to operators
-_OP_FUNCS: list[Callable[..., Any]] = [
-    poly_false, # ! (not)
-    build_dict, # dict
-    build_list, # array
-    logical_and, # and_op
-    logical_or, # or_op
-    poly_add, # add_op
-    poly_bit_and, # bit_and_op
-    poly_bit_or, # bit_or_op
-    poly_bit_xor, # bit_xor_op
-    poly_ceil, # poly_ceil_op
-    poly_contains_all, # contains_all_op
-    poly_contains_any, # contains_op
-    poly_div, # div_op
-    poly_eq, # eq_op
-    poly_exact_eq, # exact_eq_op
-    poly_floor, # poly_floor_op
-    poly_ge, # ge_op
-    poly_gt, # gt_op
-    poly_imatches, # imatches_op
-    poly_in, # in_op
-    poly_iseven, # is_even_op
-    poly_isnegative, # is_negative_op
-    poly_isodd, # is_odd_op
-    poly_ispositive, # is_positive_op
-    poly_le, # le_op
-    poly_lt, # lt_op
-    poly_matches_all, # matches_all_op
-    poly_matches, # matches_op
-    poly_mod, # mod_op
-    poly_mul, # mul_op
-    poly_ne, # neq_op
-    poly_not_imatches, # not_imatches_op
-    poly_not_in, # not_in_op
-    poly_not_matches, # not_matches_op
-    poly_pow, # pow_op
-    poly_shl, # shl_op
-    poly_shr, # shr_op
-    poly_sub, # sub_op
-    # def c_ternary(self, tree): return Ternary(tree, (0, 1, 2))
-    # def py_ternary(self, tree): return Ternary(tree, (1, 0, 2))
-]
-
 def function_names_pattern() -> str:
     """
     Return a regex string that will match built-in
@@ -700,16 +611,6 @@ def function_names_pattern() -> str:
     """
     functions = sorted(_FUNC_OPS.keys(), key=len, reverse=True)
     return r"(?i)\b(" + "|".join(functions) + r")(?=\s*\()"
-
-@lru_cache
-def get_operator_entries() -> dict[str, tuple]:
-    entries = {}
-    for func in _OP_FUNCS:
-        # See builtins/common for the bound_ops decorator
-        if hasattr(func, 'bound_ops'):
-            for op in func.bound_ops:
-                entries[op] = (func, op.lower().replace(' ', ''), (func.__doc__ or '').lower())
-    return entries
 
 def add_builtin_functions() -> None:
     for name, function in _BUILT_IN_FUNCS.items(): add_function('built-in', name, function)

@@ -8,8 +8,10 @@ import sys
 
 from . import __version__, __version_date__
 from .functions import (
-    get_operator_entries,
     get_function_entries,
+)
+from .operators import (
+    get_operator_entries,
 )
 from .stmt_exec import (
     get_statement_entries,

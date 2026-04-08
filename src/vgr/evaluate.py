@@ -15,8 +15,9 @@ from .app_exceptions import VgrRuntimeError
 from .data_dict import DataDictionary
 from .exec_context import ExecContext
 from .user_callable import UserFunction
-from .functions import get_function_op, logical_and, logical_or
+from .functions import get_function_op
 from .builtins import (
+    bound_ops,
     build_dict,
     build_list,
     get_requires_exec_context,
@@ -226,16 +227,64 @@ class InvokeInlineFunctionOperation(Operation):
 
 class AndOperation(Operation):
 
+    @bound_ops("And", "&&", "∧")
     def execute(self, ctx: ExecContext, args: list) -> Any:
-        return logical_and(lambda arg: poly_true(ctx.eval_expr(arg)), args)
+        """
+**Logical And operation**
+
+* *x* && *y*
+* *x* And *y*
+* *x* ∧ *y*
+
+The values for *x* and *y*  are evaluated as booleans.
+
+```vgr
+**TODO**
+```
+"""
+        for arg in args:
+            # Short circuit, ending evaluation after first False
+            if not poly_true(ctx.eval_expr(arg)): return False
+        return True
 
     def op_name(self) -> str:
         return 'and'
 
 class OrOperation(Operation):
 
+    @bound_ops("Or", "||", "∨")
     def execute(self, ctx: ExecContext, args: list) -> Any:
-        return logical_or(lambda arg: poly_true(ctx.eval_expr(arg)), args)
+        """
+**Logical Or operation**
+
+* *x* || *y*
+* *x* Or *y*
+* *x* ∨ *y*
+
+The values for *x* and *y* are expressions evaluated to booleans.
+A full `Or` expression can contain more than two operands.
+
+***Optimized Evaluation : Short-Circuit Behavior***
+
+The logical OR operation uses short-circuit evaluation:
+Evaluation of operands ends after the first *True* result is
+encountered.
+
+* *x* is evaluated first and coerced to a boolean
+* If the result is *True*, *True* is returned and *y* is not evaluated
+* If the result is *False*, *y* is evaluated and value determines the result
+
+Expressions that call functions and have side effects beyond a returned
+value may produce unexpected results because of this behavior.
+
+```vgr
+**TODO**
+```
+"""
+        for arg in args:
+            # Short circuit, ending evaluation after first True
+            if poly_true(ctx.eval_expr(arg)): return True
+        return False
 
     def op_name(self) -> str:
         return 'or'
