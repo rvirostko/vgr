@@ -3,8 +3,18 @@ from functools import cmp_to_key
 from typing import Any
 import re
 
-from .common import str_to_number, bool_arg, dist_x
-from .inequ import poly_lt, poly_gt, poly_eq, poly_ne
+from .common import (
+    bool_arg,
+    dist_x,
+    int_arg,
+    str_to_number,
+)
+from .inequ import (
+    poly_eq,
+    poly_gt,
+    poly_lt,
+    poly_ne,
+)
 from .type import poly_type
 
 def poly_reverse(x: Any=None) -> Any:
@@ -158,6 +168,37 @@ Also see `Ascii()`
     if isinstance(x, re.Pattern): return poly_repr(x.pattern)
     if isinstance(x, list): return '[' + ', '.join(poly_repr(x1) for x1 in x) + ']'
     return repr(x)
+
+def poly_enumerate(obj: Any=None, start_at: int=0) -> Any:
+    """
+**Create an enumeration for a collection**
+
+* Enumerate(*value*)
+* Enumerate(*value*, *start_at*)
+* *value*.Enumerate()
+* *value*.Enumerate(*start_at*)
+
+The *start_at* argument defines the number used in the enumerated value.
+The default value for *start_at* is zero.
+Enumeration of values that are not collections produces an enumeration of a single entry.
+Enumerating `None` returns an empty list.
+
+```vgr
+None.Enumerate() → []
+5.Enumerate() → [[0, 5]]
+[5].Enumerate() → [[0, 5]]
+[5].Enumerate(-3) → [[-3, 5]]
+math.float.Enumerate(1) → [[1, "max", 1.7976931348623157e+308],
+    [2, "min", 2.2250738585072014e-308]]
+```
+"""
+    if obj is None: return []
+    start_at = int_arg(start_at, "StartAt")
+    if isinstance(obj, dict):
+        return [[i, k, v] for i, (k, v) in enumerate(obj.items(), start=start_at)]
+    if isinstance(obj, list):
+        return [[i, x] for i, x in enumerate(obj, start=start_at)]
+    return [[start_at, obj]]
 
 def poly_sort(x: Any=None, unique: bool=False, reverse: bool=False) -> Any:
     """

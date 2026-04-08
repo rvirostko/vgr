@@ -78,6 +78,7 @@ from .general import (
     dsort,
     poly_ascii,
     poly_clone,
+    poly_enumerate,
     poly_firstitem,
     poly_getitem,
     poly_hash,

@@ -19,7 +19,6 @@ from .builtins import (
     format_duration,
     format_json,
     format_timestamp,
-    int_arg,
     is_dir,
     is_file,
     md_blockquote,
@@ -70,6 +69,7 @@ from .builtins import (
     poly_div,
     poly_divmod,
     poly_endswith,
+    poly_enumerate,
     poly_eq,
     poly_expandtabs,
     poly_extract_bits,
@@ -248,37 +248,6 @@ f.IsFunction() → True
 """
     return isinstance(obj, VgrCallable)
 
-def _enumerate(obj: Any=None, start_at: int=0) -> Any:
-    """
-**Create an enumeration for a collection**
-
-* Enumerate(*value*)
-* Enumerate(*value*, *start_at*)
-* *value*.Enumerate()
-* *value*.Enumerate(*start_at*)
-
-The *start_at* argument defines the number used in the enumerated value.
-The default value for *start_at* is zero.
-Enumeration of values that are not collections produces an enumeration of a single entry.
-Enumerating `None` returns an empty list.
-
-```vgr
-None.Enumerate() → []
-5.Enumerate() → [[0, 5]]
-[5].Enumerate() → [[0, 5]]
-[5].Enumerate(-3) → [[-3, 5]]
-math.float.Enumerate(1) → [[1, "max", 1.7976931348623157e+308],
-    [2, "min", 2.2250738585072014e-308]]
-```
-"""
-    if obj is None: return []
-    start_at = int_arg(start_at, "StartAt")
-    if isinstance(obj, dict):
-        return [[i, k, v] for i, (k, v) in enumerate(obj.items(), start=start_at)]
-    if isinstance(obj, list):
-        return [[i, x] for i, x in enumerate(obj, start=start_at)]
-    return [[start_at, obj]]
-
 # TODO move?
 # TODO is this connected to the NotOperation?
 def _negate(x: Any=None) -> Any:
@@ -374,7 +343,7 @@ _BUILT_IN_FUNCS: dict[str, Callable[..., Any]] = {
     "DivMod":         poly_divmod,
     "EncodeUrl":      encode_url,
     "EndsWith":       poly_endswith,
-    "Enumerate":      _enumerate,
+    "Enumerate":      poly_enumerate,
     "ExpandTabs":     poly_expandtabs,
     "ExtractBits":    poly_extract_bits,
     "FileExists":     file_exists,
