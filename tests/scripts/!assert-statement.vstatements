@@ -2,10 +2,7 @@
 # The basics
 Assert False # false is false
 Assert Zero # 0 is false
-# Assert " False " # via ToBoolean() TODO
-# Assert "no " # via ToBoolean() TODO
-# Assert " OFF" # via ToBoolean() TODO
+Assert None # none is false
+Assert Null # none alias
 
-# These are pseudo-keywords based on ToBoolean()
-# Assert No TODO
-# Assert Off TODO
+Unset should-exist-but-doesnt; Assert should-exist-but-doesnt # same as hardcoded None
