@@ -84,6 +84,7 @@ from .general import (
     poly_hash,
     poly_id,
     poly_lastitem,
+    poly_negate,
     poly_repr,
     poly_reverse,
     poly_sort,

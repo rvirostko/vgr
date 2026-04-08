@@ -155,6 +155,7 @@ from .builtins import (
     poly_mul,
     poly_multimode,
     poly_ne,
+    poly_negate,
     poly_not_in,
     poly_notempty,
     poly_number,
@@ -247,38 +248,6 @@ f.IsFunction() → True
 ```
 """
     return isinstance(obj, VgrCallable)
-
-# TODO move?
-# TODO is this connected to the NotOperation?
-def _negate(x: Any=None) -> Any:
-    """
-**Returns the negation of a value**
-
-* Negate(*value*)
-* *value*.Negate()
-
-The *value*'s type determines what is returned:
-
-* `None` : always returns `True`
-* String : returns *value* unchanged
-* Boolean : returns the logical negation
-* Int and Float : return the arithmetic negation
-* Lists and Dictionaries : distributed negation
-
-```vgr
-None.Negate() → True
-5.Negate() → -5
-5.1.Negate() → -5.1
-[5, 10, 15].Negate() → [-5, -10, -15]
-{"c": "sea", "b": True, "a": 1}.Negate() → {"c": "sea", "b": False, "a": -1}
-```
-"""
-    if x is None: return True
-    if isinstance(x, bool): return not x
-    if isinstance(x, (int, float)): return -x
-    if isinstance(x, list): return list(_negate(x1) for x1 in x)
-    if isinstance(x, dict): return {k: _negate(v) for k, v in x.items()}
-    return x
 
 # TODO move? do we have a poly_length() already?
 def _length(x: Any=None) -> bool:
@@ -451,7 +420,7 @@ _BUILT_IN_FUNCS: dict[str, Callable[..., Any]] = {
     "Mode":           poly_mode,
     "Mul":            poly_mul,
     "MultiMode":      poly_multimode,
-    "Negate":         _negate,
+    "Negate":         poly_negate,
     "Not":            poly_false,
     "Ord":            poly_ord,
     "ParseBinary":    poly_parse_bin,
