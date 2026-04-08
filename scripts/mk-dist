@@ -19,10 +19,10 @@ rm -rf "$OUTPUT_DIR" "$BUILD_DIR"
 mkdir -p "$OUTPUT_DIR"
 
 # Upgrade build tools
-pip install --quiet --upgrade pip setuptools wheel build
+pip install --quiet --use-feature=in-tree-build --upgrade pip setuptools wheel build
 
 # Build the wheel
-python3 -m build --quiet --wheel --outdir "$OUTPUT_DIR"
+python3 -m build --quiet --use-feature=in-tree-build --wheel --outdir "$OUTPUT_DIR"
 rm -rf "$BUILD_DIR"
 
 WHEEL_FILE=$(ls -t "$OUTPUT_DIR"/*.whl | head -n1)

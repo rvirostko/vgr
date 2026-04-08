@@ -5,6 +5,6 @@ if [ ! -d "./src/vgr" ]; then
     exit 1
 fi
 
-python3 -m pip install -q .[dev]
+python3 -m pip install --quiet --use-feature=in-tree-build .[dev]
 
 pytest -s --cov=vgr --cov-branch --cov-report=xml
