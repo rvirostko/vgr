@@ -45,8 +45,8 @@ def get_requires_exec_context(func) -> bool:
     """Check if a function requires an ExecContext"""
     return getattr(func, "requires_exec_context", False)
 
-_TRUE_STRS = ('true', 't', 'yes', 'y', 'on')
-_FALSE_STRS = ('false', 'f', 'no', 'n', 'off')
+_TRUE_STRS = ('true', 'yes', 'on')
+_FALSE_STRS = ('false', 'no', 'off')
 
 def str_to_number(s: str) -> Number:
     """
