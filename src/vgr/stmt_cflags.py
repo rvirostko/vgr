@@ -2,10 +2,16 @@
 Contains the implementation for the ECHO, DEBUG and VERBOSE statements
 """
 
-from lark import Tree, Token
+from lark import Tree
 
-from .builtins import bound_ops
-from .evaluate import bind_operations
+from .builtins import(
+    bound_ops,
+    poly_bool,
+)
+from .evaluate import(
+    bind_operations,
+    eval_expr_or_const,
+)
 from .exec_context import ExecContext
 from .redir import print_stderr
 from .tags import control_statement
@@ -34,14 +40,14 @@ Echo Off
 Exhibit vgr.echo # read-only variable
 vgr.echo = False
 Echo !vgr.echo
-exhibit vgr.echo
-exhibit vgr.echo
+Exhibit vgr.echo
+Exhibit vgr.echo
 vgr.echo = True
 ```
 
 Also see `Debug` and `Verbose`
 """
-    ctx.echo = _flag_value(ctx, bind_operations(statement), 'Echo')
+    ctx.echo = _flag_value(ctx, bind_operations(statement))
     ctx.print_verbose('Echo =', ctx.echo)
 
 @bound_ops("Debug")
@@ -57,7 +63,7 @@ Without arguments, debug is turned on.
 When on, additional technical output is sent to stderr.
 
 ```vgr
-debug on
+Debug On
 debug !vgr.debug # read-only variable
   (debug: (Pos: 1:1-1:17)
     (unary_not:not (Pos: 1:7-1:17)
@@ -71,7 +77,7 @@ debug !vgr.debug # read-only variable
 
 Also see `Echo` and `Verbose`
 """
-    ctx.debug = _flag_value(ctx, statement, 'Debug')
+    ctx.debug = _flag_value(ctx, statement)
     ctx.print_verbose('Debug =', ctx.debug)
 
 @bound_ops("Verbose")
@@ -96,20 +102,9 @@ Set a To True
 Also see `Echo` and `Debug`
 """
     o_verbose = ctx.verbose
-    ctx.verbose = _flag_value(ctx, statement, 'Verbose')
+    ctx.verbose = _flag_value(ctx, statement)
     if ctx.verbose or o_verbose: print_stderr('Verbose =', ctx.verbose)
 
-def _flag_value(ctx: ExecContext, statement: Tree, name: str) -> bool:
+def _flag_value(ctx: ExecContext, statement: Tree) -> bool:
     # default behavior for a flag is a request to turn on
-    if not statement.children: return True
-    # This is a bit of a hack to allow "<flag> [on|off]"
-    # without messing with the grammar
-    first_child = statement.children[0]
-    if isinstance(first_child, Tree) and first_child.data == 'var_ref' and len(first_child.children) == 1:
-        arg = first_child.children[0]
-        if isinstance(arg, Token) and arg.type == 'NAME':
-            value = str(arg.value).casefold()
-            if value == 'on': return True
-            if value == 'off': return False
-    rc = ctx.eval_to_bool(first_child, name, True)
-    return False if rc is None else rc
+    return poly_bool(eval_expr_or_const(ctx, statement.children[0])) if statement.children else True
