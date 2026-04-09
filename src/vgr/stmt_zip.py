@@ -43,8 +43,17 @@ Both files and directories must be relative to the current directory.
 If `Comment` is specified multiple times, only the last one is used.
 
 ```vgr
-**TODO**
+Create ZIP File "reports.zip"
+  Include "out",
+  Include "*.csv" "*.json",
+  Exclude "*.log" "*.err",
+  Comment "Report created by " + os.login;
 ```
+In the above example, assuming that *out* is a directory,
+the first `Include` recursively adds all files in it to the archive list.
+CSV and JSON files from the current directory are added with the next `Include`.
+The `Exclude` option, which can be used in any order, removes files added
+by an `Include` that match those given patterns.
 
 > **Windows Note**\\
 > If you hard code paths, please use the slash as a universal

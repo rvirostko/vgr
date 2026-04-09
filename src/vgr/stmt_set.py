@@ -153,12 +153,29 @@ def execute_compile_arrow(ctx: ExecContext, statement: Tree) -> None:
 @bound_ops("Unset")
 def execute_unset(ctx: ExecContext, statement: Tree) -> None:
     """
-**Remove a variable**
+**Remove one or more variable**
 
 * Unset *variable* [, *variable*]&hellip; [;]
 
 ```vgr
-**TODO**
+Set a To 1
+Set b To 2
+Set c To 3
+Exhibit a, b, c
+a = 1
+b = 2
+c = 3
+
+Unset a, c
+Exhibit a, b, c
+a = -not set-
+b = 2
+c = -not set-
+
+Set t To {"a": 1, "b": 2, "c": 3}
+Unset t.b
+Print t
+{'a': 1, 'c': 3}
 ```
 
 Also see `Set` and `Reset`
@@ -178,14 +195,27 @@ Where *option* is
 * Data - Resets all user set data except for user arguments
   and the settings for Debug, Verbose, and Echo
 * Includes - Clears the list of `@Include` files
-* Args - Resets user arguments stored in _args_ list
+* Args - Resets user arguments stored in *args* list
 * Output - Resets all output redirection
 * All - Resets all of the above plus `Debug`, `Echo`, and `Verbose` settings
 
 ```vgr
-**TODO**
+Set a To 1
+Set b To 2
+Set c To 3
+Exhibit a, b, c
+a = 1
+b = 2
+c = 3
+
+Reset Data
+Exhibit a, b, c
+a = -not set-
+b = -not set-
+c = -not set-
 ```
 
+Also see `Set` and `Unset`
 """
     for opt in statement.children:
         s = str(opt.data).casefold()
@@ -220,9 +250,19 @@ def execute_swap(ctx: ExecContext, statement: Tree) -> None:
 Both variables must be mutable.
 
 ```vgr
-**TODO**
+Set a To 1
+Set b To 2
+Exhibit a, b
+a = 1
+b = 2
+
+Swap a With b
+Exhibit a, b
+a = 2
+b = 1
 ```
 
+Also see `Set`
 """
     path1 = get_writable_var_path(ctx, statement.children[0])
     path2 = get_writable_var_path(ctx, statement.children[1])
