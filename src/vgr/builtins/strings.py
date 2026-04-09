@@ -1512,7 +1512,7 @@ Set person To {"name": "Alice", "age": 25}
     if format_string is None: return None
     if isinstance(format_string, (bool, int, float)): format_string = str(format_string)
     if isinstance(format_string, list):
-        return ''.join(poly_format(f, *args) for f in format_string)
+        return [poly_format(f, *args) for f in format_string]
     if isinstance(format_string, str):
         return SafeFormatter().format(format_string, *args)
     raise TypeError(f'Format with {poly_type(format_string)!r} not supported')

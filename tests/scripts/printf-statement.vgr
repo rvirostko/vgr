@@ -1,3 +1,4 @@
+
 # Basic formatted output (no newline unless explicitly included)
 Printf "Hello {}", "world"
 Printf "Hello {}\n", "world"
@@ -34,7 +35,10 @@ Printf "Name: {}, Count: {}, Ratio: {:.3f}\n", "test", 5, 0.12345
 
 # Empty format string (no newline)
 Printf "" // no output
+Print ""
 Printf "\n" // newline only
+Printf None, 1, 2
+Print ""
 
 # Missing arguments behavior
 Printf "Only one arg: {} {}\n", "alpha"

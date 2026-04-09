@@ -1,0 +1,5 @@
+
+Print Format("{0:05d", "bob") # format spec mismatch
+Print Format("{0.__class__:05d", "bob") # format spec mismatch
+Print Format("{0.pattern:d}", CompilePattern("foo")) # variant on mismatch
+Print Format({}, "bob") # invalid format string type

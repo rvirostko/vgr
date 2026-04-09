@@ -1,0 +1,13 @@
+
+# edge conditions because Format() is well covered elsewhere
+Print Format() # no args
+Print Format(None) # format string is none
+Print Format(None, 1, 2) # none with args
+
+# non strings allowed
+Print Format(True)
+Print Format(1)
+Print Format(1.0)
+
+Set t To Format([], 5); Print t; Assert t.IsList() And t.Length() Is Zero
+Set t To Format(["{}", "{:5d}", "{:05d}"], 5); Print t; Assert t.IsList() And t.Length() Is 3
