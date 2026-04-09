@@ -1,0 +1,42 @@
+# Basic formatted output (no newline unless explicitly included)
+Printf "Hello {}", "world"
+Printf "Hello {}\n", "world"
+
+# Numeric formatting (Python-style)
+Printf "Value: {}", 42
+Printf "Value: {}\n", 42
+Printf "Float: {:.2f}\n", 3.14159
+
+# Multiple arguments
+Printf "{} {} {}\n", "alpha", "beta", "gamma"
+
+# Indexed fields
+Printf "{1} then {0}\n", "second", "first"
+
+# Extra args ignored
+Printf "{1} then {0}\n", "second", "first", "ignored"
+
+# Named-style formatting, dictionary only
+Set alice_info to {"name": "Alice", "height": 10}
+Printf "{0[name]} is {0[height]} feet tall\n", alice_info
+
+# Explicit destinations
+Printf On Output "Out: {}\n", "value"
+Printf To Error "Error: {} ({})\n", "failure", 1
+
+# Markdown output (always to console)
+Printf As Markdown "# {}\n", "Header"
+Printf Markdown "* {}\n", "item"
+Printf Markdown "{} - {}\n", "item1", "item2"
+
+# Mixed formatting
+Printf "Name: {}, Count: {}, Ratio: {:.3f}\n", "test", 5, 0.12345
+
+# Empty format string (no newline)
+Printf "" // no output
+Printf "\n" // newline only
+
+# Missing arguments behavior
+Printf "Only one arg: {} {}\n", "alpha"
+Printf "{0[name]}, age {0[age]}, is {0[height]} feet tall\n", alice_info
+Printf "{2[name]}\n", alice_info

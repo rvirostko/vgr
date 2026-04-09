@@ -1,0 +1,57 @@
+Define Function set-env(ofs, ors)
+    Set env.OFS = ofs
+    Set env.ORS = ors
+End
+
+Define Function show-env()
+    Print Output "OFS :", env.OFS.Repr()
+    Print Output "ORS :", env.ORS.Repr()
+End
+
+# Default behavior (env.OFS and env.ORS are None → space + newline)
+Call show-env()
+Print "alpha", "beta", "gamma"
+
+# Set custom separators
+Call set-env(",", "|")
+Call show-env()
+Print "alpha", "beta", "gamma", Newline
+
+# Change only OFS
+Call set-env(" | ", None)
+Call show-env()
+Print "x", "y", "z"                # x | y | z\n
+
+# Explicit destinations
+Call set-env(Space, Newline)
+Call show-env()
+Print Output "out1", "out2"
+Print Error "err1", "err2"
+Print Markdown "# Title"
+Print Markdown "**line1**", "*line2*"
+
+# Empty strings still emit ORS
+Print ""
+Print "", ""
+
+# Mixed empty and non-empty
+Print "alpha", "", "gamma"
+
+# Reset to defaults by unsetting (None)
+Call set-env()
+Call show-env()
+Print "reset", "to", "defaults"    # reset to defaults\n
+
+# Markdown respects console behavior
+Print Markdown "* item1", "* item2"
+
+# Error stream example
+Print Error "warning:", "something happened"
+
+
+Print "alpha"
+Print stdout "alpha"
+Print To stdout "alpha"
+Print On stdout "alpha"
+Print Markdown "*beta*"
+Print As Markdown "*beta*"
