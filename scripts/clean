@@ -1,0 +1,30 @@
+#! /usr/bin/env bash
+set -euo pipefail
+
+if [ ! -d "./src/vgr" ]; then
+    echo "You are not in the project root" >&2
+    exit 1
+fi
+
+# Patterns to remove
+patterns=(
+  '.*[.]pyc'
+  '.*[.]log'
+  '.*[.]tmp'
+  '.*[.]egg-info'
+  '.*/__pycache__'
+  '[.]/dist'
+  '[.]/vgr-syntax'
+  '[.]/test-log'
+  '.*/20[0-9][0-9]-[01][0-9]-[0-3][0-9] - vgr_log\.txt'
+  '.*/20[0-9][0-9]-[01][0-9]-[0-3][0-9] - mail-output\.txt'
+  '.*/20[0-9][0-9]-[01][0-9]-[0-3][0-9] - skipped\.csv'
+  '.*/[.]coverage'
+  '.*/coverage[.]xml'
+  '.*/vgr-[1-9][.][0-9]+[.][0-9]+[.]md'
+)
+
+for pattern in "${patterns[@]}"; do
+  find -E "." -type f -regex "$pattern" -print -delete
+  find -E "." -type d -regex "$pattern" -print -prune -exec rm -rf {} \;
+done
