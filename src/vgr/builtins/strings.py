@@ -4,7 +4,9 @@ Various string manipulation functions using either the string class or regular e
 
 from functools import reduce
 from typing import Any, Callable
+from re import Pattern
 import re
+import string
 
 from .common import (
     bool_arg,
@@ -1409,6 +1411,26 @@ Also see `Split()` and `RSplit()`
     if isinstance(x, list): return sep.join([poly_join(x1, sep) for x1 in x if x1 is not None])
     raise TypeError(f'Join of {poly_type(x)!r} not supported')
 
+class SafeFormatter(string.Formatter):
+    def get_value(self, key, args, kwargs):
+        try:
+            return self._filter_types(super().get_value(key, args, kwargs))
+        except (KeyError, IndexError):
+            # Missing keys are treated as None
+            return None
+
+    def get_field(self, field_name, args, kwargs):
+        try:
+            obj, arg_used = super().get_field(field_name, args, kwargs)
+            return self._filter_types(obj), arg_used
+        except (KeyError, IndexError, AttributeError):
+            # Missing fields etc treated as None
+            return None, field_name
+
+    def _filter_types(self, value):
+        # Filter out unsupported types
+        return value if isinstance(value, (bool, int, float, str, list, dict, Pattern)) else None
+
 def poly_format(*args) -> str:
     """
 **Format values into a string**
@@ -1474,14 +1496,19 @@ Set person To {"name": "Alice", "age": 25}
 "{0:.{1}f}".Format(3.14159, 2) → "3.14" // precision via argument
 ```
 """
-    # TODO: the syntax {0.x} is also defined, but when tested it can't seem to find the attribute
+    # NOTE: the syntax {0.x} is also defined but refers to object fields/properties
+    # print("{0.upper}".format(s))
+    # print("{0.__class__}".format(s))
+    # The intrinsics dont have very many useful things, so we filter out
+    # types of objects we don't support
     if not args: return None
     format_string, *args = args
     if format_string is None: return None
-    if isinstance(format_string, (bool, int, float)): return str(format_string)
+    if isinstance(format_string, (bool, int, float)): format_string = str(format_string)
     if isinstance(format_string, list):
         return ''.join(poly_format(f, *args) for f in format_string)
-    if isinstance(format_string, str): return format_string.format(*args)
+    if isinstance(format_string, str):
+        return SafeFormatter().format(format_string, *args)
     raise TypeError(f'Format with {poly_type(format_string)!r} not supported')
 
 def poly_translate(x: Any=None, from_str: Any=None, to_str: Any=None) -> Any:
