@@ -1423,9 +1423,15 @@ class SafeFormatter(string.Formatter):
         try:
             obj, arg_used = super().get_field(field_name, args, kwargs)
             return self._filter_types(obj), arg_used
-        except (KeyError, IndexError, AttributeError):
+        except (KeyError, IndexError, AttributeError, TypeError):
             # Missing fields etc treated as None
             return None, field_name
+
+    def format_field(self, value, format_spec):
+        try :
+            return 'None' if value is None else super().format_field(value, format_spec)
+        except ValueError as e:
+            raise ValueError(f"Unknown or unsupported format {format_spec!r} for {poly_type(value)} argument") from e
 
     def _filter_types(self, value):
         # Filter out unsupported types
