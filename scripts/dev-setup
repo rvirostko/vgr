@@ -1,3 +1,5 @@
+#! /usr/bin/env bash
+
 # Must use 'source dev-setup' instead of just running it
 # We can check in bash and zsh
 # NB: zsh execution will sometimes emulate bash
