@@ -242,12 +242,12 @@ A full `And` expression can contain more than two operands.
 ***Optimized Evaluation : Short-Circuit Behavior***
 
 The logical AND operation uses short-circuit evaluation:
-Evaluation of operands ends after the first *False* result is
+Evaluation of operands ends after the first `False` result is
 encountered.
 
 * *x* is evaluated first and tested using `IsTrue()`
-* If the result is *False*, *False* is returned and *y* is not evaluated
-* If the result is *True*, *y* is evaluated and its value determines the result
+* If the result is `False`, `False` is returned and *y* is not evaluated
+* If the result is `True`, *y* is evaluated and its value determines the result
 
 Expressions that call functions and have side effects beyond a returned
 value may produce unexpected results because of this behavior.
@@ -313,12 +313,12 @@ A full `Or` expression can contain more than two operands.
 ***Optimized Evaluation : Short-Circuit Behavior***
 
 The logical OR operation uses short-circuit evaluation:
-Evaluation of operands ends after the first *True* result is
+Evaluation of operands ends after the first `True` result is
 encountered.
 
 * *x* is evaluated first and tested using `IsTrue()`
-* If the result is *True*, *True* is returned and *y* is not evaluated
-* If the result is *False*, *y* is evaluated and its value determines the result
+* If the result is `True`, `True` is returned and *y* is not evaluated
+* If the result is `False`, *y* is evaluated and its value determines the result
 
 Expressions that call functions and have side effects beyond a returned
 value may produce unexpected results because of this behavior.
