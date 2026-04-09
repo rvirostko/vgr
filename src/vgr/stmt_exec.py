@@ -43,7 +43,8 @@ from .builtins import (
     poly_repr,
     poly_true,
     poly_type,
-    verify_relative_path
+    str_to_number,
+    verify_relative_path,
 )
 from .redir import (
     execute_open,
@@ -1136,7 +1137,6 @@ class DefaultExecContext(ExecContext):
         """Helper that makes sure you got a string back from an expression"""
         rc = self.eval_expr(expr)
         if rc is None and allow_none: return None
-        # TODO should we not convert numbers to a string?
         if not isinstance(rc, str):
             raise VgrRuntimeError(expr, TypeError(f'{name} must be a string; found {poly_type(rc)!r}'))
         return rc
@@ -1150,19 +1150,20 @@ class DefaultExecContext(ExecContext):
         rc = self.eval_expr(expr)
         if rc is None and allow_none: return None
         if isinstance(rc, (bool, int, float)): return int(rc)
-        # TODO still a problem with None?
         if isinstance(rc, str):
             try:
-                return poly_int(rc)
+                # NB: do not use poly_int() as non-convertable
+                #     values come back as None
+                return int(str_to_number(rc))
             except ValueError as e:
                 raise VgrRuntimeError(expr, str(e)) from e
         raise VgrRuntimeError(expr, TypeError(f'{name} must be an integer; found {poly_type(rc)!r}'))
 
     def eval_to_number(self, expr: Tree, name: str, allow_none: bool=False):
         rc = self.eval_expr(expr)
+        if rc is None and allow_none: return None
         # TODO better error handling including None check
         if isinstance(rc, str): return poly_number(rc)
-        if rc is None and allow_none: return None
         if isinstance(rc, bool): return int(rc)
         if isinstance(rc, (int, float)): return rc
         raise VgrRuntimeError(expr, TypeError(f'{name} must be a number; found {poly_type(rc)!r}'))
