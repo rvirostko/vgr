@@ -153,7 +153,7 @@ def _is_in(x: Any, y: Any, do_all: bool) -> Any:
     if isinstance(y, list): return x in y
     if isinstance(y, dict): return x in y.keys()
     try:
-        # TODO arguments could be made here for
+        # NOTE arguments could be made here for
         # using <= for numeric conditions "2 In 10"->T, "10 in 2"->F
         return poly_eq(x, y)
     except TypeError:

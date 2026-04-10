@@ -211,7 +211,30 @@ On completion, this variable will have the following items set
 If the `Giving` argument is omited, results are stored in *ldap.result*
 
 ```vgr
-**TODO**
+// See https://www.forumsys.com/2022/05/10/online-ldap-test-server/
+Set formsys.url To "ldap://ldap.forumsys.com"
+Set formsys.user To "cn=read-only-admin,dc=example,dc=com"
+Set formsys.psw To "password"
+Set formsys.base To "dc=example,dc=com"
+
+Ldap Connect To formsys.url
+    User Is formsys.user
+    Password Is formsys.psw
+
+Set filter To "objectClass".LdapAttrEquals("groupOfUniqueNames")
+Ldap Search
+    Base Is formsys.base
+    Filter Is filter
+    Attributes Are ["ou", "uniqueMember"]
+    Scope Is ALL
+    Giving groups
+Assert groups.success : "Failed to get groups: {} (rc={})", groups.error, groups.result_code
+Sort groups.entries By ou
+Select ou.TitleCase() As "Group",
+    uniqueMember.Length() As "Members",
+    dn As "DN"
+    From groups.entries
+    For Batch Template
 ```
 
 Also see-

@@ -32,16 +32,18 @@ def compile_pattern(x: Any=None, flags: int=0) -> Any:
 * CompilePattern(*pattern*)
 * *pattern*.CompilePattern()
 
-The compiled pattern can be used with `RegexReplace()`
+The compiled pattern can be used with `RegexReplace()`.
 If the *pattern* argument is a list, all the patterns
 in the list are compiled.
 
+Use `Exhibit re` to see all the flags that can be used with `CompilePattern()`.
+
 ```vgr
-Set alpha To "^[A-Z][A-Za-z]*".CompilePattern()
-**TODO**
+Set vowel_pattern To CompilePattern("[aeiou]", re.IGNORECASE)
+Print ["cat", "DOG"].RegexReplace(vowel_pattern, "-") → ["c-t", "D-G"]
 ```
 
-Also see `RegexReplace()` and `IsPattern()`
+Also see `RegexReplace()` and `IsPattern()`.
 """
     if isinstance(x, (NoneType, re.Pattern)): return x
     if isinstance(x, str):
