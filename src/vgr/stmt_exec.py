@@ -775,9 +775,9 @@ def execute_foreach(ctx: ExecContext, statement: Tree) -> None:
     """
 **Iterate over a list of values**
 
-* ForEach *variable* In *expression* [:]\\
+* [ForEach | For Each] *variable* In *expression* [:]\\
   &emsp;&emsp;_statement_&hellip;\\
-  End [;]
+  [End-For | End] [;]
 
 If expression is a single, non-`None` value, the statements are executed
 exactly once. If a list, the statements are executed once for each item,
@@ -793,13 +793,13 @@ Statements have access to the *$loop* variable, including *index*, *length*, _fi
 ```vgr
 ForEach a In ["A", "B", "C"]:
     Print a, $loop
-End
+End-For
 
 A {'index': 0, 'first': True, 'last': False, 'length': 3}
 B {'index': 1, 'first': False, 'last': False, 'length': 3}
 C {'index': 2, 'first': False, 'last': True, 'length': 3}
 
-ForEach kv_pair In math:
+For Each kv_pair In math:
     If $loop.first: Print "-" * 60; End
     Print kv_pair
     If $loop.last: Print "-" * 60; End
@@ -817,6 +817,9 @@ End
 ['tau', 6.283185307179586]
 ------------------------------------------------------------
 ```
+> **Note**\\
+> For BASIC compatibility, you can also use `Next` to close `For Each`,
+> but `End` or `End` are preferred.
 
 Also see `Break` and `Continue`
 """

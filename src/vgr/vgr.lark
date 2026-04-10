@@ -97,7 +97,8 @@ declare: "Declare"i var_name (_COMMA? var_name)* _SEMICOLON?
 def_statements: "Define"i? "Function"i var_name def_params? ":"? def_body "End"i _SEMICOLON? -> def_function
 def_params: "(" (NAME (_COMMA NAME)*)? ")" -> params
 def_body: statement+ -> body
-foreach_statement: "ForEach"i var_name "In"i expr ":"? statement+ "End"i _SEMICOLON? -> foreach
+// Note: this combines VGR (ForEach) and BASIC-like Syntax
+foreach_statement: ("ForEach"i | "For"i "Each"i) var_name "In"i expr ":"? statement+ ("Next"i | "End-For"i | "End"i) _SEMICOLON? -> foreach
 forever_loop: "Do"i "Forever"i ":"? statement+ "End"i _SEMICOLON? -> forever
 
 // The addition of the optional "Then" allows a BASIC-like If syntax usage
