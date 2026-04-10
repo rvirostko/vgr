@@ -277,7 +277,7 @@ Set gcounter = 0
 Define Function gcount()
     Add 1 to gcounter
     Return IsZero(gcounter % 2)
-End
+End-Function
 
 Print @gcount() && @gcount() && @gcount()
 False
@@ -349,7 +349,7 @@ Set gcounter = 0
 Define Function gcount()
     Add 1 to gcounter
     Return IsZero(gcounter % 2)
-End
+End-Function
 
 Print @gcount() || @gcount() || @gcount()
 True

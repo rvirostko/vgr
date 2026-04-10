@@ -81,13 +81,13 @@ Set fmt To """test.{2}.arr.LookupItem({0!r}, {1!r}) -> {3!r}
 test.{4}.arr.LookupItem({0!r}, {1!r}) -> {5!r}
 """
 Set test_values To [["idx", 3], ["idx", 3.0], ["idx", " 3 "], ["fname", "Justin"], ["fname", "justin"], ["fname", CompilePattern("(?i)Justin")]]
-ForEach test_value in test_values:
+For Each test_value in test_values
     Set key To test_value.FirstItem()
     Set value to test_value.LastItem()
     Printf fmt, key, value,
         "csv", test.csv.arr.LookupItem(key, value),
         "json", test.json.arr.LookupItem(key, value)
-End
+End-For
 Print bar
 Print ""
 
@@ -95,10 +95,10 @@ Print bar
 Set fmt2 To "test.csv.arr.LookupItem({!r}, {!r}) -> {!r}\n"
 Set key To "idx"
 Set test_values To [[0], [0, 0], [0, 3], [3, 0], [3, 3], [3]]
-ForEach value in test_values:
+For Each value in test_values
     Printf fmt2, key, value,
         test.csv.arr.LookupItem(key, value)
-End
+End-For
 Print bar
 Print ""
 

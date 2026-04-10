@@ -37,9 +37,9 @@ def execute_choose(ctx: ExecContext, statement: Tree) -> None:
 **Choose from a set of statements based on a series of tests**
 
 * Choose [All]:\\
-  &emsp;&emsp;When *expression* : _statement_&hellip;\\
-  &emsp;&emsp;Otherwise : _statement_&hellip;\\
-  End [;]
+  &emsp;&emsp;When *expression* : *statement*&hellip;\\
+  &emsp;&emsp;Otherwise : *statement*&hellip;\\
+  [End-Choose | End] [;]
 
 The values in `When` clauses are examined in order, and the first to
 evaluate to `True` has its block of statements executed.
@@ -58,15 +58,15 @@ Choose :
     When month ≥ 6 And month ≤ 8:  Set season To "summer"
     When month ≥ 9 And month ≤ 11: Set season To "fall"
     Otherwise: Assert False: "Invalid month {}", month
-End
+End-Choose
 Print "Month", month, "is a", season, "month"
 
-For n = 1 To 15:
+For n = 1 To 15
     Choose All:
         When (n % 3) == 0: Printf "Fizz"
         When (n % 5) == 0: Printf "Buzz"
         Otherwise:         Printf "{}", n
-    End
+    End-Choose
     Print ""
 Next
 ```
@@ -118,24 +118,24 @@ def execute_choose_using(ctx: ExecContext, statement: Tree) -> None:
 **Choose from a set of statements based on a value**
 
 * Choose [All] Using *expression* :\\
-  &emsp;&emsp;When [Not] Empty : _statement_&hellip;\\
-  &emsp;&emsp;When [Not] Negative : _statement_&hellip;\\
-  &emsp;&emsp;When [Not] Positive : _statement_&hellip;\\
-  &emsp;&emsp;When [Not] Even : _statement_&hellip;\\
-  &emsp;&emsp;When [Not] Odd : _statement_&hellip;\\
-  &emsp;&emsp;When [Not] *expression* [, *expression*]&hellip; : _statement_&hellip;\\
-  &emsp;&emsp;When [Not] *expression* [To | Through | Thru] *expression* : _statement_&hellip;\\
-  &emsp;&emsp;When [< | Less Than] *expression*: _statement_&hellip;\\
-  &emsp;&emsp;When [>= | Not Less Than] *expression*: _statement_&hellip;\\
-  &emsp;&emsp;When [> | Greater Than] *expression*: _statement_&hellip;\\
-  &emsp;&emsp;When [<= | Not Greater Than] *expression*: _statement_&hellip;\\
-  &emsp;&emsp;When [Not] Matches *expression* [, *expression*]&hellip; : _statement_&hellip;\\
-  &emsp;&emsp;When [Not] Contains *expression* [, *expression*]&hellip; : _statement_&hellip;\\
-  &emsp;&emsp;Otherwise : _statement_&hellip;\\
-  End [;]
+  &emsp;&emsp;When [Not] Empty : *statement*&hellip;\\
+  &emsp;&emsp;When [Not] Negative : *statement*&hellip;\\
+  &emsp;&emsp;When [Not] Positive : *statement*&hellip;\\
+  &emsp;&emsp;When [Not] Even : *statement*&hellip;\\
+  &emsp;&emsp;When [Not] Odd : *statement*&hellip;\\
+  &emsp;&emsp;When [Not] *expression* [, *expression*]&hellip; : *statement*&hellip;\\
+  &emsp;&emsp;When [Not] *expression* [To | Through | Thru] *expression* : *statement*&hellip;\\
+  &emsp;&emsp;When [< | Less Than] *expression*: *statement*&hellip;\\
+  &emsp;&emsp;When [>= | Not Less Than] *expression*: *statement*&hellip;\\
+  &emsp;&emsp;When [> | Greater Than] *expression*: *statement*&hellip;\\
+  &emsp;&emsp;When [<= | Not Greater Than] *expression*: *statement*&hellip;\\
+  &emsp;&emsp;When [Not] Matches *expression* [, *expression*]&hellip; : *statement*&hellip;\\
+  &emsp;&emsp;When [Not] Contains *expression* [, *expression*]&hellip; : *statement*&hellip;\\
+  &emsp;&emsp;Otherwise : *statement*&hellip;\\
+  [End-Choose | End] [;]
 
-The expression in the Choose statement is evaluated and it becomes the
-_desired value_ which is compared against values in `When` clauses.
+The expression in the `Choose` statement is evaluated and it becomes the
+*desired value* which is compared against values in `When` clauses.
 
 The values in `When` clauses are examined in order. Matching values may
 be specified as a single value, in comma separated groups, as ranges,
@@ -161,7 +161,7 @@ Choose Using month:
     When 6, 7, 8:   Set season To "summer"
     When 9, 10, 11: Set season To "fall"
     Otherwise: Assert False: "Invalid month {}", month
-End
+End-Choose
 Print "Month", month, "is a", season, "month"
 
 Choose Using user_input:
@@ -179,7 +179,7 @@ Choose Using user_input:
         Print "Looks like a phone number"
     Otherwise:
         Print "Unrecognized input"
-End
+End-Choose
 ```
 
 Also see `Choose`

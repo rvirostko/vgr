@@ -8,10 +8,10 @@
 //-----------------------------------------------------------------------------
 
 # This is visual, so if it can't display anything...
-If !vgr.stdout.isatty:
+If !vgr.stdout.isatty
     Print "stdout is not a TTY"
     Exit
-End
+End-If
 
 Reset Data
 Assert vgr.source.FirstItem() Is Not None
@@ -28,47 +28,47 @@ Set loops To args.Item(1).DefaultTo(32).Max(1).Min(128)
 
 # Clear the screen and start!
 Term BG "Gray15", FG "Green3", Clear, CursorHide
-For scene = 0 To loops:
+For scene = 0 To loops
     # We recalc line on every scene in case for when the window is resized
     Term GetTermSize
     Assert term.size Is Not None: "Can't determine screen size"
     Set line To ((term.size.rows - sse.Length()) / 3).ToInteger()
-    If scene > 0:
+    If scene > 0
         # Flip the art
         Set sse To sse.ReverseStr().TranslateStr("/\\'`", "\\/`'")
         # Increase speed, but limit it
         Set fps = (fps * (5/4)).Min(600).ToInteger().Round(-1)
         # Pause for six frames
         Sleep 1 / (fps / 6) Second
-    End
+    End-If
     Term Home, Print "Delay: 1/{}s".Format(fps.ToInteger()), EraseEOS
-    If scene.Mod(2):
+    If scene.Mod(2)
         # Right-to-Left movement
-        For frame = 1 To (sse.FirstItem().Length() + term.size.cols):
-            For j = 0 To sse.Length() - 1:
+        For frame = 1 To (sse.FirstItem().Length() + term.size.cols)
+            For j = 0 To sse.Length() - 1
                 Set l to (2 * line) + j
-                If frame <= sse_max:
+                If frame <= sse_max
                     Term Pos l,(term.size.cols - frame), Print sse.Item(j).LeftStr(frame)
-                Else:
+                Else
                     Term Pos l,1, DeleteChar 1
-                End
+                End-If
             Next
             Sleep 1 / fps Second
         Next
-    Else:
+    Else
         # Left-to-Right movement
-        For frame = 1 To (sse.FirstItem().Length() + term.size.cols):
-            For j = 0 To sse.Length() - 1:
+        For frame = 1 To (sse.FirstItem().Length() + term.size.cols)
+            For j = 0 To sse.Length() - 1
                 Set l to line + j
-                If frame <= sse_max:
+                If frame <= sse_max
                     Term Pos l,1, Print sse.Item(j).RightStr(frame)
-                Else:
+                Else
                     Term Pos l,1, InsertChar 1
-                End
+                End-If
             Next
             Sleep 1 / fps Second
         Next
-    End
+    End-If
 Next
 
 Term BG None, FG None, Clear, CursorShow

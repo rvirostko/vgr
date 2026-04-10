@@ -94,21 +94,21 @@ call: "Call"i "Function"i? var_name ("(" (expr (_COMMA expr)*)? ")")? _SEMICOLON
 declare: "Declare"i var_name (_COMMA? var_name)* _SEMICOLON?
     | "Declare"i var_name (_COMMA? var_name)* "As"i? "Local"i _SEMICOLON? -> declare_local
     | "Declare"i var_name (_COMMA? var_name)* "As"i? "Global"i _SEMICOLON? -> declare_global
-def_statements: "Define"i? "Function"i var_name def_params? ":"? def_body "End"i _SEMICOLON? -> def_function
+def_statements: "Define"i? "Function"i var_name def_params? ":"? def_body ("End-Function"i | "End"i) _SEMICOLON? -> def_function
 def_params: "(" (NAME (_COMMA NAME)*)? ")" -> params
 def_body: statement+ -> body
-// Note: this combines VGR (ForEach) and BASIC-like Syntax
-foreach_statement: ("ForEach"i | "For"i "Each"i) var_name "In"i expr ":"? statement+ ("Next"i | "End-For"i | "End"i) _SEMICOLON? -> foreach
-forever_loop: "Do"i "Forever"i ":"? statement+ "End"i _SEMICOLON? -> forever
+// Note: this combines BASIC-like syntax (For Each) and VGR (ForEach), now somewhat deprecated
+foreach_statement: ("For"i "Each"i | "ForEach"i) var_name "In"i expr ":"? statement+ ("Next"i | "End-For"i | "End"i) _SEMICOLON? -> foreach
+forever_loop: "Do"i "Forever"i ":"? statement+ ("End-Do"i | "End"i) _SEMICOLON? -> forever
 
 // The addition of the optional "Then" allows a BASIC-like If syntax usage
-if_statement: "If"i expr ("Then"i | ":")? statement+ else_clause? "End"i _SEMICOLON? -> if
+if_statement: "If"i expr ("Then"i | ":")? statement+ else_clause? ("End-If"i | "End"i) _SEMICOLON? -> if
 else_clause: "Else"i ":"? statement+ -> else
 
-repeat_statement: "Repeat"i expr ("Time"i | "Times"i)? ":"? statement+ "End"i _SEMICOLON? -> repeat
-unless_statement: "Unless"i expr ":"? statement+ "End"i _SEMICOLON? -> unless
-until_statement: "Until"i expr ":"? statement+ "End"i _SEMICOLON? -> until
-while_statement: "While"i expr ":"? statement+ "End"i _SEMICOLON? -> while
+repeat_statement: "Repeat"i expr ("Time"i | "Times"i)? ":"? statement+ ("End-Repeat"i | "End"i) _SEMICOLON? -> repeat
+unless_statement: "Unless"i expr ":"? statement+ ("End-Unless"i | "End"i) _SEMICOLON? -> unless
+until_statement: "Until"i expr ":"? statement+ ("End-Until"i | "End"i) _SEMICOLON? -> until
+while_statement: "While"i expr ":"? statement+ ("End-While"i | "End"i | "Loop"i) _SEMICOLON? -> while
 
 break: "Break"i _SEMICOLON?
 continue: "Continue"i _SEMICOLON?
@@ -130,8 +130,8 @@ op_not_matches: ("!~" | "Not"i op_matches | "Does"i "Not"i "Match"i)
 op_imatches: "~*"
 op_not_imatches: "!~*" | "Not"i op_imatches
 
-choose_statement: "Choose"i choose_all? ":" choice_block+ otherwise_block? "End"i _SEMICOLON? -> choose
-    | "Choose"i choose_all? "Using"i expr ":" values_block+ otherwise_block? "End"i _SEMICOLON? -> choose_using
+choose_statement: "Choose"i choose_all? ":" choice_block+ otherwise_block? ("End-Choose"i | "End"i) _SEMICOLON? -> choose
+    | "Choose"i choose_all? "Using"i expr ":" values_block+ otherwise_block? ("End-Choose"i | "End"i) _SEMICOLON? -> choose_using
 choose_all: "All"i
 choice_block: "When"i expr ":" statement+
 values_block: "When"i "Is"i? "Empty"i ":" statement+ -> is_empty_block

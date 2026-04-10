@@ -37,5 +37,5 @@ Define Function RequiresVersion(version, type_check):
                 "Requires version {}, using {}", version.ToString().Join("."), _vgr_version.ToString().Join(".")
         Otherwise:
             Assert False : "Unrecognized check type {}; use gte, lte, or eq", type_check
-    End
-End
+    End-Choose
+End-Function

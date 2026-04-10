@@ -5,10 +5,10 @@
 #   * GetValues()
 
 # This is interactive
-If !vgr.stdout.isatty:
+If !vgr.stdout.isatty
     Print "stdout is not a TTY"
     Exit
-End
+End-If
 
 Set non-alpha = CompilePattern("[^A-Za-z]")
 Set indent = " " * 3
@@ -16,24 +16,24 @@ Set word_header = "Word"
 Set count_header = "Count"
 
 Print "\n--- Word Frequency Counter ---"
-While True:
+Do Forever
     Set inp To ""
     Print "\nEnter a sentence:"
     Accept inp From stdin
     Set inp To inp.Strip()
-    If inp Equals "":
+    If inp Equals ""
         Break
-    End
+    End-If
     # Split the input into words and tally their count using a dictionary
     Set counter To {}
     # Normalize the words: lowercase ASCII letters
-    ForEach word in inp.Split().RegexReplace(non-alpha).Lower():
-        If Length(word) > 0:
+    For Each word in inp.Split().RegexReplace(non-alpha).Lower()
+        If Length(word) > 0
            Set counter To counter.SetKeyValue(word, counter.GetKeyValue(word, 0).Add(1))
-        End
-    End
+        End-If
+    End-For
     # Print only if we found some words
-    If counter.Length():
+    If counter.Length()
         # Using the keys and the values, along with the headers, determine the column widths
         Set word_col_width = Max(counter.GetKeys().StringLen().Max(), word_header.StringLen()).Add(1)
         Set count_col_width = Max(counter.GetValues().Max().ToString().StringLen(), count_header.StringLen()).Add(1)
@@ -48,9 +48,9 @@ While True:
         Printf fmt, indent, word_header, count_header
         Printf fmt, indent, term.box.heavy.hbar * word_col_width, term.box.heavy.hbar * count_col_width
         # Print the data
-        ForEach word In counter.GetKeys().Sort():
+        For Each word In counter.GetKeys().Sort()
             Printf fmt, indent, word, counter.GetKeyValue(word)
-        End
-    End
-End
+        End-For
+    End-If
+End-Do
 Print "Done."

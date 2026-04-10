@@ -5,14 +5,14 @@
 // Use a list as the "stack" for the last two Fibonacci values
 fstack = []
 i = 0
-While i <= 8:
-    If fstack.Length() < 2:
+While i <= 8
+    If fstack.Length() < 2
         fib = 0
-    Else:
+    Else
         fib = (i > 0 && i <= 2) ? 1 : fstack.Sum()
         Remove First From fstack
-    End
+    End-If
     Append fib To fstack
     Printf "fib({}) = {}\n", i, fib
     i += 1
-End
+End-While

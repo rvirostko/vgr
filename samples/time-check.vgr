@@ -7,9 +7,9 @@ Define Function CheckIfTime():
     Else
         If day-of-week Is "Thursday" Then
             Return hour-of-day Is 12
-        End
-    End
+        End-If
+    End-If
     Return False
-End
+End-Function
 
 Print "Time Check is", @CheckIfTime()

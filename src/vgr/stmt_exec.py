@@ -328,12 +328,12 @@ Used with `While`, `Until`, `ForEach` and other looping statements
 
 ```vgr
 Set i To Zero
-While True:
+While True
     Add 1 to i
-    If i ** 2 > 50:
+    If i ** 2 > 50
         Break
-    End
-End
+    End-If
+End-While
 Printf "First integer whose square exceeds 50 is {}\\n", i
 ```
 
@@ -350,13 +350,13 @@ def execute_continue(_: ExecContext, statement: Tree) -> None:
 ```vgr
 Set evens To []
 Set i To Zero
-While i < 20:
+While i < 20
     Add 1 To i
-    If i Is Odd:
+    If i Is Odd
         Continue
-    End
+    End-If
     Append i To evens
-End
+End-While
 
 Print "Even numbers up to 20: {}\\n", evens
 ```
@@ -375,11 +375,11 @@ def execute_pass(_: ExecContext, __: Tree) -> None:
 A placeholder for a statement, which takes no action and has no side effects.
 
 ```vgr
-If x < 10:
+If x < 10
     Pass // Must have one statement in block
-Else:
+Else
     Print "x is too big"
-End
+End-If
 ```
 """
 
@@ -390,12 +390,12 @@ def execute_block(ctx: ExecContext, statement: Tree) -> None:
 **Defines a group of statements with local variable scoping**
 
 * Begin [:]\\
-  &emsp;&emsp;_statement_&hellip;\\
+  &emsp;&emsp;*statement*&hellip;\\
   End [;]
 
 ```vgr
 Set counter To Zero
-While counter < 3:
+While counter < 3
     Begin
         Set temp To counter * 2
         Exhibit counter temp
@@ -403,7 +403,7 @@ While counter < 3:
     # temp is scoped to Begin/End
     Assert temp Is Null
     Add 1 to counter
-End
+End-While
 Print "Final counter:", counter
 ```
 
@@ -440,7 +440,7 @@ bog = None
 Define Function sqr(x):
     Set frog = x.Pow(2)
     Return frog
-End
+End-Function
 Print @sqr(5)
 25
 Exhibit frog
@@ -450,7 +450,7 @@ Define Function sqr2(x):
     Declare frog Local
     Set frog = x.Pow(2)
     Return frog
-End
+End-Function
 Print @sqr2(6)
 36
 Exhibit frog
@@ -485,8 +485,8 @@ def execute_forever(ctx: ExecContext, statement: Tree) -> None:
 **Predicate-less loop**
 
 * Do Forever [:]\\
-  &emsp;&emsp;_statement_&hellip;\\
-  End [;]
+  &emsp;&emsp;*statement*&hellip;\\
+  [End-Do | End] [;]
 
 The statements are repeatedly executed until a `Break` statement is
 encountered. A `Continue` causes the statements to loop.
@@ -495,13 +495,13 @@ Statements have access to the *$loop* variable, but only *index* and _first_.
 
 ```vgr
 Set x To 5
-Do Forever:
+Do Forever
     Print x, $loop
     Add 5 to x
-    If x > 20:
+    If x > 20
         Break
-    End
-End
+    End-If
+End-Do
 
 5 {'index': 0, 'first': True}
 10 {'index': 1, 'first': False}
@@ -546,12 +546,12 @@ def execute_if(ctx: ExecContext, statement: Tree) -> None:
 **Conditionally execute a block of statements**
 
 * If *expression* [Then | :]\\
-  &emsp;&emsp;_statement_&hellip;\\
+  &emsp;&emsp;*statement*&hellip;\\
   End [;]
 * If *expression* [Then | :]\\
-  &emsp;&emsp;_statement_&hellip;\\
+  &emsp;&emsp;*statement*&hellip;\\
   Else [:]\\
-  &emsp;&emsp;_statement_&hellip;\\
+  &emsp;&emsp;*statement*&hellip;\\
   End [;]
 
 If the expression evaluates to `True` the first block of statements is executed.
@@ -569,10 +569,10 @@ Define Function CheckIfTime():
     Else
         If day-of-week Is "Thursday" Then
             Return hour-of-day Is 12
-        End
-    End
+        End-If
+    End-If
     Return False
-End
+End-Function
 
 Print "Time Check is", @CheckIfTime()
 ```
@@ -587,9 +587,9 @@ def execute_unless(ctx: ExecContext, statement: Tree) -> None:
     """
 **Conditionally execute a block of statements**
 
-* Unless *expression* [Then | :]\\
-  &emsp;&emsp;_statement_&hellip;\\
-  End [;]
+* Unless *expression* [:]\\
+  &emsp;&emsp;*statement*&hellip;\\
+  [End-Unless | End] [;]
 
 If the expression evaluates to `False` the block of statements is executed.
 If `Break` is encountered, looping ends regardless of the
@@ -601,18 +601,18 @@ Set is_valid(item) -> /* logic here */
 Set result To None
 Set attempts To Zero
 Unless result Is Not None Or attempts > 42:
-    ForEach item In items:
+    For Each item In items
         Add 1 To attempts
         Choose Using item
             When Is "skip":  Continue
             When Is "fatal": Break
             Otherwise:
-                If @is_valid(item):
+                If @is_valid(item)
                     result = item
-                End
-        End
-    End
-End
+                End-If
+        End-Choose
+    End-For
+End-Unless
 Print "Result:", result
 Print "Attempts:", attempts
 ```
@@ -678,8 +678,8 @@ def execute_while(ctx: ExecContext, statement: Tree) -> None:
 **Repeatedly execute a block of statements while a condition exists**
 
 * While *expression* [:]\\
-  &emsp;&emsp;_statement_&hellip;\\
-  End [;]
+  &emsp;&emsp;*statement*&hellip;\\
+  [End-While | End] [;]
 
 As long as the expression evaluates to `True`, the block of statements is
 repeatedly executed.
@@ -689,10 +689,10 @@ following it are skipped, and the expression is checked again.
 
 ```vgr
 Set x To 0
-While x < 50:
+While x < 50
     Print x, ":", x.Pow(2), $loop
     Set x += 10
-End
+End-While
 
 0 : 0 {'index': 0, 'first': True}
 10 : 100 {'index': 1, 'first': False}
@@ -712,8 +712,8 @@ def execute_until(ctx: ExecContext, statement: Tree) -> None:
 **Repeatedly execute a block of statements until a condition is reached**
 
 * Until *expression* [:]\\
-  &emsp;&emsp;_statement_&hellip;\\
-  End [;]
+  &emsp;&emsp;*statement*&hellip;\\
+  [End-Until | End] [;]
 
 The block of statements is executed until the expression evaluates to `True`.
 If `Break` is encountered, looping ends regardless of the
@@ -725,7 +725,7 @@ Set x To 0
 Until x >= 50
     Print x, ":", x.Pow(2), $loop
     Set x += 10
-End
+End-Until
 
 0 : 0 {'index': 0, 'first': True}
 10 : 100 {'index': 1, 'first': False}
@@ -745,8 +745,8 @@ def execute_repeat(ctx: ExecContext, statement: Tree) -> None:
 **Execute a block of statements a fixed number of times**
 
 * Repeat *expression* [:]\\
-  &emsp;&emsp;_statement_&hellip;\\
-  End [;]
+  &emsp;&emsp;*statement*&hellip;\\
+  [End-Repeat | End] [;]
 
 The block of statements is executed the given number of times.
 The expression is evaluated an converted to an integer, rounding down.
@@ -760,7 +760,7 @@ Statements have access to the *$loop* variable, including *index*, *length*, _fi
 ```vgr
 Repeat 3:
    Print $loop
-End
+End-Repeat
 
 {'index': 0, 'first': True, 'last': False, 'length': 3}
 {'index': 1, 'first': False, 'last': False, 'length': 3}
@@ -770,13 +770,13 @@ End
     exec_repeat(ctx, statement)
 
 @control_statement
-@bound_ops("ForEach")
+@bound_ops("For Each")
 def execute_foreach(ctx: ExecContext, statement: Tree) -> None:
     """
 **Iterate over a list of values**
 
-* [ForEach | For Each] *variable* In *expression* [:]\\
-  &emsp;&emsp;_statement_&hellip;\\
+* For Each *variable* In *expression* [:]\\
+  &emsp;&emsp;*statement*&hellip;\\
   [End-For | End] [;]
 
 If expression is a single, non-`None` value, the statements are executed
@@ -791,7 +791,7 @@ following it are skipped, and the loop continues with the next item.
 Statements have access to the *$loop* variable, including *index*, *length*, _first_, and _last_.
 
 ```vgr
-ForEach a In ["A", "B", "C"]:
+For Each a In ["A", "B", "C"]
     Print a, $loop
 End-For
 
@@ -799,11 +799,11 @@ A {'index': 0, 'first': True, 'last': False, 'length': 3}
 B {'index': 1, 'first': False, 'last': False, 'length': 3}
 C {'index': 2, 'first': False, 'last': True, 'length': 3}
 
-For Each kv_pair In math:
-    If $loop.first: Print "-" * 60; End
+For Each kv_pair In math
+    If $loop.first: Print "-" * 60; End-If
     Print kv_pair
-    If $loop.last: Print "-" * 60; End
-End
+    If $loop.last: Print "-" * 60; End-If
+End-For
 
 ------------------------------------------------------------
 ['e', 2.718281828459045]

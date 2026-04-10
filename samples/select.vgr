@@ -54,7 +54,7 @@ Define Function row_number():
     Set rc To counter
     Add 1 To counter
     Return rc
-End
+End-Function
 
 Print """
 You can use a function to number output rows.

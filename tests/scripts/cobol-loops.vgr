@@ -18,11 +18,11 @@ End-Perform
 
 Perform 3 Times
     Display "Hello"
-End
+End # keep untyped
 
 # Perform Until
 Move Zero To x
-Perform Until x > 0:
+Perform Until x > 0: # keep colon
     Display "Hello"
     Add 1 To x
 End-Perform
@@ -37,10 +37,10 @@ Move Zero To x
 Perform Until x > 0
     Display "Hello"
     Add 1 To x
-End
+End # keep untyped
 
 # Perform Varying
-Perform Varying x From Zero By 1 Until x > 0:
+Perform Varying x From Zero By 1 Until x > 0: # keep colon
     Display "Hello"
 End-Perform
 
@@ -50,7 +50,7 @@ End-Perform
 
 Perform Varying x From Zero By 1 Until x > 0
     Display "Hello"
-End
+End # keep untyped
 
 Perform With Test Before Varying x From Zero By 1 Until x > 0
     Display "Hello"

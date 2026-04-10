@@ -1,15 +1,15 @@
 
 // Simple loop to test type acceptance for hashable types
-ForEach item in [None, True, False, 0, 1, -.1, "", "foo", CompilePattern("foo")]
+For Each item in [None, True, False, 0, 1, -.1, "", "foo", CompilePattern("foo")]
     Print Repr(item), Type(item), Id(item), Hash(item)
     Assert Hash(item) Is Not None
-End
+End-For
 
 // Non-hashable types
-ForEach item in [[], [5], {}, {"a": 5}]
+For Each item in [[], [5], {}, {"a": 5}]
     Print Repr(item), Type(item), Id(item), Hash(item)
     Assert Hash(item) Is None
-End
+End-For
 
 # Hash has to be equal regardless of origin
 Assert Hash(True) == Hash(!False)

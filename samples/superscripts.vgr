@@ -60,14 +60,14 @@ Set intify(x) -> x == x.ToInteger() ? x.ToInteger() : x
 Define Function solve_quadratic(a, b, c):
     // Solve ax² + bx + c = 0
     Declare eqn, roots As Local
-    If a == 0:
+    If a == 0
         Assert b != 0: "Not a valid quadratic or linear equation"
         # Linear case: bx + c = 0
         eqn = "{}x {} {} = 0".Format(
                 b == 1 ? "" : b,
                 c < 0 ? '-' : '+',  c.Abs())
         roots = [c.Negate() / b]
-    Else:
+    Else
         eqn = "{}x² {} {}x {} {} = 0".Format(
                 a == 1 ? "" : a,
                 b < 0 ? '-' : '+', b.Abs(),
@@ -75,20 +75,20 @@ Define Function solve_quadratic(a, b, c):
         sqrt_disc = (b² - 4.Mul(a, c))·⁵
         b = b.Negate()
         roots = [b + sqrt_disc, b - sqrt_disc].Div(2 * a)
-    End
+    End-If
     Return [eqn] + roots.@intify()
-End
+End-Function
 
 Print ""
-ForEach v In @solve_quadratic(1, -5, 6):
-    If $loop.first:
+For Each v In @solve_quadratic(1, -5, 6)
+    If $loop.first
         // The equation
         Printf "{} →", v
-    Else:
+    Else
         // A root
         Printf "{} {}", $loop.index > 2 ? ',' : '', v
-    End
-    If $loop.last:
+    End-If
+    If $loop.last
         Print ""
-    End
-End
+    End-If
+End-For

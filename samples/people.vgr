@@ -42,11 +42,11 @@ For Batch Template
 
 Define Function ExtractAges(data_in):
     Set ages To []
-    ForEach item In data_in:
+    For Each item In data_in
         Append item.age To ages
-    End
+    End-For
     Return ages.StripNulls()
-End
+End-Function
 
 Display Newline, "All ages from raw data", Newline, @ExtractAges(people)
 

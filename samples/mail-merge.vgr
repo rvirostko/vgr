@@ -5,7 +5,7 @@
 
 Set today = args.Item(0).DefaultTo(time.now.FormatTimestamp(time.format.ymd))
 Set subj = args.Item(1).DefaultTo("Hello")
-If args.Item(2) is None:
+If args.Item(2) is None
     Print "Using default template."
     Set mail_template To """
 -- TO : {1}
@@ -16,14 +16,14 @@ Dear {0},
 Just wanted to say hello.
 -- END
 """
-Else:
+Else
     Set form_file To args.Item(2)
     Printf "Loading template {!r}...", form_file
     Load mail_template
         With form_file
         Type Is Text
     Print " done."
-End
+End-If
 
 Set data_file To vgr.source.FirstItem().DirectoryName() + "/people.json"
 Assert data_file.FileExists() :

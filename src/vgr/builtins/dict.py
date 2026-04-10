@@ -105,14 +105,14 @@ Dictionary({"f":{"a": 1}}, ["f.b", 2]) → {"f": {"a": 1, "b": 2}}
 
 Set lines = ["a | b | c", "1 | 2 | 3", "one | two | three"]
 Set records To List()
-ForEach line in lines:
+For Each line in lines
     Set elems To line.Split("|").Strip()
-    If $loop.first:
+    If $loop.first
         Set headers To elems.Upper()
-    Else:
+    Else
         Append Dictionary(CombineLists(headers, elems)) To records
-    End
-End
+    End-If
+End-For
 Print records.FormatJson(2, True)
 [
   {

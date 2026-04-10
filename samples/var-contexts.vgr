@@ -1,15 +1,15 @@
 
 Define Function fn(bob):
-    Return [bob, $global.bob, $outer.bob, $local.bob, $static.bob];
-End
+    Return [bob, $global.bob, $outer.bob, $local.bob, $static.bob]
+End-Function
 
 Define Function o_fn(a):
     # we want to make sure that we make a local
     # rather than getting the global reference
     Declare bob Local
-    bob = a + a;
-    Return @$global.fn(a);
-End
+    bob = a + a
+    Return @$global.fn(a)
+End-Function
 
 Declare bob, v Global
 Set bob = "global_bob"
@@ -34,15 +34,15 @@ Assert r2 == [v, bob, v + v, v, None]
 Define Function strify(a):
     Declare rc Local
     rc = []
-    ForEach v in a:
+    For Each v in a
         rc += v.DefaultTo('None')
-    End
-    return rc
-End
+    End-For
+    Return rc
+End-Function
 
-ForEach r in [
+For Each r in [
               ["-default-", "$global", "$outer", "$local", "$static"],
               r0, r1, r2
              ]:
     Printf "| {0[0]:<{1}} | {0[1]:<{1}} | {0[2]:<{1}} | {0[3]:<{1}} | {0[4]:<{1}} |\n", @strify(r), 12
-End
+End-For

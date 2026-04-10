@@ -12,7 +12,7 @@ Define Function sort_and_check(var):
     Assert var.Length() ≥ 3
     Assert var.FirstItem().name ≤ var.LastItem().name
     Assert var.Item(1).name.IsBetween(var.FirstItem().name, var.LastItem().name)
-End
+End-Function
 #-------------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------
@@ -26,7 +26,7 @@ Define Function sort_file_and_check(fn):
     Assert $load.records ≥ 3
     Assert t.FirstItem().name ≤ t.LastItem().name
     Assert t.Item(1).name.IsBetween(t.FirstItem().name, t.LastItem().name)
-End
+End-Function
 #-------------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------

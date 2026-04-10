@@ -73,7 +73,7 @@ Strings are converted to numbers.
 Only integral values can be even numbers.
 
 ```vgr
-ForEach v In [ None, List(), Dictionary(), -1, Zero, 1.5, 2 ]:
+For Each v In [ None, List(), Dictionary(), -1, Zero, 1.5, 2 ]
     Choose Using v:
         When Is Even:
             Print v.Repr(), "is even"
@@ -81,8 +81,8 @@ ForEach v In [ None, List(), Dictionary(), -1, Zero, 1.5, 2 ]:
             Print v.Repr(), "is odd"
         Otherwise:
             Print v.Repr(), "is neither odd nor even"
-    End
-End
+    End-Choose
+End-For
 
 None is neither odd nor even
 [] is neither odd nor even
@@ -111,7 +111,7 @@ Strings are converted to numbers.
 Only integral values can be odd numbers.
 
 ```vgr
-ForEach v In [ None, List(), Dictionary(), -1, Zero, 1.5, 2 ]:
+For Each v In [ None, List(), Dictionary(), -1, Zero, 1.5, 2 ]
     Choose Using v:
         When Is Even:
             Print v.Repr(), "is even"
@@ -119,8 +119,8 @@ ForEach v In [ None, List(), Dictionary(), -1, Zero, 1.5, 2 ]:
             Print v.Repr(), "is odd"
         Otherwise:
             Print v.Repr(), "is neither odd nor even"
-    End
-End
+    End-Choose
+End-For
 
 None is neither odd nor even
 [] is neither odd nor even

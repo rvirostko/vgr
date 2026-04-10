@@ -5,9 +5,7 @@
 //-----------------------------------------------------------------------------
 // Remove parens around a string
 //-----------------------------------------------------------------------------
-Define Function deparen(s):
-    Return s.StartsWith("(") and s.EndsWith(")") ? s.Slice(1,-1) : s
-End
+Set deparen(s) -> s.StartsWith("(") and s.EndsWith(")") ? s.Slice(1,-1) : s
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
@@ -38,12 +36,15 @@ Tron
 // Documentation examples go here
 //-----------------------------------------------------------------------------
 
-Print None.Id().Repr()
-Print 5.Id().Repr()
-Print 5.1.Id().Repr()
-Print [5, 10, 15].Id().Repr()
-Print "frog".Id().Repr()
-Print {"c": "sea", "b": True, "a": 1}.Id().Repr()
+Set a To 1
+Set b To 2
+Set c To 3
+Exhibit a, b, c
+Unset b, c
+Exhibit a, b, c
+
+
+
 
 //-----------------------------------------------------------------------------
 Troff
@@ -75,6 +76,6 @@ Print As Markdown example
 Terminal SetClipboard example.ReplaceStr("\\", "\\\\").AppendStr("\n")
 
 // Clean up our temp files
-ForEach fn in [setup_file, out_file, err_file]:
+For Each fn in [setup_file, out_file, err_file]
     Assert fn.RemoveFile().FirstItem() : "Could not delete {}", fn
-End
+End-For

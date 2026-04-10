@@ -48,7 +48,7 @@ Define Function PrintPeople(filter):
         From people.entries
         For Batch Template
     Print ""
-End
+End-Function
 
 Print As Markdown "People".MdStrong()
 Call PrintPeople Using "objectClass".LdapAttrEquals("person")
@@ -72,7 +72,7 @@ Call PrintPeople Using ToLdapFilter(qbe)
 // The Size Limit control the number of records returned
 // Additionally, when set to 1, the type of entries changes
 Print As Markdown "Size Limit behavior".MdStrong()
-ForEach limit In [0, 1, 2]:
+For Each limit In [0, 1, 2]
     Ldap Search Base Is "ou=mathematicians," + formsys.base
         Scope Is ALL
         Size Limit limit
@@ -80,7 +80,7 @@ ForEach limit In [0, 1, 2]:
     Print "Limit:", limit,
           "Type:", ldap.result.entries.Type(),
           ldap.result.entries.Type() == "list" ? "Len: " + ldap.result.entries.Length() : ""
-End
+End-For
 
 Print ""
 

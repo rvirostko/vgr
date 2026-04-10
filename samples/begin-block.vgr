@@ -1,5 +1,5 @@
 Set counter To Zero
-While counter < 3:
+While counter < 3
     Begin
         Set temp To counter * 2
         Exhibit counter temp
@@ -7,5 +7,5 @@ While counter < 3:
     # temp is scoped to Begin/End
     Assert temp Is Null
     Add 1 to counter
-End
+End-While
 Print "Final counter:", counter

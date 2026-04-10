@@ -5,7 +5,7 @@ Tron
 
 # Do While
 Let x = 0
-Do While x < 1:
+Do While x < 1: # keep colon
     Let x = x + 1
 Loop
 
@@ -17,11 +17,11 @@ Loop
 Let x = 0
 Do While x < 1
     Let x = x + 1
-End
+End  # keep untyped
 
 # Do Until
 Let x = 0
-Do Until x == 1:
+Do Until x == 1: # keep colon
     Let x = x + 1
 Loop
 
@@ -33,10 +33,10 @@ Loop
 Let x = 0
 Do Until x == 1
     Let x = x + 1
-End
+End  # keep untyped
 
 # For-Next
-For x = 0 To 1:
+For x = 0 To 1: # keep colon
     NOP
 Next
 
@@ -46,10 +46,10 @@ Next
 
 For x = 0 To 1
     NOP
-End
+End  # keep untyped
 
 # For-Next w/By
-For x = 0 To 1 Step 1:
+For x = 0 To 1 Step 1: # keep colon
     NOP
 Next
 
@@ -59,10 +59,10 @@ Next
 
 For x = 0 To 1 Step 1
     NOP
-End
+End  # keep untyped
 
 # For Each
-For Each x In [1, 2]:
+For Each x In [1, 2]: # keep colon
     NOP
 Next
 
@@ -72,4 +72,4 @@ Next
 
 For Each x In [1, 2]
     NOP
-End
+End # keep as end

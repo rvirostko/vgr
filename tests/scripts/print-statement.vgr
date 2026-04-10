@@ -1,12 +1,12 @@
 Define Function set-env(ofs, ors)
     Set env.OFS = ofs
     Set env.ORS = ors
-End
+End-Function
 
 Define Function show-env()
     Print Output "OFS :", env.OFS.Repr()
     Print Output "ORS :", env.ORS.Repr()
-End
+End-Function
 
 # Default behavior (env.OFS and env.ORS are None → space + newline)
 Call show-env()

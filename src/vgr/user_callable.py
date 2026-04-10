@@ -112,26 +112,14 @@ class UserFunction(AbstractUserCallable):
             return UserFunction.compile(ctx, str(source), param_paths)
         raise TypeError(f'Cannot use {poly_type(source)!r} as the source for an Arrow Function')
 
+# TODO move this doc to Call
 class ArrowFunction(AbstractUserCallable):
     """
-**Arrow Functions - lightweight functions**
-
-***Definition***
-
-* Set *variable* = () -> *expression*
-* Set *variable* = (*arg* [, *arg*]&hellip;) -> *expression*
-* Set *variable* = (&hellip;) -> Compile(*expression*)
 
 ***Invocation***
 
 * @*variable*(*arg*&hellip;) - Stand-alone
 * *value*.@*variable*(*arg*&hellip;) - Inline
-
-Arrow Functions are for short expressions and recursive cases, not for full multi-statement functions.
-Parameters need not be declared if empty. Names of parameters follow the rules for variables, but
-are a single name, not a dotted path.
-The arrow operator separates the parameter list from the body.
-The body is either an expression or a dynamic expression using _Compile_(&hellip;).
 
 ***Special Rules***
 
@@ -149,7 +137,7 @@ The body is either an expression or a dynamic expression using _Compile_(&hellip
 
 ```vgr
 Set add = (x, y) -> x + y
-Print @add(5) → None     // x defaults to None
+Print @add(5) → None     // y defaults to None
 Print @add(5, 6) → 11
 Print @add(5, 6, 7) → 11 // Extra arg ignored
 ```
@@ -161,13 +149,6 @@ fact(n) -> (n <= 1 ? 1 : n * @$self(n - 1))
 Print @fact(5) → 120
 ```
 
-***Dynamically compiled expression***
-
-```vgr
-Accept op From stdin
-Assert op in ["+", "-", "*", "/"]
-Set dyn = (x, y) -> Compile("(x {} y) + 10".Format(op))
-```
 
 ***Invocation of variables which are _not_ functions***
 

@@ -84,25 +84,22 @@ def execute_set(ctx: ExecContext, statement: Tree) -> None:
     """
 **Assign a value to a variable or modify a variable's existing value**
 
-* Set *variable* [= | To] *expression* [;]
-* Set *variable* [= | To] (*arg*&hellip;) -> *expression* _Arrow_ _Function_
-* Set *variable* [= | To] (*arg*&hellip;) -> Compile(*expression*) _Dynamic_ _Arrow_ _Function_
-* Set *variable* += *expression* [;] _Addition_
-* Set *variable* -= *expression* [;] _Subtraction_
-* Set *variable* *= *expression* [;] _Multiplication_
-* Set *variable* /= *expression* [;] _Division_
-* Set *variable* %= *expression* [;] _Modulo_
-* Set *variable* **= *expression* [;] _Power_
-* Set *variable* &= *expression* [;] _Bit And_
-* Set *variable* |= *expression* [;] _Bit Or_
-* Set *variable* ^= *expression* [;] _Bit Xor_
-* Set *variable* <<= *expression* [;] _Bit Shift Left_
-* Set *variable* >>= *expression* [;] _Bit Shift Right_
+* Set *variable* [= | To] *expression* [;] &emsp; *Assignment*
+* Set *variable* += *expression* [;] &emsp; *Addition*
+* Set *variable* -= *expression* [;] &emsp; *Subtraction*
+* Set *variable* *= *expression* [;] &emsp; *Multiplication*
+* Set *variable* /= *expression* [;] &emsp; *Division*
+* Set *variable* %= *expression* [;] &emsp; *Modulo*
+* Set *variable* **= *expression* [;] &emsp; *Power*
+* Set *variable* &= *expression* [;] &emsp; *Bit And*
+* Set *variable* |= *expression* [;] &emsp; *Bit Or*
+* Set *variable* ^= *expression* [;] &emsp; *Bit Xor*
+* Set *variable* <<= *expression* [;] &emsp; *Bit Shift Left*
+* Set *variable* >>= *expression* [;] &emsp; *Bit Shift Right*
+* Set *variable* (*arg*&hellip;) [-> | →] *expression* &emsp; *Arrow Function*
 
-Arrow Functions may define zero or more arguments, but unlike those
-defined with `Function` are composed entirely in an expression.
 
-When `+=` is used with two lists, the lists are concatenated.
+Not that when `+=` is used with two lists, the lists are concatenated.
 
 ```vgr
 Set a To 5
@@ -113,18 +110,9 @@ a = 15
 b = 3
 ```
 
-```vgr
-Set fn(a,b) -> a * b
-Exhibit fn
-fn = (a,b)→a * b
-Print fn
-a * b
-Print @fn(5,3)
-15
-Set c = fn
-Print @c(5,3)
-15
-```
+Also see the `Add`, `Subtract`, `Multiply`, and `Divide` statements.
+
+See `Define Function` and `Call` for details on defining and calling *Arrow Functions* with `Set`
 """
     var_path = get_writable_var_path(ctx, statement.children[0])
     if len(statement.children) == 2:
@@ -137,14 +125,14 @@ Print @c(5,3)
     do_set(ctx, new_value, *var_path)
 
 def execute_set_arrow(ctx: ExecContext, statement: Tree) -> None:
-    """-documentation combined with `set`-"""
+    """-documentation combined with Function-"""
     var_path = get_writable_var_path(ctx, statement.children[0])
     param_paths = create_param_list(ctx, statement.children[1])
     expr = statement.children[-1]
     do_set(ctx, UserFunction.from_expression(ctx.get_source(expr), expr, param_paths), *var_path)
 
 def execute_compile_arrow(ctx: ExecContext, statement: Tree) -> None:
-    """-documentation combined with `set`-"""
+    """-documentation combined with Function-"""
     var_path = get_writable_var_path(ctx, statement.children[0])
     param_paths = create_param_list(ctx, statement.children[1])
     expr = statement.children[-1]
@@ -153,9 +141,12 @@ def execute_compile_arrow(ctx: ExecContext, statement: Tree) -> None:
 @bound_ops("Unset")
 def execute_unset(ctx: ExecContext, statement: Tree) -> None:
     """
-**Remove one or more variable**
+**Remove one or more variables**
 
 * Unset *variable* [, *variable*]&hellip; [;]
+
+More than setting the variable to `None`, the variable is entirely removed.
+To be removed, the variable must be mutable.
 
 ```vgr
 Set a To 1

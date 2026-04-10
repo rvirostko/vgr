@@ -120,11 +120,11 @@ the return values is always `None`.
 ```vgr
 Define Function NoReturn(x):
     NOP
-End
+End-Function
 
 Define Function Sqrt(x):
     Return x·⁵
-End
+End-Function
 
 Assert @NoReturn(5) Is None
 Assert @Sqrt(16) Is 4

@@ -10,4 +10,4 @@ Source vgr.source.FirstItem().DirectoryName() + os.sep + "main-2.vgr"
 // Also see vgr.includes for a list of files which have be loaded with @Include
 If Length(vgr.source) <= 1 && !vgr.included
     Print vgr.source.FirstItem(), "is main"
-End
+End-If

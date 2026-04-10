@@ -2,47 +2,47 @@
 Set bar = "-" * 60
 
 # NB: Both data and charsets can be a list or single entries
-#     because of the nature of ForEach
+#     because of the nature of For Each
 Define Function test_hex_encodings(data, charsets):
-    ForEach charset In charsets:
+    For Each charset In charsets
         Printf "{}\n{}\n{}\n", bar, charset.DefaultTo("-default encoding-"), bar
-        ForEach d In data:
+        For Each d In data
             Printf "    {!r} → {!r}\n", d, d.HexEncode(charset)
-        End
+        End-For
         Print ""
-    End
-End
+    End-For
+End-Function
 
 Define Function hex_round_trip_test(s):
     enc = s.HexEncode()
     Assert enc.HexDecode() == s
-    If enc Is Not None:
+    If enc Is Not None
         # Leading/trailing whitespace is ignored
         Assert (" " + enc).HexDecode() == s
         Assert (enc + " ").HexDecode() == s
         # Case independent
         Assert enc.Upper().HexDecode() == s
         Assert enc.Lower().HexDecode() == s
-    End
-End
+    End-If
+End-Function
 
 Define Function test_b64(data):
     Printf "{}\nBase64\n{}\n", bar, bar
-    ForEach d In data:
+    For Each d In data
         Printf "    {!r} → {!r}\n", d, d.Base64Encode()
-    End
+    End-For
     Print ""
-End
+End-Function
 
 Define Function b64_round_trip_test(s):
     enc = s.Base64Encode()
     Assert enc.Base64Decode() == s
-    If enc Is Not None:
+    If enc Is Not None
         # Leading/trailing whitespace is ignored
         Assert (" " + enc).Base64Decode() == s
         Assert (enc + " ").Base64Decode() == s
-    End
-End
+    End-If
+End-Function
 
 Set encodings To [ None, 'utf-8', 'cp850',  'iso8859-1', 'mac_roman' ]
 Set limited_encodings To [ 'cp437', 'KOI8-R', 'windows-1251', 'shift_jis' ]
@@ -67,7 +67,7 @@ Set utf8_strings To [
     "𝄞🎵",                 # Musical symbols / surrogate pairs (Unicode > U+FFFF)
 ]
 
-Begin:
+Begin
     Print "\n* Full Set"
     Call test_hex_encodings(test_strings + extra_tests, encodings)
     Print "\n* UTF-8 Strings"
@@ -76,8 +76,8 @@ Begin:
     Call test_hex_encodings(test_strings, limited_encodings)
     Print "\n* Base64"
     Call test_b64(test_strings)
-    ForEach s in test_strings + extra_tests:
+    For Each s in test_strings + extra_tests
         Call hex_round_trip_test(s)
         Call b64_round_trip_test(s)
-    End
+    End-For
 End

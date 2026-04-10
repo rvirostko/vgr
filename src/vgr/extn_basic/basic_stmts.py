@@ -21,7 +21,7 @@ def execute_do_while(ctx: ExecContext, statement: Tree) -> None:
     """A BASIC-style Do-While Loop
 
 * Do While *expression*\\
-  &emsp;&emsp;_statement_&hellip;\\
+  &emsp;&emsp;*statement*&hellip;\\
   Loop [;]
 
 As long as the expression evaluates to `True`, the block of statements is
@@ -33,7 +33,7 @@ following it are skipped, and the expression is checked again.
 ```vgr
 words = ["apple", "banana", "cherry", None]
 index = 0
-Do While words.Item(index):
+Do While words.Item(index)
     # NB: $loop is available, but only index and first values
     word = words.Item(index)
     reversed_word = Reverse(word)
@@ -53,7 +53,7 @@ def execute_do_until(ctx: ExecContext, statement: Tree) -> None:
     """A BASIC-style Do-Until Loop
 
 * Do Until *expression*\\
-  &emsp;&emsp;_statement_&hellip;\\
+  &emsp;&emsp;*statement*&hellip;\\
   Loop [;]
 
 The block of statements is executed until the expression evaluates to `True`.
@@ -66,7 +66,7 @@ following it are skipped, and the expression is checked again.
 input_str = "bcdfghjklmnpqrustvwxyz"
 collected = ""
 index = 0
-Do Until Lower(SubStr(input_str, index)) Is In "aeiou":
+Do Until Lower(SubStr(input_str, index)) Is In "aeiou"
     # NB: $loop is available, but only index and first values
     collected += SubStr(input_str, index)
     index += 1
@@ -80,7 +80,7 @@ Also see `Do While`, `Continue`, and `Break`
     exec_loop(ctx, statement, False, BlockType.DO_LOOP)
 
 @control_statement
-@bound_ops("For Next", "For Each")
+@bound_ops("For Next")
 def execute_for_next(ctx: ExecContext, statement: Tree) -> None:
     """
 **A BASIC-style For-Next Loop**
@@ -89,9 +89,6 @@ def execute_for_next(ctx: ExecContext, statement: Tree) -> None:
   &emsp;&emsp;*statement*&hellip;\\
   Next [;]
 * For *variable* = *expression* To *expression* Step *expression* [:]\\
-  &emsp;&emsp;*statement*&hellip;\\
-  Next [;]
-* For Each *variable* In *expression* [:]\\
   &emsp;&emsp;*statement*&hellip;\\
   Next [;]
 
@@ -113,17 +110,9 @@ Next
 3.0 {'index': 2, 'first': False, 'last': False, 'length': 5}
 3.5 {'index': 3, 'first': False, 'last': False, 'length': 5}
 4.0 {'index': 4, 'first': False, 'last': True, 'length': 5}
-
-For Each a In ["A", "B", "C"]
-    Print a, $loop
-Next
-
-A {'index': 0, 'first': True, 'last': False, 'length': 3}
-B {'index': 1, 'first': False, 'last': False, 'length': 3}
-C {'index': 2, 'first': False, 'last': True, 'length': 3}
 ```
 
-Also see `Perform Varying` and `ForEach`.
+Also see `Perform Varying` and `For Each`.
 """
     # Echo the control portion, not the statements
     ctx.echo_source(statement, statement.children[-1])

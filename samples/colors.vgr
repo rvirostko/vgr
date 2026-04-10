@@ -1,8 +1,8 @@
 # This is visual, so if it can't display anything...
-If !vgr.stdout.isatty:
+If !vgr.stdout.isatty
     Print "stdout is not a TTY"
     Exit
-End
+End-If
 
 Term GetWindowSize
 Assert term.size.cols ≥ 80 And term.size.rows ≥ 24 : "Window too small for demo"
@@ -31,14 +31,14 @@ Perform iter Times
     Set bwidth = term.box_styles.StringLen().Max() + 2
     Set bheight = 3
     Term FG "bright white", BG "bright green"
-    ForEach style In term.box_styles:
+    For Each style In term.box_styles
         Term Pos line,col, DrawBox style,bheight,bwidth, Print style
         Add bwidth To col
-        If col >= (80 - bwidth):
+        If col >= (80 - bwidth)
             Add bheight To line
             Set col To 1
-        End
-    End
+        End-If
+    End-For
     Term Reset
     Sleep sleep_time Seconds
     #-------------------------------------------------------------------------
@@ -58,12 +58,12 @@ Perform iter Times
         ["hidden",        "Hidden Text"],
         ["bold blue rev", "Combined Settings"]
     ]
-    ForEach style In styles:
+    For Each style In styles
         Term Style style.FirstItem(),
             Print style.LastItem().Center(20),
             Style "Normal", FG None, BG None,
             Print " {}\n".Format(style.FirstItem())
-    End
+    End-For
     Term Print "\n", Style "Reset wide", Print "Double Width Text\n"
     Term Reset
     Sleep sleep_time Seconds
@@ -73,33 +73,33 @@ Perform iter Times
     Term Reset, Clear, DHPrint "Numbered Colors"
     Term Pos 3,1
     Term BG, FG "bright white", Print "Standard "
-    For color = 0 To 15:
+    For color = 0 To 15
         Term BG color, Print color.RightJustify(4).LeftJustify(5)
-        If color == 7:
+        If color == 7
             Term FG, BG, Print "\n Intense ", FG "black"
-        End
+        End-If
     Next
     Term BG, FG "bright white", Print "\n\n   Grays "
-    For gray = 0 To 23:
+    For gray = 0 To 23
         Set color = 232 + gray
         Term BG color, Print color.RightJustify(4).LeftJustify(5)
-        If !((gray + 1) % 12):
+        If !((gray + 1) % 12)
             Term BG, FG "black", Print "\n         "
-        End
+        End-If
     Next
     Term BG, FG "bright white", Print "\n  Colors"
     Set start_line = 9
     Set line = start_line
-    Set col = 10;
-    For green = 0 To (5 * 6) Step 6:
-        If green == 18:
+    Set col = 10
+    For green = 0 To (5 * 6) Step 6
+        If green == 18
             Set line = start_line
             Add 35 To col
             Term FG "black"
-        End
-        For red = 0 To (5 * 36) Step 36:
+        End-If
+        For red = 0 To (5 * 36) Step 36
             Term Pos line, col
-            For blue = 0 To 5 Step 1:
+            For blue = 0 To 5 Step 1
                 Set color = 16 + red + green + blue
                 Term BG color, Print color.RightJustify(4).LeftJustify(5)
             Next
@@ -120,7 +120,7 @@ Perform iter Times
         If !((i + 1) % 4)
             # Need resume default background in case we scroll
             Term BG, CR, LF
-        End
+        End-If
     Next
     Term Reset
     Sleep sleep_time Seconds

@@ -6,11 +6,11 @@
 Define Function AssertResult(test_no):
     Call AssertReason(test_no, None)
     Call AssertStatus(test_no, http.status.ok)
-End
+End-Function
 
 Define Function PrintPassed(test_no):
     Print "Test", test_no, "passed"
-End
+End-Function
 
 Define Function AssertStatus(test_no, expected):
     Set received To http.result.status_code
@@ -18,7 +18,7 @@ Define Function AssertStatus(test_no, expected):
     Print "\tReceived    :", Repr(received)
     Print "\tExpected    :", Repr(expected)
     Assert http.result.status_code == expected : "Test {}: Expected status code {!r}, got {!r}", test_no, expected, received
-End
+End-Function
 
 Define Function AssertReason(test_no, expected):
     Set received To http.result.reason
@@ -26,14 +26,14 @@ Define Function AssertReason(test_no, expected):
     Print "\tReceived    :", Repr(received)
     Print "\tExpected    :", Repr(expected)
     Assert received == expected : "Test {}: Expected reason {!r}, got {!r}", test_no, expected, received
-End
+End-Function
 
 Define Function AssertAnyReason(test_no):
     Set received To http.result.reason
     Print "Reason"
     Print "\tReceived    :", Repr(received)
     Assert received Is Not None : "Test {}: Expected a reason, got {!r}", test_no, received
-End
+End-Function
 
 Define Function CheckParam(test_no, key, expected):
     Set received To http.result.response.args.GetKeyValue(key)
@@ -41,7 +41,7 @@ Define Function CheckParam(test_no, key, expected):
     Print "\tReceived    :", Repr(received)
     Print "\tExpected    :", Repr(expected)
     Assert received == expected : "Test {}: For parameter {!r} expected {!r}, received {!r}", test_no, key, expected, received
-End
+End-Function
 
 Define Function CheckHeader(test_no, key, expected):
     Set received To http.result.response.headers.GetKeyValue(key)
@@ -49,7 +49,7 @@ Define Function CheckHeader(test_no, key, expected):
     Print "\tReceived    :", Repr(received)
     Print "\tExpected    :", Repr(expected)
     Assert received == expected : "Test {}: For header {!r} expected {!r}, received {!r}", test_no, key, expected, received
-End
+End-Function
 
 Define Function CheckJson(test_no, key, expected):
     Set received To http.result.response.json.GetKeyValue(key)
@@ -57,7 +57,7 @@ Define Function CheckJson(test_no, key, expected):
     Print "\tReceived    :", Repr(received)
     Print "\tExpected    :", Repr(expected)
     Assert received == expected : "Test {}: For json key {!r} expected {!r}, received {!r}", test_no, key, expected, received
-End
+End-Function
 
 Define Function CheckAuthenticated(test_no, expected):
     Set received To http.result.response.authenticated
@@ -65,7 +65,7 @@ Define Function CheckAuthenticated(test_no, expected):
     Print "\tReceived    :", Repr(received)
     Print "\tExpected    :", Repr(expected)
     Assert received == expected : "Test {}: For authenticated expected {!r}, received {!r}", test_no, expected, received
-End
+End-Function
 
 Set n To 1
 
@@ -358,7 +358,7 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // HTTP version
 // -------------------------------------------------------------------------
-ForEach test_case in [[1, 1.1], [1.1, 1.1], [2, 2], [" 2 ", 2]]:
+For Each test_case in [[1, 1.1], [1.1, 1.1], [2, 2], [" 2 ", 2]]
     Set version To test_case.FirstItem()
     Set expected To "HTTP/" + test_case.LastItem()
     Echo on
@@ -374,32 +374,32 @@ ForEach test_case in [[1, 1.1], [1.1, 1.1], [2, 2], [" 2 ", 2]]:
     Assert received == expected
     Call PrintPassed(n)
     Add 1 to n
-End
+End-For
 
 // -------------------------------------------------------------------------
 // Verify SSL
 // -------------------------------------------------------------------------
-ForEach host In [
+For Each host In [
         "expired.badssl.com",
         "self-signed.badssl.com",
         "wrong.host.badssl.com",
     ]:
-    ForEach verify In [ True, False ]:
+    For Each verify In [ True, False ]
         Echo on
         Http Connect "https://" + host Verify SSL Is verify Timeout Is 10.0 As ssl_test_conn
         Http Get URL Is "/" Using ssl_test_conn
         Echo off
         Printf "https://{} - Verify SSL is {}\n", host, verify
-        If verify:
+        If verify
             Call AssertStatus(n, None)
             Call AssertAnyReason(n)
-        Else:
+        Else
             Call AssertStatus(n, http.status.ok)
             Call AssertReason(n, None)
-        End
+        End-If
         Call PrintPassed(n)
         Add 1 to n
-    End
-End
+    End-For
+End-For
 
 Print "All tests passed"

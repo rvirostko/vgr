@@ -11,21 +11,63 @@ from .tags import control_statement
 from .user_callable import UserFunction
 
 @control_statement
-@bound_ops("Function")
+@bound_ops("Define Function")
 def execute_def_function(ctx: ExecContext, statement: Tree) -> None:
     """
 **Define a function**
 
 * [Define] Function *variable* [:]\\
-  &emsp;&emsp;_statement_&hellip;\\
-  End [;]
+  &emsp;&emsp;*statement*&hellip;\\
+  [End-Function | End] [;]
 * [Define] Function *variable*(_param_&hellip;) [:]\\
-  &emsp;&emsp;_statement_&hellip;\\
-  End [;]
+  &emsp;&emsp;*statement*&hellip;\\
+  [End-Function | End] [;]
 
 ```vgr
 **TODO**
 ```
+
+***Arrow Functions***
+
+Arrow Functions are for short expressions, not for full multi-statement functions.
+Parameters need not be declared if empty. Names of parameters follow the rules for variables, but
+are a single name, not a dotted path.
+The arrow operator separates the parameter list from the body.
+The body is either an expression or a dynamic expression using _Compile_(&hellip;).
+
+* Set *variable* (*arg*&hellip;) [-> | →] *expression* [;]
+* Set *variable* (*arg*&hellip;) [-> | →] Compile(*expression*) [;]
+
+```vgr
+# Simple expression
+Set fn(a, b) -> a * b
+Exhibit fn
+fn = (a,b)→a * b
+Print fn
+a * b
+
+# Zero arg function
+Set now() -> time.now
+Set also_now -> time.now
+
+# In-line invocation
+Print @fn(5, 3)
+15
+
+# All functions are variables
+Set c = fn
+Print 5.@c(3), @fn(5, 3)
+15 15
+```
+
+```vgr
+# The expression can be compiled from a string
+Accept op From stdin
+Assert op in ["+", "-", "*", "/"]
+Set dyn(x, y) -> Compile("(x {} y) + 10".Format(op))
+```
+
+Also see `Call` for details on invoking functions
 """
     # if count <= 2, then we don't have a list of params, just a name and statements
     count = len(statement.children)

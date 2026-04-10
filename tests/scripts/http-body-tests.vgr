@@ -11,7 +11,7 @@ Set target_url To "https://{}/post".Format(host)
 Define Function AssertResult(test_no):
     Assert http.result.reason Is None : "Test {} failed: {}", test_no, http.result.reason
     Assert http.result.status_code == http.status.ok : "Test {}: Expected {}, got {}", test_no, http.status.ok, http.result.status_code
-End
+End-Function
 
 Define Function CheckDataResponse(test_no, expected, expected_type):
     Call AssertResult(test_no)
@@ -24,7 +24,7 @@ Define Function CheckDataResponse(test_no, expected, expected_type):
     Assert received == expected : "Test {}: For data expected {!r}, received {!r}", test_no, expected, received
     Call PrintPassed(test_no)
     Return test_no + 1
-End
+End-Function
 
 Define Function CheckJsonResponse(test_no, expected, expected_type):
     Call AssertResult(test_no)
@@ -37,11 +37,11 @@ Define Function CheckJsonResponse(test_no, expected, expected_type):
     Assert received == expected : "Test {}: For data expected {!r}, received {!r}", test_no, expected, received
     Call PrintPassed(test_no)
     Return test_no + 1
-End
+End-Function
 
 Define Function PrintPassed(test_no):
     Print "Test", test_no, "passed"
-End
+End-Function
 
 Set n To 1
 
@@ -192,10 +192,10 @@ Call CheckDataResponse(n, expected, type) Giving n
 // -------------------------------------------------------------------------
 Set body_value To "🎉 Hello World"
 Set expected To body_value.ReplaceStr("🎉", "?")
-ForEach charset In ["ascii", "latin-1", "cp1252"]:
+For Each charset In ["ascii", "latin-1", "cp1252"]
     Set type To http.type.text + "; charset=" + charset
     Http Post target_url Body Is body_value Header "{}: {}".Format(http.header.content_type, type)
     Call CheckDataResponse(n, expected, type) Giving n
-End
+End-For
 
 Print "All body tests passed"

@@ -1,10 +1,10 @@
 Define Function NoReturn(x):
     NOP
-End
+End-Function
 
 Define Function Sqrt(x):
     Return x·⁵
-End
+End-Function
 
 Echo On
 Assert @NoReturn(5) Is None

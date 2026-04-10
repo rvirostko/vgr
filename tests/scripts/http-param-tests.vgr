@@ -10,22 +10,22 @@ Set getter To "https://{}/get".Format(host)
 
 Define Function AssertResult(test_no):
     Assert http.result.reason Is None : "Test {} failed: {}", test_no, http.result.reason
-End
+End-Function
 
 Define Function CheckParam(test_no, key, expected):
     Set received To http.result.response.args.GetKeyValue(ToString(key))
     Assert received == expected : "Test {}: For key {!r} expected {!r}, received {!r}", test_no, key, expected, received
-End
+End-Function
 
 Define Function PrintPassed(test_no):
     Print "Test", test_no, "passed"
-End
+End-Function
 
 Define Function CheckSingleParam(test_no, key, expected):
     Call AssertResult(test_no)
     Call CheckParam(test_no, key, expected)
     Call PrintPassed(test_no)
-End
+End-Function
 
 Set n To 1
 // -------------------------------------------------------------------------

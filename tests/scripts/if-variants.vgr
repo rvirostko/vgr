@@ -1,32 +1,32 @@
 # Different "If" syntax
 
 # VGR
-If True Then
+If True Then # BASIC like
     Print "Hello"
-End
+End # keep untyped
 
-If True:
+If True: # keep colon
     Print "Hello"
-End
+End # keep untyped
 
 If True
     Print "Hello"
-End
+End # keep untyped
 
 If False
     Print "Goodbye"
-Else:
+Else: # keep colon
     Print "Hello"
-End
+End # keep untyped
 
 If False
     Print "Goodbye"
 Else
     Print "Hello"
-End
+End # keep untyped
 
-# COBOL
-If True:
+# COBOL like (but in main/preferred syntax)
+If True: # keep colon
     Print "Hello"
 End-If
 
@@ -36,7 +36,7 @@ End-If
 
 If False
     Print "Goodbye"
-Else:
+Else: # keep colon
     Print "Hello"
 End-If
 

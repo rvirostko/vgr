@@ -10,7 +10,6 @@
     | cobol_evaluate
     | cobol_exit
     | cobol_exhibit
-    | cobol_if
     | cobol_inc
     | cobol_move_to
     | cobol_mul_by
@@ -56,9 +55,6 @@ cobol_perform_until: "Perform"i "Until"i expr ":"? statement+ ("End-Perform"i | 
 cobol_perform_varying: "Perform"i varying_test_type? "Varying"i var_name "From"i expr "By"i expr "Until"i expr ":"? statement+ ("End-Perform"i | "End"i)? _SEMICOLON?
 ?varying_test_type: "With"i? "Test"i "Before"i -> test_before
     | "With"i? "Test"i "After"i -> test_after
-
-cobol_if: "If"i expr ":"? statement+ cobol_else_clause? "End-If"i _SEMICOLON?
-cobol_else_clause: "Else"i ":"? statement+ -> else
 
 cobol_exhibit: "Exhibit"i "*" _SEMICOLON? // exhibit all
     | "Exhibit"i var_name (_COMMA? var_name)* _SEMICOLON?

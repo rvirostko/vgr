@@ -39,7 +39,7 @@ from ..builtins import (
     poly_type,
 )
 from ..redir import print_stderr, print_stdout
-from ..stmt_exec import exec_if_else, exec_loop, exec_repeat, LOOP_META_PATH, set_loop_meta
+from ..stmt_exec import exec_loop, exec_repeat, LOOP_META_PATH, set_loop_meta
 from ..stmt_set import execute_set
 from ..tags import control_statement
 
@@ -169,7 +169,7 @@ Define Function hello():
     Print "Hello"
     Exit Program    # Returns None from the function
     Print "Goodbye" # Never executed
-End
+End-Function
 
 Call hello
 ```
@@ -199,7 +199,7 @@ def execute_perform_until(ctx: ExecContext, statement: Tree) -> None:
 **Repeatedly execute a block of statements until a condition is reached**
 
 * Perform Until *expression*\\
-  &emsp;&emsp;_statement_&hellip;\\
+  &emsp;&emsp;*statement*&hellip;\\
   End-Perform [;]
 
 The block of statements is executed until *expression* evaluates to True.
@@ -235,7 +235,7 @@ def execute_perform_times(ctx: ExecContext, statement: Tree) -> None:
 **Execute a block of statements a fixed number of times**
 
 * Perform *expression* Times\\
-  &emsp;&emsp;_statement_&hellip;\\
+  &emsp;&emsp;*statement*&hellip;\\
   End-Perform [;]
 
 The block of statements is executed the given number of times.
@@ -270,10 +270,10 @@ def execute_perform_varying(ctx: ExecContext, statement: Tree) -> None:
 **Execute a block of statements while increasing or decreasing a variable's value**
 
 * Perform Varying *variable* From *expression* By *expression* Until *expression*\\
-  &emsp;&emsp;_statement_&hellip;\\
+  &emsp;&emsp;*statement*&hellip;\\
   End-Perform [;]
 * Perform With Test [Before | After] Varying *variable* From *expression* By *expression* Until *expression*\\
-  &emsp;&emsp;_statement_&hellip;\\
+  &emsp;&emsp;*statement*&hellip;\\
   End-Perform [;]
 
 If a `Break` is encountered, looping ends regardless of the
@@ -296,7 +296,7 @@ End-Perform
 4 : 16
 5 : 25
 
-Perform Varying x From 2 By 2 Until x > 10:
+Perform Varying x From 2 By 2 Until x > 10
     Print x, $loop
 End-Perform
 
@@ -370,46 +370,6 @@ distance → 21.213203435596427
 Also see `Set` and `Move`
 """
     execute_set(ctx, statement)
-
-@control_statement
-@bound_ops("If End-If")
-def execute_if(ctx: ExecContext, statement: Tree) -> None:
-    """
-**Conditionally execute a block of statements**
-
-* If *expression*\\
-  &emsp;&emsp;_statement_&hellip;\\
-  End-If [;]
-* If *expression*\\
-  &emsp;&emsp;_statement_&hellip;\\
-  Else\\
-  &emsp;&emsp;_statement_&hellip;\\
-  End-If [;]
-
-COBOL compatiple version of `If Else`
-
-If *expression* evaluates to `True` the first block of statements is executed.
-If it evaluates to `False`, the second block of statements, if provided, is executed.
-
-```vgr
-Move 5 To a
-Move 7 To b
-If a > b
-    Display "a is larger"
-Else
-    If b > a
-        Display "b is larger"
-    Else
-        Display "a and b are equal"
-    End-If
-End-If
-
-"b is larger"
-```
-
-Also see `If Else`, `Break`, and `Continue`
-"""
-    exec_if_else(ctx, statement, True)
 
 @bound_ops("Set Up")
 def execute_inc(ctx: ExecContext, statement: Tree) -> None:
@@ -898,9 +858,9 @@ def execute_evaluate(ctx: ExecContext, statement: Tree) -> None:
 **Choose from a set of statements based on a value**
 
 * Evaluate *expression*\\
-  &emsp;&emsp;When [Not] *expression* _statement_&hellip;\\
-  &emsp;&emsp;When [Not] *expression* [Through | Thru] *expression* _statement_&hellip;\\
-  &emsp;&emsp;When Other _statement_&hellip;\\
+  &emsp;&emsp;When [Not] *expression* *statement*&hellip;\\
+  &emsp;&emsp;When [Not] *expression* [Through | Thru] *expression* *statement*&hellip;\\
+  &emsp;&emsp;When Other *statement*&hellip;\\
   End-Evaluate [;]
 
 The *expression* in the statement is evaluated and it becomes the

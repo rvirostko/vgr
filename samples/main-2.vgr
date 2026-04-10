@@ -3,4 +3,4 @@
 // See main-1.vgr for an explanation
 If Length(vgr.source) <= 1
     Print vgr.source.FirstItem(), "is main"
-End
+End-If
