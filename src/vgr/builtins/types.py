@@ -17,9 +17,9 @@ def poly_isnone(x: Any=None) -> Any:
 * *value*.IsNone()
 
 ```vgr
-**TODO**
+None.IsNone() → True
+"anything".IsNone() → False
 ```
-
 Also see `IsNotNone()`
 """
     return x is None
@@ -32,7 +32,8 @@ def poly_isnotnone(x: Any=None) -> Any:
 * *value*.IsNotNone()
 
 ```vgr
-**TODO**
+None.IsNotNone() → False
+"anything".IsNotNone() → True
 ```
 
 Also see `IsNone()`
@@ -88,7 +89,9 @@ def poly_isbool(x: Any=None) -> bool:
 * *value*.IsBoolean()
 
 ```vgr
-**TODO**
+None.IsBoolean() → False
+Zero.IsBoolean() → False
+True.IsBoolean() → True
 ```
 
 Also see `Type()`, `IsInteger()`, `IsFloat()`, `IsNumber()`, and `IsString()`
@@ -134,7 +137,10 @@ def poly_isfloat(x: Any=None) -> bool:
 * *value*.IsFloat()
 
 ```vgr
-**TODO**
+None.IsFloat() → False
+Zero.IsFloat() → False
+1.0.IsFloat() → True
+Inf.IsFloat() → True
 ```
 
 Also see `Type()`, `IsBoolean()`, `IsInteger()`, `IsNumber()`, and `IsString()`
@@ -177,7 +183,10 @@ def poly_isint(x: Any=None) -> bool:
 * *value*.IsInteger()
 
 ```vgr
-**TODO**
+None.IsInteger() → False
+Zero.IsInteger() → True
+1.0.IsInteger() → False
+Inf.IsInteger() → False
 ```
 
 Also see `Type()`, `IsBoolean()`, `IsFloat()`, `IsNumber()`, and `IsString()`
@@ -226,7 +235,11 @@ Only _float_ and _int_ items are considered numbers, although booleans
 can be converted to numbers.
 
 ```vgr
-**TODO**
+None.IsNumber() → False
+Zero.IsNumber() → True
+1.0.IsNumber() → True
+"1.0".IsNumber() → False
+Inf.IsNumber() → True
 ```
 
 Also see `Type()`, `IsBoolean()`, `IsInteger()`, `IsFloat()`, and `IsString()`
@@ -261,7 +274,10 @@ def poly_isinf(x: Any=None) -> bool:
 * *value*.IsInf()
 
 ```vgr
-**TODO**
+None.IsInf() → False
+Zero.IsInf() → False
+Inf.IsInf() → True
+math.neg_inf.IsInf() → True
 ```
 """
     return math.isinf(x) if isinstance(x, (int, float)) else False
