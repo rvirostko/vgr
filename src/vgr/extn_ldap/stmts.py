@@ -104,9 +104,9 @@ If *connection_name* is omitted, a default name is used.
 This name, or default, becomes the value of _term.connection_.
 
 ```vgr
-Connect To "ldaps://main.corp.org"
-    User is corp_dn
-    Password is corp_psw
+Ldap Connect To "ldaps://main.corp.org"
+    User Is corp_dn
+    Password Is corp_psw
     As "ldap_corp"
 Exhibit ldap.connection → ldap.connection = "ldap_corp"
 ```
