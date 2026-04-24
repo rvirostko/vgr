@@ -9,13 +9,13 @@ import re
 from .common import bound_ops, NoneType
 from .type import poly_type
 
-@bound_ops("Matches Any", "~")
+@bound_ops("Matches", "~")
 def poly_matches(*args) -> Any:
     """
 **Perform a regular expression match**
 
-* *value* Matches [Any] *pattern*
-* *value* Matches [Any] [ _pattern&hellip; ]
+* *value* Matches *pattern*
+* *value* Matches [ _pattern&hellip; ]
 * *value* ~ *pattern*
 * *value* ~ [ *pattern*&hellip; ]
 * Matches(*value*, *pattern*&hellip;)

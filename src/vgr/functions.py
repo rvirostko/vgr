@@ -381,7 +381,6 @@ _BUILT_IN_FUNCS: dict[str, Callable[..., Any]] = {
     "LowestOneBit":   poly_lowest_one_bit,
     "Matches":        poly_matches,
     "MatchesAll":     poly_matches_all,
-    "MatchesAny":     poly_matches,
     "Max":            poly_max,
     "MdBlockQuote":   md_blockquote,
     "MdCode":         md_code,
