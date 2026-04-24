@@ -56,3 +56,7 @@ Assert "bbb".Matches(all_a, all_b)
 Assert "bbb".Matches([all_a], [all_b])
 Assert "bbb".Matches([all_a, all_b])
 Assert "abba".Matches(all_a, all_b) Is False
+
+# Case insensitive matching
+Assert ("A" ~ a_or_b) Is False # case sensitive
+Assert "A" ~* a_or_b # case insensitive
