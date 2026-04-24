@@ -372,7 +372,7 @@ ternary: expr "?" expr ":" expr -> c_ternary
     | expr2 (("Is"i "Not"i "In"i) | "\u2209") expr2 -> not_in_op // Unicode ∉ (not an element of)
     | expr2 "Contains"i "Any"i? expr2 -> contains_op
     | expr2 "Contains"i "All"i expr2 -> contains_all_op
-    | expr2 ("~" | "Matches"i) expr2 -> matches_op
+    | expr2 op_matches expr2 -> matches_op
     | expr2 "Matches"i "All"i expr2 -> matches_all_op
     | expr2 "~*" expr2 -> imatches_op
     | expr2 "!~" expr2 -> not_matches_op

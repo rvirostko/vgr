@@ -514,7 +514,11 @@ class OperationBinder(Transformer):
     def in_op(self, tree): return SimpleOperation(tree, poly_in)
     def le_op(self, tree): return SimpleOperation(tree, poly_le)
     def lt_op(self, tree): return SimpleOperation(tree, poly_lt)
-    def matches_op(self, tree): return SimpleOperation(tree, poly_matches)
+    def matches_op(self, tree):
+        child = tree.children[1]
+        if isinstance(child, Tree) and child.data == 'op_matches':
+            del tree.children[1]
+        return SimpleOperation(tree, poly_matches)
     def matches_all_op(self, tree): return SimpleOperation(tree, poly_matches_all)
     def neq_op(self, tree): return SimpleOperation(tree, poly_ne)
     def not_imatches_op(self, tree): return SimpleOperation(tree, poly_not_imatches)

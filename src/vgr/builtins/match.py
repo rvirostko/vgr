@@ -6,11 +6,10 @@ Includes case independent variations.
 from typing import Any
 import re
 
-from .common import bound_ops, NoneType
-from .type import poly_type
+from .common import bound_ops
 
 @bound_ops("Matches", "~")
-def poly_matches(*args) -> Any:
+def poly_matches(*args) -> bool:
     """
 **Perform a regular expression match**
 
@@ -27,8 +26,9 @@ more of its contents must match for the expression to be `True`.
 
 ```vgr
 "aaa" Matches "^(a|b)+$" → True
-["aaa", "abba"] Matches "^(a|b)+$" → True
-["aaa", "abba", "bad"] Matches "^(a|b)+$" → False
+"bb" Matches "^(a|b)+$" → True
+["aaa", "bb"] Matches "^(a|b)+$" → False
+["aaa", "bb", "abba"] Matches "^(a|b)+$" → False
 ```
 
 In its functional form, one or values for *pattern* may be specified, acting as
@@ -54,11 +54,10 @@ Also see operators `!~` and `~*`
 """
     if not args: return False
     x, *args = args
-    if not args: args = [None]
-    return _do_match(x, args[0] if len(args) == 0 else [*args])
+    return _do_match(x, args[0] if len(args) == 1 else [*args])
 
 @bound_ops("~*")
-def poly_imatches(x: Any=None, y: Any=None) -> Any:
+def poly_imatches(*args) -> bool:
     """
 **Perform a case independent regular expression match**
 
@@ -76,10 +75,12 @@ of case. This applies to characters in both the *value* and the *pattern*.
 
 Also see operators `~` and `!~*`
 """
-    return _do_match(x, y, True)
+    if not args: return False
+    x, *args = args
+    return _do_match(x,  args[0] if len(args) == 1 else [*args], True)
 
 @bound_ops("Matches All")
-def poly_matches_all(*args) -> Any:
+def poly_matches_all(*args) -> bool:
     """
 **Perform a regular expression match**
 
@@ -98,15 +99,14 @@ of is provided, *all* must match.
 "aaa".MatchesAll("^a+$", "^b+$") → False
 ```
 
-Also see `Matches Any` and `!~`
+Also see `Matches` and `!~`
 """
     if not args: return False
     x, *args = args
-    if not args: args = [None]
-    return _do_match(x, args[0] if len(args) == 0 else [*args], False, True)
+    return _do_match(x,  args[0] if len(args) == 1 else [*args], False, True)
 
 @bound_ops("!~")
-def poly_not_matches(x: Any=None, y: Any=None) -> Any:
+def poly_not_matches(*args) -> bool:
     """
 **Perform a negated regular expression match**
 
@@ -124,10 +124,12 @@ does *not* match any of the patterns.
 
 Also see operators `~` and `!~*`
 """
-    return not _do_match(x, y)
+    if not args: return False
+    x, *args = args
+    return not _do_match(x, args[0] if len(args) == 1 else [*args])
 
 @bound_ops("!~*")
-def poly_not_imatches(x: Any=None, y: Any=None) -> Any:
+def poly_not_imatches(*args) -> bool:
     """
 **Perform a negated case independent regular expression match**
 
@@ -145,32 +147,21 @@ of case and it request that *value* does _not_ match any of the patterns.
 
 Also see operators `~*` and `!~`
 """
-    return not _do_match(x, y, True)
+    if not args: return False
+    x, *args = args
+    return not _do_match(x, args[0] if len(args) == 1 else [*args], True)
 
-def _do_match(x: Any, y: Any, ci: bool=False, do_all: bool=False) -> Any:
-    # None Matches <Any> and None Matches None
-    if x is None: return y is None
-    # <Any> Matches None
-    if y is None: return False
-    # ["aaa", "bb"] Matches "^(a|b)+$" -> True
-    if isinstance(x, list):
-        return all(_do_match(x1, y, ci, do_all) for x1 in x)
-    # 27 Matches 27.0 -> True
-    if isinstance(x, (NoneType, bool, int, float)):
-        if isinstance(y, (NoneType, bool, int, float)): return x == y
-    # a_dictionary Matches "abc" -> Exception
-    if not isinstance(x, str):
-        raise TypeError(f'Cannot perform Match on {poly_type(x)!r}')
-    if isinstance(y, str):
-        try:
-            y = re.compile(y, re.IGNORECASE if ci else 0)
-        except Exception as e:
-            raise ValueError(f'Match Pattern error: {y!r}') from e
-    # "Ziggy" Matches "^Z" -> True
-    if isinstance(y, re.Pattern):
-        return re.search(y, x) is not None
-    # "Bobby" Matches ["Rob", "Bob"] -> True
+def _do_match(x: Any, y: Any, ci: bool=False, do_all: bool=False) -> bool:
     if isinstance(y, list):
         if do_all: return all(_do_match(x, y1, ci, do_all) for y1 in y)
         return any(_do_match(x, y1, ci, do_all) for y1 in y)
-    raise TypeError(f'Cannot use {poly_type(y)!r} as a Pattern with Match')
+    if x is None: return y is None
+    if isinstance(x, list):
+        return all(_do_match(x1, y, ci, do_all) for x1 in x)
+    if y is None: return False
+    if not isinstance(y, re.Pattern):
+        try:
+            y = re.compile(str(y), re.IGNORECASE if ci else 0)
+        except Exception as e:
+            raise ValueError(f'Match Pattern error: {y!r}') from e
+    return re.search(y, str(x)) is not None
