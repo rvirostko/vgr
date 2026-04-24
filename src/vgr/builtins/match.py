@@ -159,7 +159,12 @@ def _do_match(x: Any, y: Any, ci: bool=False, do_all: bool=False) -> bool:
     if isinstance(x, list):
         return all(_do_match(x1, y, ci, do_all) for x1 in x)
     if y is None: return False
-    if not isinstance(y, re.Pattern):
+    if isinstance(y, re.Pattern):
+        # if case insensitive requested and the compiled pattern
+        # doesn't have it, recompile with the desired setting
+        if ci and not bool(y.flags & re.IGNORECASE):
+            y = re.compile(y.pattern, y.flags | re.IGNORECASE)
+    else:
         try:
             y = re.compile(str(y), re.IGNORECASE if ci else 0)
         except Exception as e:
