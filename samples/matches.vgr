@@ -25,6 +25,7 @@ For Each value In [True, False, Zero, Nan, Inf, "hello", ["world"]]
     Assert value.Matches(value)
     Assert [value].Matches(value)
     Assert [value, "frog"].Matches(value) Is False
+    Assert [value, "frog"] Not Matches value
     Assert value.Matches([value, "frog"])
     Assert value Matches All value
     Assert [value] Matches All value
@@ -46,6 +47,7 @@ Assert "bb" Matches a_or_b
 Assert ["aaa", "bb"] Matches a_or_b
 # Not all match the pattern so result is False
 Assert (["aaa", "bb", "abba", "bad"] Matches a_or_b) Is False
+Assert ["aaa", "bb", "abba", "bad"] Does Not Match a_or_b
 
 # Functional form can take multiple patterns
 # one of which must match
@@ -54,5 +56,3 @@ Assert "bbb".Matches(all_a, all_b)
 Assert "bbb".Matches([all_a], [all_b])
 Assert "bbb".Matches([all_a, all_b])
 Assert "abba".Matches(all_a, all_b) Is False
-
-# TODO array of inputs

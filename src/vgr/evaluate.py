@@ -523,7 +523,11 @@ class OperationBinder(Transformer):
     def neq_op(self, tree): return SimpleOperation(tree, poly_ne)
     def not_imatches_op(self, tree): return SimpleOperation(tree, poly_not_imatches)
     def not_in_op(self, tree): return SimpleOperation(tree, poly_not_in)
-    def not_matches_op(self, tree): return SimpleOperation(tree, poly_not_matches)
+    def not_matches_op(self, tree):
+        child = tree.children[1]
+        if isinstance(child, Tree) and child.data == 'op_not_matches':
+            del tree.children[1]
+        return SimpleOperation(tree, poly_not_matches)
 
     # Polymorphic operations with two or more operands
     def add_op(self, tree): return SimpleOperation(tree, poly_add)
