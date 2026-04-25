@@ -7,6 +7,10 @@ from typing import Any
 import re
 
 from .common import bound_ops
+from .inequ import poly_eq
+from .types import poly_str
+
+def _pop_single(args): return args[0] if len(args) == 1 else [*args]
 
 @bound_ops("Matches", "~")
 def poly_matches(*args) -> bool:
@@ -54,7 +58,7 @@ Also see operators `!~` and `~*`
 """
     if not args: return False
     x, *args = args
-    return _do_match(x, args[0] if len(args) == 1 else [*args])
+    return _do_match(x, _pop_single(args)) if args else False
 
 @bound_ops("~*")
 def poly_imatches(*args) -> bool:
@@ -77,7 +81,7 @@ Also see operators `~` and `!~*`
 """
     if not args: return False
     x, *args = args
-    return _do_match(x,  args[0] if len(args) == 1 else [*args], True)
+    return _do_match(x, _pop_single(args), True) if args else False
 
 @bound_ops("Matches All")
 def poly_matches_all(*args) -> bool:
@@ -103,7 +107,7 @@ Also see `Matches` and `!~`
 """
     if not args: return False
     x, *args = args
-    return _do_match(x,  args[0] if len(args) == 1 else [*args], False, True)
+    return _do_match(x, _pop_single(args), False, True) if args else False
 
 @bound_ops("!~")
 def poly_not_matches(*args) -> bool:
@@ -126,7 +130,7 @@ Also see operators `~` and `!~*`
 """
     if not args: return False
     x, *args = args
-    return not _do_match(x, args[0] if len(args) == 1 else [*args])
+    return not _do_match(x, _pop_single(args)) if args else False
 
 @bound_ops("!~*")
 def poly_not_imatches(*args) -> bool:
@@ -149,7 +153,7 @@ Also see operators `~*` and `!~`
 """
     if not args: return False
     x, *args = args
-    return not _do_match(x, args[0] if len(args) == 1 else [*args], True)
+    return not _do_match(x, _pop_single(args), True) if args else False
 
 def _do_match(x: Any, y: Any, ci: bool=False, do_all: bool=False) -> bool:
     if isinstance(y, list):
@@ -158,6 +162,7 @@ def _do_match(x: Any, y: Any, ci: bool=False, do_all: bool=False) -> bool:
     if x is None: return y is None
     if isinstance(x, list):
         return all(_do_match(x1, y, ci, do_all) for x1 in x)
+    if isinstance(x, (bool, int, float)) and isinstance(y, (bool, int, float)): return poly_eq(x, y)
     if y is None: return False
     if isinstance(y, re.Pattern):
         # if case insensitive requested and the compiled pattern
@@ -169,4 +174,4 @@ def _do_match(x: Any, y: Any, ci: bool=False, do_all: bool=False) -> bool:
             y = re.compile(str(y), re.IGNORECASE if ci else 0)
         except Exception as e:
             raise ValueError(f'Match Pattern error: {y!r}') from e
-    return re.search(y, str(x)) is not None
+    return re.search(y, poly_str(x)) is not None

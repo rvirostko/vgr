@@ -35,6 +35,13 @@ For Each value In [True, False, Zero, Nan, Inf, "hello", ["world"]]
     Troff
 End-For
 
+# When neither type is a string or pattern
+# equality (or equivalency) is used
+Assert 1 Matches True
+Assert 1 Matches 1.0
+Assert 1.0 Matches 1
+Assert Zero Matches False
+
 Tron
 
 # Pattern compilation is optional
@@ -60,3 +67,11 @@ Assert "abba".Matches(all_a, all_b) Is False
 # Case insensitive matching
 Assert ("A" ~ a_or_b) Is False # case sensitive
 Assert "A" ~* a_or_b # case insensitive
+Assert "C" !~ a_or_b # case sensitive
+Assert "C" !~* a_or_b # case insensitive
+Assert ("B" !~* a_or_b) Is False # case insensitive
+
+
+# If the pattern and string are reversed
+# the pattern is treated as a string
+Assert (all_a Matches "aa") Is False
