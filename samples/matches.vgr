@@ -71,7 +71,8 @@ Assert "C" !~ a_or_b # case sensitive
 Assert "C" !~* a_or_b # case insensitive
 Assert ("B" !~* a_or_b) Is False # case insensitive
 
-
 # If the pattern and string are reversed
 # the pattern is treated as a string
+Assert (all_a Matches "a") Is True
+Assert (all_a Matches "a|b") Is True
 Assert (all_a Matches "aa") Is False
