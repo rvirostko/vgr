@@ -127,6 +127,7 @@ op_contains: "Contains"i
 op_not_contains: ("Not"i op_contains | "Does"i "Not"i "Contain"i)
 op_matches: "~" | "Matches"i
 op_not_matches: ("!~" | "Not"i op_matches | "Does"i "Not"i "Match"i)
+op_matches_all: "Matches"i "All"i
 op_imatches: "~*"
 op_not_imatches: "!~*" | "Not"i op_imatches
 
@@ -145,7 +146,7 @@ values_block: "When"i "Is"i? "Empty"i ":" statement+ -> is_empty_block
     | "When"i expr ("Through"i | "Thru"i | "To"i) expr ":" statement+ -> range_block
     | "When"i "Not"i expr ("Through"i | "Thru"i | "To"i) expr ":" statement+ -> not_range_block
     | "When"i (op_lt | op_gt | op_ge | op_le) expr ":" statement+ -> ineq_block
-    | "When"i (op_eq | op_ne | op_contains | op_matches | op_not_contains | op_not_matches) value_list ":" statement+
+    | "When"i (op_eq | op_ne | op_contains | op_not_contains | op_matches | op_not_matches | op_matches_all) value_list ":" statement+
 value_list: expr (_COMMA expr)*
 otherwise_block: "Otherwise"i ":" statement+
 
@@ -373,7 +374,7 @@ ternary: expr "?" expr ":" expr -> c_ternary
     | expr2 "Contains"i expr2 -> contains_op
     | expr2 "Contains"i "All"i expr2 -> contains_all_op
     | expr2 op_matches expr2 -> matches_op
-    | expr2 "Matches"i "All"i expr2 -> matches_all_op
+    | expr2 op_matches_all expr2 -> matches_all_op
     | expr2 op_imatches expr2 -> imatches_op
     | expr2 op_not_matches expr2 -> not_matches_op
     | expr2 op_not_imatches expr2 -> not_imatches_op

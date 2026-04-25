@@ -21,6 +21,7 @@ from .builtins import (
     poly_le,
     poly_lt,
     poly_matches,
+    poly_matches_all,
     poly_ne,
     poly_not_matches,
     poly_notempty,
@@ -106,6 +107,7 @@ _CHOOSE_OPS = {
     'op_not_contains':    lambda x, y : poly_false(poly_contains_any(x, y)),
     'op_matches':         poly_matches,
     'op_not_matches':     poly_not_matches,
+    'op_matches_all':     poly_matches_all,
 }
 
 # These apply only to values blocks, not ranges or inequalities
@@ -130,6 +132,7 @@ def execute_choose_using(ctx: ExecContext, statement: Tree) -> None:
   &emsp;&emsp;When [> | Greater Than] *expression*: *statement*&hellip;\\
   &emsp;&emsp;When [<= | Not Greater Than] *expression*: *statement*&hellip;\\
   &emsp;&emsp;When [Not] Matches *expression* [, *expression*]&hellip; : *statement*&hellip;\\
+  &emsp;&emsp;When Matches All *expression* [, *expression*]&hellip; : *statement*&hellip;\\
   &emsp;&emsp;When [Not] Contains *expression* [, *expression*]&hellip; : *statement*&hellip;\\
   &emsp;&emsp;Otherwise : *statement*&hellip;\\
   [End-Choose | End] [;]
@@ -214,6 +217,7 @@ def _exec_choose(ctx: ExecContext, do_all: bool, statement_children, desired_val
                 # points to the following statements
                 chosen_block = choice_children
         # This section is for tests that don't use an expression
+        # TODO future "is_defined" "is not defined"
         elif when_block.data in ['is_empty_block', 'is_not_empty_block', 'is_neg_block', 'is_pos_block', 'is_even_block', 'is_odd_block']:
             test_op = _CHOOSE_OPS.get(when_block.data)
             if test_op(desired_value):

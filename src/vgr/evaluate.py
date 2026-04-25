@@ -523,7 +523,11 @@ class OperationBinder(Transformer):
         if isinstance(child, Tree) and child.data == 'op_matches':
             del tree.children[1]
         return SimpleOperation(tree, poly_matches)
-    def matches_all_op(self, tree): return SimpleOperation(tree, poly_matches_all)
+    def matches_all_op(self, tree):
+        child = tree.children[1]
+        if isinstance(child, Tree) and child.data == 'op_matches_all':
+            del tree.children[1]
+        return SimpleOperation(tree, poly_matches_all)
     def neq_op(self, tree): return SimpleOperation(tree, poly_ne)
     def not_imatches_op(self, tree):
         child = tree.children[1]
