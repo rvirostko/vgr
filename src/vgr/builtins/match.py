@@ -60,13 +60,17 @@ Also see operators `!~` and `~*`
     x, *args = args
     return _do_match(x, _pop_single(args)) if args else False
 
-@bound_ops("~*")
+@bound_ops("IMatches", "~*")
 def poly_imatches(*args) -> bool:
     """
 **Perform a case independent regular expression match**
 
+* *value* IMatches *pattern*
+* *value* IMatches [ _pattern&hellip; ]
 * *value* ~* *pattern*
 * *value* ~* [ *pattern*&hellip; ]
+* IMatches(*value*, *pattern*&hellip;)
+* *value*.IMatches(*pattern*&hellip;)
 
 Operates identically to `Matches` except matching is performed independent
 of case. This applies to characters in both the *value* and the *pattern*.
@@ -109,13 +113,17 @@ Also see `Matches` and `!~`
     x, *args = args
     return _do_match(x, _pop_single(args), False, True) if args else False
 
-@bound_ops("!~")
-def poly_not_matches(*args) -> bool:
+@bound_ops("Does Not Match", "!~")
+def poly_not_match(*args) -> bool:
     """
 **Perform a negated regular expression match**
 
+* *value* Does Not Match *pattern*
+* *value* Does Not Match [*pattern*&hellip;]
 * *value* !~ *pattern*
 * *value* !~ [ *pattern*&hellip; ]
+* DoesNotMatch(*value*, *pattern*&hellip;)
+* *value*.DoesNotMatch(*pattern*&hellip;)
 
 Operates identically to `Matches` except that it requires that *value*
 does *not* match any of the patterns.
@@ -132,13 +140,17 @@ Also see operators `~` and `!~*`
     x, *args = args
     return not _do_match(x, _pop_single(args)) if args else False
 
-@bound_ops("!~*")
-def poly_not_imatches(*args) -> bool:
+@bound_ops("Does Not IMatch", "!~*")
+def poly_not_imatch(*args) -> bool:
     """
 **Perform a negated case independent regular expression match**
 
+* *value* Does Not IMatch *pattern*
+* *value* Does Not IMatch [*pattern*&hellip;]
 * *value* !~* *pattern*
 * *value* !~* [ *pattern*&hellip; ]
+* DoesNotIMatch(*value*, *pattern*&hellip;)
+* *value*.DoesNotIMatch(*pattern*&hellip;)
 
 Operates identically to `Matches` except that the match is performed independent
 of case and it request that *value* does _not_ match any of the patterns.

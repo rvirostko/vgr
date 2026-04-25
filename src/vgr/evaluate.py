@@ -48,9 +48,9 @@ from .builtins import (
     poly_mod,
     poly_mul,
     poly_ne,
-    poly_not_imatches,
+    poly_not_imatch,
     poly_not_in,
-    poly_not_matches,
+    poly_not_match,
     poly_pow,
     poly_repr,
     poly_shl,
@@ -533,13 +533,13 @@ class OperationBinder(Transformer):
         child = tree.children[1]
         if isinstance(child, Tree) and child.data == 'op_not_imatches':
             del tree.children[1]
-        return SimpleOperation(tree, poly_not_imatches)
+        return SimpleOperation(tree, poly_not_imatch)
     def not_in_op(self, tree): return SimpleOperation(tree, poly_not_in)
     def not_matches_op(self, tree):
         child = tree.children[1]
         if isinstance(child, Tree) and child.data == 'op_not_matches':
             del tree.children[1]
-        return SimpleOperation(tree, poly_not_matches)
+        return SimpleOperation(tree, poly_not_match)
 
     # Polymorphic operations with two or more operands
     def add_op(self, tree): return SimpleOperation(tree, poly_add)

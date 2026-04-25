@@ -128,8 +128,8 @@ op_not_contains: ("Not"i op_contains | "Does"i "Not"i "Contain"i)
 op_matches: "~" | "Matches"i
 op_not_matches: ("!~" | "Not"i op_matches | "Does"i "Not"i "Match"i)
 op_matches_all: "Matches"i "All"i
-op_imatches: "~*"
-op_not_imatches: "!~*" | "Not"i op_imatches
+op_imatches: ("~*" | "IMatches"i)
+op_not_imatches: ("!~*" | "Not"i op_imatches | "Does"i "Not"i "IMatch"i)
 
 choose_statement: "Choose"i choose_all? ":" choice_block+ otherwise_block? ("End-Choose"i | "End"i) _SEMICOLON? -> choose
     | "Choose"i choose_all? "Using"i expr ":" values_block+ otherwise_block? ("End-Choose"i | "End"i) _SEMICOLON? -> choose_using

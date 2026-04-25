@@ -33,9 +33,9 @@ from .builtins import (
     poly_mod,
     poly_mul,
     poly_ne,
-    poly_not_imatches,
+    poly_not_imatch,
     poly_not_in,
-    poly_not_matches,
+    poly_not_match,
     poly_pow,
     poly_shl,
     poly_shr,
@@ -75,9 +75,9 @@ _OP_FUNCS: list[Callable[..., Any]] = [
     poly_mod, # mod_op
     poly_mul, # mul_op
     poly_ne, # neq_op
-    poly_not_imatches, # not_imatches_op
+    poly_not_imatch, # not_imatches_op
     poly_not_in, # not_in_op
-    poly_not_matches, # not_matches_op
+    poly_not_match, # not_matches_op
     poly_pow, # pow_op
     poly_shl, # shl_op
     poly_shr, # shr_op

@@ -23,7 +23,7 @@ from .builtins import (
     poly_matches,
     poly_matches_all,
     poly_ne,
-    poly_not_matches,
+    poly_not_match,
     poly_notempty,
     poly_true,
 )
@@ -106,7 +106,7 @@ _CHOOSE_OPS = {
     'op_contains':        poly_contains_any,
     'op_not_contains':    lambda x, y : poly_false(poly_contains_any(x, y)),
     'op_matches':         poly_matches,
-    'op_not_matches':     poly_not_matches,
+    'op_not_matches':     poly_not_match,
     'op_matches_all':     poly_matches_all,
 }
 

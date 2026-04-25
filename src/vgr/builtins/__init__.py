@@ -137,7 +137,13 @@ from .markdown import (
     md_strikethrough,
     md_unordered_list,
 )
-from .match import poly_imatches, poly_matches, poly_not_imatches, poly_not_matches, poly_matches_all
+from .match import (
+    poly_matches_all,
+    poly_matches,
+    poly_not_imatch,
+    poly_not_match,
+    poly_imatches,
+)
 from .misc_math import (
     poly_abs,
     poly_ceil_multiple,
