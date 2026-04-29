@@ -34,7 +34,6 @@ _HANDLERS = {
     'cobol_accept_date':        execute_accept,
     'cobol_accept_day':         execute_accept,
     'cobol_accept_dow':         execute_accept,
-    'cobol_accept_epoch':       execute_accept,
     'cobol_accept_input':       execute_accept,
     'cobol_accept_time':        execute_accept,
     'cobol_accept_yyyyddd':     execute_accept,

@@ -47,7 +47,6 @@ _DT_FUNCS = {
     'cobol_accept_date':     lambda: datetime.now().strftime('%y%m%d'),
     'cobol_accept_day':      lambda: datetime.now().strftime('%y%j'),
     'cobol_accept_dow':      lambda: datetime.now().weekday() + 1,
-    'cobol_accept_epoch':    lambda: int(datetime.now().timestamp()),
     'cobol_accept_time':     lambda: (now := datetime.now()).strftime('%H%M%S') + f'{now.microsecond // 10000:02d}',
     'cobol_accept_yyyyddd':  lambda: datetime.now().strftime('%Y%j'),
     'cobol_accept_yyyymmdd': lambda: datetime.now().strftime('%Y%m%d'),
