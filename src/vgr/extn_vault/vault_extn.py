@@ -84,11 +84,11 @@ def _vault_help(_ctx, _statement) -> None:
 
 *Generic API Calls*
 
-* Vault APIGet *path* - Send a GET to a Vault API
-* Vault APIList *path* - Send a LIST to a Vault API
-* Vault APIDelete *path* - Send a DELETE to a Vault API
-* Vault APIPost *path* - Send a PATCH to a Vault API
-* Vault APIPatch *path* - Send a POST to a Vault API
+* Vault Get *path* - Send a GET to a Vault API
+* Vault List *path* - Send a LIST to a Vault API
+* Vault Delete *path* - Send a DELETE to a Vault API
+* Vault Post *path* - Send a PATCH to a Vault API
+* Vault Patch *path* - Send a POST to a Vault API
 
 *Namespace Management*
 
@@ -165,9 +165,8 @@ def _vault_help(_ctx, _statement) -> None:
   is may be combined with other arguments as the parent namespace.
 * Using [Connection] *connection_name* - the connection to use. If not
   specified the last connection used by another command is assumed.
-* [Result | Results] [In] *variable* - the variable to receive the results
-  of the command. If not specified, results are placed in *vault.result*.
-* Giving *variable* - synonym for _Results_
+* Giving *variable* - the variable to receive the results of the
+  command. If not specified, results are placed in *vault.result*.
 
 Multiple argument are separated by spaces or optional commas.
 
@@ -194,15 +193,13 @@ adds the following attributes:
   by Vault, or the HTTP status.
 * *variable*.vclient.url - The URL used in the operation
 * *variable*.vclient.method - The HTTP method used in the operation
-* *variable*.vclient.status - The HTTP return code from the operation
-* *variable*.vclient.vault_index - value of the returned _X-Vault-Index_ header
-* *variable*.vclient.vault_cluster - value of the returned _X-Vault-Cluster_ header
-* *variable*.vclient.vault_lease_id - value of the returned _X-Vault-Lease-Id_ header
+* *variable*.vclient.status_code - The HTTP return code from the operation
 
 """
+    # This is a "nop"
 
 STATEMENT_HANDLERS = {
-    '_vault_help'                  : _vault_help,
+    'vault_help'                   : _vault_help,
     'vault_api_delete'             : execute_api_delete,
     'vault_api_get'                : execute_api_get,
     'vault_api_list'               : execute_api_list,
