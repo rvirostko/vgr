@@ -70,9 +70,8 @@ def execute_connect(ctx: ExecContext, statement: Tree) -> None:
 
 * Vault Connect [;]
 * Vault Connect To *host* [;]
-* Vault Connect To *host* With *token* [;]
-* Vault Connect To *host* With *token* As *connection_name* [;]
-* Vault Connect As *connection_name* To *host*, Token Is *token* [;]
+* Vault Connect To *host* Token Is *token* [;]
+* Vault Connect To *host* Token Is *token* As *connection_name* [;]
 
 *Options*
 
