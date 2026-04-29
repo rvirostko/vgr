@@ -586,7 +586,7 @@ def _gen_function_defs(weight: str, rule_name, group_label, dot_invocation: bool
             rc += ' expr'
             arg_count += 1
             for _ in range(min_args - 1):
-                rc += ' _COMMA expr'
+                rc += ' _SEP expr'
                 arg_count += 1
         # Do we have any optional arguments?
         if arg_count < max_args:
@@ -594,10 +594,10 @@ def _gen_function_defs(weight: str, rule_name, group_label, dot_invocation: bool
                 rc += ' (expr'
                 max_args = max_args if max_args == _IS_VARARGS else (max_args - 1)
             if max_args == _IS_VARARGS:
-                rc += ' (_COMMA expr)*'
+                rc += ' (_SEP expr)*'
             else:
                 while arg_count < max_args:
-                    rc += ' (_COMMA expr)?'
+                    rc += ' (_SEP expr)?'
                     arg_count += 1
             rc += ")?" if min_args == 0 else ''
         rc +=  ' ")"\n'
