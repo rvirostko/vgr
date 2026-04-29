@@ -151,13 +151,21 @@ class VaultClient():
                 rc = {}
             retcode = response.status
             # details for those interested
-            rc["_vclient"] = {
-                "url": url,
-                "method": method,
-                "status": retcode,
-                "vault_index": response.getheader("X-Vault-Index"),
-                "vault_cluster": response.getheader("X-Vault-Cluster"),
-                "vault_lease_id": response.getheader("X-Vault-Lease-Id"),
+            rc["vclient"] = {
+                # NB: keep in sync with HTTP statements
+                "url":              response.geturl(),
+                "request-url":      url,
+                "method":           method,
+                "status_code":      retcode,
+                "headers":          { key.title() : value for key, value in response.headers.items() },
+                "http_version":     response.version,  # 10 for HTTP/1.0, 11 for HTTP/1.1, 20 for HTTP/2.0
+                "is_client_error":  400 <= retcode < 500,
+                "is_server_error":  500 <= retcode < 600,
+                "is_error":         400 <= retcode < 600,
+                "is_success":       200 <= retcode < 300,
+                "is_redirect":      300 <= retcode < 400,
+                "is_informational": 100 <= retcode < 200,
+                "is_closed":        response.isclosed(),
             }
             # The top-level status field for a client doing a quick
             # check for problems by seeing if this is not None
