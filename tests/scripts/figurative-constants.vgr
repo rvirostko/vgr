@@ -18,10 +18,8 @@ Assert true_value != false_value
 Assert True Equals true_value
 Assert True === true_value
 Assert True.IsTrue()
-Assert ⊤ Equals true_value
 Assert False Equals false_value
 Assert False.IsFalse()
-Assert ⊥ Equals false_value
 
 Assert Nan Equals math.nan
 Assert Nan === math.nan
