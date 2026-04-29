@@ -130,7 +130,7 @@ def http_initialize(dd: DataDictionary) -> None:
 @bound_ops("Http Connect")
 def execute_connect(ctx: ExecContext, statement: Tree) -> None:
     """
-*Create a reusable Http connection to a host or service*
+**Create a reusable Http connection to a host or service**
 
 * Http Connect
 
@@ -149,7 +149,7 @@ Also see `Http Request` and `Http Disconnect`
 @bound_ops("Http Disconnect")
 def execute_disconnect(ctx: ExecContext, statement: Tree) -> None:
     """
-*Close an Http connection to a host or service*
+**Close an Http connection to a host or service**
 
 * Http Disconnect
 
@@ -162,7 +162,7 @@ Also see `Http Connect`
 @bound_ops("Http Request")
 def execute_request(ctx: ExecContext, statement: Tree) -> None:
     """
-*Execute an Http request on a host or service*
+**Execute an Http request on a host or service**
 
 * Http *method*
 
