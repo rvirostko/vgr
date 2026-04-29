@@ -414,7 +414,7 @@ class SelectAnalyzer(Visitor):
             break
 
     def into_clause(self, node: Tree):
-        """... into_clause: "Into"i (var_name | "File"i (stdout | stderr | expr (_COMMA? open_option)*))"""
+        """... into_clause: "Into"i (var_name | "File"i (stdout | stderr | expr (_SEP? open_option)*))"""
         first_child = node.children[0]
         self._into_opts[_SRC] = first_child
         into_type = first_child.data if isinstance(first_child, Tree) else ""
