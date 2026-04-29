@@ -100,7 +100,6 @@ class ExecContext(ABC):
         Although this checks for debug, check debug before calling
         if the arguments are not simple constants
         """
-
     @property
     def verbose(self) -> None:
         """Has the user requested detailed output"""
