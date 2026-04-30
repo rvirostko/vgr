@@ -3,7 +3,14 @@ Print """"
 The default variable name is $record"""
 Select *
 From 1 /* As $record */
-For Batch Template
+For Template
+
+Print """"
+With various options"""
+Select * From 1 For Record Template
+Select * From 1 For Batch Template
+Select * From 1 For Batch Template Include Headers
+Select * From 1 For Batch Template Exclude Headers
 
 Print """
 Ordinals are treated as a single entry array"""
@@ -85,7 +92,7 @@ For Batch Template
 Print """
 There is a special case for using a single dictionary:
 Select iterates over the keys and values in the dictionary
-just like ForEach
+just like "For Each"
 Note: the full names of the properties are "$record.key" and "$record.value"
   The Select automatically add the correct prefix as long as the
   name does not collide with a variable that is alread set."""
@@ -146,12 +153,19 @@ For JSON
 
 Print """
 CSV-"""
+
 Select *
 From File filename
 Where (age Is None Or first_name Is None) And email Is Not None
 Limit 5
 For CSV
-    Include Headers, Quote Nonnumeric
+    Exclude Headers,
+    Include Headers,        // last one wins
+    Quote Char Is Quote,    // use Char or Character
+    Quote All,              // All, None, Minimal, NonNumeric
+    Line Terminator Is Newline,
+    Escape Character Is Backslash,
+    Delimiter Is Comma
 
 Print """
 Markdown-"""
@@ -160,7 +174,8 @@ From File filename
 Where (age Is None Or first_name Is None) And email Is Not None
 Limit 5
 For Markdown
-    Include Headers
+    Exclude Headers Is False,  // optional expression
+    Include Headers Is True    // these are equivalent
 
 Print """
 Text-"""
@@ -169,7 +184,8 @@ From File filename
 Where (age Is None Or first_name Is None) And email Is Not None
 Limit 5
 For Text
-    Include Headers, Exclude Nulls,
+    Include Headers,
+    Exclude Nulls,
     Field Separator Is "!!",
     Header Separator Is "::",
     Record Separator Is "<" + Newline
@@ -211,7 +227,7 @@ To a variable (as text)-"""
 Select *
 From File filename
 Limit 5
-For CSV
+For CSV Quote Minimal, Exclude Header
 Into select_out
 Printf "{}", select_out
 Unset select_out
