@@ -72,6 +72,8 @@ from .vscode_extn import create_vscode_extension
 
 from . import __version__, __version_date__, __description__
 
+_CMD_LINE_ASSIGN = 'cmd_line_assign'
+
 LOG = logging.getLogger()
 
 class VGRCmdLine(CmdLine):
@@ -373,7 +375,7 @@ def create_parser(extn_registry: VgrExtensionRegistry, debug: bool, verbose: boo
         grammar = grammar.replace(tag, value)
     print_debug(debug, 'GRAMMAR =\n', grammar)
     return Lark(grammar,
-                start=['opt_statements', 'expr', 'set'],
+                start=['opt_statements', 'expr', _CMD_LINE_ASSIGN],
                 lexer='contextual',
                 parser='lalr',
                 debug=True,
@@ -527,7 +529,7 @@ Environment variables:
                     do_include(ctx, find_vgr_source(svalue))
                     continue
                 if stype in ['v', 'a']: # -v or --assign
-                    ctx.execute_statements(svalue, '<cmd-line>', 'set')
+                    ctx.execute_statements(svalue, '<cmd-line>', _CMD_LINE_ASSIGN)
                     continue
             except VgrException as e:
                 raise e
