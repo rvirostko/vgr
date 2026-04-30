@@ -4,8 +4,13 @@ Defines the Ldap extension
 
 from typing import Dict, Callable
 
-from ..extn import VgrExtension
+from lark import Tree
+
 from ..data_dict import DataDictionary
+from ..exec_context import ExecContext
+from ..extn import VgrExtension
+
+from ..builtins import bound_ops
 
 from .stmts import (
     execute_connect,
@@ -50,7 +55,21 @@ _FUNCTIONS = {
     "ToLdapFilter"        : qbe_to_filter,
 }
 
+@bound_ops("Ldap")
+def _ldap_help(_ctx: ExecContext, _statement: Tree) -> None:
+    """
+**Execute LDAP operations with or without session management**
+
+* Ldap Connect
+* Ldap Disconnect
+* Ldap Search
+
+Also see `Ldap Connect`, `Ldap Disconnect`, and `Ldap Search`
+"""
+    # pass
+
 _HANDLERS = {
+    'ldap_help'       : _ldap_help,
     'ldap_connect'    : execute_connect,
     'ldap_disconnect' : execute_disconnect,
     'ldap_search'     : execute_search,
