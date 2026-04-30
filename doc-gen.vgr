@@ -36,15 +36,9 @@ Tron
 // Documentation examples go here
 //-----------------------------------------------------------------------------
 
-Set a To 1
-Set b To 2
-Set c To 3
-Exhibit a, b, c
-Unset b, c
-Exhibit a, b, c
-
-
-
+Print None.IsInf()
+Print Zero.IsInf()
+Print Inf.IsInf()
 
 //-----------------------------------------------------------------------------
 Troff
