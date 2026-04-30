@@ -13,12 +13,15 @@ Assert ∅ Equals none_value
 
 Set true_value To 1 == 1
 Set false_value To 1 == 0
+Assert true_value
+Assert !false_value
 Assert true_value != false_value
 
 Assert True Equals true_value
 Assert True === true_value
 Assert True.IsTrue()
 Assert False Equals false_value
+Assert False === false_value
 Assert False.IsFalse()
 
 Assert Nan Equals math.nan
@@ -39,3 +42,5 @@ Assert Period Equals "."
 Assert Quote Equals '"'
 Assert Space Equals " "
 Assert Tab Equals "\t"
+Assert Escape Equals "\x1b"
+Assert Backslash Equals "\\"
