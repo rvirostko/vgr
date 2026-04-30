@@ -3,24 +3,24 @@
 
 # Do-While Loop
 # Reverse words in a list until sentinel encountered
-words = ["apple", "banana", "cherry", None]
-index = 0
+Let words = ["apple", "banana", "cherry", None]
+Let index = 0
 Do While words.Item(index)
     # NB: $loop is available, but only index and first values
-    word = words.Item(index)
-    reversed_word = Reverse(word)
+    Let word = words.Item(index)
+    Let reversed_word = Reverse(word)
     Print "Original:", word, "\nReversed:", reversed_word
-    index += 1
+    Let index = index + 1
 Loop
 
 # Do-Until Loop
 # Collect characters from input until a vowel is found
-input_str = "bcdfghjklmnpqrustvwxyz"
-collected = ""
-index = 0
+Let input_str = "bcdfghjklmnpqrustvwxyz"
+Let collected = ""
+Let index = 0
 Do Until Lower(SubStr(input_str, index)) Is In "aeiou"
     # NB: $loop is available, but only index and first values
-    collected += SubStr(input_str, index)
-    index += 1
+    Let collected = collected + SubStr(input_str, index)
+    Let index = index + 1
 Loop
 Print "Input:", Repr(input_str), "\nBefore vowel:", Repr(collected)

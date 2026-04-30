@@ -3,13 +3,13 @@
 // Derived from 'C' code, but not looking very much like it...
 //---------------------------------------------------------------------
 
-fib0 = 0;
-fib1 = 0;
-i = 0;
-while (i <= 8):
-    fib = (i > 0 && i <= 2) ? 1 : fib0 + fib1;
+set fib0 = 0;
+set fib1 = 0;
+set i = 0;
+while(i <= 8):
+    set fib = (i > 0 && i <= 2) ? 1 : fib0 + fib1;
     printf "fib({}) = {}\n", i, fib;
-    fib0 = fib1;
-    fib1 = fib;
-    i += 1;
+    set fib0 = fib1;
+    set fib1 = fib;
+    set i += 1;
 end;

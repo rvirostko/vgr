@@ -3,16 +3,16 @@
 //---------------------------------------------------------------------
 
 // Use a list as the "stack" for the last two Fibonacci values
-fstack = []
-i = 0
+Set fstack = []
+Set i = 0
 While i <= 8
     If fstack.Length() < 2
-        fib = 0
+        Set fib = 0
     Else
-        fib = (i > 0 && i <= 2) ? 1 : fstack.Sum()
+        Set fib = (i > 0 && i <= 2) ? 1 : fstack.Sum()
         Remove First From fstack
     End-If
     Append fib To fstack
     Printf "fib({}) = {}\n", i, fib
-    i += 1
+    Set i += 1
 End-While

@@ -63,18 +63,18 @@ Define Function solve_quadratic(a, b, c):
     If a == 0
         Assert b != 0: "Not a valid quadratic or linear equation"
         # Linear case: bx + c = 0
-        eqn = "{}x {} {} = 0".Format(
+        Set eqn = "{}x {} {} = 0".Format(
                 b == 1 ? "" : b,
                 c < 0 ? '-' : '+',  c.Abs())
-        roots = [c.Negate() / b]
+        Set roots = [c.Negate() / b]
     Else
-        eqn = "{}x² {} {}x {} {} = 0".Format(
+        Set eqn = "{}x² {} {}x {} {} = 0".Format(
                 a == 1 ? "" : a,
                 b < 0 ? '-' : '+', b.Abs(),
                 c < 0 ? '-' : '+', c.Abs())
-        sqrt_disc = (b² - 4.Mul(a, c))·⁵
-        b = b.Negate()
-        roots = [b + sqrt_disc, b - sqrt_disc].Div(2 * a)
+        Set sqrt_disc = (b² - 4.Mul(a, c))·⁵
+        Set b = b.Negate()
+        Set roots = [b + sqrt_disc, b - sqrt_disc].Div(2 * a)
     End-If
     Return [eqn] + roots.@intify()
 End-Function

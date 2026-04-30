@@ -19,16 +19,16 @@ End-If
 #  -- d --
 
 # Bit masks for the segments
-AMASK = 0b00000001
-BMASK = 0b00000010
-CMASK = 0b00000100
-DMASK = 0b00001000
-EMASK = 0b00010000
-FMASK = 0b00100000
-GMASK = 0b01000000
+Set AMASK = 0b00000001
+Set BMASK = 0b00000010
+Set CMASK = 0b00000100
+Set DMASK = 0b00001000
+Set EMASK = 0b00010000
+Set FMASK = 0b00100000
+Set GMASK = 0b01000000
 
 # Maps a digit to the segments
-SEG = [
+Set SEG = [
     0b0111111,  # 0
     0b0000110,  # 1
     0b1011011,  # 2
