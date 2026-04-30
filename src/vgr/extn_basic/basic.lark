@@ -16,23 +16,25 @@
 // The defining BASIC-ness is the Do/Loop bracketing, which affects the
 // Exit/Continue that can be used within them.
 // Note that the "Do ... While/Until expr" variants are not supported.
-basic_do_while: "Do"i "While"i expr ":"? statement+ ("Loop"i | "End"i) _SEMICOLON?
-basic_do_until: "Do"i "Until"i expr ":"? statement+ ("Loop"i | "End"i) _SEMICOLON?
+basic_do_while: _DO _WHILE expr _CLAUSE_SEP? statement+ _end_do_loop
+basic_do_until: _DO _UNTIL expr _CLAUSE_SEP? statement+ _end_do_loop
+_end_do_loop: _END_DO | "Loop"i | _END
 
-basic_for_next_by: "For"i var_name "=" expr "To"i expr "Step"i expr ":"? statement+ ("Next"i | "End"i) _SEMICOLON?
-basic_for_next: "For"i var_name "=" expr "To"i expr ":"? statement+ ("Next"i | "End"i) _SEMICOLON?
+basic_for_next: _FOR var_name _EQ expr _TO expr _CLAUSE_SEP? statement+ _end_for_next
+basic_for_next_by: _FOR var_name _EQ expr _TO expr "Step"i expr _CLAUSE_SEP? statement+ _end_for_next
+_end_for_next: "End-For"i | _NEXT | _END
 
 // Note that these patterns can span across lines and possibly
 // incorrectly associate statements. While unlikely, as the code
 // following an Exit/Continue should be dead code, it is possible.
-basic_exit: "Exit"i "Do"i _SEMICOLON? -> basic_exit_do
-    | "Exit"i "For"i _SEMICOLON? -> basic_exit_for
-    | "Exit"i "While"i _SEMICOLON? -> basic_exit_while
-basic_continue: "Continue"i "Do"i _SEMICOLON? -> basic_continue_do
-    | "Continue"i "For"i _SEMICOLON? -> basic_continue_for
-    | "Continue"i "While"i _SEMICOLON? -> basic_continue_while
+basic_exit: _EXIT _DO -> basic_exit_do
+    | _EXIT _FOR      -> basic_exit_for
+    | _EXIT _WHILE    -> basic_exit_while
+basic_continue: _CONTINUE _DO -> basic_continue_do
+    | _CONTINUE _FOR          -> basic_continue_for
+    | _CONTINUE _WHILE        -> basic_continue_while
 
-basic_let: "Let"i var_name "=" expr _SEMICOLON?
+basic_let: "Let"i var_name _EQ expr
 
-basic_troff: "Troff"i _SEMICOLON?
-basic_tron: "Tron"i _SEMICOLON?
+basic_tron: "Tron"i
+basic_troff: "Troff"i
