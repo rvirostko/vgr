@@ -963,6 +963,12 @@ class ConstantsNormalizer(Transformer):
     @v_args(tree=True)
     def vtab(self, tree: Tree): return self._const_tree(tree, '\t')
 
+    @v_args(tree=True)
+    def vescape(self, tree: Tree): return self._const_tree(tree, '\x1b')
+
+    @v_args(tree=True)
+    def vbackslash(self, tree: Tree): return self._const_tree(tree, '\\')
+
     # Numeric constants
     def DEC_NUMBER(self, token): return self._to_int(token, 10)
     def HEX_NUMBER(self, token): return self._to_int(token, 16)
