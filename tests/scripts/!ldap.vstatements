@@ -4,7 +4,7 @@ Ldap Connect Url "ldap://foo.com" Auth Is "frog"
 
 Ldap Connect To "ldap://foo.com" Auth Is "anon" Page Size Is "frog"
 
-Ldap Connect To "ldap://foo.com" Auth Is "anon" Time Limit Is "frog"
+Ldap Connect To "ldap://foo.com" Auth Is "anon" Timeout Is "frog"
 
 Ldap Connect To "ldap://foo.com" Auth Is "anon" As None
 

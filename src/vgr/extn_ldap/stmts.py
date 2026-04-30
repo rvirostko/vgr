@@ -78,7 +78,7 @@ def execute_connect(ctx: ExecContext, statement: Tree) -> None:
   &emsp;&emsp;Password [Is] *password*\\
   &emsp;&emsp;Read Only [[Is] *read_only*]\\
   &emsp;&emsp;[Return] Empty [Attrs | Attributes] [[Is] *empty_attrs*]\\
-  &emsp;&emsp;Time Limit [[Is] *time_limit*]\\
+  &emsp;&emsp;Timeout [[Is] *timeout*]\\
   &emsp;&emsp;Page Size [[Is] *page_size*]\\
   &emsp;&emsp;As *connection_name*
 
@@ -89,7 +89,7 @@ if *user* and *password* are omitted and *auth_type* is `Simple`.
 The values for *read_only* and *empty_attrs* are booleans. If the option
 is present but no value is provided, the default value is `True`.
 
-The values for *time_limit* and *page_size* are both integers, reflecting
+The values for *timeout* and *page_size* are both integers, reflecting
 the default maximum operation time in seconds and the default blocking
 for retrieved data respectively. Both can be changed on a per operation
 basis when applicable.
@@ -101,7 +101,7 @@ The value for *auth_type* is a string which must be one of
 * `Ntlm` - Uses Windows authentication
 
 If *connection_name* is omitted, a default name is used.
-This name, or default, becomes the value of _term.connection_.
+The provided name or default becomes the value of _ldap.connection_.
 
 ```vgr
 Ldap Connect To "ldaps://main.corp.org"
@@ -166,8 +166,8 @@ def execute_search(ctx: ExecContext, statement: Tree) -> None:
   &emsp;&emsp;Scope [Is] *scope*\\
   &emsp;&emsp;Filter [Is] *filter*\\
   &emsp;&emsp;Attributes [Is | Are] *attributes*\\
-  &emsp;&emsp;Time Limit [[Is] *time_limit*]\\
-  &emsp;&emsp;Page Size [[Is] *page_size*]\\
+  &emsp;&emsp;Timeout [[Is] *timeout*]\\
+  &emsp;&emsp;[Size] Limit [[Is] *size_limit*]\\
   &emsp;&emsp;Dereference Aliases [[Is] *deref_aliases*]\\
   &emsp;&emsp;Get Operational [Attributes | Attrs] [[Is] *op_attrs*]\\
   &emsp;&emsp;Giving *variable*\\
@@ -181,7 +181,7 @@ If no attributes are defined, all available attributes, as defined by the LDAP s
 In addition, the `DN` attribute is added to all retrieved values, even if none of the requested
 attributes had a value.
 
-The values for *time_limit* and *page_size* are both integers, reflecting
+The values for *timeout* and *page_size* are both integers, reflecting
 the maximum operation time in seconds and the blocking
 for retrieved data respectively. Defaults are inherited from the connection.
 
@@ -391,7 +391,7 @@ _OPT_HANDLER = {
     'search_filter':            ('Filter',                     _resolve_opt_str_arg),
     'search_scope':             ('Scope',                      _resolve_scope_arg),
     'size_limit':               ('Size Limit',                 _resolve_int_arg),
-    'time_limit':               ('Time Limit',                 _resolve_int_arg),
+    'time_limit':               ('Timeout',                    _resolve_int_arg),
     'url':                      ('URL',                        _resolve_url_arg),
     'user':                     ('User',                       _resolve_str_arg),
 }

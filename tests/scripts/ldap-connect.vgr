@@ -27,10 +27,10 @@ Ldap Connect To "ldap://foo.com" Auth Is "anon" Read Only Is True
 Ldap Connect To "ldap://foo.com" Auth Is "anon" Read Only Is "okay"
 Ldap Connect To "ldap://foo.com" Auth Is "anon" Read Only Is None
 
-Ldap Connect To "ldap://foo.com" Auth Is "anon" Time Limit 300
-Ldap Connect To "ldap://foo.com" Auth Is "anon" Time Limit Is 300
-Ldap Connect To "ldap://foo.com" Auth Is "anon" Time Limit Is "300"
-Ldap Connect To "ldap://foo.com" Auth Is "anon" Time Limit Is None
+Ldap Connect To "ldap://foo.com" Auth Is "anon" Timeout 300
+Ldap Connect To "ldap://foo.com" Auth Is "anon" Timeout Is 300
+Ldap Connect To "ldap://foo.com" Auth Is "anon" Timeout Is "300"
+Ldap Connect To "ldap://foo.com" Auth Is "anon" Timeout Is None
 
 Ldap Connect To "ldap://foo.com" Auth Is "anon" Page Size 100
 Ldap Connect To "ldap://foo.com" Auth Is "anon" Page Size Is 100
