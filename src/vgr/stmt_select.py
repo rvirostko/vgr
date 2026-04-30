@@ -115,7 +115,7 @@ class SelectAnalyzer(Visitor):
         # The option to what it negates
         'exclude_nulls'   : 'include_nulls',
         'no_array_wrapper': 'array_wrapper',
-        'omit_headers'    : 'include_headers',
+        'exclude_headers' : 'include_headers',
     }
 
     _STR_OPTS = (
@@ -143,7 +143,7 @@ class SelectAnalyzer(Visitor):
         'lineterminator'   : 'Line Terminator',
         'lstrip_blocks'    : 'Left Strip Blocks',
         'no_array_wrapper' : 'No Array Wrapper',
-        'omit_headers'     : 'Omit Headers',
+        'exclude_headers'  : 'Omit Headers',
         'quotechar'        : 'Quote Character',
         'record_sep'       : 'Record Separator',
         'sort_keys'        : 'Sort Keys',
