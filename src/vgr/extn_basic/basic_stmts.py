@@ -2,11 +2,12 @@
 BASIC extension statements
 """
 
+from typing import Any
 import math
 
 from lark import Tree
 
-from ..app_exceptions import VgrStatementBreak, VgrStatementContinue, BlockType
+from ..app_exceptions import VgrRuntimeError, VgrStatementBreak, VgrStatementContinue, BlockType
 from ..evaluate import get_writable_var_path
 from ..exec_context import ExecContext
 from ..stmt_exec import bind_operations, exec_loop, LOOP_META_PATH, set_loop_meta
@@ -114,26 +115,29 @@ Next
 
 Also see `Perform Varying` and `For Each`.
 """
+    def _err(value: Any, name: str) -> str: return ValueError(f"Can't use {str(value).title()} for {name}")
+    def _nbr(expr: Tree, name: str) -> Any:
+        value = ctx.eval_to_number(bind_operations(expr), name, True)
+        if value is None or math.isinf(value) or math.isnan(value):
+            raise VgrRuntimeError(expr, _err(value, name))
+        return value
     # Echo the control portion, not the statements
     ctx.echo_source(statement, statement.children[-1])
     cindex = 0
     var_path = get_writable_var_path(ctx, statement.children[cindex])
     cindex += 1
-    value = ctx.eval_to_number(bind_operations(statement.children[cindex]), 'For-Next start')
+    value = _nbr(statement.children[cindex], 'For-Next start')
     cindex += 1
-    end = ctx.eval_to_number(bind_operations(statement.children[cindex]), 'For-Next end')
+    end = _nbr(statement.children[cindex], 'For-Next end')
     cindex += 1
     inc = 1
-    if statement.data == 'basic_for_next':
-        inc = -1 if value > end else 1
-    else:
-        # This statement has a "by" clause
-        inc = ctx.eval_to_number(bind_operations(statement.children[cindex]), 'For-Next increment')
-        if inc == 0: raise ValueError('For-Next increment must be non-zero')
+    if statement.data == 'basic_for_next_by':
+        # This statement has a "step" clause
+        name = 'For-Next increment'
+        step_expr = statement.children[cindex]
+        inc = _nbr(step_expr, name)
+        if inc == 0: raise VgrRuntimeError(step_expr, _err(inc, name))
         cindex += 1
-    if (end - value) * inc < 0:
-        # NB: if end and value are the same, we don't care about the sign
-        raise ValueError('Sign of For-Next increment results in infinite loop')
     try:
         meta = { }
         ctx.dd.push_frame([(var_path, None), (LOOP_META_PATH, meta)])
