@@ -20,13 +20,13 @@ def execute_list_append(ctx: ExecContext, statement: Tree) -> None:
     """
 **Add one or more items to the end of a list**
 
-* Append _item_ To [List] *variable* [;]
-* Append All _item_ To [List] *variable* [;]
+* Append *item* To [List] *variable* [;]
+* Append All *item* To [List] *variable* [;]
 
-In the first form _item_ is added to the specified list, regardless of its type.
-In the second form when _All_ is specified, if _item_ is a list, all of its
+In the first form *item* is added to the specified list, regardless of its type.
+In the second form when *All* is specified, if *item* is a list, all of its
 members are added to the specified list.
-If _item_ is not a list itself, there is no difference between the first and
+If *item* is not a list itself, there is no difference between the first and
 second forms.
 
 If *variable* is not defined it is created as an empty list.
@@ -62,13 +62,13 @@ def execute_list_prepend(ctx: ExecContext, statement: Tree) -> None:
     """
 **Add one or more items to the beginning of a list**
 
-* Prepend _item_ To [List] *variable* [;]
-* Prepend All _item_ To [List] *variable* [;]
+* Prepend *item* To [List] *variable* [;]
+* Prepend All *item* To [List] *variable* [;]
 
-In the first form _item_ is added to the specified list, regardless of its type.
-In the second form when _All_ is specified, if _item_ is a list, all of its
+In the first form *item* is added to the specified list, regardless of its type.
+In the second form when *All* is specified, if *item* is a list, all of its
 members are added to the specified list.
-If _item_ is not a list itself, there is no difference between the first and
+If *item* is not a list itself, there is no difference between the first and
 second forms.
 
 If *variable* is not defined it is created as an empty list.
@@ -104,16 +104,16 @@ def execute_list_insert(ctx: ExecContext, statement: Tree) -> None:
     """
 **Insert one or more items into a list**
 
-* Insert _item_ Into [List] *variable* At [Position | Index] _position_ [;]
-* Insert All _item_ Into [List] *variable* At [Position | Index] _position_ [;]
+* Insert *item* Into [List] *variable* At [Position | Index] *position* [;]
+* Insert All *item* Into [List] *variable* At [Position | Index] *position* [;]
 
-In the first form _item_ is inserted to the specified list, regardless of its type.
-In the second form when _All_ is specified, if _item_ is a list, all of its
+In the first form *item* is inserted to the specified list, regardless of its type.
+In the second form when *All* is specified, if *item* is a list, all of its
 members are inserted to the specified list.
-If _item_ is not a list itself, there is no difference between the first and
+If *item* is not a list itself, there is no difference between the first and
 second forms.
 
-The _position_ argument must be a number and be greater than or equal to zero
+The *position* argument must be a number and be greater than or equal to zero
 and less than the length of the existing list.
 
 If *variable* is not defined it is created as an empty list.
@@ -183,18 +183,18 @@ def execute_list_remove(ctx: ExecContext, statement: Tree) -> None:
     """
 **Remove one or more items from a list by position**
 
-* Remove First [Item] From [List] *variable* [Giving _removed_var_] [;]
-* Remove Last [Item] From [List] *variable* [Giving _removed_var_] [;]
-* Remove [Position | Index] _position_ From [List] *variable* [Giving _removed_var_ ] [;]
+* Remove First [Item] From [List] *variable* [Giving *removed_var*] [;]
+* Remove Last [Item] From [List] *variable* [Giving *removed_var*] [;]
+* Remove [Item | Index] *position* From [List] *variable* [Giving *removed_var* ] [;]
 
-The _position_ argument must be a number, or a list of numbers,
+The *position* argument must be a number, or a list of numbers,
 which are greater than or equal to zero
 and less than the length of the existing list.
 
 If *variable* is not defined it is created as an empty list.
 If *variable* is not a list, it is converted to a list.
 
-The _removed_var_ receives the items removed from the list.
+The *removed_var* receives the items removed from the list.
 
 ```vgr
 // Assuming animals is ["cat", "dog", "fish"]
@@ -234,9 +234,9 @@ def execute_list_replace(ctx: ExecContext, statement: Tree) -> None:
     """
 **Replace one or more items in a list by position**
 
-* Replace [Position | Index] _position_ In [List] *variable* [Giving *replaced_var* ] [;]
+* Replace [Item | Index] *position* In [List] *variable* [Giving *replaced_var* ] [;]
 
-The _position_ argument must be a number, or a list of numbers,
+The *position* argument must be a number, or a list of numbers,
 which are greater than or equal to zero
 and less than the length of the existing list.
 
