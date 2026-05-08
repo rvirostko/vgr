@@ -100,8 +100,9 @@ Also see `FormatTimestamp()`
     if name in _DT_FUNCS:
         do_set(ctx, _DT_FUNCS.get(statement.data)(), *var_path)
     else:
-        option = statement.children[-1].data if len(statement.children) > 1 else 'echo'
-        if option == 'echo':
+        option = None
+        for child in statement.children[1:]: option = child.data
+        if option in [None, 'stdin', 'echo']:
             line = sys.stdin.readline()
         elif option == 'no_echo':
             line = pwinput.pwinput(prompt='', mask='')
