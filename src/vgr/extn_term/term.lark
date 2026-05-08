@@ -3,7 +3,7 @@ _TERM: "Term"i
 
 ?term_statements: term_statement
 
-term_statement: (_TERMINAL | _TERM) (_SEP? _t_sequence2{term_cmd})?
+term_statement: (_TERMINAL | _TERM) (_SEP? term_cmd (_SEP? term_cmd)*)?
 ?term_cmd: term_cursor_cmd
         | term_opts_cmd
         | term_edit_cmd
