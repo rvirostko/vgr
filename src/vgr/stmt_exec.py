@@ -9,6 +9,7 @@ import re
 import warnings
 
 from lark import Lark, Tree, Token, Transformer, v_args, exceptions
+from lark.exceptions import VisitError
 
 from .app_exceptions import (
     BlockType,
@@ -883,6 +884,14 @@ class ConstantsNormalizer(Transformer):
         '⁾': '',     # remove right paren
     })
 
+    def transform(self, tree):
+        try:
+            return super().transform(tree)
+        except VisitError as e:
+            if isinstance(e.orig_exc, VgrException):
+                raise e.orig_exc
+            raise
+
     @v_args(tree=True)
     def array(self, tree: Tree):
         items = tree.children
@@ -994,9 +1003,11 @@ class ConstantsNormalizer(Transformer):
     @staticmethod
     def normalize_outer_quotes(s: str) -> str:
         """Fixes up typographic quotes from text pasted in from MS products like Word"""
-        if s[0] in 'Rr':
-            prefix = s[0]
-            open_quote = s[1]
+        if s[0].isalpha():
+            i = 0
+            while i < len(s) and s[i].isalpha(): i += 1
+            prefix = s[:i]
+            open_quote = s[i]
         else:
             prefix = ''
             open_quote = s[0]
@@ -1013,7 +1024,7 @@ class ConstantsNormalizer(Transformer):
     @staticmethod
     def tolerant_literal_eval(s: str) -> str:
         try:
-            return ConstantsNormalizer.quiet_literal_eval(s)
+            return ConstantsNormalizer.make_str(ConstantsNormalizer.quiet_literal_eval(s))
         except (SyntaxError, ValueError) as e:
             # Raw string should not have any problems with bad
             # backslash problems, so must be something we can't fix
@@ -1021,11 +1032,18 @@ class ConstantsNormalizer(Transformer):
             # escape stray backslashes not part of valid escape sequences
             try:
                 safe = re.sub(r'(?<!\\)\\(?![\\abfnrtv\'"xuU0-9])', r'\\\\', s)
-                return ConstantsNormalizer.quiet_literal_eval(safe)
+                return ConstantsNormalizer.make_str(ConstantsNormalizer.quiet_literal_eval(safe))
             except (SyntaxError, ValueError):
                 # that didn't fix it, so treat it as a
                 # raw string and let any problems flow upward
-                return ConstantsNormalizer.quiet_literal_eval('r' + s)
+                return ConstantsNormalizer.make_str(ConstantsNormalizer.quiet_literal_eval('r' + s))
+
+    @staticmethod
+    def make_str(s: Any) -> str:
+        if isinstance(s, str): return s
+        # Far future: need to remove when we actually support "bytes"
+        if isinstance(s, bytes): return s.decode()
+        raise TypeError(type(s))
 
     @staticmethod
     def quiet_literal_eval(s: str) -> str:
