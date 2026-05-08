@@ -80,7 +80,7 @@ Also see `Choose Using`
         do_all = True
         next(statement_children)
     ctx.echo_source(statement, statement.children[1 if do_all else 0])
-    _exec_choose(ctx, do_all, statement_children)
+    _exec_choose(ctx, do_all, statement_children, None, None)
 
 # Operation mapping for choose "when" comparisons
 _CHOOSE_OPS = {
@@ -121,6 +121,8 @@ def execute_choose_using(ctx: ExecContext, statement: Tree) -> None:
 
 * Choose [All] Using *expression* :\\
   &emsp;&emsp;When [Not] Empty : *statement*&hellip;\\
+  &emsp;&emsp;When [Not] Defined : *statement*&hellip;\\
+  &emsp;&emsp;When [Not] Undefined : *statement*&hellip;\\
   &emsp;&emsp;When [Not] Negative : *statement*&hellip;\\
   &emsp;&emsp;When [Not] Positive : *statement*&hellip;\\
   &emsp;&emsp;When [Not] Even : *statement*&hellip;\\
@@ -155,6 +157,9 @@ causes, and that at least one `When` must be specified. When `All` is specified
 
 While complicated expressions can be used as the values in `When` it is recommended
 that constant or references to constants be used.
+
+Note that `Defined` and `Undefined` only provide meaningful results when a
+variable is used, not an expression.
 
 ```vgr
 Set month To time.today.month
@@ -197,10 +202,11 @@ Also see `Choose`
     #     betweeen the desired_value's type, which drives "casting"
     #     and the resulting type of the expression
     # The first child is the expression used in the value comparisons
-    desired_value = ctx.eval_expr(bind_operations(next(statement_children, None)))
-    _exec_choose(ctx, do_all, statement_children, desired_value)
+    expr = bind_operations(next(statement_children, None))
+    desired_value = ctx.eval_expr(expr)
+    _exec_choose(ctx, do_all, statement_children, expr, desired_value)
 
-def _exec_choose(ctx: ExecContext, do_all: bool, statement_children, desired_value: Any=None) -> None:
+def _exec_choose(ctx: ExecContext, do_all: bool, statement_children, expr: Tree, desired_value: Any) -> None:
     """Internal method that handles both forms"""
     choice_made = False
     for when_block in statement_children:
@@ -216,8 +222,24 @@ def _exec_choose(ctx: ExecContext, do_all: bool, statement_children, desired_val
                 # After the expression to test the iterator
                 # points to the following statements
                 chosen_block = choice_children
+        elif when_block.data in ['is_defined', 'is_not_defined']:
+            # an lvalue
+            # (var_name: (Pos: 1:9-1:10)
+            #      NAME: 'a' (Pos: 1:9-1:10 'string')
+            # )
+            #
+            # an rvalue
+            # (var_ref:var_ref (Pos: 1:10-1:11)
+            #      NAME: 'b' (Pos: 1:10-1:11 'string')
+            # )
+            #
+            # Constant value
+            # CONST: ' ' (Pos: 1:10-1:15 'string')
+            rc = ctx.var_exists()
+            if rc is not None and (rc[0] == (when_block.data  == 'is_defined')):
+                ctx.echo_source(when_block, when_block.children[0])
+                chosen_block = values_children
         # This section is for tests that don't use an expression
-        # TODO future "is_defined" "is not defined"
         elif when_block.data in ['is_empty_block', 'is_not_empty_block', 'is_neg_block', 'is_pos_block', 'is_even_block', 'is_odd_block']:
             test_op = _CHOOSE_OPS.get(when_block.data)
             if test_op(desired_value):
