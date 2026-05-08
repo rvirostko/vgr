@@ -29,7 +29,7 @@
 // Handler enforces trailing slash on base URL before passing to httpx.Client.
 // Named via "As <expr>" for reference in subsequent http_request statements.
 //----------------------------------------------------------------------------
-http_connect: "Http"i "Connect"i ("To"i | "URL"i "Is"i?)? expr (_COMMA? http_conn_arg)* _SEMICOLON?
+http_connect: "Http"i "Connect"i ("To"i | "URL"i "Is"i?)? expr (_SEP? http_conn_arg)*
 
 ?http_conn_arg: http_conn_opt
     | http_auth_opt
@@ -41,7 +41,7 @@ http_connect: "Http"i "Connect"i ("To"i | "URL"i "Is"i?)? expr (_COMMA? http_con
 // Tears down a named connection, closing the underlying httpx.Client and
 // releasing pooled connections.
 //----------------------------------------------------------------------------
-http_disconnect: "Http"i "Disconnect"i "From"i? expr _SEMICOLON?
+http_disconnect: "Http"i "Disconnect"i "From"i? expr
 
 //----------------------------------------------------------------------------
 // Request
@@ -53,7 +53,7 @@ http_disconnect: "Http"i "Disconnect"i "From"i? expr _SEMICOLON?
 //   - Without "Using": expr must be a fully qualified URL including scheme.
 //     A missing or invalid URL is a bind-time error — it cannot be defaulted.
 //----------------------------------------------------------------------------
-http_request: "Http"i (("Method"i | "Request"i) "Is"?)? http_method _COMMA? ("URL"i "Is"i?)? expr (_COMMA? http_request_arg)* _SEMICOLON?
+http_request: "Http"i (("Method"i | "Request"i) "Is"?)? http_method _SEP? ("URL"i "Is"i?)? expr (_SEP? http_request_arg)*
 
 // Method as keyword (preferred — unambiguous, readable) or dynamic expr.
 // Dynamic expr resolved to a HTTP method string at execution time.

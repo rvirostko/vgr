@@ -22,15 +22,15 @@
     | cobol_sub_giving
 
 // DATE and TIME should accept either a keyword -or- a pattern
-cobol_accept: "Accept"i var_name "Upon"i "Console"i cobol_accept_option? _SEMICOLON? -> cobol_accept_input // old standard
-    | "Accept"i var_name ("From"i ("Console"i | "Terminal"i | "Stdin"i | "Sysin"i | "Sysinp"i))? cobol_accept_option? _SEMICOLON? -> cobol_accept_input
-    | "Accept"i var_name "From"i "Date"i _SEMICOLON? -> cobol_accept_date
-    | "Accept"i var_name "From"i "Date"i "YYYYMMDD"i _SEMICOLON? -> cobol_accept_yyyymmdd
-    | "Accept"i var_name "From"i "Day"i _SEMICOLON? -> cobol_accept_day
-    | "Accept"i var_name "From"i "Day"i "YYYYDDD"i _SEMICOLON? -> cobol_accept_yyyyddd
-    | "Accept"i var_name "From"i "Day-Of-Week"i _SEMICOLON? -> cobol_accept_dow
-    | "Accept"i var_name "From"i "Time"i _SEMICOLON? -> cobol_accept_time
-    | "Accept"i var_name "From"i ("Unix"i? "Epoch"i | "Timestamp"i) _SEMICOLON? -> cobol_accept_epoch
+cobol_accept: "Accept"i var_name "Upon"i "Console"i cobol_accept_option? -> cobol_accept_input // old standard
+    | "Accept"i var_name ("From"i ("Console"i | "Terminal"i | "Stdin"i | "Sysin"i | "Sysinp"i))? cobol_accept_option? -> cobol_accept_input
+    | "Accept"i var_name "From"i "Date"i -> cobol_accept_date
+    | "Accept"i var_name "From"i "Date"i "YYYYMMDD"i -> cobol_accept_yyyymmdd
+    | "Accept"i var_name "From"i "Day"i -> cobol_accept_day
+    | "Accept"i var_name "From"i "Day"i "YYYYDDD"i -> cobol_accept_yyyyddd
+    | "Accept"i var_name "From"i "Day-Of-Week"i -> cobol_accept_dow
+    | "Accept"i var_name "From"i "Time"i -> cobol_accept_time
+    | "Accept"i var_name "From"i ("Unix"i? "Epoch"i | "Timestamp"i) -> cobol_accept_epoch
 cobol_accept_option: "With"i? "Echo"i -> echo // AcuCobol (plus a "with")
     | "With"i? "No"i "Echo"i -> no_echo // Micro Focus, AcuCobol, and GnuCobol
     | "No-Echo"i -> no_echo // Micro Focus and GnuCobol
@@ -38,33 +38,33 @@ cobol_accept_option: "With"i? "Echo"i -> echo // AcuCobol (plus a "with")
 
 // NB: Equal is in the spec, Equals is not
 //     Does not support Rounded or On Size Error clauses
-cobol_compute: "Compute"i var_name ("=" | "Equal"i) expr "End-Compute"i? _SEMICOLON?
+cobol_compute: "Compute"i var_name ("=" | "Equal"i) expr "End-Compute"i?
 
-cobol_inc: "Set"i var_name "Up"i "By"i expr _SEMICOLON?
-cobol_dec: "Set"i var_name "Down"i "By"i expr _SEMICOLON?
+cobol_inc: "Set"i var_name "Up"i "By"i expr
+cobol_dec: "Set"i var_name "Down"i "By"i expr
 
-cobol_stop_run: "Stop"i "Run"i _SEMICOLON?
+cobol_stop_run: "Stop"i "Run"i
 
-cobol_exit: "Exit"i "Perform"i "Cycle"i _SEMICOLON? -> cobol_exit_perform_cycle
-    | "Exit"i "Perform"i _SEMICOLON? -> cobol_exit_perform
-    | ("Exit"i "Program"i | "Goback"i) _SEMICOLON? -> cobol_exit_program
+cobol_exit: "Exit"i "Perform"i "Cycle"i -> cobol_exit_perform_cycle
+    | "Exit"i "Perform"i -> cobol_exit_perform
+    | ("Exit"i "Program"i | "Goback"i) -> cobol_exit_program
 
 // NB: Performs contain non-standard ":" separator (optional) to be compatible with other block statements
-cobol_perform_times: "Perform"i expr ("Time"i | "Times"i) ":"? statement+ ("End-Perform"i | "End"i)? _SEMICOLON?
-cobol_perform_until: "Perform"i "Until"i expr ":"? statement+ ("End-Perform"i | "End"i)? _SEMICOLON?
-cobol_perform_varying: "Perform"i varying_test_type? "Varying"i var_name "From"i expr "By"i expr "Until"i expr ":"? statement+ ("End-Perform"i | "End"i)? _SEMICOLON?
+cobol_perform_times: "Perform"i expr ("Time"i | "Times"i) ":"? statement+ ("End-Perform"i | "End"i)?
+cobol_perform_until: "Perform"i "Until"i expr ":"? statement+ ("End-Perform"i | "End"i)?
+cobol_perform_varying: "Perform"i varying_test_type? "Varying"i var_name "From"i expr "By"i expr "Until"i expr ":"? statement+ ("End-Perform"i | "End"i)?
 ?varying_test_type: "With"i? "Test"i "Before"i -> test_before
     | "With"i? "Test"i "After"i -> test_after
 
-cobol_exhibit: "Exhibit"i "*" _SEMICOLON? // exhibit all
-    | "Exhibit"i var_name (_COMMA? var_name)* _SEMICOLON?
+cobol_exhibit: "Exhibit"i "*" // exhibit all
+    | "Exhibit"i var_name (_SEP? var_name)*
 
 // Notes :
 //  * We do not enforce the order (or cardinality) of options
 //  * Output limits based on the destination are not enforced
 //
 // See https://www.ibm.com/docs/en/cobol-zos/6.3.0?topic=statements-display-statement
-cobol_display_on: "Display"i expr (_COMMA? expr)* cobol_display_opt* _SEMICOLON?
+cobol_display_on: "Display"i expr (_SEP? expr)* cobol_display_opt*
 ?cobol_display_opt: ("Upon"i | "On"i) (stderr | stdout | stdin) -> upon
     | "With"i? "No"i "Advancing"i -> no_advance
 
@@ -72,22 +72,22 @@ cobol_display_on: "Display"i expr (_COMMA? expr)* cobol_display_opt* _SEMICOLON?
 //   * Does not support "[Not] On Size Error" (entirely N/A here)
 //   * Does not support "Pointer"
 // See https://www.ibm.com/docs/en/cobol-zos/6.3.0?topic=statements-string-statement
-cobol_string: "String"i cobol_string_source (_COMMA? cobol_string_source)* _COMMA? "Into"i var_name "End-String"i? _SEMICOLON?
+cobol_string: "String"i cobol_string_source (_SEP? cobol_string_source)* _SEP? "Into"i var_name "End-String"i?
 ?cobol_string_source: expr ("Delimited"i "By"i "Size"i)? -> full
     | expr "Delimited"i "By"i expr -> delimited
 
-cobol_add_to: "Add"i expr (_COMMA? expr)* "To"i var_name "End-Add"i? _SEMICOLON?
-cobol_add_giving: "Add"i expr (_COMMA? expr)* "To"i expr "Giving"i var_name "End-Add"i? _SEMICOLON?
+cobol_add_to: "Add"i expr (_SEP? expr)* "To"i var_name "End-Add"i?
+cobol_add_giving: "Add"i expr (_SEP? expr)* "To"i expr "Giving"i var_name "End-Add"i?
 
-cobol_sub_from: "Subtract"i expr (_COMMA? expr)* "From"i var_name "End-Subtract"i? _SEMICOLON?
-cobol_sub_giving: "Subtract"i expr (_COMMA? expr)* "From"i expr "Giving"i var_name "End-Subtract"i? _SEMICOLON?
+cobol_sub_from: "Subtract"i expr (_SEP? expr)* "From"i var_name "End-Subtract"i?
+cobol_sub_giving: "Subtract"i expr (_SEP? expr)* "From"i expr "Giving"i var_name "End-Subtract"i?
 
 // Notes:
 //   * Only one var_name can be specified
 //   * Accepts but ignores "rounded"
 //   * Does not support "[Not] On Size Error" (entirely N/A here)
 // See https://www.ibm.com/docs/en/cobol-zos/6.3.0?topic=statements-multiply-statement
-cobol_mul_by: "Multiply"i expr "By"i (expr "Giving"i)? var_name "Rounded"i? "End-Multiply"i? _SEMICOLON?
+cobol_mul_by: "Multiply"i expr "By"i (expr "Giving"i)? var_name "Rounded"i? "End-Multiply"i?
 
 // Notes :
 //   * Does not support multiple receivers
@@ -95,10 +95,10 @@ cobol_mul_by: "Multiply"i expr "By"i (expr "Giving"i)? var_name "Rounded"i? "End
 //   * Does not support "remainder"
 //   * Does not support "[Not] On Size Error" (entirely N/A here)
 // See https://www.ibm.com/docs/en/cobol-zos/6.3.0?topic=statements-divide-statement
-cobol_div_into: "Divide"i expr "Into"i (expr "Giving"i)? var_name "Rounded"i? "End-Divide"i? _SEMICOLON?
-cobol_div_by: "Divide"i expr "By"i expr "Giving"i var_name "Rounded"i? "End-Divide"i? _SEMICOLON?
+cobol_div_into: "Divide"i expr "Into"i (expr "Giving"i)? var_name "Rounded"i? "End-Divide"i?
+cobol_div_by: "Divide"i expr "By"i expr "Giving"i var_name "Rounded"i? "End-Divide"i?
 
-cobol_move_to: "Move"i cobol_move_corr? expr "To"i var_name _SEMICOLON?
+cobol_move_to: "Move"i cobol_move_corr? expr "To"i var_name
 cobol_move_corr: ("Corresponding"i | "Corr"i)
 
 // Notes :
@@ -107,7 +107,7 @@ cobol_move_corr: ("Corresponding"i | "Corr"i)
 //   * "Any" is not supported
 // NB: Evaluate contain non-standard ":" separator (optional) to be compatible with other block statements
 // See https://www.ibm.com/docs/en/cobol-zos/6.3.0?topic=statements-evaluate-statement
-cobol_evaluate: "Evaluate"i expr ":"? (cobol_when_block | cobol_when_thru_block)+ cobol_when_other? "End-Evaluate"i _SEMICOLON? -> cobol_evaluate
+cobol_evaluate: "Evaluate"i expr ":"? (cobol_when_block | cobol_when_thru_block)+ cobol_when_other? "End-Evaluate"i -> cobol_evaluate
 cobol_when_thru_block: "When"i expr ("Through"i | "Thru"i) expr ":"? statement+
     | "When"i "Not"i expr ("Through"i | "Thru"i) expr ":"? statement+ -> cobol_when_not_thru_block
 cobol_when_block: "When"i expr ":"? statement+
