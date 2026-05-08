@@ -1,6 +1,9 @@
+_TERMINAL: "Terminal"i
+_TERM: "Term"i
+
 ?term_statements: term_statement
 
-term_statement: ("Terminal"i | "Term"i) term_cmd (_COMMA? term_cmd)* _SEMICOLON?
+term_statement: (_TERMINAL | _TERM) (_SEP? _t_sequence2{term_cmd})?
 ?term_cmd: term_cursor_cmd
         | term_opts_cmd
         | term_edit_cmd
