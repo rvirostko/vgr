@@ -2,9 +2,10 @@
 // VGR - A DSL for scripting reports
 //----------------------------------------------------------
 
-// Omitted from the parse tree
-_COMMA: ","
-_SEMICOLON: ";"
+// These are functionally named, but as terminals,
+// you should use them anywhere the characters are required.
+_CLAUSE_SEP: ":"
+_SEP: ","
 
 // Numeric values
 // NB: octal and binary regexs are shorter than the length
@@ -24,15 +25,16 @@ FLOAT_NUMBER: "-"? (_SPECIAL_DEC _EXP_PART | _DECIMAL _EXP_PART?)
 // This becomes either a FLOAT or INT (when no decimal referenced) at runtime
 SUPERSCRIPT_FLOAT: /⁽[⁺⁻]?(?:[⁰¹²³⁴⁵⁶⁷⁸⁹]+(·[⁰¹²³⁴⁵⁶⁷⁸⁹]+)?|·[⁰¹²³⁴⁵⁶⁷⁸⁹]+)⁾|[⁺⁻]?(?:[⁰¹²³⁴⁵⁶⁷⁸⁹]+(·[⁰¹²³⁴⁵⁶⁷⁸⁹]+)?|·[⁰¹²³⁴⁵⁶⁷⁸⁹]+)/
 
+// NB: This pattern is very long and tends to win out over keyword tokens
+//     If it's priority is set lower, you need to adjust the priority on
+//     ALL tokens
 NAME: /{VAR_NAME}/
 
 opt_statements: statement*
-statements: statement+
-?statement: simple_statement
-    | select
-    | control_statements
-    | def_statements
-    {EXTN_STATEMENTS}
+
+// NB: this is the only place where we have to reference the optional statement ender
+?statement: (simple_statement | select | control_statements | def_statements {EXTN_STATEMENTS}) ";"?
+    | ";" -> pass // blank statement synonymous with "pass"
 
 ?simple_statement: assert
     | break
@@ -86,33 +88,33 @@ stdout: ("Output"i | "stdout"i | "sysprint"i)
 stdin: ("Input"i | "stdin"i | "sysin"i)
 encoding: "Encoding"i option_value
 
-block_statement: "Begin"i ":"? statement+ "End"i _SEMICOLON? -> block
-call: "Call"i "Function"i? var_name ("(" (expr (_COMMA expr)*)? ")")? _SEMICOLON?
-    | "Call"i "Function"i? var_name ("(" (expr (_COMMA expr)*)? ")")? giving_clause _SEMICOLON? -> call_giving
-    | "Call"i "Function"i? var_name "Using"i expr (_COMMA expr)* _SEMICOLON?
-    | "Call"i "Function"i? var_name "Using"i expr (_COMMA expr)* giving_clause _SEMICOLON? -> call_giving
-declare: "Declare"i var_name (_COMMA? var_name)* _SEMICOLON?
-    | "Declare"i var_name (_COMMA? var_name)* "As"i? "Local"i _SEMICOLON? -> declare_local
-    | "Declare"i var_name (_COMMA? var_name)* "As"i? "Global"i _SEMICOLON? -> declare_global
-def_statements: "Define"i? "Function"i var_name def_params? ":"? def_body ("End-Function"i | "End"i) _SEMICOLON? -> def_function
-def_params: "(" (NAME (_COMMA NAME)*)? ")" -> params
+block_statement: "Begin"i ":"? statement+ "End"i -> block
+call: "Call"i "Function"i? var_name ("(" (expr (_SEP expr)*)? ")")?
+    | "Call"i "Function"i? var_name ("(" (expr (_SEP expr)*)? ")")? giving_clause -> call_giving
+    | "Call"i "Function"i? var_name "Using"i expr (_SEP expr)*
+    | "Call"i "Function"i? var_name "Using"i expr (_SEP expr)* giving_clause -> call_giving
+declare: "Declare"i var_name (_SEP? var_name)*
+    | "Declare"i var_name (_SEP? var_name)* "As"i? "Local"i -> declare_local
+    | "Declare"i var_name (_SEP? var_name)* "As"i? "Global"i -> declare_global
+def_statements: "Define"i? "Function"i var_name def_params? ":"? def_body ("End-Function"i | "End"i) -> def_function
+def_params: "(" (NAME (_SEP NAME)*)? ")" -> params
 def_body: statement+ -> body
 // Note: this combines BASIC-like syntax (For Each) and VGR (ForEach), now somewhat deprecated
-foreach_statement: ("For"i "Each"i | "ForEach"i) var_name "In"i expr ":"? statement+ ("Next"i | "End-For"i | "End"i) _SEMICOLON? -> foreach
-forever_loop: "Do"i "Forever"i ":"? statement+ ("End-Do"i | "End"i) _SEMICOLON? -> forever
+foreach_statement: ("For"i "Each"i | "ForEach"i) var_name "In"i expr ":"? statement+ ("Next"i | "End-For"i | "End"i) -> foreach
+forever_loop: "Do"i "Forever"i ":"? statement+ ("End-Do"i | "End"i) -> forever
 
 // The addition of the optional "Then" allows a BASIC-like If syntax usage
-if_statement: "If"i expr ("Then"i | ":")? statement+ else_clause? ("End-If"i | "End"i) _SEMICOLON? -> if
+if_statement: "If"i expr ("Then"i | ":")? statement+ else_clause? ("End-If"i | "End"i) -> if
 else_clause: "Else"i ":"? statement+ -> else
 
-repeat_statement: "Repeat"i expr ("Time"i | "Times"i)? ":"? statement+ ("End-Repeat"i | "End"i) _SEMICOLON? -> repeat
-unless_statement: "Unless"i expr ":"? statement+ ("End-Unless"i | "End"i) _SEMICOLON? -> unless
-until_statement: "Until"i expr ":"? statement+ ("End-Until"i | "End"i) _SEMICOLON? -> until
-while_statement: "While"i expr ":"? statement+ ("End-While"i | "End"i | "Loop"i) _SEMICOLON? -> while
+repeat_statement: "Repeat"i expr ("Time"i | "Times"i)? ":"? statement+ ("End-Repeat"i | "End"i) -> repeat
+unless_statement: "Unless"i expr ":"? statement+ ("End-Unless"i | "End"i) -> unless
+until_statement: "Until"i expr ":"? statement+ ("End-Until"i | "End"i) -> until
+while_statement: "While"i expr ":"? statement+ ("End-While"i | "End"i | "Loop"i) -> while
 
-break: "Break"i _SEMICOLON?
-continue: "Continue"i _SEMICOLON?
-return: "Return"i expr? _SEMICOLON?
+break: "Break"i
+continue: "Continue"i
+return: "Return"i expr?
 
 // NB: Unicode alternates exist here and elsewhere only for logical or mathematical operations and constants, not textual ones.
 
@@ -131,8 +133,8 @@ op_matches_all: "Matches"i "All"i
 op_imatches: ("~*" | "IMatches"i)
 op_not_imatches: ("!~*" | "Not"i op_imatches | "Does"i "Not"i "IMatch"i)
 
-choose_statement: "Choose"i choose_all? ":" choice_block+ otherwise_block? ("End-Choose"i | "End"i) _SEMICOLON? -> choose
-    | "Choose"i choose_all? "Using"i expr ":" values_block+ otherwise_block? ("End-Choose"i | "End"i) _SEMICOLON? -> choose_using
+choose_statement: "Choose"i choose_all? ":" choice_block+ otherwise_block? ("End-Choose"i | "End"i) -> choose
+    | "Choose"i choose_all? "Using"i expr ":" values_block+ otherwise_block? ("End-Choose"i | "End"i) -> choose_using
 choose_all: "All"i
 choice_block: "When"i expr ":" statement+
 values_block: "When"i "Is"i? "Empty"i ":" statement+ -> is_empty_block
@@ -147,41 +149,47 @@ values_block: "When"i "Is"i? "Empty"i ":" statement+ -> is_empty_block
     | "When"i "Not"i expr ("Through"i | "Thru"i | "To"i) expr ":" statement+ -> not_range_block
     | "When"i (op_lt | op_gt | op_ge | op_le) expr ":" statement+ -> ineq_block
     | "When"i (op_eq | op_ne | op_contains | op_not_contains | op_matches | op_not_matches | op_matches_all) value_list ":" statement+
-value_list: expr (_COMMA expr)*
+value_list: expr (_SEP expr)*
 otherwise_block: "Otherwise"i ":" statement+
 
 // simple boolean on/off, true/false
 // these are "proper statements" as they control the behavior of other statements
-debug: "Debug"i expr? _SEMICOLON?
-echo: "Echo"i expr? _SEMICOLON?
-verbose: "Verbose"i expr? _SEMICOLON?
+debug: "Debug"i expr?
+echo: "Echo"i expr?
+verbose: "Verbose"i expr?
 
-pass: ("Pass"i | "Nop"i) _SEMICOLON?
+pass: ("Pass"i | "Nop"i)
 
-sleep: "Sleep"i "For"i? expr ("Seconds"i | "Second"i)? _SEMICOLON?
+sleep: "Sleep"i "For"i? expr ("Seconds"i | "Second"i)?
 
-set:  "Set"i? var_name ("=" | "To"i) expr _SEMICOLON?
-    | "Set"i? var_name ("=" | "To"i)? def_params? ("->" | "=>" | "\u2192") expr _SEMICOLON? -> set_arrow
-    | "Set"i? var_name ("=" | "To"i)? def_params? ("->" | "=>" | "\u2192") "Compile"i "(" expr ")" _SEMICOLON? -> compile_arrow
-    | "Set"i? var_name IN_PLACE_OP expr _SEMICOLON?
+// NB: This is one of the parsing start points which is used for --assign.
+//     It is effectively "set" without the leading statement
+//     and only simple assignment can be performed.
+cmd_line_assign: var_name ("=" | "To"i) expr -> set
+
+// TODO: the arrow functions should move to "Define Function"
+set:  "Set"i? var_name ("=" | "To"i) expr
+    | "Set"i? var_name ("=" | "To"i)? def_params? ("->" | "=>" | "\u2192") expr -> set_arrow
+    | "Set"i? var_name ("=" | "To"i)? def_params? ("->" | "=>" | "\u2192") "Compile"i "(" expr ")" -> compile_arrow
+    | "Set"i? var_name IN_PLACE_OP expr
 IN_PLACE_OP: ("+=" | "-=" | "*=" | "/=" | "%=" | "**=" | "&=" | "|=" | "^=" | "<<=" | ">>=" )
 
-swap: "Swap"i var_name ("With"i | "And"i) var_name _SEMICOLON?
+swap: "Swap"i var_name ("With"i | "And"i) var_name
 
-unset: "Unset"i var_name (_COMMA var_name)* _SEMICOLON?
+unset: "Unset"i var_name (_SEP var_name)*
 
-reset: "Reset"i reset_opt (_COMMA? reset_opt)* _SEMICOLON?
+reset: "Reset"i reset_opt (_SEP? reset_opt)*
 ?reset_opt: "All"i -> all
     | "Data"i -> data
     | "Args"i -> args
     | "Output"i -> output
     | ("Include"i | "Includes"i) -> includes
 
-source: "Source"i ("File"i | "Files"i)? expr (_COMMA? expr)* _SEMICOLON?
-include: "@Include"i ("File"i | "Files"i)? expr (_COMMA? expr)* _SEMICOLON?
+source: "Source"i ("File"i | "Files"i)? expr (_SEP? expr)*
+include: "@Include"i ("File"i | "Files"i)? expr (_SEP? expr)*
 
 
-load_from: "Load"i var_name ("From"i | "With"i) "File"i? expr (_COMMA? load_from_opts)* _SEMICOLON?
+load_from: "Load"i var_name ("From"i | "With"i) "File"i? expr (_SEP? load_from_opts)*
 ?load_from_opts: encoding
     | ("Type"i "Is"i?)? load_source_type
 load_source_type: "CSV"i -> csv_file
@@ -193,58 +201,58 @@ load_source_type: "CSV"i -> csv_file
     | "Text"i? "Lines"i -> text_lines
     | "YAML"i -> yaml_file
 
-assert: "Assert"i expr (":" expr (_COMMA expr)*)? _SEMICOLON?
+assert: "Assert"i expr (":" expr (_SEP expr)*)?
 
-print: "Print"i print_channel? expr (_COMMA expr)* _SEMICOLON?
-printf: "Printf"i print_channel? expr (_COMMA expr)* _SEMICOLON?
+print: "Print"i print_channel? expr (_SEP expr)*
+printf: "Printf"i print_channel? expr (_SEP expr)*
 ?print_channel: ("On"i | "To"i)? (stderr | stdout)
     | "As"i? "Markdown"i -> markdown
 
-log: "Log"i log_level expr (_COMMA expr)* _SEMICOLON?
-   | "Log"i "Level"i log_level _SEMICOLON? -> log_setlevel
+log: "Log"i log_level expr (_SEP expr)*
+   | "Log"i "Level"i log_level -> log_setlevel
 ?log_level: "Debug"i -> debug
     | "Info"i -> info
     | ("Warn"i | "Warning"i) -> warn
     | "Error"i -> error
 
-open: "Open"i (stderr | stdout | stdin) "File"i? expr (_COMMA? open_option)* _SEMICOLON?
+open: "Open"i (stderr | stdout | stdin) "File"i? expr (_SEP? open_option)*
 ?open_option: encoding
     | ("Append"i | "Extend"i | "a"i) -> a
     | ("Overwrite"i | "w"i) -> w
     | ("No"i "Overwrite"i | "x"i) -> x
     | ("Read"i | "r"i) -> r
-close: "Close"i (stderr | stdout | stdin) "File"i? _SEMICOLON?
+close: "Close"i (stderr | stdout | stdin) "File"i?
 
-zip: "Create"i "Zip"i "File"i? expr (_COMMA? zip_option)* _SEMICOLON?
+zip: "Create"i "Zip"i "File"i? expr (_SEP? zip_option)*
 ?zip_option: "Comment"i option_value -> comment
     | "Include"i "Is"i? expr+ -> include
     | "Exclude"i "Is"i? expr+ -> exclude
 
-exit: "Exit"i expr? _SEMICOLON?
+exit: "Exit"i expr?
 
-sort: "Sort"i sort_source sort_keys? unique_clause? sort_giving? _SEMICOLON?
+sort: "Sort"i sort_source sort_keys? unique_clause? sort_giving?
 sort_source: sort_obj -> source
 sort_giving: "Giving"i sort_obj -> target
-?sort_obj: "File"i expr (_COMMA? load_from_opts)* -> file
+?sort_obj: "File"i expr (_SEP? load_from_opts)* -> file
     | var_name -> var
-sort_keys: ("On"i | "By"i) sort_key (_COMMA sort_key)* -> keys
+sort_keys: ("On"i | "By"i) sort_key (_SEP sort_key)* -> keys
 sort_key: sort_dir? "Key"i? expr -> key
 ?sort_dir: ("Ascending"i | "Asc"i) -> sort_asc
     | ("Descending"i | "Des"i) -> sort_des
-unique_clause: "Unique"i ("On"i expr (_COMMA expr)*)? -> unique
+unique_clause: "Unique"i ("On"i expr (_SEP expr)*)? -> unique
 
-list_append: "Append"i list_all? expr "To"i "List"i? var_name _SEMICOLON?
-list_prepend: "Prepend"i list_all? expr "To"i "List"i? var_name _SEMICOLON?
-list_insert: "Insert"i list_all? expr "Into"i "List"i? var_name "At"i ("Position"i | "Index"i)? expr _SEMICOLON?
-list_remove: "Remove"i ("Position"i | "Index"i)? expr "From"i "List"i? var_name giving_clause? _SEMICOLON?
-list_remove_first: "Remove"i "First"i "Item"i? "From"i "List"i? var_name giving_clause? _SEMICOLON?
-list_remove_last: "Remove"i "Last"i "Item"i? "From"i "List"i? var_name giving_clause? _SEMICOLON?
-list_replace: "Replace"i ("Position"i | "Index"i)? expr "In"i "List"i? var_name "With"i expr giving_clause? _SEMICOLON?
+list_append: "Append"i list_all? expr "To"i "List"i? var_name
+list_prepend: "Prepend"i list_all? expr "To"i "List"i? var_name
+list_insert: "Insert"i list_all? expr "Into"i "List"i? var_name "At"i ("Position"i | "Index"i)? expr
+list_remove: "Remove"i ("Position"i | "Index"i)? expr "From"i "List"i? var_name giving_clause?
+list_remove_first: "Remove"i "First"i "Item"i? "From"i "List"i? var_name giving_clause?
+list_remove_last: "Remove"i "Last"i "Item"i? "From"i "List"i? var_name giving_clause?
+list_replace: "Replace"i ("Position"i | "Index"i)? expr "In"i "List"i? var_name "With"i expr giving_clause?
 list_all: "All"i
 
-select: "Select"i select_outputs from_clause where_clause? product_clause? limit_clause? for_clause? into_clause? _SEMICOLON?
+select: "Select"i select_outputs from_clause where_clause? product_clause? limit_clause? for_clause? into_clause?
 
-?select_outputs: select_output (_COMMA select_output)* _COMMA?
+?select_outputs: select_output (_SEP select_output)* _SEP?
 
 select_output: "*"    -> output_all
     | expr "As"i expr -> output_as
@@ -252,16 +260,16 @@ select_output: "*"    -> output_all
 
 ?from_clause: "From"i (expr_from | file_from)
 expr_from: expr as_clause?
-file_from: "File"i expr (_COMMA? (load_from_opts | as_clause))*
+file_from: "File"i expr (_SEP? (load_from_opts | as_clause))*
 ?as_clause: "As"i expr
 
-into_clause: "Into"i (var_name | "File"i (stdout | stderr | expr (_COMMA? open_option)*))
+into_clause: "Into"i (var_name | "File"i (stdout | stderr | expr (_SEP? open_option)*))
 
-where_clause: "Where"i expr (_COMMA expr)*
+where_clause: "Where"i expr (_SEP expr)*
 
 ?for_clause: "For"i (for_json | for_csv | for_markdown | for_text | for_template)
 
-for_json: "JSON"i (_COMMA? json_option (_COMMA json_option)*)?
+for_json: "JSON"i (_SEP? json_option (_SEP json_option)*)?
 ?json_option: exclude_nulls | include_nulls
     | "Root"i option_value? -> root
     | "Indent"i option_value? -> indent
@@ -270,8 +278,8 @@ for_json: "JSON"i (_COMMA? json_option (_COMMA json_option)*)?
     | ("Without"i | "No"i) "Array"i "Wrapper"i option_value? -> no_array_wrapper
     | ("Sort"i "Keys"i? | "Sorted"i) option_value? -> sort_keys
 
-for_csv: "CSV"i (_COMMA? csv_option (_COMMA csv_option)*)?
-?csv_option: include_headers | omit_headers
+for_csv: "CSV"i (_SEP? csv_option (_SEP csv_option)*)?
+?csv_option: include_headers | exclude_headers
     | "Delimiter"i option_value -> delimiter
     | "Quote"i ("Char"i | "Character"i) option_value -> quotechar
     | "Escape"i ("Char"i | "Character"i) option_value -> escapechar
@@ -279,42 +287,42 @@ for_csv: "CSV"i (_COMMA? csv_option (_COMMA csv_option)*)?
     | "Quote"i "Is"i? CSV_QUOTE_TYPE -> quoting
 CSV_QUOTE_TYPE: "Minimal"i | "All"i | "Nonnumeric"i | "None"i
 
-for_markdown: "MarkDown"i (_COMMA? markdown_option (_COMMA markdown_option)*)?
-?markdown_option: include_headers | omit_headers
+for_markdown: "MarkDown"i (_SEP? markdown_option (_SEP markdown_option)*)?
+?markdown_option: include_headers | exclude_headers
 
-for_template: template_type? ("Template"i | "Jinja"i | "Jinja2"i) (template_filename | "Default"i)? (_COMMA? template_option (_COMMA template_option)*)?
+for_template: template_type? ("Template"i | "Jinja"i | "Jinja2"i) (template_filename | "Default"i)? (_SEP? template_option (_SEP template_option)*)?
 ?template_type: "Record"i -> record
     | "Batch"i -> batch
 template_filename: "File"i? expr
-?template_option: include_headers | omit_headers
+?template_option: include_headers | exclude_headers
     | "Auto"i "Escape"i option_value? -> auto_escape
     | "Trim"i "Blocks"i? option_value? -> trim_blocks
     | "Left"i "Strip"i "Blocks"i? option_value? -> lstrip_blocks
     | "Keep"i "Last"i "Newline"i option_value? -> keep_last_newline
     | "Chain"i "Undefined"i "Variables"i? option_value? -> chain_undefined
 
-for_text: "Text"i (_COMMA? for_text_option (_COMMA for_text_option)*)?
-?for_text_option: include_headers | omit_headers
+for_text: "Text"i (_SEP? for_text_option (_SEP for_text_option)*)?
+?for_text_option: include_headers | exclude_headers
     | exclude_nulls | include_nulls
     | "Field"i "Separator"i option_value -> field_sep
     | "Header"i "Separator"i option_value -> header_sep
     | "Record"i "Separator"i option_value -> record_sep
 
-include_headers: "Include"i "Headers"i option_value?
-omit_headers: ("No"i | "Omit"i) "Headers"i option_value?
+include_headers: "Include"i ("Header"i | "Headers"i) option_value?
+exclude_headers: "Exclude"i ("Header"i | "Headers"i) option_value?
 exclude_nulls: "Exclude"i ("Nulls"i | "Null"i "Values"i) option_value?
 include_nulls: "Include"i ("Nulls"i | "Null"i "Values"i) option_value?
 
 // Either LIMIT <number> (OFFSET <number>)?
 // or FETCH FIRST <number> ROWS ONLY
 limit_clause: _limit_offset | _fetch_first
-_limit_offset: "Limit"i option_value (_COMMA? "Offset"i option_value)?
+_limit_offset: "Limit"i option_value (_SEP? "Offset"i option_value)?
 _fetch_first: "Fetch"i "First"i expr "Rows"i "Only"i
 
 product_clause: "Cartesian"i? "Product"i product_cols
 product_cols: "All"i -> all
     | "None"i -> none
-    | col_spec (_COMMA col_spec)*
+    | col_spec (_SEP col_spec)*
 ?col_spec: DEC_NUMBER // One based
     | NAME
     | STRING
@@ -342,8 +350,8 @@ ternary: expr "?" expr ":" expr -> c_ternary
     | ("!" | "\uFF01" | "\u00AC") expr2 -> unary_not // Unicode ！(fullwidth excl) and ¬ (logical not)
     | expr2 "." dotfunction -> dotfunction_call
     | expr2 "." NAME -> deref
-    | expr2 "." "@" var_name "(" (expr (_COMMA expr)*)? ")" -> invoke_func_inline
-    | "@" var_name "(" (expr (_COMMA expr)*)? ")" -> invoke_func
+    | expr2 "." "@" var_name "(" (expr (_SEP expr)*)? ")" -> invoke_func_inline
+    | "@" var_name "(" (expr (_SEP expr)*)? ")" -> invoke_func
     | function -> function_call
     | expr2 "Is"i ("Negative"i | "Not"i "Positive"i) -> is_negative_op
     | expr2 "Is"i ("Positive"i | "Not"i "Negative"i) -> is_positive_op
@@ -382,8 +390,8 @@ ternary: expr "?" expr ":" expr -> c_ternary
     | "\u2308" expr "\u2309" -> ceil_op                 // Unicode ceiling ⌈ x ⌉
     | "\u230A" expr "\u230B" -> floor_op                // Unicode floor ⌊ x ⌋
     | expr2 SUPERSCRIPT_FLOAT -> pow_op
-    | "[" (expr (_COMMA expr)*)? _COMMA? "]" -> array
-    | "{" (expr ":" expr (_COMMA expr ":" expr)*)? _COMMA? "}" -> dict
+    | "[" (expr (_SEP expr)*)? _SEP? "]" -> array
+    | "{" (expr ":" expr (_SEP expr ":" expr)*)? _SEP? "}" -> dict
 
 ?atom: ("None"i  | "\u2205" | "Null"i) -> vnone         // Unicode ∅ (Empty set)
     // Boolean constants
@@ -391,19 +399,21 @@ ternary: expr "?" expr ":" expr -> c_ternary
     | ("False"i | "\u22A5") -> vfalse                   // Unicode ⊥ (bottom)
     // Figurative constants: where COBOL "inspired" only the singular version is used
     // Numeric figurative constants
-    | "Nan"i -> vnan
-    | "Zero"i -> vzero                                  // becomes int 0
+    | "Nan"i                -> vnan
+    | "Zero"i               -> vzero                    // becomes int 0
     | ("Inf"i   | "\u221E") -> vinf                     // Unicode ∞ (infinity)
     // Character figurative constants
     // These are here to support structured text formats (CSV, JSON, et al)
     // and is intentionally NOT a "punctuation catalog"
-    | "Colon"i -> vcolon                                // becomes ':'
-    | "Comma"i -> vcomma                                // becomes ','
-    | "Newline"i -> vnewline                            // becomes '\n'
-    | "Period"i -> vperiod                              // becomes '.'
-    | "Quote"i -> vquote                                // becomes '"'
-    | "Space"i -> vspace                                // becomes " "
-    | "Tab"i -> vtab                                    // becomes '\t'
+    | "Colon"i              -> vcolon                   // becomes ':'
+    | "Comma"i              -> vcomma                   // becomes ','
+    | "Newline"i            -> vnewline                 // becomes '\n'
+    | "Period"i             -> vperiod                  // becomes '.'
+    | "Quote"i              -> vquote                   // becomes '"'
+    | "Space"i              -> vspace                   // becomes " "
+    | "Tab"i                -> vtab                     // becomes '\t'
+    | "Escape"i             -> vescape                   // becomes '\x1b'
+    | "Backslash"i          -> vbackslash                // becomes '\\'
     // Values that closely follow Python and other lanuages
     | HEX_NUMBER | BIN_NUMBER | OCT_NUMBER | DEC_NUMBER // becomes INT at runtime
     | FLOAT_NUMBER                                      // becomes FLOAT at runtime
@@ -416,12 +426,13 @@ var_name: NAME ("." NAME)*
 
 {FUNCTIONS}
 
-// modified versions of python.STRING/LONG_STRING : removed the [ufb]
-_STRING: /[Rr]?("(?!"").*?(?<!\\)(\\\\)*?"|'(?!'').*?(?<!\\)(\\\\)*?')/
-_LONG_STRING: /[Rr]?(""".*?(?<!\\)(\\\\)*?"""|'''.*?(?<!\\)(\\\\)*?''')/s
+// modified versions of python.STRING/LONG_STRING : removed the [f]
+// NB: we don't enforce validity of prefixes here
+_VSTRING: /[BRUbru]*("(?!"").*?(?<!\\)(\\\\)*?"|'(?!'').*?(?<!\\)(\\\\)*?')/
+_LONG_VSTRING: /[BRUbru]*(""".*?(?<!\\)(\\\\)*?"""|'''.*?(?<!\\)(\\\\)*?''')/s
 // Allow typographic quotes from C/P sources, but fix them up internally
-_MS_STRING: /[Rr]?(\u201C.*?(?<!\\)(\\\\)*?\u201D|\u2018.*?(?<!\\)(\\\\)*?\u2019)/
-STRING: _STRING | _LONG_STRING | _MS_STRING
+_MS_STRING: /[BRUbru]*(\u201C.*?(?<!\\)(\\\\)*?\u201D|\u2018.*?(?<!\\)(\\\\)*?\u2019)/
+STRING: _VSTRING | _LONG_VSTRING | _MS_STRING
 
 SH_COMMENT: /#[^\n]*/
 CPP_COMMENT: /\/\/[^\n]*/
