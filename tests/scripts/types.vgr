@@ -1,7 +1,7 @@
 
 Tron
 
-Set f(x) -> x
+Function f(x) -> x
 Set p To CompilePattern("x")
 
 Assert None.Type() Is "none"

@@ -5,23 +5,14 @@ Set Zero To 0 # for readability
 
 # Convert a value to a number, using zero as the default
 # Since it is strictly transformational, use a arrow function
-Set num_default(x) -> x.DefaultTo(Zero).ToNumber()
+Function num_default(x) -> x.DefaultTo(Zero).ToNumber()
 
 # Basic math operations in a dictionary
 # These are short enough they could be defined as arrow functions
-Define Function op.add(a, b):
-    Return @num_default(a) + @num_default(b)
-End-Function
-Define Function op.sub(a, b):
-    Return @num_default(a) - @num_default(b)
-End-Function
-Define Function op.mul(a, b):
-    Return @num_default(a) * @num_default(b)
-End-Function
-Define Function op.div(a,b):
-    Set b = @num_default(b)
-    Return b Is Zero ? math.inf : (@num_default(a) / b)
-End-Function
+Function op.add(a, b) -> @num_default(a) + @num_default(b)
+Function op.sub(a, b) -> @num_default(a) - @num_default(b)
+Function op.mul(a, b) -> @num_default(a) * @num_default(b)
+Function op.div(a,b) -> (@num_default(a) / @num_default(b))
 
 # Some more "advanced" math operations
 Define Function adv_op.pow(a, b): return @num_default(a).Pow(@num_default(b)); End-Function

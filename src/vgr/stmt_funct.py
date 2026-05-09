@@ -35,20 +35,20 @@ are a single name, not a dotted path.
 The arrow operator separates the parameter list from the body.
 The body is either an expression or a dynamic expression using _Compile_(&hellip;).
 
-* Set *variable* (*arg*&hellip;) [-> | →] *expression*
-* Set *variable* (*arg*&hellip;) [-> | →] Compile(*expression*)
+* [Define] Function *variable* (*arg*&hellip;) [-> | →] *expression*
+* [Define] Function *variable* (*arg*&hellip;) [-> | →] Compile(*expression*)
 
 ```vgr
 # Simple expression
-Set fn(a, b) -> a * b
+Function fn(a, b) -> a * b
 Exhibit fn
 fn = (a,b)→a * b
 Print fn
 a * b
 
 # Zero arg function
-Set now() -> time.now
-Set also_now -> time.now
+Function now() -> time.now
+Function also_now -> time.now
 
 # In-line invocation
 Print @fn(5, 3)
@@ -64,7 +64,7 @@ Print 5.@c(3), @fn(5, 3)
 # The expression can be compiled from a string
 Accept op From stdin
 Assert op in ["+", "-", "*", "/"]
-Set dyn(x, y) -> Compile("(x {} y) + 10".Format(op))
+Function dyn(x, y) -> Compile("(x {} y) + 10".Format(op))
 ```
 
 Also see `Call` for details on invoking functions
@@ -75,6 +75,20 @@ Also see `Call` for details on invoking functions
     var_path = get_writable_var_path(ctx, statement.children[0])
     param_paths = create_param_list(ctx, statement.children[1]) if count > 2 else []
     do_set(ctx, UserFunction(param_paths, statement.children[-1].children), *var_path)
+
+def execute_def_arrow(ctx: ExecContext, statement: Tree) -> None:
+    """-documentation combined with Function-"""
+    var_path = get_writable_var_path(ctx, statement.children[0])
+    param_paths = create_param_list(ctx, statement.children[1])
+    expr = statement.children[-1]
+    do_set(ctx, UserFunction.from_expression(ctx.get_source(expr), expr, param_paths), *var_path)
+
+def execute_compile_arrow(ctx: ExecContext, statement: Tree) -> None:
+    """-documentation combined with Function-"""
+    var_path = get_writable_var_path(ctx, statement.children[0])
+    param_paths = create_param_list(ctx, statement.children[1])
+    expr = statement.children[-1]
+    do_set(ctx, UserFunction.compile(ctx, ctx.eval_expr(expr), param_paths), *var_path)
 
 @bound_ops("Call")
 def execute_call(ctx: ExecContext, statement: Tree) -> None:

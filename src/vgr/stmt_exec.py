@@ -69,9 +69,11 @@ from .stmt_exit import (
     execute_return,
 )
 from .stmt_funct import (
-    execute_def_function,
-    execute_call,
     execute_call_giving,
+    execute_call,
+    execute_compile_arrow,
+    execute_def_arrow,
+    execute_def_function,
 )
 from .stmt_list import (
     execute_list_append,
@@ -93,10 +95,8 @@ from .stmt_print import (
 )
 from .stmt_select import execute_select
 from .stmt_set import (
-    execute_compile_arrow,
     execute_load_from,
     execute_reset,
-    execute_set_arrow,
     execute_set,
     execute_swap,
     execute_unset,
@@ -1086,6 +1086,7 @@ STATEMENT_HANDLERS = {
     'declare':           execute_declare,
     'declare_local':     execute_declare_local,
     'declare_global':    execute_declare_global,
+    'def_arrow':         execute_def_arrow,
     'def_function':      execute_def_function,
     'echo':              execute_echo,
     'exit':              execute_exit,
@@ -1111,7 +1112,6 @@ STATEMENT_HANDLERS = {
     'reset':             execute_reset,
     'return':            execute_return,
     'select':            execute_select,
-    'set_arrow':         execute_set_arrow,
     'set':               execute_set,
     'sleep':             execute_sleep,
     'sort':              execute_sort,

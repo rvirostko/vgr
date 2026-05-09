@@ -96,8 +96,6 @@ def execute_set(ctx: ExecContext, statement: Tree) -> None:
 * Set *variable* ^= *expression* &emsp; *Bit Xor*
 * Set *variable* <<= *expression* &emsp; *Bit Shift Left*
 * Set *variable* >>= *expression* &emsp; *Bit Shift Right*
-* Set *variable* (*arg*&hellip;) [-> | →] *expression* &emsp; *Arrow Function*
-
 
 Not that when `+=` is used with two lists, the lists are concatenated.
 
@@ -111,8 +109,6 @@ b = 3
 ```
 
 Also see the `Add`, `Subtract`, `Multiply`, and `Divide` statements.
-
-See `Define Function` and `Call` for details on defining and calling *Arrow Functions* with `Set`
 """
     var_path = get_writable_var_path(ctx, statement.children[0])
     if len(statement.children) == 2:
@@ -123,20 +119,6 @@ See `Define Function` and `Call` for details on defining and calling *Arrow Func
         op = _IN_PLACE_OP[statement.children[1].value.lower()]
         new_value = op(ctx.get_var(*var_path), ctx.eval_expr(statement.children[2]))
     do_set(ctx, new_value, *var_path)
-
-def execute_set_arrow(ctx: ExecContext, statement: Tree) -> None:
-    """-documentation combined with Function-"""
-    var_path = get_writable_var_path(ctx, statement.children[0])
-    param_paths = create_param_list(ctx, statement.children[1])
-    expr = statement.children[-1]
-    do_set(ctx, UserFunction.from_expression(ctx.get_source(expr), expr, param_paths), *var_path)
-
-def execute_compile_arrow(ctx: ExecContext, statement: Tree) -> None:
-    """-documentation combined with Function-"""
-    var_path = get_writable_var_path(ctx, statement.children[0])
-    param_paths = create_param_list(ctx, statement.children[1])
-    expr = statement.children[-1]
-    do_set(ctx, UserFunction.compile(ctx, ctx.eval_expr(expr), param_paths), *var_path)
 
 @bound_ops("Unset")
 def execute_unset(ctx: ExecContext, statement: Tree) -> None:

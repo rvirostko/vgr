@@ -52,7 +52,7 @@ _options_list{t_type}: (_SEP? t_type (_SEP? t_type)*)?
 opt_statements: statement*
 
 // NB: this is the only place where we have to reference the optional statement ender
-?statement: (simple_statement | select | control_statements | def_statements {EXTN_STATEMENTS}) ";"?
+?statement: (simple_statement | select | control_statements | define_statements {EXTN_STATEMENTS}) ";"?
     | ";" -> pass // blank statement synonymous with "pass"
 
 ?simple_statement: assert
@@ -108,17 +108,27 @@ stdin: ("Input"i | "stdin"i | "sysin"i)
 encoding: "Encoding"i option_value
 
 block_statement: "Begin"i _CLAUSE_SEP? statement+ "End"i -> block
-call: "Call"i "Function"i? var_name ("(" _csep_list{expr}? ")")?
-    | "Call"i "Function"i? var_name ("(" _csep_list{expr}? ")")? giving_clause -> call_giving
-    | "Call"i "Function"i? var_name "Using"i _csep_list{expr}
-    | "Call"i "Function"i? var_name "Using"i _csep_list{expr} giving_clause -> call_giving
-declare: "Declare"i _csep_list{var_name}
-    | "Declare"i _csep_list{var_name} "As"i? "Local"i  -> declare_local
-    | "Declare"i _csep_list{var_name} "As"i? "Global"i -> declare_global
-def_statements: "Define"i? "Function"i var_name def_params? _CLAUSE_SEP? def_body ("End-Function"i | "End"i) -> def_function
+
+call: _call_function var_name ("(" _csep_list{expr}? ")")?
+    | _call_function var_name ("(" _csep_list{expr}? ")")? giving_clause -> call_giving
+    | _call_function var_name "Using"i _csep_list{expr}
+    | _call_function var_name "Using"i _csep_list{expr} giving_clause -> call_giving
+_call_function: "Call"i "Function"i?
+
+declare: _decl _csep_list{var_name}
+    |    _decl _csep_list{var_name} "As"i? "Local"i  -> declare_local
+    |    _decl _csep_list{var_name} "As"i? "Global"i -> declare_global
+_decl: "Declare"i
+
+define_statements: _def_function var_name def_params? _CLAUSE_SEP? def_body ("End-Function"i | "End"i) -> def_function
+    |              _def_function var_name def_params? _function_arrow expr                             -> def_arrow
+    |              _def_function var_name def_params? _function_arrow "Compile"i "(" expr ")"          -> compile_arrow
+_def_function: "Define"i? "Function"i
+_function_arrow: "->" | "=>" | "\u2192"
 // NB: doesn't work with template; probably should be changed to use var_name anyway
 def_params: "(" (NAME (_SEP NAME)*)? ")" -> params
 def_body: statement+ -> body
+
 // Note: this combines BASIC-like syntax (For Each) and VGR (ForEach), now somewhat deprecated
 foreach_statement: ("For"i "Each"i | "ForEach"i) var_name "In"i expr _CLAUSE_SEP? statement+ ("Next"i | "End-For"i | "End"i) -> foreach
 forever_loop: "Do"i "Forever"i _CLAUSE_SEP? statement+ ("End-Do"i | "End"i) -> forever
@@ -187,13 +197,9 @@ sleep: "Sleep"i "For"i? expr _unit_seconds?
 //     and only simple assignment can be performed.
 cmd_line_assign: var_name _assignment expr -> set
 
-// TODO: the arrow functions should move to "Define Function"
 set:  "Set"i var_name _assignment expr
     | "Set"i var_name IN_PLACE_OP expr
-    | "Set"i var_name _assignment? def_params? _function_arrow expr -> set_arrow
-    | "Set"i var_name _assignment? def_params? _function_arrow "Compile"i "(" expr ")" -> compile_arrow
 IN_PLACE_OP: ("+=" | "-=" | "*=" | "/=" | "%=" | "**=" | "&=" | "|=" | "^=" | "<<=" | ">>=" )
-_function_arrow: "->" | "=>" | "\u2192"
 
 swap: "Swap"i var_name ("With"i | "And"i) var_name
 
