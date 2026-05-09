@@ -192,7 +192,7 @@ swap: "Swap"i var_name ("With"i | "And"i) var_name
 
 unset: "Unset"i _csep_list{var_name}
 
-reset: "Reset"i _ocsep_list{reset_opt}
+reset: "Reset"i _ocsep_list{reset_opt}?
 ?reset_opt: "All"i               -> all
     | "Data"i                    -> data
     | "Args"i                    -> args

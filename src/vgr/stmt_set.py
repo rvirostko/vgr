@@ -208,28 +208,41 @@ c = -not set-
 
 Also see `Set` and `Unset`
 """
-    for opt in statement.children:
-        s = str(opt.data).casefold()
-        if s in ('all', 'output'):
-            ctx.print_verbose('Resetting Output/Error redirection')
-            close_all_redirects()
-        if s in ('all', 'data'):
-            ctx.print_verbose('Resetting all user data')
-            # We preserve args but reset everything else
-            t_args = get_user_args(ctx)
-            dd_init(ctx.dd)
-            set_user_args(ctx, t_args)
-        if s in ('all', 'includes'):
-            ctx.print_verbose('Resetting includes')
-            clear_includes()
-        if s in ('all', 'args'):
-            ctx.print_verbose('Resetting user args')
-            set_user_args(ctx, None)
-        if s in ('all'):
-            ctx.print_verbose('Resetting Debug, Echo, and Verbose settings')
-            ctx.debug = False
-            ctx.echo = False
-            ctx.verbose = False
+    def _output():
+        ctx.print_verbose('Resetting Output/Error redirection')
+        close_all_redirects()
+    def _data():
+        ctx.print_verbose('Resetting all user data')
+        # We preserve args but reset everything else
+        t_args = get_user_args(ctx)
+        dd_init(ctx.dd)
+        set_user_args(ctx, t_args)
+    def _includes():
+        ctx.print_verbose('Resetting includes')
+        clear_includes()
+    def _args():
+        ctx.print_verbose('Resetting user args')
+        set_user_args(ctx, None)
+    def _flags():
+        ctx.print_verbose('Resetting Debug, Echo, and Verbose settings')
+        ctx.debug = False
+        ctx.echo = False
+        ctx.verbose = False
+
+    if len(statement.children) == 0:
+        _output()
+        _data()
+        _includes()
+        _args()
+        _flags()
+    else:
+        for opt in statement.children:
+            s = str(opt.data).casefold()
+            if s in ('all', 'output'): _output()
+            if s in ('all', 'data'): _data()
+            if s in ('all', 'includes'): _includes()
+            if s in ('all', 'args'): _args()
+            if s in ('all'): _flags()
 
 @bound_ops("Swap")
 def execute_swap(ctx: ExecContext, statement: Tree) -> None:
