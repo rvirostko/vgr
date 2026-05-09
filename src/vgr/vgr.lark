@@ -108,7 +108,7 @@ stdout: ("Output"i | "stdout"i | "sysprint"i)
 stdin: ("Input"i | "stdin"i | "sysin"i)
 encoding: "Encoding"i option_value
 
-block_statement: "Begin"i ":"? statement+ "End"i -> block
+block_statement: "Begin"i _CLAUSE_SEP? statement+ "End"i -> block
 call: "Call"i "Function"i? var_name ("(" _csep_list{expr}? ")")?
     | "Call"i "Function"i? var_name ("(" _csep_list{expr}? ")")? giving_clause -> call_giving
     | "Call"i "Function"i? var_name "Using"i _csep_list{expr}
@@ -116,21 +116,21 @@ call: "Call"i "Function"i? var_name ("(" _csep_list{expr}? ")")?
 declare: "Declare"i _csep_list{var_name}
     | "Declare"i _csep_list{var_name} "As"i? "Local"i  -> declare_local
     | "Declare"i _csep_list{var_name} "As"i? "Global"i -> declare_global
-def_statements: "Define"i? "Function"i var_name def_params? ":"? def_body ("End-Function"i | "End"i) -> def_function
+def_statements: "Define"i? "Function"i var_name def_params? _CLAUSE_SEP? def_body ("End-Function"i | "End"i) -> def_function
 def_params: "(" (NAME (_SEP NAME)*)? ")" -> params
 def_body: statement+ -> body
 // Note: this combines BASIC-like syntax (For Each) and VGR (ForEach), now somewhat deprecated
-foreach_statement: ("For"i "Each"i | "ForEach"i) var_name "In"i expr ":"? statement+ ("Next"i | "End-For"i | "End"i) -> foreach
-forever_loop: "Do"i "Forever"i ":"? statement+ ("End-Do"i | "End"i) -> forever
+foreach_statement: ("For"i "Each"i | "ForEach"i) var_name "In"i expr _CLAUSE_SEP? statement+ ("Next"i | "End-For"i | "End"i) -> foreach
+forever_loop: "Do"i "Forever"i _CLAUSE_SEP? statement+ ("End-Do"i | "End"i) -> forever
 
 // The addition of the optional "Then" allows a BASIC-like If syntax usage
-if_statement: "If"i expr ("Then"i | ":")? statement+ else_clause? ("End-If"i | "End"i) -> if
-else_clause: "Else"i ":"? statement+ -> else
+if_statement: "If"i expr ("Then"i | _CLAUSE_SEP)? statement+ else_clause? ("End-If"i | "End"i) -> if
+else_clause: "Else"i _CLAUSE_SEP? statement+ -> else
 
-repeat_statement: "Repeat"i expr ("Time"i | "Times"i)? ":"? statement+ ("End-Repeat"i | "End"i) -> repeat
-unless_statement: "Unless"i expr ":"? statement+ ("End-Unless"i | "End"i) -> unless
-until_statement: "Until"i expr ":"? statement+ ("End-Until"i | "End"i) -> until
-while_statement: "While"i expr ":"? statement+ ("End-While"i | "End"i | "Loop"i) -> while
+repeat_statement: "Repeat"i expr ("Time"i | "Times"i)? _CLAUSE_SEP? statement+ ("End-Repeat"i | "End"i) -> repeat
+unless_statement: "Unless"i expr _CLAUSE_SEP? statement+ ("End-Unless"i | "End"i) -> unless
+until_statement: "Until"i expr _CLAUSE_SEP? statement+ ("End-Until"i | "End"i) -> until
+while_statement: "While"i expr _CLAUSE_SEP? statement+ ("End-While"i | "End"i | "Loop"i) -> while
 
 break: "Break"i
 continue: "Continue"i
@@ -153,24 +153,24 @@ op_matches_all: "Matches"i "All"i
 op_imatches: ("~*" | "IMatches"i)
 op_not_imatches: ("!~*" | "Not"i op_imatches | "Does"i "Not"i "IMatch"i)
 
-choose_statement: "Choose"i choose_all? ":" choice_block+ otherwise_block? ("End-Choose"i | "End"i) -> choose
-    | "Choose"i choose_all? "Using"i expr ":" values_block+ otherwise_block? ("End-Choose"i | "End"i) -> choose_using
+choose_statement: "Choose"i choose_all? _CLAUSE_SEP choice_block+ otherwise_block? ("End-Choose"i | "End"i) -> choose
+    | "Choose"i choose_all? "Using"i expr _CLAUSE_SEP values_block+ otherwise_block? ("End-Choose"i | "End"i) -> choose_using
 choose_all: "All"i
-choice_block: "When"i expr ":" statement+
-values_block: "When"i "Is"i? "Empty"i ":" statement+ -> is_empty_block
-    | "When"i "Is"i? "Not"i "Empty"i ":" statement+ -> is_not_empty_block
-    | "When"i "Is"i? ("Positive"i | "Not"i "Negative"i) ":" statement+ -> is_pos_block
-    | "When"i "Is"i? ("Negative"i | "Not"i "Positive"i) ":" statement+ -> is_neg_block
-    | "When"i "Is"i? ("Even"i | "Not"i "Odd"i) ":" statement+ -> is_even_block
-    | "When"i "Is"i? ("Odd"i | "Not"i "Even"i) ":" statement+ -> is_odd_block
-    | "When"i value_list ":" statement+
-    | "When"i "Not"i value_list ":" statement+ -> not_values_block
-    | "When"i expr ("Through"i | "Thru"i | "To"i) expr ":" statement+ -> range_block
-    | "When"i "Not"i expr ("Through"i | "Thru"i | "To"i) expr ":" statement+ -> not_range_block
-    | "When"i (op_lt | op_gt | op_ge | op_le) expr ":" statement+ -> ineq_block
-    | "When"i (op_eq | op_ne | op_contains | op_not_contains | op_matches | op_not_matches | op_matches_all) value_list ":" statement+
+choice_block: "When"i expr _CLAUSE_SEP statement+
+values_block: "When"i "Is"i? "Empty"i _CLAUSE_SEP statement+ -> is_empty_block
+    | "When"i "Is"i? "Not"i "Empty"i _CLAUSE_SEP statement+ -> is_not_empty_block
+    | "When"i "Is"i? ("Positive"i | "Not"i "Negative"i) _CLAUSE_SEP statement+ -> is_pos_block
+    | "When"i "Is"i? ("Negative"i | "Not"i "Positive"i) _CLAUSE_SEP statement+ -> is_neg_block
+    | "When"i "Is"i? ("Even"i | "Not"i "Odd"i) _CLAUSE_SEP statement+ -> is_even_block
+    | "When"i "Is"i? ("Odd"i | "Not"i "Even"i) _CLAUSE_SEP statement+ -> is_odd_block
+    | "When"i value_list _CLAUSE_SEP statement+
+    | "When"i "Not"i value_list _CLAUSE_SEP statement+ -> not_values_block
+    | "When"i expr ("Through"i | "Thru"i | "To"i) expr _CLAUSE_SEP statement+ -> range_block
+    | "When"i "Not"i expr ("Through"i | "Thru"i | "To"i) expr _CLAUSE_SEP statement+ -> not_range_block
+    | "When"i (op_lt | op_gt | op_ge | op_le) expr _CLAUSE_SEP statement+ -> ineq_block
+    | "When"i (op_eq | op_ne | op_contains | op_not_contains | op_matches | op_not_matches | op_matches_all) value_list _CLAUSE_SEP statement+
 value_list: _csep_list{expr}
-otherwise_block: "Otherwise"i ":" statement+
+otherwise_block: "Otherwise"i _CLAUSE_SEP statement+
 
 // simple boolean on/off, true/false
 // these are "proper statements" as they control the behavior of other statements
@@ -221,7 +221,7 @@ load_source_type: "CSV"i -> csv_file
     | "Text"i? "Lines"i -> text_lines
     | "YAML"i -> yaml_file
 
-assert: "Assert"i expr (":" _csep_list{expr})?
+assert: "Assert"i expr (_CLAUSE_SEP _csep_list{expr})?
 
 print: "Print"i print_channel? _csep_list{expr}
 printf: "Printf"i print_channel? _csep_list{expr}
@@ -352,7 +352,7 @@ product_cols: "All"i -> all
 
 ?expr: ternary | and_expr
 
-ternary: expr "?" expr ":" expr -> c_ternary
+ternary: expr "?" expr _CLAUSE_SEP expr -> c_ternary
 //    | expr "If"i expr "Else"i expr -> py_ternary // TODO collision with "real" If statement, but only when capitalized?
 // When LC, it works, but if (true if 5<7 else false)  print "a" else print "b" end doesn't parse
 
@@ -417,7 +417,7 @@ ternary: expr "?" expr ":" expr -> c_ternary
     | "[" (expr (_SEP expr)*)? _SEP? "]"                -> array        // [], [x], [x,y], [x,y,]
     | "{" (_dict_entry (_SEP _dict_entry)*)? _SEP? "}"  -> dict         // {}, {x:y}, {a:b,x:y}, {a:b,x:y,}
 
-_dict_entry: expr ":" expr // key and value
+_dict_entry: expr _CLAUSE_SEP expr // key and value
 
 ?atom: ("None"i  | "\u2205" | "Null"i) -> vnone         // Unicode ∅ (Empty set)
     // Boolean constants

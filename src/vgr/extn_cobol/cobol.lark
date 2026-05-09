@@ -50,9 +50,9 @@ cobol_exit: "Exit"i "Perform"i "Cycle"i -> cobol_exit_perform_cycle
     | ("Exit"i "Program"i | "Goback"i) -> cobol_exit_program
 
 // NB: Performs contain non-standard ":" separator (optional) to be compatible with other block statements
-cobol_perform_times: "Perform"i expr ("Time"i | "Times"i) ":"? statement+ ("End-Perform"i | "End"i)?
-cobol_perform_until: "Perform"i "Until"i expr ":"? statement+ ("End-Perform"i | "End"i)?
-cobol_perform_varying: "Perform"i varying_test_type? "Varying"i var_name "From"i expr "By"i expr "Until"i expr ":"? statement+ ("End-Perform"i | "End"i)?
+cobol_perform_times: "Perform"i expr ("Time"i | "Times"i) _CLAUSE_SEP? statement+ ("End-Perform"i | "End"i)?
+cobol_perform_until: "Perform"i "Until"i expr _CLAUSE_SEP? statement+ ("End-Perform"i | "End"i)?
+cobol_perform_varying: "Perform"i varying_test_type? "Varying"i var_name "From"i expr "By"i expr "Until"i expr _CLAUSE_SEP? statement+ ("End-Perform"i | "End"i)?
 ?varying_test_type: "With"i? "Test"i "Before"i -> test_before
     | "With"i? "Test"i "After"i -> test_after
 
@@ -107,9 +107,9 @@ cobol_move_corr: ("Corresponding"i | "Corr"i)
 //   * "Any" is not supported
 // NB: Evaluate contain non-standard ":" separator (optional) to be compatible with other block statements
 // See https://www.ibm.com/docs/en/cobol-zos/6.3.0?topic=statements-evaluate-statement
-cobol_evaluate: "Evaluate"i expr ":"? (cobol_when_block | cobol_when_thru_block)+ cobol_when_other? "End-Evaluate"i -> cobol_evaluate
-cobol_when_thru_block: "When"i expr ("Through"i | "Thru"i) expr ":"? statement+
-    | "When"i "Not"i expr ("Through"i | "Thru"i) expr ":"? statement+ -> cobol_when_not_thru_block
-cobol_when_block: "When"i expr ":"? statement+
-    | "When"i "Not"i expr ":"? statement+ -> cobol_when_not_block
-cobol_when_other: "When"i "Other"i ":"? statement+
+cobol_evaluate: "Evaluate"i expr _CLAUSE_SEP? (cobol_when_block | cobol_when_thru_block)+ cobol_when_other? "End-Evaluate"i -> cobol_evaluate
+cobol_when_thru_block: "When"i expr ("Through"i | "Thru"i) expr _CLAUSE_SEP? statement+
+    | "When"i "Not"i expr ("Through"i | "Thru"i) expr _CLAUSE_SEP? statement+ -> cobol_when_not_thru_block
+cobol_when_block: "When"i expr _CLAUSE_SEP? statement+
+    | "When"i "Not"i expr _CLAUSE_SEP? statement+ -> cobol_when_not_block
+cobol_when_other: "When"i "Other"i _CLAUSE_SEP? statement+
