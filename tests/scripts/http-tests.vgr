@@ -273,6 +273,7 @@ Http Disconnect httpbin
 Echo on
 Http Connect "https://httpbin.org/"
     Follow Redirects
+    Timeout Is 30.0
     As httpbin
 Http Get "redirect/3" Using httpbin
 Echo off
@@ -287,6 +288,7 @@ Http Disconnect httpbin
 Echo on
 Http Connect "https://httpbin.org/"
     Follow Redirects
+    Timeout Is 30.0
     Max Redirects Is 3
     As httpbin
 Http Get "redirect/4" Using httpbin
