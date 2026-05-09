@@ -37,6 +37,7 @@ _file_option: "File"i
 _files_option: "File"i | "Files"i
 _headers_option: "Header"i | "Headers"i
 _null_values_option: "Nulls"i | "Null"i "Values"i
+_unit_seconds: "Second"i | "Seconds"i
 //----------------------------------------------------------
 
 //----------------------------------------------------------
@@ -108,10 +109,10 @@ stdin: ("Input"i | "stdin"i | "sysin"i)
 encoding: "Encoding"i option_value
 
 block_statement: "Begin"i ":"? statement+ "End"i -> block
-call: "Call"i "Function"i? var_name ("(" (expr (_SEP expr)*)? ")")?
-    | "Call"i "Function"i? var_name ("(" (expr (_SEP expr)*)? ")")? giving_clause -> call_giving
-    | "Call"i "Function"i? var_name "Using"i expr (_SEP expr)*
-    | "Call"i "Function"i? var_name "Using"i expr (_SEP expr)* giving_clause -> call_giving
+call: "Call"i "Function"i? var_name ("(" _csep_list{expr}? ")")?
+    | "Call"i "Function"i? var_name ("(" _csep_list{expr}? ")")? giving_clause -> call_giving
+    | "Call"i "Function"i? var_name "Using"i _csep_list{expr}
+    | "Call"i "Function"i? var_name "Using"i _csep_list{expr} giving_clause -> call_giving
 declare: "Declare"i _csep_list{var_name}
     | "Declare"i _csep_list{var_name} "As"i? "Local"i  -> declare_local
     | "Declare"i _csep_list{var_name} "As"i? "Global"i -> declare_global
@@ -179,7 +180,7 @@ verbose: "Verbose"i expr?
 
 pass: ("Pass"i | "Nop"i)
 
-sleep: "Sleep"i "For"i? expr ("Seconds"i | "Second"i)?
+sleep: "Sleep"i "For"i? expr _unit_seconds?
 
 // NB: This is one of the parsing start points which is used for --assign.
 //     It is effectively "set" without the leading statement
@@ -205,10 +206,10 @@ reset: "Reset"i _ocsep_list{reset_opt}?
     | "Output"i                  -> output
     | ("Include"i | "Includes"i) -> includes
 
-source: "Source"i _files_option? expr (_SEP? expr)*
-include: "@Include"i _files_option? expr (_SEP? expr)*
+source: "Source"i _files_option? _csep_list{expr}
+include: "@Include"i _files_option? _csep_list{expr}
 
-load_from: "Load"i var_name ("From"i | "With"i) _file_option? expr (_SEP? load_from_opts)*
+load_from: "Load"i var_name ("From"i | "With"i) _file_option? expr (_SEP? _ocsep_list{load_from_opts})?
 ?load_from_opts: encoding
     | ("Type"i "Is"i?)? load_source_type
 load_source_type: "CSV"i -> csv_file
