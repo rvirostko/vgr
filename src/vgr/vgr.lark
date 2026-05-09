@@ -188,10 +188,10 @@ sleep: "Sleep"i "For"i? expr _unit_seconds?
 cmd_line_assign: var_name _assignment expr -> set
 
 // TODO: the arrow functions should move to "Define Function"
-set:  "Set"i? var_name _assignment expr
-    | "Set"i? var_name IN_PLACE_OP expr
-    | "Set"i? var_name _assignment? def_params? _function_arrow expr -> set_arrow
-    | "Set"i? var_name _assignment? def_params? _function_arrow "Compile"i "(" expr ")" -> compile_arrow
+set:  "Set"i var_name _assignment expr
+    | "Set"i var_name IN_PLACE_OP expr
+    | "Set"i var_name _assignment? def_params? _function_arrow expr -> set_arrow
+    | "Set"i var_name _assignment? def_params? _function_arrow "Compile"i "(" expr ")" -> compile_arrow
 IN_PLACE_OP: ("+=" | "-=" | "*=" | "/=" | "%=" | "**=" | "&=" | "|=" | "^=" | "<<=" | ">>=" )
 _function_arrow: "->" | "=>" | "\u2192"
 
