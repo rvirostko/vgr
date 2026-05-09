@@ -20,40 +20,37 @@
 //   - Last-write for non-bool options is a bind-time conflict error to prevent
 //     non-astonishing behavior in failing scripts.
 
-?http_statements: http_connect | http_disconnect | http_request
-
-//----------------------------------------------------------------------------
-// Connect
-// Establishes a named httpx.Client with a base URL and shared defaults.
-// The base URL must resolve to a string with a valid scheme (http/https).
-// Handler enforces trailing slash on base URL before passing to httpx.Client.
-// Named via "As <expr>" for reference in subsequent http_request statements.
-//----------------------------------------------------------------------------
-http_connect: "Http"i "Connect"i ("To"i | "URL"i "Is"i?)? expr (_SEP? http_conn_arg)*
+?http_statements: "Http"i -> http_help // acts as a "pass", providing a help anchor
+    //----------------------------------------------------------------------------
+    // Connect
+    // Establishes a named httpx.Client with a base URL and shared defaults.
+    // The base URL must resolve to a string with a valid scheme (http/https).
+    // Handler enforces trailing slash on base URL before passing to httpx.Client.
+    // Named via "As <expr>" for reference in subsequent http_request statements.
+    //----------------------------------------------------------------------------
+    | "Http"i "Connect"i ("To"i | "URL"i "Is"i?)? expr (_SEP? http_conn_arg)* -> http_connect
+    //----------------------------------------------------------------------------
+    // Disconnect
+    // Tears down a named connection, closing the underlying httpx.Client and
+    // releasing pooled connections.
+    //----------------------------------------------------------------------------
+    | "Http"i "Disconnect"i "From"i? expr -> http_disconnect
+    //----------------------------------------------------------------------------
+    // Request
+    // Performs a single HTTP interaction against an optional named connection.
+    // Method is either a keyword or a dynamic expr (validated at execution time).
+    // URL rules:
+    //   - With "Using": expr is a path appended to the connection base URL.
+    //     Handler enforces no double-slash at the join point.
+    //   - Without "Using": expr must be a fully qualified URL including scheme.
+    //     A missing or invalid URL is a bind-time error — it cannot be defaulted.
+    //----------------------------------------------------------------------------
+    | "Http"i (("Method"i | "Request"i) "Is"i?)? http_method _SEP? ("URL"i "Is"i?)? expr (_SEP? http_request_arg)* -> http_request
 
 ?http_conn_arg: http_conn_opt
     | http_auth_opt
     | http_req_opt
     | "As"i expr -> hopt_connection_name // names the connection
-
-//----------------------------------------------------------------------------
-// Disconnect
-// Tears down a named connection, closing the underlying httpx.Client and
-// releasing pooled connections.
-//----------------------------------------------------------------------------
-http_disconnect: "Http"i "Disconnect"i "From"i? expr
-
-//----------------------------------------------------------------------------
-// Request
-// Performs a single HTTP interaction against an optional named connection.
-// Method is either a keyword or a dynamic expr (validated at execution time).
-// URL rules:
-//   - With "Using": expr is a path appended to the connection base URL.
-//     Handler enforces no double-slash at the join point.
-//   - Without "Using": expr must be a fully qualified URL including scheme.
-//     A missing or invalid URL is a bind-time error — it cannot be defaulted.
-//----------------------------------------------------------------------------
-http_request: "Http"i (("Method"i | "Request"i) "Is"?)? http_method _SEP? ("URL"i "Is"i?)? expr (_SEP? http_request_arg)*
 
 // Method as keyword (preferred — unambiguous, readable) or dynamic expr.
 // Dynamic expr resolved to a HTTP method string at execution time.
