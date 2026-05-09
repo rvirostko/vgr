@@ -401,7 +401,7 @@ ternary: expr "?" expr _CLAUSE_SEP expr -> c_ternary
     | expr2 ">>" expr2                                 -> shr_op
     // Return bools, typically not "chained"
     | expr2 ("===") expr2                              -> exact_eq_op
-    | expr2 ("==" | "\u2175" | "Equals"i | "Is"i | "Is"i? "Equal"i "To"i) expr2 -> eq_op // Unicode ⩵ (two consecutive equals signs)
+    | expr2 ("==" | "\u2A75" | "Equals"i | "Is"i | "Is"i? "Equal"i "To"i) expr2 -> eq_op // Unicode ⩵ (two consecutive equals signs)
     | expr2 ("!=" | "\u2260" | "<>" | "\u00AC=" | "Is"i "Not"i | "Is"i? "Not"i "Equal"i "To"i ) expr2 -> neq_op // Unicode ≠ (not eq) and ¬ (not)
     | expr2 ("<" | "\uFF1C" | "Is"i? "Less"i "Than"i) expr2 -> lt_op // Unicode ＜ (fullwidth <)
     | expr2 (">" | "\uFF1E" | "Is"i? "Greater"i "Than"i) expr2 -> gt_op // Unicode ＞ (fullwidth >)
