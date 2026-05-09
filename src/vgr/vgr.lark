@@ -280,7 +280,9 @@ expr_from: expr as_clause?
 file_from: _file_option expr (_SEP? (load_from_opts | as_clause))*
 ?as_clause: "As"i expr
 
-into_clause: "Into"i (var_name | _file_option (stdout | stderr | expr (_SEP? open_option)*))
+into_clause: "Into"i var_name
+    | "Into"i (stdout | stderr)
+    | "Into"i _file_option expr (_SEP? _ocsep_list{open_option})?
 
 where_clause: "Where"i expr (_SEP expr)*
 

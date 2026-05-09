@@ -199,7 +199,7 @@ Select *
 From File filename
 Limit 5
 For CSV
-Into File Output /* this is the default */
+Into Output /* this is the default */
 
 Print """
 To stderr-"""
@@ -207,7 +207,7 @@ Select *
 From File filename
 Limit 5
 For CSV
-Into File Error
+Into Error
 
 Print """
 To a file-"""
