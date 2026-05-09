@@ -1,122 +1,96 @@
-?vault_statements: vault_connect
-    | vault_disconnect
-    | vault_default_ns
-    | vault_create_ns
-    | vault_read_ns
-    | vault_update_ns
-    | vault_delete_ns
-    | vault_list_ns
-    | vault_lock_ns
-    | vault_unlock_ns
-    | vault_create_mount
-    | vault_read_mount
-    | vault_update_mount
-    | vault_delete_mount
-    | vault_list_mounts
-    | vault_create_kv_secret
-    | vault_read_kv_secret
-    | vault_read_kv_metadata
-    | vault_update_kv_secret
-    | vault_delete_kv_secret
-    | vault_list_kv_secrets
-    | vault_patch_kv_secret
-    | vault_create_ldap_lib
-    | vault_read_ldap_lib
-    | vault_update_ldap_lib
-    | vault_delete_ldap_lib
-    | vault_list_ldap_libs
-    | vault_create_ldap_role
-    | vault_read_ldap_role
-    | vault_update_ldap_role
-    | vault_delete_ldap_role
-    | vault_list_ldap_roles
-    | vault_rotate_ldap_role
-    | vault_api_get
-    | vault_api_list
-    | vault_api_delete
-    | vault_api_post
-    | vault_api_patch
+?vault_statements: "Vault"i -> vault_help // acts as a "pass", providing a help anchor
+    //------------------------------------------------------------
+    // Connections
+    //------------------------------------------------------------
+    | "Vault"i "Connect"i (_SEP? vault_conn_arg)* -> vault_connect
+    | "Vault"i "Disconnect"i ("From"i? expr)?     -> vault_disconnect
+    //------------------------------------------------------------
+    // Namespaces
+    //------------------------------------------------------------
+    | "Vault"i "DefaultNamespace"i expr vault_args -> vault_default_ns
+    | "Vault"i "CreateNamespace"i expr vault_args  -> vault_create_ns
+    | "Vault"i "ReadNamespace"i expr vault_args    -> vault_read_ns
+    | "Vault"i "UpdateNamespace"i expr vault_args  -> vault_update_ns
+    | "Vault"i "DeleteNamespace"i expr vault_args  -> vault_delete_ns
+    | "Vault"i "ListNamespaces"i expr? vault_args  -> vault_list_ns
+    | "Vault"i "LockNamespace"i expr vault_args    -> vault_lock_ns
+    | "Vault"i "UnlockNamespace"i expr vault_args  -> vault_unlock_ns
+    //------------------------------------------------------------
+    // Secret Engine Mount Points
+    //------------------------------------------------------------
+    | "Vault"i "CreateMount"i expr vault_args -> vault_create_mount
+    | "Vault"i "ReadMount"i expr vault_args   -> vault_read_mount
+    | "Vault"i "UpdateMount"i expr vault_args -> vault_update_mount
+    | "Vault"i "DeleteMount"i expr vault_args -> vault_delete_mount
+    | "Vault"i "ListMounts"i expr? vault_args -> vault_list_mounts
+    //------------------------------------------------------------
+    // KV2 Secrets
+    //------------------------------------------------------------
+    | "Vault"i "CreateKvSecret"i expr vault_args   -> vault_create_kv_secret
+    | "Vault"i "ReadKvSecret"i expr vault_args     -> vault_read_kv_secret
+    | "Vault"i "ReadKvMetadata"i expr vault_args   -> vault_read_kv_metadata
+    | "Vault"i "DeleteKvMetadata"i expr vault_args -> vault_delete_kv_metadata
+    | "Vault"i "UpdateKvSecret"i expr vault_args   -> vault_update_kv_secret
+    | "Vault"i "DeleteKvSecret"i expr vault_args   -> vault_delete_kv_secret
+    | "Vault"i "UndeleteKvSecret"i expr vault_args -> vault_undelete_kv_secret
+    | "Vault"i "DestroyKvSecret"i expr vault_args  -> vault_destroy_kv_secret
+    | "Vault"i "ListKvSecrets"i expr vault_args    -> vault_list_kv_secrets
+    | "Vault"i "PatchKvSecret"i expr vault_args    -> vault_patch_kv_secret
+    //------------------------------------------------------------
+    // LDAP Libraries Sets
+    //------------------------------------------------------------
+    | "Vault"i "CreateLdapLibrary"i expr vault_args -> vault_create_ldap_lib
+    | "Vault"i "ReadLdapLibrary"i expr vault_args   -> vault_read_ldap_lib
+    | "Vault"i "UpdateLdapLibrary"i expr vault_args -> vault_update_ldap_lib
+    | "Vault"i "DeleteLdapLibrary"i expr vault_args -> vault_delete_ldap_lib
+    | "Vault"i "ListLdapLibraries"i expr vault_args -> vault_list_ldap_libs
+    //------------------------------------------------------------
+    // LDAP Static Roles
+    //------------------------------------------------------------
+    | "Vault"i "CreateLdapRole"i expr vault_args -> vault_create_ldap_role
+    | "Vault"i "ReadLdapRole"i expr vault_args   -> vault_read_ldap_role
+    | "Vault"i "UpdateLdapRole"i expr vault_args -> vault_update_ldap_role
+    | "Vault"i "DeleteLdapRole"i expr vault_args -> vault_delete_ldap_role
+    | "Vault"i "ListLdapRoles"i expr vault_args  -> vault_list_ldap_roles
+    | "Vault"i "RotateLdapRole"i expr vault_args -> vault_rotate_ldap_role
+    //------------------------------------------------------------
+    // Database Secrets Engine: connections
+    //------------------------------------------------------------
+    | "Vault"i "CreateDbConnection"i expr vault_args -> vault_create_db_conn
+    | "Vault"i "ReadDbConnection"i expr vault_args   -> vault_read_db_conn
+    | "Vault"i "UpdateDbConnection"i expr vault_args -> vault_update_db_conn
+    | "Vault"i "DeleteDbConnection"i expr vault_args -> vault_delete_db_conn
+    | "Vault"i "ListDbConnections"i expr vault_args  -> vault_list_db_conns
+    | "Vault"i "ResetDbConnection"i expr vault_args  -> vault_reset_db_conn
+    | "Vault"i "RotateDbConnectionCredentials"i expr vault_args -> vault_rotate_db_conn
+    //------------------------------------------------------------
+    // Database Secrets Engine: roles
+    //------------------------------------------------------------
+    | "Vault"i "CreateDbRole"i expr vault_args -> vault_create_db_role
+    | "Vault"i "ReadDbRole"i expr vault_args   -> vault_read_db_role
+    | "Vault"i "UpdateDbRole"i expr vault_args -> vault_update_db_role
+    | "Vault"i "DeleteDbRole"i expr vault_args -> vault_delete_db_role
+    | "Vault"i "ListDbRoles"i expr vault_args  -> vault_list_db_roles
+    | "Vault"i "GenerateDbRoleCredentials"i expr vault_args -> vault_generate_db_role_creds
+    // Note: while other db_role calls use Type is dynamic/static,
+    //       rotate only applied to static. If you specify type, if must be static
+    | "Vault"i "RotateDbRoleCredentials"i expr vault_args -> vault_rotate_db_role_creds
+    //------------------------------------------------------------
+    // Generic Vault API interactions
+    // The expr is the path part of the URL. It should include everything
+    // except the host name and port. It may have to be URL encoded.
+    //------------------------------------------------------------
+    | "Vault"i "Get"i expr vault_args    -> vault_api_get
+    | "Vault"i "List"i expr vault_args   -> vault_api_list
+    | "Vault"i "Delete"i expr vault_args -> vault_api_delete
+    | "Vault"i "Post"i expr vault_args   -> vault_api_post
+    | "Vault"i "Patch"i expr vault_args  -> vault_api_patch
 
-// Connections
-vault_connect   : "Vault"i "Connect"i (_SEP? vault_conn_arg)*
-vault_disconnect: "Vault"i "Disconnect"i ("From"i? expr)?
 vault_conn_arg: "To"i "Host"i? expr -> conn_addr
     | ("With"i "Token"i? | "Token"i "Is"i) expr -> conn_token
     | "Timeout"i "Is"i? expr "Seconds"i? -> conn_timeout
     | ("BlockSize"i | "Block"i "Size"i) "Is"i? expr "Bytes"i? -> conn_blocksize
     | "As"i expr -> conn_name
-
-// Generic Vault API interactions
-// The expr is the path part of the URL. It should include everything
-//  except the host name and port. It may have to be URL encoded.
-vault_api_get    : "Vault"i "APIGet"i expr vault_args
-vault_api_list   : "Vault"i "APIList"i expr vault_args
-vault_api_delete : "Vault"i "APIDelete"i expr vault_args
-vault_api_post   : "Vault"i "APIPost"i expr vault_args
-vault_api_patch  : "Vault"i "APIPatch"i expr vault_args
-
-// Namespaces
-vault_default_ns : "Vault"i "DefaultNamespace"i expr vault_args
-vault_create_ns  : "Vault"i "CreateNamespace"i expr vault_args
-vault_read_ns    : "Vault"i "ReadNamespace"i expr vault_args
-vault_update_ns  : "Vault"i "UpdateNamespace"i expr vault_args
-vault_delete_ns  : "Vault"i "DeleteNamespace"i expr vault_args
-vault_list_ns    : "Vault"i "ListNamespaces"i expr? vault_args
-vault_lock_ns    : "Vault"i "LockNamespace"i expr vault_args
-vault_unlock_ns  : "Vault"i "UnlockNamespace"i expr vault_args
-
-// Secret Engine Mount Points
-vault_create_mount : "Vault"i "CreateMount"i expr vault_args
-vault_read_mount   : "Vault"i "ReadMount"i expr vault_args
-vault_update_mount : "Vault"i "UpdateMount"i expr vault_args
-vault_delete_mount : "Vault"i "DeleteMount"i expr vault_args
-vault_list_mounts  : "Vault"i "ListMounts"i expr? vault_args
-
-// KV2 Secrets
-vault_create_kv_secret : "Vault"i "CreateKvSecret"i expr vault_args
-vault_read_kv_secret   : "Vault"i "ReadKvSecret"i expr vault_args
-vault_read_kv_metadata : "Vault"i "ReadKvMetadata"i expr vault_args
-vault_delete_kv_metadata : "Vault"i "DeleteKvMetadata"i expr vault_args
-vault_update_kv_secret : "Vault"i "UpdateKvSecret"i expr vault_args
-vault_delete_kv_secret : "Vault"i "DeleteKvSecret"i expr vault_args
-vault_undelete_kv_secret : "Vault"i "UndeleteKvSecret"i expr vault_args
-vault_destroy_kv_secret : "Vault"i "DestroyKvSecret"i expr vault_args
-vault_list_kv_secrets  : "Vault"i "ListKvSecrets"i expr vault_args
-vault_patch_kv_secret  : "Vault"i "PatchKvSecret"i expr vault_args
-
-// LDAP Libraries Sets
-vault_create_ldap_lib : "Vault"i "CreateLdapLibrary"i expr vault_args
-vault_read_ldap_lib   : "Vault"i "ReadLdapLibrary"i expr vault_args
-vault_update_ldap_lib : "Vault"i "UpdateLdapLibrary"i expr vault_args
-vault_delete_ldap_lib : "Vault"i "DeleteLdapLibrary"i expr vault_args
-vault_list_ldap_libs  : "Vault"i "ListLdapLibraries"i expr vault_args
-
-// LDAP Static Roles
-vault_create_ldap_role : "Vault"i "CreateLdapRole"i expr vault_args
-vault_read_ldap_role   : "Vault"i "ReadLdapRole"i expr vault_args
-vault_update_ldap_role : "Vault"i "UpdateLdapRole"i expr vault_args
-vault_delete_ldap_role : "Vault"i "DeleteLdapRole"i expr vault_args
-vault_list_ldap_roles  : "Vault"i "ListLdapRoles"i expr vault_args
-vault_rotate_ldap_role : "Vault"i "RotateLdapRole"i expr vault_args
-
-// Database Secrets Engine
-vault_create_db_conn  : "Vault"i "CreateDbConnection"i expr vault_args
-vault_read_db_conn    : "Vault"i "ReadDbConnection"i expr vault_args
-vault_update_db_conn  : "Vault"i "UpdateDbConnection"i expr vault_args
-vault_delete_db_conn  : "Vault"i "DeleteDbConnection"i expr vault_args
-vault_list_db_conns   : "Vault"i "ListDbConnections"i expr vault_args
-vault_reset_db_conn   : "Vault"i "ResetDbConnection"i expr vault_args
-vault_rotate_db_conn  : "Vault"i "RotateDbConnectionCredentials"i expr vault_args
-
-vault_create_db_role       : "Vault"i "CreateDbRole"i expr vault_args
-vault_read_db_role         : "Vault"i "ReadDbRole"i expr vault_args
-vault_update_db_role       : "Vault"i "UpdateDbRole"i expr vault_args
-vault_delete_db_role       : "Vault"i "DeleteDbRole"i expr vault_args
-vault_list_db_roles        : "Vault"i "ListDbRoles"i expr vault_args
-vault_generate_db_role_creds : "Vault"i "GenerateDbRoleCredentials"i expr vault_args
-# Note: while other db_role calls use Type is dynamic/static,
-#       rotate only applied to static. If you specify type, if must be static
-vault_rotate_db_role_creds : "Vault"i "RotateDbRoleCredentials"i expr vault_args
 
 # NB: Expression are treated like tokens iff they are a single name component
 #     and are undefined in the data dictionary
