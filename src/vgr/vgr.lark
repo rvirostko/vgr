@@ -106,9 +106,9 @@ call: "Call"i "Function"i? var_name ("(" (expr (_SEP expr)*)? ")")?
     | "Call"i "Function"i? var_name ("(" (expr (_SEP expr)*)? ")")? giving_clause -> call_giving
     | "Call"i "Function"i? var_name "Using"i expr (_SEP expr)*
     | "Call"i "Function"i? var_name "Using"i expr (_SEP expr)* giving_clause -> call_giving
-declare: "Declare"i var_name (_SEP? var_name)*
-    | "Declare"i var_name (_SEP? var_name)* "As"i? "Local"i -> declare_local
-    | "Declare"i var_name (_SEP? var_name)* "As"i? "Global"i -> declare_global
+declare: "Declare"i _csep_list{var_name}
+    | "Declare"i _csep_list{var_name} "As"i? "Local"i  -> declare_local
+    | "Declare"i _csep_list{var_name} "As"i? "Global"i -> declare_global
 def_statements: "Define"i? "Function"i var_name def_params? ":"? def_body ("End-Function"i | "End"i) -> def_function
 def_params: "(" (NAME (_SEP NAME)*)? ")" -> params
 def_body: statement+ -> body
@@ -229,12 +229,12 @@ log: "Log"i log_level expr (_SEP expr)*
     | ("Warn"i | "Warning"i) -> warn
     | "Error"i -> error
 
-open: "Open"i (stderr | stdout | stdin) "File"i? expr (_SEP? open_option)*
+open: "Open"i (stderr | stdout | stdin) "File"i? expr (_SEP? _ocsep_list{open_option})?
 ?open_option: encoding
     | ("Append"i | "Extend"i | "a"i) -> a
-    | ("Overwrite"i | "w"i) -> w
-    | ("No"i "Overwrite"i | "x"i) -> x
-    | ("Read"i | "r"i) -> r
+    | ("Overwrite"i | "w"i)          -> w
+    | ("No"i "Overwrite"i | "x"i)    -> x
+    | ("Read"i | "r"i)               -> r
 close: "Close"i (stderr | stdout | stdin) "File"i?
 
 zip: "Create"i "Zip"i "File"i? expr (_SEP? zip_option)*
