@@ -40,7 +40,7 @@ def execute_choose(ctx: ExecContext, statement: Tree) -> None:
 * Choose [All]:\\
   &emsp;&emsp;When *expression* : *statement*&hellip;\\
   &emsp;&emsp;Otherwise : *statement*&hellip;\\
-  [End-Choose | End] [;]
+  [End-Choose | End]
 
 The values in `When` clauses are examined in order, and the first to
 evaluate to `True` has its block of statements executed.
@@ -137,7 +137,7 @@ def execute_choose_using(ctx: ExecContext, statement: Tree) -> None:
   &emsp;&emsp;When Matches All *expression* [, *expression*]&hellip; : *statement*&hellip;\\
   &emsp;&emsp;When [Not] Contains *expression* [, *expression*]&hellip; : *statement*&hellip;\\
   &emsp;&emsp;Otherwise : *statement*&hellip;\\
-  [End-Choose | End] [;]
+  [End-Choose | End]
 
 The expression in the `Choose` statement is evaluated and it becomes the
 *desired value* which is compared against values in `When` clauses.

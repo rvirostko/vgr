@@ -21,9 +21,9 @@ def execute_echo(ctx: ExecContext, statement: Tree) -> None:
     """
 **Turn echo mode on or off**
 
-* Echo [;]
-* Echo [On | Off] [;]
-* Echo *expression* [;]
+* Echo
+* Echo [On | Off]
+* Echo *expression*
 
 Without arguments, statement echoing is turned on.
 When on, statements are echoed to stderr before execution.
@@ -54,9 +54,9 @@ def execute_debug(ctx: ExecContext, statement: Tree) -> None:
     """
 **Turn debug mode on or off**
 
-* Debug [;]
-* Debug [On | Off] [;]
-* Debug *expression* [;]
+* Debug
+* Debug [On | Off]
+* Debug *expression*
 
 Without arguments, debug is turned on.
 When on, additional technical output is sent to stderr.
@@ -84,9 +84,9 @@ def execute_verbose(ctx: ExecContext, statement: Tree) -> None:
     """
 **Turn verbose mode on or off**
 
-* Verbose [;]
-* Verbose [On | Off] [;]
-* Verbose *expression* [;]
+* Verbose
+* Verbose [On | Off]
+* Verbose *expression*
 
 Without arguments, verbose is turned on.
 When on, additional operational output is sent to stderr.

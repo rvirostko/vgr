@@ -20,8 +20,8 @@ def execute_list_append(ctx: ExecContext, statement: Tree) -> None:
     """
 **Add one or more items to the end of a list**
 
-* Append *item* To [List] *variable* [;]
-* Append All *item* To [List] *variable* [;]
+* Append *item* To [List] *variable*
+* Append All *item* To [List] *variable*
 
 In the first form *item* is added to the specified list, regardless of its type.
 In the second form when *All* is specified, if *item* is a list, all of its
@@ -62,8 +62,8 @@ def execute_list_prepend(ctx: ExecContext, statement: Tree) -> None:
     """
 **Add one or more items to the beginning of a list**
 
-* Prepend *item* To [List] *variable* [;]
-* Prepend All *item* To [List] *variable* [;]
+* Prepend *item* To [List] *variable*
+* Prepend All *item* To [List] *variable*
 
 In the first form *item* is added to the specified list, regardless of its type.
 In the second form when *All* is specified, if *item* is a list, all of its
@@ -104,8 +104,8 @@ def execute_list_insert(ctx: ExecContext, statement: Tree) -> None:
     """
 **Insert one or more items into a list**
 
-* Insert *item* Into [List] *variable* At [Position | Index] *position* [;]
-* Insert All *item* Into [List] *variable* At [Position | Index] *position* [;]
+* Insert *item* Into [List] *variable* At [Position | Index] *position*
+* Insert All *item* Into [List] *variable* At [Position | Index] *position*
 
 In the first form *item* is inserted to the specified list, regardless of its type.
 In the second form when *All* is specified, if *item* is a list, all of its
@@ -183,9 +183,9 @@ def execute_list_remove(ctx: ExecContext, statement: Tree) -> None:
     """
 **Remove one or more items from a list by position**
 
-* Remove First [Item] From [List] *variable* [Giving *removed_var*] [;]
-* Remove Last [Item] From [List] *variable* [Giving *removed_var*] [;]
-* Remove [Item | Index] *position* From [List] *variable* [Giving *removed_var* ] [;]
+* Remove First [Item] From [List] *variable* [Giving *removed_var*]
+* Remove Last [Item] From [List] *variable* [Giving *removed_var*]
+* Remove [Item | Index] *position* From [List] *variable* [Giving *removed_var* ]
 
 The *position* argument must be a number, or a list of numbers,
 which are greater than or equal to zero
@@ -234,7 +234,7 @@ def execute_list_replace(ctx: ExecContext, statement: Tree) -> None:
     """
 **Replace one or more items in a list by position**
 
-* Replace [Item | Index] *position* In [List] *variable* [Giving *replaced_var* ] [;]
+* Replace [Item | Index] *position* In [List] *variable* [Giving *replaced_var* ]
 
 The *position* argument must be a number, or a list of numbers,
 which are greater than or equal to zero

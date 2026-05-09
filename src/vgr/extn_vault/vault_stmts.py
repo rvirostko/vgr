@@ -68,10 +68,10 @@ def execute_connect(ctx: ExecContext, statement: Tree) -> None:
     """
 **Establish a connection to Vault**
 
-* Vault Connect [;]
-* Vault Connect To *host* [;]
-* Vault Connect To *host* Token Is *token* [;]
-* Vault Connect To *host* Token Is *token* As *connection_name* [;]
+* Vault Connect
+* Vault Connect To *host*
+* Vault Connect To *host* Token Is *token*
+* Vault Connect To *host* Token Is *token* As *connection_name*
 
 *Options*
 
@@ -122,8 +122,8 @@ def execute_disconnect(ctx: ExecContext, statement: Tree) -> None:
     """
 **Close a connection to Vault**
 
-* Vault Disconnect [;]
-* Vault Disconnect *connection_name* [;]
+* Vault Disconnect
+* Vault Disconnect *connection_name*
 
 Also see `Vault Connect`
 """
@@ -146,7 +146,7 @@ def execute_api_delete(ctx: ExecContext, statement: Tree) -> None:
     """
 **Send a DELETE to a Vault API**
 
-* Vault ApiDelete *path* [*options*]&hellip; [;]
+* Vault ApiDelete *path* [*options*]&hellip;
 
 *Options*
 
@@ -166,7 +166,7 @@ def execute_api_get(ctx: ExecContext, statement: Tree) -> None:
     """
 **Send a GET to a Vault API**
 
-* Vault ApiGet *path* [*options*]&hellip; [;]
+* Vault ApiGet *path* [*options*]&hellip;
 
 *Options*
 
@@ -186,7 +186,7 @@ def execute_api_list(ctx: ExecContext, statement: Tree) -> None:
     """
 **Send a LIST to a Vault API**
 
-* Vault ApiList *path* [*options*]&hellip; [;]
+* Vault ApiList *path* [*options*]&hellip;
 
 *Options*
 
@@ -206,7 +206,7 @@ def execute_api_patch(ctx: ExecContext, statement: Tree) -> None:
     """
 **Send a PATCH to a Vault API**
 
-* Vault ApiPatch *path* [*options*]&hellip; [;]
+* Vault ApiPatch *path* [*options*]&hellip;
 
 *Options*
 
@@ -228,7 +228,7 @@ def execute_api_post(ctx: ExecContext, statement: Tree) -> None:
     """
 **Send a POST to a Vault API**
 
-* Vault ApiPost *path* [*options*]&hellip; [;]
+* Vault ApiPost *path* [*options*]&hellip;
 
 *Options*
 
@@ -250,7 +250,7 @@ def execute_default_ns(ctx: ExecContext, statement: Tree) -> None:
     """
 **Set the namespace to be used by subsequent requests**
 
-* Vault DefaultNamespace *namespace* [;]
+* Vault DefaultNamespace *namespace*
 
 *Options*
 
@@ -267,7 +267,7 @@ def execute_create_ns(ctx: ExecContext, statement: Tree) -> None:
     """
 **Create a new namesapce**
 
-* Vault CreateNamespace *namespace* [;]
+* Vault CreateNamespace *namespace*
 
 *Options*
 
@@ -289,7 +289,7 @@ def execute_read_ns(ctx: ExecContext, statement: Tree) -> None:
     """
 **Read a namespace**
 
-* Vault ReadNamespace *namespace* [;]
+* Vault ReadNamespace *namespace*
 
 *Options*
 
@@ -309,7 +309,7 @@ def execute_update_ns(ctx: ExecContext, statement: Tree) -> None:
     """
 **Update a namespace**
 
-* Vault UpdateNamespace *namespace* Metadata Is *metadata* [;]
+* Vault UpdateNamespace *namespace* Metadata Is *metadata*
 
 *Options*
 
@@ -330,7 +330,7 @@ def execute_delete_ns(ctx: ExecContext, statement: Tree) -> None:
     """
 **Delete a namespace**
 
-* Vault DeleteNamespace *namespace* [;]
+* Vault DeleteNamespace *namespace*
 
 *Options*
 
@@ -350,9 +350,9 @@ def execute_list_ns(ctx: ExecContext, statement: Tree) -> None:
     """
 **List child namespaces**
 
-* Vault ListNamespaces [;]
-* Vault ListNamespaces *parent* [;]
-* Vault ListNamespaces Namespace Is *parent* [;]
+* Vault ListNamespaces
+* Vault ListNamespaces *parent*
+* Vault ListNamespaces Namespace Is *parent*
 
 *Options*
 
@@ -372,7 +372,7 @@ def execute_lock_ns(ctx: ExecContext, statement: Tree) -> None:
     """
 **Lock a namespace**
 
-* Vault LockNamespace *namespace* [;]
+* Vault LockNamespace *namespace*
 
 *Options*
 
@@ -392,7 +392,7 @@ def execute_unlock_ns(ctx: ExecContext, statement: Tree) -> None:
     """
 **Unlock a namespace**
 
-* Vault UnlockNamespace *namespace* Key Is *key* [;]
+* Vault UnlockNamespace *namespace* Key Is *key*
 
 *Options*
 
@@ -416,8 +416,8 @@ def execute_create_mount(ctx: ExecContext, statement: Tree) -> None:
     """
 **Create and configure a secrets engine**
 
-* Vault CreateMount *mount_point* Data Is *data* [;]
-* Vault CreateMount *mount_point* Type Is _type_ Config Is _config_ Description Is _desc_ [;]
+* Vault CreateMount *mount_point* Data Is *data*
+* Vault CreateMount *mount_point* Type Is _type_ Config Is _config_ Description Is _desc_
 
 *Options*
 
@@ -456,7 +456,7 @@ def execute_read_mount(ctx: ExecContext, statement: Tree) -> None:
     """
 **Read the configuration of a secrets engine mount**
 
-* Vault ReadMount *mount_point* [;]
+* Vault ReadMount *mount_point*
 
 *Options*
 
@@ -476,8 +476,8 @@ def execute_update_mount(ctx: ExecContext, statement: Tree) -> None:
     """
 **Update the configuration of a secrets engine**
 
-* Vault UpdateMount *mount_point* Data Is *data* [;]
-* Vault UpdateMount *mount_point* Config Is _config_ [;]
+* Vault UpdateMount *mount_point* Data Is *data*
+* Vault UpdateMount *mount_point* Config Is _config_
 
 *Options*
 
@@ -504,7 +504,7 @@ def execute_delete_mount(ctx: ExecContext, statement: Tree) -> None:
     """
 **Remove a secrets engine mount**
 
-* Vault DeleteMount *mount_point* [;]
+* Vault DeleteMount *mount_point*
 
 *Options*
 
@@ -524,10 +524,10 @@ def execute_list_mounts(ctx: ExecContext, statement: Tree) -> None:
     """
 **List the mount points in a namespace**
 
-* Vault ListMounts [;]
-* Vault ListMounts *namespace* [;]
-* Vault ListMounts Namspace Is *namespace* [;]
-* Vault ListMounts *namespace* Namspace Is *parent_namespace* [;]
+* Vault ListMounts
+* Vault ListMounts *namespace*
+* Vault ListMounts Namspace Is *namespace*
+* Vault ListMounts *namespace* Namspace Is *parent_namespace*
 
 If no namespace name is provided, the default namespace name is used.
 
@@ -554,8 +554,8 @@ def execute_create_kv_secret(ctx: ExecContext, statement: Tree) -> None:
     """
 **Create or update the KV secrets**
 
-* Vault CreateKvSecret *mount_and_path* Data Is *data* [;]
-* Vault CreateKvSecret *mount_and_path* Data Is *data* Metadata Is *metadata* [;]
+* Vault CreateKvSecret *mount_and_path* Data Is *data*
+* Vault CreateKvSecret *mount_and_path* Data Is *data* Metadata Is *metadata*
 
 *Options*
 
@@ -584,8 +584,8 @@ def execute_read_kv_secret(ctx: ExecContext, statement: Tree) -> None:
     """
 **Read the KV secrets**
 
-* Vault ReadKvSecret *mount_and_path* [;]
-* Vault ReadKvSecret *mount_and_path* Version Is _version_ [;]
+* Vault ReadKvSecret *mount_and_path*
+* Vault ReadKvSecret *mount_and_path* Version Is _version_
 
 *Options*
 
@@ -606,7 +606,7 @@ def execute_read_kv_metadata(ctx: ExecContext, statement: Tree) -> None:
     """
 **Read the KV metadata**
 
-* Vault ReadKvMetadata *mount_and_path* [;]
+* Vault ReadKvMetadata *mount_and_path*
 
 *Options*
 
@@ -626,9 +626,9 @@ def execute_update_kv_secret(ctx: ExecContext, statement: Tree) -> None:
     """
 **Update the KV secrets data and/or metadata**
 
-* Vault UpdateKvSecret *mount_and_path* Data Is *data* [;]
-* Vault UpdateKvSecret *mount_and_path* Data Is *data* Metadata Is *metadata* [;]
-* Vault UpdateKvSecret *mount_and_path* Metadata Is *metadata* [;]
+* Vault UpdateKvSecret *mount_and_path* Data Is *data*
+* Vault UpdateKvSecret *mount_and_path* Data Is *data* Metadata Is *metadata*
+* Vault UpdateKvSecret *mount_and_path* Metadata Is *metadata*
 
 *Options*
 
@@ -659,9 +659,9 @@ def execute_patch_kv_secret(ctx: ExecContext, statement: Tree) -> None:
     """
 **Patch the KV secrets data and/or metadata**
 
-* Vault PatchKvSecret *mount_and_path* Data Is *data* [;]
-* Vault PatchKvSecret *mount_and_path* Data Is *data* Metadata Is *metadata* [;]
-* Vault PatchKvSecret *mount_and_path* Metadata Is *metadata* [;]
+* Vault PatchKvSecret *mount_and_path* Data Is *data*
+* Vault PatchKvSecret *mount_and_path* Data Is *data* Metadata Is *metadata*
+* Vault PatchKvSecret *mount_and_path* Metadata Is *metadata*
 
 *Options*
 
@@ -692,8 +692,8 @@ def execute_delete_kv_secret(ctx: ExecContext, statement: Tree) -> None:
     """
 **Delete a KV secret**
 
-* Vault DeleteKvSecret *mount_and_path* Version Is _version_ [;]
-* Vault DeleteKvSecret *mount_and_path* Data Is *data* [;]
+* Vault DeleteKvSecret *mount_and_path* Version Is _version_
+* Vault DeleteKvSecret *mount_and_path* Data Is *data*
 
 *Options*
 
@@ -714,7 +714,7 @@ def execute_undelete_kv_secret(ctx: ExecContext, statement: Tree) -> None:
     """
 *Undelete a KV secret**
 
-* Vault UndeleteKvSecret *mount_and_path* [;]
+* Vault UndeleteKvSecret *mount_and_path*
 
 *Options*
 
@@ -735,7 +735,7 @@ def execute_destroy_kv_secret(ctx: ExecContext, statement: Tree) -> None:
     """
 **Destroy a KV secret**
 
-* Vault DestoryKvSecret *mount_and_path* [;]
+* Vault DestoryKvSecret *mount_and_path*
 
 *Options*
 
@@ -756,7 +756,7 @@ def execute_delete_kv_metadata(ctx: ExecContext, statement: Tree) -> None:
     """
 **Delete KV metadata**
 
-* Vault DeleteKvMetadata *mount_and_path* [;]
+* Vault DeleteKvMetadata *mount_and_path*
 
 *Options*
 
@@ -776,7 +776,7 @@ def execute_list_kv_secrets(ctx: ExecContext, statement: Tree) -> None:
     """
 **List KV secrets at a path location**
 
-* Vault ListKvSecrets *mount_and_path* [;]
+* Vault ListKvSecrets *mount_and_path*
 
 *Options*
 
@@ -801,7 +801,7 @@ def execute_create_ldap_library(ctx: ExecContext, statement: Tree) -> None:
 **Create a set of LDAP credentials**
 
 * Vault CreateLdapLibrary *mount_and_set*\\
-  &emsp;&emsp;Config Is _config_ [;]
+  &emsp;&emsp;Config Is _config_
 
 *Options*
 
@@ -822,7 +822,7 @@ def execute_read_ldap_library(ctx: ExecContext, statement: Tree) -> None:
     """
 **Get the configuraiton of a set of LDAP credentials**
 
-* Vault ReadLdapLibrary *mount_and_set* [;]
+* Vault ReadLdapLibrary *mount_and_set*
 
 *Options*
 
@@ -843,7 +843,7 @@ def execute_update_ldap_library(ctx: ExecContext, statement: Tree) -> None:
 **Update the configuraiton of a set of LDAP credentials**
 
 * Vault UpdateLdapLibrary *mount_and_set*\\
-  &emsp;&emsp;Config Is _config_ [;]
+  &emsp;&emsp;Config Is _config_
 
 *Options*
 
@@ -864,7 +864,7 @@ def execute_delete_ldap_library(ctx: ExecContext, statement: Tree) -> None:
     """
 **Remove a set of LDAP credentials**
 
-* Vault DeleteLdapLibrary *mount_and_set* [;]
+* Vault DeleteLdapLibrary *mount_and_set*
 
 *Options*
 
@@ -884,7 +884,7 @@ def execute_list_ldap_libraries(ctx: ExecContext, statement: Tree) -> None:
     """
 **List LDAP library set names**
 
-* Vault ListLdapLibraries *mount_point* [;]
+* Vault ListLdapLibraries *mount_point*
 
 *Options*
 
@@ -909,7 +909,7 @@ def execute_create_ldap_role(ctx: ExecContext, statement: Tree) -> None:
 **Create a static LDAP role**
 
 * Vault CreateLdapRole *mount_and_role*\\
-  &emsp;&emsp;Config Is _config_ [;]
+  &emsp;&emsp;Config Is _config_
 
 *Options*
 
@@ -930,7 +930,7 @@ def execute_read_ldap_role(ctx: ExecContext, statement: Tree) -> None:
     """
 **Get a static LDAP role**
 
-* Vault ReadLdapRole *mount_and_role* [;]
+* Vault ReadLdapRole *mount_and_role*
 
 *Options*
 
@@ -951,7 +951,7 @@ def execute_update_ldap_role(ctx: ExecContext, statement: Tree) -> None:
 **Update a static LDAP role**
 
 * Vault UpdateLdapRole *mount_and_role*\\
-  &emsp;&emsp;Config Is _config_ [;]
+  &emsp;&emsp;Config Is _config_
 
 *Options*
 
@@ -972,7 +972,7 @@ def execute_delete_ldap_role(ctx: ExecContext, statement: Tree) -> None:
     """
 **Remove a static LDAP role**
 
-* Vault DeleteLdapRole *mount_and_role* [;]
+* Vault DeleteLdapRole *mount_and_role*
 
 *Options*
 
@@ -992,7 +992,7 @@ def execute_list_ldap_roles(ctx: ExecContext, statement: Tree) -> None:
     """
 **List static LDAP roles**
 
-* Vault ListLdapRoles *mount_point* [;]
+* Vault ListLdapRoles *mount_point*
 
 *Options*
 
@@ -1012,7 +1012,7 @@ def execute_rotate_ldap_role(ctx: ExecContext, statement: Tree) -> None:
     """
 **Rotate the password of a static LDAP role**
 
-* Vault RotateLdapRole *mount_and_role* [;]
+* Vault RotateLdapRole *mount_and_role*
 
 *Options*
 
@@ -1037,7 +1037,7 @@ def execute_create_db_connection(ctx: ExecContext, statement: Tree) -> None:
 **Create and configure a Database Connection**
 
 * Vault CreateDbConnection *mount_and_name*\\
-  &emsp;&emsp;Config Is _config_ [;]
+  &emsp;&emsp;Config Is _config_
 
 *Options*
 
@@ -1058,7 +1058,7 @@ def execute_read_db_connection(ctx: ExecContext, statement: Tree) -> None:
     """
 **Read a Database Connection configuration**
 
-* Vault ReadDbConnection *mount_and_name* [;]
+* Vault ReadDbConnection *mount_and_name*
 
 *Options*
 
@@ -1079,7 +1079,7 @@ def execute_update_db_connection(ctx: ExecContext, statement: Tree) -> None:
 **Update a Database Connection configuration**
 
 * Vault UpdateDbConnection *mount_and_name*\\
-  &emsp;&emsp;Config Is _config_ [;]
+  &emsp;&emsp;Config Is _config_
 
 *Options*
 
@@ -1101,7 +1101,7 @@ def execute_delete_db_connection(ctx: ExecContext, statement: Tree) -> None:
 **Remove a Database Connection**
 
 * Vault DeleteDbConnection *mount_and_name*\\
-  &emsp;&emsp;Config Is _config_ [;]
+  &emsp;&emsp;Config Is _config_
 
 *Options*
 
@@ -1121,7 +1121,7 @@ def execute_list_db_connections(ctx: ExecContext, statement: Tree) -> None:
     """
 **List Database Connections**
 
-* Vault ListDbConnections *mount_point* [;]
+* Vault ListDbConnections *mount_point*
 
 *Options*
 
@@ -1141,7 +1141,7 @@ def execute_reset_db_connection(ctx: ExecContext, statement: Tree) -> None:
     """
 **Closes a Database Connection and it's plugin and restarts it**
 
-* Vault ResetDbConnection *mount_and_name* [;]
+* Vault ResetDbConnection *mount_and_name*
 
 *Options*
 
@@ -1161,7 +1161,7 @@ def execute_rotate_db_connection_creds(ctx: ExecContext, statement: Tree) -> Non
     """
 **Rotate the user credentials of the Database Connection**
 
-* Vault RotateDbConnectionCredentials *mount_and_name* [;]
+* Vault RotateDbConnectionCredentials *mount_and_name*
 
 *Options*
 
@@ -1186,7 +1186,7 @@ def execute_create_db_role(ctx: ExecContext, statement: Tree) -> None:
 **Creates a Role for a Database**
 
 * Vault CreateDbRole *mount_and_name*\\
-  &emsp;&emsp;Config is _config_ [;]
+  &emsp;&emsp;Config is _config_
 
 *Options*
 
@@ -1209,7 +1209,7 @@ def execute_read_db_role(ctx: ExecContext, statement: Tree) -> None:
     """
 **Read a Database Role**
 
-* Vault ReadDbRole *mount_and_name* [;]
+* Vault ReadDbRole *mount_and_name*
 
 *Options*
 
@@ -1232,7 +1232,7 @@ def execute_update_db_role(ctx: ExecContext, statement: Tree) -> None:
 **Update a Role for a Database**
 
 * Vault UpdateDbRole *mount_and_name*\\
-  &emsp;&emsp;Config is _config_ [;]
+  &emsp;&emsp;Config is _config_
 
 *Options*
 
@@ -1255,7 +1255,7 @@ def execute_delete_db_role(ctx: ExecContext, statement: Tree) -> None:
     """
 **Remove a Database Role**
 
-* Vault DeleteDbRole *mount_and_name* [;]
+* Vault DeleteDbRole *mount_and_name*
 
 *Options*
 
@@ -1277,7 +1277,7 @@ def execute_list_db_roles(ctx: ExecContext, statement: Tree) -> None:
     """
 **List Database Roles for a mount point**
 
-* Vault ListDbRoles *mount_point* [;]
+* Vault ListDbRoles *mount_point*
 
 *Options*
 
@@ -1299,7 +1299,7 @@ def execute_generate_db_role_creds(ctx: ExecContext, statement: Tree) -> None:
     """
 **Generate a new credentials for a Database Role**
 
-* Vault GenerateDbRoleCredentials *mount_and_name* [;]
+* Vault GenerateDbRoleCredentials *mount_and_name*
 
 *Options*
 
@@ -1321,7 +1321,7 @@ def execute_vault_rotate_db_role_creds(ctx: ExecContext, statement: Tree) -> Non
     """
 **Generate a new credentials for a _Static_ Database Role**
 
-* Vault RotateDbRoleCredentials *mount_and_name* [;]
+* Vault RotateDbRoleCredentials *mount_and_name*
 
 *Options*
 

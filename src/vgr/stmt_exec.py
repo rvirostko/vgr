@@ -209,7 +209,7 @@ def execute_source(ctx: ExecContext, statement: Tree) -> None:
     """
 **Execute statements stored in a file**
 
-* Source [File | Files] *file_name* [, *file_name*]&hellip; [;]
+* Source [File | Files] *file_name* [, *file_name*]&hellip;
 
 Each argument is evaluated to a file name. Statements in the file
 are executed, inheriting the current state of all variable and
@@ -251,7 +251,7 @@ def execute_include(ctx: ExecContext, statement: Tree) -> None:
     """
 **Execute statements stored in a file once per run**
 
-* @Include [File | Files] *file_name* [, *file_name*]&hellip; [;]
+* @Include [File | Files] *file_name* [, *file_name*]&hellip;
 
 Similar to `Source` but files are only included once per run, unless
 cleared by `Reset`.
@@ -323,7 +323,7 @@ def execute_break(_: ExecContext, statement: Tree) -> None:
     """
 **Exits the current block of statements**
 
-* Break [;]
+* Break
 
 Used with `While`, `Until`, `ForEach` and other looping statements
 
@@ -346,7 +346,7 @@ def execute_continue(_: ExecContext, statement: Tree) -> None:
     """
 **Cause the current loop to start again**
 
-* Continue [;]
+* Continue
 
 ```vgr
 Set evens To []
@@ -370,8 +370,8 @@ def execute_pass(_: ExecContext, __: Tree) -> None:
     """
 **A placeholder for a statement**
 
-* Pass [;]
-* NOP [;]
+* Pass
+* NOP
 
 A placeholder for a statement, which takes no action and has no side effects.
 
@@ -392,7 +392,7 @@ def execute_block(ctx: ExecContext, statement: Tree) -> None:
 
 * Begin [:]\\
   &emsp;&emsp;*statement*&hellip;\\
-  End [;]
+  End
 
 ```vgr
 Set counter To Zero
@@ -424,8 +424,8 @@ def execute_declare_local(ctx: ExecContext, statement: Tree) -> None:
     """
 **Establishes a name as a variable, optionally establishing scope**
 
-* Declare _name_,&hellip; [;]
-* Declare _name_,&hellip; [As] [Local | Global] [;]
+* Declare _name_,&hellip;
+* Declare _name_,&hellip; [As] [Local | Global]
 
 Local variables can only be declared inside a function or a `Begin`/`End` block.
 
@@ -487,7 +487,7 @@ def execute_forever(ctx: ExecContext, statement: Tree) -> None:
 
 * Do Forever [:]\\
   &emsp;&emsp;*statement*&hellip;\\
-  [End-Do | End] [;]
+  [End-Do | End]
 
 The statements are repeatedly executed until a `Break` statement is
 encountered. A `Continue` causes the statements to loop.
@@ -548,12 +548,12 @@ def execute_if(ctx: ExecContext, statement: Tree) -> None:
 
 * If *expression* [Then | :]\\
   &emsp;&emsp;*statement*&hellip;\\
-  End [;]
+  End
 * If *expression* [Then | :]\\
   &emsp;&emsp;*statement*&hellip;\\
   Else [:]\\
   &emsp;&emsp;*statement*&hellip;\\
-  End [;]
+  End
 
 If the expression evaluates to `True` the first block of statements is executed.
 If it evaluates to `False`, the second block of statements–if provided–is executed.
@@ -590,7 +590,7 @@ def execute_unless(ctx: ExecContext, statement: Tree) -> None:
 
 * Unless *expression* [:]\\
   &emsp;&emsp;*statement*&hellip;\\
-  [End-Unless | End] [;]
+  [End-Unless | End]
 
 If the expression evaluates to `False` the block of statements is executed.
 If `Break` is encountered, looping ends regardless of the
@@ -680,7 +680,7 @@ def execute_while(ctx: ExecContext, statement: Tree) -> None:
 
 * While *expression* [:]\\
   &emsp;&emsp;*statement*&hellip;\\
-  [End-While | End] [;]
+  [End-While | End]
 
 As long as the expression evaluates to `True`, the block of statements is
 repeatedly executed.
@@ -714,7 +714,7 @@ def execute_until(ctx: ExecContext, statement: Tree) -> None:
 
 * Until *expression* [:]\\
   &emsp;&emsp;*statement*&hellip;\\
-  [End-Until | End] [;]
+  [End-Until | End]
 
 The block of statements is executed until the expression evaluates to `True`.
 If `Break` is encountered, looping ends regardless of the
@@ -747,7 +747,7 @@ def execute_repeat(ctx: ExecContext, statement: Tree) -> None:
 
 * Repeat *expression* [:]\\
   &emsp;&emsp;*statement*&hellip;\\
-  [End-Repeat | End] [;]
+  [End-Repeat | End]
 
 The block of statements is executed the given number of times.
 The expression is evaluated an converted to an integer, rounding down.
@@ -778,7 +778,7 @@ def execute_foreach(ctx: ExecContext, statement: Tree) -> None:
 
 * For Each *variable* In *expression* [:]\\
   &emsp;&emsp;*statement*&hellip;\\
-  [End-For | End] [;]
+  [End-For | End]
 
 If expression is a single, non-`None` value, the statements are executed
 exactly once. If a list, the statements are executed once for each item,

@@ -84,18 +84,18 @@ def execute_set(ctx: ExecContext, statement: Tree) -> None:
     """
 **Assign a value to a variable or modify a variable's existing value**
 
-* Set *variable* [= | To] *expression* [;] &emsp; *Assignment*
-* Set *variable* += *expression* [;] &emsp; *Addition*
-* Set *variable* -= *expression* [;] &emsp; *Subtraction*
-* Set *variable* *= *expression* [;] &emsp; *Multiplication*
-* Set *variable* /= *expression* [;] &emsp; *Division*
-* Set *variable* %= *expression* [;] &emsp; *Modulo*
-* Set *variable* **= *expression* [;] &emsp; *Power*
-* Set *variable* &= *expression* [;] &emsp; *Bit And*
-* Set *variable* |= *expression* [;] &emsp; *Bit Or*
-* Set *variable* ^= *expression* [;] &emsp; *Bit Xor*
-* Set *variable* <<= *expression* [;] &emsp; *Bit Shift Left*
-* Set *variable* >>= *expression* [;] &emsp; *Bit Shift Right*
+* Set *variable* [= | To] *expression* &emsp; *Assignment*
+* Set *variable* += *expression* &emsp; *Addition*
+* Set *variable* -= *expression* &emsp; *Subtraction*
+* Set *variable* *= *expression* &emsp; *Multiplication*
+* Set *variable* /= *expression* &emsp; *Division*
+* Set *variable* %= *expression* &emsp; *Modulo*
+* Set *variable* **= *expression* &emsp; *Power*
+* Set *variable* &= *expression* &emsp; *Bit And*
+* Set *variable* |= *expression* &emsp; *Bit Or*
+* Set *variable* ^= *expression* &emsp; *Bit Xor*
+* Set *variable* <<= *expression* &emsp; *Bit Shift Left*
+* Set *variable* >>= *expression* &emsp; *Bit Shift Right*
 * Set *variable* (*arg*&hellip;) [-> | →] *expression* &emsp; *Arrow Function*
 
 
@@ -143,7 +143,7 @@ def execute_unset(ctx: ExecContext, statement: Tree) -> None:
     """
 **Remove one or more variables**
 
-* Unset *variable* [, *variable*]&hellip; [;]
+* Unset *variable* [, *variable*]&hellip;
 
 More than setting the variable to `None`, the variable is entirely removed.
 To be removed, the variable must be mutable.
@@ -179,8 +179,8 @@ def execute_reset(ctx: ExecContext, statement: Tree) -> None:
     """
 **Reset global state to initial conditions**
 
-* Reset [;]
-* Reset *option* [, *option*]&hellip; [;]
+* Reset
+* Reset *option* [, *option*]&hellip;
 
 Where *option* is
 
@@ -252,7 +252,7 @@ def execute_swap(ctx: ExecContext, statement: Tree) -> None:
     """
 **Exchange the values of two variables**
 
-* Swap *variable1* [With | And] *variable2* [;]
+* Swap *variable1* [With | And] *variable2*
 
 Both variables must be mutable.
 
@@ -285,7 +285,7 @@ def execute_load_from(ctx: ExecContext, statement: Tree) -> None:
 * Load *variable* From [File] *file_name*\\
   &emsp;&emsp;[Type [Is]] *file_type*\\
   &emsp;&emsp;[Encoding [Is] _encoding_]\\
-  [;]
+
 
 The *file_name* argument is a string expression for the file to be loaded.
 

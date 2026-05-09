@@ -29,8 +29,8 @@ def execute_exit(ctx: ExecContext, statement: Tree) -> None:
     """
 **Exits the script setting a return code**
 
-* Exit [;]
-* Exit *expression* [;]
+* Exit
+* Exit *expression*
 
 The *expression* is a numeric the code returned to the operating system.
 The default return code is zero.
@@ -75,8 +75,8 @@ def execute_assert(ctx: ExecContext, statement: Tree) -> None:
     """
 **Assert that a condition is met, halting execution if it is not**
 
-* Assert *expression* [;]
-* Assert *expression* : *expression* [, *expression*]&hellip; [;]
+* Assert *expression*
+* Assert *expression* : *expression* [, *expression*]&hellip;
 
 The first expression is evaluated as a boolean value which must be true for execution to continue.
 
@@ -111,8 +111,8 @@ def execute_return(ctx: ExecContext, statement: Tree) -> None:
     """
 **Return a value from a function**
 
-* Return [;]
-* Return *expression* [;]
+* Return
+* Return *expression*
 
 If *expression* is not provided, or if a function does not contain a `Return`,
 the return values is always `None`.

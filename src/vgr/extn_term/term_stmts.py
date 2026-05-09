@@ -788,8 +788,8 @@ def execute_term_statement(ctx: ExecContext, statement: Tree) -> None:
     """
 **Execute Terminal control commands**
 
-* Terminal *command* [, *command*]&hellip; [;]
-* Term *command* [, *command*]&hellip; [;]
+* Terminal *command* [, *command*]&hellip;
+* Term *command* [, *command*]&hellip;
 
 _Cursor Control Commands_
 

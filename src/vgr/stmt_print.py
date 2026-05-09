@@ -40,9 +40,9 @@ def execute_print(ctx: ExecContext, statement: Tree) -> None:
     """
 **Print values, similar to AWK's print statement**
 
-* Print *expression* [, *expression*]&hellip; [;]
-* Print [On | To] [Output | Error] *expression* [, *expression*]&hellip; [;]
-* Print [As] Markdown *expression* [, *expression*]&hellip; [;]
+* Print *expression* [, *expression*]&hellip;
+* Print [On | To] [Output | Error] *expression* [, *expression*]&hellip;
+* Print [As] Markdown *expression* [, *expression*]&hellip;
 
 Default destination is `Output`. `Markdown` always goes to the current console.
 If the console is redirected to a file `Markdown` output is written as text.
@@ -92,9 +92,9 @@ def execute_printf(ctx: ExecContext, statement: Tree) -> None:
     """
 **Print formatted values, similar to AWK's printf statement**
 
-* Printf *expression* [, *expression*]&hellip; [;]
-* Printf [On | To] [Output | Error] *expression* [, *expression*]&hellip; [;]
-* Printf [As] Markdown *expression* [, *expression*]&hellip; [;]
+* Printf *expression* [, *expression*]&hellip;
+* Printf [On | To] [Output | Error] *expression* [, *expression*]&hellip;
+* Printf [As] Markdown *expression* [, *expression*]&hellip;
 
 Default destination is `Output`. `Markdown` always goes to the current console.
 If the console is redirected to a file `Markdown` output written as text.

@@ -57,16 +57,16 @@ def execute_accept(ctx: ExecContext, statement: Tree) -> None:
     """
 **Get user input or retrieve date and time values**
 
-* Accept *variable* [*option*] [;]
-* Accept *variable* From [Console | Terminal | Stdin | Sysin | Sysinp] [*option*] [;]
-* Accept *variable* From [Unix] Epoch [;]
-* Accept *variable* From Date [;]
-* Accept *variable* From Date YYYYMMDD [;]
-* Accept *variable* From Day YYYYDDD [;]
-* Accept *variable* From Day-Of-Week [;]
-* Accept *variable* From Day [;]
-* Accept *variable* From Time [;]
-* Accept *variable* From Timestamp [;]
+* Accept *variable* [*option*]
+* Accept *variable* From [Console | Terminal | Stdin | Sysin | Sysinp] [*option*]
+* Accept *variable* From [Unix] Epoch
+* Accept *variable* From Date
+* Accept *variable* From Date YYYYMMDD
+* Accept *variable* From Day YYYYDDD
+* Accept *variable* From Day-Of-Week
+* Accept *variable* From Day
+* Accept *variable* From Time
+* Accept *variable* From Timestamp
 
 Note that `Timestamp` and `Epoch` are aliases, returning the number of seconds
 since 1-Jan-1970.
@@ -118,8 +118,8 @@ def execute_exit_perform(_: ExecContext, statement: Tree) -> None:
     """
 **Affects the execution of a Perform loop**
 
-* Exit Perform [;] *Exit the containing loop*
-* Exit Perform Cycle[;] *Continue loop from the start*
+* Exit Perform *Exit the containing loop*
+* Exit Perform Cycle *Continue loop from the start*
 
 ```vgr
 Perform 3 Times:
@@ -155,8 +155,8 @@ def execute_exit_program(ctx: ExecContext, statement: Tree) -> None:
     """
 **Return control to the caller of a function or to the operating system**
 
-* Exit Program [;]
-* Goback [;]
+* Exit Program
+* Goback
 
 If used within a function, the function ends, returning `None`.
 If used at the global level, the program ends, exiting with a return code of zero.
@@ -184,7 +184,7 @@ def execute_stop_run(_: ExecContext, statement: Tree) -> None:
     """
 **Terminate execution**
 
-* Stop Run [;]
+* Stop Run
 
 Ends the program with an exit code of zero.
 
@@ -200,7 +200,7 @@ def execute_perform_until(ctx: ExecContext, statement: Tree) -> None:
 
 * Perform Until *expression*\\
   &emsp;&emsp;*statement*&hellip;\\
-  End-Perform [;]
+  End-Perform
 
 The block of statements is executed until *expression* evaluates to True.
 If a `Break` is encountered, looping ends regardless of the
@@ -236,7 +236,7 @@ def execute_perform_times(ctx: ExecContext, statement: Tree) -> None:
 
 * Perform *expression* Times\\
   &emsp;&emsp;*statement*&hellip;\\
-  End-Perform [;]
+  End-Perform
 
 The block of statements is executed the given number of times.
 The *expression* is evaluated and converted to an integer, rounding down.
@@ -271,10 +271,10 @@ def execute_perform_varying(ctx: ExecContext, statement: Tree) -> None:
 
 * Perform Varying *variable* From *expression* By *expression* Until *expression*\\
   &emsp;&emsp;*statement*&hellip;\\
-  End-Perform [;]
+  End-Perform
 * Perform With Test [Before | After] Varying *variable* From *expression* By *expression* Until *expression*\\
   &emsp;&emsp;*statement*&hellip;\\
-  End-Perform [;]
+  End-Perform
 
 If a `Break` is encountered, looping ends regardless of the
 expression's value. If `Continue` is encountered, statements
@@ -353,8 +353,8 @@ def execute_compute(ctx: ExecContext, statement: Tree) -> None:
     """
 **Evaluate and expression and assign to a variable**
 
-* Compute *variable* = *expression* [;]
-* Compute *variable* Equal *expression* [;]
+* Compute *variable* = *expression*
+* Compute *variable* Equal *expression*
 
 ```vgr
 Move {"x": 5, "y": 5} To start_pt
@@ -376,7 +376,7 @@ def execute_inc(ctx: ExecContext, statement: Tree) -> None:
     """
 **Increment a counter by an amount**
 
-* Set *variable* Up By *expression* [;]
+* Set *variable* Up By *expression*
 
 If *variable* does not exist, it is created and initialized to zero.
 This is fundamentally an arithmetic, scalar operation.
@@ -406,7 +406,7 @@ def execute_dec(ctx: ExecContext, statement: Tree) -> None:
     """
 **Deccrement a counter by an amount**
 
-* Set *variable* Down By *expression* [;]
+* Set *variable* Down By *expression*
 
 If *variable* does not exist, it is created and initialized to zero.
 This is fundamentally an arithmetic, scalar operation.
@@ -436,9 +436,9 @@ def execute_move_to(ctx: ExecContext, statement: Tree) -> None:
     """
 **Assign a value to a variable**
 
-* Move *expression* To *variable* [;]
-* Move Corresponding *expression* To *variable* [;]
-* Move Corr *expression* To *variable* [;]
+* Move *expression* To *variable*
+* Move Corresponding *expression* To *variable*
+* Move Corr *expression* To *variable*
 
 The first form is equivalent to `Set`.
 The second and third forms work with dictionaries, copying attribute from the
@@ -493,8 +493,8 @@ def execute_add_to(ctx: ExecContext, statement: Tree) -> None:
     """
 **Add one or more values to a variable**
 
-* Add *expression*&hellip; To *variable* [End-Add] [;]
-* Add *expression*&hellip; To *expression* Giving *variable* [End-Add] [;]
+* Add *expression*&hellip; To *variable* [End-Add]
+* Add *expression*&hellip; To *expression* Giving *variable* [End-Add]
 
 If *variable* does not exist, it is created and initialized to zero.
 This is fundamentally an arithmetic, scalar operation.
@@ -536,8 +536,8 @@ def execute_sub_from(ctx: ExecContext, statement: Tree) -> None:
     """
 **Subtract one or more values from a variable**
 
-* Subtract *expression*&hellip; From *variable* [;]
-* Subtract *expression*&hellip; From *expression* Giving *variable* [;]
+* Subtract *expression*&hellip; From *variable*
+* Subtract *expression*&hellip; From *expression* Giving *variable*
 
 If *variable* does not exist, it is created and initialized to zero.
 This is fundamentally an arithmetic, scalar operation.
@@ -579,8 +579,8 @@ def execute_mul_by(ctx: ExecContext, statement: Tree) -> None:
     """
 **Multiply one number by another**
 
-* Multiply *expression* By *variable* [;]
-* Multiply *expression* By *expression* Giving *variable* [;]
+* Multiply *expression* By *variable*
+* Multiply *expression* By *expression* Giving *variable*
 
 In the first form, *variable* is multiplied by the results of *expression*.
 In the second, the result of the multiplication is placed into *variable*.
@@ -618,9 +618,9 @@ def execute_div_into(ctx: ExecContext, statement: Tree) -> None:
     """
 **Divide one number by another**
 
-* Divide *expression* Into *variable* [;]
-* Divide *expression* Into *expression* Giving *variable* [;]
-* Divide *expression* By *expression* Giving *variable* [;]
+* Divide *expression* Into *variable*
+* Divide *expression* Into *expression* Giving *variable*
+* Divide *expression* By *expression* Giving *variable*
 
 In the first form *variable* is divided by the results of *expression*.
 In the other forms the result of the division is placed into *variable*.
@@ -667,12 +667,12 @@ def execute_string(ctx: ExecContext, statement: Tree) -> None:
     """
 **Concatenate strings**
 
-* String *value*&hellip; Into *variable* [;]
+* String *value*&hellip; Into *variable*
 * String\\
   &emsp;&emsp;*value* Delimited By Size\\
   &emsp;&emsp;*value* Delimited By _delimiter_\\
   &emsp;&emsp;Into *variable*\\
-  End-String [;]
+  End-String
 
 All *value* arguments may be constants or expressions that yield a string,
 integer, or float. If a *value* is `None` it is ignored.
@@ -734,8 +734,8 @@ def execute_exhibit(ctx: ExecContext, statement: Tree) -> None:
     """
 **Display the names and values of variables**
 
-* Exhibit * [;]
-* Exhibit *variable*&hellip; [;]
+* Exhibit *
+* Exhibit *variable*&hellip;
 
 `Exhibit` is not typically used in scripts, but is useful for debugging
 and for working in the REPL.
@@ -795,7 +795,7 @@ def execute_display_on(ctx: ExecContext, statement: Tree) -> None:
     """
 **Print values to either the output or error streams**
 
-* Display *expression*&hellip; [*option*]&hellip; [;]
+* Display *expression*&hellip; [*option*]&hellip;
 
 The default is to print to the output stream.
 While similar to `Print`, `Display` does not use *env.OFS* or *env.ORS*, instead
@@ -861,7 +861,7 @@ def execute_evaluate(ctx: ExecContext, statement: Tree) -> None:
   &emsp;&emsp;When [Not] *expression* *statement*&hellip;\\
   &emsp;&emsp;When [Not] *expression* [Through | Thru] *expression* *statement*&hellip;\\
   &emsp;&emsp;When Other *statement*&hellip;\\
-  End-Evaluate [;]
+  End-Evaluate
 
 The *expression* in the statement is evaluated and it becomes the
 _desired value_ which is compared against values in `When` clauses.

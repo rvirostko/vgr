@@ -41,7 +41,7 @@ def execute_open(ctx: ExecContext, statement: Tree) -> None:
     """
 **Send output to a file**
 
-* Open [Output | Error | Input] [File] *file_name* [options...,]* [;]
+* Open [Output | Error | Input] [File] *file_name* [options...,]*
 
 The *file_name* argument is a string for the file to be opened.
 
@@ -122,7 +122,7 @@ def execute_close(ctx: ExecContext, statement: Tree) -> None:
     """
 **Close output to a file**
 
-* Close [Output | Error | Input] [File] [;]
+* Close [Output | Error | Input] [File]
 
 Once closed, the stream resumes it default.
 

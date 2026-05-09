@@ -151,12 +151,12 @@ def execute_sort(ctx: ExecContext, statement: Tree) -> None:
     """
 **Sort the contents of a list or a file**
 
-* Sort *variable* _keys_ [_unique_] [_target_] [;]
-* Sort File *file_name* [*file_type*] _keys_ [_unique_] [_target_] [;]
+* Sort *variable* *keys* [*unique*] [*target*]
+* Sort File *file_name* [*file_type*] *keys* [*unique*] [*target*]
 
 The *keys* option
 
-* &hellip; [On | By] _key_spec_ [, _key_spec_ &hellip;] &hellip;
+* &hellip; [On | By] *key_spec* [, *key_spec* &hellip;] &hellip;
 * *key_spec* : [Ascending | Descending] [Key] *expression*
 * Ascending and Descending may be abbreviated as Asc or Des
 * Ascending is the default ordering

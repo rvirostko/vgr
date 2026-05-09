@@ -18,10 +18,10 @@ def execute_def_function(ctx: ExecContext, statement: Tree) -> None:
 
 * [Define] Function *variable* [:]\\
   &emsp;&emsp;*statement*&hellip;\\
-  [End-Function | End] [;]
+  [End-Function | End]
 * [Define] Function *variable*(_param_&hellip;) [:]\\
   &emsp;&emsp;*statement*&hellip;\\
-  [End-Function | End] [;]
+  [End-Function | End]
 
 ```vgr
 **TODO**
@@ -35,8 +35,8 @@ are a single name, not a dotted path.
 The arrow operator separates the parameter list from the body.
 The body is either an expression or a dynamic expression using _Compile_(&hellip;).
 
-* Set *variable* (*arg*&hellip;) [-> | →] *expression* [;]
-* Set *variable* (*arg*&hellip;) [-> | →] Compile(*expression*) [;]
+* Set *variable* (*arg*&hellip;) [-> | →] *expression*
+* Set *variable* (*arg*&hellip;) [-> | →] Compile(*expression*)
 
 ```vgr
 # Simple expression
@@ -81,9 +81,9 @@ def execute_call(ctx: ExecContext, statement: Tree) -> None:
     """
 **Invoke a function**
 
-* Call *variable* [Giving *variable*] [;]
-* Call *variable* Using *expression*&hellip; [Giving *variable*] [;]
-* Call *variable*(*expression*&hellip;) [Giving *variable*] [;]
+* Call *variable* [Giving *variable*]
+* Call *variable* Using *expression*&hellip; [Giving *variable*]
+* Call *variable*(*expression*&hellip;) [Giving *variable*]
 
 ```vgr
 **TODO**

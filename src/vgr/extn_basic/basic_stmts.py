@@ -23,7 +23,7 @@ def execute_do_while(ctx: ExecContext, statement: Tree) -> None:
 
 * Do While *expression*\\
   &emsp;&emsp;*statement*&hellip;\\
-  Loop [;]
+  Loop
 
 As long as the expression evaluates to `True`, the block of statements is
 repeatedly executed.
@@ -55,7 +55,7 @@ def execute_do_until(ctx: ExecContext, statement: Tree) -> None:
 
 * Do Until *expression*\\
   &emsp;&emsp;*statement*&hellip;\\
-  Loop [;]
+  Loop
 
 The block of statements is executed until the expression evaluates to `True`.
 If a `Break` is encountered, looping ends regardless of the
@@ -88,10 +88,10 @@ def execute_for_next(ctx: ExecContext, statement: Tree) -> None:
 
 * For *variable* = *expression* To *expression* [:]\\
   &emsp;&emsp;*statement*&hellip;\\
-  Next [;]
+  Next
 * For *variable* = *expression* To *expression* Step *expression* [:]\\
   &emsp;&emsp;*statement*&hellip;\\
-  Next [;]
+  Next
 
 The block of statements is executed until the limit is exceeded or
 in the case of `For Each`, the input is exhausted.
@@ -167,7 +167,7 @@ def execute_exit_do(_: ExecContext, statement: Tree) -> None:
     """
 **Exits the current block of statements**
 
-* Exit [Do | For | While] [;]
+* Exit [Do | For | While]
 
 BASIC variants of `Break`.
 
@@ -191,7 +191,7 @@ def execute_continue_do(_: ExecContext, statement: Tree) -> None:
     """
 **Cause the current loop to to start again**
 
-* Continue [Do | For | While] [;]
+* Continue [Do | For | While]
 
 BASIC variants of `Continue`.
 
@@ -215,7 +215,7 @@ def execute_let(ctx: ExecContext, statement: Tree) -> None:
     """
 **Assign a value to a variable**
 
-* Let *variable* = *expression* [;]
+* Let *variable* = *expression*
 
 BASIC equivalent of `Set`
 
@@ -236,7 +236,7 @@ def execute_troff(ctx: ExecContext, _: Tree) -> None:
     """
 **Turn off Tracing Mode**
 
-* Troff [;]
+* Troff
 
 BASIC equivalent of `Echo Off`
 
@@ -251,7 +251,7 @@ def execute_tron(ctx: ExecContext, _: Tree) -> None:
     """
 **Turn on Tracing Mode**
 
-* Tron [;]
+* Tron
 
 BASIC equivalent of `Echo On`
 
