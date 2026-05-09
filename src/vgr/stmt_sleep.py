@@ -17,7 +17,7 @@ def execute_sleep(ctx: ExecContext, statement: Tree) -> None:
     """
 **Sleep for a given number of seconds**
 
-* Sleep [For] *expression* [Second | Seconds] [;]
+* Sleep [For] *expression* [Second | Seconds]
 
 Sleep time is a number. Strings are converted to number if possible
 Floating point values are allowed, e.g. .01 to delay for ten milliseconds.
