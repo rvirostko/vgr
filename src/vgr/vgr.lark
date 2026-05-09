@@ -30,8 +30,12 @@ SUPERSCRIPT_FLOAT: /⁽[⁺⁻]?(?:[⁰¹²³⁴⁵⁶⁷⁸⁹]+(·[⁰¹²³�
 //     ALL tokens
 NAME: /{VAR_NAME}/
 
+//----------------------------------------------------------
 _EQ: "="
 _assignment: _EQ | "To"i
+_files_option: "File"i | "Files"i
+_file_option: "File"i
+//----------------------------------------------------------
 
 //----------------------------------------------------------
 // Templates
@@ -199,11 +203,10 @@ reset: "Reset"i _ocsep_list{reset_opt}?
     | "Output"i                  -> output
     | ("Include"i | "Includes"i) -> includes
 
-source: "Source"i ("File"i | "Files"i)? expr (_SEP? expr)*
-include: "@Include"i ("File"i | "Files"i)? expr (_SEP? expr)*
+source: "Source"i _files_option? expr (_SEP? expr)*
+include: "@Include"i _files_option? expr (_SEP? expr)*
 
-
-load_from: "Load"i var_name ("From"i | "With"i) "File"i? expr (_SEP? load_from_opts)*
+load_from: "Load"i var_name ("From"i | "With"i) _file_option? expr (_SEP? load_from_opts)*
 ?load_from_opts: encoding
     | ("Type"i "Is"i?)? load_source_type
 load_source_type: "CSV"i -> csv_file
@@ -229,15 +232,15 @@ log: "Log"i log_level expr (_SEP expr)*
     | ("Warn"i | "Warning"i) -> warn
     | "Error"i -> error
 
-open: "Open"i (stderr | stdout | stdin) "File"i? expr (_SEP? _ocsep_list{open_option})?
+open: "Open"i (stderr | stdout | stdin) _file_option? expr (_SEP? _ocsep_list{open_option})?
 ?open_option: encoding
     | ("Append"i | "Extend"i | "a"i) -> a
     | ("Overwrite"i | "w"i)          -> w
     | ("No"i "Overwrite"i | "x"i)    -> x
     | ("Read"i | "r"i)               -> r
-close: "Close"i (stderr | stdout | stdin) "File"i?
+close: "Close"i (stderr | stdout | stdin) _file_option?
 
-zip: "Create"i "Zip"i "File"i? expr (_SEP? zip_option)*
+zip: "Create"i "Zip"i _file_option? expr (_SEP? zip_option)*
 ?zip_option: "Comment"i option_value -> comment
     | "Include"i "Is"i? expr+ -> include
     | "Exclude"i "Is"i? expr+ -> exclude
@@ -247,7 +250,7 @@ exit: "Exit"i expr?
 sort: "Sort"i sort_source sort_keys? unique_clause? sort_giving?
 sort_source: sort_obj -> source
 sort_giving: "Giving"i sort_obj -> target
-?sort_obj: "File"i expr (_SEP? load_from_opts)* -> file
+?sort_obj: _file_option expr (_SEP? load_from_opts)* -> file
     | var_name -> var
 sort_keys: ("On"i | "By"i) sort_key (_SEP sort_key)* -> keys
 sort_key: sort_dir? "Key"i? expr -> key
@@ -274,10 +277,10 @@ select_output: "*"    -> output_all
 
 ?from_clause: "From"i (expr_from | file_from)
 expr_from: expr as_clause?
-file_from: "File"i expr (_SEP? (load_from_opts | as_clause))*
+file_from: _file_option expr (_SEP? (load_from_opts | as_clause))*
 ?as_clause: "As"i expr
 
-into_clause: "Into"i (var_name | "File"i (stdout | stderr | expr (_SEP? open_option)*))
+into_clause: "Into"i (var_name | _file_option (stdout | stderr | expr (_SEP? open_option)*))
 
 where_clause: "Where"i expr (_SEP expr)*
 
@@ -307,7 +310,7 @@ for_markdown: "MarkDown"i (_SEP? markdown_option (_SEP markdown_option)*)?
 for_template: template_type? ("Template"i | "Jinja"i | "Jinja2"i) (template_filename | "Default"i)? (_SEP? template_option (_SEP template_option)*)?
 ?template_type: "Record"i -> record
     | "Batch"i -> batch
-template_filename: "File"i? expr
+template_filename: _file_option? expr
 ?template_option: include_headers | exclude_headers
     | "Auto"i "Escape"i option_value? -> auto_escape
     | "Trim"i "Blocks"i? option_value? -> trim_blocks
