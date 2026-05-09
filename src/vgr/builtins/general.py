@@ -286,7 +286,7 @@ Also see `Unique()`
         return _unique_sorted(rc) if unique else rc
     return x
 
-def poly_getitem(x:Any=None, index: Any=0) -> Any:
+def poly_get_item(x:Any=None, index: Any=0) -> Any:
     """
 **Return the N-th item from a list**
 
@@ -313,11 +313,11 @@ None.Item(0) → None
 Also see `FirstItem()` and `LastItem()`
 """
     if not isinstance(x, list): return x
-    if isinstance(index, list): return dist_x(poly_getitem, x, index)
+    if isinstance(index, list): return dist_x(poly_get_item, x, index)
     i: int = int(index) if isinstance(index, (int, float)) else str_to_number(index) if isinstance(index, str) else None
     return x[i] if i is not None and 0 <= i < len(x) else None
 
-def poly_firstitem(x: Any=None) -> Any:
+def poly_first_item(x: Any=None) -> Any:
     """
 **Return the first item from a list**
 
@@ -338,9 +338,9 @@ None.FirstItem() → None
 
 Also see `Item()` and `LastItem()`
 """
-    return poly_getitem(x, 0)
+    return poly_get_item(x, 0)
 
-def poly_lastitem(x: Any=None) -> Any:
+def poly_last_item(x: Any=None) -> Any:
     """
 **Return the last item from a list**
 

@@ -9,7 +9,7 @@ import re
 from .common import NoneType
 from .type import poly_type
 
-def poly_ispattern(x:Any=None) -> bool:
+def poly_is_pattern(x:Any=None) -> bool:
     """
 **Is a value a pre-compiled regular expression pattern**
 

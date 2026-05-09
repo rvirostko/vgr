@@ -5,7 +5,7 @@ A DataExtractor that iterates over items store in memory
 from typing import Any
 
 from .builtins import (
-    poly_getkeys,
+    poly_get_keys,
     poly_list,
 )
 from .data_xtract import (
@@ -24,7 +24,7 @@ class InMemoryExtractor(DataExtractor):
         self._data = poly_list(data)
         self._as_kv = False
         if isinstance(data, list):
-            self._attrs = poly_getkeys(self._data)
+            self._attrs = poly_get_keys(self._data)
         elif isinstance(data, dict):
             # NB: if data is a dict, we are going to iterate over its keys and values
             #     because of the way poly_list() (called above) works

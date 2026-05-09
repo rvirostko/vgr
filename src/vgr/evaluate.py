@@ -37,11 +37,11 @@ from .builtins import (
     poly_gt,
     poly_imatches,
     poly_in,
-    poly_isempty,
-    poly_iseven,
-    poly_isnegative,
-    poly_isodd,
-    poly_ispositive,
+    poly_is_empty,
+    poly_is_even,
+    poly_is_negative,
+    poly_is_odd,
+    poly_is_positive,
     poly_le,
     poly_lt,
     poly_matches_all,
@@ -609,13 +609,13 @@ class OperationBinder(Transformer):
     # Polymorphic operations with a single arg
     def ceil_op(self, tree): return SimpleOperation(tree, poly_ceil)
     def floor_op(self, tree): return SimpleOperation(tree, poly_floor)
-    def is_negative_op(self, tree): return SimpleOperation(tree, poly_isnegative)
-    def is_positive_op(self, tree): return SimpleOperation(tree, poly_ispositive)
-    def is_even_op(self, tree): return SimpleOperation(tree, poly_iseven)
-    def is_odd_op(self, tree): return SimpleOperation(tree, poly_isodd)
+    def is_negative_op(self, tree): return SimpleOperation(tree, poly_is_negative)
+    def is_positive_op(self, tree): return SimpleOperation(tree, poly_is_positive)
+    def is_even_op(self, tree): return SimpleOperation(tree, poly_is_even)
+    def is_odd_op(self, tree): return SimpleOperation(tree, poly_is_odd)
     def is_defined_op(self, tree): return IsVarDefined(tree)
     def is_undefined_op(self, tree): return IsVarUndefined(tree)
-    def is_empty_op(self, tree): return SimpleOperation(tree, poly_isempty)
+    def is_empty_op(self, tree): return SimpleOperation(tree, poly_is_empty)
     def is_not_empty_op(self, tree): return SimpleOperation(tree, poly_not_empty)
 
     # Ternary operations: indicies are for predicate, true-side, false-side

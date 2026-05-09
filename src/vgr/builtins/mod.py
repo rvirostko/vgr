@@ -60,7 +60,7 @@ mod_operations = {
 }
 
 @bound_ops('Is Even', 'Is Not Odd')
-def poly_iseven(x: Any) -> bool:
+def poly_is_even(x: Any) -> bool:
     """
 **Is the value an even integral value**
 
@@ -98,7 +98,7 @@ Also see `Is Odd` and `Mod()`
     return _check_parity(x, 0)
 
 @bound_ops('Is Odd', 'Is Not Even')
-def poly_isodd(x: Any) -> bool:
+def poly_is_odd(x: Any) -> bool:
     """
 **Is the value an odd integral value**
 

@@ -140,9 +140,9 @@ Also see `CombineLists()`
 """
     def _set_key(data: dict, key: Any, value: Any) -> dict:
         # Only scalar keys can be used; other ignored
-        if isinstance(key, (int, float)): return poly_setkeyvalue(data, key, value)
+        if isinstance(key, (int, float)): return poly_set_key_value(data, key, value)
         # String can be paths; simple split with no other cleanup
-        if isinstance(key, str): return poly_setkeyvalue(data, key.split('.'), value)
+        if isinstance(key, str): return poly_set_key_value(data, key.split('.'), value)
         # Other types are ignored
         return data
     def _normalize_args(*args):
@@ -193,7 +193,7 @@ def _merge_dict(a: dict, b: dict) -> dict:
     return a
 
 
-def poly_isdict(x: Any=None) -> bool:
+def poly_is_dict(x: Any=None) -> bool:
     """
 **Is a value a dictionary**
 
@@ -211,7 +211,7 @@ Also see `Type()`
 """
     return isinstance(x, dict)
 
-def poly_getkeyvalue(data: Any=None, path: Any=None, default_value: Any=None) -> Any:
+def poly_get_key_value(data: Any=None, path: Any=None, default_value: Any=None) -> Any:
     """
 **Traverse a path in a dictionary and return its value**
 
@@ -245,7 +245,7 @@ point2.GetKeyValue(["meta", "name"]) → "p2"
 
 Also see `SetKeyValue()` and `LookupItem()`
 """
-    if isinstance(data, list): return list(poly_getkeyvalue(d1, path, default_value) for d1 in data)
+    if isinstance(data, list): return list(poly_get_key_value(d1, path, default_value) for d1 in data)
     if not isinstance(data, dict): return data
     path = _normalize_path(path)
     if path is None: return data
@@ -253,7 +253,7 @@ Also see `SetKeyValue()` and `LookupItem()`
     found, rc = _deref(data, path)
     return copy(rc if found else default_value)
 
-def poly_setkeyvalue(data: Any=None, path: Any=None, value: Any=None) -> Any:
+def poly_set_key_value(data: Any=None, path: Any=None, value: Any=None) -> Any:
     """
 **Traverse a path in a dictionary and set a value**
 
@@ -303,7 +303,7 @@ point2.SetKeyValue(["meta", "extra", "layer"], 3)
 
 Also see `GetKeyValue()`
 """
-    if isinstance(data, list): return list(poly_setkeyvalue(d1, path, value) for d1 in data)
+    if isinstance(data, list): return list(poly_set_key_value(d1, path, value) for d1 in data)
     if not isinstance(data, dict): return data
     path = _normalize_path(path)
     if path is None: return data
@@ -320,7 +320,7 @@ Also see `GetKeyValue()`
     d[key] = value
     return data
 
-def poly_getkeys(data: Any=None) -> list:
+def poly_get_keys(data: Any=None) -> list:
     """
 **Retrieve the keys used in a dictionary**
 
@@ -346,11 +346,11 @@ Also see `GetValues()`
     if isinstance(data, dict): return list(data.keys())
     if isinstance(data, list):
         keys = set()
-        for item in data: keys.update(poly_getkeys(item))
+        for item in data: keys.update(poly_get_keys(item))
         return list(keys)
     return []
 
-def poly_getvalues(data: Any=None) -> list:
+def poly_get_values(data: Any=None) -> list:
     """
 **Return a list of all the values in a dictionary**
 
@@ -376,11 +376,11 @@ Also see `GetKeys()`
     if isinstance(data, dict): return list(data.values())
     if isinstance(data, list):
         values = []
-        for item in data: values.append(poly_getvalues(item))
+        for item in data: values.append(poly_get_values(item))
         return values
     return []
 
-def poly_removekey(data: Any=None, path: Any=None) -> Any:
+def poly_remove_key(data: Any=None, path: Any=None) -> Any:
     """
 **Remove a key from a dictionary**
 
@@ -412,7 +412,7 @@ Set point2 To {"x": 7, "y": 29, "meta": {"type": "2d", "name": "p2"}}
 
 Also see `SetKeyValue()`
 """
-    if isinstance(data, list): return list(poly_removekey(d1, path) for d1 in data)
+    if isinstance(data, list): return list(poly_remove_key(d1, path) for d1 in data)
     if not isinstance(data, dict): return data
     path = _normalize_path(path)
     if path is None: return data
@@ -435,7 +435,7 @@ Also see `SetKeyValue()`
     return data
 
 @requires_exec_context
-def poly_lookupitem(x: Any=None, path: Any=None, values: Any=None, limit: Any=None, *, ctx=None) -> Any:
+def poly_lookup_item(x: Any=None, path: Any=None, values: Any=None, limit: Any=None, *, ctx=None) -> Any:
     """
 **Find a matching entries in a list by value**
 

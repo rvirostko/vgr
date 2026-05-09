@@ -22,10 +22,10 @@ from .builtins import (
     poly_gt,
     poly_imatches,
     poly_in,
-    poly_iseven,
-    poly_isnegative,
-    poly_isodd,
-    poly_ispositive,
+    poly_is_even,
+    poly_is_negative,
+    poly_is_odd,
+    poly_is_positive,
     poly_le,
     poly_lt,
     poly_matches_all,
@@ -64,10 +64,10 @@ _OP_FUNCS: list[Callable[..., Any]] = [
     poly_gt, # gt_op
     poly_imatches, # imatches_op
     poly_in, # in_op
-    poly_iseven, # is_even_op
-    poly_isnegative, # is_negative_op
-    poly_isodd, # is_odd_op
-    poly_ispositive, # is_positive_op
+    poly_is_even, # is_even_op
+    poly_is_negative, # is_negative_op
+    poly_is_odd, # is_odd_op
+    poly_is_positive, # is_positive_op
     poly_le, # le_op
     poly_lt, # lt_op
     poly_matches_all, # matches_all_op

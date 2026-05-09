@@ -64,7 +64,7 @@ and the `List()` and `ToList()` functions
 """
     return list(args)
 
-def poly_islist(x: Any=None) -> bool:
+def poly_is_list(x: Any=None) -> bool:
     """
 **Is the value a list**
 

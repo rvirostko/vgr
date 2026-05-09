@@ -8,7 +8,7 @@ from dataclasses import dataclass, field, fields
 
 from lark import Tree
 
-from ..builtins import poly_isempty
+from ..builtins import poly_is_empty
 
 _REDACTED_FIELDS = {'password'}
 
@@ -21,7 +21,7 @@ class Setting(namedtuple('Setting', ['value', 'tree'])):
     @property
     def is_missing(self) -> bool:
         """True when value is None or empty string."""
-        return self.value is None or (isinstance(self.value, str) and poly_isempty(self.value))
+        return self.value is None or (isinstance(self.value, str) and poly_is_empty(self.value))
 
 # ---------------------------------------------------------------------------
 # HttpData — single combined dataclass for all options.

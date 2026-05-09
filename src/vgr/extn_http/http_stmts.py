@@ -28,12 +28,12 @@ from ..builtins import (
     default_to,
     poly_bool,
     poly_clamp,
-    poly_isempty,
+    poly_is_empty,
     poly_strip,
     poly_type,
-    poly_isnumber,
+    poly_is_number,
     poly_number,
-    poly_isstr,
+    poly_is_str,
     strip_nulls,
 )
 
@@ -213,7 +213,7 @@ def _check_for_duplicate(existing: Setting, incoming: Tree, name: str) -> None:
         raise VgrRuntimeError(incoming, ValueError(f'{name} previously set'), )
 
 def _check_str(value: Any, expr: Tree, name: str, allow_none: bool = False) -> str:
-    if value is None or (isinstance(value, str) and poly_isempty(value)):
+    if value is None or (isinstance(value, str) and poly_is_empty(value)):
         if allow_none: return None
         raise VgrRuntimeError(expr, ValueError(f'{name} cannot be None or blank'))
     if not isinstance(value, str):
@@ -234,11 +234,11 @@ def _resolve_bool(ctx: ExecContext, opt: Tree, name: str) -> bool:
     rc = ctx.eval_expr_or_const(expr)
     if isinstance(rc, (dict, list)):
         raise VgrRuntimeError(expr, TypeError(f'{name} must be a boolean; found {poly_type(rc)!r}'))
-    return None if rc is None or (isinstance(rc, str) and poly_isempty(rc)) else poly_bool(rc)
+    return None if rc is None or (isinstance(rc, str) and poly_is_empty(rc)) else poly_bool(rc)
 
 def _to_number(expr: Tree, name: str, value: any) -> Any:
-    if not poly_isnumber(value):
-        if poly_isstr(value):
+    if not poly_is_number(value):
+        if poly_is_str(value):
             try:
                 value = poly_number(value)
             except ValueError as e:
@@ -381,12 +381,12 @@ def _handle_kv_option(ctx: ExecContext, opt: Tree, data: dict, name: str, separa
             raise VgrRuntimeError(expr, TypeError(f'Type {poly_type(value)!r} unsupported for {name}'))
 
 def _extract_kv_entry(target: dict, value: str, separator: str, strip_value: bool) -> None:
-    if not poly_isempty(value):
+    if not poly_is_empty(value):
         parts = value.split(separator, 1)
         _update_dict(target, parts[0], parts[1] if len(parts) == 2 else '', strip_value)
 
 def _update_dict(target: dict, key: str, value:str, strip_value: bool) -> None:
-    if not poly_isempty(key):
+    if not poly_is_empty(key):
         value = default_to(value, '')
         target[key.strip()] = value.strip() if strip_value else value
 

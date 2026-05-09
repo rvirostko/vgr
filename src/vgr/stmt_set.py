@@ -21,7 +21,7 @@ from .builtins import (
     poly_bit_or,
     poly_bit_xor,
     poly_div,
-    poly_getkeys,
+    poly_get_keys,
     poly_mod,
     poly_mul,
     poly_plural,
@@ -384,6 +384,6 @@ Returns a tuple with the data and metadata used for the $load variable:
             {
                 'filename': filename,
                 'format':   dtype.split('_')[0],
-                'keys':     poly_getkeys(data),
+                'keys':     poly_get_keys(data),
                 'records':  len(data) if isinstance(data, list) else 1
             })

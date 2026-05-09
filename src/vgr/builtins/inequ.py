@@ -392,7 +392,7 @@ Also see the `>` and `<=` operators
     override = _overrides.get((type(x), type(y)))
     return override(poly_ge, x, y) if override else x >= y
 
-def poly_between(x: Any=None, y: Any=None, z: Any=None) -> bool:
+def poly_is_between(x: Any=None, y: Any=None, z: Any=None) -> bool:
     """
 **Determine if a value is within an inclusive range**
 
@@ -459,7 +459,7 @@ Also see `Succ()` and `Pred()` as well as `IsLessThan()` and `IsGreaterThan()` f
     return low if poly_lt(x, low) else high if poly_gt(x, high) else x
 
 @bound_ops('Is Negative', 'Is Not Positive')
-def poly_isnegative(x: Any=None) -> Any:
+def poly_is_negative(x: Any=None) -> Any:
     """
 **Is the value less than zero**
 
@@ -493,7 +493,7 @@ Also see `Is Negative` and `Sign()`
     return isinstance(x, (str, int, float)) and poly_lt(x, 0)
 
 @bound_ops('Is Positive', 'Is Not Negative')
-def poly_ispositive(x: Any=None) -> Any:
+def poly_is_positive(x: Any=None) -> Any:
     """
 **Is the value greater than zero**
 

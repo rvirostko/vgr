@@ -205,7 +205,7 @@ _bool_operations = {
 def _exec_bool_op(x: Any, name: str, op: Callable[[Any], Any], string_op) -> Any:
     return _exec_x_op(x, name, op, string_op, _bool_operations)
 
-def poly_isalnum(x: Any=None) -> Any:
+def poly_is_alnum(x: Any=None) -> Any:
     """
 **Is a value an alpha-numeric string**
 
@@ -225,9 +225,9 @@ character-by-character basis.
 
 Also see `IsAlpha()` and `IsNumeric()`
 """
-    return _exec_bool_op(x, 'IsAlphaNnumeric', poly_isalnum, str.isalnum)
+    return _exec_bool_op(x, 'IsAlphaNnumeric', poly_is_alnum, str.isalnum)
 
-def poly_isalpha(x: Any=None) -> Any:
+def poly_is_alpha(x: Any=None) -> Any:
     """
 **Is a value an alphabetic string**
 
@@ -243,9 +243,9 @@ are alphabetic and there is at least one character in the string.
 ["Hello", "Gruezi", "Olá"].IsAlpha() → [True, True, True]
 ```
 """
-    return _exec_bool_op(x, 'IsAlpha', poly_isalpha, str.isalpha)
+    return _exec_bool_op(x, 'IsAlpha', poly_is_alpha, str.isalpha)
 
-def poly_isascii(x: Any=None) -> Any:
+def poly_is_ascii(x: Any=None) -> Any:
     """
 **Is a value a string composed of all ASCII characters**
 
@@ -264,9 +264,9 @@ None.IsAscii() → False
 
 Also see `IsPrintable()`
 """
-    return _exec_bool_op(x, 'IsAscii', poly_isascii, str.isascii)
+    return _exec_bool_op(x, 'IsAscii', poly_is_ascii, str.isascii)
 
-def poly_isdecimal(x: Any=None) -> Any:
+def poly_is_decimal(x: Any=None) -> Any:
     """
 **Is the value a string of decimal characters**
 
@@ -288,9 +288,9 @@ This is the most restrictive of the number related tests.
 
 Also see `IsDigit()` and `IsNumeric()`
 """
-    return _exec_bool_op(x, 'IsDecimal', poly_isdecimal, str.isdecimal)
+    return _exec_bool_op(x, 'IsDecimal', poly_is_decimal, str.isdecimal)
 
-def poly_isdigit(x: Any=None) -> Any:
+def poly_is_digit(x: Any=None) -> Any:
     """
 **Is a value a string of digits**
 
@@ -310,9 +310,9 @@ characters such as circled numbers.
 
 Also see `IsDecimal()` and `IsNumeric()`
 """
-    return _exec_bool_op(x, 'IsDigit', poly_isdigit, str.isdigit)
+    return _exec_bool_op(x, 'IsDigit', poly_is_digit, str.isdigit)
 
-def poly_islower(x: Any=None) -> Any:
+def poly_is_lower(x: Any=None) -> Any:
     """
 **Is a value a string of lowercase characters**
 
@@ -328,9 +328,9 @@ are lowercase and there is at least one cased character in the string.
 ["3.1415", ""].IsLower() → [False, False]
 ```
 """
-    return _exec_bool_op(x, 'IsLower', poly_islower, str.islower)
+    return _exec_bool_op(x, 'IsLower', poly_is_lower, str.islower)
 
-def poly_isnumeric(x: Any=None) -> Any:
+def poly_is_numeric(x: Any=None) -> Any:
     """
 **Is a value a string of numeric characters**
 
@@ -352,9 +352,9 @@ This is the most permissive of the number related tests.
 
 Also see `IsDecimal()` and `IsDigit()`
 """
-    return _exec_bool_op(x, 'IsNumeric', poly_isnumeric, str.isnumeric)
+    return _exec_bool_op(x, 'IsNumeric', poly_is_numeric, str.isnumeric)
 
-def poly_isprintable(x: Any=None) -> Any:
+def poly_is_printable(x: Any=None) -> Any:
     """
 **Is a value a string of printable characters**
 
@@ -370,9 +370,9 @@ or if it is empty.
 "foo\nbar".IsPrintable() → False
 ```
 """
-    return _exec_bool_op(x, 'IsPrintable', poly_isprintable, str.isprintable)
+    return _exec_bool_op(x, 'IsPrintable', poly_is_printable, str.isprintable)
 
-def poly_isspace(x: Any=None) -> Any:
+def poly_is_space(x: Any=None) -> Any:
     """
 **Is a value a string of whitespace characters**
 
@@ -388,9 +388,9 @@ and there is at least one character in the string.
 ["\\t\\n ", None].IsSpace() → [True, False]
 ```
 """
-    return _exec_bool_op(x, 'IsSpace', poly_isspace, str.isspace)
+    return _exec_bool_op(x, 'IsSpace', poly_is_space, str.isspace)
 
-def poly_istitle(x: Any=None) -> Any:
+def poly_is_title(x: Any=None) -> Any:
     """
 **Is a value a string of title-case characters**
 
@@ -406,9 +406,9 @@ follow uncased characters and lowercase characters only cased ones.
 ["aA","Bb"].IsTitle() → [False, True]
 ```
 """
-    return _exec_bool_op(x, 'IsTitle', poly_istitle, str.istitle)
+    return _exec_bool_op(x, 'IsTitle', poly_is_title, str.istitle)
 
-def poly_isupper(x: Any=None) -> Any:
+def poly_is_upper(x: Any=None) -> Any:
     """
 **Is a value a string of uppercase characters**
 
@@ -424,7 +424,7 @@ and there is at least one cased character in the string.
 ["FOO-BAR", "Foo Bar"].IsUpper() → [True, False]
 ```
 """
-    return _exec_bool_op(x, 'IsUpper', poly_isupper, str.isupper)
+    return _exec_bool_op(x, 'IsUpper', poly_is_upper, str.isupper)
 
 #---------------------------------------------
 
@@ -547,7 +547,7 @@ Also see `Strip()` and `LeftStrip()`
     if isinstance(x, (NoneType, bool, int, float)): return x
     return _rstrip(x) if not args else reduce(_rstrip, args, x)
 
-def poly_removeprefix(*args) -> Any:
+def poly_remove_prefix(*args) -> Any:
     """
 **Remove a prefix from a string if present**
 
@@ -578,7 +578,7 @@ Also see `RemoveSuffix()`
     if isinstance(x, (bool, int, float)): x = str(x)
     return reduce(_removeprefix, args, x)
 
-def poly_removesuffix(*args) -> Any:
+def poly_remove_suffix(*args) -> Any:
     """
 **Remvoe a suffix from a string if present**
 
@@ -625,7 +625,7 @@ def _exec_bool_str_op(x: Any, y: Any, name: str, op: Callable[[Any, Any], Any], 
             if y1 and string_op(x, y1): return True
     return False
 
-def poly_startswith(*args: Any) -> Any:
+def poly_starts_with(*args: Any) -> Any:
     """
 **Does a string start with one or more prefixes**
 
@@ -648,9 +648,9 @@ If *value* is neither a list, dictionary, or string, `False` is returned.
 Also see `EndsWith()`
 """
     if not args: return False
-    return _exec_bool_str_op(args[0], list(args[1:]), "StartsWith", poly_startswith, str.startswith)
+    return _exec_bool_str_op(args[0], list(args[1:]), "StartsWith", poly_starts_with, str.startswith)
 
-def poly_endswith(*args: Any) -> bool:
+def poly_ends_with(*args: Any) -> bool:
     """
 **Does a string end with one or more prefixes**
 
@@ -674,7 +674,7 @@ If *value* is neither a list, dictionary, or string, `False` is returned.
 Also see `StartsWith()`
 """
     if not args: return False
-    return _exec_bool_str_op(args[0], list(args[1:]), "EndsWith", poly_endswith, str.endswith)
+    return _exec_bool_str_op(args[0], list(args[1:]), "EndsWith", poly_ends_with, str.endswith)
 
 _string_int_ops = {
     (str, int)   : lambda _op, x, y,  sm: sm(x, y),
@@ -687,7 +687,7 @@ def exec_str_int_op(x: Any, y: Any, name: str, op: Callable[[Any, Any], Any], st
     if isinstance(x, (NoneType, bool, int, float)): return x
     return _exec_x_y_op(x, y, name, op, string_op, _string_int_ops)
 
-def poly_expandtabs(x: Any=None, tabsize: Any=8) -> Any:
+def poly_expand_tabs(x: Any=None, tabsize: Any=8) -> Any:
     """
 **Converts tabs in a string into spaces**
 
@@ -706,7 +706,7 @@ None.ExpandTabs() → None
 123.ExpandTabs() → 123
 ```
 """
-    return exec_str_int_op(x, min(max(0, int_arg(tabsize, 'Tabsize')), 64), "ExpandTabs", poly_expandtabs, str.expandtabs)
+    return exec_str_int_op(x, min(max(0, int_arg(tabsize, 'Tabsize')), 64), "ExpandTabs", poly_expand_tabs, str.expandtabs)
 
 def poly_leftstr(x: Any=None, length: Any=1) -> Any:
     """
@@ -1070,7 +1070,7 @@ Also see `Center()` and `LeftJustify()`
 """
     return _layout_opt(x, width, fillchar, poly_rjust, str.rjust)
 
-def poly_zfill(x: Any=None, width: int=0) -> Any:
+def poly_zero_fill(x: Any=None, width: int=0) -> Any:
     """
 **Create a string of the given width with contents right aligned, padded with zeroes**
 
@@ -1350,7 +1350,7 @@ def _split(name: str, p_op, str_op, x: Any, sep: str=None, maxsplit: int=-1):
     raise TypeError(f'{name} of {poly_type(x)!r} not supported')
 
 
-def poly_splitlines(x: Any=None, keepends: bool=False) -> Any:
+def poly_split_lines(x: Any=None, keepends: bool=False) -> Any:
     """
 **Split a string into multiple lines**
 
@@ -1370,7 +1370,7 @@ None.SplitLines() → None
     keepends = bool_arg(keepends, "KeepEnds")
     if isinstance(x, (bool, int, float)): return str(x).splitlines(keepends)
     if isinstance(x, str): return x.splitlines(keepends)
-    if isinstance(x, list): return list(poly_splitlines(x1, keepends) for x1 in x)
+    if isinstance(x, list): return list(poly_split_lines(x1, keepends) for x1 in x)
     raise TypeError(f'Splitlines with {poly_type(x)!r} not supported')
 
 def poly_join(x: Any=None, sep: str=None) -> Any:

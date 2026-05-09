@@ -12,7 +12,7 @@ from ..builtins import (
     bound_ops,
     poly_bool,
     poly_int,
-    poly_isempty,
+    poly_is_empty,
     poly_list,
     poly_str,
     poly_strip,
@@ -281,7 +281,7 @@ def _resolve_str_arg(ctx: ExecContext, opt: Tree, name: str, allow_none: bool=Fa
     if rc is None and not allow_none: raise VgrRuntimeError(expr, ValueError(f'{name} cannot be None'))
     if isinstance(rc, str):
         # NB: if you use "expr" instead of "opt" it can't seem to find the index!
-        if poly_isempty(rc) and not allow_none: raise VgrRuntimeError(opt, ValueError(f'{name} cannot be blank'))
+        if poly_is_empty(rc) and not allow_none: raise VgrRuntimeError(opt, ValueError(f'{name} cannot be blank'))
         return rc
     raise VgrRuntimeError(expr, TypeError(f'{name} must be a string; found {poly_type(rc)!r}'))
 
