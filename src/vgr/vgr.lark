@@ -221,14 +221,14 @@ load_source_type: "CSV"i -> csv_file
     | "Text"i? "Lines"i -> text_lines
     | "YAML"i -> yaml_file
 
-assert: "Assert"i expr (":" expr (_SEP expr)*)?
+assert: "Assert"i expr (":" _csep_list{expr})?
 
-print: "Print"i print_channel? expr (_SEP expr)*
-printf: "Printf"i print_channel? expr (_SEP expr)*
+print: "Print"i print_channel? _csep_list{expr}
+printf: "Printf"i print_channel? _csep_list{expr}
 ?print_channel: ("On"i | "To"i)? (stderr | stdout)
     | "As"i? "Markdown"i -> markdown
 
-log: "Log"i log_level expr (_SEP expr)*
+log: "Log"i log_level _csep_list{expr}
    | "Log"i "Level"i log_level -> log_setlevel
 ?log_level: "Debug"i -> debug
     | "Info"i -> info
@@ -243,7 +243,7 @@ open: "Open"i (stderr | stdout | stdin) _file_option? expr (_SEP? _ocsep_list{op
     | ("Read"i | "r"i)               -> r
 close: "Close"i (stderr | stdout | stdin) _file_option?
 
-zip: "Create"i "Zip"i _file_option? expr (_SEP? zip_option)*
+zip: "Create"i "Zip"i _file_option? expr (_SEP? _ocsep_list{zip_option})?
 ?zip_option: "Comment"i option_value -> comment
     | "Include"i "Is"i? expr+ -> include
     | "Exclude"i "Is"i? expr+ -> exclude
