@@ -153,24 +153,24 @@ op_matches_all: "Matches"i "All"i
 op_imatches: ("~*" | "IMatches"i)
 op_not_imatches: ("!~*" | "Not"i op_imatches | "Does"i "Not"i "IMatch"i)
 
-choose_statement: "Choose"i choose_all? _CLAUSE_SEP choice_block+ otherwise_block? ("End-Choose"i | "End"i) -> choose
-    | "Choose"i choose_all? "Using"i expr _CLAUSE_SEP values_block+ otherwise_block? ("End-Choose"i | "End"i) -> choose_using
+choose_statement: "Choose"i choose_all? _CLAUSE_SEP? choice_block+ otherwise_block? ("End-Choose"i | "End"i) -> choose
+    | "Choose"i choose_all? "Using"i expr _CLAUSE_SEP? values_block+ otherwise_block? ("End-Choose"i | "End"i) -> choose_using
 choose_all: "All"i
-choice_block: "When"i expr _CLAUSE_SEP statement+
-values_block: "When"i "Is"i? "Empty"i _CLAUSE_SEP statement+ -> is_empty_block
-    | "When"i "Is"i? "Not"i "Empty"i _CLAUSE_SEP statement+ -> is_not_empty_block
-    | "When"i "Is"i? ("Positive"i | "Not"i "Negative"i) _CLAUSE_SEP statement+ -> is_pos_block
-    | "When"i "Is"i? ("Negative"i | "Not"i "Positive"i) _CLAUSE_SEP statement+ -> is_neg_block
-    | "When"i "Is"i? ("Even"i | "Not"i "Odd"i) _CLAUSE_SEP statement+ -> is_even_block
-    | "When"i "Is"i? ("Odd"i | "Not"i "Even"i) _CLAUSE_SEP statement+ -> is_odd_block
-    | "When"i value_list _CLAUSE_SEP statement+
-    | "When"i "Not"i value_list _CLAUSE_SEP statement+ -> not_values_block
-    | "When"i expr ("Through"i | "Thru"i | "To"i) expr _CLAUSE_SEP statement+ -> range_block
-    | "When"i "Not"i expr ("Through"i | "Thru"i | "To"i) expr _CLAUSE_SEP statement+ -> not_range_block
-    | "When"i (op_lt | op_gt | op_ge | op_le) expr _CLAUSE_SEP statement+ -> ineq_block
-    | "When"i (op_eq | op_ne | op_contains | op_not_contains | op_matches | op_not_matches | op_matches_all) value_list _CLAUSE_SEP statement+
+choice_block: "When"i expr _CLAUSE_SEP? statement+
+values_block: "When"i "Is"i? "Empty"i _CLAUSE_SEP? statement+ -> is_empty_block
+    | "When"i "Is"i? "Not"i "Empty"i _CLAUSE_SEP? statement+ -> is_not_empty_block
+    | "When"i "Is"i? ("Positive"i | "Not"i "Negative"i) _CLAUSE_SEP? statement+ -> is_pos_block
+    | "When"i "Is"i? ("Negative"i | "Not"i "Positive"i) _CLAUSE_SEP? statement+ -> is_neg_block
+    | "When"i "Is"i? ("Even"i | "Not"i "Odd"i) _CLAUSE_SEP? statement+ -> is_even_block
+    | "When"i "Is"i? ("Odd"i | "Not"i "Even"i) _CLAUSE_SEP? statement+ -> is_odd_block
+    | "When"i value_list _CLAUSE_SEP? statement+
+    | "When"i "Not"i value_list _CLAUSE_SEP? statement+ -> not_values_block
+    | "When"i expr ("Through"i | "Thru"i | "To"i) expr _CLAUSE_SEP? statement+ -> range_block
+    | "When"i "Not"i expr ("Through"i | "Thru"i | "To"i) expr _CLAUSE_SEP? statement+ -> not_range_block
+    | "When"i (op_lt | op_gt | op_ge | op_le) expr _CLAUSE_SEP? statement+ -> ineq_block
+    | "When"i (op_eq | op_ne | op_contains | op_not_contains | op_matches | op_not_matches | op_matches_all) value_list _CLAUSE_SEP? statement+
 value_list: _csep_list{expr}
-otherwise_block: "Otherwise"i _CLAUSE_SEP statement+
+otherwise_block: "Otherwise"i _CLAUSE_SEP? statement+
 
 // simple boolean on/off, true/false
 // these are "proper statements" as they control the behavior of other statements
