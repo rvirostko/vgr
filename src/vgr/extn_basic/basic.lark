@@ -20,8 +20,8 @@ basic_do_while: "Do"i "While"i expr _CLAUSE_SEP? statement+ _end_do_loop
 basic_do_until: "Do"i "Until"i expr _CLAUSE_SEP? statement+ _end_do_loop
 _end_do_loop: "End-Do"i | "Loop"i | "End"i
 
-basic_for_next: "For"i var_name "=" expr "To"i expr _CLAUSE_SEP? statement+ _end_for_next
-basic_for_next_by: "For"i var_name "=" expr "To"i expr "Step"i expr _CLAUSE_SEP? statement+ _end_for_next
+basic_for_next: "For"i var_name _EQ expr "To"i expr _CLAUSE_SEP? statement+ _end_for_next
+basic_for_next_by: "For"i var_name _EQ expr "To"i expr "Step"i expr _CLAUSE_SEP? statement+ _end_for_next
 _end_for_next: "End-For"i | "Next"i | "End"i
 
 // Note that these patterns can span across lines and possibly
@@ -34,7 +34,7 @@ basic_continue: "Continue"i "Do"i -> basic_continue_do
     | "Continue"i "For"i          -> basic_continue_for
     | "Continue"i "While"i        -> basic_continue_while
 
-basic_let: "Let"i var_name "=" expr
+basic_let: "Let"i var_name _EQ expr
 
 basic_tron: "Tron"i
 basic_troff: "Troff"i
