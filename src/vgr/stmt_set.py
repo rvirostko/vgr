@@ -179,6 +179,7 @@ def execute_reset(ctx: ExecContext, statement: Tree) -> None:
     """
 **Reset global state to initial conditions**
 
+* Reset [;]
 * Reset *option* [, *option*]&hellip; [;]
 
 Where *option* is
@@ -189,6 +190,8 @@ Where *option* is
 * Args - Resets user arguments stored in *args* list
 * Output - Resets all output redirection
 * All - Resets all of the above plus `Debug`, `Echo`, and `Verbose` settings
+
+If no options are given, a `Reset All` is performed.
 
 ```vgr
 Set a To 1
