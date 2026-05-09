@@ -169,7 +169,7 @@ values_block: "When"i "Is"i? "Empty"i ":" statement+ -> is_empty_block
     | "When"i "Not"i expr ("Through"i | "Thru"i | "To"i) expr ":" statement+ -> not_range_block
     | "When"i (op_lt | op_gt | op_ge | op_le) expr ":" statement+ -> ineq_block
     | "When"i (op_eq | op_ne | op_contains | op_not_contains | op_matches | op_not_matches | op_matches_all) value_list ":" statement+
-value_list: expr (_SEP expr)*
+value_list: _csep_list{expr}
 otherwise_block: "Otherwise"i ":" statement+
 
 // simple boolean on/off, true/false
@@ -255,11 +255,11 @@ sort_source: sort_obj -> source
 sort_giving: "Giving"i sort_obj -> target
 ?sort_obj: _file_option expr (_SEP? load_from_opts)* -> file
     | var_name -> var
-sort_keys: ("On"i | "By"i) sort_key (_SEP sort_key)* -> keys
+sort_keys: ("On"i | "By"i) _csep_list{sort_key} -> keys
 sort_key: sort_dir? "Key"i? expr -> key
 ?sort_dir: ("Ascending"i | "Asc"i) -> sort_asc
     | ("Descending"i | "Des"i) -> sort_des
-unique_clause: "Unique"i ("On"i expr (_SEP expr)*)? -> unique
+unique_clause: "Unique"i ("On"i _csep_list{expr})? -> unique
 
 list_append: "Append"i list_all? expr "To"i "List"i? var_name
 list_prepend: "Prepend"i list_all? expr "To"i "List"i? var_name
@@ -272,7 +272,7 @@ list_all: "All"i
 
 select: "Select"i select_outputs from_clause where_clause? product_clause? limit_clause? for_clause? into_clause?
 
-?select_outputs: select_output (_SEP select_output)* _SEP?
+?select_outputs: _csep_list{select_output} _SEP?
 
 select_output: "*"    -> output_all
     | expr "As"i expr -> output_as
@@ -287,7 +287,7 @@ into_clause: "Into"i var_name
     | "Into"i (stdout | stderr)
     | "Into"i _file_option expr (_SEP? _ocsep_list{open_option})?
 
-where_clause: "Where"i expr (_SEP expr)*
+where_clause: "Where"i _csep_list{expr}
 
 ?for_clause: "For"i (for_json | for_csv | for_markdown | for_text | for_template)
 
@@ -344,7 +344,7 @@ _fetch_first: "Fetch"i "First"i expr "Rows"i "Only"i
 product_clause: "Cartesian"i? "Product"i product_cols
 product_cols: "All"i -> all
     | "None"i -> none
-    | col_spec (_SEP col_spec)*
+    | _csep_list{col_spec}
 ?col_spec: DEC_NUMBER // One based
     | NAME
     | STRING
@@ -370,29 +370,31 @@ ternary: expr "?" expr ":" expr -> c_ternary
     | "(" expr ")"
     // must be expr2 not expr else it binds across and/or
     | ("!" | "\uFF01" | "\u00AC") expr2 -> unary_not // Unicode ！(fullwidth excl) and ¬ (logical not)
-    | expr2 "." dotfunction -> dotfunction_call
-    | expr2 "." NAME -> deref
-    | expr2 "." "@" var_name "(" (expr (_SEP expr)*)? ")" -> invoke_func_inline
-    | "@" var_name "(" (expr (_SEP expr)*)? ")" -> invoke_func
-    | function -> function_call
-    | expr2 "Is"i ("Negative"i | "Not"i "Positive"i) -> is_negative_op
-    | expr2 "Is"i ("Positive"i | "Not"i "Negative"i) -> is_positive_op
-    | expr2 "Is"i ("Even"i | "Not"i "Odd"i) -> is_even_op
-    | expr2 "Is"i ("Odd"i | "Not"i "Even"i) -> is_odd_op
+    | expr2 "." dotfunction                            -> dotfunction_call
+    | expr2 "." NAME                                   -> deref
+    | expr2 "." "@" var_name "(" _csep_list{expr}? ")" -> invoke_func_inline
+    | "@" var_name "(" _csep_list{expr}? ")"           -> invoke_func
+    | function                                         -> function_call
+    | expr2 "Is"i ("Negative"i | "Not"i "Positive"i)   -> is_negative_op
+    | expr2 "Is"i ("Positive"i | "Not"i "Negative"i)   -> is_positive_op
+    | expr2 "Is"i ("Even"i | "Not"i "Odd"i)            -> is_even_op
+    | expr2 "Is"i ("Odd"i | "Not"i "Even"i)            -> is_odd_op
+    | expr2 "Is"i ("Defined"i | "Not"i "Undefined"i)   -> is_defined
+    | expr2 "Is"i ("Undefined"i | "Not"i "Defined"i)   -> is_undefined
     // Polymorphic operations than *could* be chained
-    | expr2 ("+" | "\uFF0B") expr2 -> add_op // Unicode ＋ (fullwidth plus)
-    | expr2 ("-" | "\u2212" | "\uFF0D") expr2 -> sub_op // Unicode − (minus sign) and － (fullwidth minus)
-    | expr2 ("*" | "\u00D7") expr2 -> mul_op // Unicode × (multiplication)
-    | expr2 ("/" | "\u00F7") expr2 -> div_op // Unicode ÷ (division)
-    | expr2 "%" expr2 -> mod_op
-    | expr2 "**" expr2 -> pow_op
-    | expr2 "&" expr2 -> bit_and_op
-    | expr2 "|" expr2 -> bit_or_op
-    | expr2 "^" expr2 -> bit_xor_op
-    | expr2 "<<" expr2 -> shl_op
-    | expr2 ">>" expr2 -> shr_op
+    | expr2 ("+" | "\uFF0B") expr2                     -> add_op // Unicode ＋ (fullwidth plus)
+    | expr2 ("-" | "\u2212" | "\uFF0D") expr2          -> sub_op // Unicode − (minus sign) and － (fullwidth minus)
+    | expr2 ("*" | "\u00D7") expr2                     -> mul_op // Unicode × (multiplication)
+    | expr2 ("/" | "\u00F7") expr2                     -> div_op // Unicode ÷ (division)
+    | expr2 "%" expr2                                  -> mod_op
+    | expr2 "**" expr2                                 -> pow_op
+    | expr2 "&" expr2                                  -> bit_and_op
+    | expr2 "|" expr2                                  -> bit_or_op
+    | expr2 "^" expr2                                  -> bit_xor_op
+    | expr2 "<<" expr2                                 -> shl_op
+    | expr2 ">>" expr2                                 -> shr_op
     // Return bools, typically not "chained"
-    | expr2 ("===") expr2 -> exact_eq_op
+    | expr2 ("===") expr2                              -> exact_eq_op
     | expr2 ("==" | "\u2175" | "Equals"i | "Is"i | "Is"i? "Equal"i "To"i) expr2 -> eq_op // Unicode ⩵ (two consecutive equals signs)
     | expr2 ("!=" | "\u2260" | "<>" | "\u00AC=" | "Is"i "Not"i | "Is"i? "Not"i "Equal"i "To"i ) expr2 -> neq_op // Unicode ≠ (not eq) and ¬ (not)
     | expr2 ("<" | "\uFF1C" | "Is"i? "Less"i "Than"i) expr2 -> lt_op // Unicode ＜ (fullwidth <)
@@ -400,20 +402,22 @@ ternary: expr "?" expr ":" expr -> c_ternary
     | expr2 ("<=" | "\u2264" | "\u00AC>" | "!>" | "Is"i? "Not"i "Greater"i "Than"i) expr2 -> le_op // Unicode ≤ (less than or equal to) and ¬ (not)
     | expr2 (">=" | "\u2265" | "\u00AC<" | "!<" | "Is"i? "Not"i "Less"i "Than"i) expr2 -> ge_op // Unicode ≥ (greater than or equal to) and ¬ (not)
     | expr2 (("Is"i "In"i) | "\u2208") expr2 -> in_op // Unicode ∈ (element of)
-    | expr2 (("Is"i "Not"i "In"i) | "\u2209") expr2 -> not_in_op // Unicode ∉ (not an element of)
-    | expr2 "Contains"i expr2 -> contains_op
-    | expr2 "Contains"i "All"i expr2 -> contains_all_op
-    | expr2 op_matches expr2 -> matches_op
-    | expr2 op_matches_all expr2 -> matches_all_op
-    | expr2 op_imatches expr2 -> imatches_op
-    | expr2 op_not_matches expr2 -> not_matches_op
-    | expr2 op_not_imatches expr2 -> not_imatches_op
+    | expr2 (("Is"i "Not"i "In"i) | "\u2209") expr2     -> not_in_op // Unicode ∉ (not an element of)
+    | expr2 "Contains"i expr2                           -> contains_op
+    | expr2 "Contains"i "All"i expr2                    -> contains_all_op
+    | expr2 op_matches expr2                            -> matches_op
+    | expr2 op_matches_all expr2                        -> matches_all_op
+    | expr2 op_imatches expr2                           -> imatches_op
+    | expr2 op_not_matches expr2                        -> not_matches_op
+    | expr2 op_not_imatches expr2                       -> not_imatches_op
     // Misc operations
-    | "\u2308" expr "\u2309" -> ceil_op                 // Unicode ceiling ⌈ x ⌉
-    | "\u230A" expr "\u230B" -> floor_op                // Unicode floor ⌊ x ⌋
-    | expr2 SUPERSCRIPT_FLOAT -> pow_op
-    | "[" (expr (_SEP expr)*)? _SEP? "]" -> array
-    | "{" (expr ":" expr (_SEP expr ":" expr)*)? _SEP? "}" -> dict
+    | "\u2308" expr "\u2309"                            -> ceil_op      // Unicode ceiling ⌈ x ⌉
+    | "\u230A" expr "\u230B"                            -> floor_op     // Unicode floor ⌊ x ⌋
+    | expr2 SUPERSCRIPT_FLOAT                           -> pow_op
+    | "[" (expr (_SEP expr)*)? _SEP? "]"                -> array        // [], [x], [x,y], [x,y,]
+    | "{" (_dict_entry (_SEP _dict_entry)*)? _SEP? "}"  -> dict         // {}, {x:y}, {a:b,x:y}, {a:b,x:y,}
+
+_dict_entry: expr ":" expr // key and value
 
 ?atom: ("None"i  | "\u2205" | "Null"i) -> vnone         // Unicode ∅ (Empty set)
     // Boolean constants
@@ -434,8 +438,8 @@ ternary: expr "?" expr ":" expr -> c_ternary
     | "Quote"i              -> vquote                   // becomes '"'
     | "Space"i              -> vspace                   // becomes " "
     | "Tab"i                -> vtab                     // becomes '\t'
-    | "Escape"i             -> vescape                   // becomes '\x1b'
-    | "Backslash"i          -> vbackslash                // becomes '\\'
+    | "Escape"i             -> vescape                  // becomes '\x1b'
+    | "Backslash"i          -> vbackslash               // becomes '\\'
     // Values that closely follow Python and other lanuages
     | HEX_NUMBER | BIN_NUMBER | OCT_NUMBER | DEC_NUMBER // becomes INT at runtime
     | FLOAT_NUMBER                                      // becomes FLOAT at runtime
