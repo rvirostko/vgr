@@ -33,8 +33,10 @@ NAME: /{VAR_NAME}/
 //----------------------------------------------------------
 _EQ: "="
 _assignment: _EQ | "To"i
-_files_option: "File"i | "Files"i
 _file_option: "File"i
+_files_option: "File"i | "Files"i
+_headers_option: "Header"i | "Headers"i
+_null_values_option: "Nulls"i | "Null"i "Values"i
 //----------------------------------------------------------
 
 //----------------------------------------------------------
@@ -288,7 +290,7 @@ where_clause: "Where"i expr (_SEP expr)*
 
 ?for_clause: "For"i (for_json | for_csv | for_markdown | for_text | for_template)
 
-for_json: "JSON"i (_SEP? json_option (_SEP json_option)*)?
+for_json: "JSON"i (_SEP? _ocsep_list{json_option})?
 ?json_option: exclude_nulls | include_nulls
     | "Root"i option_value? -> root
     | "Indent"i option_value? -> indent
@@ -297,7 +299,7 @@ for_json: "JSON"i (_SEP? json_option (_SEP json_option)*)?
     | ("Without"i | "No"i) "Array"i "Wrapper"i option_value? -> no_array_wrapper
     | ("Sort"i "Keys"i? | "Sorted"i) option_value? -> sort_keys
 
-for_csv: "CSV"i (_SEP? csv_option (_SEP csv_option)*)?
+for_csv: "CSV"i (_SEP? _ocsep_list{csv_option})?
 ?csv_option: include_headers | exclude_headers
     | "Delimiter"i option_value -> delimiter
     | "Quote"i ("Char"i | "Character"i) option_value -> quotechar
@@ -306,10 +308,10 @@ for_csv: "CSV"i (_SEP? csv_option (_SEP csv_option)*)?
     | "Quote"i "Is"i? CSV_QUOTE_TYPE -> quoting
 CSV_QUOTE_TYPE: "Minimal"i | "All"i | "Nonnumeric"i | "None"i
 
-for_markdown: "MarkDown"i (_SEP? markdown_option (_SEP markdown_option)*)?
+for_markdown: "MarkDown"i (_SEP? _ocsep_list{markdown_option})?
 ?markdown_option: include_headers | exclude_headers
 
-for_template: template_type? ("Template"i | "Jinja"i | "Jinja2"i) (template_filename | "Default"i)? (_SEP? template_option (_SEP template_option)*)?
+for_template: template_type? ("Template"i | "Jinja"i | "Jinja2"i) (template_filename | "Default"i)? (_SEP? _ocsep_list{template_option}*)?
 ?template_type: "Record"i -> record
     | "Batch"i -> batch
 template_filename: _file_option? expr
@@ -320,17 +322,17 @@ template_filename: _file_option? expr
     | "Keep"i "Last"i "Newline"i option_value? -> keep_last_newline
     | "Chain"i "Undefined"i "Variables"i? option_value? -> chain_undefined
 
-for_text: "Text"i (_SEP? for_text_option (_SEP for_text_option)*)?
+for_text: "Text"i (_SEP? _ocsep_list{for_text_option})?
 ?for_text_option: include_headers | exclude_headers
     | exclude_nulls | include_nulls
     | "Field"i "Separator"i option_value -> field_sep
     | "Header"i "Separator"i option_value -> header_sep
     | "Record"i "Separator"i option_value -> record_sep
 
-include_headers: "Include"i ("Header"i | "Headers"i) option_value?
-exclude_headers: "Exclude"i ("Header"i | "Headers"i) option_value?
-exclude_nulls: "Exclude"i ("Nulls"i | "Null"i "Values"i) option_value?
-include_nulls: "Include"i ("Nulls"i | "Null"i "Values"i) option_value?
+include_headers: "Include"i _headers_option option_value?
+exclude_headers: "Exclude"i _headers_option option_value?
+exclude_nulls: "Exclude"i _null_values_option option_value?
+include_nulls: "Include"i _null_values_option option_value?
 
 // Either LIMIT <number> (OFFSET <number>)?
 // or FETCH FIRST <number> ROWS ONLY
