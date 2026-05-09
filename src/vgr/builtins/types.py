@@ -7,7 +7,11 @@ import json
 import math
 import re
 
-from .common import str_to_number, str_to_bool
+from .common import (
+    bound_ops,
+    str_to_bool,
+    str_to_number,
+)
 
 def poly_isnone(x: Any=None) -> Any:
     """
@@ -391,10 +395,12 @@ Also see `Type()` and `IsNumber()`
 """
     return isinstance(x, str)
 
+@bound_ops("Is Empty")
 def poly_isempty(x: Any=None) -> bool:
     """
 **Test a value to see if it is empty**
 
+* *value* Is Empty
 * IsEmpty(*value*)
 * *value*.IsEmpty()
 
@@ -430,10 +436,12 @@ Also see `IsNotEmpty()`
     if isinstance(x, (int, float)): return x == 0
     return x is None
 
-def poly_notempty(x: Any=None) -> bool:
+@bound_ops("Is Not Empty")
+def poly_not_empty(x: Any=None) -> bool:
     """
 **Test a value to see if it is *not* empty**
 
+* *value* Is Not Empty
 * IsNotEmpty(*value*)
 * *value*.IsNotEmpty()
 

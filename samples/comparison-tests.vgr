@@ -82,4 +82,5 @@ Assert None Is Null
 Assert "none" Is Not Null
 
 // Empty/Not Empty
-# TODO
+Assert [] Is Empty
+Assert ["x"] Is Not Empty

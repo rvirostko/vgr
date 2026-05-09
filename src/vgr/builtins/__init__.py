@@ -272,7 +272,7 @@ from .types import (
     poly_isnumber,
     poly_isstr,
     poly_iszero,
-    poly_notempty,
+    poly_not_empty,
     poly_number,
     poly_sign,
     poly_str,

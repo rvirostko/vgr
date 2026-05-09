@@ -15,7 +15,7 @@ from .builtins import (
     bound_ops,
     poly_bool,
     poly_int,
-    poly_notempty,
+    poly_not_empty,
     poly_true,
 )
 from .exec_context import ExecContext
@@ -97,11 +97,11 @@ Also see `Exit` and `Format()`
         if len(exprs) > 1:
             try:
                 msg = ctx.eval_to_str(exprs[1], 'Format string', True)
-                if poly_notempty(msg):
+                if poly_not_empty(msg):
                     msg = msg.format(*[ctx.eval_expr(expr) for expr in exprs[2:]])
             except (ValueError, TypeError) as e:
                 print_stderr(f'While evaluating {SSM.source_for(statement)} on line {statement.meta.line}: ', e)
-        msg = str(msg) if poly_notempty(msg) else f'{SSM.source_for(statement)} failed'
+        msg = str(msg) if poly_not_empty(msg) else f'{SSM.source_for(statement)} failed'
         _LOG.warning('%s(%s): %s', SSM.current[0], statement.meta.line, msg.strip())
         # Point the "error" at the expression being tested
         raise VgrStatementAssert(exprs[0], msg)

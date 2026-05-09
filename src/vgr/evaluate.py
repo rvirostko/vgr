@@ -37,6 +37,7 @@ from .builtins import (
     poly_gt,
     poly_imatches,
     poly_in,
+    poly_isempty,
     poly_iseven,
     poly_isnegative,
     poly_isodd,
@@ -48,6 +49,7 @@ from .builtins import (
     poly_mod,
     poly_mul,
     poly_ne,
+    poly_not_empty,
     poly_not_imatch,
     poly_not_in,
     poly_not_match,
@@ -613,6 +615,8 @@ class OperationBinder(Transformer):
     def is_odd_op(self, tree): return SimpleOperation(tree, poly_isodd)
     def is_defined_op(self, tree): return IsVarDefined(tree)
     def is_undefined_op(self, tree): return IsVarUndefined(tree)
+    def is_empty_op(self, tree): return SimpleOperation(tree, poly_isempty)
+    def is_not_empty_op(self, tree): return SimpleOperation(tree, poly_not_empty)
 
     # Ternary operations: indicies are for predicate, true-side, false-side
     def c_ternary(self, tree): return Ternary(tree, (0, 1, 2))

@@ -24,7 +24,7 @@ from .builtins import (
     poly_matches_all,
     poly_ne,
     poly_not_match,
-    poly_notempty,
+    poly_not_empty,
     poly_true,
 )
 from .evaluate import bind_operations
@@ -88,7 +88,7 @@ _CHOOSE_OPS = {
     'is_empty_block':     poly_isempty,
     'is_even_block':      poly_iseven,
     'is_neg_block':       poly_isnegative,
-    'is_not_empty_block': poly_notempty,
+    'is_not_empty_block': poly_not_empty,
     'is_odd_block':       poly_isodd,
     'is_pos_block':       poly_ispositive,
     'not_range_block':    poly_false,

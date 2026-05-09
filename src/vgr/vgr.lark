@@ -387,6 +387,8 @@ ternary: expr "?" expr _CLAUSE_SEP expr -> c_ternary
     | expr2 "Is"i ("Odd"i | "Not"i "Even"i)            -> is_odd_op
     | expr2 "Is"i ("Defined"i | "Not"i "Undefined"i)   -> is_defined_op
     | expr2 "Is"i ("Undefined"i | "Not"i "Defined"i)   -> is_undefined_op
+    | expr2 "Is"i "Empty"i                             -> is_empty_op
+    | expr2 "Is"i "Not"i "Empty"i                      -> is_not_empty_op
     // Polymorphic operations than *could* be chained
     | expr2 ("+" | "\uFF0B") expr2                     -> add_op // Unicode ＋ (fullwidth plus)
     | expr2 ("-" | "\u2212" | "\uFF0D") expr2          -> sub_op // Unicode − (minus sign) and － (fullwidth minus)
