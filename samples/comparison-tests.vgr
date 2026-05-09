@@ -1,0 +1,85 @@
+
+Echo On
+
+// Equality
+Assert 1 == 1
+Assert 1 ⩵ 1
+Assert 1 Equals 1
+Assert 1 Is 1
+Assert 1 Equal To 1
+Assert 1 Is Equal To 1
+
+// Inequality
+Assert 1 != Zero
+Assert 1 ≠ Zero
+Assert 1 <> Zero
+Assert 1 ¬= Zero
+Assert 1 Is Not Zero
+Assert 1 Not Equal To Zero
+Assert 1 Is Not Equal To Zero
+
+// Greater than
+Assert 1 > Zero
+Assert 1 ＞ Zero
+Assert 1 Greater Than Zero
+Assert 1 Is Greater Than Zero
+
+// Greater than or equal to
+Assert 1 >= 1
+Assert 1 ≥ 1
+Assert 1 ¬< 1
+Assert 1 !< 1
+Assert 1 Not Less Than 1
+Assert 1 Is Not Less Than 1
+
+// Less than
+Assert Zero < 1
+Assert Zero ＜ 1
+Assert Zero Less Than 1
+Assert Zero Is Less Than 1
+
+// Less than or equal to
+Assert 1 <= 1
+Assert 1 ≤ 1
+Assert 1 ¬> 1
+Assert 1 !> 1
+Assert 1 Not Greater Than 1
+Assert 1 Is Not Greater Than 1
+
+// Even/odd checks
+Assert 1 Is Odd
+Assert 1 Is Not Even
+Assert 2 Is Even
+Assert 2 Is Not Odd
+
+// Negative/Positive checks
+Assert 1 Is Positive
+Assert 1 Is Not Negative
+Assert -1 Is Negative
+Assert -1 Is Not Positive
+
+# Zero is "weird"
+Assert !(Zero Is Positive) And !(Zero Is Negative)
+Assert !(Zero Is Not Negative) And !(Zero Is Not Positive)
+
+// Defined/Undefined
+Set x.is_defined To "yes"
+Unset x.is_not_defined
+Assert x Is Defined
+Assert x.is_defined Is Defined
+Assert x.is_defined Is Not Undefined
+Assert x.is_not_defined Is Undefined
+Assert x.is_not_defined Is Not Defined
+// expressions that are not just a variable
+// are always "defined"
+Assert 5 Is Defined
+Assert False Is Defined
+Assert None Is Defined
+Assert (2 + 3) Is Defined
+
+// Null (or None) : see equality for other forms
+Assert None Is Null
+Assert "none" Is Not Null
+
+// Empty/Not Empty
+# TODO

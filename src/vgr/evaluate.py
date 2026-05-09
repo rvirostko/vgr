@@ -225,6 +225,56 @@ class InvokeInlineFunctionOperation(Operation):
     def op_name(self) -> str:
         return 'invoke_in_linefunc'
 
+class IsVarDefined(Operation):
+    @bound_ops("Is Defined", "Is Not Undefined")
+    def execute(self, ctx: ExecContext, args: list) -> Any:
+        """
+** Check to see if a variable is defined **
+
+* *x* Is Defined
+* *x* Is Not Undefined
+
+** TODO
+Also See `Is Undefined`
+"""
+        expr = args[0]
+        value = ctx.eval_expr(expr)
+        # if we have a value, whatever the user sent us
+        # it must be "defined". Or, if they sent in
+        # an expression, not just a var_ref, it is defined.
+        if value is not None or not _is_var_ref(expr): return True
+        # Check with the data dict to see if it really
+        # has the value.
+        return ctx.var_exists(*_var_name_path(expr))[0]
+
+    def op_name(self) -> str:
+        return 'is_defined'
+
+class IsVarUndefined(Operation):
+    @bound_ops("Is Undefined", "Is Not Defined")
+    def execute(self, ctx: ExecContext, args: list) -> Any:
+        """
+** Check to see if a variable is undefined **
+
+* *x* Is Undefined
+* *x* Is Not Defined
+
+** TODO
+Also See `Is Defined`
+"""
+        expr = args[0]
+        value = ctx.eval_expr(expr)
+        # if we have a value, whatever the user sent us
+        # it must be "defined". Or, if they sent in
+        # an expression, not just a var_ref, it is defined.
+        if value is not None or not _is_var_ref(expr): return False
+        # Check with the data dict to see if it really
+        # has the value.
+        return not ctx.var_exists(*_var_name_path(expr))[0]
+
+    def op_name(self) -> str:
+        return 'is_undefined'
+
 class AndOperation(Operation):
 
     @bound_ops("And", "&&", "∧")
@@ -561,6 +611,8 @@ class OperationBinder(Transformer):
     def is_positive_op(self, tree): return SimpleOperation(tree, poly_ispositive)
     def is_even_op(self, tree): return SimpleOperation(tree, poly_iseven)
     def is_odd_op(self, tree): return SimpleOperation(tree, poly_isodd)
+    def is_defined_op(self, tree): return IsVarDefined(tree)
+    def is_undefined_op(self, tree): return IsVarUndefined(tree)
 
     # Ternary operations: indicies are for predicate, true-side, false-side
     def c_ternary(self, tree): return Ternary(tree, (0, 1, 2))
