@@ -117,6 +117,7 @@ declare: "Declare"i _csep_list{var_name}
     | "Declare"i _csep_list{var_name} "As"i? "Local"i  -> declare_local
     | "Declare"i _csep_list{var_name} "As"i? "Global"i -> declare_global
 def_statements: "Define"i? "Function"i var_name def_params? _CLAUSE_SEP? def_body ("End-Function"i | "End"i) -> def_function
+// NB: doesn't work with template; probably should be changed to use var_name anyway
 def_params: "(" (NAME (_SEP NAME)*)? ")" -> params
 def_body: statement+ -> body
 // Note: this combines BASIC-like syntax (For Each) and VGR (ForEach), now somewhat deprecated
@@ -414,6 +415,7 @@ ternary: expr "?" expr _CLAUSE_SEP expr -> c_ternary
     | "\u2308" expr "\u2309"                            -> ceil_op      // Unicode ceiling ⌈ x ⌉
     | "\u230A" expr "\u230B"                            -> floor_op     // Unicode floor ⌊ x ⌋
     | expr2 SUPERSCRIPT_FLOAT                           -> pow_op
+    // NB: neither of the following work with trailing commas if you use the template
     | "[" (expr (_SEP expr)*)? _SEP? "]"                -> array        // [], [x], [x,y], [x,y,]
     | "{" (_dict_entry (_SEP _dict_entry)*)? _SEP? "}"  -> dict         // {}, {x:y}, {a:b,x:y}, {a:b,x:y,}
 
