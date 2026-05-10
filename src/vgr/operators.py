@@ -12,7 +12,7 @@ from .builtins import (
     poly_bit_xor,
     poly_ceil,
     poly_contains_all,
-    poly_contains_any,
+    poly_contains,
     poly_div,
     poly_eq,
     poly_exact_eq,
@@ -55,7 +55,7 @@ _OP_FUNCS: list[Callable[..., Any]] = [
     poly_bit_xor, # bit_xor_op
     poly_ceil, # poly_ceil_op
     poly_contains_all, # contains_all_op
-    poly_contains_any, # contains_op
+    poly_contains, # contains_op
     poly_div, # div_op
     poly_eq, # eq_op
     poly_exact_eq, # exact_eq_op

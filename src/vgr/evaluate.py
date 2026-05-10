@@ -27,7 +27,7 @@ from .builtins import (
     poly_bit_xor,
     poly_ceil,
     poly_contains_all,
-    poly_contains_any,
+    poly_contains,
     poly_div,
     poly_eq,
     poly_exact_eq,
@@ -49,6 +49,7 @@ from .builtins import (
     poly_mod,
     poly_mul,
     poly_ne,
+    poly_not_contains,
     poly_not_empty,
     poly_not_imatch,
     poly_not_in,
@@ -227,6 +228,11 @@ class InvokeInlineFunctionOperation(Operation):
     def op_name(self) -> str:
         return 'invoke_in_linefunc'
 
+def is_var_defined(ctx: ExecContext, expr: Tree) -> bool:
+    # non-var references are defined (expr or constant)
+    if not _is_var_ref(expr): return True
+    return ctx.var_exists(*_var_name_path(expr))[0]
+
 class IsVarDefined(Operation):
     @bound_ops("Is Defined", "Is Not Undefined")
     def execute(self, ctx: ExecContext, args: list) -> Any:
@@ -239,15 +245,7 @@ class IsVarDefined(Operation):
 ** TODO
 Also See `Is Undefined`
 """
-        expr = args[0]
-        value = ctx.eval_expr(expr)
-        # if we have a value, whatever the user sent us
-        # it must be "defined". Or, if they sent in
-        # an expression, not just a var_ref, it is defined.
-        if value is not None or not _is_var_ref(expr): return True
-        # Check with the data dict to see if it really
-        # has the value.
-        return ctx.var_exists(*_var_name_path(expr))[0]
+        return is_var_defined(ctx, args[0])
 
     def op_name(self) -> str:
         return 'is_defined'
@@ -264,15 +262,7 @@ class IsVarUndefined(Operation):
 ** TODO
 Also See `Is Defined`
 """
-        expr = args[0]
-        value = ctx.eval_expr(expr)
-        # if we have a value, whatever the user sent us
-        # it must be "defined". Or, if they sent in
-        # an expression, not just a var_ref, it is defined.
-        if value is not None or not _is_var_ref(expr): return False
-        # Check with the data dict to see if it really
-        # has the value.
-        return not ctx.var_exists(*_var_name_path(expr))[0]
+        return not is_var_defined(ctx, args[0])
 
     def op_name(self) -> str:
         return 'is_undefined'
@@ -556,7 +546,8 @@ class OperationBinder(Transformer):
     def unary_not(self, tree): return NotOperation(tree)
 
     # Comparisons of some type with two operands that return booleans
-    def contains_op(self, tree): return SimpleOperation(tree, poly_contains_any)
+    def contains_op(self, tree): return SimpleOperation(tree, poly_contains)
+    def not_contains_op(self, tree): return SimpleOperation(tree, poly_not_contains)
     def contains_all_op(self, tree): return SimpleOperation(tree, poly_contains_all)
     def exact_eq_op(self, tree): return SimpleOperation(tree, poly_exact_eq)
     def eq_op(self, tree): return SimpleOperation(tree, poly_eq)

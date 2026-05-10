@@ -25,7 +25,7 @@ For Each value In [True, False, Zero, Nan, Inf, "hello", ["world"]]
     Assert value.Matches(value)
     Assert [value].Matches(value)
     Assert [value, "frog"].Matches(value) Is False
-    Assert [value, "frog"] Not Matches value
+    Assert [value, "frog"] Does Not Match value
     Assert value.Matches([value, "frog"])
     Assert value Matches All value
     Assert [value] Matches All value

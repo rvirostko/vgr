@@ -8,8 +8,9 @@ from lark import Tree
 
 from .builtins import (
     bound_ops,
-    poly_contains_any,
+    poly_contains,
     poly_eq,
+    poly_exact_eq,
     poly_false,
     poly_ge,
     poly_gt,
@@ -20,14 +21,19 @@ from .builtins import (
     poly_is_positive,
     poly_le,
     poly_lt,
-    poly_matches,
     poly_matches_all,
+    poly_matches,
     poly_ne,
-    poly_not_match,
+    poly_not_contains,
     poly_not_empty,
+    poly_not_match,
     poly_true,
 )
-from .evaluate import bind_operations
+from .evaluate import (
+    bind_operations,
+    is_var_defined,
+)
+
 from .exec_context import ExecContext
 from .tags import control_statement
 
@@ -84,7 +90,6 @@ Also see `Choose Using`
 
 # Operation mapping for choose "when" comparisons
 _CHOOSE_OPS = {
-    # top-level block names
     'is_empty_block':     poly_is_empty,
     'is_even_block':      poly_is_even,
     'is_neg_block':       poly_is_negative,
@@ -93,21 +98,20 @@ _CHOOSE_OPS = {
     'is_pos_block':       poly_is_positive,
     'not_range_block':    poly_false,
     'not_values_block':   poly_ne,
-    'range_block':        poly_true,
-    'values_block':       poly_eq,
-    # Found in ineq_block
+    'op_contains':        poly_contains,
+    'op_eq':              poly_eq,
     'op_ge':              poly_ge,
     'op_gt':              poly_gt,
     'op_le':              poly_le,
     'op_lt':              poly_lt,
-    # Found in values_block
-    'op_eq':              poly_eq,
-    'op_ne':              poly_ne,
-    'op_contains':        poly_contains_any,
-    'op_not_contains':    lambda x, y : poly_false(poly_contains_any(x, y)),
-    'op_matches':         poly_matches,
-    'op_not_matches':     poly_not_match,
     'op_matches_all':     poly_matches_all,
+    'op_matches':         poly_matches,
+    'op_ne':              poly_ne,
+    'op_not_contains':    poly_not_contains,
+    'op_not_matches':     poly_not_match,
+    'op_xeq':             poly_exact_eq,
+    'range_block':        poly_true,
+    'values_block':       poly_eq,
 }
 
 # These apply only to values blocks, not ranges or inequalities
@@ -119,24 +123,25 @@ def execute_choose_using(ctx: ExecContext, statement: Tree) -> None:
     """
 **Choose from a set of statements based on a value**
 
-* Choose [All] Using *expression* :\\
-  &emsp;&emsp;When [Not] Empty : *statement*&hellip;\\
-  &emsp;&emsp;When [Not] Defined : *statement*&hellip;\\
-  &emsp;&emsp;When [Not] Undefined : *statement*&hellip;\\
-  &emsp;&emsp;When [Not] Negative : *statement*&hellip;\\
-  &emsp;&emsp;When [Not] Positive : *statement*&hellip;\\
-  &emsp;&emsp;When [Not] Even : *statement*&hellip;\\
-  &emsp;&emsp;When [Not] Odd : *statement*&hellip;\\
-  &emsp;&emsp;When [Not] *expression* [, *expression*]&hellip; : *statement*&hellip;\\
-  &emsp;&emsp;When [Not] *expression* [To | Through | Thru] *expression* : *statement*&hellip;\\
-  &emsp;&emsp;When [< | Less Than] *expression*: *statement*&hellip;\\
-  &emsp;&emsp;When [>= | Not Less Than] *expression*: *statement*&hellip;\\
-  &emsp;&emsp;When [> | Greater Than] *expression*: *statement*&hellip;\\
-  &emsp;&emsp;When [<= | Not Greater Than] *expression*: *statement*&hellip;\\
-  &emsp;&emsp;When [Not] Matches *expression* [, *expression*]&hellip; : *statement*&hellip;\\
-  &emsp;&emsp;When Matches All *expression* [, *expression*]&hellip; : *statement*&hellip;\\
-  &emsp;&emsp;When [Not] Contains *expression* [, *expression*]&hellip; : *statement*&hellip;\\
-  &emsp;&emsp;Otherwise : *statement*&hellip;\\
+## TODO revise
+* Choose [All] Using *expression* [:]\\
+  &emsp;&emsp;When [Not] Empty  [:] *statement*&hellip;\\
+  &emsp;&emsp;When [Not] Defined [:] *statement*&hellip;\\
+  &emsp;&emsp;When [Not] Undefined [:] *statement*&hellip;\\
+  &emsp;&emsp;When [Not] Negative [:] *statement*&hellip;\\
+  &emsp;&emsp;When [Not] Positive [:] *statement*&hellip;\\
+  &emsp;&emsp;When [Not] Even [:] *statement*&hellip;\\
+  &emsp;&emsp;When [Not] Odd [:] *statement*&hellip;\\
+  &emsp;&emsp;When [Not] *expression* [, *expression*]&hellip; [:] *statement*&hellip;\\
+  &emsp;&emsp;When [Not] *expression* [To | Through | Thru] *expression* [:] *statement*&hellip;\\
+  &emsp;&emsp;When [< | Less Than] *expression* [:] *statement*&hellip;\\
+  &emsp;&emsp;When [>= | Not Less Than] *expression* [:] *statement*&hellip;\\
+  &emsp;&emsp;When [> | Greater Than] *expression* [:] *statement*&hellip;\\
+  &emsp;&emsp;When [<= | Not Greater Than] *expression* [:] *statement*&hellip;\\
+  &emsp;&emsp;When [Not] Matches *expression* [, *expression*]&hellip; [:] *statement*&hellip;\\
+  &emsp;&emsp;When Matches All *expression* [, *expression*]&hellip; [:] *statement*&hellip;\\
+  &emsp;&emsp;When [Not] Contains *expression* [, *expression*]&hellip; [:] *statement*&hellip;\\
+  &emsp;&emsp;Otherwise [:] *statement*&hellip;\\
   [End-Choose | End]
 
 The expression in the `Choose` statement is evaluated and it becomes the
@@ -156,14 +161,14 @@ causes, and that at least one `When` must be specified. When `All` is specified
 `Otherwise` is skipped if another `When` clause has matched.
 
 While complicated expressions can be used as the values in `When` it is recommended
-that constant or references to constants be used.
+that constants are used.
 
 Note that `Defined` and `Undefined` only provide meaningful results when a
 variable is used, not an expression.
 
 ```vgr
 Set month To time.today.month
-Choose Using month:
+Choose Using month
     When 1, 2, 12:  Set season To "winter"
     When 3, 4, 5:   Set season To "spring"
     When 6, 7, 8:   Set season To "summer"
@@ -172,7 +177,7 @@ Choose Using month:
 End-Choose
 Print "Month", month, "is a", season, "month"
 
-Choose Using user_input:
+Choose Using user_input
     When Is None:
         Print "Input required"
     When Matches "^[0-9]{5}$", "^[0-9]{5}-[0-9]{4}$":
@@ -212,8 +217,9 @@ def _exec_choose(ctx: ExecContext, do_all: bool, statement_children, expr: Tree,
     for when_block in statement_children:
         chosen_block = None
         values_children = iter(when_block.children)
+        block_name = when_block.data
         # This section is for the Choose that doesn't have a desired value
-        if when_block.data == "choice_block":
+        if block_name == "choice_block":
             choice_children = iter(when_block.children)
             # The first child is the expression to test
             # We do a Pythonic test for "True" here, avoiding internal conversions
@@ -222,30 +228,21 @@ def _exec_choose(ctx: ExecContext, do_all: bool, statement_children, expr: Tree,
                 # After the expression to test the iterator
                 # points to the following statements
                 chosen_block = choice_children
-        elif when_block.data in ['is_defined', 'is_not_defined']:
-            # an lvalue
-            # (var_name: (Pos: 1:9-1:10)
-            #      NAME: 'a' (Pos: 1:9-1:10 'string')
-            # )
-            #
-            # an rvalue
-            # (var_ref:var_ref (Pos: 1:10-1:11)
-            #      NAME: 'b' (Pos: 1:10-1:11 'string')
-            # )
-            #
-            # Constant value
-            # CONST: ' ' (Pos: 1:10-1:15 'string')
-            rc = ctx.var_exists()
-            if rc is not None and (rc[0] == (when_block.data  == 'is_defined')):
+        elif block_name == 'is_defined_block':
+            if is_var_defined(ctx, expr):
                 ctx.echo_source(when_block, when_block.children[0])
                 chosen_block = values_children
-        # This section is for tests that don't use an expression
-        elif when_block.data in ['is_empty_block', 'is_not_empty_block', 'is_neg_block', 'is_pos_block', 'is_even_block', 'is_odd_block']:
+        elif block_name == 'is_undefined_block':
+            if not is_var_defined(ctx, expr):
+                ctx.echo_source(when_block, when_block.children[0])
+                chosen_block = values_children
+        # These tests don't use an expression
+        elif block_name in ['is_empty_block', 'is_not_empty_block', 'is_neg_block', 'is_pos_block', 'is_even_block', 'is_odd_block']:
             test_op = _CHOOSE_OPS.get(when_block.data)
             if test_op(desired_value):
                 ctx.echo_source(when_block, when_block.children[0])
                 chosen_block = values_children
-        elif when_block.data in ['values_block', 'not_values_block']:
+        elif block_name in ['values_block', 'not_values_block']:
             # If there is a node in front of our list of values
             # it is a specialized operator rather than the one encoded
             # in the name of the block itself
@@ -275,7 +272,7 @@ def _exec_choose(ctx: ExecContext, do_all: bool, statement_children, expr: Tree,
                         break
             if chosen_block:
                 ctx.echo_source(when_block, when_block.children[when_end_index])
-        elif when_block.data in ['range_block', 'not_range_block']:
+        elif block_name in ['range_block', 'not_range_block']:
             test_op = _CHOOSE_OPS.get(when_block.data)
             lo_value = ctx.eval_expr(bind_operations(next(values_children)))
             hi_value = ctx.eval_expr(bind_operations(next(values_children)))
@@ -283,7 +280,7 @@ def _exec_choose(ctx: ExecContext, do_all: bool, statement_children, expr: Tree,
             if test_op(poly_ge(desired_value, lo_value) and poly_le(desired_value, hi_value)):
                 ctx.echo_source(when_block, when_block.children[2])
                 chosen_block = values_children
-        elif when_block.data == 'ineq_block':
+        elif block_name == 'ineq_block':
             test_op = _CHOOSE_OPS.get(next(values_children).data)
             if test_op(desired_value, ctx.eval_expr(bind_operations(next(values_children)))):
                 ctx.echo_source(when_block, when_block.children[2])

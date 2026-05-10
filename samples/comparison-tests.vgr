@@ -49,14 +49,18 @@ Assert 1 Is Not Greater Than 1
 // Even/odd checks
 Assert 1 Is Odd
 Assert 1 Is Not Even
+Assert 1 Not Even
 Assert 2 Is Even
 Assert 2 Is Not Odd
+Assert 2 Not Odd
 
 // Negative/Positive checks
 Assert 1 Is Positive
 Assert 1 Is Not Negative
+Assert 1 Not Negative
 Assert -1 Is Negative
 Assert -1 Is Not Positive
+Assert -1 Not Positive
 
 # Zero is "weird"
 Assert !(Zero Is Positive) And !(Zero Is Negative)
@@ -84,3 +88,95 @@ Assert "none" Is Not Null
 // Empty/Not Empty
 Assert [] Is Empty
 Assert ["x"] Is Not Empty
+Assert ["x"] Not Empty
+
+// Matching (case sensitive)
+Assert "a" ~ "a"
+Assert "a" Matches "a"
+Assert "A" !~ "a"
+Assert "A" Not ~ "a"
+Assert "A" Does Not Match "a"
+
+// Multiple matching
+Assert "Abc" Matches All ["^[Aa]", "[Cc]$"]
+
+// Matching (case insenstive)
+Assert "A" ~* "a"
+Assert "A" IMatches "a"
+Assert ("A" !~* "a") Is False
+Assert ("A" Not ~* "a") Is False
+Assert ("A" Does Not IMatch "a") Is False
+
+// Contains
+Set animals To ["cat", "dog", "fish"]
+Assert animals Contains "cat"
+Assert animals Contains ["bat", "cat", "rat"]
+Assert animals Contains All ["cat", "dog"]
+Assert animals Does Not Contain "frog"
+
+// Is In
+Assert "cat" Is In animals
+Assert "dog" ∈ animals
+Assert "bat" Is Not In animals
+Assert "frog" ∉ animals
+
+Echo Off
+# TODO '>=' not supported between instances of 'dict' and 'int'
+# TODO print 7 is True -> False; print 7 ? "t" : "f" -> "t"
+For Each value In [-1, 0, False, 1, /*{},*/ 7, 16]
+    Choose All Using value
+        When Is Defined             Pass // everything here is
+        When Is Undefined           Assert False : "Can't be undefined here!"
+        When Is Empty               Print value, "is empty"
+        When Is Not Empty           Print value, "is not empty"
+        When Is Positive            Print value, "is positive"
+        When Is Not Positive        Print value, "is not positive"
+        When Is Negative            Print value, "is negative"
+        When Is Not Negative        Print value, "is not negative"
+        When Is Even                Print value, "is even"
+        When Is Not Even            Print value, "is not even"
+        When Is Odd                 Print value, "is odd"
+        When Is Not Odd             Print value, "is not odd"
+        When Is True                Print value, "is True-like"
+        When Is False               Print value, "is False-like"
+        // NB: we don't have a "Not ===" operation here or in expressions
+        When === True, False        Print value, "is a boolean"
+        When == 6                   Print value, "is 6"
+        When != 6                   Print value, "is not 6"
+        When Is Greater Than 7      Print value, "is > 7"
+        When Is Less Than 7         Print value, "is < 7"
+        When Is Not Greater Than 7  Print value, "is <= 7"
+        When Is Not Less Than 7     Print value, "is >= 7"
+        When Is Equal To 7          Print value, "is 7"
+        When Is Not Equal To 7      Print value, "is not 7"
+        When Is 2,1,0               Print value, "is a small number"
+        When 1,2,3,5,7,11,13,17     Print value, "is a prime < 20"
+        When Not 2,4,8              Print value, "is not an even number < 10"
+        When 11 To 19               Print value, "is between 10 and 20 (exclusive)"
+        When 10 Through 20          Print value, "is between 10 and 20 (inclusive)"
+        Otherwise                   Print value, "is something else"
+    End-Choose
+    Print ""
+End-For
+/*
+    op_contains
+    op_not_contains
+    op_matches
+    op_not_matches
+    op_matches_all
+    contains all
+*/
+
+Unset not_set
+Choose Using not_set
+    When Is Defined   Assert False : "Should be undefined"
+    When Is Undefined Exhibit not_set
+    Otherwise         Assert False : "SNO"
+End-Choose
+
+Set is_set To "set"
+Choose Using is_set
+    When Is Defined   Exhibit is_set
+    When Is Undefined Assert False : "Should be undefined"
+    Otherwise         Assert False : "SNO"
+End-Choose

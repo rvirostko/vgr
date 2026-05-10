@@ -146,41 +146,70 @@ break: "Break"i
 continue: "Continue"i
 return: "Return"i expr?
 
-// NB: Unicode alternates exist here and elsewhere only for logical or mathematical operations and constants, not textual ones.
+_eq_operators: ("==" | "\u2A75" | "Equals"i | "Is"i | "Is"i? "Equal"i "To"i)                        // Unicode ⩵ (two consecutive equals signs)
+_neq_operators: ("!=" | "\u2260" | "<>" | "\u00AC=" | "Is"i "Not"i | "Is"i? "Not"i "Equal"i "To"i)  // Unicode ≠ (not eq) and ¬ (not)
+_exact_eq_operators: "===" | "\u2A76" | "\u2261"                                                    // Unicode ⩶ (three consecutive equals signs) and  ≡ (identical to)
+_lt_operators: ("<" | "\uFF1C" | "Is"i? "Less"i "Than"i)                                            // Unicode ＜ (fullwidth <)
+_gt_operators: (">" | "\uFF1E" | "Is"i? "Greater"i "Than"i)                                         // Unicode ＞ (fullwidth >)
+_le_operators: ("<=" | "\u2264" | "\u00AC>" | "!>" | "Is"i? "Not"i "Greater"i "Than"i)              // Unicode ≤ (less than or equal to) and ¬ (not)
+_ge_operators: (">=" | "\u2265" | "\u00AC<" | "!<" | "Is"i? "Not"i "Less"i "Than"i)                 // Unicode ≥ (greater than or equal to) and ¬ (not)
+_matches_operators: "~" | "Matches"i
+_not_matches_operators: "!~" | "Not"i "~" | "Does"i "Not"i "Match"i
+_matches_all_operators: "Matches"i "All"i
+_imatches_operators: "~*" | "IMatches"i
+_not_imatches_operators: "!~*" | "Not"i "~*" | "Does"i "Not"i "IMatch"i
+_contains_operators: "Contains"i
+_not_contains_operators: "Does"i "Not"i "Contain"i
+_contains_all_operators: "Contains"i "All"i
+_is_in_operators: ("Is"i "In"i) | "\u2208"                                                          // Unicode ∈ (element of)
+_not_is_in_operators: ("Is"i? "Not"i "In"i) | "\u2209"                                              // Unicode ∉ (not an element of)
+_is_empty_operators: "Is"i "Empty"i
+_is_not_empty_operators: "Is"i? "Not"i "Empty"i
+_is_positive_operators: ("Is"i "Positive"i | "Is"i? "Not"i "Negative"i)
+_is_negative_operators: ("Is"i "Negative"i | "Is"i? "Not"i "Positive"i)
+_is_even_operators: ("Is"i "Even"i | "Is"i? "Not"i "Odd"i)
+_is_odd_operators: ("Is"i "Odd"i | "Is"i? "Not"i "Even"i)
+_is_defined_operators: "Is"i ("Defined"i | "Not"i "Undefined"i)
+_is_undefined_operators: "Is"i ("Undefined"i | "Not"i "Defined"i)
 
-op_eq: ("==" | "\u2175" | "Equals"i | "Is"i | "Is"i? "Equal"i "To"i)                       // Unicode ⩵ (two consecutive equals signs)
-op_ne: ("!=" | "\u2260" | "<>" | "\u00AC=" | "Is"i "Not"i | "Is"i? "Not"i "Equal"i "To"i ) // Unicode ≠ (not eq) and ¬ (not)
-// NB: intentionally "not greater than or equal to" et al
-op_lt: ("<" | "\uFF1C" | "Less"i "Than"i)                                                  // Unicode ＜ (fullwidth <)
-op_gt: (">" | "\uFF1E" | "Greater"i "Than"i)                                               // Unicode ＞ (fullwidth >)
-op_le: ("<=" | "\u2264" | "\u00AC>" | "!>") | ("Not"i op_gt)                               // Unicode ≤ (less than or equal to) and ¬ (not)
-op_ge: (">=" | "\u2265" | "\u00AC<" | "!<") | ("Not"i op_lt)                               // Unicode ≥ (greater than or equal to) and ¬ (not)
-op_contains: "Contains"i
-op_not_contains: ("Not"i op_contains | "Does"i "Not"i "Contain"i)
-op_matches: "~" | "Matches"i
-op_not_matches: ("!~" | "Not"i op_matches | "Does"i "Not"i "Match"i)
-op_matches_all: "Matches"i "All"i
-op_imatches: ("~*" | "IMatches"i)
-op_not_imatches: ("!~*" | "Not"i op_imatches | "Does"i "Not"i "IMatch"i)
-
-choose_statement: "Choose"i choose_all? _CLAUSE_SEP? choice_block+ otherwise_block? ("End-Choose"i | "End"i) -> choose
+choose_statement: "Choose"i choose_all? _CLAUSE_SEP? choice_block+ otherwise_block? ("End-Choose"i | "End"i)   -> choose
     | "Choose"i choose_all? "Using"i expr _CLAUSE_SEP? values_block+ otherwise_block? ("End-Choose"i | "End"i) -> choose_using
-choose_all: "All"i
 choice_block: "When"i expr _CLAUSE_SEP? statement+
-values_block: "When"i "Is"i? "Empty"i _CLAUSE_SEP? statement+ -> is_empty_block
-    | "When"i "Is"i? "Not"i "Empty"i _CLAUSE_SEP? statement+ -> is_not_empty_block
-    | "When"i "Is"i? ("Positive"i | "Not"i "Negative"i) _CLAUSE_SEP? statement+ -> is_pos_block
-    | "When"i "Is"i? ("Negative"i | "Not"i "Positive"i) _CLAUSE_SEP? statement+ -> is_neg_block
-    | "When"i "Is"i? ("Even"i | "Not"i "Odd"i) _CLAUSE_SEP? statement+ -> is_even_block
-    | "When"i "Is"i? ("Odd"i | "Not"i "Even"i) _CLAUSE_SEP? statement+ -> is_odd_block
-    | "When"i value_list _CLAUSE_SEP? statement+
-    | "When"i "Not"i value_list _CLAUSE_SEP? statement+ -> not_values_block
-    | "When"i expr ("Through"i | "Thru"i | "To"i) expr _CLAUSE_SEP? statement+ -> range_block
-    | "When"i "Not"i expr ("Through"i | "Thru"i | "To"i) expr _CLAUSE_SEP? statement+ -> not_range_block
-    | "When"i (op_lt | op_gt | op_ge | op_le) expr _CLAUSE_SEP? statement+ -> ineq_block
-    | "When"i (op_eq | op_ne | op_contains | op_not_contains | op_matches | op_not_matches | op_matches_all) value_list _CLAUSE_SEP? statement+
+values_block: "When"i _is_empty_operators _CLAUSE_SEP? statement+                -> is_empty_block
+    | "When"i _is_not_empty_operators _CLAUSE_SEP? statement+                    -> is_not_empty_block
+    | "When"i _is_positive_operators _CLAUSE_SEP? statement+                     -> is_pos_block
+    | "When"i _is_negative_operators _CLAUSE_SEP? statement+                     -> is_neg_block
+    | "When"i _is_even_operators _CLAUSE_SEP? statement+                         -> is_even_block
+    | "When"i _is_odd_operators _CLAUSE_SEP? statement+                          -> is_odd_block
+    | "When"i _is_defined_operators _CLAUSE_SEP? statement+                      -> is_defined_block
+    | "When"i _is_undefined_operators _CLAUSE_SEP? statement+                    -> is_undefined_block
+    | "When"i "Not"i value_list _CLAUSE_SEP? statement+                          -> not_values_block
+    | "When"i expr _through expr _CLAUSE_SEP? statement+                         -> range_block
+    | "When"i "Not"i expr _through expr _CLAUSE_SEP? statement+                  -> not_range_block
+    // These operators work with a single value
+    | "When"i (op_lt | op_gt | op_ge | op_le) expr _CLAUSE_SEP? statement+       -> ineq_block
+    // These operators work with one or more values
+    | "When"i (op_eq | op_ne | op_xeq | op_contains | op_not_contains | op_is_in | op_not_is_in | op_matches | op_imatches | op_not_matches | op_not_imatches | op_matches_all)? value_list _CLAUSE_SEP? statement+
 value_list: _csep_list{expr}
 otherwise_block: "Otherwise"i _CLAUSE_SEP? statement+
+choose_all: "All"i
+_through: "Through"i | "Thru"i | "To"i
+op_eq: _eq_operators
+op_ne: _neq_operators
+op_xeq: _exact_eq_operators
+op_lt: _lt_operators
+op_gt: _gt_operators
+op_le: _le_operators
+op_ge: _ge_operators
+op_matches: _matches_operators
+op_not_matches: _not_matches_operators
+op_matches_all: _matches_all_operators
+op_imatches: _imatches_operators
+op_not_imatches: _not_imatches_operators
+op_contains: _contains_operators
+op_not_contains: _not_contains_operators
+op_is_in: _is_in_operators
+op_not_is_in: _not_is_in_operators
 
 // simple boolean on/off, true/false
 // these are "proper statements" as they control the behavior of other statements
@@ -381,14 +410,14 @@ ternary: expr "?" expr _CLAUSE_SEP expr -> c_ternary
     | expr2 "." "@" var_name "(" _csep_list{expr}? ")" -> invoke_func_inline
     | "@" var_name "(" _csep_list{expr}? ")"           -> invoke_func
     | function                                         -> function_call
-    | expr2 "Is"i ("Negative"i | "Not"i "Positive"i)   -> is_negative_op
-    | expr2 "Is"i ("Positive"i | "Not"i "Negative"i)   -> is_positive_op
-    | expr2 "Is"i ("Even"i | "Not"i "Odd"i)            -> is_even_op
-    | expr2 "Is"i ("Odd"i | "Not"i "Even"i)            -> is_odd_op
-    | expr2 "Is"i ("Defined"i | "Not"i "Undefined"i)   -> is_defined_op
-    | expr2 "Is"i ("Undefined"i | "Not"i "Defined"i)   -> is_undefined_op
-    | expr2 "Is"i "Empty"i                             -> is_empty_op
-    | expr2 "Is"i "Not"i "Empty"i                      -> is_not_empty_op
+    | expr2 _is_negative_operators                     -> is_negative_op
+    | expr2 _is_positive_operators                     -> is_positive_op
+    | expr2 _is_even_operators                         -> is_even_op
+    | expr2 _is_odd_operators                          -> is_odd_op
+    | expr2 _is_defined_operators                      -> is_defined_op
+    | expr2 _is_undefined_operators                    -> is_undefined_op
+    | expr2 _is_empty_operators                        -> is_empty_op
+    | expr2 _is_not_empty_operators                    -> is_not_empty_op
     // Polymorphic operations than *could* be chained
     | expr2 ("+" | "\uFF0B") expr2                     -> add_op // Unicode ＋ (fullwidth plus)
     | expr2 ("-" | "\u2212" | "\uFF0D") expr2          -> sub_op // Unicode − (minus sign) and － (fullwidth minus)
@@ -402,22 +431,23 @@ ternary: expr "?" expr _CLAUSE_SEP expr -> c_ternary
     | expr2 "<<" expr2                                 -> shl_op
     | expr2 ">>" expr2                                 -> shr_op
     // Return bools, typically not "chained"
-    | expr2 ("===") expr2                              -> exact_eq_op
-    | expr2 ("==" | "\u2A75" | "Equals"i | "Is"i | "Is"i? "Equal"i "To"i) expr2 -> eq_op // Unicode ⩵ (two consecutive equals signs)
-    | expr2 ("!=" | "\u2260" | "<>" | "\u00AC=" | "Is"i "Not"i | "Is"i? "Not"i "Equal"i "To"i ) expr2 -> neq_op // Unicode ≠ (not eq) and ¬ (not)
-    | expr2 ("<" | "\uFF1C" | "Is"i? "Less"i "Than"i) expr2 -> lt_op // Unicode ＜ (fullwidth <)
-    | expr2 (">" | "\uFF1E" | "Is"i? "Greater"i "Than"i) expr2 -> gt_op // Unicode ＞ (fullwidth >)
-    | expr2 ("<=" | "\u2264" | "\u00AC>" | "!>" | "Is"i? "Not"i "Greater"i "Than"i) expr2 -> le_op // Unicode ≤ (less than or equal to) and ¬ (not)
-    | expr2 (">=" | "\u2265" | "\u00AC<" | "!<" | "Is"i? "Not"i "Less"i "Than"i) expr2 -> ge_op // Unicode ≥ (greater than or equal to) and ¬ (not)
-    | expr2 (("Is"i "In"i) | "\u2208") expr2 -> in_op // Unicode ∈ (element of)
-    | expr2 (("Is"i "Not"i "In"i) | "\u2209") expr2     -> not_in_op // Unicode ∉ (not an element of)
-    | expr2 "Contains"i expr2                           -> contains_op
-    | expr2 "Contains"i "All"i expr2                    -> contains_all_op
-    | expr2 op_matches expr2                            -> matches_op
-    | expr2 op_matches_all expr2                        -> matches_all_op
-    | expr2 op_imatches expr2                           -> imatches_op
-    | expr2 op_not_matches expr2                        -> not_matches_op
-    | expr2 op_not_imatches expr2                       -> not_imatches_op
+    | expr2 _exact_eq_operators expr2                  -> exact_eq_op
+    | expr2 _eq_operators expr2                        -> eq_op
+    | expr2 _neq_operators expr2                       -> neq_op
+    | expr2 _lt_operators expr2                        -> lt_op
+    | expr2 _gt_operators expr2                        -> gt_op
+    | expr2 _le_operators expr2                        -> le_op
+    | expr2 _ge_operators expr2                        -> ge_op
+    | expr2 _is_in_operators expr2                     -> in_op
+    | expr2 _not_is_in_operators expr2                 -> not_in_op
+    | expr2 _contains_operators expr2                  -> contains_op
+    | expr2 _not_contains_operators expr2              -> not_contains_op
+    | expr2 _contains_all_operators expr2              -> contains_all_op
+    | expr2 _matches_operators expr2                   -> matches_op
+    | expr2 _matches_all_operators expr2               -> matches_all_op
+    | expr2 _imatches_operators expr2                  -> imatches_op
+    | expr2 _not_matches_operators expr2               -> not_matches_op
+    | expr2 _not_imatches_operators expr2              -> not_imatches_op
     // Misc operations
     | "\u2308" expr "\u2309"                            -> ceil_op      // Unicode ceiling ⌈ x ⌉
     | "\u230A" expr "\u230B"                            -> floor_op     // Unicode floor ⌊ x ⌋

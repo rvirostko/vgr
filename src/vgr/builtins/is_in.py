@@ -78,32 +78,43 @@ Also see `IsIn()`
 """
     return not _is_in(x, y, False)
 
-@bound_ops("Contains Any")
-def poly_contains_any(x: Any=None, y: Any=None) -> Any:
+@bound_ops("Does Not Contain")
+def poly_not_contains(x: Any=None, y: Any=None) -> Any:
+    """
+**Is a value *not* contained in another value or collection**
+
+* *value* Does Not Contain *expression*
+
+See `Contains` operator
+"""
+    return not _is_in(y, x, False)
+
+@bound_ops("Contains")
+def poly_contains(x: Any=None, y: Any=None) -> Any:
     """
 **Is a value contained in another value or collection**
 
-* *value* Contains [Any] *expression*
-* ContainsAny(*value*, *expression*)
-* *value*.ContainsAny(*expression*)
+* *value* Contains *expression*
+* Contains(*value*, *expression*)
+* *value*.Contains(*expression*)
 
 Functions identically to `IsIn()` except that the sense of the
 operands are reverse.
 
 ```vgr
-None.ContainsAny(None) → True
-"cat".ContainsAny(None) → False
+None.Contains(None) → True
+"cat".Contains(None) → False
 
 2 Contains 2 → True // equality
 20 Contains 2 → False
 
 Set animals To ["cat", "dog", "fish"]
-None.ContainsAny("cat") → False
+None.Contains("cat") → False
 animals Contains "cat" → True
 animals Contains ["cat", "frog"] → True  // cat or frog in animals
 animals Contains ["rat", "frog"] → False // neither in animals
-"dog".ContainsAny("do") → True           // string operation
-animals.ContainsAny("do") → False        // list operation
+"dog".Contains("do") → True              // string operation
+animals.Contains("do") → False           // list operation
 
 Set point To {"x": 5, "y": 10}
 point Contains "x" → True  // key in dictionary

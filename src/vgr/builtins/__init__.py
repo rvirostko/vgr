@@ -104,7 +104,13 @@ from .inequ import (
     poly_lt,
     poly_ne,
 )
-from .is_in import poly_in, poly_not_in, poly_contains_all, poly_contains_any
+from .is_in import (
+    poly_contains_all,
+    poly_contains,
+    poly_in,
+    poly_not_contains,
+    poly_not_in,
+)
 from .json_funcs import (
     format_json,
     strip_nulls,
