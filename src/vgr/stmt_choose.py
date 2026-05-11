@@ -85,13 +85,16 @@ Next
 
 Also see `Choose Using`
 """
-    statement_children = iter(statement.children)
-    do_all = False
-    if isinstance(statement.children[0], Tree) and statement.children[0].data == 'choose_all':
-        do_all = True
-        next(statement_children)
-    ctx.echo_source(statement, statement.children[1 if do_all else 0])
-    _exec_choose(ctx, do_all, statement_children, None, None)
+    if len(statement.children):
+        statement_children = iter(statement.children)
+        do_all = False
+        if isinstance(statement.children[0], Tree) and statement.children[0].data == 'choose_all':
+            do_all = True
+            next(statement_children)
+        ctx.echo_source(statement, statement.children[min(1 if do_all else 0, len(statement.children) - 1)])
+        _exec_choose(ctx, do_all, statement_children, None, None)
+    else:
+        ctx.echo_source(statement)
 
 # Operation mapping for choose "when" comparisons
 _CHOOSE_OPS = {

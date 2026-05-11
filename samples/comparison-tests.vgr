@@ -120,6 +120,10 @@ Assert "dog" ∈ animals
 Assert "bat" Is Not In animals
 Assert "frog" ∉ animals
 
+// Exact Equals
+Assert True === True
+Assert (True === 1) Is False
+
 Echo Off
 # TODO '>=' not supported between instances of 'dict' and 'int'
 # TODO print 7 is True -> False; print 7 ? "t" : "f" -> "t"
@@ -139,7 +143,7 @@ For Each value In [-1, 0, False, 1, /*{},*/ 7, 16]
         When Is Not Odd             Print value, "is not odd"
         When Is True                Print value, "is True-like"
         When Is False               Print value, "is False-like"
-        // NB: we don't have a "Not ===" operation here or in expressions
+        // NB: we don't have a separate "Not ===" operation here or in expressions
         When === True, False        Print value, "is a boolean"
         When == 6                   Print value, "is 6"
         When != 6                   Print value, "is not 6"
@@ -173,6 +177,7 @@ Choose Using not_set
     When Is Undefined Exhibit not_set
     Otherwise         Assert False : "SNO"
 End-Choose
+Print ""
 
 Set is_set To "set"
 Choose Using is_set
@@ -180,15 +185,22 @@ Choose Using is_set
     When Is Undefined Assert False : "Should be undefined"
     Otherwise         Assert False : "SNO"
 End-Choose
+Print ""
 
 For Each echo_setting In [False, True]
     Echo echo_setting
     // Edge conditions : No "When"s
     Choose Using True
-        Otherwise Pass
+        Otherwise ;
     End-Choose
     Choose All Using True
-        Otherwise Pass
+        Otherwise ;
+    End-Choose
+    Choose
+        Otherwise ;
+    End-Choose
+    Choose All
+        Otherwise ;
     End-Choose
 
     // Edge condition : No "When"s and no "Otherwise"
@@ -198,5 +210,12 @@ For Each echo_setting In [False, True]
     Choose All Using True
         // nothing
     End-Choose
+    Choose
+        // nothing
+    End-Choose
+    Choose All
+        // nothing
+    End-Choose
+
     Echo Off
 End-For
