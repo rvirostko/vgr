@@ -183,13 +183,14 @@ values_block: "When"i _is_empty_operators _CLAUSE_SEP? statement+               
     | "When"i _is_odd_operators _CLAUSE_SEP? statement+                          -> is_odd_block
     | "When"i _is_defined_operators _CLAUSE_SEP? statement+                      -> is_defined_block
     | "When"i _is_undefined_operators _CLAUSE_SEP? statement+                    -> is_undefined_block
-    | "When"i "Not"i value_list _CLAUSE_SEP? statement+                          -> not_values_block
     | "When"i expr _through expr _CLAUSE_SEP? statement+                         -> range_block
     | "When"i "Not"i expr _through expr _CLAUSE_SEP? statement+                  -> not_range_block
     // These operators work with a single value
     | "When"i (op_lt | op_gt | op_ge | op_le) expr _CLAUSE_SEP? statement+       -> ineq_block
+    // This is a specialized version of "Not Equals"
+    | "When"i "Not"i value_list _CLAUSE_SEP? statement+                          -> not_values_block
     // These operators work with one or more values
-    | "When"i (op_eq | op_ne | op_xeq | op_contains | op_not_contains | op_is_in | op_not_is_in | op_matches | op_imatches | op_not_matches | op_not_imatches | op_matches_all)? value_list _CLAUSE_SEP? statement+
+    | "When"i (op_eq | op_ne | op_xeq | op_contains | op_not_contains | op_contains_all | op_is_in | op_not_is_in | op_matches | op_not_matches | op_matches_all | op_imatches | op_not_imatches)? value_list _CLAUSE_SEP? statement+
 value_list: _csep_list{expr}
 otherwise_block: "Otherwise"i _CLAUSE_SEP? statement+
 choose_all: "All"i
@@ -208,6 +209,7 @@ op_imatches: _imatches_operators
 op_not_imatches: _not_imatches_operators
 op_contains: _contains_operators
 op_not_contains: _not_contains_operators
+op_contains_all: _contains_all_operators
 op_is_in: _is_in_operators
 op_not_is_in: _not_is_in_operators
 

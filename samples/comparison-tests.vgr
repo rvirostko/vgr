@@ -127,38 +127,40 @@ Assert (True === 1) Is False
 Echo Off
 # TODO '>=' not supported between instances of 'dict' and 'int'
 # TODO print 7 is True -> False; print 7 ? "t" : "f" -> "t"
-For Each value In [-1, 0, False, 1, /*{},*/ 7, 16]
+For Each value In [-1, 0, False, 1, /*{}, [],*/ 7, 16]
     Choose All Using value
-        When Is Defined             Pass // everything here is
+        When Is Defined             Pass // everything here is defined
         When Is Undefined           Assert False : "Can't be undefined here!"
-        When Is Empty               Print value, "is empty"
-        When Is Not Empty           Print value, "is not empty"
-        When Is Positive            Print value, "is positive"
-        When Is Not Positive        Print value, "is not positive"
-        When Is Negative            Print value, "is negative"
-        When Is Not Negative        Print value, "is not negative"
-        When Is Even                Print value, "is even"
-        When Is Not Even            Print value, "is not even"
-        When Is Odd                 Print value, "is odd"
-        When Is Not Odd             Print value, "is not odd"
-        When Is True                Print value, "is True-like"
-        When Is False               Print value, "is False-like"
+        When Is Empty               Print value.Repr(), "is empty"
+        When Is Not Empty           Print value.Repr(), "is not empty"
+        When Is Positive            Print value.Repr(), "is positive"
+        When Is Not Positive        Print value.Repr(), "is not positive"
+        When Is Negative            Print value.Repr(), "is negative"
+        When Is Not Negative        Print value.Repr(), "is not negative"
+        When Is Even                Print value.Repr(), "is even"
+        When Is Not Even            Print value.Repr(), "is not even"
+        When Is Odd                 Print value.Repr(), "is odd"
+        When Is Not Odd             Print value.Repr(), "is not odd"
+        When Is True                Print value.Repr(), "is True-like"
+        When Is False               Print value.Repr(), "is False-like"
+        When Is Not False           Print value.Repr(), "is not False-like"
         // NB: we don't have a separate "Not ===" operation here or in expressions
-        When === True, False        Print value, "is a boolean"
-        When == 6                   Print value, "is 6"
-        When != 6                   Print value, "is not 6"
-        When Is Greater Than 7      Print value, "is > 7"
-        When Is Less Than 7         Print value, "is < 7"
-        When Is Not Greater Than 7  Print value, "is <= 7"
-        When Is Not Less Than 7     Print value, "is >= 7"
-        When Is Equal To 7          Print value, "is 7"
-        When Is Not Equal To 7      Print value, "is not 7"
-        When Is 2,1,0               Print value, "is a small number"
-        When 1,2,3,5,7,11,13,17     Print value, "is a prime < 20"
-        When Not 2,4,8              Print value, "is not an even number < 10"
-        When 11 To 19               Print value, "is between 10 and 20 (exclusive)"
-        When 10 Through 20          Print value, "is between 10 and 20 (inclusive)"
-        Otherwise                   Print value, "is something else"
+        When === True, False        Print value.Repr(), "is a boolean"
+        When == 6                   Print value.Repr(), "is 6"
+        When != 6                   Print value.Repr(), "is not 6"
+        When Is Greater Than 7      Print value.Repr(), "is > 7"
+        When Is Less Than 7         Print value.Repr(), "is < 7"
+        When Is Not Greater Than 7  Print value.Repr(), "is <= 7"
+        When Is Not Less Than 7     Print value.Repr(), "is >= 7"
+        When Is Equal To 7          Print value.Repr(), "is 7"
+        When Is Not Equal To 7      Print value.Repr(), "is not 7"
+        When Is 2,1,0               Print value.Repr(), "is a small number"
+        When 1,2,3,5,7,11,13,17     Print value.Repr(), "is a prime < 20"
+        When Not 2,4,8              Print value.Repr(), "is not an even number < 10"
+        When 11 To 19               Print value.Repr(), "is between 10 and 20 (exclusive)"
+        When 10 Through 20          Print value.Repr(), "is between 10 and 20 (inclusive)"
+        When Not 1 Thru 10          Print value.Repr(), "isn't 1 to 10"
+        Otherwise                   Print value.Repr(), "is something else"
     End-Choose
     Print ""
 End-For
@@ -167,28 +169,28 @@ Choose All Using animals
     When Contains "cat"                   Print "We have a cat"
     When Does Not Contain "rat", "bat"    Print "We don't have a rat or a bat"
     When Contains "rat", "dog"            Printf "We have a {}\n", animals.Contains("rat") ? "rat" : "dog"
-    # TODO When Contains All "cat", "dog" Print "We have a cat and a dog"
+    When Contains All "cat", "dog"        Print "We have a cat and a dog"
 End-Choose
 Print ""
 
 For Each animal In ["cat", "donkey"]
     Choose All Using animal
-        When Is In animals                 Print animal.Repr(), "is included in", animals.Repr()
-        When ∈ animals                     Print animal.Repr(), "is an element of", animals.Repr() // syntactic not semantic difference
-        When Is Not In animals             Print animal.Repr(), "isn't included in", animals.Repr()
-        When Not In animals                Print animal.Repr(), "isn't included in", animals.Repr()
-        When ∉ animals                     Print animal.Repr(), "not an element of", animals.Repr() // syntactic not semantic difference
-        When Matches "^d", "t$"            Print animal.Repr(), "starts with 'd' or ends with 't"
-        When ~ "y"                         Print animal.Repr(), "has an 'y' in it"
-        When Does Not Match "^a", "^b"     Print animal.Repr(), "doesn't start with 'a' or 'b'"
-        When Not ~ "x$", "y$", "z$"        Print animal.Repr(), "doesn't end with 'x', 'y', or 'z'"
-        When !~ "[A-Z]"                    Print animal.Repr(), "has no capital letters"
-        # TODO When Matches All
-        When IMatches "[AEIOU]"            Print animal.Repr(), "has a vowel in it"
-        When ~* "Key", "At"                Print animal.Repr(), "has 'At' or 'Key' in it"
-        When Does Not IMatch "A", "B", "C" Print animal.Repr(), "doesn't have 'a', 'b', or 'c' in it"
-        When Not ~* "Z"                    Print animal.Repr(), "doesn't have 'z' in it"
-        When !~* "X"                       Print animal.Repr(), "doesn't have 'x' in it"
+        When Is In animals                    Print animal.Repr(), "is included in", animals.Repr()
+        When ∈ animals                        Print animal.Repr(), "is an element of", animals.Repr() // syntactic not semantic difference
+        When Is Not In animals                Print animal.Repr(), "isn't included in", animals.Repr()
+        When Not In animals                   Print animal.Repr(), "isn't included in", animals.Repr()
+        When ∉ animals                        Print animal.Repr(), "not an element of", animals.Repr() // syntactic not semantic difference
+        When Matches "^d", "t$"               Print animal.Repr(), "starts with 'd' or ends with 't"
+        When ~ "y"                            Print animal.Repr(), "has an 'y' in it"
+        When Does Not Match "^a", "^b"        Print animal.Repr(), "doesn't start with 'a' or 'b'"
+        When Not ~ "x$", "y$", "z$"           Print animal.Repr(), "doesn't end with 'x', 'y', or 'z'"
+        When !~ "[A-Z]"                       Print animal.Repr(), "has no capital letters"
+        When Matches All "^[cd]", "[aeiouy]$" Print animal.Repr(), "starts with 'c' or 'd' and ends with a vowel"
+        When IMatches "[AEIOU]"               Print animal.Repr(), "has a vowel in it"
+        When ~* "Key", "At"                   Print animal.Repr(), "has 'At' or 'Key' in it"
+        When Does Not IMatch "A", "B", "C"    Print animal.Repr(), "doesn't have 'a', 'b', or 'c' in it"
+        When Not ~* "Z"                       Print animal.Repr(), "doesn't have 'z' in it"
+        When !~* "X"                          Print animal.Repr(), "doesn't have 'x' in it"
     End-Choose
     Print ""
 End-For

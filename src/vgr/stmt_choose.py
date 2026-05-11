@@ -10,6 +10,7 @@ from lark import Tree
 from .builtins import (
     bound_ops,
     poly_contains,
+    poly_contains_all,
     poly_eq,
     poly_exact_eq,
     poly_false,
@@ -105,8 +106,8 @@ _CHOOSE_OPS = {
     'is_odd_block':       poly_is_odd,
     'is_pos_block':       poly_is_positive,
     'not_range_block':    poly_false,
-    'not_values_block':   poly_ne,
     'op_contains':        poly_contains,
+    'op_contains_all':    poly_contains_all,
     'op_eq':              poly_eq,
     'op_ge':              poly_ge,
     'op_gt':              poly_gt,
@@ -123,12 +124,14 @@ _CHOOSE_OPS = {
     'op_not_matches':     poly_not_match,
     'op_xeq':             poly_exact_eq,
     'range_block':        poly_true,
-    'values_block':       poly_eq,
 }
 
-# These apply only to values blocks, not ranges or inequalities
-_CHOOSE_NEG_OPS = [
-    'not_values_block',
+# These apply only to values blocks
+# Generally, operation results are "or"ed together, but if they
+# appear in this list, then are "and"ed instead
+_AND_OPS = [
+    'op_contains_all',
+    'op_matches_all',
     'op_ne',
     'op_not_contains',
     'op_not_imatches',
@@ -142,24 +145,23 @@ def execute_choose_using(ctx: ExecContext, statement: Tree) -> None:
     """
 **Choose from a set of statements based on a value**
 
-## TODO revise
 * Choose [All] Using *expression* [:]\\
   &emsp;&emsp;When [Not] Empty  [:] *statement*&hellip;\\
-  &emsp;&emsp;When [Not] Defined [:] *statement*&hellip;\\
-  &emsp;&emsp;When [Not] Undefined [:] *statement*&hellip;\\
-  &emsp;&emsp;When [Not] Negative [:] *statement*&hellip;\\
-  &emsp;&emsp;When [Not] Positive [:] *statement*&hellip;\\
-  &emsp;&emsp;When [Not] Even [:] *statement*&hellip;\\
-  &emsp;&emsp;When [Not] Odd [:] *statement*&hellip;\\
-  &emsp;&emsp;When [Not] *expression* [, *expression*]&hellip; [:] *statement*&hellip;\\
-  &emsp;&emsp;When [Not] *expression* [To | Through | Thru] *expression* [:] *statement*&hellip;\\
-  &emsp;&emsp;When [< | Less Than] *expression* [:] *statement*&hellip;\\
-  &emsp;&emsp;When [>= | Not Less Than] *expression* [:] *statement*&hellip;\\
-  &emsp;&emsp;When [> | Greater Than] *expression* [:] *statement*&hellip;\\
-  &emsp;&emsp;When [<= | Not Greater Than] *expression* [:] *statement*&hellip;\\
+  &emsp;&emsp;When [Not] [Defined | Undefined] [:] *statement*&hellip;\\
+  &emsp;&emsp;When [Not] [Negative | Positive] [:] *statement*&hellip;\\
+  &emsp;&emsp;When [Not] [Even | Odd] [:] *statement*&hellip;\\
+  &emsp;&emsp;When [Not] Less Than *expression* [:] *statement*&hellip;\\
+  &emsp;&emsp;When [Not] Greater Than *expression* [:] *statement*&hellip;\\
   &emsp;&emsp;When [Not] Matches *expression* [, *expression*]&hellip; [:] *statement*&hellip;\\
   &emsp;&emsp;When Matches All *expression* [, *expression*]&hellip; [:] *statement*&hellip;\\
+  &emsp;&emsp;When [Not] IMatches *expression* [, *expression*]&hellip; [:] *statement*&hellip;\\
   &emsp;&emsp;When [Not] Contains *expression* [, *expression*]&hellip; [:] *statement*&hellip;\\
+  &emsp;&emsp;When Contains All *expression* [, *expression*]&hellip; [:] *statement*&hellip;\\
+  &emsp;&emsp;When [Not] *expression* [, *expression*]&hellip; [:] *statement*&hellip;\\
+  &emsp;&emsp;When [Not] *expression* [To | Through | Thru] *expression* [:] *statement*&hellip;\\
+  &emsp;&emsp;When Is [Not] Equal To *expression* [, *expression*]&hellip; [:] *statement*&hellip;\\
+  &emsp;&emsp;When Is [Not] In *expression* [, *expression*]&hellip; [:] *statement*&hellip;\\
+  &emsp;&emsp;When === *expression* [, *expression*]&hellip; [:] *statement*&hellip;\\
   &emsp;&emsp;Otherwise [:] *statement*&hellip;\\
   [End-Choose | End]
 
@@ -169,21 +171,20 @@ The expression in the `Choose` statement is evaluated and it becomes the
 The values in `When` clauses are examined in order. Matching values may
 be specified as a single value, in comma separated groups, as ranges,
 inequalities, or contents checks.
-These may be prefixed with a `Not` to invert the matching.
 
 Testing of `When` clauses terminates after the first match _unless_ `All`
 is specified.
 
 If none of the `When` clauses match the desired value the `Otherwise` cause,
 if provided, is selected. Note that this clause _must_ follow all the `When`
-causes, and that at least one `When` must be specified. When `All` is specified
-`Otherwise` is skipped if another `When` clause has matched.
+clauses. When `All` is specified `Otherwise` is skipped if another `When` clause has matched.
 
 While complicated expressions can be used as the values in `When` it is recommended
 that constants are used.
 
 Note that `Defined` and `Undefined` only provide meaningful results when a
-variable is used, not an expression.
+variable is used, not an expression; expressions, even if they evaluate to
+`None` are considered defined.
 
 ```vgr
 Set month To time.today.month
@@ -263,26 +264,27 @@ def _exec_choose(ctx: ExecContext, do_all: bool, statement_children: Iterator, e
                 chosen_block = values_children
         elif block_name in ['values_block', 'not_values_block']:
             # If there is a node in front of our list of values
-            # it is a specialized operator rather than the one encoded
-            # in the name of the block itself
+            # it is a specialized operator rather than one
+            # implied by the block name
             when_end_index = 1
             if when_block.children[0].data == 'value_list':
-                op_name = when_block.data
+                op_name = 'op_eq' if block_name == 'values_block' else 'op_ne'
             else:
                 op_name = next(values_children).data
                 when_end_index += 1
             test_op = _CHOOSE_OPS.get(op_name)
-            # Negative tests distribute the not treating the comma to an "and":
+            assert test_op is not None, f"Missing binding: {op_name!r}"
+            # These tests treat the comma as an "and":
             #     "when not 1, 2, 3" -> "when not 1 <and> not 2 <and> not 3"
             # All tests must pass, ending evaluation on the first failure
-            if op_name in _CHOOSE_NEG_OPS:
+            if op_name in _AND_OPS:
                 chosen_block = values_children
                 for target_expr in next(values_children, None).children:
                     if not test_op(desired_value, ctx.eval_expr(bind_operations(target_expr))):
                         chosen_block = None
                         break
             else:
-                # Positive tests treat the comma as an "or":
+                # Otherwise, tests treat the comma as an "or":
                 #     "when 1,2,3" -> "when 1 <or> 2 <or> 3"
                 # The first test to pass ends evaluation and executes the block
                 for target_expr in next(values_children, None).children:
@@ -295,6 +297,7 @@ def _exec_choose(ctx: ExecContext, do_all: bool, statement_children: Iterator, e
             test_op = _CHOOSE_OPS.get(when_block.data)
             lo_value = ctx.eval_expr(bind_operations(next(values_children)))
             hi_value = ctx.eval_expr(bind_operations(next(values_children)))
+            # TODO isn't this poly_between()?
             if poly_lt(hi_value, lo_value): lo_value, hi_value = hi_value, lo_value
             if test_op(poly_ge(desired_value, lo_value) and poly_le(desired_value, hi_value)):
                 ctx.echo_source(when_block, when_block.children[2])
