@@ -2,6 +2,7 @@
 The Choose statements
 """
 
+from collections.abc import Iterator
 from typing import Any
 
 from lark import Tree
@@ -14,6 +15,8 @@ from .builtins import (
     poly_false,
     poly_ge,
     poly_gt,
+    poly_imatches,
+    poly_in,
     poly_is_empty,
     poly_is_even,
     poly_is_negative,
@@ -26,6 +29,8 @@ from .builtins import (
     poly_ne,
     poly_not_contains,
     poly_not_empty,
+    poly_not_imatch,
+    poly_not_in,
     poly_not_match,
     poly_true,
 )
@@ -43,9 +48,9 @@ def execute_choose(ctx: ExecContext, statement: Tree) -> None:
     """
 **Choose from a set of statements based on a series of tests**
 
-* Choose [All]:\\
-  &emsp;&emsp;When *expression* : *statement*&hellip;\\
-  &emsp;&emsp;Otherwise : *statement*&hellip;\\
+* Choose [All] [:]\\
+  &emsp;&emsp;When *expression* [:] *statement*&hellip;\\
+  &emsp;&emsp;Otherwise [:] *statement*&hellip;\\
   [End-Choose | End]
 
 The values in `When` clauses are examined in order, and the first to
@@ -59,20 +64,20 @@ Both `Break` and `Continue` can be used within blocks of statements.
 
 ```vgr
 Set month To time.today.month
-Choose :
-    When month In [1, 2, 12]:      Set season To "winter"
-    When month ≥ 3 And month ≤ 5:  Set season To "spring"
-    When month ≥ 6 And month ≤ 8:  Set season To "summer"
-    When month ≥ 9 And month ≤ 11: Set season To "fall"
-    Otherwise: Assert False: "Invalid month {}", month
+Choose
+    When month In [1, 2, 12]       Set season To "winter"
+    When month ≥ 3 And month ≤ 5   Set season To "spring"
+    When month ≥ 6 And month ≤ 8   Set season To "summer"
+    When month ≥ 9 And month ≤ 11  Set season To "fall"
+    Otherwise  Assert False: "Invalid month {}", month
 End-Choose
 Print "Month", month, "is a", season, "month"
 
 For n = 1 To 15
-    Choose All:
-        When (n % 3) == 0: Printf "Fizz"
-        When (n % 5) == 0: Printf "Buzz"
-        Otherwise:         Printf "{}", n
+    Choose All
+        When (n % 3) == 0  Printf "Fizz"
+        When (n % 5) == 0  Printf "Buzz"
+        Otherwise          Printf "{}", n
     End-Choose
     Print ""
 Next
@@ -102,12 +107,16 @@ _CHOOSE_OPS = {
     'op_eq':              poly_eq,
     'op_ge':              poly_ge,
     'op_gt':              poly_gt,
+    'op_imatches':        poly_imatches,
+    'op_is_in':           poly_in,
     'op_le':              poly_le,
     'op_lt':              poly_lt,
     'op_matches_all':     poly_matches_all,
     'op_matches':         poly_matches,
     'op_ne':              poly_ne,
     'op_not_contains':    poly_not_contains,
+    'op_not_imatches':    poly_not_imatch,
+    'op_not_is_in':       poly_not_in,
     'op_not_matches':     poly_not_match,
     'op_xeq':             poly_exact_eq,
     'range_block':        poly_true,
@@ -115,7 +124,14 @@ _CHOOSE_OPS = {
 }
 
 # These apply only to values blocks, not ranges or inequalities
-_CHOOSE_NEG_OPS = ['not_values_block', 'op_ne', 'op_not_contains', 'op_not_matches', 'op_not_imatches']
+_CHOOSE_NEG_OPS = [
+    'not_values_block',
+    'op_ne',
+    'op_not_contains',
+    'op_not_imatches',
+    'op_not_is_in',
+    'op_not_matches',
+]
 
 @control_statement
 @bound_ops("Choose Using")
@@ -169,25 +185,25 @@ variable is used, not an expression.
 ```vgr
 Set month To time.today.month
 Choose Using month
-    When 1, 2, 12:  Set season To "winter"
-    When 3, 4, 5:   Set season To "spring"
-    When 6, 7, 8:   Set season To "summer"
-    When 9, 10, 11: Set season To "fall"
-    Otherwise: Assert False: "Invalid month {}", month
+    When 1, 2, 12   Set season To "winter"
+    When 3, 4, 5    Set season To "spring"
+    When 6, 7, 8    Set season To "summer"
+    When 9, 10, 11  Set season To "fall"
+    Otherwise       Assert False: "Invalid month {}", month
 End-Choose
 Print "Month", month, "is a", season, "month"
 
 Choose Using user_input
-    When Is None:
+    When Is None
         Print "Input required"
-    When Matches "^[0-9]{5}$", "^[0-9]{5}-[0-9]{4}$":
+    When Matches "^[0-9]{5}$", "^[0-9]{5}-[0-9]{4}$"
         // ZIP with and without four digit extension
         Print "Looks like a ZIP code"
     When Matches "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}$",
-            "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\\.[A-Za-z]{2,}$":
+            "^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}\\.[A-Za-z]{2,}$"
         // Email with and without subdomain
         Print "Looks like an email"
-    When Matches "^\\+?[0-9]{10,15}$", "^[0-9]{3}-[0-9]{3}-[0-9]{4}$":
+    When Matches "^\\+?[0-9]{10,15}$", "^[0-9]{3}-[0-9]{3}-[0-9]{4}$"
         // International digits or U.S. formatted
         Print "Looks like a phone number"
     Otherwise:
@@ -202,7 +218,7 @@ Also see `Choose`
     if isinstance(statement.children[0], Tree) and statement.children[0].data == 'choose_all':
         do_all = True
         next(statement_children)
-    ctx.echo_source(statement, statement.children[2 if do_all else 1])
+    ctx.echo_source(statement, statement.children[min(2 if do_all else 1, len(statement.children) - 1)])
     # NB: Operation test may cause a TypeError if there is a mismatch
     #     betweeen the desired_value's type, which drives "casting"
     #     and the resulting type of the expression
@@ -211,7 +227,7 @@ Also see `Choose`
     desired_value = ctx.eval_expr(expr)
     _exec_choose(ctx, do_all, statement_children, expr, desired_value)
 
-def _exec_choose(ctx: ExecContext, do_all: bool, statement_children, expr: Tree, desired_value: Any) -> None:
+def _exec_choose(ctx: ExecContext, do_all: bool, statement_children: Iterator, expr: Tree, desired_value: Any) -> None:
     """Internal method that handles both forms"""
     choice_made = False
     for when_block in statement_children:

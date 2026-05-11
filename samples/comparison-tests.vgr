@@ -180,3 +180,23 @@ Choose Using is_set
     When Is Undefined Assert False : "Should be undefined"
     Otherwise         Assert False : "SNO"
 End-Choose
+
+For Each echo_setting In [False, True]
+    Echo echo_setting
+    // Edge conditions : No "When"s
+    Choose Using True
+        Otherwise Pass
+    End-Choose
+    Choose All Using True
+        Otherwise Pass
+    End-Choose
+
+    // Edge condition : No "When"s and no "Otherwise"
+    Choose Using True
+        // nothing
+    End-Choose
+    Choose All Using True
+        // nothing
+    End-Choose
+    Echo Off
+End-For

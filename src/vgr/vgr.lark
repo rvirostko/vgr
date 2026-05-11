@@ -172,8 +172,8 @@ _is_odd_operators: ("Is"i "Odd"i | "Is"i? "Not"i "Even"i)
 _is_defined_operators: "Is"i ("Defined"i | "Not"i "Undefined"i)
 _is_undefined_operators: "Is"i ("Undefined"i | "Not"i "Defined"i)
 
-choose_statement: "Choose"i choose_all? _CLAUSE_SEP? choice_block+ otherwise_block? ("End-Choose"i | "End"i)   -> choose
-    | "Choose"i choose_all? "Using"i expr _CLAUSE_SEP? values_block+ otherwise_block? ("End-Choose"i | "End"i) -> choose_using
+choose_statement: "Choose"i choose_all? _CLAUSE_SEP? choice_block* otherwise_block? ("End-Choose"i | "End"i)   -> choose
+    | "Choose"i choose_all? "Using"i expr _CLAUSE_SEP? values_block* otherwise_block? ("End-Choose"i | "End"i) -> choose_using
 choice_block: "When"i expr _CLAUSE_SEP? statement+
 values_block: "When"i _is_empty_operators _CLAUSE_SEP? statement+                -> is_empty_block
     | "When"i _is_not_empty_operators _CLAUSE_SEP? statement+                    -> is_not_empty_block
