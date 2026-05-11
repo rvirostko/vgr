@@ -162,14 +162,36 @@ For Each value In [-1, 0, False, 1, /*{},*/ 7, 16]
     End-Choose
     Print ""
 End-For
-/*
-    op_contains
-    op_not_contains
-    op_matches
-    op_not_matches
-    op_matches_all
-    contains all
-*/
+
+Choose All Using animals
+    When Contains "cat"                   Print "We have a cat"
+    When Does Not Contain "rat", "bat"    Print "We don't have a rat or a bat"
+    When Contains "rat", "dog"            Printf "We have a {}\n", animals.Contains("rat") ? "rat" : "dog"
+    # TODO When Contains All "cat", "dog" Print "We have a cat and a dog"
+End-Choose
+Print ""
+
+For Each animal In ["cat", "donkey"]
+    Choose All Using animal
+        When Is In animals                 Print animal.Repr(), "is included in", animals.Repr()
+        When ∈ animals                     Print animal.Repr(), "is an element of", animals.Repr() // syntactic not semantic difference
+        When Is Not In animals             Print animal.Repr(), "isn't included in", animals.Repr()
+        When Not In animals                Print animal.Repr(), "isn't included in", animals.Repr()
+        When ∉ animals                     Print animal.Repr(), "not an element of", animals.Repr() // syntactic not semantic difference
+        When Matches "^d", "t$"            Print animal.Repr(), "starts with 'd' or ends with 't"
+        When ~ "y"                         Print animal.Repr(), "has an 'y' in it"
+        When Does Not Match "^a", "^b"     Print animal.Repr(), "doesn't start with 'a' or 'b'"
+        When Not ~ "x$", "y$", "z$"        Print animal.Repr(), "doesn't end with 'x', 'y', or 'z'"
+        When !~ "[A-Z]"                    Print animal.Repr(), "has no capital letters"
+        # TODO When Matches All
+        When IMatches "[AEIOU]"            Print animal.Repr(), "has a vowel in it"
+        When ~* "Key", "At"                Print animal.Repr(), "has 'At' or 'Key' in it"
+        When Does Not IMatch "A", "B", "C" Print animal.Repr(), "doesn't have 'a', 'b', or 'c' in it"
+        When Not ~* "Z"                    Print animal.Repr(), "doesn't have 'z' in it"
+        When !~* "X"                       Print animal.Repr(), "doesn't have 'x' in it"
+    End-Choose
+    Print ""
+End-For
 
 Unset not_set
 Choose Using not_set
