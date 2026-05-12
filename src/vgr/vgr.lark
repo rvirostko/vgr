@@ -331,21 +331,20 @@ where_clause: "Where"i _csep_list{expr}
 
 for_json: "JSON"i _options_list{json_option}
 ?json_option: exclude_nulls | include_nulls
-    | "Root"i option_value? -> root
-    | "Indent"i option_value? -> indent
-    | "Compact"i option_value? -> compact
-    | "With"i? "Array"i "Wrapper"i option_value? -> array_wrapper
-    | ("Without"i | "No"i) "Array"i "Wrapper"i option_value? -> no_array_wrapper
+    | "Root"i option_value?                        -> root
+    | "Indent"i option_value?                      -> indent
+    | "Compact"i option_value?                     -> compact
+    | "Array"i "Wrapper"i option_value?            -> array_wrapper
     | ("Sort"i "Keys"i? | "Sorted"i) option_value? -> sort_keys
 
 for_csv: "CSV"i _options_list{csv_option}
 ?csv_option: include_headers | exclude_headers
-    | "Delimiter"i option_value -> delimiter
-    | "Quote"i ("Char"i | "Character"i) option_value -> quotechar
-    | "Escape"i ("Char"i | "Character"i) option_value -> escapechar
-    | "Line"i ("Ender"i | "Terminator"i) option_value -> lineterminator
-    | "Quote"i "Is"i? CSV_QUOTE_TYPE -> quoting
-CSV_QUOTE_TYPE: "Minimal"i | "All"i | "Nonnumeric"i | "None"i
+    | "Delimiter"i option_value                -> delimiter
+    | "Quote"i _character_option option_value  -> quotechar
+    | "Escape"i _character_option option_value -> escapechar
+    | "Line"i "Terminator"i option_value       -> lineterminator
+    | "Quoting"i "Style"i option_value         -> quoting
+_character_option: "Char"i | "Character"i
 
 for_markdown: "MarkDown"i _options_list{markdown_option}
 ?markdown_option: include_headers | exclude_headers
@@ -382,7 +381,7 @@ _fetch_first: "Fetch"i "First"i expr "Rows"i "Only"i
 product_clause: "Cartesian"i? "Product"i product_cols
 product_cols: "All"i -> all
     | "None"i -> none
-    | _csep_list{expr}
+### TODO    | _csep_list{expr}
 
 ?expr: ternary | and_expr
 

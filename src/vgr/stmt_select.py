@@ -113,9 +113,8 @@ class SelectAnalyzer(Visitor):
 
     _NEG_BOOL_OPTS = {
         # The option to what it negates
-        'exclude_nulls'   : 'include_nulls',
-        'no_array_wrapper': 'array_wrapper',
         'exclude_headers' : 'include_headers',
+        'exclude_nulls'   : 'include_nulls',
     }
 
     _STR_OPTS = (
@@ -134,6 +133,7 @@ class SelectAnalyzer(Visitor):
         'auto_escape'      : 'Auto Escape',
         'chain_undefined'  : 'Chain Undefined Variables',
         'escapechar'       : 'Escape Character',
+        'exclude_headers'  : 'Omit Headers',
         'exclude_nulls'    : 'Exclude Nulls',
         'field_sep'        : 'Field Separator',
         'header_sep'       : 'Header Separator',
@@ -142,13 +142,14 @@ class SelectAnalyzer(Visitor):
         'keep_last_newline': 'Keep Last Newline',
         'lineterminator'   : 'Line Terminator',
         'lstrip_blocks'    : 'Left Strip Blocks',
-        'no_array_wrapper' : 'No Array Wrapper',
-        'exclude_headers'  : 'Omit Headers',
         'quotechar'        : 'Quote Character',
         'record_sep'       : 'Record Separator',
         'sort_keys'        : 'Sort Keys',
         'trim_blocks'      : 'Trim Blocks',
     }
+
+    # keep title case for display purposes
+    _VALID_QUOTING_STYLES = ["Minimal", "All", "Nonnumeric", "None"]
 
     def __init__(self, ctx: ExecContext):
         super().__init__()
@@ -466,9 +467,9 @@ class SelectAnalyzer(Visitor):
                 self._output_opts[name] = self._int_arg(c, 'Indent', 2)
                 continue
             if name == 'quoting':
-                self._output_opts[name] = c.children[0].value.lower()
+                self._output_opts[name] = self._csv_quote_arg(c)
                 continue
-            raise NotImplementedError(f'Output option {name!r} of type {self._output_opts["type"]}') #SNO
+            raise VgrRuntimeError(c, NotImplementedError(f'Output option {name!r} of type {self._output_opts["type"]}')) #SNO
 
     def _bool_arg(self, node:Tree, name: str) -> bool:
         return self.ctx.eval_to_bool(node.children[0], name, True) if node.children else True
@@ -477,7 +478,28 @@ class SelectAnalyzer(Visitor):
         return self.ctx.eval_to_int(node.children[0], name, True) if node.children else default
 
     def _str_arg(self, node:Tree, name: str, default: str=None) -> str:
-        return self.ctx.eval_to_str(node.children[0], name, True) if node.children else default
+        if node.children:
+            expr = node.children[0]
+            rc = self.ctx.eval_expr_or_const(expr)
+            if rc is None or isinstance(rc, str): return rc
+            raise VgrRuntimeError(expr, TypeError(f'{name} must be a string; found {poly_type(rc)!r}'))
+        return default
+
+    def _csv_quote_arg(self, node:Tree) -> str:
+        expr = node.children[0]
+        rc = self.ctx.eval_expr_or_const(expr)
+        if rc is None:
+            rc = 'none'
+        else:
+            if not isinstance(rc, str):
+                raise VgrRuntimeError(expr, TypeError(f'Quoting Style must be a string; found {poly_type(rc)!r}'))
+            rc = rc.strip()
+            if rc:
+                if rc.title() not in self._VALID_QUOTING_STYLES:
+                    raise VgrRuntimeError(expr, TypeError(f'Unknown Quoting Style {rc!r}. Must be one of {",".join(self._VALID_QUOTING_STYLES)}'))
+            else:
+                rc = "none"
+        return rc.lower()
 
     @staticmethod
     def is_token(child, token_type: str) -> bool:
