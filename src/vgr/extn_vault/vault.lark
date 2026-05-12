@@ -2,8 +2,8 @@
     //------------------------------------------------------------
     // Connections
     //------------------------------------------------------------
-    | "Vault"i "Connect"i (_SEP? vault_conn_arg)* -> vault_connect
-    | "Vault"i "Disconnect"i ("From"i? expr)?     -> vault_disconnect
+    | "Vault"i "Connect"i _options_list{vault_conn_arg} -> vault_connect
+    | "Vault"i "Disconnect"i ("From"i? expr)?           -> vault_disconnect
     //------------------------------------------------------------
     // Namespaces
     //------------------------------------------------------------
@@ -94,7 +94,7 @@ vault_conn_arg: "To"i "Host"i? expr -> conn_addr
 
 # NB: Expression are treated like tokens iff they are a single name component
 #     and are undefined in the data dictionary
-vault_args: (_SEP? vault_option (_SEP? vault_option)*)?
+vault_args: _options_list{vault_option}
 vault_option: "CAS"i option_value              -> vopt_cas
     | "Config"i option_value                   -> vopt_config
     | "Data"i option_value                     -> vopt_data

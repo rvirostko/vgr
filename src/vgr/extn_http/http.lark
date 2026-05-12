@@ -28,7 +28,7 @@
     // Handler enforces trailing slash on base URL before passing to httpx.Client.
     // Named via "As <expr>" for reference in subsequent http_request statements.
     //----------------------------------------------------------------------------
-    | "Http"i "Connect"i ("To"i | "URL"i "Is"i?)? expr (_SEP? http_conn_arg)* -> http_connect
+    | "Http"i "Connect"i ("To"i | "URL"i "Is"i?)? expr _options_list{http_conn_arg} -> http_connect
     //----------------------------------------------------------------------------
     // Disconnect
     // Tears down a named connection, closing the underlying httpx.Client and
@@ -45,7 +45,7 @@
     //   - Without "Using": expr must be a fully qualified URL including scheme.
     //     A missing or invalid URL is a bind-time error — it cannot be defaulted.
     //----------------------------------------------------------------------------
-    | "Http"i (("Method"i | "Request"i) "Is"i?)? http_method _SEP? ("URL"i "Is"i?)? expr (_SEP? http_request_arg)* -> http_request
+    | "Http"i (("Method"i | "Request"i) "Is"i?)? http_method _SEP? ("URL"i "Is"i?)? expr _options_list{http_request_arg} -> http_request
 
 ?http_conn_arg: http_conn_opt
     | http_auth_opt
