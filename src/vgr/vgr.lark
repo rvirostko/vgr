@@ -339,11 +339,11 @@ for_json: "JSON"i _options_list{json_option}
 
 for_csv: "CSV"i _options_list{csv_option}
 ?csv_option: include_headers | exclude_headers
-    | "Delimiter"i option_value                -> delimiter
-    | "Quote"i _character_option option_value  -> quotechar
-    | "Escape"i _character_option option_value -> escapechar
-    | "Line"i "Terminator"i option_value       -> lineterminator
-    | "Quoting"i "Style"i option_value         -> quoting
+    | "Delimiter"i _character_option? option_value -> delimiter
+    | "Quote"i _character_option option_value      -> quotechar
+    | "Escape"i _character_option option_value     -> escapechar
+    | "Line"i "Terminator"i option_value           -> lineterminator
+    | "Quoting"i "Style"i option_value             -> quoting
 _character_option: "Char"i | "Character"i
 
 for_markdown: "MarkDown"i _options_list{markdown_option}
@@ -351,19 +351,19 @@ for_markdown: "MarkDown"i _options_list{markdown_option}
 
 for_template: template_type? ("Template"i | "Jinja"i | "Jinja2"i) (template_filename | "Default"i)? _options_list{template_option}
 ?template_type: "Record"i -> record
-    | "Batch"i -> batch
+    | "Batch"i            -> batch
 template_filename: _file_option? expr
 ?template_option: include_headers | exclude_headers
-    | "Auto"i "Escape"i option_value? -> auto_escape
-    | "Trim"i "Blocks"i? option_value? -> trim_blocks
-    | "Left"i "Strip"i "Blocks"i? option_value? -> lstrip_blocks
-    | "Keep"i "Last"i "Newline"i option_value? -> keep_last_newline
+    | "Auto"i "Escape"i option_value?                   -> auto_escape
+    | "Trim"i "Blocks"i? option_value?                  -> trim_blocks
+    | "Left"i "Strip"i "Blocks"i? option_value?         -> lstrip_blocks
+    | "Keep"i "Last"i "Newline"i option_value?          -> keep_last_newline
     | "Chain"i "Undefined"i "Variables"i? option_value? -> chain_undefined
 
 for_text: "Text"i _options_list{for_text_option}
 ?for_text_option: include_headers | exclude_headers
     | exclude_nulls | include_nulls
-    | "Field"i "Separator"i option_value -> field_sep
+    | "Field"i "Separator"i option_value  -> field_sep
     | "Header"i "Separator"i option_value -> header_sep
     | "Record"i "Separator"i option_value -> record_sep
 
