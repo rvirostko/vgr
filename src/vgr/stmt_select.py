@@ -19,8 +19,11 @@ from lark.tree import Meta
 from .app_exceptions import VgrRuntimeError
 from .builtins import (
     bound_ops,
+    poly_bool,
     poly_false,
+    poly_int,
     poly_plural,
+    poly_str,
     poly_type,
 )
 from .data_xtract import (
@@ -472,18 +475,20 @@ class SelectAnalyzer(Visitor):
             raise VgrRuntimeError(c, NotImplementedError(f'Output option {name!r} of type {self._output_opts["type"]}')) #SNO
 
     def _bool_arg(self, node:Tree, name: str) -> bool:
-        return self.ctx.eval_to_bool(node.children[0], name, True) if node.children else True
+        # no argument means "true"
+        return poly_bool(self.ctx.eval_expr_or_const(node.children[0])) if node.children else True
 
     def _int_arg(self, node:Tree, name: str, default: int=0) -> int:
-        return self.ctx.eval_to_int(node.children[0], name, True) if node.children else default
+        if not node.children: return default
+        expr = node.children[0]
+        rc = self.ctx.eval_expr_or_const(expr)
+        return rc if rc is None or isinstance(rc, int) else poly_int(rc)
 
     def _str_arg(self, node:Tree, name: str, default: str=None) -> str:
-        if node.children:
-            expr = node.children[0]
-            rc = self.ctx.eval_expr_or_const(expr)
-            if rc is None or isinstance(rc, str): return rc
-            raise VgrRuntimeError(expr, TypeError(f'{name} must be a string; found {poly_type(rc)!r}'))
-        return default
+        if not node.children: return default
+        expr = node.children[0]
+        rc = self.ctx.eval_expr_or_const(expr)
+        return rc if rc is None or isinstance(rc, str) else poly_str(rc)
 
     def _csv_quote_arg(self, node:Tree) -> str:
         expr = node.children[0]
