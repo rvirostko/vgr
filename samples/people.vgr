@@ -1,3 +1,4 @@
+#! python3 -m vgr
 
 Set filename To vgr.source.FirstItem().DirectoryName() + "/people.json"
 Set limit To 10
