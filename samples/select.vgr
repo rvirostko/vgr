@@ -160,9 +160,9 @@ Where (age Is None Or first_name Is None) And email Is Not None
 Limit 5
 For CSV
     Exclude Headers,
-    Include Headers,        // last one wins
-    Quote Char Is Quote,    // use Char or Character
-    Quote All,              // All, None, Minimal, NonNumeric
+    Include Headers,         // last one wins
+    Quote Char Is Quote,     // use Char or Character
+    Quoting Style Is All,    // All, None, Minimal, NonNumeric
     Line Terminator Is Newline,
     Escape Character Is Backslash,
     Delimiter Is Comma
@@ -227,7 +227,7 @@ To a variable (as text)-"""
 Select *
 From File filename
 Limit 5
-For CSV Quote Minimal, Exclude Header
+For CSV Quoting Style Minimal, Exclude Header
 Into select_out
 Printf "{}", select_out
 Unset select_out
