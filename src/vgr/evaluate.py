@@ -631,7 +631,6 @@ class OperationBinder(Transformer):
 
     # Ternary operations: indicies are for predicate, true-side, false-side
     def c_ternary(self, tree): return Ternary(tree, (0, 1, 2))
-    def py_ternary(self, tree): return Ternary(tree, (1, 0, 2))
 
     # Other operations
     def array(self, tree): return SimpleOperation(tree, build_list)

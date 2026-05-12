@@ -390,9 +390,11 @@ product_cols: "All"i -> all
 
 ?expr: ternary | and_expr
 
+// NB: Python style has multiple grammar issues
+//     and while we diferentiate the style by name
+//     it is unlikely that anything other than a
+//     'C'/Java style will be supported.
 ternary: expr "?" expr _CLAUSE_SEP expr -> c_ternary
-//    | expr "If"i expr "Else"i expr -> py_ternary // TODO collision with "real" If statement, but only when capitalized?
-// When LC, it works, but if (true if 5<7 else false)  print "a" else print "b" end doesn't parse
 
 ?and_expr: or_expr
     | or_expr (("&&" | "\u2227" | "And"i) or_expr)+ -> and_op // Unicode ∧ (conjunction)

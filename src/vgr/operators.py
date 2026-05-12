@@ -82,9 +82,6 @@ _OP_FUNCS: list[Callable[..., Any]] = [
     poly_shl, # shl_op
     poly_shr, # shr_op
     poly_sub, # sub_op
-    # TODO doc shim for c_ternary...
-    # def c_ternary(self, tree): return Ternary(tree, (0, 1, 2))
-    # def py_ternary(self, tree): return Ternary(tree, (1, 0, 2))
 ]
 
 @lru_cache
