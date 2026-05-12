@@ -1,31 +1,25 @@
-?ldap_statements: ldap_connect
-    | ldap_disconnect
-    | ldap_search
+?ldap_statements: "Ldap"i                                 -> ldap_help
+    | "Ldap"i "Connect"i _options_list{ldap_conn_arg}     -> ldap_connect
+    | "Ldap"i "Disconnect"i ("From"i? expr)?              -> ldap_disconnect
+    | "Ldap"i "Search"i _options_list{ldap_search_option} -> ldap_search
 
-// Connections
-ldap_connect   : "Ldap"i "Connect"i (_SEP? ldap_conn_arg)*
-ldap_disconnect: "Ldap"i "Disconnect"i ("From"i? expr)?
+ldap_conn_arg: ("To"i | "URL"i "Is"i?) expr          -> lopt_url                            // string
+    | "User"i option_value                           -> lopt_user                           // string
+    | "Password"i option_value                       -> lopt_password                       // string
+    | ("Authentication"i | "Auth"i) option_value     -> lopt_authentication                 // constrained string
+    | ("Read"i "Only"i | "Read-Only"i) option_value? -> lopt_read_only                      // bool
+    | "Timeout"i option_value _unit_seconds?         -> lopt_time_limit                     // int, seconds
+    | "Page"i "Size"i option_value                   -> lopt_paged_size                     // int
+    | "Return"i? "Empty"i ("Attributes"i | "Attrs"i) option_value? -> lopt_return_empty_attributes // bool
+    | "As"i expr                                     -> lopt_conn_name                      // string
 
-ldap_conn_arg: ("To"i | "URL"i "Is"i?) expr -> lopt_url                                      // string
-    | "User"i "Is"i? expr -> lopt_user                                                       // string
-    | "Password"i "Is"i? expr -> lopt_password                                               // string
-    | ("Authentication"i | "Auth"i) "Is"i? expr -> lopt_authentication                       // constrained string
-    | ("Read"i "Only"i | "Read-Only"i) ("Is"i? expr)? -> lopt_read_only                      // bool
-    | "Timeout"i "Is"i? expr -> lopt_time_limit                                              // int, seconds
-    | "Page"i "Size"i "Is"i? expr -> lopt_paged_size                                         // int
-    | "Return"i? "Empty"i ("Attributes"i | "Attrs"i) ("Is"i? expr)? -> lopt_return_empty_attributes // bool
-    | "As"i expr -> lopt_conn_name                                                           // string
-
-// Searching
-ldap_search: "Ldap"i "Search"i (_SEP? ldap_search_option (_SEP? ldap_search_option)*)?
-
-?ldap_search_option: "Base"i "Is"i? expr -> lopt_search_base                                 // string
-    | "Filter"i "Is"i? expr -> lopt_search_filter                                            // string
-    | "Scope"i "Is"i? expr -> lopt_search_scope                                              // constrained string
-    | ("Attributes"i | "Attrs"i) ("Is"i | "Are"i)? expr -> lopt_attributes                   // list of string
-    | "Dereference"i "Aliases"i ("Is"i? expr)? -> lopt_dereference_aliases                   // bool
-    | "Get"i "Operational"i ("Attributes"i | "Attrs"i) ("Is"i? expr)? -> lopt_get_operational_attributes  // bool
-    | "Timeout"i "Is"i? expr -> lopt_time_limit                                              // int, seconds
-    | "Size"i "Limit"i "Is"i? expr -> lopt_size_limit                                        // int
-    | "Giving"i var_name -> lopt_giving                                                      // variable path
-    | "Using"i "Connection"i? expr -> lopt_using                                             // string
+?ldap_search_option: "Base"i option_value                            -> lopt_search_base                 // string
+    | "Filter"i option_value                                         -> lopt_search_filter               // string
+    | "Scope"i option_value                                          -> lopt_search_scope                // constrained string
+    | ("Attributes"i | "Attrs"i) ("Is"i | "Are"i)? expr              -> lopt_attributes                  // list of string
+    | "Dereference"i "Aliases"i option_value?                        -> lopt_dereference_aliases         // bool
+    | "Get"i "Operational"i ("Attributes"i | "Attrs"i) option_value? -> lopt_get_operational_attributes  // bool
+    | "Timeout"i option_value _unit_seconds?                         -> lopt_time_limit                  // int, seconds
+    | "Size"i "Limit"i option_value                                  -> lopt_size_limit                  // int
+    | "Giving"i var_name                                             -> lopt_giving                      // variable path
+    | "Using"i "Connection"i? expr                                   -> lopt_using                       // string
