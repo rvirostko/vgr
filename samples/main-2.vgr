@@ -1,3 +1,5 @@
+#! python3 -m vgr
+
 // "main detection" in VGR - see main-1.vgr
 
 // See main-1.vgr for an explanation

@@ -1,3 +1,5 @@
+#! python3 -m vgr
+
 Reset All
 Echo False
 Verbose False
