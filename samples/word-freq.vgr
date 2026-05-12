@@ -1,5 +1,3 @@
-#! python3 -m vgr
-
 # Demonstration of functions that work on dictionaries:
 #   * GetKeyValue()
 #   * SetKeyValue()

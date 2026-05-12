@@ -1,5 +1,3 @@
-#! python3 -m vgr
-
 Define Function fn(bob):
     Return [bob, $global.bob, $outer.bob, $local.bob, $static.bob]
 End-Function
