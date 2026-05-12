@@ -87,24 +87,24 @@
     | "Vault"i "Patch"i expr vault_args  -> vault_api_patch
 
 vault_conn_arg: "To"i "Host"i? expr -> conn_addr
-    | ("With"i "Token"i? | "Token"i "Is"i) expr -> conn_token
-    | "Timeout"i "Is"i? expr "Seconds"i? -> conn_timeout
-    | ("BlockSize"i | "Block"i "Size"i) "Is"i? expr "Bytes"i? -> conn_blocksize
+    | ("With"i "Token"i? | "Token"i "Is"i) expr                -> conn_token
+    | "Timeout"i option_value _unit_seconds?                   -> conn_timeout
+    | ("BlockSize"i | "Block"i "Size"i) option_value "Bytes"i? -> conn_blocksize
     | "As"i expr -> conn_name
 
 # NB: Expression are treated like tokens iff they are a single name component
 #     and are undefined in the data dictionary
 vault_args: (_SEP? vault_option (_SEP? vault_option)*)?
-vault_option: "CAS"i "Is"i? expr -> vopt_cas
-    | "Config"i "Is"i? expr -> vopt_config
-    | "Data"i "Is"i? expr -> vopt_data
-    | "Description"i "Is"i? expr -> vopt_description
-    | "Key"i "Is"i? expr -> vopt_key
-    | ("Meta"i | "Metadata"i) "Is"i? expr -> vopt_metadata
-    | "Namespace"i "Is"i? expr -> vopt_namespace
+vault_option: "CAS"i option_value              -> vopt_cas
+    | "Config"i option_value                   -> vopt_config
+    | "Data"i option_value                     -> vopt_data
+    | "Description"i option_value              -> vopt_description
+    | "Key"i option_value                      -> vopt_key
+    | ("Meta"i | "Metadata"i) option_value     -> vopt_metadata
+    | "Namespace"i option_value                -> vopt_namespace
     | ("Result"i | "Results"i) "In"i? var_name -> vopt_result
-    | "Giving"i var_name -> vopt_result
+    | "Giving"i var_name                       -> vopt_result
     | ("Secret"i | "Secrets"i) ("Is"i | "Are"i)? expr -> vopt_data # Alias for data
-    | "Type"i "Is"i? expr -> vopt_type
-    | "Using"i "Connection"i? expr -> vopt_using
-    | ("Version"i | "Ver"i) "Is"i? expr -> vopt_version
+    | "Type"i option_value                     -> vopt_type
+    | "Using"i "Connection"i? expr             -> vopt_using
+    | ("Version"i | "Ver"i) option_value       -> vopt_version
