@@ -382,11 +382,7 @@ _fetch_first: "Fetch"i "First"i expr "Rows"i "Only"i
 product_clause: "Cartesian"i? "Product"i product_cols
 product_cols: "All"i -> all
     | "None"i -> none
-    | _csep_list{col_spec}
-?col_spec: DEC_NUMBER // One based
-    | NAME
-    | STRING
-// TODO: option to say before or after limits
+    | _csep_list{expr}
 
 ?expr: ternary | and_expr
 
