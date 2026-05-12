@@ -88,13 +88,13 @@
 //   Constrained values: 1, 1.1, 2 — other values are bind-time errors.
 // * Maximum redirect : only meaningful when Follow Redirects is True.
 //----------------------------------------------------------------------------
-?http_conn_opt: ("Verify"i "SSL"i) ("Is"i? expr)?  -> hopt_verify_ssl      // bool
-    | "Connect"i "Timeout"i "Is"i? expr            -> hopt_connect_timeout // int/float: seconds
-    | "HTTP-Version"i "Is"i? expr              -> hopt_http_version    // constrained: 1, 1.1, 2
-    | ("Maximum"i | "Max"i) ("Redirect"i | "Redirects"i) "Is"i? expr  -> hopt_max_redirects // int
+?http_conn_opt: ("Verify"i "SSL"i) option_value?         -> hopt_verify_ssl       // bool
+    | "Connect"i "Timeout"i option_value _unit_seconds?  -> hopt_connect_timeout  // int/float: seconds
+    | "HTTP-Version"i option_value                       -> hopt_http_version     // constrained: 1, 1.1, 2
+    | ("Maximum"i | "Max"i) ("Redirect"i | "Redirects"i) option_value -> hopt_max_redirects // int
 
 // Disable until we have a proper usecase to test...
-//    | "CA"i ("Certificate"i | "Cert"i) "Is"i? expr -> hopt_ca_cert         // string: PEM content
+//    | "CA"i ("Certificate"i | "Cert"i) option_value -> hopt_ca_cert         // string: PEM content
 
 // ---------------------------------------------------------------------------
 // http_auth_opt — authentication options (connect and request)
@@ -103,8 +103,8 @@
 // User and Password without Authentication Is defaults to "basic".
 // Handler composes httpx auth object from the three at execution time.
 // ---------------------------------------------------------------------------
-?http_auth_opt: "User"i "Is"i? expr                         -> hopt_user     // string
-    | "Password"i "Is"i? expr                               -> hopt_password // string
+?http_auth_opt: "User"i option_value                         -> hopt_user     // string
+    | "Password"i option_value                               -> hopt_password // string
     | ("Authentication"i | "Auth"i) "Is"i? http_auth_method -> hopt_authentication
 
 ?http_auth_method: "Basic"i -> hauth_basic
@@ -125,12 +125,12 @@
 // * Follow Redirect : Redirect following — trinary bool. httpx defaults
 //   to False (does not follow redirects). Bare form implies True.
 // ---------------------------------------------------------------------------
-?http_req_opt: ("Header"i | "Headers"i) ("Is"i | "Are"i)? expr  -> hopt_headers // by type
-    | ("Param"i | "Parameter"i | "Parameters"i) ("Is"i | "Are"i)? expr     -> hopt_parameters // by type
-    | "Timeout"i "Is"i? expr              -> hopt_timeout          // int/float: seconds
-    | "Read"i "Timeout"i "Is"i? expr      -> hopt_read_timeout     // int/float: seconds
-    | "Write"i "Timeout"i "Is"i? expr     -> hopt_write_timeout    // int/float: seconds
-    | "Follow"i ("Redirect"i | "Redirects"i) ("Is"i? expr)? -> hopt_follow_redirects // bool
+?http_req_opt: ("Header"i | "Headers"i) ("Is"i | "Are"i)? expr -> hopt_headers // by type
+    | ("Param"i | "Parameter"i | "Parameters"i) ("Is"i | "Are"i)? expr -> hopt_parameters // by type
+    | "Timeout"i option_value _unit_seconds?               -> hopt_timeout          // int/float: seconds
+    | "Read"i "Timeout"i option_value _unit_seconds?       -> hopt_read_timeout     // int/float: seconds
+    | "Write"i "Timeout"i option_value _unit_seconds?      -> hopt_write_timeout    // int/float: seconds
+    | "Follow"i ("Redirect"i | "Redirects"i) option_value? -> hopt_follow_redirects // bool
 
 //----------------------------------------------------------------------------
 // http_request_opt — request-only options
@@ -153,5 +153,5 @@
 //   Scripts determine error handling.
 //----------------------------------------------------------------------------
 ?http_request_opt: "Using"i "Connection"i? expr -> hopt_connection_name // string
-    | ("Data"i | "Body"i) "Is"i? expr           -> hopt_body   // see type rules above
+    | ("Data"i | "Body"i) option_value          -> hopt_body   // see type rules above
     | "Giving"i var_name                        -> hopt_giving // variable path
