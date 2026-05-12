@@ -9,6 +9,7 @@ from lark import Tree
 
 from .builtins import (
     bound_ops,
+    poly_is_between,
     poly_contains,
     poly_contains_all,
     poly_eq,
@@ -297,9 +298,7 @@ def _exec_choose(ctx: ExecContext, do_all: bool, statement_children: Iterator, e
             test_op = _CHOOSE_OPS.get(when_block.data)
             lo_value = ctx.eval_expr(bind_operations(next(values_children)))
             hi_value = ctx.eval_expr(bind_operations(next(values_children)))
-            # TODO isn't this poly_between()?
-            if poly_lt(hi_value, lo_value): lo_value, hi_value = hi_value, lo_value
-            if test_op(poly_ge(desired_value, lo_value) and poly_le(desired_value, hi_value)):
+            if test_op(poly_is_between(desired_value, lo_value, hi_value)):
                 ctx.echo_source(when_block, when_block.children[2])
                 chosen_block = values_children
         elif block_name == 'ineq_block':
