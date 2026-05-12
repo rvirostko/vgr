@@ -184,6 +184,26 @@ class VarRef(Operation):
     def op_name(self) -> str:
         return 'var_ref'
 
+# Reserved: not working in the grammar
+#class AssignmentExpr(Operation):
+#    """
+#    Perform an in-line assignment, returning the
+#    calculated value
+#
+#    * (*variable* := *expression*)
+#
+#    Note that the parenthesises are required.
+#    """
+#
+#    def execute(self, ctx: ExecContext, args: list) -> Any:
+#        path = get_writable_var_path(ctx, self.children[0])
+#        value = ctx.eval_expr(self.children[1])
+#        do_set(ctx, value, *path)
+#        return value
+
+#    def op_name(self) -> str:
+#        return 'assignment_expr'
+
 def get_function(ctx: ExecContext, statement: Tree):
     fn = ctx.get_var(*_var_name_path(statement))
     if fn is None:
@@ -618,6 +638,7 @@ class OperationBinder(Transformer):
     def dict(self, tree): return SimpleOperation(tree, build_dict)
     def deref(self, tree): return SimpleOperation(tree, deref_var)
     def var_ref(self, tree): return VarRef(tree)
+    #def assignment_expr(self, tree): return AssignmentExpr(tree)
     def invoke_func(self, tree): return InvokeFunctionOperation(tree)
     def invoke_func_inline(self, tree): return InvokeInlineFunctionOperation(tree)
 
