@@ -76,7 +76,7 @@ the first match is returned.
 If nothing matches, then `None` is returned.
 
 ```vgr
-"food".ExtractMatch("[A-Z]+", r"\d+") → None
+"food".ExtractMatch("[A-Z]+", r"\\d+") → None
 
 "food".ExtractMatch("[aeiou]+") →
 { "pattern": "[aeiou]+", "match": "oo", "start": 1, "end": 3 }
