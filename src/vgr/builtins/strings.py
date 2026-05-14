@@ -614,7 +614,7 @@ Also see `RemovePrefix()`
 def _exec_bool_str_op(x: Any, y: Any, name: str, op: Callable[[Any, Any], Any], string_op) -> Any:
     """For str/str functions that return a bool"""
     def flatten(arg):
-        return [y for a in arg for y in (flatten(a) if isinstance(a, list) else [a])]
+        return list(y for a in arg for y in (flatten(a) if isinstance(a, list) else [a]))
     if isinstance(x, list): return list(op(x1, y) for x1 in x)
     if isinstance(x, dict): return {key: op(value, y) for key, value in x.items() if isinstance(value, str)}
     if isinstance(x, str):
@@ -1272,22 +1272,29 @@ def _replace(x: Any, old: Any, new: Any=None) -> Any:
     if isinstance(x, dict): return {key: _replace(value, old, new) for key, value in x.items()}
     raise TypeError(f'Replacement of {poly_type(x)!r} not supported')
 
+def _as_str(value: Any) -> Any:
+    if isinstance(value, (bool, int, float)): value = str(value)
+    if isinstance(value, re.Pattern): value = value.pattern
+    return value
+
 def poly_split(x: Any=None, sep: str=None, maxsplit: int=-1) -> Any:
     """
 **Split a string based on a separator string**
 
 * Split(*value*)
-* Split(*value*, _sep_)
-* Split(*value*, _sep_, _maxsplit_)
+* Split(*value*, *sep*)
+* Split(*value*, *sep*, *maxsplit*)
 * *value*.Split()
-* *value*.Split(_sep_)
-* *value*.Split(_sep_, _maxsplit_)
+* *value*.Split(*sep*)
+* *value*.Split(*sep*, *maxsplit*)
 
-If _sep_ is not specified, or is `None` or a blank string, the
+If *sep* is not specified, or is `None` or a blank string, the
 split is performed on any whitespace character, and empty entries
 are omitted.
 
-The _maxsplit_ argument is the maximum number of times a split will
+A pattern can be used as *sep* for more complex parsing.
+
+The *maxsplit* argument is the maximum number of times a split will
 occur. If less than zero then there is no limit.
 
 ```vgr
@@ -1301,8 +1308,17 @@ None.Split() → []
 1234.Split(2) → ["1", "34"]
 ```
 
-Also see `RSplit()`
+```vgr
+"1,2:3".Split(CompilePattern("[,;:]")) → ["1", "2", "3"]
+// Capture groups appear in the results
+"1 2:3 4".Split(CompilePattern("([,;:])")) → ["1 2", ":", "3 4"]
+// When non-group causes split, None is returned
+"1 2:3 4".Split(CompilePattern("([,;:])|[ ]")) → ["1", None, "2", ":", "3", None, "4"]
+```
+
+Also see `RSplit()` and `CompilePattern()`
 """
+    if isinstance(sep, re.Pattern): return _re_split(x, sep, maxsplit)
     return _split('Split', poly_split, str.split, x, sep, maxsplit)
 
 def poly_rsplit(x: Any=None, sep: str=None, maxsplit: int=-1) -> Any:
@@ -1310,11 +1326,11 @@ def poly_rsplit(x: Any=None, sep: str=None, maxsplit: int=-1) -> Any:
 **Split a string based on a separator string**
 
 * RSplit(*value*)
-* RSplit(*value*, _sep_)
-* RSplit(*value*, _sep_, _maxsplit_)
+* RSplit(*value*, *sep*)
+* RSplit(*value*, *sep*, *maxsplit*)
 * *value*.RSplit()
-* *value*.RSplit(_sep_)
-* *value*.RSplit(_sep_, _maxsplit_)
+* *value*.RSplit(*sep*)
+* *value*.RSplit(*sep*, *maxsplit*)
 
 `RSplit()` is identical to `Split()` except that the splitting of
 _value_ starts from the end of the string.
@@ -1334,6 +1350,14 @@ Also see `Split()`
 """
     return _split('RSplit', poly_rsplit, str.rsplit, x, sep, maxsplit)
 
+def _re_split(x: Any, sep: re.Pattern, maxsplit: int=0):
+    if x is None: x = ''
+    x = _as_str(x)
+    if isinstance(x, str):  return re.split(sep, x, max(0, maxsplit))
+    if isinstance(x, list): return list(_re_split(x1, sep, maxsplit) for x1 in x)
+    if isinstance(x, dict): return {key: _re_split(value, sep, maxsplit) for key, value in x.items()}
+    raise TypeError(f'Split of {poly_type(x)!r} not supported')
+
 def _split(name: str, p_op, str_op, x: Any, sep: str=None, maxsplit: int=-1):
     if sep is not None:
         if isinstance(sep, (bool, int, float)):
@@ -1342,22 +1366,21 @@ def _split(name: str, p_op, str_op, x: Any, sep: str=None, maxsplit: int=-1):
             sep = str_arg(sep, 'Sep', False)
             sep = None if sep is None or len(sep) == 0 else sep
     maxsplit = -1 if maxsplit is None else max(-1, int_arg(maxsplit, 'Maxsplit'))
-    if isinstance(x, (bool, int, float)): x = str(x)
     if x is None: x = ''
+    x = _as_str(x)
     if isinstance(x, str): return str_op(x, sep, maxsplit)
     if isinstance(x, list): return list(p_op(x1, sep, maxsplit) for x1 in x)
     if isinstance(x, dict): return {key: p_op(value, sep, maxsplit) for key, value in x.items()}
     raise TypeError(f'{name} of {poly_type(x)!r} not supported')
-
 
 def poly_split_lines(x: Any=None, keepends: bool=False) -> Any:
     """
 **Split a string into multiple lines**
 
 * SplitLines(*value*)
-* SplitLines(*value*, _keepends_)
+* SplitLines(*value*, *keepends*)
 * *value*.SplitLines()
-* *value*.SplitLines(_keepends_)
+* *value*.SplitLines(*keepends*)
 
 ```vgr
 None.SplitLines() → None
@@ -1368,7 +1391,7 @@ None.SplitLines() → None
 """
     if x is None: return None
     keepends = bool_arg(keepends, "KeepEnds")
-    if isinstance(x, (bool, int, float)): return str(x).splitlines(keepends)
+    x = _as_str(x)
     if isinstance(x, str): return x.splitlines(keepends)
     if isinstance(x, list): return list(poly_split_lines(x1, keepends) for x1 in x)
     raise TypeError(f'Splitlines with {poly_type(x)!r} not supported')
@@ -1377,19 +1400,19 @@ def poly_join(x: Any=None, sep: str=None) -> Any:
     """
 **Join together the elements of a list as strings**
 
-* Join(*value*, )
-* Join(*value*, _sep_)
+* Join(*value*)
+* Join(*value*, *sep*)
 * *value*.Join()
-* *value*.Join(_sep_)
+* *value*.Join(*sep*)
 
-The _sep_ argument is the separator between the strings.
-It defaults to an empty string.
+The *sep* argument is the separator between the strings.
+It defaults to an empty string, causing the values to be concatenated.
 
 If *value* is a list, the items in it are converted to strings and concatenated
-using _sep_. Items in the list that are `None` are ignored.
+using *sep*. Items in the list that are `None` are ignored.
 
 If *value* is an ordinal, it is converted to a string, and
-_sep_ is not used. With a *value* of `None` or for an empty list an
+*sep* is not used. With a *value* of `None` or for an empty list an
 empty string is returned.
 
 ```vgr
@@ -1405,8 +1428,9 @@ None.Join() → ""
 Also see `Split()` and `RSplit()`
 """
     if x is None: return ''
-    if isinstance(x, (bool, int, float, str)): return str(x)
-    if isinstance(sep, (bool, int, float, str)): sep = str(sep)
+    x = _as_str(x)
+    if isinstance(x, str): x
+    sep = _as_str(sep)
     sep = '' if sep is None else str_arg(sep, 'Sep', False)
     if isinstance(x, list): return sep.join([poly_join(x1, sep) for x1 in x if x1 is not None])
     raise TypeError(f'Join of {poly_type(x)!r} not supported')
@@ -1441,10 +1465,10 @@ def poly_format(*args) -> str:
     """
 **Format values into a string**
 
-* Format(_format_, *expression*&hellip;)
-* Format(format_, *expression*&hellip;)
-* _format_.Format(*expression*&hellip;)
-* _format_.Format(*expression*&hellip;)
+* Format(*format*, *expression*&hellip;)
+* Format(*format*, *expression*&hellip;)
+* *format*.Format(*expression*&hellip;)
+* *format*.Format(*expression*&hellip;)
 
 Formatting syntax is that used in [Python's str.format()](https://docs.python.org/3/library/string.html#formatstrings)
 
@@ -1510,11 +1534,11 @@ Set person To {"name": "Alice", "age": 25}
     if not args: return None
     format_string, *args = args
     if format_string is None: return None
-    if isinstance(format_string, (bool, int, float)): format_string = str(format_string)
-    if isinstance(format_string, list):
-        return [poly_format(f, *args) for f in format_string]
+    format_string = _as_str(format_string)
     if isinstance(format_string, str):
         return SafeFormatter().format(format_string, *args)
+    if isinstance(format_string, list):
+        return list(poly_format(f, *args) for f in format_string)
     raise TypeError(f'Format with {poly_type(format_string)!r} not supported')
 
 def poly_translate(x: Any=None, from_str: Any=None, to_str: Any=None) -> Any:
@@ -1546,14 +1570,14 @@ the characters are deleted.
             # and do a Load-From into a top-level object
             # NB: this works ordinal-to-ordinal
             if isinstance(from_str, dict): return x.translate(from_str)
-            if isinstance(from_str, (int, float)): return poly_translate(x, str(from_str), to_str)
+            from_str = _as_str(from_str)
             if isinstance(from_str, str) and len(from_str) > 0:
-                if to_str is None: to_str = ''
-                if isinstance(to_str, (int, float)): return str(to_str)
+                to_str = '' if to_str is None else _as_str(to_str)
                 if isinstance(to_str, str): return x.translate(_maketrans(from_str, to_str))
         else:
-            if isinstance(x, (int, float)): return poly_translate(str(x), from_str, to_str)
-            if isinstance(x, list): return [poly_translate(x1, from_str, to_str) for x1 in x]
+            x = _as_str(x)
+            if isinstance(x, str): return poly_translate(x, from_str, to_str)
+            if isinstance(x, list): return list(poly_translate(x1, from_str, to_str) for x1 in x)
     return x
 
 #---------------------------------------------
@@ -1580,6 +1604,7 @@ Also see `Chr()`
 """
     if x is None: return None
     if isinstance(x, (int, float)): return int(x) if 0 <= x <= 0x10FFFF else x
+    if isinstance(x, re.Pattern): x = x.pattern
     if isinstance(x, str): return ord(x) if len(x) == 1 else [poly_ord(x1) for x1 in x]
     if isinstance(x, (bytes, bytearray)): return list(x)
     if isinstance(x, list): return list(poly_ord(el) for el in x)
@@ -1618,14 +1643,14 @@ def poly_plural(x: Any=None, plural: Any='s', singular: Any='') -> Any:
 **Return a suffix for pluralization**
 
 * *value*.Plural()
-* *value*.Plural(_plural_)
-* *value*.Plural(_plural_, _singular_)
+* *value*.Plural(*plural*)
+* *value*.Plural(*plural*, *singular*)
 
 If *value* is a number is not equal to one, or a value that
-has a length that is not one, then the _plural_ value is returned.
-Otherwise, the _singular_ value is returned.
-The defaults arguments are _s_ and an empty string respectively.
-The values for _plural_ and _signular_ can be any any values.
+has a length that is not one, then the *plural* value is returned.
+Otherwise, the *singular* value is returned.
+The defaults arguments are *s* and an empty string respectively.
+The values for *plural* and *singular* can be any any values.
 
 ```vgr
 "value" + None.Plural() → "values"
