@@ -167,6 +167,7 @@ def dd_init(dd: DataDictionary) -> None:
     dd.add_immutable_prefix(_RE_PREFIX)
     for flag in _RE_FLAGS:
         dd.set_var(getattr(re, flag), _RE_PREFIX, flag)
+    _add_re_patterns(_RE_PREFIX, dd)
     # ... math and string values
     for mod in (math, string):
         name = mod.__name__
@@ -235,3 +236,11 @@ def _get_consts(source_mod) -> dict:
     return { key: value for key, value in vars(source_mod).items()
                 if isinstance(value, (int, float, str, dict, list)) and not key.startswith("_")
             }
+
+from .extn import VgrExtension
+from .builtins import parse_json, compile_pattern
+def _add_re_patterns(pfx: str, dd: DataDictionary) -> None:
+    for item in parse_json(VgrExtension.read_resource_text(__package__, 're_patterns.json')).items():
+        name = item[0]
+        if name[0] != '#': # "commented out" in the key
+            dd.set_var(compile_pattern(item[1]), _RE_PREFIX, "pattern", item[0])
