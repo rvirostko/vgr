@@ -1,0 +1,57 @@
+
+# Test data of mixed application and web-like log entries
+Set logs To [
+    "2026-05-14 10:15:32 INFO user=bob action=login status=OK",
+    "2026-05-14 10:16:01 ERROR user=alice action=upload status=FAIL",
+    "GET /api/data 200 user=charlie",
+    "heartbeat ok",
+    "POST /login 403 user=daniel"
+]
+
+Printf Newline
+Printf "={:=<58}=\n", " Log entries "
+For Each line In logs
+    Print line
+End
+Print "=" * 60
+
+Printf Newline
+# Pattern 1: structured app log
+Set p_app To CompilePattern("user=(?P<user>\\w+) action=(?P<action>\\w+) status=(?P<status>\\w+)")
+Set app To p_app.ToString()
+# Pattern 2: web log
+Set p_web To CompilePattern("(?P<method>GET|POST) (?P<path>[^ ]+) (?P<code>[0-9]+) user=(?P<user>\\w+)")
+Set web To p_web.ToString()
+
+Printf "={:=<58}=\n", " Normalized Events "
+For Each line In logs
+    Set m To line.ExtractMatch(p_app, p_web)
+    Choose
+        When m.pattern Equals app
+            Printf "{:<4} | user={} action={} status={}\n",
+                "APP", m.user.TitleCase(), m.action, m.status.Upper()
+        When m.pattern Equals web
+            Set status To m.code.ToInteger() >= 400 ? "ERROR" : "OK"
+            Printf "{:<4} | user={} method={} path={} status={}\n",
+                "WEB", m.user.TitleCase(), m.method, m.path, status
+        Otherwise
+            Printf "{:<4} | {}\n", "OTHR", line
+    End-Choose
+End
+Print "=" * 60
+
+Printf Newline
+Set p_kv = CompilePattern("(?P<key>\\w+)=(?P<value>[^ ]+)")
+
+Printf "={:=<58}=\n", " Key/Value Extraction "
+For Each line In logs
+    Set matches To line.ExtractAllMatches(p_kv)
+    If matches Is Not None
+        Set kv To Dictionary()
+        For Each m in matches
+           Set kv To kv.SetKeyValue(m.key, m.value)
+        End
+        Print kv.FormatJson(None, True)
+    End-If
+End
+Print "=" * 60

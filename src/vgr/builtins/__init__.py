@@ -183,6 +183,8 @@ from .parse import (
 from .pow import poly_pow
 from .reg_ex import (
     compile_pattern,
+    poly_extract_all_matches,
+    poly_extract_match,
     poly_is_pattern,
     poly_regex_replace,
 )
