@@ -78,7 +78,7 @@ def format_json(obj: Any=None, indent: int=2, sort_keys: bool=False) -> Any:
 * *value*.FormatJson(*indent*)
 * *value*.FormatJson(*indent*, *sort_keys*)
 
-If *indent* is None then the value is formatted without indentation or line breaks.
+If *indent* is `None` then the value is formatted without indentation or line breaks.
 When zero, only line breaks are added. The value for *indent* is constrained from
 zero to 32. The default value is 2.
 
