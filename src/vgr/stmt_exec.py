@@ -11,6 +11,7 @@ import warnings
 from lark import Lark, Tree, Token, Transformer, v_args, exceptions
 from lark.exceptions import VisitError
 
+
 from .app_exceptions import (
     BlockType,
     VgrException,
@@ -18,6 +19,7 @@ from .app_exceptions import (
     VgrStatementBreak,
     VgrStatementContinue,
 )
+from .builtins import compile_pattern
 from .data_dict import DataDictionary, DynamicValue
 from .dbg import print_tree
 from .dd_config import (
@@ -928,6 +930,23 @@ class ConstantsNormalizer(Transformer):
             raise VgrRuntimeError(token, e) from e
         except SyntaxError as e:
             raise VgrRuntimeError(token, ValueError(str(e.msg).strip())) from e
+
+    def REGEX(self, token):
+        """Convert the value of the token into a compiled re.Pattern"""
+        value = token.value
+        ending_slash = value.rfind('/')
+        # We do not need to unescape an escaped "/"
+        pattern = value[1:ending_slash]
+        flags = 0
+        for fc in value[ending_slash + 1:].upper():
+            if fc == 'A': flags += re.ASCII
+            if fc == 'I': flags += re.IGNORECASE
+            if fc == 'L': flags += re.LOCALE
+            if fc == 'M': flags += re.MULTILINE
+            if fc == 'S': flags += re.DOTALL
+            if fc == 'U': flags += re.UNICODE
+            if fc == 'X': flags += re.VERBOSE
+        return self._const_token(token, compile_pattern(pattern, flags))
 
     # The None/Null constant
     @v_args(tree=True)

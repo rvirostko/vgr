@@ -484,6 +484,7 @@ _dict_entry: expr _CLAUSE_SEP expr // key and value
     // Values that closely follow Python and other lanuages
     | HEX_NUMBER | BIN_NUMBER | OCT_NUMBER | DEC_NUMBER // becomes INT at runtime
     | FLOAT_NUMBER                                      // becomes FLOAT at runtime
+    | REGEX                                             // becomes Pattern at runtime
     | STRING
     | NAME -> var_ref
 
@@ -492,6 +493,14 @@ var_name: NAME ("." NAME)*
 {EXTN_GRAMMAR}
 
 {FUNCTIONS}
+
+// Regex contents:
+//   * Cannot be empty (ie "//" : that's a comment!)
+//   * \[/\] : an escaped "/" or "\"
+//   * [^/, [/, and /] : "/" escaped by a character group (but only first/last)
+//   * [^\x00-\x1f\x7f\/] : not a control character or a "/"
+//   * flags: optional, must be lowercase and immediately follow the closing "/"
+REGEX: /\/(?:(?:\\[\/\\])|(?:\[^\/)|(?:\[\/)|(?:\/\])|(?:[^\x00-\x1f\x7f\/]))+\/[ailmsux]*/
 
 // modified versions of python.STRING/LONG_STRING : removed the [f]
 // NB: we don't enforce validity of prefixes here
