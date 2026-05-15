@@ -597,5 +597,5 @@ _overrides = {
     (Pattern, int): lambda op, x, y: _lex_comp(op, x.pattern, str(y)),
     (Pattern, float): lambda op, x, y: _lex_comp(op, x.pattern, str(y)),
     (Pattern, str): lambda op, x, y: _lex_comp(op, x.pattern, str(y)),
-    (Pattern, list): lambda op, x, y: _lex_comp(op, [x.pattern], y),
+    (Pattern, list): lambda op, x, y: _lex_comp(op, [x], y),
 }
