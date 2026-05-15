@@ -8,6 +8,7 @@ from .common import (
     numeric_operations,
     get_operation,
 )
+from .type import poly_type
 
 @bound_ops("/", "÷")
 def poly_div(*args):
@@ -53,6 +54,8 @@ def _div(x: Any, y: Any) -> Any:
     operation = get_operation(x, y, div_operations, numeric_operations)
     try:
         return operation(_div, x, y) if operation else x / y
+    except TypeError as e:
+        raise TypeError(f"Cannot perform division on type {poly_type(x)!r} with {poly_type(y)!r}") from e
     except ZeroDivisionError:
         return nan
 
@@ -100,6 +103,8 @@ def _fdiv(x: Any, y: Any) -> Any:
     operation = get_operation(x, y, div_operations, numeric_operations)
     try:
         return operation(_fdiv, x, y) if operation else x // y
+    except TypeError as e:
+        raise TypeError(f"Cannot perform division on type {poly_type(x)!r} with {poly_type(y)!r}") from e
     except ZeroDivisionError:
         return nan
 
@@ -143,6 +148,8 @@ Also `Div()` and `Mod()`
     operation = get_operation(x, y, div_operations, numeric_operations)
     try:
         return operation(poly_divmod, x, y) if operation else list(divmod(x, y))
+    except TypeError as e:
+        raise TypeError(f"Cannot perform div-modulo on type {poly_type(x)!r} with {poly_type(y)!r}") from e
     except ZeroDivisionError:
         return nan
 
