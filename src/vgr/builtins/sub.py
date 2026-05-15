@@ -60,7 +60,7 @@ def _sub(x: Any, y: Any) -> Any:
     try:
         return operation(_sub, x, y) if operation else x - y
     except TypeError as e:
-        raise TypeError(f"Cannot substract type {poly_type(y)!r} from {poly_type(x)!r}") from e
+        raise TypeError(f"Cannot subtract type {poly_type(y)!r} from {poly_type(x)!r}") from e
 
 def _remove_key(_op, x: dict, path: Any) -> dict:
     """Remove a key using a path"""
