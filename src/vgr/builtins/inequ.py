@@ -11,6 +11,9 @@ from .common import (
     str_to_number,
     bound_ops,
 )
+from .type import poly_type
+
+def _type_error(x, y): return TypeError(f"Cannot compare types {poly_type(x)!r} and {poly_type(y)!r}")
 
 @bound_ops("Is Equal To", "==", "⩵", "Equals", "Is")
 def poly_eq(x: Any=None, y: Any=None) -> bool:
@@ -69,7 +72,6 @@ None == "5" → False
 ```
 
 Also see the `!=` and `===` operators
-
 """
     # None is only equal to itself
     if x is None: return y is None
@@ -80,7 +82,10 @@ Also see the `!=` and `===` operators
     if tx == float and math.isnan(x): return ty == float and math.isnan(y)
     if ty == float and math.isnan(y): return False
     override = _overrides.get((tx, ty))
-    return override(poly_eq, x, y) if override else x == y
+    try:
+        return override(poly_eq, x, y) if override else x == y
+    except TypeError as e:
+        raise _type_error(x, y) from e
 
 @bound_ops("===")
 def poly_exact_eq(x: Any=None, y: Any=None) -> bool:
@@ -108,7 +113,10 @@ Also see the `==` and `!=` operators
     # Nan is only equal to itself, so reuse equals logic
     if tx == float and math.isnan(x): return poly_eq(x, y)
     override = _overrides.get((tx, ty))
-    return override(poly_exact_eq, x, y) if override else x == y
+    try:
+        return override(poly_exact_eq, x, y) if override else x == y
+    except TypeError as e:
+        raise _type_error(x, y) from e
 
 @bound_ops("Is Not Equal To", "!=", "≠", "<>", "¬=")
 def poly_ne(x: Any=None, y: Any=None) -> bool:
@@ -222,7 +230,10 @@ Also see the `>` and `<=` operators
     if x is None: return y is not None
     if y is None: return False
     override = _overrides.get((type(x), type(y)))
-    return override(poly_lt, x, y) if override else x < y
+    try:
+        return override(poly_lt, x, y) if override else x < y
+    except TypeError as e:
+        raise _type_error(x, y) from e
 
 @bound_ops("Is Greater Than", ">", "＞")
 def poly_gt(x: Any=None, y: Any=None) -> Any:
@@ -277,7 +288,10 @@ Also see the `<` and `>=` operators
     if x is None: return y is not None
     if y is None: return True
     override = _overrides.get((type(x), type(y)))
-    return override(poly_gt, x, y) if override else x > y
+    try:
+        return override(poly_gt, x, y) if override else x > y
+    except TypeError as e:
+        raise _type_error(x, y) from e
 
 @bound_ops("<=", "Is Not Greater Than", "≤", "¬>", "!>")
 def poly_le(x: Any=None, y: Any=None) -> bool:
@@ -334,7 +348,10 @@ Also see the `<` and `>=` operators
     if x is None: return True
     if y is None: return False
     override = _overrides.get((type(x), type(y)))
-    return override(poly_le, x, y) if override else x <= y
+    try:
+        return override(poly_le, x, y) if override else x <= y
+    except TypeError as e:
+        raise _type_error(x, y) from e
 
 @bound_ops(">=", "Is Not Less Than", "≥", "¬<", "!<")
 def poly_ge(x: Any=None, y: Any=None) -> bool:
@@ -391,7 +408,10 @@ Also see the `>` and `<=` operators
     if x is None: return y is None
     if y is None: return True
     override = _overrides.get((type(x), type(y)))
-    return override(poly_ge, x, y) if override else x >= y
+    try:
+        return override(poly_ge, x, y) if override else x >= y
+    except TypeError as e:
+        raise _type_error(x, y) from e
 
 def poly_is_between(x: Any=None, y: Any=None, z: Any=None) -> bool:
     """
