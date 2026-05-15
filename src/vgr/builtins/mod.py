@@ -3,6 +3,7 @@ Modulo operation.
 """
 
 from functools import reduce
+from math import nan
 from re import Pattern
 from typing import Any
 
@@ -59,6 +60,8 @@ def _mod(x: Any, y: Any) -> Any:
         return operation(_mod, x, y) if operation else x % y
     except TypeError as e:
         raise TypeError(f"Cannot perform modulo on type {poly_type(x)!r} with {poly_type(y)!r}") from e
+    except ZeroDivisionError:
+        return nan
 
 _mod_operations = {
     (str, str): lambda op, x, y: op(empty_is_zero(x), empty_is_zero(y)),
