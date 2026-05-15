@@ -3,6 +3,7 @@ Modulo operation.
 """
 
 from functools import reduce
+from re import Pattern
 from typing import Any
 
 from .common import (
@@ -12,6 +13,7 @@ from .common import (
     numeric_operations,
     str_to_number,
 )
+from .type import poly_type
 
 @bound_ops("%")
 def poly_mod(*args):
@@ -52,10 +54,13 @@ None % "5" → 0
     return reduce(_mod, args[1:], args[0]) if args else None
 
 def _mod(x: Any, y: Any) -> Any:
-    operation = get_operation(x, y, mod_operations, numeric_operations)
-    return operation(_mod, x, y) if operation else x % y
+    operation = get_operation(x, y, _mod_operations, numeric_operations)
+    try:
+        return operation(_mod, x, y) if operation else x % y
+    except TypeError as e:
+        raise TypeError(f"Cannot perform modulo on type {poly_type(x)!r} with {poly_type(y)!r}") from e
 
-mod_operations = {
+_mod_operations = {
     (str, str): lambda op, x, y: op(empty_is_zero(x), empty_is_zero(y)),
 }
 
@@ -74,13 +79,10 @@ Only integral values can be even numbers.
 
 ```vgr
 For Each v In [ None, List(), Dictionary(), -1, Zero, 1.5, 2 ]
-    Choose Using v:
-        When Is Even:
-            Print v.Repr(), "is even"
-        When Is Odd:
-            Print v.Repr(), "is odd"
-        Otherwise:
-            Print v.Repr(), "is neither odd nor even"
+    Choose Using v
+        When Is Even  Print v.Repr(), "is even"
+        When Is Odd   Print v.Repr(), "is odd"
+        Otherwise     Print v.Repr(), "is neither odd nor even"
     End-Choose
 End-For
 
@@ -95,7 +97,7 @@ None is neither odd nor even
 
 Also see `Is Odd` and `Mod()`
 """
-    return _check_parity(x, 0)
+    return _check_remainder(x, 0)
 
 @bound_ops('Is Odd', 'Is Not Even')
 def poly_is_odd(x: Any) -> bool:
@@ -112,13 +114,10 @@ Only integral values can be odd numbers.
 
 ```vgr
 For Each v In [ None, List(), Dictionary(), -1, Zero, 1.5, 2 ]
-    Choose Using v:
-        When Is Even:
-            Print v.Repr(), "is even"
-        When Is Odd:
-            Print v.Repr(), "is odd"
-        Otherwise:
-            Print v.Repr(), "is neither odd nor even"
+    Choose Using v
+        When Is Even  Print v.Repr(), "is even"
+        When Is Odd   Print v.Repr(), "is odd"
+        Otherwise     Print v.Repr(), "is neither odd nor even"
     End-Choose
 End-For
 
@@ -133,11 +132,12 @@ None is neither odd nor even
 
 Also see `Is Even` and `Mod()`
 """
-    return _check_parity(x, 1)
+    return _check_remainder(x, 1)
 
-_NUMERIC_TYPES = (int, float, str)
-def _check_parity(x: Any, remainder: int) -> bool:
+_NUMERIC_TYPES = (bool, int, float, str)
+def _check_remainder(x: Any, remainder: int) -> bool:
     if not isinstance(x, _NUMERIC_TYPES): return False
+    if isinstance(x, Pattern): x = x.pattern
     if isinstance(x, str):
         try:
             x = str_to_number(x)
