@@ -500,7 +500,7 @@ var_name: NAME ("." NAME)*
 //   * [^/, [/, and /] : "/" escaped by a character group (but only first/last)
 //   * [^\x00-\x1f\x7f\/] : not a control character or a "/"
 //   * flags: optional, must be lowercase and immediately follow the closing "/"
-REGEX: /\/(?:(?:\\[\/\\])|(?:\[^\/)|(?:\[\/)|(?:\/\])|(?:[^\x00-\x1f\x7f\/]))+\/[ailmsux]*/
+REGEX: /\/(?:(?:\\[\/\\])|(?:\[^\/)|(?:\[\/)|(?:\/\])|(?:[^\x00-\x1f\x7f\/]))+\/[adilmtsux]*/
 
 // modified versions of python.STRING/LONG_STRING : removed the [f]
 // NB: we don't enforce validity of prefixes here
