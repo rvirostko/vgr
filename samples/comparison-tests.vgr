@@ -124,9 +124,8 @@ Assert True === True
 Assert (True === 1) Is False
 
 Echo Off
-# TODO '>=' not supported between instances of 'dict' and 'int'
 # TODO print 7 is True -> False; print 7 ? "t" : "f" -> "t"
-For Each value In [-1, 0, False, 1, /*{}, [],*/ 7, 16]
+For Each value In [-1, 0, False, 1, 7, 16]
     Choose All Using value
         When Is Defined             Pass // everything here is defined
         When Is Undefined           Assert False : "Can't be undefined here!"
@@ -159,6 +158,26 @@ For Each value In [-1, 0, False, 1, /*{}, [],*/ 7, 16]
         When 11 To 19               Print value.Repr(), "is between 10 and 20 (exclusive)"
         When 10 Through 20          Print value.Repr(), "is between 10 and 20 (inclusive)"
         When Not 1 Thru 10          Print value.Repr(), "isn't 1 to 10"
+        Otherwise                   Print value.Repr(), "is something else"
+    End-Choose
+    Print ""
+End-For
+
+// Non scalar types
+For Each value In [{}, [], {"a": 1, "b": 2}, {"b": 2, "a": 1} ]
+    Choose All Using value
+        When Is Defined              Pass // everything here is defined
+        When Is Undefined            Assert False : "Can't be undefined here!"
+        When Is Empty                Print value.Repr(), "is empty"
+        When Is Not Empty            Print value.Repr(), "is not empty"
+        When === []                  Print value.Repr(), "is an empty list"
+        When === {}                  Print value.Repr(), "is an empty dictionary"
+        // Tests against one or more values are supported
+        When Is {"a": 1, "b": 2}     Print value.Repr(), "is the a/b dictionary"
+        When Is Not {"a": 1, "b": 2} Print value.Repr(), "is not the a/b dictionary"
+        // Inequalities except for == and != may not be supported
+        // Ranges ([Not] x To y) may also not be supported
+        When
         Otherwise                   Print value.Repr(), "is something else"
     End-Choose
     Print ""
