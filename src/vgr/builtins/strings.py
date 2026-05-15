@@ -9,17 +9,20 @@ import re
 import string
 
 from .common import (
+    AnyType,
     bool_arg,
     int_arg,
     NoneType,
     str_arg,
     X_None_Op,
-    Y_Coll_Op,
 )
 from .inequ import poly_eq
 from .reg_ex import poly_regex_replace
 from .type import poly_type
 from .types import poly_str
+
+# Operations table key for when Y value is a collection
+Y_Coll_Op = (AnyType, list)
 
 def _exec_x_op(x: Any, name: str, op: Callable[[Any], Any], string_op, op_table) -> Any:
     """General purpose string operation execution for no-args methods on str"""

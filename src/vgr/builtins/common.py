@@ -17,9 +17,6 @@ X_None_Op = (NoneType, AnyType)
 # Operations table key for when the Y value is None
 Y_None_Op = (AnyType, NoneType)
 
-# Operations table key for when Y value is a collection
-Y_Coll_Op = (AnyType, list)
-
 # See matching_default()
 _DEFAULTS_BY_TYPE = {
     dict : {},
