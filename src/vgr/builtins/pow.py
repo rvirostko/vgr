@@ -11,6 +11,7 @@ from .common import (
     numeric_operations,
     get_operation,
 )
+from .type import poly_type
 
 @bound_ops("**")
 def poly_pow(*args) -> Any:
@@ -53,7 +54,11 @@ None ** "5" → 0
 
 def _pow(x: Any, y: Any) -> Any:
     operation = get_operation(x, y, pow_operations, numeric_operations)
-    return operation(_pow, x, y) if operation else x ** y
+    try:
+        return operation(_pow, x, y) if operation else x ** y
+    except TypeError as e:
+        raise TypeError(f"Cannot raise type {poly_type(x)!r} to a power with {poly_type(y)!r}") from e
+
 
 pow_operations = {
     (str, str): lambda op, x, y: op(empty_is_zero(x), empty_is_zero(y)),
