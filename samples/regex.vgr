@@ -1,0 +1,15 @@
+
+Echo On
+Set p_ab To CompilePattern("a+b")
+Assert "aab" Matches p_ab   # precompiled
+Assert "aab" Matches "a+b"  # compiled on demand
+Assert "aab" Matches r/a+b/ # inline literal
+
+Set p2 To CompilePattern(p_ab, "i") # recompile for case insensitive
+Assert !(p_ab === p2)
+
+Assert "AAB" Does Not Match p_ab
+Assert "AAB" Matches p2
+Assert "AAB" Matches "(?i)a+b"
+Assert "AAB" IMatches "a+b"
+Assert "AAB" Matches r/a+b/i
