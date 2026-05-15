@@ -2,6 +2,7 @@
 Polymorphic inequality operators
 """
 
+from re import Pattern
 from typing import Any, Callable, Iterable
 import math
 
@@ -575,16 +576,26 @@ def _lex_comp(cmp: Callable[[Any, Any], bool], x: Iterable, y: Iterable) -> bool
 # Most items do a "natural" compare, except numeric/string and all collections
 _overrides = {
     (bool, str): _bool_str_op,
+    (bool, Pattern): lambda op, x, y: _lex_comp(op, str(x), y.pattern),
     (int, str): _num_str_op,
     (int, list): lambda op, x, y: _lex_comp(op, [x], y),
+    (int, Pattern): lambda op, x, y: _lex_comp(op, str(x), y.pattern),
     (float, str): _num_str_op,
     (float, list): lambda op, x, y: _lex_comp(op, [x], y),
+    (float, Pattern): lambda op, x, y: _lex_comp(op, str(x), y.pattern),
     (str, bool): _str_bool_op,
     (str, int): _str_num_op,
     (str, float): _str_num_op,
     (str, list): lambda op, x, y: _lex_comp(op, [x], y),
+    (str, Pattern): lambda op, x, y: _lex_comp(op, x, y.pattern),
     (list, int): lambda op, x, y: _lex_comp(op, x, [y]),
     (list, float): lambda op, x, y: _lex_comp(op, x, [y]),
     (list, str): lambda op, x, y: _lex_comp(op, x, [y]),
     (list, list): _lex_comp,
+    (list, Pattern): lambda op, x, y: _lex_comp(op, x, [y]),
+    (Pattern, bool): lambda op, x, y: _lex_comp(op, x.pattern, str(y)),
+    (Pattern, int): lambda op, x, y: _lex_comp(op, x.pattern, str(y)),
+    (Pattern, float): lambda op, x, y: _lex_comp(op, x.pattern, str(y)),
+    (Pattern, str): lambda op, x, y: _lex_comp(op, x.pattern, str(y)),
+    (Pattern, list): lambda op, x, y: _lex_comp(op, [x.pattern], y),
 }

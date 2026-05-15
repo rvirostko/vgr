@@ -18,19 +18,17 @@ Print "=" * 60
 Printf Newline
 # Pattern 1: structured app log
 Set p_app To CompilePattern("user=(?P<user>\\w+) action=(?P<action>\\w+) status=(?P<status>\\w+)")
-Set app To p_app.ToString()
 # Pattern 2: web log
 Set p_web To CompilePattern("(?P<method>GET|POST) (?P<path>[^ ]+) (?P<code>[0-9]+) user=(?P<user>\\w+)")
-Set web To p_web.ToString()
 
 Printf "={:=<58}=\n", " Normalized Events "
 For Each line In logs
     Set m To line.ExtractMatch(p_app, p_web)
     Choose
-        When m.pattern Equals app
+        When m.pattern Equals p_app
             Printf "{:<4} | user={} action={} status={}\n",
                 "APP", m.user.TitleCase(), m.action, m.status.Upper()
-        When m.pattern Equals web
+        When m.pattern Equals p_web
             Set status To m.code.ToInteger() >= 400 ? "ERROR" : "OK"
             Printf "{:<4} | user={} method={} path={} status={}\n",
                 "WEB", m.user.TitleCase(), m.method, m.path, status
