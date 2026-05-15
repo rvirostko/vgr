@@ -937,15 +937,7 @@ class ConstantsNormalizer(Transformer):
         ending_slash = value.rfind('/')
         # We do not need to unescape an escaped "/"
         pattern = value[1:ending_slash]
-        flags = 0
-        for fc in value[ending_slash + 1:].upper():
-            if fc == 'A': flags += re.ASCII
-            if fc == 'I': flags += re.IGNORECASE
-            if fc == 'L': flags += re.LOCALE
-            if fc == 'M': flags += re.MULTILINE
-            if fc == 'S': flags += re.DOTALL
-            if fc == 'U': flags += re.UNICODE
-            if fc == 'X': flags += re.VERBOSE
+        flags = value[ending_slash + 1:]
         return self._const_token(token, compile_pattern(pattern, flags))
 
     # The None/Null constant

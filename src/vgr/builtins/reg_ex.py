@@ -48,15 +48,58 @@ Print ["cat", "DOG"].RegexReplace(vowel_pattern, "-") → ["c-t", "D-G"]
 
 Also see `RegexReplace()` and `IsPattern()`.
 """
-    if isinstance(x, (NoneType, re.Pattern)): return x
+    if x is None: return None
+    if isinstance(x, re.Pattern):
+        # Recompile with the provided flags if we have a mismatch
+        flags = _compose_flags(flags)
+        if flags == x.flags: return x
+        x = x.pattern
     if isinstance(x, str):
         try:
-            return re.compile(x, flags)
+            return re.compile(x, _compose_flags(flags))
         except Exception as e:
             raise ValueError(f'Pattern error: {x!r}') from e
     if isinstance(x, list):
+        flags = _compose_flags(flags)
         return list(compile_pattern(x1, flags) for x1 in x)
-    raise ValueError(f'Cannot Compile {poly_type(x)!r} to a Pattern')
+    raise ValueError(f'Cannot compile type {poly_type(x)!r} to a pattern')
+
+def _compose_flags(f: Any) -> int:
+    if isinstance(f, int): return f
+    if isinstance(f, float): return int(f)
+    if isinstance(f, str):
+        flags = 0
+        for fc in f.lower():
+            if fc == 'a':
+                flags += re.ASCII
+                continue
+            if fc == 'd':
+                flags += re.DEBUG
+                continue
+            if fc == 'i':
+                flags += re.IGNORECASE
+                continue
+            if fc == 'l':
+                flags += re.LOCALE
+                continue
+            if fc == 'm':
+                flags += re.MULTILINE
+                continue
+            if fc == 's':
+                flags += re.DOTALL
+                continue
+            if fc == 'u':
+                flags += re.UNICODE
+                continue
+            if fc == 'x':
+                flags += re.VERBOSE
+                continue
+            if fc == 't':
+                flags += re.TEMPLATE
+                continue
+            raise ValueError(f'Unknown regular expression pattern flag: {fc!r}')
+        return flags
+    raise ValueError(f'Cannot convert a {poly_type(f)!r} to flags for a pattern')
 
 def poly_extract_match(*args) -> Any:
     """
