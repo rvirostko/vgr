@@ -1,8 +1,18 @@
 from functools import reduce
+from re import Pattern
 from typing import Any
 import itertools
 
-from .common import bound_ops, dist_x, dist_y, X_None_Op, Y_None_Op, get_operation, str_to_int
+from .common import (
+    bound_ops,
+    dist_x,
+    dist_y,
+    get_operation,
+    str_to_int,
+    X_None_Op,
+    Y_None_Op,
+)
+from .type import poly_type
 
 @bound_ops("*", "×")
 def poly_mul(*args):
@@ -51,22 +61,32 @@ None * "5" → None
 
 def _mul(x: Any, y: Any) -> Any:
     operation = get_operation(x, y, mul_operations)
-    return operation(_mul, x, y) if operation else x * y
+    try:
+        return operation(_mul, x, y) if operation else x * y
+    except TypeError as e:
+        raise TypeError(f"Cannot multiply type {poly_type(x)!r} by {poly_type(y)!r}") from e
 
 def product_list(_, x: list, y: Any) -> list:
     return [list(p) for p in itertools.product(iter(x), iter(y))]
 
 mul_operations = {
-    X_None_Op: lambda _, _x, _y: None,
-    Y_None_Op: lambda _, _x, _y: None,
-    (int, list): dist_y,
-    (float, str): lambda _, x, y: int(x) * y,
-    (float, list): dist_y,
-    (str, float): lambda _, x, y: x * int(y),
-    (str, str): lambda _, x, y:  x * str_to_int(y),
-    (str, list): dist_y,
-    (list, int): dist_x,
-    (list, float): dist_x,
-    (list, str): dist_x,
-    (list, list): product_list,
+    X_None_Op:        lambda _, _x, _y: None,
+    Y_None_Op:        lambda _, _x, _y: None,
+    (int, Pattern):   lambda _, x, y: x * y.pattern,
+    (int, list):      dist_y,
+    (float, str):     lambda _, x, y: int(x) * y,
+    (float, list):    dist_y,
+    (float, Pattern): lambda _, x, y: int(x) * y.pattern,
+    (str, float):     lambda _, x, y: x * int(y),
+    (str, str):       lambda _, x, y:  x * str_to_int(y),
+    (str, list):      dist_y,
+    (list, int):      dist_x,
+    (list, float):    dist_x,
+    (list, str):      dist_x,
+    (list, list):     product_list,
+    (list, Pattern):  dist_x,
+    (Pattern, int):   lambda _, x, y: x.pattern * y,
+    (Pattern, float): lambda _, x, y: x.pattern * int(y),
+    (Pattern, str):   lambda _, x, y:  x.pattern * str_to_int(y),
+    (Pattern, list):  dist_y,
 }
