@@ -14,6 +14,7 @@ from .common import (
     X_None_Op,
     Y_None_Op,
 )
+from .type import poly_type
 
 @bound_ops("<<")
 def poly_shl(*args) -> Any:
@@ -101,11 +102,17 @@ Also see `LeftShift()`
 
 def _shl(x: Any, y: Any) -> Any:
     operation = get_operation(x, y, shift_operations)
-    return operation(_shl, x, y) if operation else x << y
+    try:
+        return operation(_shl, x, y) if operation else x << y
+    except TypeError as e:
+        raise TypeError(f"Cannot shift type {poly_type(x)!r} with {poly_type(y)!r}") from e
 
 def _shr(x: Any, y: Any) -> Any:
     operation = get_operation(x, y, shift_operations)
-    return operation(_shr, x, y) if operation else x >> y
+    try:
+        return operation(_shr, x, y) if operation else x >> y
+    except TypeError as e:
+        raise TypeError(f"Cannot shift type {poly_type(x)!r} with {poly_type(y)!r}") from e
 
 shift_operations = {
     X_None_Op: lambda op, _, y: None if y is None else op(matching_default(y), y),
