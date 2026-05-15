@@ -933,10 +933,12 @@ class ConstantsNormalizer(Transformer):
 
     def REGEX(self, token):
         """Convert the value of the token into a compiled re.Pattern"""
+        # r(egex)/<pattern>/<flags>?
         value = token.value
+        pattern_start = value.find('/') + 1
         ending_slash = value.rfind('/')
         # We do not need to unescape an escaped "/"
-        pattern = value[1:ending_slash]
+        pattern = value[pattern_start:ending_slash]
         flags = value[ending_slash + 1:]
         return self._const_token(token, compile_pattern(pattern, flags))
 

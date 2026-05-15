@@ -500,7 +500,7 @@ var_name: NAME ("." NAME)*
 //   * [^/, [/, and /] : "/" escaped by a character group (but only first/last)
 //   * [^\x00-\x1f\x7f\/] : not a control character or a "/"
 //   * flags: optional, must be lowercase and immediately follow the closing "/"
-REGEX: /\/(?:(?:\\[\/\\])|(?:\[^\/)|(?:\[\/)|(?:\/\])|(?:[^\x00-\x1f\x7f\/]))+\/[adilmtsux]*/
+REGEX.2: /[Rr](?:[Ee])?\/(?:(?:\\[\/\\])|(?:\[^\/)|(?:\[\/)|(?:\/\])|(?:[^\x00-\x1f\x7f\/]))+\/[adilmtsux]*/
 
 // modified versions of python.STRING/LONG_STRING : removed the [f]
 // NB: we don't enforce validity of prefixes here
@@ -510,9 +510,9 @@ _LONG_VSTRING: /[BRUbru]*(""".*?(?<!\\)(\\\\)*?"""|'''.*?(?<!\\)(\\\\)*?''')/s
 _MS_STRING: /[BRUbru]*(\u201C.*?(?<!\\)(\\\\)*?\u201D|\u2018.*?(?<!\\)(\\\\)*?\u2019)/
 STRING: _VSTRING | _LONG_VSTRING | _MS_STRING
 
-SH_COMMENT: /#[^\n]*/
-CPP_COMMENT: /\/\/[^\n]*/
-C_COMMENT: "/*" /(.|\n)*?/ "*/"
+SH_COMMENT.4: /#[^\n]*/
+CPP_COMMENT.4: /\/\/[^\n]*/
+C_COMMENT.4: "/*" /(.|\n)*?/ "*/"
 
 %import common.WS
 %ignore WS
