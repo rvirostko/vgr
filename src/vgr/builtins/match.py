@@ -177,9 +177,9 @@ def _do_match(x: Any, y: Any, ci: bool=False, do_all: bool=False) -> bool:
     if isinstance(x, (bool, int, float)) and isinstance(y, (bool, int, float)): return poly_eq(x, y)
     if y is None: return False
     if isinstance(y, re.Pattern):
-        # if case insensitive requested and the compiled pattern
-        # doesn't have it, recompile with the desired setting
-        if ci and not bool(y.flags & re.IGNORECASE):
+        if ci and y.flags & re.IGNORECASE == 0:
+            # If case insensitive requested and the compiled pattern
+            # doesn't have it, recompile with the desired setting
             y = re.compile(y.pattern, y.flags | re.IGNORECASE)
     else:
         try:
