@@ -771,7 +771,8 @@ Also see `Display`, `Print`, `Printf`, and `Repr()`
             keys = value.keys()
             if len(keys):
                 for key in sorted(keys):
-                    _exhibit_value(name + '.' + key if len(name) > 0 else key, value[key])
+                    pkey = str(key)
+                    _exhibit_value(name + '.' + pkey if len(name) > 0 else pkey, value[key])
             else:
                 print_stdout(name, '= -empty-')
         else:
