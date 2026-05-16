@@ -125,14 +125,46 @@ Also see the `Add`, `Subtract`, `Multiply`, and `Divide` statements.
 
 @bound_ops("Set Key")
 def execute_set_key_value(ctx: ExecContext, statement: Tree) -> None:
-    # TODO doc
+    """
+**Traverse a path in a dictionary and sets a value**
+
+* Set Key *path* In [Dictionary] *variable*
+* Set Key *path* In [Dictionary] *variable* [= | To] *expression*
+
+The *variable* must either be a dictionary or list.
+If it does not exist, it will be created as a dictionary.
+
+If no *expression* is provided, the value `None` will be used.
+
+The *path* can be:
+
+* A string, boolean, integer, or float
+* A list composed of path components
+
+> **Note**\\
+> The `Set Key` statement operates directly on data.
+> While `SetKeyValue()` performs the same operations, it
+> will create and return a *copy* of the original contents.
+
+```vgr
+Set d = {"a": 1}
+Set Key "b" In d To 2 → {"a": 1, "b": 2}
+Set Key "c.d" In d To 3 → {"a": 1, "b": 2, "c": {"d": 3}}
+
+Set a = [ {"a": 1}, {"b": 2} ]
+Set Key ["c", "d"] In a To 3 →
+    [{"a": 1, "c": {"d": 3}}, {"b": 2, "c": {"d": 3}}]
+```
+
+Also see `Remove Key` and `SetKeyValue()`
+"""
     key_path_expr = statement.children[0]
     key_path = ctx.eval_expr_or_const(key_path_expr)
     var_path_expr = statement.children[1]
     var_path = get_writable_var_path(ctx, var_path_expr)
     new_value = ctx.eval_expr(statement.children[2]) if len(statement.children) > 2 else None
     exists, _true_path, data = ctx.var_exists(*var_path)
-    if not exists:
+    if not exists or data is None:
         data = {}
         do_set(ctx, data, *var_path)
     else:
@@ -148,13 +180,39 @@ def execute_set_key_value(ctx: ExecContext, statement: Tree) -> None:
 
 @bound_ops("Remove Key")
 def execute_remove_key(ctx: ExecContext, statement: Tree) -> None:
-    # TODO doc
+    """
+**Remove a key from a dictionary**
+
+* Remove Key *path* From [Dictionary] *variable*
+
+The *value* must either be a dictionary, a list, or `None`.
+
+The *path* can be:
+
+* A string, boolean, intger, or float
+* A list composed of path components
+
+> **Note**\\
+> The `Remove Key` statement operates directly on data.
+> While `RemoveKey()` performs the same operations, it
+> will create and return a *copy* of the original contents.
+
+```vgr
+Set d = {"a": 1, "b": 2}
+Remove Key "a" From d → {"b": 2}
+
+Set a = [ {"a": 1}, {"b": 2} ]
+Remove Key "b" From a → [{"a": 1}, {}]
+```
+
+Also see `Set Key` and `RemoveKey()`
+"""
     key_path_expr = statement.children[0]
     key_path = ctx.eval_expr_or_const(key_path_expr)
     var_path_expr = statement.children[1]
     var_path = get_writable_var_path(ctx, var_path_expr)
     exists, _true_path, data = ctx.var_exists(*var_path)
-    if exists:
+    if exists and data is not None:
         if not isinstance(data, (list, dict)):
             raise VgrRuntimeError(var_path_expr, TypeError(f"Cannot alter keys in type {poly_type(data)!r}"))
         try:
