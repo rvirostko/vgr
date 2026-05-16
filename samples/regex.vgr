@@ -13,3 +13,29 @@ Assert "AAB" Matches p2
 Assert "AAB" Matches "(?i)a+b"
 Assert "AAB" IMatches "a+b"
 Assert "AAB" Matches r/a+b/i
+
+Set m To "true".ExtractMatch(re.pattern.boolean)
+Assert m Is Not None
+
+Echo Off
+Print m.FormatJson()
+For Each group in m.groups:
+    Printf "{} : {!r}\n", group, m.GetKeyValue(group)
+End-For
+
+Print re.pattern.boolean
+// "match" is always avaialble and reflects the entire matched part
+Print "match =", m.match.Repr()
+// This regex defined an over-all abstract name
+Print "boolean =", m.boolean.Repr()
+// Additionally, it defines a "true" and "false" that can be used for quick checks
+Print "true =", "true" Is In m
+Print "false =", "false" Is In m
+
+// The predefined patterns can be customized
+Set flag_finder To ("flag\s*=\s*\"" + re.pattern.boolean.ReplaceStr("P<boolean>", "P<flag>") + '"').CompilePattern()
+Print flag_finder
+Set m To '{ flag ="on"; } '.ExtractMatch(flag_finder)
+Assert m Is Not None
+Print m.FormatJson()
+Print "flag =", m.flag Is Defined
