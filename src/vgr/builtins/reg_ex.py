@@ -352,12 +352,15 @@ def _match(m: re.Match) -> dict:
         # When there are groups, start/end info
         # is partioned into "span" by the name
         def _add_group(name, value, start, end):
-            rc[name] = value
-            rc.setdefault("span", {})[name] = { "start": start, "end": end }
+            if value is not None: rc[name] = value
+            if start != -1 and end != -1:
+                rc.setdefault("span", {})[name] = { "start": start, "end": end }
         # If no named groups, then groups is how may groups there are
         # If named groups exist, it is the keys for them
-        named_groups = m.groupdict().keys()
-        rc["groups"] = groups if len(named_groups) == 0 else list(named_groups)
+        named_groups = list()
+        for name, value in m.groupdict().items():
+            if value is not None: named_groups.append(name)
+        rc["groups"] = groups if len(named_groups) == 0 else named_groups
         _add_group("match", m.group(0), m.start(),m.end())
         # We add the numbered entries even if named groups exist
         for i, value in enumerate(m.groups(), start=1):
@@ -365,8 +368,7 @@ def _match(m: re.Match) -> dict:
             _add_group(f"group{i}", value, start, end)
         # NB: If a named group conflicts with one of the numbered (or "matched" or something else)
         #     add a numbered suffix to the old one
-        for item in m.groupdict().items():
-            name = item[0]
+        for name, value in m.groupdict().items():
             if name in rc:
                 rename = name + "_"
                 for n in range(1, math.max_int):
@@ -376,7 +378,6 @@ def _match(m: re.Match) -> dict:
                     re
                 rc[rename] = rc.pop(name)
                 rc["span"][rename] = rc["span"].pop(name)
-            value = item[1]
             start, end = m.span(name)
             _add_group(name, value, start, end)
     return rc
