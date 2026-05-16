@@ -1256,7 +1256,7 @@ def _replace(x: Any, old: Any, new: Any=None) -> Any:
     if old is None: return x
     if x is None: x = ''
     if isinstance(x, (bool, int, float)): x = str(x)
-
+    if isinstance(x, re.Pattern): x = x.pattern
     if not isinstance(new, str):
         if new is None:
             new = ''
