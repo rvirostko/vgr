@@ -61,14 +61,8 @@ from .builtins import (
     poly_sub,
     poly_true,
     poly_type,
+    poly_shorten,
 )
-
-def shorten(s: str, width: int=64) -> str:
-    """
-    Limits output that can appear in debug/verbose content.
-    Should be used with poly_repr(...) when you don't know the object size.
-    """
-    return textwrap.shorten(s, width=width, placeholder="\u2026")
 
 def do_set(ctx: ExecContext, value: Any, *path) -> None:
     """
@@ -77,7 +71,7 @@ def do_set(ctx: ExecContext, value: Any, *path) -> None:
     Path should be a vetted
     """
     new_value = ctx.set_var(value, *path)
-    if ctx.verbose: ctx.print_verbose('Set', '.'.join(path), 'To', shorten(repr(new_value)))
+    if ctx.verbose: ctx.print_verbose('Set', '.'.join(path), 'To', poly_shorten(repr(new_value)))
 
 def do_unset(ctx: ExecContext, *path) -> None:
     """
@@ -85,7 +79,7 @@ def do_unset(ctx: ExecContext, *path) -> None:
     Generates verbose output.
     """
     old_value = ctx.dd.unset_var(*path)
-    if ctx.verbose: ctx.print_verbose('Removed', shorten(repr(old_value)), 'From', '.'.join(path))
+    if ctx.verbose: ctx.print_verbose('Removed', poly_shorten(repr(old_value)), 'From', '.'.join(path))
 
 def get_writable_var_path(ctx: ExecContext, node: Tree) -> tuple:
     """Determine the path and validate it for writability"""
