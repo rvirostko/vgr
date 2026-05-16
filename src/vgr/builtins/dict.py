@@ -303,21 +303,36 @@ point2.SetKeyValue(["meta", "extra", "layer"], 3)
 
 Also see `GetKeyValue()`
 """
-    if isinstance(data, list): return list(poly_set_key_value(d1, path, value) for d1 in data)
+    return dict_set_key_value(data, path, value)
+
+def dict_set_key_value(data: Any=None, path: Any=None, value: Any=None, do_copy: bool=True) -> Any:
+    """Set the value of a key in data"""
     if not isinstance(data, dict): return data
     path = _normalize_path(path)
     if path is None: return data
-    if isinstance(path, (str, bool, int, float)):
-        data = copy(data)
-        data[path] = value
+    if isinstance(data, list):
+        # The list itself is a copy as well as its content
+        if do_copy: return list(poly_set_key_value(d1, path, value, do_copy) for d1 in data)
+        # We act directly on the list's contents
+        for d1 in data: poly_set_key_value(d1, path, value, False)
         return data
-    path, key = path[:-1], path[-1]
-    data = deepcopy(data)
+    key = None
+    if isinstance(path, (bool, int, float, str)):
+        key = path
+        path = []
+    elif isinstance(path, list):
+        path, key = path[:-1], path[-1]
+    else:
+        raise TypeError(f"Unexpected type {poly_type(path)!r} for path")
+    if do_copy: data = deepcopy(data)
     d = data
     for step in path:
         if step not in d or not isinstance(d[step], dict): d[step] = {}
         d = d[step]
-    d[key] = value
+    # We always make a copy of the data, even if not requested,
+    # because when a list/dict is assigned, we want to have a
+    # unique instance. Notably this would affect working with lists.
+    d[key] = deepcopy(value)
     return data
 
 def poly_get_keys(data: Any=None) -> list:
@@ -529,15 +544,23 @@ def _deref(data: Any, path: list) -> tuple:
 
 def _normalize_path(path: Any) -> Any:
     def _validate_step(step: Any) -> Any:
-        if isinstance(step, (str, bool, int, float)): return step
-        raise TypeError(f'Dereferencing with a {poly_type(step)!r} not supported')
+        if isinstance(step, (bool, int, float)):
+            return step
+        if isinstance(step, str):
+            if len(step.strip()) == 0:
+                raise TypeError(f'Cannot have a zero-length step in a variable path')
+            return step
+        raise TypeError(f'Cannot use a {poly_type(step)!r} in a variable path')
     if path is None: return None
-    # Single step; path is just a key
-    if not isinstance(path, list): return _validate_step(path)
+    # If the user sent in a list, that means they've decided how
+    # to separate the steps in the path. Otherwise, we turn it
+    # into a list of steps, one way or another.
+    if not isinstance(path, list):
+        # Single step (path is just a key) or dotted path in a string
+        path = path.split('.') if isinstance(path, str) else [path]
     # Strip out Nones and validate each step's type
     path[:] = [_validate_step(step) for step in path if step is not None]
     # Just skip empty requests
     if len(path) == 0: return None
     # Unwrap arrays of one
-    if len(path) == 1: return path[0]
-    return path
+    return path[0] if len(path) == 1 else path

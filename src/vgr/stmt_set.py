@@ -28,8 +28,10 @@ from .builtins import (
     poly_pow,
     poly_repr,
     poly_shl,
+    poly_shorten,
     poly_shr,
     poly_sub,
+    poly_type,
 )
 from .dd_config import (
     clear_includes,
@@ -38,10 +40,9 @@ from .dd_config import (
     set_user_args,
 )
 from .encoding import parse_encoding
-from .evaluate import do_set, do_unset, get_writable_var_path, create_param_list
+from .evaluate import do_set, do_unset, get_writable_var_path
 from .exec_context import ExecContext
 from .redir import close_all_redirects
-from .user_callable import UserFunction
 
 _LOAD_META_PATH = ('$load',)
 
@@ -119,6 +120,29 @@ Also see the `Add`, `Subtract`, `Multiply`, and `Divide` statements.
         op = _IN_PLACE_OP[statement.children[1].value.lower()]
         new_value = op(ctx.get_var(*var_path), ctx.eval_expr(statement.children[2]))
     do_set(ctx, new_value, *var_path)
+
+from .builtins import dict_set_key_value
+def execute_set_key_value(ctx: ExecContext, statement: Tree) -> None:
+    # TODO add doc "set"
+    key_path_expr = statement.children[0]
+    key_path = ctx.eval_expr_or_const(key_path_expr)
+    var_path_expr = statement.children[1]
+    var_path = get_writable_var_path(ctx, var_path_expr)
+    new_value = ctx.eval_expr(statement.children[2]) if len(statement.children) > 2 else None
+    exists, _true_path, data = ctx.var_exists(*var_path)
+    if not exists:
+        data = {}
+        do_set(ctx, data, *var_path)
+    else:
+        if not isinstance(data, (list, dict)):
+            raise VgrRuntimeError(var_path_expr, TypeError(f"Cannot alter keys in type {poly_type(data)!r}"))
+    try:
+        dict_set_key_value(data, key_path, new_value, False)
+    except TypeError as e:
+        # as we have checked the var_path and the value can be anything
+        # the key_path is the likely culprit
+        raise VgrRuntimeError(key_path_expr, e) from e
+    if ctx.verbose: ctx.print_verbose('Set Key', repr(key_path), 'In', '.'.join(var_path), 'To', poly_shorten(repr(new_value)))
 
 @bound_ops("Unset")
 def execute_unset(ctx: ExecContext, statement: Tree) -> None:

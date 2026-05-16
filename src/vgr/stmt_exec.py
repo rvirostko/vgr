@@ -100,6 +100,7 @@ from .stmt_set import (
     execute_load_from,
     execute_reset,
     execute_set,
+    execute_set_key_value,
     execute_swap,
     execute_unset,
 )
@@ -1126,6 +1127,7 @@ STATEMENT_HANDLERS = {
     'return':            execute_return,
     'select':            execute_select,
     'set':               execute_set,
+    'set_key_value':     execute_set_key_value,
     'sleep':             execute_sleep,
     'sort':              execute_sort,
     'source':            execute_source,
