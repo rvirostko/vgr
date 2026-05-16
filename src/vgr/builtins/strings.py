@@ -1432,7 +1432,7 @@ Also see `Split()` and `RSplit()`
 """
     if x is None: return ''
     x = _as_str(x)
-    if isinstance(x, str): x
+    if isinstance(x, str): return x
     sep = _as_str(sep)
     sep = '' if sep is None else str_arg(sep, 'Sep', False)
     if isinstance(x, list): return sep.join([poly_join(x1, sep) for x1 in x if x1 is not None])
