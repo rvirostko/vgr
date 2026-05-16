@@ -11,6 +11,8 @@ from lark import Tree
 from .app_exceptions import VgrRuntimeError
 from .builtins import (
     bound_ops,
+    dict_remove_key,
+    dict_set_key_value,
     parse_csv,
     parse_hcl,
     parse_ini,
@@ -121,9 +123,9 @@ Also see the `Add`, `Subtract`, `Multiply`, and `Divide` statements.
         new_value = op(ctx.get_var(*var_path), ctx.eval_expr(statement.children[2]))
     do_set(ctx, new_value, *var_path)
 
-from .builtins import dict_set_key_value
+@bound_ops("Set Key")
 def execute_set_key_value(ctx: ExecContext, statement: Tree) -> None:
-    # TODO add doc "set"
+    # TODO doc
     key_path_expr = statement.children[0]
     key_path = ctx.eval_expr_or_const(key_path_expr)
     var_path_expr = statement.children[1]
@@ -143,6 +145,25 @@ def execute_set_key_value(ctx: ExecContext, statement: Tree) -> None:
         # the key_path is the likely culprit
         raise VgrRuntimeError(key_path_expr, e) from e
     if ctx.verbose: ctx.print_verbose('Set Key', repr(key_path), 'In', '.'.join(var_path), 'To', poly_shorten(repr(new_value)))
+
+@bound_ops("Remove Key")
+def execute_remove_key(ctx: ExecContext, statement: Tree) -> None:
+    # TODO doc
+    key_path_expr = statement.children[0]
+    key_path = ctx.eval_expr_or_const(key_path_expr)
+    var_path_expr = statement.children[1]
+    var_path = get_writable_var_path(ctx, var_path_expr)
+    exists, _true_path, data = ctx.var_exists(*var_path)
+    if exists:
+        if not isinstance(data, (list, dict)):
+            raise VgrRuntimeError(var_path_expr, TypeError(f"Cannot alter keys in type {poly_type(data)!r}"))
+        try:
+            dict_remove_key(data, key_path, False)
+        except TypeError as e:
+            # as we have checked the var_path and the value can be anything
+            # the key_path is the likely culprit
+            raise VgrRuntimeError(key_path_expr, e) from e
+        if ctx.verbose: ctx.print_verbose('Removed Key', repr(key_path), 'From', '.'.join(var_path))
 
 @bound_ops("Unset")
 def execute_unset(ctx: ExecContext, statement: Tree) -> None:

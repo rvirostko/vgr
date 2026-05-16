@@ -78,9 +78,11 @@ opt_statements: statement*
     | pass
     | print
     | printf
+    | remove_key
     | reset
     | return
     | set
+    | set_key_value
     | sleep
     | sort
     | source
@@ -231,8 +233,10 @@ cmd_line_assign: var_name _assignment expr -> set
 
 set:  "Set"i var_name _assignment expr
     | "Set"i var_name IN_PLACE_OP expr
-    | "Set"i "Key"i expr "In"i "Dictionary"i? var_name (_assignment expr)? -> set_key_value
 IN_PLACE_OP: ("+=" | "-=" | "*=" | "/=" | "%=" | "**=" | "&=" | "|=" | "^=" | "<<=" | ">>=" )
+
+set_key_value: "Set"i "Key"i expr "In"i "Dictionary"i? var_name (_assignment expr)?
+remove_key: "Remove"i "Key"i expr "From"i "Dictionary"i? var_name
 
 swap: "Swap"i var_name ("With"i | "And"i) var_name
 

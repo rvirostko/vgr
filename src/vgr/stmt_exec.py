@@ -98,9 +98,10 @@ from .stmt_print import (
 from .stmt_select import execute_select
 from .stmt_set import (
     execute_load_from,
+    execute_remove_key,
     execute_reset,
-    execute_set,
     execute_set_key_value,
+    execute_set,
     execute_swap,
     execute_unset,
 )
@@ -1122,6 +1123,7 @@ STATEMENT_HANDLERS = {
     'pass':              execute_pass,
     'print':             execute_print,
     'printf':            execute_printf,
+    'remove_key':        execute_remove_key,
     'repeat':            execute_repeat,
     'reset':             execute_reset,
     'return':            execute_return,

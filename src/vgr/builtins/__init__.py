@@ -50,6 +50,7 @@ from .common import (
 )
 from .dict import (
     build_dict,
+    dict_remove_key,
     dict_set_key_value,
     poly_dict_create,
     poly_get_keys,

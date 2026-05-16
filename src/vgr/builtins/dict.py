@@ -301,20 +301,20 @@ point2.SetKeyValue(["meta", "extra", "layer"], 3)
     → [None, {"x": 5, "y": 7, "meta": {"type": "2d", "name": "p1", "flag": True}}]
 ```
 
-Also see `GetKeyValue()`
+Also see `GetKeyValue()` and the `Set Key` statement
 """
     return dict_set_key_value(data, path, value)
 
 def dict_set_key_value(data: Any=None, path: Any=None, value: Any=None, do_copy: bool=True) -> Any:
     """Set the value of a key in data"""
-    if not isinstance(data, dict): return data
+    if not isinstance(data, (dict, list)): return data
     path = _normalize_path(path)
     if path is None: return data
     if isinstance(data, list):
         # The list itself is a copy as well as its content
-        if do_copy: return list(poly_set_key_value(d1, path, value, do_copy) for d1 in data)
+        if do_copy: return list(dict_set_key_value(d1, path, value, do_copy) for d1 in data)
         # We act directly on the list's contents
-        for d1 in data: poly_set_key_value(d1, path, value, False)
+        for d1 in data: dict_set_key_value(d1, path, value, False)
         return data
     key = None
     if isinstance(path, (bool, int, float, str)):
@@ -425,27 +425,43 @@ Set point2 To {"x": 7, "y": 29, "meta": {"type": "2d", "name": "p2"}}
        {"x": 7, "y": 29, "meta": {"name": "p2"}}]
 ```
 
-Also see `SetKeyValue()`
+Also see `SetKeyValue()` and the `Remove Key` statement
 """
-    if isinstance(data, list): return list(poly_remove_key(d1, path) for d1 in data)
-    if not isinstance(data, dict): return data
+    return dict_remove_key(data, path, True)
+
+def dict_remove_key(data: Any=None, path: Any=None, do_copy: bool=True) -> Any:
+    if not isinstance(data, (dict, list)): return data
     path = _normalize_path(path)
     if path is None: return data
-    # A simple removal request
-    if isinstance(path, (str, bool, int, float)):
-        if path in data:
-            data = copy(data)
-            data.pop(path)
+    if isinstance(data, list):
+        # The list itself is a copy as well as its content
+        if do_copy: return list(dict_remove_key(d1, path, do_copy) for d1 in data)
+        # We act directly on the list's contents
+        for d1 in data: dict_remove_key(d1, path, False)
+        return data
+    key = None
+    if isinstance(path, (bool, int, float, str)):
+        key = path
+        path = []
+    elif isinstance(path, list):
+        path, key = path[:-1], path[-1]
+    else:
+        raise TypeError(f"Unexpected type {poly_type(path)!r} for path")
+    if len(path) == 0:
+        # skip the copy if we can
+        if key in data:
+            if do_copy: data = copy(data)
+            data.pop(key)
     else:
         # A multi step path removal, last part is the final key
-        path, key = path[:-1], path[-1]
         found, target = _deref(data, path)
         if found and isinstance(target, dict) and key in target:
-            # Multiple layers down so make a deep copy
-            # Then, because it is a deep copy, we need to
-            # relocate "target" before removing the key
-            data = deepcopy(data)
-            _, target = _deref(data, path)
+            if do_copy:
+                # Multiple layers down so make a deep copy
+                # Then, because it is a deep copy, we need to
+                # relocate "target" before removing the key
+                data = deepcopy(data)
+                _, target = _deref(data, path)
             target.pop(key)
     return data
 
