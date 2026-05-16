@@ -5,13 +5,13 @@
 //-----------------------------------------------------------------------------
 // Remove parens around a string
 //-----------------------------------------------------------------------------
-Set deparen(s) -> s.StartsWith("(") and s.EndsWith(")") ? s.Slice(1,-1) : s
+Function deparen(s) -> s.StartsWith("(") and s.EndsWith(")") ? s.Slice(1,-1) : s
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
 // Join strings with an arrow
 //-----------------------------------------------------------------------------
-Set arrow_join(x) -> x.Join(" → ")
+Function arrow_join(x) -> x.Join(" → ")
 //-----------------------------------------------------------------------------
 
 Set rnd = math.random100
@@ -36,9 +36,10 @@ Tron
 // Documentation examples go here
 //-----------------------------------------------------------------------------
 
-Print None.IsInf()
-Print Zero.IsInf()
-Print Inf.IsInf()
+Print MdCodeBlock(None).Repr()
+#Print MdCodeBlock("print('Hello, World')").Repr()
+#Print MdCodeBlock("print('Hello, World')", "python").Repr()
+#Print MdCodeBlock(["primes = [2, 3, 5]", "for p in primes:", "    print(p)"]).Repr()
 
 //-----------------------------------------------------------------------------
 Troff
