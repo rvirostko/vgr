@@ -136,7 +136,8 @@ If nothing matches, then `None` is returned.
 ```vgr
 "food".ExtractMatch("([^aeiou])([aeiou]+)") →
 {
-  "pattern": "([^aeiou])([aeiou]+)", "match": "foo",
+  "pattern": "([^aeiou])([aeiou]+)",
+  "match": "foo",
   "groups": 2, "group1": "f", "group2": "oo",
   "span": {
     "match":  { "start": 0, "end": 3 },
@@ -149,13 +150,12 @@ If nothing matches, then `None` is returned.
 ```vgr
 "food".ExtractMatch("(?P<cons>[^aeiou])(?P<vowel>[aeiou]+)") →
 {
-  "pattern": "(?P<cons>[^aeiou])(?P<vowel>[aeiou]+)", "match": "foo",
-  "groups": [ "cons", "vowel" ], "cons": "f", "vowel": "oo",
-  "group1": "f", "group2": "oo",
+  "pattern": "(?P<cons>[^aeiou])(?P<vowel>[aeiou]+)",
+  "match": "foo",
+  "groups": [ "cons", "vowel" ],
+  "cons": "f", "vowel": "oo",
   "span": {
     "match":  { "start": 0, "end": 3 },
-    "group1": { "start": 0, "end": 1 },
-    "group2": { "start": 1, "end": 3 },
     "cons":   { "start": 0, "end": 1 },
     "vowel":  { "start": 1, "end": 3 }
   }
@@ -358,17 +358,22 @@ def _match(m: re.Match) -> dict:
         # If no named groups, then groups is how may groups there are
         # If named groups exist, it is the keys for them
         named_groups = list()
+        spans = dict()
         for name, value in m.groupdict().items():
-            if value is not None: named_groups.append(name)
+            if value is not None:
+                named_groups.append(name)
+                spans[m.span(name)] = name # we don't use the value...
         rc["groups"] = groups if len(named_groups) == 0 else named_groups
+        spans[(m.start(), m.end(),)] = "match"
         _add_group("match", m.group(0), m.start(),m.end())
-        # We add the numbered entries even if named groups exist
+        # If a positional group does is not already
+        # recorded as the match or as a named group, add it
         for i, value in enumerate(m.groups(), start=1):
-            start, end = m.span(i)
-            _add_group(f"group{i}", value, start, end)
+            span = m.span(i)
+            if span not in spans: _add_group(f"group{i}", value, span[0], span[1])
         # NB: If a named group conflicts with one of the numbered (or "matched" or something else)
         #     add a numbered suffix to the old one
-        for name, value in m.groupdict().items():
+        for name in named_groups:
             if name in rc:
                 rename = name + "_"
                 for n in range(1, math.max_int):
@@ -379,5 +384,5 @@ def _match(m: re.Match) -> dict:
                 rc[rename] = rc.pop(name)
                 rc["span"][rename] = rc["span"].pop(name)
             start, end = m.span(name)
-            _add_group(name, value, start, end)
+            _add_group(name, m.groupdict().get(name), start, end)
     return rc
