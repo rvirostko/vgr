@@ -495,12 +495,12 @@ var_name: NAME ("." NAME)*
 {FUNCTIONS}
 
 // Regex contents:
-//   * Cannot be empty (ie "//" : that's a comment!)
+//   * Cannot be empty (ie "r//" : that's a comment!)
 //   * \[/\] : an escaped "/" or "\"
 //   * [^/, [/, and /] : "/" escaped by a character group (but only first/last)
 //   * [^\x00-\x1f\x7f\/] : not a control character or a "/"
 //   * flags: optional, must be lowercase and immediately follow the closing "/"
-REGEX.2: /[Rr](?:[Ee])?\/(?:(?:\\[\/\\])|(?:\[^\/)|(?:\[\/)|(?:\/\])|(?:[^\x00-\x1f\x7f\/]))+\/[adilmtsux]*/
+REGEX.2: /r\/(?:(?:\\[\/\\])|(?:\[^\/)|(?:\[\/)|(?:\/\])|(?:[^\x00-\x1f\x7f\/]))+\/[adilmtsux]*/
 
 // modified versions of python.STRING/LONG_STRING : removed the [f]
 // NB: we don't enforce validity of prefixes here
