@@ -255,7 +255,7 @@ Also see `SetKeyValue()` and `LookupItem()`
 
 def poly_set_key_value(data: Any=None, path: Any=None, value: Any=None) -> Any:
     """
-**Traverse a path in a dictionary and set a value**
+**Traverse a path in a dictionary and sets a value**
 
 * SetKeyValue(*value*, *path*)
 * SetKeyValue(*value*, *path*, *new_value*)
@@ -268,6 +268,13 @@ The *path* can be:
 
 * A string, boolean, integer, or float
 * A list composed of path components
+
+> **Note**\\
+> Functions and expressions are fundementally transformational.
+> When `SetKeyValue()` operates on a list or dictionary, it will
+> return a *copy*, not the original contents.
+> \\
+> Use the `Set Key` statement to directly operate on data.
 
 ```vgr
 Set point1 To {"x": 5, "y": 7, "meta": {"type": "2d", "name": "p1"}}
@@ -408,6 +415,13 @@ The *path* can be:
 
 * A string, boolean, intger, or float
 * A list composed of path components
+
+> **Note**\\
+> Functions and expressions are fundementally transformational.
+> When `RemoveKey()` operates on a list or dictionary, it will
+> return a *copy*, not the original contents.
+> \\
+> Use the `Remove Key` statement to directly operate on data.
 
 ```vgr
 Set point1 To {"x": 5, "y": 7, "meta": {"type": "2d", "name": "p1"}}
