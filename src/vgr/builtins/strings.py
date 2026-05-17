@@ -17,6 +17,7 @@ from .common import (
     X_None_Op,
 )
 from .inequ import poly_eq
+from .match import poly_matches
 from .reg_ex import poly_regex_replace
 from .type import poly_type
 from .types import poly_str
@@ -36,12 +37,13 @@ def _exec_x_op(x: Any, name: str, op: Callable[[Any], Any], string_op, op_table)
 # These are transformational on string items, but idempotent on others
 _str_operations = {
     NoneType: lambda _op, _x, _sm: None,
-    bool:  lambda _op,  x, _sm: x,
-    int:   lambda _op,  x, _sm: x,
-    float: lambda _op,  x, _sm: x,
-    str:   lambda _op,  x,  sm: sm(x),
-    list:  lambda  op,  x, _sm: [op(x1) for x1 in x ],
-    dict:  lambda  op,  x, _sm: {key: op(value) for key, value in x.items()}
+    bool:     lambda _op,  x, _sm: x,
+    int:      lambda _op,  x, _sm: x,
+    float:    lambda _op,  x, _sm: x,
+    str:      lambda _op,  x,  sm: sm(x),
+    list:     lambda  op,  x, _sm: [op(x1) for x1 in x ],
+    dict:     lambda  op,  x, _sm: {key: op(value) for key, value in x.items()},
+    Pattern:  lambda _op,  x,  sm: sm(x.pattern),
 }
 
 def _exec_str_op(x: Any, name: str, op: Callable[[Any], Any], string_op) -> Any:
@@ -64,7 +66,7 @@ If *value* is of any type except string, `None` is returned.
 
 Also see `Length()`
 """
-    return _exec_str_op(x, 'StringLen', poly_stringlen, str.__len__) if isinstance(x, (str, list, dict)) else None
+    return _exec_str_op(x, 'StringLen', poly_stringlen, str.__len__)
 
 def poly_reversestr(x: Any=None) -> Any:
     """
@@ -197,12 +199,13 @@ None.Upper() → None
 # For no-args string method that returns a bool, e.g. "x.IsUpper()"
 _bool_operations = {
     NoneType: lambda _op, _x, _sm: False,
-    bool:  lambda _op, _x, _sm: False,
-    int:   lambda _op, _x, _sm: False,
-    float: lambda _op, _x, _sm: False,
-    str:   lambda _op,  x,  sm: sm(x),
-    list:  lambda  op,  x, _sm: [op(x1) for x1 in x],
-    dict:  lambda  op,  x, _sm: {key: op(value) for key, value in x.items() if isinstance(value, (str, list, dict))}
+    bool:     lambda _op, _x, _sm: False,
+    int:      lambda _op, _x, _sm: False,
+    float:    lambda _op, _x, _sm: False,
+    str:      lambda _op,  x,  sm: sm(x),
+    list:     lambda  op,  x, _sm: [op(x1) for x1 in x],
+    dict:     lambda  op,  x, _sm: {key: op(value) for key, value in x.items() if isinstance(value, (str, list, dict))},
+    Pattern:  lambda _op,  x,  sm: sm(x.pattern),
 }
 
 def _exec_bool_op(x: Any, name: str, op: Callable[[Any], Any], string_op) -> Any:
@@ -436,11 +439,11 @@ and there is at least one cased character in the string.
 # ["xFoo", None, 27, True].strip("x") -> ["Foo", None, 27, True]
 # [" xFoo ", None, 27, True].strip([None, "x"]) -> ["Foo", None, 27, True]
 _str_str_operations = {
-    X_None_Op    : lambda _op, _x, _y, _sm: None,
-    Y_Coll_Op    : lambda  op,  x,  y, _sm: reduce(op, y, x),
-    (str, str)   : lambda _op,  x,  y,  sm: sm(x, y),
-    (list, str)  : lambda  op,  x,  y, _sm: [op(x1, y) for x1 in x],
-    (dict, str)  : lambda  op,  x,  y, _sm: {key: op(value, y) for key, value in x.items()},
+    X_None_Op:      lambda _op, _x, _y, _sm: None,
+    Y_Coll_Op:      lambda  op,  x,  y, _sm: reduce(op, y, x),
+    (str, str):     lambda _op,  x,  y,  sm: sm(x, y),
+    (list, str):    lambda  op,  x,  y, _sm: [op(x1, y) for x1 in x],
+    (dict, str):    lambda  op,  x,  y, _sm: {key: op(value, y) for key, value in x.items()},
 }
 
 def _exec_x_y_op(x: Any, y: Any, name: str, op: Callable[[Any, Any], Any], string_op, op_table) -> Any:
@@ -449,18 +452,19 @@ def _exec_x_y_op(x: Any, y: Any, name: str, op: Callable[[Any, Any], Any], strin
     if x is None:
         operation = op_table.get(X_None_Op)
     else:
+        x = _as_str(x)
         if isinstance(y, list):
             operation = op_table.get(Y_Coll_Op)
         else:
-            # May ops will accept a None for their arg and take default action
+            # Many ops will accept a None for their arg and take default action
             # So we use the same as if it was a string
             operation = op_table.get((type(x), str if y is None else type(y)))
     if operation is None: raise ValueError(f'{name}() between {poly_type(x)!r} and {poly_type(y)!r} not possible')
     return operation(op, x, y, string_op)
 
 def _exec_str_str_op(x: Any, y: Any, name: str, op: Callable[[Any, Any], Any], string_op) -> Any:
-    """For str/str transformational methods that are idempoten on non-string ordinals"""
-    if isinstance(x, (NoneType, bool, int, float)): return x
+    """For str/str transformational methods that are idempotent on non-string ordinals"""
+    if isinstance(x, (NoneType, bool, int, float, Pattern)): return x
     return _exec_x_y_op(x, y, name, op, string_op, _str_str_operations)
 
 #---------------------------------------------
@@ -493,7 +497,7 @@ Also see `LeftStrip()` and `RightStrip()`
         return _exec_str_str_op(x, chars, 'Strip', _strip, str.strip)
     if not args: return None
     x, *args = args
-    if isinstance(x, (NoneType, bool, int, float)): return x
+    if isinstance(x, (NoneType, bool, int, float, Pattern)): return x
     return _strip(x) if not args else reduce(_strip, args, x)
 
 def poly_lstrip(*args) -> Any:
@@ -520,7 +524,7 @@ Also see `Strip()` and `RightStrip()`
         return _exec_str_str_op(x, chars, 'LeftStrip', _lstrip, str.lstrip)
     if not args: return None
     x, *args = args
-    if isinstance(x, (NoneType, bool, int, float)): return x
+    if isinstance(x, (NoneType, bool, int, float, Pattern)): return x
     return _lstrip(x) if not args else reduce(_lstrip, args, x)
 
 def poly_rstrip(*args) -> Any:
@@ -547,7 +551,7 @@ Also see `Strip()` and `LeftStrip()`
         return _exec_str_str_op(x, chars, 'RightStrip', _rstrip, str.rstrip)
     if not args: return None
     x, *args = args
-    if isinstance(x, (NoneType, bool, int, float)): return x
+    if isinstance(x, (NoneType, bool, int, float, Pattern)): return x
     return _rstrip(x) if not args else reduce(_rstrip, args, x)
 
 def poly_remove_prefix(*args) -> Any:
@@ -578,7 +582,7 @@ Also see `RemoveSuffix()`
     if not args: return None
     x, *args = args
     if x is None or not args: return x
-    if isinstance(x, (bool, int, float)): x = str(x)
+    x = _as_str(x)
     return reduce(_removeprefix, args, x)
 
 def poly_remove_suffix(*args) -> Any:
@@ -609,7 +613,7 @@ Also see `RemovePrefix()`
     if not args: return None
     x, *args = args
     if x is None or not args: return x
-    if isinstance(x, (bool, int, float)): x = str(x)
+    x = _as_str(x)
     return reduce(_removesuffix, args, x)
 
 #---------------------------------------------
@@ -687,7 +691,7 @@ _string_int_ops = {
 
 def exec_str_int_op(x: Any, y: Any, name: str, op: Callable[[Any, Any], Any], string_op) -> Any:
     # For these types, the operation is idempotent
-    if isinstance(x, (NoneType, bool, int, float)): return x
+    if isinstance(x, (NoneType, bool, int, float, Pattern)): return x
     return _exec_x_y_op(x, y, name, op, string_op, _string_int_ops)
 
 def poly_expand_tabs(x: Any=None, tabsize: Any=8) -> Any:
@@ -733,7 +737,7 @@ None.LeftStr() → None
 
 Also see `RightStr()` and `SubStr()`
 """
-    return exec_str_int_op(x, max(1, int_arg(length, 'Length')), "LeftStr", poly_leftstr, lambda x, length: x[:length])
+    return exec_str_int_op(_as_str(x), max(1, int_arg(length, 'Length')), "LeftStr", poly_leftstr, lambda x, length: x[:length])
 
 def poly_rightstr(x: Any=None, length: Any=1) -> Any:
     """
@@ -757,7 +761,7 @@ None.RightStr() → None
 
 Also see `LeftStr()` and `SubStr()`
 """
-    return exec_str_int_op(x, max(0, int_arg(length, 'Length')), "RightStr", poly_rightstr, lambda x, length: x[-length:])
+    return exec_str_int_op(_as_str(x), max(0, int_arg(length, 'Length')), "RightStr", poly_rightstr, lambda x, length: x[-length:])
 
 #---------------------------------------------
 
@@ -790,21 +794,23 @@ Also see `LeftStr()`, `RightStr()`, and `Slice()`
     if isinstance(x, (NoneType, bool, int, float)): return x
     start = max(0, int_arg(start, 'Start'))
     length = 1 if length is None else max(0, int_arg(length, 'Length'))
-    if isinstance(x, str): return x[start:start + length]
     if isinstance(x, list): return list(poly_substr(x1, start, length) for x1 in x)
     if isinstance(x, dict): return {key: poly_substr(value, start, length) for key, value in x.items()}
+    x = _as_str(x)
+    if isinstance(x, str): return x[start:start + length]
     raise ValueError(f'SubStr() on {poly_type(x)!r} not possible')
 
 _string_loc_ops = {
-    (str, str)   : lambda _op, x, y,  sm: sm(x, y),
-    (list, str)  : lambda  op, x, y, _sm: [op(x1, y) for x1 in x],
-    (dict, str)  : lambda  op, x, y, _sm: {
+    (str, str):     lambda _op, x, y,  sm: sm(x, y),
+    (str, Pattern): lambda _op, x, y,  sm: sm(x, y),
+    (list, str):    lambda  op, x, y, _sm: [op(x1, y) for x1 in x],
+    (dict, str):    lambda  op, x, y, _sm: {
                                             key: op(value, y) for key, value in x.items()
                                                 if isinstance(value, (str, list, dict))
                                           },
 }
 
-def poly_count(x: Any=None, sub: Any=None) -> Any:
+def poly_count(x: Any=None, sub: Any='') -> Any:
     """
 **Return the count of a value in another**
 
@@ -818,29 +824,41 @@ None.CountOf("a") → 0
 
 // With Strings
 "".CountOf("x") → 0
-"aaaBc".CountOf("") → 0
+"aaaBc".CountOf() → 5
+"aaaBc".CountOf("") → 5
+"aaaBc".CountOf(None) → 5
 "aaaBc".CountOf("a") → 3
-"aaaBc".CountOf("aa") → 1 // occurrences must be non-overlapping
+"aaaBc".CountOf("aa") → 1 // occurrences are non-overlapping
+"aaabbaac".CountOf(r/a+/) → 2
 
 // With Lists
 Set fruits To ["apple", "banana", "apple", "orange", "apple"]
+fruits.CountOf() → 5
 fruits.CountOf("apple") → 3
 fruits.CountOf("grape") → 0
+fruits.CountOf(r/(an)+/) → 2 // banana and orange
 
 // With Dictionaries
 Set fruit_colors To {"apple": "red", "banana": "yellow"}
+fruit_colors.CountOf() → 2
 fruit_colors.CountOf("apple") → 1
 fruit_colors.CountOf("grape") → 0
+fruit_colors.CountOf(r/a/) → 2 // both contain "a"
 ```
 """
+    def _re_count(x: str, p: Pattern) -> int: return len(re.findall(p, x))
     if x is None: return 0
-    if isinstance(x, list): return sum(1 for x1 in x if poly_eq(x1, sub))
-    if isinstance(x, dict): return 1 if sub in x else 0
-    x = str(x)
+    sub = str_arg(sub, 'Sub', False, True) or ''
+    if isinstance(x, dict): x = list(x.keys())
+    if isinstance(x, list):
+        if isinstance(sub, str) and len(sub) == 0: return len(x)
+        cmp = poly_matches if isinstance(sub, Pattern) else poly_eq
+        return sum(1 for x1 in x if cmp(x1, sub))
+    x = _as_str(x)
     if len(x) == 0: return 0
-    sub = str_arg(sub, 'Sub', False) or ''
-    if len(sub) == 0: return 0 # sane rather than pythonic
-    return _exec_x_y_op(x, sub, 'CountOf', poly_count, str.count, _string_loc_ops)
+    if isinstance(sub, Pattern):
+        return _exec_x_y_op(x, sub, 'CountOf', poly_count, _re_count, _string_loc_ops)
+    return len(x) if len(sub) == 0 else _exec_x_y_op(x, sub, 'CountOf', poly_count, str.count, _string_loc_ops)
 
 def poly_index(x: Any=None, sub: Any=None) -> Any:
     """
@@ -875,11 +893,11 @@ fruit_colors.IndexOf("grape") → -1 // key not present
 
 Also see `RIndexOf()` and `FindStr()`
 """
+    # TODO regex behavior for sub
     if x is None: return -1
     if isinstance(x, list): return next((i for i, x1 in enumerate(x) if poly_eq(x1, sub)), -1)
     if isinstance(x, dict): return 0 if sub in x else -1
-    x = str(x)
-    if len(x) == 0: return -1
+    if isinstance(x, (bool, int, float)): x = str(x)
     sub = str_arg(sub, 'Sub', False) or ''
     if len(sub) == 0: return -1
     return _exec_x_y_op(x, sub, 'IndexOf', poly_index, str.find, _string_loc_ops)
@@ -917,11 +935,11 @@ fruit_colors.RIndexOf("grape") → -1 // key not present
 
 Also see `IndexOf()` and `RFindStr()`
 """
+    # TODO regex behavior for sub
     if x is None: return -1
     if isinstance(x, list): return next((i for i in range(len(x) - 1, -1, -1) if poly_eq(x[i], sub)), -1)
     if isinstance(x, dict): return 0 if sub in x else -1
-    x = str(x)
-    if len(x) == 0: return -1
+    if isinstance(x, (bool, int, float)): x = str(x)
     sub = str_arg(sub, 'Sub', False) or ''
     if len(sub) == 0: return -1
     return _exec_x_y_op(x, sub, 'RIndexOf', poly_rindex, str.rfind, _string_loc_ops)
@@ -943,12 +961,13 @@ None.FindStr("a") → None
 "aaaBc".FindStr("z") → -1
 "aaaBc".FindStr("a") → 0
 ["A.b.c", "X.y.z"].FindStr(".") → [1, 1]
-123.FindStr("1") → 123
+123.FindStr("1") → 0
 ```
 
 Also see `RFindStr()` and `IndexOf()`
 """
-    if isinstance(x, (NoneType, bool, int, float)): return x
+    # TODO regex behavior for sub
+    x = _as_str(x)
     return _exec_x_y_op(x, str_arg(sub, 'Substr', False) or '', 'FindStr', poly_findstr, str.find, _string_loc_ops)
 
 def poly_rfindstr(x: Any=None, sub: Any=None) -> Any:
@@ -968,12 +987,13 @@ None.RFindStr("a") → None
 "aaaBc".RFindStr("z") → -1
 "aaaBc".RFindStr("a") → 2
 ["A.b.c", "X.y.z"].RFindStr(".") → [3, 3]
-123.RFindStr("1") → 123
+123.RFindStr("1") → 0
 ```
 
 Also see `FindStr()` and `RIndexOf()`
 """
-    if isinstance(x, (NoneType, bool, int, float)): return x
+    # TODO regex behavior for sub
+    x = _as_str(x)
     return _exec_x_y_op(x, str_arg(sub, 'Substr', False) or '', 'RFindStr', poly_rfindstr, str.rfind, _string_loc_ops)
 
 #---------------------------------------------
@@ -983,7 +1003,7 @@ def _layout_opt(x: Any, width: int, fillchar: str, op, str_op) -> Any:
     fillchar = ' ' if fillchar is None else str_arg(fillchar, "Fillchar")[0]
     if x is None: return fillchar * width
     if isinstance(x, list): return list(op(x1, width, fillchar) for x1 in x)
-    if isinstance(x, (bool, int, float, dict)): x = poly_str(x)
+    x = poly_str(x) if isinstance(x, dict) else _as_str(x)
     return str_op(x, width, fillchar)
 
 def poly_center(x: Any=None, width: int=0, fillchar: str=' ') -> Any:
@@ -1125,7 +1145,7 @@ string.digits.ShortenStr(7, " etc") → "012 etc"
     placeholder = '' if placeholder is None else str_arg(placeholder, "Placeholder")
     if x is None: return ''
     if isinstance(x, list): return list(poly_shorten(x1, length, placeholder) for x1 in x)
-    if isinstance(x, (bool, int, float, dict)): x = poly_str(x)
+    x = str(x) if isinstance(x, dict) else _as_str(x)
     # No adjustment required
     if len(x) <= length: return x
     # No placeholder, so simple truncation
@@ -1232,7 +1252,7 @@ def _append(x: Any, y: Any) -> Any:
     if isinstance(x, list): return list(_append(x1, y) for x1 in x)
     if isinstance(x, dict): return  {key: _append(value, y) for key, value in x.items()}
     if x is None: x = ''
-    if isinstance(x, (bool, int, float)): x = str(x)
+    x = _as_str(x)
     if isinstance(x, str):
         if isinstance(y, list): return reduce(_append, y, x)
         if isinstance(y, (bool, int, float)): return x + str(y)
@@ -1244,7 +1264,7 @@ def _prepend(x: Any, y: Any) -> Any:
     if isinstance(x, list): return list(_prepend(x1, y) for x1 in x)
     if isinstance(x, dict): return  {key: _prepend(value, y) for key, value in x.items()}
     if x is None: x = ''
-    if isinstance(x, (bool, int, float)): x = str(x)
+    x = _as_str(x)
     if isinstance(x, str):
         if isinstance(y, list): return reduce(_prepend, y, x)
         if isinstance(y, (bool, int, float)): return str(y) + x
@@ -1252,11 +1272,10 @@ def _prepend(x: Any, y: Any) -> Any:
     raise TypeError(f'Concatenation between {poly_type(x)!r} and {poly_type(y)!r} not supported')
 
 def _replace(x: Any, old: Any, new: Any=None) -> Any:
-    if isinstance(old, re.Pattern): return poly_regex_replace(x, old, new)
+    if isinstance(old, Pattern): return poly_regex_replace(x, old, new)
     if old is None: return x
     if x is None: x = ''
-    if isinstance(x, (bool, int, float)): x = str(x)
-    if isinstance(x, re.Pattern): x = x.pattern
+    x = _as_str(x)
     if not isinstance(new, str):
         if new is None:
             new = ''
@@ -1277,7 +1296,7 @@ def _replace(x: Any, old: Any, new: Any=None) -> Any:
 
 def _as_str(value: Any) -> Any:
     if isinstance(value, (bool, int, float)): value = str(value)
-    if isinstance(value, re.Pattern): value = value.pattern
+    if isinstance(value, Pattern): value = value.pattern
     return value
 
 def poly_split(x: Any=None, sep: str=None, maxsplit: int=-1) -> Any:
@@ -1321,7 +1340,7 @@ None.Split() → []
 
 Also see `RSplit()` and `CompilePattern()`
 """
-    if isinstance(sep, re.Pattern): return _re_split(x, sep, maxsplit)
+    if isinstance(sep, Pattern): return _re_split(x, sep, maxsplit)
     return _split('Split', poly_split, str.split, x, sep, maxsplit)
 
 def poly_rsplit(x: Any=None, sep: str=None, maxsplit: int=-1) -> Any:
@@ -1351,9 +1370,10 @@ None.RSplit() → []
 
 Also see `Split()`
 """
+    # TODO regex behavior for sep
     return _split('RSplit', poly_rsplit, str.rsplit, x, sep, maxsplit)
 
-def _re_split(x: Any, sep: re.Pattern, maxsplit: int=0):
+def _re_split(x: Any, sep: Pattern, maxsplit: int=0):
     if x is None: x = ''
     x = _as_str(x)
     if isinstance(x, str):  return re.split(sep, x, max(0, maxsplit))
@@ -1607,7 +1627,7 @@ Also see `Chr()`
 """
     if x is None: return None
     if isinstance(x, (int, float)): return int(x) if 0 <= x <= 0x10FFFF else x
-    if isinstance(x, re.Pattern): x = x.pattern
+    if isinstance(x, Pattern): x = x.pattern
     if isinstance(x, str): return ord(x) if len(x) == 1 else [poly_ord(x1) for x1 in x]
     if isinstance(x, (bytes, bytearray)): return list(x)
     if isinstance(x, list): return list(poly_ord(el) for el in x)
