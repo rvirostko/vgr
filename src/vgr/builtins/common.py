@@ -113,10 +113,13 @@ def int_arg(arg: Any, name: str) -> int:
         raise ValueError(f'{name} argument must be a number, found {poly_type(arg)!r}')
     return int(arg)
 
-def str_arg(arg: Any, name: str, req_value: bool=True) -> str:
-    """Type checks the argument as string and optionally, non-None, non-blank"""
-    if req_value and arg is None:
-        raise ValueError(f'{name} argument cannot be None')
+from re import Pattern
+def str_arg(arg: Any, name: str, req_value: bool=True, allow_pattern: bool=False) -> str:
+    """Type checks the argument as string (or pattern) and optionally, non-None, non-blank"""
+    if arg is None:
+        if req_value: raise ValueError(f'{name} argument cannot be None')
+        return arg
+    if allow_pattern and isinstance(arg, Pattern): return arg
     if isinstance(arg, str):
         if req_value and len(arg) == 0:
             raise ValueError(f'{name} argument cannot be blank')
