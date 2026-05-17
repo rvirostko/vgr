@@ -588,6 +588,7 @@ None.RemovePrefix() → None
 "http://example.com".RemovePrefix("http://") → "example.com"
 "http://example.com".RemovePrefix("http://", "https://") → "example.com"
 "http://example.com".RemovePrefix(["http://", "https://"]) → "example.com"
+"http://example.com".RemovePrefix(r/https?:[/]{2}/i) → "example.com"
 ["a/file.txt","b/file.txt"].RemovePrefix("a/", "b/") → ["file.txt", "file.txt"]
 1234.RemovePrefix(12) → "34"
 ```
@@ -596,6 +597,11 @@ Also see `RemoveSuffix()`
 """
     def _removeprefix(x: Any, prefix: Any) -> Any:
         if prefix is None: return x
+        if isinstance(prefix, Pattern):
+            start = 0
+            for m in re.finditer(prefix, x):
+                if m.start() == 0: start = m.end()
+            return x[start:len(x) + 1]
         if isinstance(prefix, (bool, int, float)): prefix = str(prefix)
         return _exec_str_str_op(x, prefix, 'RemovePrefix', _removeprefix, str.removeprefix)
     if not args: return None
@@ -619,6 +625,7 @@ None.RemoveSuffix() → None
 "http://example.com".RemoveSuffix(".com") → "http://example"
 "http://example.com".RemoveSuffix(".net", ".com") → "http://example"
 "http://example.com".RemoveSuffix([".net", ".com"]) → "http://example"
+"http://example.com".RemoveSuffix(r/[.](com|org|net)/i) → "http://example"
 ["file.txt","file.md"].RemoveSuffix(".md", ".txt") → ["file", "file"]
 1234.RemoveSuffix(34) → "12"
 ```
@@ -627,6 +634,12 @@ Also see `RemovePrefix()`
 """
     def _removesuffix(x: Any, suffix: Any) -> Any:
         if suffix is None: return x
+        if isinstance(suffix, Pattern):
+            xlen = len(x)
+            end = xlen + 1
+            for m in re.finditer(suffix, x):
+                if m.end() == xlen: end = m.start()
+            return x[0:end]
         if isinstance(suffix, (bool, int, float)): suffix = str(suffix)
         return _exec_str_str_op(x, suffix, 'RemoveSuffix', _removesuffix, str.removesuffix)
     if not args: return None
@@ -646,9 +659,14 @@ def _exec_bool_str_op(x: Any, y: Any, name: str, op: Callable[[Any, Any], Any], 
     if isinstance(x, str):
         for y1 in flatten(y):
             if y1 is None: continue
-            if not isinstance(y1, str):
-                raise ValueError(f'{name}() between {poly_type(x)!r} and {poly_type(y1)!r} not possible')
-            if y1 and string_op(x, y1): return True
+            if isinstance(y1, Pattern):
+                if string_op(x, y1): return True
+            else:
+                y1 = _as_str(y1)
+                if isinstance(y1, str):
+                    if y1 and string_op(x, y1): return True
+                else:
+                    raise ValueError(f'{name}() between {poly_type(x)!r} and {poly_type(y1)!r} not possible')
     return False
 
 def poly_starts_with(*args: Any) -> Any:
@@ -669,12 +687,18 @@ If *value* is neither a list, dictionary, or string, `False` is returned.
 "foo".StartsWith("f") → True
 ["foo", "bar", "cat", 7].StartsWith("a", ["b", "c"]) → [False, True, True, False]
 {"one": "a", "two": "d", "three": 3}.StartsWith("a", "b", "c") → {"one": True, "two": False}
+{"one": "a", "two": "d", "three": 3}.StartsWith(r/[abc]/) → {'one': True, 'two': False}
 ```
 
 Also see `EndsWith()`
 """
+    def _starts_with(s: str, prefix: Any) -> bool:
+        if isinstance(prefix, str): return s.startswith(prefix)
+        if isinstance(prefix, Pattern):
+            m = re.match(prefix, s)
+            return m is not None and m.start() == 0
     if not args: return False
-    return _exec_bool_str_op(args[0], list(args[1:]), "StartsWith", poly_starts_with, str.startswith)
+    return _exec_bool_str_op(args[0], list(args[1:]), "StartsWith", poly_starts_with, _starts_with)
 
 def poly_ends_with(*args: Any) -> bool:
     """
@@ -695,12 +719,20 @@ If *value* is neither a list, dictionary, or string, `False` is returned.
 "foo".EndsWith("a", "e", "i", "o", "u") → True
 ["foo", "bar"].EndsWith("o") → [True, False]
 "foo".EndsWith(["a", "e"], ["i", "o", "u"]) → True
+"foo".EndsWith(r/[aeiou]/) → True
 ```
 
 Also see `StartsWith()`
 """
+    def _ends_with(s: str, suffix: Any) -> bool:
+        if isinstance(suffix, str): return s.endswith(suffix)
+        if isinstance(suffix, Pattern):
+            slen = len(s)
+            for m in re.finditer(suffix, s):
+                if m.end() == slen: return True
+        return False
     if not args: return False
-    return _exec_bool_str_op(args[0], list(args[1:]), "EndsWith", poly_ends_with, str.endswith)
+    return _exec_bool_str_op(args[0], list(args[1:]), "EndsWith", poly_ends_with, _ends_with)
 
 _string_int_ops = {
     (str, int)   : lambda _op, x, y,  sm: sm(x, y),
