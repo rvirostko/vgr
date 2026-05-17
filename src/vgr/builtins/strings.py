@@ -17,7 +17,7 @@ from .common import (
     X_None_Op,
 )
 from .inequ import poly_eq
-from .match import poly_matches
+from .match import poly_matches_all
 from .reg_ex import poly_regex_replace
 from .type import poly_type
 from .types import poly_str
@@ -33,7 +33,7 @@ def _exec_x_op(x: Any, name: str, op: Callable[[Any], Any], string_op, op_table)
 
 #---------------------------------------------
 
-# For no-args string methods that return a string, e.q. "x.Upper()"
+# For no-args string methods that return a string, e.g. "x.Upper()"
 # These are transformational on string items, but idempotent on others
 _str_operations = {
     NoneType: lambda _op, _x, _sm: None,
@@ -494,6 +494,14 @@ None.Strip() → None
 Also see `LeftStrip()` and `RightStrip()`
 """
     def _strip(x: Any, chars: Any=None) -> Any:
+        if isinstance(chars, Pattern):
+            start = 0
+            xlen = len(x)
+            end = xlen + 1
+            for m in re.finditer(chars, x):
+                if m.start() == 0: start = m.end()
+                if m.end() == xlen: end = m.start()
+            return x[start:end]
         return _exec_str_str_op(x, chars, 'Strip', _strip, str.strip)
     if not args: return None
     x, *args = args
@@ -521,6 +529,11 @@ None.LeftStrip() → None
 Also see `Strip()` and `RightStrip()`
 """
     def _lstrip(x: Any, chars: Any=None) -> Any:
+        if isinstance(chars, Pattern):
+            start = 0
+            for m in re.finditer(chars, x):
+                if m.start() == 0: start = m.end()
+            return x[start:len(x) + 1]
         return _exec_str_str_op(x, chars, 'LeftStrip', _lstrip, str.lstrip)
     if not args: return None
     x, *args = args
@@ -548,6 +561,12 @@ None.RightStrip() → None
 Also see `Strip()` and `LeftStrip()`
 """
     def _rstrip(x: Any, chars: Any=None) -> Any:
+        if isinstance(chars, Pattern):
+            xlen = len(x)
+            end = xlen + 1
+            for m in re.finditer(chars, x):
+                if m.end() == xlen: end = m.start()
+            return x[0:end]
         return _exec_str_str_op(x, chars, 'RightStrip', _rstrip, str.rstrip)
     if not args: return None
     x, *args = args
@@ -810,7 +829,7 @@ _string_loc_ops = {
                                           },
 }
 
-def poly_count(x: Any=None, sub: Any='') -> Any:
+def poly_count(x: Any=None, sub: Any=None) -> Any:
     """
 **Return the count of a value in another**
 
@@ -848,16 +867,17 @@ fruit_colors.CountOf(r/a/) → 2 // both contain "a"
 """
     def _re_count(x: str, p: Pattern) -> int: return len(re.findall(p, x))
     if x is None: return 0
-    sub = str_arg(sub, 'Sub', False, True) or ''
+    sub = str_arg(sub, 'Sub', False, True)
     if isinstance(x, dict): x = list(x.keys())
     if isinstance(x, list):
         if isinstance(sub, str) and len(sub) == 0: return len(x)
-        cmp = poly_matches if isinstance(sub, Pattern) else poly_eq
+        cmp = poly_matches_all if isinstance(sub, Pattern) else poly_eq
         return sum(1 for x1 in x if cmp(x1, sub))
     x = _as_str(x)
     if len(x) == 0: return 0
     if isinstance(sub, Pattern):
         return _exec_x_y_op(x, sub, 'CountOf', poly_count, _re_count, _string_loc_ops)
+    sub = '' if sub is None else sub
     return len(x) if len(sub) == 0 else _exec_x_y_op(x, sub, 'CountOf', poly_count, str.count, _string_loc_ops)
 
 def poly_index(x: Any=None, sub: Any=None) -> Any:
