@@ -1,7 +1,7 @@
 from copy import copy
 from functools import cmp_to_key
 from typing import Any
-import re
+from re import Pattern
 
 from .common import (
     bool_arg,
@@ -35,6 +35,7 @@ If *value* is an ordinal rather than a list, it is returned unchanged.
 ```
 """
     if isinstance(x, list): return list(reversed(x))
+    if isinstance(x, Pattern): x = x.pattern
     if isinstance(x, str): return x[::-1]
     return x
 
@@ -90,6 +91,7 @@ None.Length() → None
 
 Also see `StringLen()`
 """
+    if isinstance(x, Pattern): x = x.pattern
     return len(x) if hasattr(x, '__len__') else None
 
 def poly_ascii(x: Any=None) -> str:
@@ -108,7 +110,7 @@ with backslash sequences.
 "One\\nTwo".Ascii() → "One\\nTwo"
 ```
 """
-    return ascii(x)
+    return ascii(x.pattern if isinstance(x, Pattern) else x)
 
 def poly_hash(x: Any=None) -> int:
     """
@@ -219,7 +221,7 @@ Also see `Ascii()`
         if r[0] == r[-1] == "'":
             return '"' + r[1:-1] + '"'
         return r
-    if isinstance(x, re.Pattern): return poly_repr(x.pattern)
+    if isinstance(x, Pattern): return poly_repr(x.pattern)
     if isinstance(x, list): return '[' + ', '.join(poly_repr(x1) for x1 in x) + ']'
     return repr(x)
 
