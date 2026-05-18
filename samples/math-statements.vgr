@@ -1,0 +1,35 @@
+
+Echo On
+// Addition
+Set a To 5
+Add 1 To a
+Assert a Is 6
+
+Add a, a To b
+Assert a Is 6 And b Is 12
+
+Add 1, 2 To 3 Giving c
+Assert c Is 6
+
+// Set Up
+Set counter To Zero
+Set counter Up By 5
+Assert counter Is 5
+Set counter Up By (2 * 3) + 1
+Assert counter Is 12
+
+// Subtraction
+Set a To 5
+Subtract 3 From a
+Assert a Is 2
+Subtract a, a From a
+Assert a Is -2
+Subtract 5 From a Giving b
+Assert a Is -2 And b is -7
+
+// Set Down
+Set counter To 5
+Set counter Down By 2
+Assert counter Is 3
+Set counter Down By (counter * 2)
+Assert counter is -3

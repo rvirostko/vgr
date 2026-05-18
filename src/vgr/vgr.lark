@@ -55,7 +55,9 @@ opt_statements: statement*
 ?statement: (simple_statement | select | control_statements | define_statements {EXTN_STATEMENTS}) ";"?
     | ";" -> pass // blank statement synonymous with "pass"
 
-?simple_statement: assert
+?simple_statement: add_giving
+    | add_to
+    | assert
     | assign
     | break
     | call
@@ -87,6 +89,8 @@ opt_statements: statement*
     | sleep
     | sort
     | source
+    | sub_from
+    | sub_giving
     | swap
     | unset
     | verbose
@@ -241,6 +245,12 @@ set:  "Set"i var_name (_assignment | IN_PLACE_OP) expr
 IN_PLACE_OP: ("+=" | "-=" | "*=" | "/=" | "%=" | "**=" | "&=" | "|=" | "^=" | "<<=" | ">>=" )
 // Alternate to "Set" to get around conflicts
 assign: "Assign"i expr _assignment var_name
+
+add_to:     "Add"i _csep_list{expr} "To"i var_name
+add_giving: "Add"i _csep_list{expr} "To"i expr "Giving"i var_name
+
+sub_from:   "Subtract"i _csep_list{expr} "From"i var_name
+sub_giving: "Subtract"i _csep_list{expr} "From"i expr "Giving"i var_name
 
 set_key_value: ("Set-Key"i | ("Set"i "Key"i)) expr "In"i "Dictionary"i? var_name (_assignment expr)?
 remove_key: ("Remove-Key"i | "Remove"i "Key"i) expr "From"i "Dictionary"i? var_name

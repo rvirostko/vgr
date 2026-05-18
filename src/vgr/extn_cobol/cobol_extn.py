@@ -7,8 +7,6 @@ from typing import Dict, Callable
 from ..extn import VgrExtension
 from .cobol_stmts import (
     execute_accept,
-    execute_add_giving,
-    execute_add_to,
     execute_display_on,
     execute_div_by,
     execute_div_into,
@@ -20,8 +18,6 @@ from .cobol_stmts import (
     execute_perform_until,
     execute_perform_varying,
     execute_string,
-    execute_sub_from,
-    execute_sub_giving,
 )
 
 _HANDLERS = {
@@ -32,8 +28,6 @@ _HANDLERS = {
     'cobol_accept_time':        execute_accept,
     'cobol_accept_yyyyddd':     execute_accept,
     'cobol_accept_yyyymmdd':    execute_accept,
-    'cobol_add_giving':         execute_add_giving,
-    'cobol_add_to':             execute_add_to,
     'cobol_display_on':         execute_display_on,
     'cobol_div_by':             execute_div_by,
     'cobol_div_into':           execute_div_into,
@@ -45,8 +39,6 @@ _HANDLERS = {
     'cobol_perform_until':      execute_perform_until,
     'cobol_perform_varying':    execute_perform_varying,
     'cobol_string':             execute_string,
-    'cobol_sub_from':           execute_sub_from,
-    'cobol_sub_giving':         execute_sub_giving,
 }
 
 class CobolExtension(VgrExtension):

@@ -89,6 +89,12 @@ from .stmt_log import (
     execute_log,
     execute_log_setlevel,
 )
+from .stmt_math import (
+    execute_add_giving,
+    execute_add_to,
+    execute_sub_from,
+    execute_sub_giving,
+)
 from .stmt_sleep import execute_sleep
 from .stmt_print import (
     execute_print,
@@ -1089,6 +1095,8 @@ class VarRefOptimizer(Transformer):
 # NB: Extension may add items to this list,
 #     but they can't replace existing ones
 STATEMENT_HANDLERS = {
+    'add_giving':        execute_add_giving,
+    'add_to':            execute_add_to,
     'assert':            execute_assert,
     'assign':            execute_assign,
     'block':             execute_block,
@@ -1138,6 +1146,8 @@ STATEMENT_HANDLERS = {
     'sleep':             execute_sleep,
     'sort':              execute_sort,
     'source':            execute_source,
+    'sub_from':          execute_sub_from,
+    'sub_giving':        execute_sub_giving,
     'swap':              execute_swap,
     'unless':            execute_unless,
     'unset':             execute_unset,

@@ -1,7 +1,5 @@
 
 ?cobol_statements: cobol_accept
-    | cobol_add_giving
-    | cobol_add_to
     | cobol_display_on
     | cobol_div_by
     | cobol_div_into
@@ -13,8 +11,6 @@
     | cobol_perform_until
     | cobol_perform_varying
     | cobol_string
-    | cobol_sub_from
-    | cobol_sub_giving
 
 _cob_expr_list: expr (_SEP? expr)*
 _cob_var_list: var_name (_SEP? var_name)*
@@ -62,12 +58,6 @@ cobol_display_on: "Display"i _cob_expr_list cobol_display_opt*
 cobol_string: "String"i _options_list{cobol_string_source} _SEP? "Into"i var_name "End-String"i?
 ?cobol_string_source: expr ("Delimited"i "By"i "Size"i)? -> full
     | expr "Delimited"i "By"i expr -> delimited
-
-cobol_add_to: "Add"i _cob_expr_list "To"i var_name "End-Add"i?
-cobol_add_giving: "Add"i _cob_expr_list "To"i expr "Giving"i var_name "End-Add"i?
-
-cobol_sub_from: "Subtract"i _cob_expr_list "From"i var_name "End-Subtract"i?
-cobol_sub_giving: "Subtract"i _cob_expr_list "From"i expr "Giving"i var_name "End-Subtract"i?
 
 // Notes:
 //   * Only one var_name can be specified
