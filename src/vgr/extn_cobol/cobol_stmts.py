@@ -109,10 +109,9 @@ Also see `FormatTimestamp()`
 @bound_ops("Exit Perform")
 def execute_exit_perform(_: ExecContext, statement: Tree) -> None:
     """
-**Affects the execution of a Perform loop**
+**Ends the execution of a Perform loop**
 
-* Exit Perform *Exit the containing loop*
-* Exit Perform Cycle *Continue loop from the start*
+* Exit Perform
 
 ```vgr
 Perform 3 Times:
@@ -123,25 +122,9 @@ End-Perform
 a
 ```
 
-```vgr
-Perform 3 Times:
-    Display "a"
-    Exit Perform Cycle
-    Display "b" # Never executes
-End-Perform
-a
-a
-a
-```
-
 Also see `Break` and `Continue`
 """
-    cmd = statement.data
-    if cmd == 'cobol_exit_perform_cycle':
-        raise VgrStatementContinue(statement, BlockType.PERFORM)
-    if cmd == 'cobol_exit_perform':
-        raise VgrStatementBreak(statement, BlockType.PERFORM)
-    raise ValueError(f'Unhandled type {cmd!r}') # SNO
+    raise VgrStatementBreak(statement, BlockType.PERFORM)
 
 @bound_ops("Exit Program")
 def execute_exit_program(ctx: ExecContext, statement: Tree) -> None:
@@ -149,7 +132,6 @@ def execute_exit_program(ctx: ExecContext, statement: Tree) -> None:
 **Return control to the caller of a function or to the operating system**
 
 * Exit Program
-* Goback
 
 If used within a function, the function ends, returning `None`.
 If used at the global level, the program ends, exiting with a return code of zero.

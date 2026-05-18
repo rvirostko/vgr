@@ -40,7 +40,6 @@ _HANDLERS = {
     'cobol_div_into':           execute_div_into,
     'cobol_exhibit':            execute_exhibit,
     'cobol_exit_perform':       execute_exit_perform,
-    'cobol_exit_perform_cycle': execute_exit_perform,
     'cobol_exit_program':       execute_exit_program,
     'cobol_move_to':            execute_move_to,
     'cobol_mul_by':             execute_mul_by,

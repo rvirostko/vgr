@@ -9,7 +9,6 @@
 Do While True: Exit For;           Exit; Loop
 Do While True: Continue For;       Exit; Loop
 Do While True: Exit Perform;       Exit; Loop
-Do While True: Exit Perform Cycle; Exit; Loop
 
 # Can only use Break/Continue and Exit/Continue Do
 Do Until False: Exit For;           Exit; Loop
@@ -17,7 +16,6 @@ Do Until False: Continue For;       Exit; Loop
 Do Until False: Exit While;         Exit; Loop
 Do Until False: Continue While;     Exit; Loop
 Do Until False: Exit Perform;       Exit; Loop
-Do Until False: Exit Perform Cycle; Exit; Loop
 
 # Can only use Break/Continue and Exit/Continue For
 For x = 1 To 3: Exit Do;               Exit; Next
@@ -29,7 +27,6 @@ For Each x in [1]: Continue Do;        Exit; Next
 For Each x in [1]: Exit While;         Exit; Next
 For Each x in [1]: Continue While;     Exit; Next
 For Each x in [1]: Exit Perform;       Exit; Next
-For Each x in [1]: Exit Perform Cycle; Exit; Next
 
 // -- COBOL --
 
@@ -71,7 +68,6 @@ Continue;
 Continue Do;
 Continue For;
 Continue While;
-Exit Perform Cycle;
 
 # Not valid in an If or Unless outside of a loop
 # (no need to test all variants...)
@@ -90,41 +86,36 @@ Choose Using True: When True: Continue; End-Choose
 
 # Break/Continue valid in VGR loops, and any type that
 # matches the "verb"
-Do Forever: Exit For;           Exit; End-Do
-Do Forever: Continue For;       Exit; End-Do
-Do Forever: Exit While;         Exit; End-Do
-Do Forever: Continue While;     Exit; End-Do
-Do Forever: Exit Perform;       Exit; End-Do
-Do Forever: Exit Perform Cycle; Exit; End-Do
+Do Forever: Exit For;       Exit; End-Do
+Do Forever: Continue For;   Exit; End-Do
+Do Forever: Exit While;     Exit; End-Do
+Do Forever: Continue While; Exit; End-Do
+Do Forever: Exit Perform;   Exit; End-Do
 
-Repeat 3 Times: Exit Do;            Exit; End-Repeat
-Repeat 3 Times: Continue Do;        Exit; End-Repeat
-Repeat 3 Times: Exit For;           Exit; End-Repeat
-Repeat 3 Times: Continue For;       Exit; End-Repeat
-Repeat 3 Times: Exit While;         Exit; End-Repeat
-Repeat 3 Times: Continue While;     Exit; End-Repeat
-Repeat 3 Times: Exit Perform;       Exit; End-Repeat
-Repeat 3 Times: Exit Perform Cycle; Exit; End-Repeat
+Repeat 3 Times: Exit Do;        Exit; End-Repeat
+Repeat 3 Times: Continue Do;    Exit; End-Repeat
+Repeat 3 Times: Exit For;       Exit; End-Repeat
+Repeat 3 Times: Continue For;   Exit; End-Repeat
+Repeat 3 Times: Exit While;     Exit; End-Repeat
+Repeat 3 Times: Continue While; Exit; End-Repeat
+Repeat 3 Times: Exit Perform;   Exit; End-Repeat
 
-Until False: Exit Do;            Exit; End-Until
-Until False: Continue Do;        Exit; End-Until
-Until False: Exit For;           Exit; End-Until
-Until False: Continue For;       Exit; End-Until
-Until False: Exit While;         Exit; End-Until
-Until False: Continue While;     Exit; End-Until
-Until False: Exit Perform;       Exit; End-Until
-Until False: Exit Perform Cycle; Exit; End-Until
+Until False: Exit Do;        Exit; End-Until
+Until False: Continue Do;    Exit; End-Until
+Until False: Exit For;       Exit; End-Until
+Until False: Continue For;   Exit; End-Until
+Until False: Exit While;     Exit; End-Until
+Until False: Continue While; Exit; End-Until
+Until False: Exit Perform;   Exit; End-Until
 
-While True: Exit Do;            Exit; End-While
-While True: Continue Do;        Exit; End-While
-While True: Exit For;           Exit; End-While
-While True: Continue For;       Exit; End-While
-While True: Exit Perform;       Exit; End-While
-While True: Exit Perform Cycle; Exit; End-While
+While True: Exit Do;      Exit; End-While
+While True: Continue Do;  Exit; End-While
+While True: Exit For;     Exit; End-While
+While True: Continue For; Exit; End-While
+While True: Exit Perform; Exit; End-While
 
-For Each x in [1]: Exit Do;            Exit; End-For
-For Each x in [1]: Continue Do;        Exit; End-For
-For Each x in [1]: Exit While;         Exit; End-For
-For Each x in [1]: Continue While;     Exit; End-For
-For Each x in [1]: Exit Perform;       Exit; End-For
-For Each x in [1]: Exit Perform Cycle; Exit; End-For
+For Each x in [1]: Exit Do;        Exit; End-For
+For Each x in [1]: Continue Do;    Exit; End-For
+For Each x in [1]: Exit While;     Exit; End-For
+For Each x in [1]: Continue While; Exit; End-For
+For Each x in [1]: Exit Perform;   Exit; End-For
