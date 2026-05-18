@@ -10,9 +10,9 @@ Set logs To [
 
 Printf Newline
 Printf "={:=<58}=\n", " Log entries "
-For Each line In logs
+For-Each line In logs
     Print line
-End
+End-For
 Print "=" * 60
 
 Printf Newline
@@ -22,7 +22,7 @@ Set p_app To CompilePattern("user=(?P<user>\\w+) action=(?P<action>\\w+) status=
 Set p_web To CompilePattern("(?P<method>GET|POST) (?P<path>[^ ]+) (?P<code>[0-9]+) user=(?P<user>\\w+)")
 
 Printf "={:=<58}=\n", " Normalized Events "
-For Each line In logs
+For-Each line In logs
     Set m To line.ExtractMatch(p_app, p_web)
     Choose
         When m.pattern Equals p_app
@@ -35,21 +35,21 @@ For Each line In logs
         Otherwise
             Printf "{:<4} | {}\n", "OTHR", line
     End-Choose
-End
+End-For
 Print "=" * 60
 
 Printf Newline
 Set p_kv = CompilePattern("(?P<key>\\w+)=(?P<value>[^ ]+)")
 
 Printf "={:=<58}=\n", " Key/Value Extraction "
-For Each line In logs
+For-Each line In logs
     Set matches To line.ExtractAllMatches(p_kv)
     If matches Is Not None
         Set kv To Dictionary()
-        For Each m in matches
+        For-Each m in matches
            Set kv To kv.SetKeyValue(m.key, m.value)
-        End
+        End-For
         Print kv.FormatJson(None, True)
     End-If
-End
+End-For
 Print "=" * 60

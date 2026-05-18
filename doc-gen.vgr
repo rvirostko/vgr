@@ -36,10 +36,13 @@ Tron
 // Documentation examples go here
 //-----------------------------------------------------------------------------
 
-Print MdCodeBlock(None).Repr()
-#Print MdCodeBlock("print('Hello, World')").Repr()
-#Print MdCodeBlock("print('Hello, World')", "python").Repr()
-#Print MdCodeBlock(["primes = [2, 3, 5]", "for p in primes:", "    print(p)"]).Repr()
+Set d = {"a": 1, "b": 2}
+Remove-Key "a" From d
+Print d.Repr()
+
+Set a = [ {"a": 1}, {"b": 2} ]
+Remove-Key "b" From a
+Print a.Repr()
 
 //-----------------------------------------------------------------------------
 Troff
@@ -71,6 +74,6 @@ Print As Markdown example
 Terminal SetClipboard example.ReplaceStr("\\", "\\\\").AppendStr("\n")
 
 // Clean up our temp files
-For Each fn in [setup_file, out_file, err_file]
+For-Each fn in [setup_file, out_file, err_file]
     Assert fn.RemoveFile().FirstItem() : "Could not delete {}", fn
 End-For

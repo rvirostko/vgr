@@ -360,7 +360,7 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // HTTP version
 // -------------------------------------------------------------------------
-For Each test_case in [[1, 1.1], [1.1, 1.1], [2, 2], [" 2 ", 2]]
+For-Each test_case in [[1, 1.1], [1.1, 1.1], [2, 2], [" 2 ", 2]]
     Assign test_case.FirstItem() To version
     Assign "HTTP/" + test_case.LastItem() To expected
     Echo on
@@ -381,12 +381,12 @@ End-For
 // -------------------------------------------------------------------------
 // Verify SSL
 // -------------------------------------------------------------------------
-For Each host In [
+For-Each host In [
         "expired.badssl.com",
         "self-signed.badssl.com",
         "wrong.host.badssl.com",
     ]:
-    For Each verify In [ True, False ]
+    For-Each verify In [ True, False ]
         Echo on
         Http Connect "https://" + host Verify SSL Is verify Timeout Is 10.0 As ssl_test_conn
         Http Get URL Is "/" Using ssl_test_conn

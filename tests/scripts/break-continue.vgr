@@ -156,8 +156,8 @@ Call start_test("Perform Times (COBOL, block=Perform)")
 Perform 3 Times:
     If $loop.first
         Set continued = True
-        Exit Perform Cycle
-        Assert False: "Exit Perform Cycle failed"
+        Continue
+        Assert False: "Continue failed"
     Else
         Set broke = True
         Exit Perform
@@ -186,8 +186,8 @@ Call start_test("Perform Until (COBOL, block=Perform)")
 Perform Until False
     If $loop.first
         Set continued = True
-        Exit Perform Cycle
-        Assert False: "Exit Perform Cycle failed"
+        Continue
+        Assert False: "Continue failed"
     Else
         Set broke = True
         Exit Perform
@@ -216,8 +216,8 @@ Call start_test("Perform Varying (COBOL, block=Perform)")
 Perform Varying x From 1 By 1 Until x > 3
     If $loop.first
         Set continued = True
-        Exit Perform Cycle
-        Assert False: "Exit Perform Cycle failed"
+        Continue
+        Assert False: "Continue failed"
     Else
         Set broke = True
         Exit Perform
@@ -332,7 +332,7 @@ For-Each x In [1, 2, 3] : # keep single keyword form
 End # keep untyped
 Call end_test()
 
-Call start_test("For Each (VGR, block=for)")
+Call start_test("For-Each (VGR, block=for)")
 For-Each x In [1, 2, 3]
     If $loop.first
         Set continued = True

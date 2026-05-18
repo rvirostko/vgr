@@ -31,7 +31,7 @@ Perform iter Times
     Set bwidth = term.box_styles.StringLen().Max() + 2
     Set bheight = 3
     Term FG "bright white", BG "bright green"
-    For Each style In term.box_styles
+    For-Each style In term.box_styles
         Term Pos line,col, DrawBox style,bheight,bwidth, Print style
         Add bwidth To col
         If col >= (80 - bwidth)
@@ -58,7 +58,7 @@ Perform iter Times
         ["hidden",        "Hidden Text"],
         ["bold blue rev", "Combined Settings"]
     ]
-    For Each style In styles
+    For-Each style In styles
         Term Style style.FirstItem(),
             Print style.LastItem().Center(20),
             Style "Normal", FG None, BG None,

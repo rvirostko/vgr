@@ -61,15 +61,15 @@ For x = 0 To 1 Step 1
     NOP
 End  # keep untyped
 
-# For Each
-For Each x In [1, 2]: # keep colon
+# For-Each
+For-Each x In [1, 2]: # keep colon
     NOP
 Next
 
-For Each x In [1, 2]
+For-Each x In [1, 2]
     NOP
 Next
 
-For Each x In [1, 2]
+For-Each x In [1, 2]
     NOP
 End # keep as end

@@ -91,7 +91,7 @@ For Batch Template
 Print """
 There is a special case for using a single dictionary:
 Select iterates over the keys and values in the dictionary
-just like "For Each"
+just like "For-Each"
 Note: the full names of the properties are "$record.key" and "$record.value"
   The Select automatically add the correct prefix as long as the
   name does not collide with a variable that is alread set."""

@@ -18,7 +18,7 @@ Assert ["1"].Matches(None) Is False
 
 Troff
 
-For Each value In [True, False, Zero, Nan, Inf, "hello", ["world"]]
+For-Each value In [True, False, Zero, Nan, Inf, "hello", ["world"]]
     Exhibit value
     Tron
     Assert value.Matches(value)

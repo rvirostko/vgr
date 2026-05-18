@@ -172,7 +172,7 @@ End-Perform
 78.125 : 6103.515625
 ```
 
-Also see `Exit Perform`, `Set Down`, `-`, and `Set`
+Also see `Set Down`, `-`, and `Set`
 """
     var_path = get_writable_var_path(ctx, statement.children[0])
     x = poly_number(ctx.get_var(*var_path)) or 0

@@ -27,7 +27,7 @@ Do Forever
     # Split the input into words and tally their count using a dictionary
     Set counter To {}
     # Normalize the words: lowercase ASCII letters
-    For Each word in inp.Split().RegexReplace(non-alpha).Lower()
+    For-Each word in inp.Split().RegexReplace(non-alpha).Lower()
         If Length(word) > 0
            Set counter To counter.SetKeyValue(word, counter.GetKeyValue(word, 0).Add(1))
         End-If
@@ -48,7 +48,7 @@ Do Forever
         Printf fmt, indent, word_header, count_header
         Printf fmt, indent, term.box.heavy.hbar * word_col_width, term.box.heavy.hbar * count_col_width
         # Print the data
-        For Each word In counter.GetKeys().Sort()
+        For-Each word In counter.GetKeys().Sort()
             Printf fmt, indent, word, counter.GetKeyValue(word)
         End-For
     End-If

@@ -1,4 +1,4 @@
-For Each value In [ 0, 0.0, False, "0", 1, 1.0, True, "1"]
+For-Each value In [ 0, 0.0, False, "0", 1, 1.0, True, "1"]
     Print "Value:", Repr(value)
     Print "-" * 60
     Print "\tToBoolean() ->", ToBoolean(value).Repr()

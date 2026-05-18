@@ -192,7 +192,7 @@ Call CheckDataResponse(n, expected, type) Giving n
 // -------------------------------------------------------------------------
 Set body_value To "🎉 Hello World"
 Set expected To body_value.ReplaceStr("🎉", "?")
-For Each charset In ["ascii", "latin-1", "cp1252"]
+For-Each charset In ["ascii", "latin-1", "cp1252"]
     Set type To http.type.text + "; charset=" + charset
     Http Post target_url Body Is body_value Header "{}: {}".Format(http.header.content_type, type)
     Call CheckDataResponse(n, expected, type) Giving n

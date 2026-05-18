@@ -19,7 +19,7 @@ Assert m Is Not None
 
 Echo Off
 Print m.FormatJson()
-For Each group in m.groups:
+For-Each group in m.groups:
     Printf "{} : {!r}\n", group, m.GetKeyValue(group)
 End-For
 

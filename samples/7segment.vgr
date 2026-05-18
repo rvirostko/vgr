@@ -54,7 +54,7 @@ Define Function encode_7seg(n):
     If n.Type() != 'str'
         Set n To n.ToString()
     End-If
-    For Each d In n.Ord().BitAnd(0b1111)
+    For-Each d In n.Ord().BitAnd(0b1111)
         Append SEG.Item(d) To List rc
     End-For
     Return rc
@@ -98,7 +98,7 @@ End-Function
 For i = 0 to 99999
     Set rows To None
     # Join the lines from the digits into single lines
-    For Each digit In @encode_7seg(i)
+    For-Each digit In @encode_7seg(i)
         Set enc To digit.@render_7seg()
         If $loop.first
             Set rows To enc
@@ -109,7 +109,7 @@ For i = 0 to 99999
         End-If
     End-For
     Term CLS
-    For Each row In rows
+    For-Each row In rows
         Print row
     End-For
 Next
