@@ -2,7 +2,6 @@
 ?cobol_statements: cobol_accept
     | cobol_add_giving
     | cobol_add_to
-    | cobol_compute
     | cobol_dec
     | cobol_display_on
     | cobol_div_by
@@ -38,10 +37,6 @@ cobol_accept_option: "With"i? "Echo"i -> echo // AcuCobol (plus a "with")
     | "With"i? "No"i "Echo"i -> no_echo // Micro Focus, AcuCobol, and GnuCobol
     | "No-Echo"i -> no_echo // Micro Focus and GnuCobol
     | "Secure"i -> secure // Micro Focus and GnuCobol
-
-// NB: Equal is in the spec, Equals is not
-//     Does not support Rounded or On Size Error clauses
-cobol_compute: "Compute"i var_name (_EQ | "Equal"i) expr "End-Compute"i?
 
 cobol_inc: "Set"i var_name "Up"i "By"i expr
 cobol_dec: "Set"i var_name "Down"i "By"i expr

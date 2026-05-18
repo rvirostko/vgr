@@ -348,29 +348,6 @@ Also see `For Next` and `Exit Perform`
     finally:
         ctx.dd.pop_frame()
 
-@bound_ops("Compute")
-def execute_compute(ctx: ExecContext, statement: Tree) -> None:
-    """
-**Evaluate and expression and assign to a variable**
-
-* Compute *variable* = *expression*
-* Compute *variable* Equal *expression*
-
-```vgr
-Move {"x": 5, "y": 5} To start_pt
-Move {"x": -10, "y": -10} To end_pt
-Compute distance Equal (
-        ((start_pt.x - end_pt.x) ** 2) +
-        ((start_pt.y - end_pt.y) ** 2)
-    ) ** .5
-End-Compute
-distance → 21.213203435596427
-```
-
-Also see `Set` and `Move`
-"""
-    execute_set(ctx, statement)
-
 @bound_ops("Set Up")
 def execute_inc(ctx: ExecContext, statement: Tree) -> None:
     """
