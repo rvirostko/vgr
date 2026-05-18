@@ -179,19 +179,6 @@ Also see `Exit` and `Return`
     if ctx.dd.in_local_frame: raise VgrStatementReturn(None, statement)
     raise VgrExitingException(VgrExitingException.EXIT_SUCCESS, statement)
 
-@bound_ops("Stop Run")
-def execute_stop_run(_: ExecContext, statement: Tree) -> None:
-    """
-**Terminate execution**
-
-* Stop Run
-
-Ends the program with an exit code of zero.
-
-Also see `Exit`
-"""
-    raise VgrExitingException(VgrExitingException.EXIT_SUCCESS, statement)
-
 @control_statement
 @bound_ops("Perform Until")
 def execute_perform_until(ctx: ExecContext, statement: Tree) -> None:

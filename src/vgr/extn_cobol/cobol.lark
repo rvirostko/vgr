@@ -13,7 +13,6 @@
     | cobol_perform_times
     | cobol_perform_until
     | cobol_perform_varying
-    | cobol_stop_run
     | cobol_string
     | cobol_sub_from
     | cobol_sub_giving
@@ -35,8 +34,6 @@ cobol_accept_option: "With"i? "Echo"i -> echo // AcuCobol (plus a "with")
     | "With"i? "No"i "Echo"i -> no_echo // Micro Focus, AcuCobol, and GnuCobol
     | "No-Echo"i -> no_echo // Micro Focus and GnuCobol
     | "Secure"i -> secure // Micro Focus and GnuCobol
-
-cobol_stop_run: "Stop"i "Run"i
 
 cobol_exit: "Exit"i "Perform"i "Cycle"i -> cobol_exit_perform_cycle
     | "Exit"i "Perform"i -> cobol_exit_perform
