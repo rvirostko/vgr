@@ -4,6 +4,8 @@ from lark import Tree
 from .builtins import (
     bound_ops,
     poly_add,
+    poly_div,
+    poly_mul,
     poly_number,
     poly_sub,
 )
@@ -96,3 +98,91 @@ def execute_sub_giving(ctx: ExecContext, statement: Tree) -> None:
     var_path = get_writable_var_path(ctx, statement.children[-1])
     args = list(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
     do_set(ctx, poly_sub(args[-1], *args[:-1]), *var_path)
+
+@bound_ops("Multipy")
+def execute_mul_by(ctx: ExecContext, statement: Tree) -> None:
+    """
+**Multiply one number by another**
+
+* Multiply *expression* By *variable*
+* Multiply *expression* By *expression* Giving *variable*
+
+In the first form, *variable* is multiplied by the results of *expression*.
+In the second, the result of the multiplication is placed into *variable*.
+
+In either case, if *variable* does not exist, it is created and initialized to zero.
+This is fundamentally an arithmetic, scalar operation.
+
+```vgr
+Move 5 To a
+Move 7 To b
+Move 11 To c
+
+Multiply a By c
+Exhibit c
+c = 55
+
+Multiply b By c Giving d
+Exhibit c d
+c = 55
+d = 385
+```
+
+Also see `Mul()`, `*`, and `Set`
+"""
+    var_path = get_writable_var_path(ctx, statement.children[-1])
+    args = list(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
+    if len(args) == 1:
+        value = poly_mul(poly_number(ctx.get_var(*var_path)) or 0, args[0])
+    else:
+        value = poly_mul(args[0], args[1])
+    do_set(ctx, value, *var_path)
+
+@bound_ops("Divide")
+def execute_div_into(ctx: ExecContext, statement: Tree) -> None:
+    """
+**Divide one number by another**
+
+* Divide *expression* Into *variable*
+* Divide *expression* Into *expression* Giving *variable*
+* Divide *expression* By *expression* Giving *variable*
+
+In the first form *variable* is divided by the results of *expression*.
+In the other forms the result of the division is placed into *variable*.
+
+In either case, if *variable* does not exist, it is created and initialized to zero.
+This is fundamentally an arithmetic, scalar operation.
+
+```vgr
+Move 2 To a
+Move 5 To b
+Divide a Into b
+Exhibit a b
+a = 2
+b = 2.5
+
+Divide a Into b Giving c
+Exhibit b c
+b = 2.5
+c = 1.25
+
+Divide b By a Giving c
+Exhibit c
+c = 1.25
+```
+
+Also see `Div()`, `/`, and `Set`
+"""
+    var_path = get_writable_var_path(ctx, statement.children[-1])
+    args = list(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
+    if len(args) == 1:
+        value = poly_div(poly_number(ctx.get_var(*var_path)) or 0, args[0])
+    else:
+        value = poly_div(args[1], args[0])
+    do_set(ctx, value, *var_path)
+
+# Doc added to div_into
+def execute_div_by(ctx: ExecContext, statement: Tree) -> None:
+    var_path = get_writable_var_path(ctx, statement.children[-1])
+    args = list(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
+    do_set(ctx, poly_div(*args), *var_path)

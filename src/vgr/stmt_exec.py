@@ -92,6 +92,9 @@ from .stmt_log import (
 from .stmt_math import (
     execute_add_giving,
     execute_add_to,
+    execute_div_by,
+    execute_div_into,
+    execute_mul_by,
     execute_sub_from,
     execute_sub_giving,
 )
@@ -1114,6 +1117,9 @@ STATEMENT_HANDLERS = {
     'declare_global':    execute_declare_global,
     'def_arrow':         execute_def_arrow,
     'def_function':      execute_def_function,
+    'mul_by':            execute_mul_by,
+    'div_by':            execute_div_by,
+    'div_into':          execute_div_into,
     'echo':              execute_echo,
     'exit':              execute_exit,
     'foreach':           execute_foreach,

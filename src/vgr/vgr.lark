@@ -65,6 +65,8 @@ opt_statements: statement*
     | continue
     | debug
     | declare
+    | div_by
+    | div_into
     | echo
     | exit
     | include
@@ -77,6 +79,7 @@ opt_statements: statement*
     | list_replace
     | load_from
     | log
+    | mul_by
     | open
     | pass
     | print
@@ -251,6 +254,23 @@ add_giving: "Add"i _csep_list{expr} "To"i expr "Giving"i var_name
 
 sub_from:   "Subtract"i _csep_list{expr} "From"i var_name
 sub_giving: "Subtract"i _csep_list{expr} "From"i expr "Giving"i var_name
+
+// Notes:
+//   * Only one var_name can be specified
+//   * Accepts but ignores "rounded"
+//   * Does not support "[Not] On Size Error" (entirely N/A here)
+// See https://www.ibm.com/docs/en/cobol-zos/6.3.0?topic=statements-multiply-statement
+mul_by: "Multiply"i expr "By"i (expr "Giving"i)? var_name "Rounded"i? "End-Multiply"i?
+
+// Notes :
+//   * Does not support multiple receivers
+//   * Accepts but ignores "rounded"
+//   * Does not support "remainder"
+//   * Does not support "[Not] On Size Error" (entirely N/A here)
+// See https://www.ibm.com/docs/en/cobol-zos/6.3.0?topic=statements-divide-statement
+div_into: "Divide"i expr "Into"i (expr "Giving"i)? var_name "Rounded"i? "End-Divide"i?
+div_by: "Divide"i expr "By"i expr "Giving"i var_name "Rounded"i? "End-Divide"i?
+
 
 set_key_value: ("Set-Key"i | ("Set"i "Key"i)) expr "In"i "Dictionary"i? var_name (_assignment expr)?
 remove_key: ("Remove-Key"i | "Remove"i "Key"i) expr "From"i "Dictionary"i? var_name

@@ -1,12 +1,9 @@
 
 ?cobol_statements: cobol_accept
     | cobol_display_on
-    | cobol_div_by
-    | cobol_div_into
     | cobol_exit_perform
     | cobol_exhibit
     | cobol_move_to
-    | cobol_mul_by
     | cobol_perform_times
     | cobol_perform_until
     | cobol_perform_varying
@@ -58,22 +55,6 @@ cobol_display_on: "Display"i _cob_expr_list cobol_display_opt*
 cobol_string: "String"i _options_list{cobol_string_source} _SEP? "Into"i var_name "End-String"i?
 ?cobol_string_source: expr ("Delimited"i "By"i "Size"i)? -> full
     | expr "Delimited"i "By"i expr -> delimited
-
-// Notes:
-//   * Only one var_name can be specified
-//   * Accepts but ignores "rounded"
-//   * Does not support "[Not] On Size Error" (entirely N/A here)
-// See https://www.ibm.com/docs/en/cobol-zos/6.3.0?topic=statements-multiply-statement
-cobol_mul_by: "Multiply"i expr "By"i (expr "Giving"i)? var_name "Rounded"i? "End-Multiply"i?
-
-// Notes :
-//   * Does not support multiple receivers
-//   * Accepts but ignores "rounded"
-//   * Does not support "remainder"
-//   * Does not support "[Not] On Size Error" (entirely N/A here)
-// See https://www.ibm.com/docs/en/cobol-zos/6.3.0?topic=statements-divide-statement
-cobol_div_into: "Divide"i expr "Into"i (expr "Giving"i)? var_name "Rounded"i? "End-Divide"i?
-cobol_div_by: "Divide"i expr "By"i expr "Giving"i var_name "Rounded"i? "End-Divide"i?
 
 cobol_move_to: "Move"i cobol_move_corr? expr "To"i var_name
 cobol_move_corr: ("Corresponding"i | "Corr"i)
