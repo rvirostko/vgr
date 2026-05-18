@@ -5,7 +5,7 @@
     | cobol_display_on
     | cobol_div_by
     | cobol_div_into
-    | cobol_exit
+    | cobol_exit_perform
     | cobol_exhibit
     | cobol_move_to
     | cobol_mul_by
@@ -34,8 +34,7 @@ cobol_accept_option: "With"i? "Echo"i -> echo // AcuCobol (plus a "with")
     | "No-Echo"i -> no_echo // Micro Focus and GnuCobol
     | "Secure"i -> secure // Micro Focus and GnuCobol
 
-cobol_exit: "Exit"i "Perform"i -> cobol_exit_perform
-    | "Exit"i "Program"i -> cobol_exit_program
+cobol_exit_perform: "Exit"i "Perform"i
 
 // NB: Performs contain non-standard ":" separator (optional) to be compatible with other block statements
 cobol_perform_times: "Perform"i expr ("Time"i | "Times"i) _CLAUSE_SEP? statement+ ("End-Perform"i | "End"i)?

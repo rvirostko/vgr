@@ -11,11 +11,9 @@ import pwinput
 
 from ..app_exceptions import (
     BlockType,
-    VgrExitingException,
     VgrRuntimeError,
     VgrStatementBreak,
     VgrStatementContinue,
-    VgrStatementReturn,
 )
 from ..evaluate import bind_operations, do_set, get_writable_var_path, _var_name_path
 from ..exec_context import ExecContext
@@ -125,34 +123,6 @@ a
 Also see `Break` and `Continue`
 """
     raise VgrStatementBreak(statement, BlockType.PERFORM)
-
-@bound_ops("Exit Program")
-def execute_exit_program(ctx: ExecContext, statement: Tree) -> None:
-    """
-**Return control to the caller of a function or to the operating system**
-
-* Exit Program
-
-If used within a function, the function ends, returning `None`.
-If used at the global level, the program ends, exiting with a return code of zero.
-
-```vgr
-Print "Hello"
-Exit Program # Returns to the operating system
-
-Define Function hello():
-    Print "Hello"
-    Exit Program    # Returns None from the function
-    Print "Goodbye" # Never executed
-End-Function
-
-Call hello
-```
-
-Also see `Exit` and `Return`
-"""
-    if ctx.dd.in_local_frame: raise VgrStatementReturn(None, statement)
-    raise VgrExitingException(VgrExitingException.EXIT_SUCCESS, statement)
 
 @control_statement
 @bound_ops("Perform Until")
