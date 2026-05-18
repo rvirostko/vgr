@@ -2,14 +2,12 @@
 ?cobol_statements: cobol_accept
     | cobol_add_giving
     | cobol_add_to
-    | cobol_dec
     | cobol_display_on
     | cobol_div_by
     | cobol_div_into
     | cobol_evaluate
     | cobol_exit
     | cobol_exhibit
-    | cobol_inc
     | cobol_move_to
     | cobol_mul_by
     | cobol_perform_times
@@ -37,9 +35,6 @@ cobol_accept_option: "With"i? "Echo"i -> echo // AcuCobol (plus a "with")
     | "With"i? "No"i "Echo"i -> no_echo // Micro Focus, AcuCobol, and GnuCobol
     | "No-Echo"i -> no_echo // Micro Focus and GnuCobol
     | "Secure"i -> secure // Micro Focus and GnuCobol
-
-cobol_inc: "Set"i var_name "Up"i "By"i expr
-cobol_dec: "Set"i var_name "Down"i "By"i expr
 
 cobol_stop_run: "Stop"i "Run"i
 

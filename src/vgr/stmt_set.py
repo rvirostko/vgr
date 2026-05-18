@@ -26,6 +26,7 @@ from .builtins import (
     poly_get_keys,
     poly_mod,
     poly_mul,
+    poly_number,
     poly_plural,
     poly_pow,
     poly_repr,
@@ -147,6 +148,66 @@ Also see the `Set`
         var_path = get_writable_var_path(ctx, statement.children[i + 1])
         new_value = ctx.eval_expr(statement.children[i])
         do_set(ctx, new_value, *var_path)
+
+@bound_ops("Set Up")
+def execute_set_up(ctx: ExecContext, statement: Tree) -> None:
+    """
+**Increment a counter by an amount**
+
+* Set *variable* Up By *expression*
+
+If *variable* does not exist, it is created and initialized to zero.
+This is fundamentally an arithmetic, scalar operation.
+
+```vgr
+Set counter To 5
+Perform 4 Times
+    Display counter " : " counter ** 2
+    Set counter Up By counter * 1.5
+End-Perform
+
+5 : 25
+12.5 : 156.25
+31.25 : 976.5625
+78.125 : 6103.515625
+```
+
+Also see `Exit Perform`, `Set Down`, `-`, and `Set`
+"""
+    var_path = get_writable_var_path(ctx, statement.children[0])
+    x = poly_number(ctx.get_var(*var_path)) or 0
+    y = poly_number(ctx.eval_expr(statement.children[1])) or 0
+    do_set(ctx, poly_add(x, y), *var_path)
+
+@bound_ops("Set Down")
+def execute_set_down(ctx: ExecContext, statement: Tree) -> None:
+    """
+**Deccrement a counter by an amount**
+
+* Set *variable* Down By *expression*
+
+If *variable* does not exist, it is created and initialized to zero.
+This is fundamentally an arithmetic, scalar operation.
+
+```vgr
+Set counter To 5
+Perform 4 Times
+    Display counter " : " counter ** 2
+    Set counter Down By counter * .5
+End-Perform
+
+5 : 25
+2.5 : 6.25
+1.25 : 1.5625
+0.625 : 0.390625
+```
+
+Also see `Set Up`, `+`, and `Set`
+"""
+    var_path = get_writable_var_path(ctx, statement.children[0])
+    x = poly_number(ctx.get_var(*var_path)) or 0
+    y = poly_number(ctx.eval_expr(statement.children[1])) or 0
+    do_set(ctx, poly_sub(x, y), *var_path)
 
 @bound_ops("Set-Key")
 def execute_set_key_value(ctx: ExecContext, statement: Tree) -> None:

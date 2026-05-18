@@ -232,10 +232,12 @@ sleep: "Sleep"i "For"i? expr _unit_seconds?
 //     and only simple assignment can be performed.
 cmd_line_assign: var_name _assignment expr -> set
 
-
 // Combined "Set" and BASIC "Let" syntax
+// Up/Down By are "COBOL inspired"
 set:  "Set"i var_name (_assignment | IN_PLACE_OP) expr
     | "Let"i var_name _EQ expr
+    | "Set"i var_name "Up"i "By"i expr   -> set_up
+    | "Set"i var_name "Down"i "By"i expr -> set_down
 IN_PLACE_OP: ("+=" | "-=" | "*=" | "/=" | "%=" | "**=" | "&=" | "|=" | "^=" | "<<=" | ">>=" )
 // Alternate to "Set" to get around conflicts
 assign: "Assign"i expr _assignment var_name
