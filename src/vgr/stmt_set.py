@@ -142,9 +142,11 @@ b = 3
 
 Also see the `Set`
 """
-    var_path = get_writable_var_path(ctx, statement.children[1])
-    new_value = ctx.eval_expr(statement.children[0])
-    do_set(ctx, new_value, *var_path)
+    # Set up for multiple assigns, but the grammar doesn't yet support it
+    for i in range(0, len(statement.children), 2):
+        var_path = get_writable_var_path(ctx, statement.children[i + 1])
+        new_value = ctx.eval_expr(statement.children[i])
+        do_set(ctx, new_value, *var_path)
 
 @bound_ops("Set-Key")
 def execute_set_key_value(ctx: ExecContext, statement: Tree) -> None:
