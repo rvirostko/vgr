@@ -108,7 +108,7 @@ Next
 Call end_test()
 
 Call start_test("For Each (Basic, block=for)")
-For Each x in [1, 2, 3]
+For Each x In [1, 2, 3]
     If $loop.first
         Set continued = True
         Continue For
@@ -317,8 +317,8 @@ While True
 End-While
 Call end_test()
 
-Call start_test("For Each (VGR)")
-ForEach x in [1, 2, 3] : # keep single keyword form
+Call start_test("For-Each (VGR)")
+For-Each x In [1, 2, 3] : # keep single keyword form
     If $loop.first
         Set continued = True
         Continue
@@ -333,7 +333,7 @@ End # keep untyped
 Call end_test()
 
 Call start_test("For Each (VGR, block=for)")
-For Each x in [1, 2, 3]
+For-Each x In [1, 2, 3]
     If $loop.first
         Set continued = True
         Continue For

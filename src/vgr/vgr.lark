@@ -56,6 +56,7 @@ opt_statements: statement*
     | ";" -> pass // blank statement synonymous with "pass"
 
 ?simple_statement: assert
+    | assign
     | break
     | call
     | close
@@ -115,7 +116,7 @@ call: _call_function var_name ("(" _csep_list{expr}? ")")?
     | _call_function var_name ("(" _csep_list{expr}? ")")? giving_clause -> call_giving
     | _call_function var_name "Using"i _csep_list{expr}
     | _call_function var_name "Using"i _csep_list{expr} giving_clause -> call_giving
-_call_function: "Call"i "Function"i?
+_call_function: ("Call-Function"i | "Call"i "Function"i?)
 
 declare: _decl _csep_list{var_name}
     |    _decl _csep_list{var_name} "As"i? "Local"i  -> declare_local
@@ -131,8 +132,8 @@ _function_arrow: "->" | "=>" | "\u2192"
 def_params: "(" (NAME (_SEP NAME)*)? ")" -> params
 def_body: statement+ -> body
 
-// Note: this combines BASIC-like syntax (For Each) and VGR (ForEach), now somewhat deprecated
-foreach_statement: ("For"i "Each"i | "ForEach"i) var_name "In"i expr _CLAUSE_SEP? statement+ ("Next"i | "End-For"i | "End"i) -> foreach
+// Note: this combines BASIC-like syntax (For Each) and VGR (For-Each)
+foreach_statement: ("For-Each"i | "For"i "Each"i) var_name "In"i expr _CLAUSE_SEP? statement+ ("Next"i | "End-For"i | "End"i) -> foreach
 forever_loop: "Do"i "Forever"i _CLAUSE_SEP? statement+ ("End-Do"i | "End"i) -> forever
 
 // The addition of the optional "Then" allows a BASIC-like If syntax usage
@@ -231,12 +232,16 @@ sleep: "Sleep"i "For"i? expr _unit_seconds?
 //     and only simple assignment can be performed.
 cmd_line_assign: var_name _assignment expr -> set
 
-set:  "Set"i var_name _assignment expr
-    | "Set"i var_name IN_PLACE_OP expr
-IN_PLACE_OP: ("+=" | "-=" | "*=" | "/=" | "%=" | "**=" | "&=" | "|=" | "^=" | "<<=" | ">>=" )
 
-set_key_value: "Set"i "Key"i expr "In"i "Dictionary"i? var_name (_assignment expr)?
-remove_key: "Remove"i "Key"i expr "From"i "Dictionary"i? var_name
+// Combined "Set" and BASIC "Let" syntax
+set:  "Set"i var_name (_assignment | IN_PLACE_OP) expr
+    | "Let"i var_name _EQ expr
+IN_PLACE_OP: ("+=" | "-=" | "*=" | "/=" | "%=" | "**=" | "&=" | "|=" | "^=" | "<<=" | ">>=" )
+// Alternate to "Set" to get around conflicts
+assign: "Assign"i expr _assignment var_name
+
+set_key_value: ("Set-Key"i | ("Set"i "Key"i)) expr "In"i "Dictionary"i? var_name (_assignment expr)?
+remove_key: ("Remove-Key"i | "Remove"i "Key"i) expr "From"i "Dictionary"i? var_name
 
 swap: "Swap"i var_name ("With"i | "And"i) var_name
 
@@ -286,7 +291,7 @@ open: "Open"i (stderr | stdout | stdin) _file_option? expr _options_list{open_op
     | ("Read"i | "r"i)               -> r
 close: "Close"i (stderr | stdout | stdin) _file_option?
 
-zip: "Create"i "Zip"i _file_option? expr _options_list{zip_option}
+zip: ("Create-Zip"i | "Create"i "Zip"i) _file_option? expr _options_list{zip_option}
 ?zip_option: "Comment"i option_value -> comment
     | "Include"i "Is"i? expr+ -> include
     | "Exclude"i "Is"i? expr+ -> exclude

@@ -11,7 +11,6 @@ from ..app_exceptions import VgrRuntimeError, VgrStatementBreak, VgrStatementCon
 from ..evaluate import get_writable_var_path
 from ..exec_context import ExecContext
 from ..stmt_exec import bind_operations, exec_loop, LOOP_META_PATH, set_loop_meta
-from ..stmt_set import execute_set
 from ..tags import control_statement
 
 from ..builtins import bound_ops
@@ -93,8 +92,7 @@ def execute_for_next(ctx: ExecContext, statement: Tree) -> None:
   &emsp;&emsp;*statement*&hellip;\\
   Next
 
-The block of statements is executed until the limit is exceeded or
-in the case of `For Each`, the input is exhausted.
+The block of statements is executed until the limit is exceeded.
 If `Break` is encountered, looping ends regardless of the
 limit's value. If `Continue` is encountered, statements
 following it are skipped and looping proceeds.
@@ -113,7 +111,7 @@ Next
 4.0 {'index': 4, 'first': False, 'last': True, 'length': 5}
 ```
 
-Also see `Perform Varying` and `For Each`.
+Also see `Perform Varying` and `For-Each`.
 """
     def _err(value: Any, name: str) -> str: return ValueError(f"Can't use {str(value).title()} for {name}")
     def _nbr(expr: Tree, name: str) -> Any:
@@ -209,26 +207,6 @@ def execute_continue_for(_: ExecContext, statement: Tree) -> None:
 # Doc merged with Do
 def execute_continue_while(_: ExecContext, statement: Tree) -> None:
     raise VgrStatementContinue(statement, BlockType.WHILE_LOOP)
-
-@bound_ops("Let")
-def execute_let(ctx: ExecContext, statement: Tree) -> None:
-    """
-**Assign a value to a variable**
-
-* Let *variable* = *expression*
-
-BASIC equivalent of `Set`
-
-```vgr
-Let X = 5
-Let Y = 7
-Let RESULT = X * Y
-Print RESULT
-```
-
-Also see `Set`
-"""
-    execute_set(ctx, statement)
 
 @control_statement # prevents echoing itself
 @bound_ops("Troff")

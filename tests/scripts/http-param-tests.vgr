@@ -5,15 +5,15 @@
 // httpbin echoes parameters back under response.args
 // -------------------------------------------------------------------------
 
-Set host To "httpbin.org"
-Set getter To "https://{}/get".Format(host)
+Assign "httpbin.org" To host
+Assign "https://{}/get".Format(host) To getter
 
 Define Function AssertResult(test_no):
     Assert http.result.reason Is None : "Test {} failed: {}", test_no, http.result.reason
 End-Function
 
 Define Function CheckParam(test_no, key, expected):
-    Set received To http.result.response.args.GetKeyValue(ToString(key))
+    Assign http.result.response.args.GetKeyValue(ToString(key)) To received
     Assert received == expected : "Test {}: For key {!r} expected {!r}, received {!r}", test_no, key, expected, received
 End-Function
 
@@ -31,8 +31,8 @@ Set n To 1
 // -------------------------------------------------------------------------
 // String value in dict form
 // -------------------------------------------------------------------------
-Set key To "name"
-Set expected To "alice"
+Assign "name" To key
+Assign "alice" To expected
 Http Get getter Parameters { key: expected }
 Call CheckSingleParam(n, key, expected)
 Add 1 to n
@@ -40,8 +40,8 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // Int value in dict form — should be str()'d before sending
 // -------------------------------------------------------------------------
-Set key To "count"
-Set expected To 42
+Assign "count" To key
+Assign 42 To expected
 Http Get getter Parameters { key: expected }
 Call CheckSingleParam(n, key, expected)
 Add 1 to n
@@ -49,8 +49,8 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // Float value in dict form — should be str()'d before sending
 // -------------------------------------------------------------------------
-Set key To "ratio"
-Set expected To 3.14
+Assign "ratio" To key
+Assign 3.14 To expected
 Http Get getter Parameters { key: expected }
 Call CheckSingleParam(n, key, expected)
 Add 1 to n
@@ -58,8 +58,8 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // Bool value in dict form — should be str()'d before sending
 // -------------------------------------------------------------------------
-Set key To "active"
-Set expected To True
+Assign "active" To key
+Assign True To expected
 Http Get getter Parameters { key: expected }
 Call CheckSingleParam(n, key, expected)
 Add 1 to n
@@ -67,8 +67,8 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // None value in dict form — expect empty string
 // -------------------------------------------------------------------------
-Set key To "empty"
-Set expected To ""
+Assign "empty" To key
+Assign "" To expected
 Http Get getter Parameters { key: None }
 Call CheckSingleParam(n, key, expected)
 Add 1 to n
@@ -76,10 +76,10 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // Non-string keys in dict form — keys should be str()'d
 // -------------------------------------------------------------------------
-Set key1 To 42
-Set expected1 To "42"
-Set key2 To True
-Set expected2 To "yes"
+Assign 42 To key1
+Assign "42" To expected1
+Assign True To key2
+Assign "yes" To expected2
 Http Get getter Parameters { key1: expected1, key2: expected2 }
 Call AssertResult(n)
 Call CheckParam(n, key1, expected1)
@@ -90,12 +90,12 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // Multiple keys in dict form with mixed types
 // -------------------------------------------------------------------------
-Set key1 To "name"
-Set expected1 To "bob"
-Set key2 To "age"
-Set expected2 To 30
-Set key3 To "active"
-Set expected3 To False
+Assign "name" To key1
+Assign "bob" To expected1
+Assign "age" To key2
+Assign 30 To expected2
+Assign "active" To key3
+Assign False To expected3
 Http Get getter Parameters { key1: expected1, key2: expected2, key3: expected3 }
 Call AssertResult(n)
 Call CheckParam(n, key1, expected1)
@@ -107,8 +107,8 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // Individual Parameter form — value is always a string
 // -------------------------------------------------------------------------
-Set key To "name"
-Set expected To "alice"
+Assign "name" To key
+Assign "alice" To expected
 Http Get getter Parameter "{}={}".Format(key, expected)
 Call CheckSingleParam(n, key, expected)
 Add 1 to n
@@ -116,8 +116,8 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // Key stripping — spaces around key stripped, value spaces preserved
 // -------------------------------------------------------------------------
-Set key to "a"
-Set expected to " b "
+Assign "a" To key
+Assign " b " To expected
 Http Get getter Parameter "  {}  ={}".Format(key, expected)
 Call CheckSingleParam(n, key, expected)
 Add 1 to n
@@ -125,8 +125,8 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // Dict value with leading/trailing spaces preserved
 // -------------------------------------------------------------------------
-Set key to "a"
-Set expected to " b "
+Assign "a" To key
+Assign " b " To expected
 Http Get getter Parameters { key: expected }
 Call CheckSingleParam(n, key, expected)
 Add 1 to n
@@ -134,8 +134,8 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // Last wins — Parameter then Parameter
 // -------------------------------------------------------------------------
-Set key To "a"
-Set expected To "second"
+Assign "a" To key
+Assign "second" To expected
 Http Get getter
     Parameter "{}=not-{}".Format(key, expected)
     Parameter "{}={}".Format(key, expected)
@@ -146,8 +146,8 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // Last wins — Parameters dict then Parameters dict
 // -------------------------------------------------------------------------
-Set key To "a"
-Set expected To "second"
+Assign "a" To key
+Assign "second" To expected
 Http Get getter
     Parameters { key: "not-{}".Format(expected) }
     Parameters { key: expected }
@@ -158,8 +158,8 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // Last wins — Parameter then Parameters dict
 // -------------------------------------------------------------------------
-Set key To "a"
-Set expected To "second"
+Assign "a" To key
+Assign "second" To expected
 Http Get getter
     Parameter "{}=not-{}".Format(key, expected)
     Parameters { key: expected }
@@ -170,8 +170,8 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // Last wins — Parameters dict then Parameter
 // -------------------------------------------------------------------------
-Set key To "a"
-Set expected To "second"
+Assign "a" To key
+Assign "second" To expected
 Http Get getter
     Parameters { key: "not-{}".Format(expected) }
     Parameter "{}={}".Format(key, expected)
@@ -182,10 +182,10 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // Last wins — mixed, uncontested key survives
 // -------------------------------------------------------------------------
-Set key1 To "a"
-Set expected1 To "second"
-Set key2 To "b"
-Set expected2 To "keep"
+Assign "a" To key1
+Assign "second" To expected1
+Assign "b" To key2
+Assign "keep" To expected2
 Http Get getter
     Parameters { key1: "not-{}".Format(expected1), key2: expected2 }
     Parameter "{}={}".Format(key1, expected1)
@@ -198,9 +198,9 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // Connect/request union — disjoint keys both appear
 // -------------------------------------------------------------------------
-Set expected To "yes"
-Set ckey To "connect-key"
-Set rkey to "request-key"
+Assign "yes" To expected
+Assign "connect-key" To ckey
+Assign "request-key" To rkey
 Http Connect "https://{}".Format(host) As httpbin
     Parameter "{}={}".Format(ckey, expected)
 Http Get "get" Using httpbin
@@ -214,8 +214,8 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // Connect/request — request param wins over connect URL param
 // -------------------------------------------------------------------------
-Set key To "shared-key"
-Set expected To "request-val"
+Assign "shared-key" To key
+Assign "request-val" To expected
 Http Connect "https://{}/?{}=not_{}".Format(host, key, expected) As httpbin
 Http Get "get" Using httpbin
     Parameter "{}={}".Format(key, expected)

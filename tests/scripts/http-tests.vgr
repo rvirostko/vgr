@@ -361,8 +361,8 @@ Add 1 to n
 // HTTP version
 // -------------------------------------------------------------------------
 For Each test_case in [[1, 1.1], [1.1, 1.1], [2, 2], [" 2 ", 2]]
-    Set version To test_case.FirstItem()
-    Set expected To "HTTP/" + test_case.LastItem()
+    Assign test_case.FirstItem() To version
+    Assign "HTTP/" + test_case.LastItem() To expected
     Echo on
     Http Connect "https://httpbin.org" HTTP-Version Is version As httpbin
     Http Get "get" Using httpbin

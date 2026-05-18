@@ -11,7 +11,6 @@ import warnings
 from lark import Lark, Tree, Token, Transformer, v_args, exceptions
 from lark.exceptions import VisitError
 
-
 from .app_exceptions import (
     BlockType,
     VgrException,
@@ -97,6 +96,7 @@ from .stmt_print import (
 )
 from .stmt_select import execute_select
 from .stmt_set import (
+    execute_assign,
     execute_load_from,
     execute_remove_key,
     execute_reset,
@@ -329,12 +329,12 @@ def execute_break(_: ExecContext, statement: Tree) -> None:
 
 * Break
 
-Used with `While`, `Until`, `ForEach` and other looping statements
+Used with `While`, `Until`, `For-Each` and other looping statements
 
 ```vgr
 Set i To Zero
 While True
-    Add 1 to i
+    Add 1 To i
     If i ** 2 > 50
         Break
     End-If
@@ -606,7 +606,7 @@ Set is_valid(item) -> /* logic here */
 Set result To None
 Set attempts To Zero
 Unless result Is Not None Or attempts > 42:
-    For Each item In items
+    For-Each item In items
         Add 1 To attempts
         Choose Using item
             When Is "skip":  Continue
@@ -775,12 +775,12 @@ End-Repeat
     exec_repeat(ctx, statement)
 
 @control_statement
-@bound_ops("For Each")
+@bound_ops("For-Each")
 def execute_foreach(ctx: ExecContext, statement: Tree) -> None:
     """
 **Iterate over a list of values**
 
-* For Each *variable* In *expression* [:]\\
+* For-Each *variable* In *expression* [:]\\
   &emsp;&emsp;*statement*&hellip;\\
   [End-For | End]
 
@@ -796,7 +796,7 @@ following it are skipped, and the loop continues with the next item.
 Statements have access to the *$loop* variable, including *index*, *length*, _first_, and _last_.
 
 ```vgr
-For Each a In ["A", "B", "C"]
+For-Each a In ["A", "B", "C"]
     Print a, $loop
 End-For
 
@@ -804,7 +804,7 @@ A {'index': 0, 'first': True, 'last': False, 'length': 3}
 B {'index': 1, 'first': False, 'last': False, 'length': 3}
 C {'index': 2, 'first': False, 'last': True, 'length': 3}
 
-For Each kv_pair In math
+For-Each kv_pair In math
     If $loop.first: Print "-" * 60; End-If
     Print kv_pair
     If $loop.last: Print "-" * 60; End-If
@@ -823,8 +823,8 @@ End-For
 ------------------------------------------------------------
 ```
 > **Note**\\
-> For BASIC compatibility, you can also use `Next` to close `For Each`,
-> but `End` or `End` are preferred.
+> For BASIC compatibility, you can also use `Next` to close `For-Each`,
+> but `End-For` or just `End` are preferred.
 
 Also see `Break` and `Continue`
 """
@@ -1088,6 +1088,7 @@ class VarRefOptimizer(Transformer):
 #     but they can't replace existing ones
 STATEMENT_HANDLERS = {
     'assert':            execute_assert,
+    'assign':            execute_assign,
     'block':             execute_block,
     'break':             execute_break,
     'call_giving':       execute_call_giving,
