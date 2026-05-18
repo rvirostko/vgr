@@ -134,7 +134,7 @@ def execute_assign(ctx: ExecContext, statement: Tree) -> None:
 ```vgr
 Assign 5 To a
 Assign 3 To b
-Multiply a By b
+Set a *= b
 Exhibit a b
 a = 15
 b = 3
