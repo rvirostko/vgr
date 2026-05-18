@@ -84,13 +84,13 @@ Define Function render_7seg(n):
     Declare rc Local
     Set rc To List()
     For row = 1 To 7
-        Evaluate row :
-            When 1        : Append n.@cpart(AMASK, 0, FMASK, LCORNER) + n.@hpart(AMASK) + n.@cpart(AMASK, 0, BMASK, RCORNER) To rc
-            When 2 Thru 3 : Append n.@vpart(FMASK, BMASK) To rc
-            When 4        : Append n.@cpart(GMASK, FMASK, EMASK, LCORNER) + n.@hpart(GMASK) + n.@cpart(GMASK, BMASK, CMASK, RCORNER) To rc
-            When 5 Thru 6 : Append n.@vpart(EMASK, CMASK) To rc
-            When 7        : Append n.@cpart(DMASK, EMASK, 0, LCORNER) + n.@hpart(DMASK) + n.@cpart(DMASK, CMASK, 0, RCORNER) To rc
-        End-Evaluate
+        Choose Using row
+            When 1        Append n.@cpart(AMASK, 0, FMASK, LCORNER) + n.@hpart(AMASK) + n.@cpart(AMASK, 0, BMASK, RCORNER) To rc
+            When 2 Thru 3 Append n.@vpart(FMASK, BMASK) To rc
+            When 4        Append n.@cpart(GMASK, FMASK, EMASK, LCORNER) + n.@hpart(GMASK) + n.@cpart(GMASK, BMASK, CMASK, RCORNER) To rc
+            When 5 Thru 6 Append n.@vpart(EMASK, CMASK) To rc
+            When 7        Append n.@cpart(DMASK, EMASK, 0, LCORNER) + n.@hpart(DMASK) + n.@cpart(DMASK, CMASK, 0, RCORNER) To rc
+        End-Choose
     Next
     Return rc
 End-Function

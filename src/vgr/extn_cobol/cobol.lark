@@ -5,7 +5,6 @@
     | cobol_display_on
     | cobol_div_by
     | cobol_div_into
-    | cobol_evaluate
     | cobol_exit
     | cobol_exhibit
     | cobol_move_to
@@ -90,16 +89,3 @@ cobol_div_by: "Divide"i expr "By"i expr "Giving"i var_name "Rounded"i? "End-Divi
 
 cobol_move_to: "Move"i cobol_move_corr? expr "To"i var_name
 cobol_move_corr: ("Corresponding"i | "Corr"i)
-
-// Notes :
-//   * Does not support "Also"
-//   * Muliple (fall-thru) "When" blocks not supported
-//   * "Any" is not supported
-// NB: Evaluate contain non-standard ":" separator (optional) to be compatible with other block statements
-// See https://www.ibm.com/docs/en/cobol-zos/6.3.0?topic=statements-evaluate-statement
-cobol_evaluate: "Evaluate"i expr _CLAUSE_SEP? (cobol_when_block | cobol_when_thru_block)+ cobol_when_other? "End-Evaluate"i -> cobol_evaluate
-cobol_when_thru_block: "When"i expr ("Through"i | "Thru"i) expr _CLAUSE_SEP? statement+
-    | "When"i "Not"i expr ("Through"i | "Thru"i) expr _CLAUSE_SEP? statement+ -> cobol_when_not_thru_block
-cobol_when_block: "When"i expr _CLAUSE_SEP? statement+
-    | "When"i "Not"i expr _CLAUSE_SEP? statement+ -> cobol_when_not_block
-cobol_when_other: "When"i "Other"i _CLAUSE_SEP? statement+
