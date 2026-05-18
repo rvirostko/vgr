@@ -945,13 +945,21 @@ fruit_colors.IndexOf("grape") → -1 // key not present
 
 Also see `RIndexOf()` and `FindStr()`
 """
-    # TODO regex behavior for sub
+    def _re_find(x: str, p: Pattern) -> int:
+        m = re.search(p, x)
+        return -1 if m is None else m.start()
     if x is None: return -1
-    if isinstance(x, list): return next((i for i, x1 in enumerate(x) if poly_eq(x1, sub)), -1)
-    if isinstance(x, dict): return 0 if sub in x else -1
-    if isinstance(x, (bool, int, float)): x = str(x)
-    sub = str_arg(sub, 'Sub', False) or ''
-    if len(sub) == 0: return -1
+    sub = str_arg(sub, 'Sub', False, True)
+    if isinstance(x, dict): x = list(x.keys())
+    if isinstance(x, list):
+        if isinstance(sub, str) and len(sub) == 0: return -1
+        cmp = poly_matches_all if isinstance(sub, Pattern) else poly_eq
+        return next((i for i, x1 in enumerate(x) if cmp(x1, sub)), -1)
+    x = _as_str(x)
+    if len(x) == 0: return -1
+    if isinstance(sub, Pattern):
+        return _exec_x_y_op(x, sub, 'IndexOf', poly_index, _re_find, _string_loc_ops)
+    if sub is None or len(sub) == 0: return -1
     return _exec_x_y_op(x, sub, 'IndexOf', poly_index, str.find, _string_loc_ops)
 
 def poly_rindex(x: Any=None, sub: Any=None) -> Any:
