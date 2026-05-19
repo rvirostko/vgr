@@ -137,7 +137,7 @@ following it are skipped, and *expression* is checked again.
 Statements have access to the *$loop* variable, but only *index* and _first_.
 
 ```vgr
-Move 0 To counter
+Set counter To Zero
 Perform Until counter > 5
     Display counter " : " counter ** 2
     Set counter Up By 1
@@ -175,7 +175,7 @@ following it are skipped and looping continues.
 Statements have access to the *$loop* variable, including *index*, *length*, _first_, and _last_.
 
 ```vgr
-Move 5 To counter
+Set counter To 5
 Perform 3 Times
     Display counter " : " counter ** 2
     Set counter Down By 1
@@ -479,8 +479,8 @@ it defaults to no separator between items and always ending with a newline.
 * [With] No Advancing - do not add a newline at the end of the output
 
 ```vgr
-Move "Hello" To Greeting
-Move "World" To Whom
+Assign "Hello" To Greeting
+Assign "World" To Whom
 Print Greeting, Whom
 Hello World
 Printf "{}, {}!", Greeting, Whom

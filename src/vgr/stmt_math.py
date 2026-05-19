@@ -68,9 +68,9 @@ If *variable* does not exist, it is created and initialized to zero.
 This is fundamentally an arithmetic, scalar operation.
 
 ```vgr
-Move 5 To a
-Move 7 To b
-Move 30 To c
+Assign 5 To a
+Assign 7 To b
+Assign 30 To c
 
 Subtract a From c
 Exhibit c
