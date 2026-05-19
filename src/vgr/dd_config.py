@@ -42,7 +42,7 @@ _SYS_CONSTS = ( 'api_version', 'builtin_module_names', 'byteorder', 'exec_prefix
     'maxunicode', 'platform', 'platlibdir', 'prefix', 'pycache_prefix', 'version',)
 
 _RE_PREFIX = 're'
-_RE_FLAGS = ('ASCII', 'IGNORECASE', 'LOCALE', 'MULTILINE', 'DOTALL', 'UNICODE', 'VERBOSE', 'DEBUG', 'TEMPLATE')
+_RE_FLAGS = ('ASCII', 'DEBUG', 'IGNORECASE', 'MULTILINE', 'DOTALL', 'VERBOSE')
 
 _COMPACT = "compact"
 _FORMAT = "format"
