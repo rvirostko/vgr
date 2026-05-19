@@ -79,23 +79,17 @@ def _compose_flags(f: Any) -> int:
             if fc == 'i':
                 flags += re.IGNORECASE
                 continue
-            if fc == 'l':
-                flags += re.LOCALE
-                continue
+            # NB: locale not support as it only works with bytes
             if fc == 'm':
                 flags += re.MULTILINE
                 continue
             if fc == 's':
                 flags += re.DOTALL
                 continue
-            if fc == 'u':
-                flags += re.UNICODE
-                continue
+            # NB: template not supported as obsolted by verbose
+            # NB: unicode not supported as it is redundant
             if fc == 'x':
                 flags += re.VERBOSE
-                continue
-            if fc == 't':
-                flags += re.TEMPLATE
                 continue
             raise ValueError(f'Unknown regular expression pattern flag: {fc!r}')
         return flags
