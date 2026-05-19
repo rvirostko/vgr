@@ -94,12 +94,15 @@ opt_statements: statement*
     | sub_from
     | sub_giving
     | swap
+    | troff
+    | tron
     | unset
     | verbose
     | zip
 
 ?control_statements: block_statement
     | choose_statement
+    | for_next
     | foreach_statement
     | if_statement
     | repeat_statement
@@ -140,6 +143,11 @@ def_body: statement+ -> body
 
 // Note: this combines BASIC-like syntax (For Each) and VGR (For-Each)
 foreach_statement: ("For-Each"i | "For"i "Each"i) var_name "In"i expr _CLAUSE_SEP? statement+ ("Next"i | "End-For"i | "End"i) -> foreach
+
+for_next: "For"i var_name _EQ expr "To"i expr _CLAUSE_SEP? statement+ _end_for_next
+    |     "For"i var_name _EQ expr "To"i expr "Step"i expr _CLAUSE_SEP? statement+ _end_for_next -> for_next_by
+_end_for_next: "End-For"i | "Next"i | "End"i
+
 forever_loop: "Do"i "Forever"i _CLAUSE_SEP? statement+ ("End-Do"i | "End"i) -> forever
 
 // The addition of the optional "Then" allows a BASIC-like If syntax usage
