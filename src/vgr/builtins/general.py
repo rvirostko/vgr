@@ -215,13 +215,31 @@ and escapes non-printable characters.
 
 Also see `Ascii()`
 """
+    import re
+    def _decode_flags(x: Pattern) -> str:
+        rc = ''
+        f = x.flags
+        if f > 0:
+            if f & re.A: rc += 'a'
+            if f & re.DEBUG: rc += 'd'
+            if f & re.I: rc += 'i'
+            # re.L unlikely since it can only be used with bytes
+            if f & re.M: rc += 'm'
+            if f & re.S: rc += 's'
+            # We don't support templates (re.T)
+            # If not re.A, then re.U, so we skip it
+            if f & re.X: rc += 'x'
+        return rc
     # These are of limited aesthetic value
     if isinstance(x, str) and '"' not in x:
         r = repr(x)
         if r[0] == r[-1] == "'":
             return '"' + r[1:-1] + '"'
         return r
-    if isinstance(x, Pattern): return poly_repr(x.pattern)
+    if isinstance(x, Pattern):
+        # NB: there are probably escaping issue with "/"
+        #     inside the pattern...
+        return 'r/' + x.pattern + '/' + _decode_flags(x)
     if isinstance(x, list): return '[' + ', '.join(poly_repr(x1) for x1 in x) + ']'
     return repr(x)
 
