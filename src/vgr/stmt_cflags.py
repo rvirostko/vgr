@@ -15,8 +15,8 @@ from .exec_context import ExecContext
 from .redir import print_stderr
 from .tags import control_statement
 
-@control_statement
-@bound_ops("Echo")
+@control_statement # not really, but turns off echoing...
+@bound_ops("Echo", "Tron", "Troff")
 def execute_echo(ctx: ExecContext, statement: Tree) -> None:
     """
 **Turn echo mode on or off**
@@ -24,9 +24,12 @@ def execute_echo(ctx: ExecContext, statement: Tree) -> None:
 * Echo
 * Echo [On | Off]
 * Echo *expression*
+* Tron
+* Troff
 
 Without arguments, statement echoing is turned on.
 When on, statements are echoed to stderr before execution.
+The `Tron` and `Troff` aliases turn echoing on and off respectively.
 Note that this command never echoes itself.
 
 ```vgr
@@ -46,7 +49,10 @@ vgr.echo = True
 
 Also see `Debug` and `Verbose`
 """
-    ctx.echo = _flag_value(ctx, bind_operations(statement))
+    if statement.data in ('tron', 'troff'):
+        ctx.echo = statement.data == 'tron'
+    else:
+        ctx.echo = _flag_value(ctx, bind_operations(statement))
     ctx.print_verbose('Echo =', ctx.echo)
 
 @bound_ops("Debug")
