@@ -1,7 +1,8 @@
 """
-Contains the implementation for the Create ZIP statement
+Contains the implementation for the Create Zip statement
 """
 
+from re import Pattern
 from typing import Any
 import glob
 import os
@@ -20,18 +21,26 @@ def execute_zip(ctx: ExecContext, statement: Tree):
     """
 **Create a ZIP Archive**
 
-* Create ZIP [File] *zip-file*\\
+* Create-Zip [File] *zip-file*\\
   &emsp;&emsp;[*option* [, *option*]&hellip;]
 
 Options are
 
-* Include [Is] *file_pattern*&hellip;
-* Exclude [Is] *file_pattern*&hellip;
+* Include *file_pattern* : file name or *glob* pattern
+* Exclude *file_pattern* : file name or *glob* pattern
 * Comment [Is] *comment*
+* Paths : store files with relative path, which is the default
+* Junk Paths : store files with just their name
+* `Append` or `Extend` : files added to the end of an existing archive.
+  Can be abbreviated as `A`.
+* `Overwrite` : overwrite existing archive, which is the default.
+  Can be abbreviated as `W`.
+* `No Overwrite` : operation fails if the archive already exists.
+  Can be abbreviated as `X`.
 
 The *file_pattern* used with `Include` and `Exclude` are strings that select files or
-directories using *glob* patterns. Both options can specify multiple file
-patterns and can be used multiple times.
+directories using *glob* patterns, not regular expressions. Both options can specify multiple file
+patterns using a list and can be used multiple times.
 
 Directories are included recursively and include all file in them.
 
@@ -43,15 +52,15 @@ Both files and directories must be relative to the current directory.
 If `Comment` is specified multiple times, only the last one is used.
 
 ```vgr
-Create ZIP File "reports.zip"
+Create-Zip File "reports.zip"
   Include "out",
-  Include "*.csv" "*.json",
-  Exclude "*.log" "*.err",
+  Include ["*.csv", "*.json"],
+  Exclude ["*.log", "*.err"],
   Comment "Report created by " + os.login;
 ```
 In the above example, assuming that *out* is a directory,
 the first `Include` recursively adds all files in it to the archive list.
-CSV and JSON files from the current directory are added with the next `Include`.
+CSV and JSON files from the current directory are added with the `Include`.
 The `Exclude` option, which can be used in any order, removes files added
 by an `Include` that match those given patterns.
 
@@ -63,13 +72,19 @@ by an `Include` that match those given patterns.
     zip_name = ctx.eval_filename_expr(statement.children[0])
     include_patterns: list[str] = []
     exclude_patterns: list[str] = []
+    mode = 'w' # mode: w, x, or a
+    junk_paths = False
     comment: str = None
     for child in statement.children[1:]:
         arg_type = child.data
-        if arg_type == 'include': include_patterns.extend(_eval_to_list_str(ctx, child, 'Include'))
-        elif arg_type == 'exclude': exclude_patterns.extend(_eval_to_list_str(ctx, child, 'Exclude'))
-        elif arg_type == 'comment': comment = ctx.eval_to_str(child.children[0], 'Comment', True)
-        else: raise VgrRuntimeError(child, ValueError(f'Unhandled type {arg_type!r}'))
+        if arg_type == 'include': include_patterns.extend(_eval_to_list_str(ctx, child, 'Include'))   # zip -i/--include
+        elif arg_type == 'exclude': exclude_patterns.extend(_eval_to_list_str(ctx, child, 'Exclude')) # zip -x/--exclude
+        elif arg_type == 'comment': comment = ctx.eval_to_str(child.children[0], 'Comment', True)     # zip -c/--entry-comments
+        elif arg_type == 'junk_paths': junk_paths = True                                              # zip -j/--junk-paths
+        elif arg_type == 'keep_paths': junk_paths = False                                             # zip -p/--paths/-p
+        elif arg_type in ('a', 'w', 'x'): mode = arg_type
+        elif arg_type == 'r': raise VgrRuntimeError(child, ValueError('Invalid mode for writing'))
+        else: raise VgrRuntimeError(child, ValueError(f'Unhandled type {arg_type!r}')) # SNO
     added_files = set()
     # General follow zip's -r behavior when it comes to subdirs
     for pattern in include_patterns:
@@ -86,13 +101,20 @@ by an `Include` that match those given patterns.
         f for f in added_files if not any(fnmatch.fnmatch(f, pattern) for pattern in exclude_patterns)
     }
     ctx.print_verbose('Creating', zip_name)
-    with zipfile.ZipFile(prepare_path(zip_name), 'w', zipfile.ZIP_DEFLATED) as zf:
+    # NB: the path is always for writing, but the file itself may have a
+    #    different mode (but never read)
+    with zipfile.ZipFile(prepare_path(zip_name, 'w'), mode, zipfile.ZIP_DEFLATED) as zf:
         if comment: zf.comment = comment.encode('utf-8')
         if added_files:
             for file in sorted(added_files):
                 relpath = os.path.relpath(file)
-                ctx.print_verbose('Adding', relpath)
-                zf.write(file, relpath)
+                if junk_paths:
+                    filename = os.path.split(relpath)[1]
+                    ctx.print_verbose('Adding', relpath, 'as', filename)
+                    zf.write(file, filename)
+                else:
+                    ctx.print_verbose('Adding', relpath)
+                    zf.write(file, relpath)
         else:
             ctx.print_verbose('Created an empty archive')
         if ctx.verbose: ctx.print_verbose(f'Wrote {os.path.getsize(zip_name):,} bytes')
@@ -105,6 +127,8 @@ def _eval_to_list_str(ctx: ExecContext, clause: Tree, name: str) -> list[str]:
             if isinstance(val, (str, int, float)):
                 # Handle ordinals as strings
                 rc.append(str(val))
+            elif isinstance(val, Pattern):
+                rc.append(val.pattern)
             elif isinstance(val, list):
                 # Recurse into collections
                 for v in val: add_it(expr, v)

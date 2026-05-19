@@ -227,6 +227,9 @@ op_not_is_in: _not_is_in_operators
 // these are "proper statements" as they control the behavior of other statements
 debug: "Debug"i expr?
 echo: "Echo"i expr?
+tron: "Tron"i   // echo alias
+troff: "Troff"i // echo alias
+
 verbose: "Verbose"i expr?
 
 pass: ("Pass"i | "Nop"i)
@@ -301,17 +304,20 @@ log: "Log"i log_level _csep_list{expr}
     | "Error"i -> error
 
 open: "Open"i (stderr | stdout | stdin) _file_option? expr _options_list{open_option}
-?open_option: encoding
-    | ("Append"i | "Extend"i | "a"i) -> a
+?open_option: encoding | open_mode
+?open_mode: ("Append"i | "Extend"i | "a"i) -> a
     | ("Overwrite"i | "w"i)          -> w
     | ("No"i "Overwrite"i | "x"i)    -> x
     | ("Read"i | "r"i)               -> r
 close: "Close"i (stderr | stdout | stdin) _file_option?
 
 zip: ("Create-Zip"i | "Create"i "Zip"i) _file_option? expr _options_list{zip_option}
-?zip_option: "Comment"i option_value -> comment
-    | "Include"i "Is"i? expr+ -> include
-    | "Exclude"i "Is"i? expr+ -> exclude
+?zip_option: open_mode
+    | "Comment"i option_value -> comment
+    | "Paths"i -> keep_paths
+    | "Junk"i "Paths"i -> junk_paths
+    | "Include"i expr -> include
+    | "Exclude"i expr -> exclude
 
 exit: "Exit"i expr?
 
