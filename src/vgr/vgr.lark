@@ -527,14 +527,17 @@ var_name: NAME ("." NAME)*
 //   * [^/, [/, and /] : "/" escaped by a character group (but only first/last)
 //   * [^\x00-\x1f\x7f\/] : not a control character or a "/"
 //   * flags: optional, must be lowercase and immediately follow the closing "/"
-REGEX.2: /r\/(?:(?:\\[\/\\])|(?:\[^\/)|(?:\[\/)|(?:\/\])|(?:[^\x00-\x1f\x7f\/]))+\/[adilmtsux]*/
+//   * locale flag not supported because it only works with bytes
+//   * unicode flag not supported because it is redundant
+//   * template flag not supported as obsolete
+REGEX.2: /r\/(?:(?:\\[\/\\])|(?:\[^\/)|(?:\[\/)|(?:\/\])|(?:[^\x00-\x1f\x7f\/]))+\/[adimsx]*/
 
 // modified versions of python.STRING/LONG_STRING : removed the [f]
 // NB: we don't enforce validity of prefixes here
-_VSTRING: /[BRUbru]*("(?!"").*?(?<!\\)(\\\\)*?"|'(?!'').*?(?<!\\)(\\\\)*?')/
-_LONG_VSTRING: /[BRUbru]*(""".*?(?<!\\)(\\\\)*?"""|'''.*?(?<!\\)(\\\\)*?''')/s
+_VSTRING: /[BRbr]*("(?!"").*?(?<!\\)(\\\\)*?"|'(?!'').*?(?<!\\)(\\\\)*?')/
+_LONG_VSTRING: /[BRbr]*(""".*?(?<!\\)(\\\\)*?"""|'''.*?(?<!\\)(\\\\)*?''')/s
 // Allow typographic quotes from C/P sources, but fix them up internally
-_MS_STRING: /[BRUbru]*(\u201C.*?(?<!\\)(\\\\)*?\u201D|\u2018.*?(?<!\\)(\\\\)*?\u2019)/
+_MS_STRING: /[BRbr]*(\u201C.*?(?<!\\)(\\\\)*?\u201D|\u2018.*?(?<!\\)(\\\\)*?\u2019)/
 STRING: _VSTRING | _LONG_VSTRING | _MS_STRING
 
 SH_COMMENT.4: /#[^\n]*/
