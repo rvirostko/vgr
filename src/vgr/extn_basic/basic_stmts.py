@@ -207,33 +207,3 @@ def execute_continue_for(_: ExecContext, statement: Tree) -> None:
 # Doc merged with Do
 def execute_continue_while(_: ExecContext, statement: Tree) -> None:
     raise VgrStatementContinue(statement, BlockType.WHILE_LOOP)
-
-@control_statement # prevents echoing itself
-@bound_ops("Troff")
-def execute_troff(ctx: ExecContext, _: Tree) -> None:
-    """
-**Turn off Tracing Mode**
-
-* Troff
-
-BASIC equivalent of `Echo Off`
-
-Also see `Echo`
-"""
-    ctx.echo = False
-    ctx.print_verbose('Trace Off')
-
-@control_statement # prevents echoing itself
-@bound_ops("Tron")
-def execute_tron(ctx: ExecContext, _: Tree) -> None:
-    """
-**Turn on Tracing Mode**
-
-* Tron
-
-BASIC equivalent of `Echo On`
-
-Also see `Echo`
-"""
-    ctx.echo = True
-    ctx.print_verbose('Trace On')

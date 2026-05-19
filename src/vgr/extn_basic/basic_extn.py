@@ -15,8 +15,6 @@ from .basic_stmts import (
     execute_exit_for,
     execute_exit_while,
     execute_for_next,
-    execute_troff,
-    execute_tron,
 )
 
 _HANDLERS = {
@@ -30,8 +28,6 @@ _HANDLERS = {
     'basic_exit_do':        execute_exit_do,
     'basic_exit_for':       execute_exit_for,
     'basic_exit_while':     execute_exit_while,
-    'basic_troff':          execute_troff,
-    'basic_tron':           execute_tron,
 }
 
 class BasicExtension(VgrExtension):

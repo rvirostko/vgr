@@ -4,8 +4,6 @@
     | basic_for_next_by
     | basic_for_next
     | basic_exit
-    | basic_troff
-    | basic_tron
 
 // Note:
 // An optional ":" is allowed following control statements.
@@ -32,6 +30,3 @@ basic_exit: "Exit"i "Do"i -> basic_exit_do
 basic_continue: "Continue"i "Do"i -> basic_continue_do
     | "Continue"i "For"i          -> basic_continue_for
     | "Continue"i "While"i        -> basic_continue_while
-
-basic_tron: "Tron"i
-basic_troff: "Troff"i
