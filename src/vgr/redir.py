@@ -151,7 +151,7 @@ Also see `Open` and `Reset`
 def close_all_redirects() -> None:
     _REDIRECTOR.end_redirects()
 
-def prepare_path(filename: str, mode: str) -> str:
+def prepare_path(filename: str, mode: str='r') -> str:
     """
     Creates the directory structure required for the filename.
     Only works with paths relative to the CWD
