@@ -33,3 +33,21 @@ Set counter Down By 2
 Assert counter Is 3
 Set counter Down By (counter * 2)
 Assert counter is -3
+
+// Multiplication
+Set a To 2
+Multiply a By 5
+Assert a Is 10
+
+Set b To 3
+Multiply b By 3, 2
+Assert b Is 18
+
+// Division
+Set a To 5
+Divide a By 2
+Assert a Is 2.5
+
+Set b To 5
+Divide a By b, .5
+Assert a Is 1
