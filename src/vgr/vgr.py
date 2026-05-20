@@ -34,6 +34,7 @@ from .dd_config import (
 )
 from .doc_help import (
     create_md_lexer,
+    constants_pattern,
     keyword_pattern,
     print_doc,
     print_md,
@@ -471,7 +472,10 @@ Environment variables:
     create_md_lexer(parser)
 
     if args.gen_doc: gen_auto_docs()
-    if args.gen_vsc_extn: create_vscode_extension(keyword_pattern(parser), function_names_pattern())
+    if args.gen_vsc_extn:
+        create_vscode_extension(keyword_pattern(parser),
+                                constants_pattern(parser),
+                                function_names_pattern())
     if args.gen_doc or args.gen_vsc_extn: sys.exit(VgrExitingException.EXIT_SUCCESS)
 
     ctx = create_exec_context(parser, dd)

@@ -3,13 +3,14 @@ import json
 import os
 
 # Written to package.json
-# TODO "icon": "images/icon.png" - 128x128 PNG
 _PACKAGE = {
     "name": "vgr-syntax",
     "displayName": "VGR Syntax Highlighting",
     "description": "Syntax highlighting for the VGR DSL",
-    "version": "1.2.0",
-    "publisher": "localdev",
+    "version": "",
+    "icon": "images/icon.png",
+    "publisher": "rvirostko@icloud.com",
+    "author": "Ross Virostko <rvirostko@icloud.com>",
     "engines": {
         "vscode": "^1.50.0"
     },
@@ -36,6 +37,7 @@ _PACKAGE = {
 _LANG_CONFIG = {
     "comments": {
         "lineComment": "#",
+        "lineComment": "//",
         "blockComment": ["/*", "*/"]
     },
     "brackets": [
@@ -56,7 +58,7 @@ _LANG_CONFIG = {
     ]
 }
 
-def _vscode_syntax_highlighting(keyword_pattern: str, function_pattern: str):
+def _vscode_syntax_highlighting(keyword_pattern: str, constants_pattern: str, function_pattern: str):
     """
     Generate a VS Code TextMate grammar JSON for a DSL.
     - keywords: list of reserved words
@@ -72,10 +74,15 @@ def _vscode_syntax_highlighting(keyword_pattern: str, function_pattern: str):
                 "name": "keyword.control.vgr",
                 "match": keyword_pattern,
             },
-            # Functions (only highlight listed functions)
+            # Built-in Functions
             {
-                "name": "entity.name.function.vgr",
+                "name": "function.name.vgr",
                 "match": function_pattern,
+            },
+            # Constants
+            {
+                "name": "constant.name.vgr",
+                "match": constants_pattern,
             },
             # Single-line comments "#"
             {
@@ -98,6 +105,13 @@ def _vscode_syntax_highlighting(keyword_pattern: str, function_pattern: str):
                 "beginCaptures": {"0": {"name": "punctuation.definition.comment.begin.vgr"}},
                 "end": r"\*/",
                 "endCaptures": {"0": {"name": "punctuation.definition.comment.end.vgr"}}
+            },
+            # Regular expressions
+            {
+                "name": "string.regexp.vgr",
+                "begin": r"r/",
+                "end": r"/[adimsx]*",
+                "patterns": [{"name": "constant.character.escape.vgr", "match": r'\\.'}]
             },
             # Strings (single, double, triple, raw)
             {
@@ -141,7 +155,9 @@ def _vscode_syntax_highlighting(keyword_pattern: str, function_pattern: str):
     }
     return json.dumps(grammar, indent=4)
 
-def create_vscode_extension(keyword_pattern: str, function_pattern: str) -> None:
+from . import __version__
+
+def create_vscode_extension(keyword_pattern: str, constants_pattern: str, function_pattern: str) -> None:
     """
     Creates a directory with the required structure and files
     to be a Visual Studion Code extension.
@@ -149,12 +165,18 @@ def create_vscode_extension(keyword_pattern: str, function_pattern: str) -> None
     out_dir = "vgr-syntax"
     # Ensure base folder structure
     os.makedirs(out_dir, exist_ok=True)
+    _PACKAGE["version"] = __version__
     with open(os.path.join(out_dir, "package.json"), "w", encoding="utf-8", errors='backslashreplace') as f:
         json.dump(_PACKAGE, f, indent=4)
     with open(os.path.join(out_dir, "language-configuration.json"), "w", encoding="utf-8", errors='backslashreplace') as f:
         json.dump(_LANG_CONFIG, f, indent=4)
     syntaxes_dir = os.path.join(out_dir, "syntaxes")
     os.makedirs(syntaxes_dir, exist_ok=True)
-    grammar_json = _vscode_syntax_highlighting(keyword_pattern, function_pattern)
+    grammar_json = _vscode_syntax_highlighting(keyword_pattern, constants_pattern, function_pattern)
     with open(os.path.join(syntaxes_dir, "vgr.tmLanguage.json"), "w", encoding="utf-8", errors='backslashreplace') as f:
         f.write(grammar_json)
+    out_dir_images = out_dir + "/images"
+    os.makedirs(out_dir_images, exist_ok=True)
+    # This gets complicated...
+    # See the extension loading code etc: a better solutions is needed
+#    shutil.copy("images/vgr-icon-128x128.png", out_dir_images + "/icon.png")

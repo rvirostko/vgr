@@ -66,7 +66,46 @@ _VGR_CODE_BLOCK_PATTERN = re.compile(r"```vgr\s*\n(.*?)```", re.DOTALL | re.IGNO
 _FULL_SCORE_WEIGHT = 1.5
 _WEAK_SCORE_RATIO = 0.7
 
-_KEYWORD_PATTERN = re.compile("[A-Z][A-Za-z]+")
+_KEYWORD_PATTERN = re.compile("[A-Z][A-Za-z-]+")
+_CONSTS = [
+    "\u2205",
+    "\u221E",
+    "\u22A4",
+    "\u22A5",
+    "Backslash",
+    "Colon",
+    "Comma",
+    "Escape",
+    "False",
+    "Inf",
+    "Nan",
+    "Newline",
+    "None",
+    "Null",
+    "Period",
+    "Quote",
+    "Space",
+    "Tab",
+    "True",
+    "Zero",
+]
+# TODO operators
+_SPECIAL_KEYWORDS = [
+    "CAS",
+    "CSV",
+    "HCL",
+    "INI",
+    "JSON",
+    "SSL",
+    "URL",
+    "YAML",
+]
+
+def constants_pattern(_parser: Lark) -> str:
+    """
+    Returns a regex pattern that will match a constant.
+    """
+    return r"(?i)\b(:?" + "|".join(sorted(_CONSTS, key=len, reverse=True)) + r")\b"
 
 def keyword_pattern(parser: Lark) -> str:
     """
@@ -75,12 +114,15 @@ def keyword_pattern(parser: Lark) -> str:
     """
     keywords = []
     for t in parser.terminals:
-        # Lark >=1.0 uses t.pattern.value for literals
+        # Lark >= 1.0 uses t.pattern.value for literals
         value = getattr(t.pattern, "value", None)
         if value is not None and re.fullmatch(_KEYWORD_PATTERN, value):
-            if not value.isupper() or value in ["CSV", "JSON"]: keywords.append(value)
+            if (value in _SPECIAL_KEYWORDS or
+                (value not in _CONSTS and
+                not value.isupper())):
+                keywords.append(value)
     # Pattern assures that it is a stand-alone word
-    return r"(?i)\b(" + "|".join(sorted(keywords, key=len, reverse=True)) + r")\b"
+    return r"(?i)\b(:?" + "|".join(sorted(keywords, key=len, reverse=True)) + r")\b"
 
 def search_entries(entries: dict, query: str="", limit: int = 10) -> list[tuple[str, Callable]]:
     """
