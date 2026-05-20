@@ -1,6 +1,8 @@
-
 import json
 import os
+from importlib import resources as impresources
+
+from . import images
 
 # Written to package.json
 _PACKAGE = {
@@ -177,6 +179,11 @@ def create_vscode_extension(keyword_pattern: str, constants_pattern: str, functi
         f.write(grammar_json)
     out_dir_images = out_dir + "/images"
     os.makedirs(out_dir_images, exist_ok=True)
-    # This gets complicated...
-    # See the extension loading code etc: a better solutions is needed
-#    shutil.copy("images/vgr-icon-128x128.png", out_dir_images + "/icon.png")
+    # Source - https://stackoverflow.com/a/20885799
+    # Posted by ankostis, modified by community. See post 'Timeline' for change history
+    # Retrieved 2026-05-20, License - CC BY-SA 4.0
+    inp_file = impresources.files(images) / 'vgr-icon-128x128.png'
+    with inp_file.open("rb") as f:
+        image_data = f.read()
+        with open(os.path.join(out_dir_images, "icon.png"), "wb") as f:
+            f.write(image_data)
