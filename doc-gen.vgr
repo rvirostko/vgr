@@ -71,9 +71,9 @@ Print As Markdown example
 // NB: You probably need to install pyperclip for this to work
 // We need to double up backslashes because the example will
 // be pasted into docstrings
-Terminal SetClipboard example.ReplaceStr("\\", "\\\\").AppendStr("\n")
+Terminal SetClipboard example.ReplaceStr(r"\", r"\\").AppendStr(NewLine)
 
 // Clean up our temp files
-For-Each fn in [setup_file, out_file, err_file]
+For-Each fn In [setup_file, out_file, err_file]
     Assert fn.RemoveFile().FirstItem() : "Could not delete {}", fn
 End-For
