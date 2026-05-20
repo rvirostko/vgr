@@ -3,25 +3,6 @@
 
 Tron
 
-# Perform Until
-Move Zero To x
-Perform Until x > 0: # keep colon
-    Display "Hello"
-    Add 1 To x
-End-Perform
-
-Move Zero To x
-Perform Until x > 0
-    Display "Hello"
-    Add 1 To x
-End-Perform
-
-Move Zero To x
-Perform Until x > 0
-    Display "Hello"
-    Add 1 To x
-End # keep untyped
-
 # Perform Varying
 Perform Varying x From Zero By 1 Until x > 0: # keep colon
     Display "Hello"

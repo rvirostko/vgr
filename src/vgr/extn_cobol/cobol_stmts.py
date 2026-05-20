@@ -120,42 +120,6 @@ Also see `Break` and `Continue`
     raise VgrStatementBreak(statement, BlockType.PERFORM)
 
 @control_statement
-@bound_ops("Perform Until")
-def execute_perform_until(ctx: ExecContext, statement: Tree) -> None:
-    """
-**Repeatedly execute a block of statements until a condition is reached**
-
-* Perform Until *expression*\\
-  &emsp;&emsp;*statement*&hellip;\\
-  End-Perform
-
-The block of statements is executed until *expression* evaluates to True.
-If a `Break` is encountered, looping ends regardless of the
-expression's value. If `Continue` is encountered, statements
-following it are skipped, and *expression* is checked again.
-
-Statements have access to the *$loop* variable, but only *index* and _first_.
-
-```vgr
-Set counter To Zero
-Perform Until counter > 5
-    Display counter " : " counter ** 2
-    Set counter Up By 1
-End-Perform
-
-0 : 0
-1 : 1
-2 : 4
-3 : 9
-4 : 16
-5 : 25
-```
-
-Also see `Exit Perform`
-"""
-    exec_loop(ctx, statement, False, BlockType.PERFORM)
-
-@control_statement
 @bound_ops("Perform Varying")
 def execute_perform_varying(ctx: ExecContext, statement: Tree) -> None:
     """
