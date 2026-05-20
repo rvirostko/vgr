@@ -165,9 +165,9 @@ def create_vscode_extension(debug: bool, keyword_pattern: str, constants_pattern
     to be a Visual Studion Code extension.
     """
     if debug:
-        print(keyword_pattern)
-        print(constants_pattern)
-        print(function_pattern)
+        print(f'(r"{keyword_pattern}", Keyword),')
+        print(f'(r"{constants_pattern}", Name.Constant),')
+        print(f'(r"{function_pattern}", Name.Function),')
     out_dir = "vgr-syntax"
     # Ensure base folder structure
     os.makedirs(out_dir, exist_ok=True)
