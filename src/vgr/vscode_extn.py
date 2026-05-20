@@ -3,11 +3,12 @@ import json
 import os
 
 # Written to package.json
+# TODO "icon": "images/icon.png" - 128x128 PNG
 _PACKAGE = {
     "name": "vgr-syntax",
     "displayName": "VGR Syntax Highlighting",
     "description": "Syntax highlighting for the VGR DSL",
-    "version": "0.0.2",
+    "version": "1.2.0",
     "publisher": "localdev",
     "engines": {
         "vscode": "^1.50.0"
