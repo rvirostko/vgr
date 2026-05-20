@@ -1,26 +1,9 @@
-?basic_statements: basic_continue
-    | basic_do_until
-    | basic_do_while
-    | basic_exit
-
-// Note:
-// An optional ":" is allowed following control statements.
-// While not part of the BASIC syntax, most VGR syntax uses it, so it is
-// optional here to prevent excessive syntax errors. The same goes with "End".
-
-// The defining BASIC-ness is the Do/Loop bracketing, which affects the
-// Exit/Continue that can be used within them.
-// Note that the "Do ... While/Until expr" variants are not supported.
-basic_do_while: "Do"i "While"i expr _CLAUSE_SEP? statement+ _end_do_loop
-basic_do_until: "Do"i "Until"i expr _CLAUSE_SEP? statement+ _end_do_loop
-_end_do_loop: "End-Do"i | "Loop"i | "End"i
+?basic_statements: basic_continue | basic_exit
 
 // Note that these patterns can span across lines and possibly
 // incorrectly associate statements. While unlikely, as the code
 // following an Exit/Continue should be dead code, it is possible.
-basic_exit: "Exit"i "Do"i -> basic_exit_do
-    | "Exit"i "For"i      -> basic_exit_for
+basic_exit: "Exit"i "For"i      -> basic_exit_for
     | "Exit"i "While"i    -> basic_exit_while
-basic_continue: "Continue"i "Do"i -> basic_continue_do
-    | "Continue"i "For"i          -> basic_continue_for
+basic_continue: "Continue"i "For"i          -> basic_continue_for
     | "Continue"i "While"i        -> basic_continue_while

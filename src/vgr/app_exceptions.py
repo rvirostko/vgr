@@ -147,9 +147,9 @@ class VgrStatementAssert(VgrExitingException):
 
 class BlockType(Enum):
     ALL_BLOCKS = auto() # Can break/continue any control context
-    DO_LOOP = auto() # BASIC
-    FOR_LOOP = auto() # BASIC
-    WHILE_LOOP = auto() # BASIC
+    FOR_LOOP = auto()
+    WHILE_LOOP = auto()
+    # TODO UNTIL_LOOP?
     PERFORM = auto() # COBOL
 
 class VgrFlowControlException(VgrException):

@@ -493,56 +493,6 @@ def _declare(ctx: ExecContext, statement: Tree, as_local: bool) -> None:
         if ctx.verbose and rc is not None:
             ctx.print_verbose('.'.join(var_path), 'declared as', 'Local' if rc else 'Global')
 
-@control_statement
-@bound_ops("Do Forever")
-def execute_forever(ctx: ExecContext, statement: Tree) -> None:
-    """
-**Predicate-less loop**
-
-* Do Forever [:]\\
-  &emsp;&emsp;*statement*&hellip;\\
-  [End-Do | End]
-
-The statements are repeatedly executed until a `Break` statement is
-encountered. A `Continue` causes the statements to loop.
-
-Statements have access to the *$loop* variable, but only *index* and _first_.
-
-```vgr
-Set x To 5
-Do Forever
-    Print x, $loop
-    Add 5 to x
-    If x > 20
-        Break
-    End-If
-End-Do
-
-5 {'index': 0, 'first': True}
-10 {'index': 1, 'first': False}
-15 {'index': 2, 'first': False}
-20 {'index': 3, 'first': False}
-```
-
-Also see `Break` and `Continue`
-"""
-    meta = { }
-    ctx.dd.push_frame([(LOOP_META_PATH, meta)])
-    try:
-        i = 0
-        while True:
-            set_loop_meta(meta, i)
-            try:
-                ctx.dispatch_statements(statement.children)
-            except VgrStatementBreak as e:
-                e.validate_for_block(BlockType.DO_LOOP)
-                return
-            except VgrStatementContinue as e:
-                e.validate_for_block(BlockType.DO_LOOP)
-            i += 1
-    finally:
-        ctx.dd.pop_frame()
-
 def exec_if_else(ctx: ExecContext, statement: Tree, desired_value: bool) -> None:
     ctx.echo_source(statement, statement.children[1])
     has_else = statement.children[-1].data == 'else'
@@ -1203,7 +1153,6 @@ STATEMENT_HANDLERS = {
     'foreach':           execute_foreach,
     'for_next_by':       execute_for_next,
     'for_next':          execute_for_next,
-    'forever':           execute_forever,
     'if':                execute_if,
     'include':           execute_include,
     'list_append':       execute_list_append,

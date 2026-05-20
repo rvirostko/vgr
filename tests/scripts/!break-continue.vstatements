@@ -18,12 +18,8 @@ Do Until False: Continue While;     Exit; Loop
 Do Until False: Exit Perform;       Exit; Loop
 
 # Can only use Break/Continue and Exit/Continue For
-For x = 1 To 3: Exit Do;               Exit; Next
-For x = 1 To 3: Continue Do;           Exit; Next
 For x = 1 To 3: Exit While;            Exit; Next
 For x = 1 To 3: Continue While;        Exit; Next
-For Each x in [1]: Exit Do;            Exit; Next
-For Each x in [1]: Continue Do;        Exit; Next
 For Each x in [1]: Exit While;         Exit; Next
 For Each x in [1]: Continue While;     Exit; Next
 For Each x in [1]: Exit Perform;       Exit; Next
@@ -31,22 +27,16 @@ For Each x in [1]: Exit Perform;       Exit; Next
 // -- COBOL --
 
 # Can only use Break/Continue
-Perform 3 Times: Exit Do;        Exit; End-Perform
-Perform 3 Times: Continue Do;    Exit; End-Perform
 Perform 3 Times: Exit While;     Exit; End-Perform
 Perform 3 Times: Continue While; Exit; End-Perform
 Perform 3 Times: Exit For;       Exit; End-Perform
 Perform 3 Times: Continue For;   Exit; End-Perform
 
-Perform Until False: Exit Do;        Exit; End-Perform
-Perform Until False: Continue Do;    Exit; End-Perform
 Perform Until False: Exit While;     Exit; End-Perform
 Perform Until False: Continue While; Exit; End-Perform
 Perform Until False: Exit For;       Exit; End-Perform
 Perform Until False: Continue For;   Exit; End-Perform
 
-Perform Varying x From 1 By 1 Until x > 3: Exit Do;        Exit; End-Perform
-Perform Varying x From 1 By 1 Until x > 3: Continue Do;    Exit; End-Perform
 Perform Varying x From 1 By 1 Until x > 3: Exit While;     Exit; End-Perform
 Perform Varying x From 1 By 1 Until x > 3: Continue While; Exit; End-Perform
 Perform Varying x From 1 By 1 Until x > 3: Exit For;       Exit; End-Perform
@@ -60,12 +50,10 @@ Evaluate True: When True: Continue; End-Evaluate
 
 # Can't just be free-floating
 Break;
-Exit Do;
 Exit For;
 Exit While;
 Exit Perform;
 Continue;
-Continue Do;
 Continue For;
 Continue While;
 
@@ -84,38 +72,22 @@ Choose: When True: Continue;            End-Choose
 Choose Using True: When True: Break;    End-Choose
 Choose Using True: When True: Continue; End-Choose
 
-# Break/Continue valid in VGR loops, and any type that
-# matches the "verb"
-Do Forever: Exit For;       Exit; End-Do
-Do Forever: Continue For;   Exit; End-Do
-Do Forever: Exit While;     Exit; End-Do
-Do Forever: Continue While; Exit; End-Do
-Do Forever: Exit Perform;   Exit; End-Do
-
-Repeat 3 Times: Exit Do;        Exit; End-Repeat
-Repeat 3 Times: Continue Do;    Exit; End-Repeat
 Repeat 3 Times: Exit For;       Exit; End-Repeat
 Repeat 3 Times: Continue For;   Exit; End-Repeat
 Repeat 3 Times: Exit While;     Exit; End-Repeat
 Repeat 3 Times: Continue While; Exit; End-Repeat
 Repeat 3 Times: Exit Perform;   Exit; End-Repeat
 
-Until False: Exit Do;        Exit; End-Until
-Until False: Continue Do;    Exit; End-Until
 Until False: Exit For;       Exit; End-Until
 Until False: Continue For;   Exit; End-Until
 Until False: Exit While;     Exit; End-Until
 Until False: Continue While; Exit; End-Until
 Until False: Exit Perform;   Exit; End-Until
 
-While True: Exit Do;      Exit; End-While
-While True: Continue Do;  Exit; End-While
 While True: Exit For;     Exit; End-While
 While True: Continue For; Exit; End-While
 While True: Exit Perform; Exit; End-While
 
-For Each x in [1]: Exit Do;        Exit; End-For
-For Each x in [1]: Continue Do;    Exit; End-For
 For Each x in [1]: Exit While;     Exit; End-For
 For Each x in [1]: Continue While; Exit; End-For
 For Each x in [1]: Exit Perform;   Exit; End-For

@@ -16,7 +16,7 @@ Set word_header = "Word"
 Set count_header = "Count"
 
 Print "\n--- Word Frequency Counter ---"
-Do Forever
+While True
     Set inp To ""
     Print "\nEnter a sentence:"
     Accept inp From stdin
@@ -52,5 +52,5 @@ Do Forever
             Printf fmt, indent, word, counter.GetKeyValue(word)
         End-For
     End-If
-End-Do
+End-While
 Print "Done."

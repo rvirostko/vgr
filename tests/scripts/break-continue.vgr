@@ -17,81 +17,6 @@ Define Function end_test():
     Assert broke : "Test never hit Break"
 End-Function
 
-Call start_test("Do While (BASIC, block=Do)")
-Do While True
-    If $loop.first
-        Set continued = True
-        Continue Do
-        Assert False: "Continue Do failed"
-    Else
-        Set broke = True
-        Exit Do
-        Assert False: "Exit Do failed"
-    End-If
-    Assert False: "Reached unexpected location"
-Loop
-Call end_test()
-
-Call start_test("Do While (BASIC, block=While)")
-Do While True
-    If $loop.first
-        Set continued = True
-        Continue While
-        Assert False: "Continue Do failed"
-    Else
-        Set broke = True
-        Exit While
-        Assert False: "Exit Do failed"
-    End-If
-    Assert False: "Reached unexpected location"
-Loop
-Call end_test()
-
-Call start_test("Do While (VGR)")
-Do While True
-    If $loop.first
-        Set continued = True
-        Continue
-        Assert False: "Continue failed"
-    Else
-        Set broke = True
-        Break
-        Assert False: "Break failed"
-    End-If
-    Assert False: "Reached unexpected location"
-Loop
-Call end_test()
-
-Call start_test("Do Until (BASIC, block=Do)")
-Do Until False
-    If $loop.first
-        Set continued = True
-        Continue Do
-        Assert False: "Continue Do failed"
-    Else
-        Set broke = True
-        Exit Do
-        Assert False: "Exit Do failed"
-    End-If
-    Assert False: "Reached unexpected location"
-Loop
-Call end_test()
-
-Call start_test("Do Until (VGR)")
-Do Until False
-    If $loop.first
-        Set continued = True
-        Continue
-        Assert False: "Continue failed"
-    Else
-        Set broke = True
-        Break
-        Assert False: "Break failed"
-    End-If
-    Assert False: "Reached unexpected location"
-Loop
-Call end_test()
-
 Call start_test("For Next (BASIC, block=For)")
 For x = 1 To 3
     If $loop.first
@@ -225,36 +150,6 @@ Perform Varying x From 1 By 1 Until x > 3
     End-If
     Assert False: "Reached unexpected location"
 End-Perform
-Call end_test()
-
-Call start_test("Do Forever (VGR)")
-Do Forever
-    If $loop.first
-        Set continued = True
-        Continue
-        Assert False: "Continue failed"
-    Else
-        Set broke = True
-        Break
-        Assert False: "Break failed"
-    End-If
-    Assert False: "Reached unexpected location"
-End-Do
-Call end_test()
-
-Call start_test("Do Forever (VGR, block=Do)")
-Do Forever
-    If $loop.first
-        Set continued = True
-        Continue Do
-        Assert False: "Continue Do failed"
-    Else
-        Set broke = True
-        Exit Do
-        Assert False: "Exit Do failed"
-    End-If
-    Assert False: "Reached unexpected location"
-End-Do
 Call end_test()
 
 Call start_test("Repeat Times (VGR)")

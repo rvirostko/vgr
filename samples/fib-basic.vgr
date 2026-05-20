@@ -9,7 +9,7 @@ Set env.OFS = ""
 LET fib0 = 0
 LET fib1 = 0
 LET i = 0
-DO WHILE i <= 8
+WHILE i <= 8
     IF i > 0 AND i <= 2
         LET fib2 = 1
     ELSE
@@ -19,4 +19,4 @@ DO WHILE i <= 8
     LET fib1 = fib2
     PRINT "fib(", i, ") = ", fib2
     LET i = i + 1
-LOOP
+END

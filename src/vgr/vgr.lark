@@ -109,7 +109,6 @@ opt_statements: statement*
     | unless_statement
     | until_statement
     | while_statement
-    | forever_loop
 
 // Some common patterns
 ?giving_clause: "Giving"i var_name
@@ -148,8 +147,6 @@ for_next: "For"i var_name _EQ expr "To"i expr _CLAUSE_SEP? statement+ _end_for_n
     |     "For"i var_name _EQ expr "To"i expr "Step"i expr _CLAUSE_SEP? statement+ _end_for_next -> for_next_by
 _end_for_next: "End-For"i | "Next"i | "End"i
 
-forever_loop: "Do"i "Forever"i _CLAUSE_SEP? statement+ ("End-Do"i | "End"i) -> forever
-
 // The addition of the optional "Then" allows a BASIC-like If syntax usage
 if_statement: "If"i expr ("Then"i | _CLAUSE_SEP)? statement+ else_clause? ("End-If"i | "End"i) -> if
 else_clause: "Else"i _CLAUSE_SEP? statement+ -> else
@@ -157,7 +154,7 @@ else_clause: "Else"i _CLAUSE_SEP? statement+ -> else
 repeat_statement: "Repeat"i expr ("Time"i | "Times"i)? _CLAUSE_SEP? statement+ ("End-Repeat"i | "End"i) -> repeat
 unless_statement: "Unless"i expr _CLAUSE_SEP? statement+ ("End-Unless"i | "End"i) -> unless
 until_statement: "Until"i expr _CLAUSE_SEP? statement+ ("End-Until"i | "End"i) -> until
-while_statement: "While"i expr _CLAUSE_SEP? statement+ ("End-While"i | "End"i | "Loop"i) -> while
+while_statement: "While"i expr _CLAUSE_SEP? statement+ ("End-While"i | "End"i) -> while
 
 break: "Break"i
 continue: "Continue"i

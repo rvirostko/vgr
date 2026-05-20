@@ -6,23 +6,15 @@ from typing import Dict, Callable
 
 from ..extn import VgrExtension
 from .basic_stmts import (
-    execute_continue_do,
     execute_continue_for,
     execute_continue_while,
-    execute_do_until,
-    execute_do_while,
-    execute_exit_do,
     execute_exit_for,
     execute_exit_while,
 )
 
 _HANDLERS = {
-    'basic_continue_do':    execute_continue_do,
     'basic_continue_for':   execute_continue_for,
     'basic_continue_while': execute_continue_while,
-    'basic_do_until':       execute_do_until,
-    'basic_do_while':       execute_do_while,
-    'basic_exit_do':        execute_exit_do,
     'basic_exit_for':       execute_exit_for,
     'basic_exit_while':     execute_exit_while,
 }
