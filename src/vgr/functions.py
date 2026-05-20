@@ -516,7 +516,7 @@ def function_names_pattern() -> str:
     function names.
     """
     functions = sorted(_FUNC_OPS.keys(), key=len, reverse=True)
-    return r"(?i)\b(" + "|".join(functions) + r")(?=\s*\()"
+    return r"(?i)\b(?:" + "|".join(functions) + r")(?=\s*\()"
 
 def add_builtin_functions() -> None:
     for name, function in _BUILT_IN_FUNCS.items(): add_function('built-in', name, function)
