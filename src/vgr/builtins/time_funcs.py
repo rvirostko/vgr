@@ -16,7 +16,7 @@ def time_now() -> int:
 **Return the Unix Epoch time in seconds**
 
 ```vgr
-**TOD**
+**TODO**
 ```
 
 Also see `FormatTimestamp()`

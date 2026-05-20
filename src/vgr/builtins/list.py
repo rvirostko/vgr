@@ -99,9 +99,9 @@ None.ToList() → []
 "list".ToList() → ["list"]
 fruits.ToList() → ["apple", "banana", "apple", "orange", "apple"]
 fruit_colors.ToList() → [["apple", "red"], ["banana", "yellow"]]
+```
 
 Also see `IsList()`
-```
 """
     if x is None: return []
     if isinstance(x, list): return x
