@@ -6,11 +6,6 @@
 // -- COBOL --
 
 # Can only use Break/Continue
-Perform 3 Times: Exit While;     Exit; End-Perform
-Perform 3 Times: Continue While; Exit; End-Perform
-Perform 3 Times: Exit For;       Exit; End-Perform
-Perform 3 Times: Continue For;   Exit; End-Perform
-
 Perform Until False: Exit While;     Exit; End-Perform
 Perform Until False: Continue While; Exit; End-Perform
 Perform Until False: Exit For;       Exit; End-Perform

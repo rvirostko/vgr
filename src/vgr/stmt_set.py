@@ -161,10 +161,10 @@ This is fundamentally an arithmetic, scalar operation.
 
 ```vgr
 Set counter To 5
-Perform 4 Times
+Repeat 4 Times
     Display counter " : " counter ** 2
     Set counter Up By counter * 1.5
-End-Perform
+End-Repeat
 
 5 : 25
 12.5 : 156.25
@@ -191,10 +191,10 @@ This is fundamentally an arithmetic, scalar operation.
 
 ```vgr
 Set counter To 5
-Perform 4 Times
+Repeat 4 Times
     Display counter " : " counter ** 2
     Set counter Down By counter * .5
-End-Perform
+End
 
 5 : 25
 2.5 : 6.25

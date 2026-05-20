@@ -13,7 +13,7 @@ Let named_colors = term.color_names
 Let max_len = named_colors.StringLen().Max()
 
 Term CursorHide
-Perform iter Times
+Repeat iter Times
 
     #-------------------------------------------------------------------------
     Term Reset, Clear, DHPrint "Boxes and Lines"
@@ -126,6 +126,6 @@ Perform iter Times
     Sleep sleep_time Seconds
     #-------------------------------------------------------------------------
 
-End-Perform
+End-Repeat
 
 Term Clear, Reset, CursorShow

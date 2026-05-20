@@ -107,11 +107,11 @@ def execute_exit_perform(_: ExecContext, statement: Tree) -> None:
 * Exit Perform
 
 ```vgr
-Perform 3 Times:
+Repeat 3 Times:
     Display "a"
     Exit Perform
     Display "b" # Never executes
-End-Perform
+End-Repeat
 a
 ```
 
@@ -154,41 +154,6 @@ End-Perform
 Also see `Exit Perform`
 """
     exec_loop(ctx, statement, False, BlockType.PERFORM)
-
-@control_statement
-@bound_ops("Perform Times")
-def execute_perform_times(ctx: ExecContext, statement: Tree) -> None:
-    """
-**Execute a block of statements a fixed number of times**
-
-* Perform *expression* Times\\
-  &emsp;&emsp;*statement*&hellip;\\
-  End-Perform
-
-The block of statements is executed the given number of times.
-The *expression* is evaluated and converted to an integer, rounding down.
-For any statements to execute, the value must be greater than or equal to one.
-If `Break` is encountered, looping ends regardless of the
-expression's value. If `Continue` is encountered, statements
-following it are skipped and looping continues.
-
-Statements have access to the *$loop* variable, including *index*, *length*, _first_, and _last_.
-
-```vgr
-Set counter To 5
-Perform 3 Times
-    Display counter " : " counter ** 2
-    Set counter Down By 1
-End-Perform
-
-5 : 25
-4 : 16
-3 : 9
-```
-
-Also see `Repeat`
-"""
-    exec_repeat(ctx, statement, BlockType.PERFORM)
 
 @control_statement
 @bound_ops("Perform Varying")

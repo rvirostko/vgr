@@ -3,23 +3,6 @@
 
 Tron
 
-# Perform Times
-Perform 1 Time:
-    Display "Hello"
-End-Perform
-
-Perform 2 Times:
-    Display "Hello"
-End-Perform
-
-Perform 3 Times
-    Display "Hello"
-End-Perform
-
-Perform 3 Times
-    Display "Hello"
-End # keep untyped
-
 # Perform Until
 Move Zero To x
 Perform Until x > 0: # keep colon

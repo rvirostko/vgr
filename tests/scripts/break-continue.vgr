@@ -62,36 +62,6 @@ For x = 1 To 3
 Next
 Call end_test()
 
-Call start_test("Perform Times (COBOL)")
-Perform 3 Times:
-    If $loop.first
-        Set continued = True
-        Continue
-        Assert False: "Continue failed"
-    Else
-        Set broke = True
-        Break
-        Assert False: "Break failed"
-    End-If
-    Assert False: "Reached unexpected location"
-End-Perform
-Call end_test()
-
-Call start_test("Perform Times (COBOL, block=Perform)")
-Perform 3 Times:
-    If $loop.first
-        Set continued = True
-        Continue
-        Assert False: "Continue failed"
-    Else
-        Set broke = True
-        Exit Perform
-        Assert False: "Exit Perform failed"
-    End-If
-    Assert False: "Reached unexpected location"
-End-Perform
-Call end_test()
-
 Call start_test("Perform Until (COBOL)")
 Perform Until False
     If $loop.first
