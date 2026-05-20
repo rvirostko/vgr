@@ -1391,11 +1391,11 @@ None.Split() → []
 ```
 
 ```vgr
-"1,2:3".Split(CompilePattern("[,;:]")) → ["1", "2", "3"]
+"1,2:3".Split(r/[,;:]/)) → ["1", "2", "3"]
 // Capture groups appear in the results
-"1 2:3 4".Split(CompilePattern("([,;:])")) → ["1 2", ":", "3 4"]
+"1 2:3 4".Split(r/([,;:])/) → ["1 2", ":", "3 4"]
 // When non-group causes split, None is returned
-"1 2:3 4".Split(CompilePattern("([,;:])|[ ]")) → ["1", None, "2", ":", "3", None, "4"]
+"1 2:3 4".Split(r/([,;:])|[ ]/) → ["1", None, "2", ":", "3", None, "4"]
 ```
 
 Also see `RSplit()` and `CompilePattern()`
