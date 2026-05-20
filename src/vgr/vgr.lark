@@ -506,8 +506,8 @@ _dict_entry: expr _CLAUSE_SEP expr // key and value
 
 ?atom: ("None"i  | "\u2205" | "Null"i) -> vnone         // Unicode ∅ (Empty set)
     // Boolean constants
-    | ("True"i  | "\u22A4") -> vtrue                    // Unicode ⊤ (top)
-    | ("False"i | "\u22A5") -> vfalse                   // Unicode ⊥ (bottom)
+    | "True"i               -> vtrue
+    | "False"i              -> vfalse
     // Figurative constants: where COBOL "inspired" only the singular version is used
     // Numeric figurative constants
     | "Nan"i                -> vnan
