@@ -267,7 +267,7 @@ def _regex_replace(value: Any, pattern: Any, replacement: Any=None) -> Any:
     if replacement is None:
         replacement = ''
     else:
-        if isinstance(replacement, bool, int, float): replacement = str(replacement)
+        if isinstance(replacement, (bool, int, float)): replacement = str(replacement)
         if not isinstance(replacement, str):
             raise ValueError(f'RegEx Replacement argument must be a string, found {poly_type(replacement)!r}')
     if isinstance(pattern, list):
