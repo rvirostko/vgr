@@ -63,14 +63,14 @@ End-Function
 # Selects the box characters used to create the digits
 Set C To term.box.lightrounded
 Set VPART To [
-    SPACE * 5,
-    C.vbar + (SPACE * 4),
-    (SPACE * 4) + C.vbar,
-    C.vbar + (SPACE * 3) + C.vbar
+    Space * 5,
+    C.vbar + (Space * 4),
+    (Space * 4) + C.vbar,
+    C.vbar + (Space * 3) + C.vbar
 ]
-Set HPART To [ SPACE * 3, C.hbar * 3 ]
-Set LCORNER To [ SPACE, SPACE, SPACE, C.bl, SPACE, C.tl, C.vbar, C.lt ]
-Set RCORNER To [ SPACE, SPACE, SPACE, C.br, SPACE, C.tr, C.vbar, C.rt ]
+Set HPART To [ Space * 3, C.hbar * 3 ]
+Set LCORNER To [ Space, Space, Space, C.bl, Space, C.tl, C.vbar, C.lt ]
+Set RCORNER To [ Space, Space, Space, C.br, Space, C.tr, C.vbar, C.rt ]
 
 Function vpart(n, lmask, rmask) -> VPART.Item(n.BitAnd(lmask).ToBoolean() + n.BitAnd(rmask).ToBoolean().LeftShift(1))
 Function hpart(n, mask) -> HPART.Item((n.BitAnd(mask).ToBoolean()))
@@ -95,7 +95,7 @@ Define Function render_7seg(n):
     Return rc
 End-Function
 
-For i = 0 to 99999
+For i = 0 To 99999
     Set rows To None
     # Join the lines from the digits into single lines
     For-Each digit In @encode_7seg(i)
