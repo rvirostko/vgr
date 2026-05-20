@@ -1,9 +1,0 @@
-?basic_statements: basic_continue | basic_exit
-
-// Note that these patterns can span across lines and possibly
-// incorrectly associate statements. While unlikely, as the code
-// following an Exit/Continue should be dead code, it is possible.
-basic_exit: "Exit"i "For"i      -> basic_exit_for
-    | "Exit"i "While"i    -> basic_exit_while
-basic_continue: "Continue"i "For"i          -> basic_continue_for
-    | "Continue"i "While"i        -> basic_continue_while

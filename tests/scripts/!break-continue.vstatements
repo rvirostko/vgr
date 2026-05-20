@@ -3,27 +3,6 @@
 # Exits prevent tests from hanging should they
 # accidentally succeed
 
-// -- BASIC --
-
-# Can only use Break/Continue, Exit/Continue Do, and Exit/Continue While
-Do While True: Exit For;           Exit; Loop
-Do While True: Continue For;       Exit; Loop
-Do While True: Exit Perform;       Exit; Loop
-
-# Can only use Break/Continue and Exit/Continue Do
-Do Until False: Exit For;           Exit; Loop
-Do Until False: Continue For;       Exit; Loop
-Do Until False: Exit While;         Exit; Loop
-Do Until False: Continue While;     Exit; Loop
-Do Until False: Exit Perform;       Exit; Loop
-
-# Can only use Break/Continue and Exit/Continue For
-For x = 1 To 3: Exit While;            Exit; Next
-For x = 1 To 3: Continue While;        Exit; Next
-For Each x in [1]: Exit While;         Exit; Next
-For Each x in [1]: Continue While;     Exit; Next
-For Each x in [1]: Exit Perform;       Exit; Next
-
 // -- COBOL --
 
 # Can only use Break/Continue
@@ -37,25 +16,21 @@ Perform Until False: Continue While; Exit; End-Perform
 Perform Until False: Exit For;       Exit; End-Perform
 Perform Until False: Continue For;   Exit; End-Perform
 
-Perform Varying x From 1 By 1 Until x > 3: Exit While;     Exit; End-Perform
-Perform Varying x From 1 By 1 Until x > 3: Continue While; Exit; End-Perform
-Perform Varying x From 1 By 1 Until x > 3: Exit For;       Exit; End-Perform
-Perform Varying x From 1 By 1 Until x > 3: Continue For;   Exit; End-Perform
-
-# Not valid in Evaluate outside of a loop
-Evaluate True: When True: Break; End-Evaluate
-Evaluate True: When True: Continue; End-Evaluate
+Perform Varying x From 1 By 1 Until x > 3: Break-While;    Exit; End-Perform
+Perform Varying x From 1 By 1 Until x > 3: Continue-While; Exit; End-Perform
+Perform Varying x From 1 By 1 Until x > 3: Break-For;      Exit; End-Perform
+Perform Varying x From 1 By 1 Until x > 3: Continue-For;   Exit; End-Perform
 
 // -- VGR --
 
 # Can't just be free-floating
 Break;
-Exit For;
-Exit While;
+Break-For;
+Break-While;
 Exit Perform;
 Continue;
-Continue For;
-Continue While;
+Continue-For;
+Continue-While;
 
 # Not valid in an If or Unless outside of a loop
 # (no need to test all variants...)
@@ -72,22 +47,27 @@ Choose: When True: Continue;            End-Choose
 Choose Using True: When True: Break;    End-Choose
 Choose Using True: When True: Continue; End-Choose
 
-Repeat 3 Times: Exit For;       Exit; End-Repeat
-Repeat 3 Times: Continue For;   Exit; End-Repeat
-Repeat 3 Times: Exit While;     Exit; End-Repeat
-Repeat 3 Times: Continue While; Exit; End-Repeat
+Repeat 3 Times: Break-For;      Exit; End-Repeat
+Repeat 3 Times: Continue-For;   Exit; End-Repeat
+Repeat 3 Times: Break-While;    Exit; End-Repeat
+Repeat 3 Times: Continue-While; Exit; End-Repeat
 Repeat 3 Times: Exit Perform;   Exit; End-Repeat
 
-Until False: Exit For;       Exit; End-Until
-Until False: Continue For;   Exit; End-Until
-Until False: Exit While;     Exit; End-Until
-Until False: Continue While; Exit; End-Until
+Until False: Break-For;      Exit; End-Until
+Until False: Continue-For;   Exit; End-Until
+Until False: Break-While;    Exit; End-Until
+Until False: Continue-While; Exit; End-Until
 Until False: Exit Perform;   Exit; End-Until
 
-While True: Exit For;     Exit; End-While
-While True: Continue For; Exit; End-While
+While True: Break-For;    Exit; End-While
+While True: Continue-For; Exit; End-While
 While True: Exit Perform; Exit; End-While
 
-For Each x in [1]: Exit While;     Exit; End-For
-For Each x in [1]: Continue While; Exit; End-For
-For Each x in [1]: Exit Perform;   Exit; End-For
+# Can only use Break/Continue and Exit/Continue For
+For x = 1 To 3: Break-While;         Exit; Next
+For x = 1 To 3: Continue-While;      Exit; Next
+For x = 1 To 3: Exit Perform;        Exit; Next
+
+For-Each x In [1]: Break-While;     Exit; End-For
+For-Each x In [1]: Continue-While; Exit; End-For
+For-Each x In [1]: Exit Perform;   Exit; End-For

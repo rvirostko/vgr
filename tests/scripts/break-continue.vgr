@@ -21,11 +21,11 @@ Call start_test("For Next (BASIC, block=For)")
 For x = 1 To 3
     If $loop.first
         Set continued = True
-        Continue For
+        Continue-For
         Assert False: "Continue For failed"
     Else
         Set broke = True
-        Exit For
+        Break-For
         Assert False: "Exit For failed"
     End-If
     Assert False: "Reached unexpected location"
@@ -36,11 +36,11 @@ Call start_test("For Each (Basic, block=for)")
 For Each x In [1, 2, 3]
     If $loop.first
         Set continued = True
-        Continue For
+        Continue-For
         Assert False: "Continue For failed"
     Else
         Set broke = True
-        Exit For
+        Break-For
         Assert False: "Break For failed"
     End-If
     Assert False: "Reached unexpected location"
@@ -201,11 +201,11 @@ Call start_test("While (VGR, block=While)")
 While True
     If $loop.first
         Set continued = True
-        Continue While
+        Continue-While
         Assert False: "Continue While failed"
     Else
         Set broke = True
-        Exit While
+        Break-While
         Assert False: "Exit While failed"
     End-If
     Assert False: "Reached unexpected location"
@@ -231,11 +231,11 @@ Call start_test("For-Each (VGR, block=for)")
 For-Each x In [1, 2, 3]
     If $loop.first
         Set continued = True
-        Continue For
+        Continue-For
         Assert False: "Continue For failed"
     Else
         Set broke = True
-        Exit For
+        Break-For
         Assert False: "Exit For failed"
     End-If
     Assert False: "Reached unexpected location"

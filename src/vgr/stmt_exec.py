@@ -332,14 +332,20 @@ def do_source(ctx: ExecContext, path: Path, included: bool=False) -> None:
     finally:
         ctx.set_var(tval, *INCLUDED_PATH)
 
-@bound_ops("Break")
+@bound_ops("Break", "Break-For", "Break-While")
 def execute_break(_: ExecContext, statement: Tree) -> None:
     """
 **Exits the current block of statements**
 
 * Break
+* Break-For
+* Break-While
 
 Used with `While`, `Until`, `For-Each` and other looping statements
+
+Typed variants only break their matching loop type, serving as
+a logic check for large or complicated loops. Other than that,
+they are not functionally different.
 
 ```vgr
 Set i To Zero
@@ -352,15 +358,28 @@ End-While
 Printf "First integer whose square exceeds 50 is {}\\n", i
 ```
 
+Also see `Continue`
 """
     raise VgrStatementBreak(statement, BlockType.ALL_BLOCKS)
 
-@bound_ops("Continue")
+def execute_break_for(_: ExecContext, statement: Tree) -> None:
+    raise VgrStatementBreak(statement, BlockType.FOR_LOOP)
+
+def execute_break_while(_: ExecContext, statement: Tree) -> None:
+    raise VgrStatementBreak(statement, BlockType.WHILE_LOOP)
+
+@bound_ops("Continue", "Continue-For", "Coninue-While")
 def execute_continue(_: ExecContext, statement: Tree) -> None:
     """
 **Cause the current loop to start again**
 
 * Continue
+* Continue-For
+* Continue-While
+
+Typed variants only continue their matching loop type, serving as
+a logic check for large or complicated loops. Other than that,
+they are not functionally different.
 
 ```vgr
 Set evens To []
@@ -376,8 +395,15 @@ End-While
 Print "Even numbers up to 20: {}\\n", evens
 ```
 
+Also see `Break`
 """
     raise VgrStatementContinue(statement, BlockType.ALL_BLOCKS)
+
+def execute_continue_for(_: ExecContext, statement: Tree) -> None:
+    raise VgrStatementContinue(statement, BlockType.FOR_LOOP)
+
+def execute_continue_while(_: ExecContext, statement: Tree) -> None:
+    raise VgrStatementContinue(statement, BlockType.WHILE_LOOP)
 
 @bound_ops("Pass", "NOP")
 def execute_pass(_: ExecContext, __: Tree) -> None:
@@ -1133,6 +1159,8 @@ STATEMENT_HANDLERS = {
     'assert':            execute_assert,
     'assign':            execute_assign,
     'block':             execute_block,
+    'break_for':         execute_break_for,
+    'break_while':       execute_break_while,
     'break':             execute_break,
     'call_giving':       execute_call_giving,
     'call':              execute_call,
@@ -1140,6 +1168,8 @@ STATEMENT_HANDLERS = {
     'choose':            execute_choose,
     'close':             execute_close,
     'compile_arrow':     execute_compile_arrow,
+    'continue_for':      execute_continue_for,
+    'continue_while':    execute_continue_while,
     'continue':          execute_continue,
     'debug':             execute_debug,
     'declare_global':    execute_declare_global,

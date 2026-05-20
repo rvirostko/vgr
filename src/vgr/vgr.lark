@@ -157,7 +157,13 @@ until_statement: "Until"i expr _CLAUSE_SEP? statement+ ("End-Until"i | "End"i) -
 while_statement: "While"i expr _CLAUSE_SEP? statement+ ("End-While"i | "End"i) -> while
 
 break: "Break"i
+    |  "Break-For"i   -> break_for
+    |  "Break-While"i -> break_while
+
 continue: "Continue"i
+    |     "Continue-For"i   -> continue_for
+    |     "Continue-While"i ->   continue_while
+
 return: "Return"i expr?
 
 _eq_operators: ("==" | "\u2A75" | "Equals"i | "Is"i | "Is"i? "Equal"i "To"i)                        // Unicode ⩵ (two consecutive equals signs)
