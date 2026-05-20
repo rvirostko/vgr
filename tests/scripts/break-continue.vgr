@@ -22,11 +22,11 @@ For x = 1 To 3
     If $loop.first
         Set continued = True
         Continue-For
-        Assert False: "Continue For failed"
+        Assert False: "Continue-For failed"
     Else
         Set broke = True
         Break-For
-        Assert False: "Exit For failed"
+        Assert False: "Break-For failed"
     End-If
     Assert False: "Reached unexpected location"
 Next
@@ -37,7 +37,7 @@ For Each x In [1, 2, 3]
     If $loop.first
         Set continued = True
         Continue-For
-        Assert False: "Continue For failed"
+        Assert False: "Continue-For failed"
     Else
         Set broke = True
         Break-For
@@ -206,7 +206,7 @@ While True
     Else
         Set broke = True
         Break-While
-        Assert False: "Exit While failed"
+        Assert False: "Break-While failed"
     End-If
     Assert False: "Reached unexpected location"
 End-While
@@ -232,11 +232,11 @@ For-Each x In [1, 2, 3]
     If $loop.first
         Set continued = True
         Continue-For
-        Assert False: "Continue For failed"
+        Assert False: "Continue-For failed"
     Else
         Set broke = True
         Break-For
-        Assert False: "Exit For failed"
+        Assert False: "Break-For failed"
     End-If
     Assert False: "Reached unexpected location"
 End-For
