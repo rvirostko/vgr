@@ -473,7 +473,8 @@ Environment variables:
 
     if args.gen_doc: gen_auto_docs()
     if args.gen_vsc_extn:
-        create_vscode_extension(keyword_pattern(parser),
+        create_vscode_extension(args.debug,
+                                keyword_pattern(parser),
                                 constants_pattern(parser),
                                 function_names_pattern())
     if args.gen_doc or args.gen_vsc_extn: sys.exit(VgrExitingException.EXIT_SUCCESS)

@@ -159,11 +159,15 @@ def _vscode_syntax_highlighting(keyword_pattern: str, constants_pattern: str, fu
 
 from . import __version__
 
-def create_vscode_extension(keyword_pattern: str, constants_pattern: str, function_pattern: str) -> None:
+def create_vscode_extension(debug: bool, keyword_pattern: str, constants_pattern: str, function_pattern: str) -> None:
     """
     Creates a directory with the required structure and files
     to be a Visual Studion Code extension.
     """
+    if debug:
+        print(keyword_pattern)
+        print(constants_pattern)
+        print(function_pattern)
     out_dir = "vgr-syntax"
     # Ensure base folder structure
     os.makedirs(out_dir, exist_ok=True)
@@ -180,7 +184,7 @@ def create_vscode_extension(keyword_pattern: str, constants_pattern: str, functi
     out_dir_images = out_dir + "/images"
     os.makedirs(out_dir_images, exist_ok=True)
     # Source - https://stackoverflow.com/a/20885799
-    # Posted by ankostis, modified by community. See post 'Timeline' for change history
+    # Posted by ankostis, modified by community.
     # Retrieved 2026-05-20, License - CC BY-SA 4.0
     inp_file = impresources.files(images) / 'vgr-icon-128x128.png'
     with inp_file.open("rb") as f:
