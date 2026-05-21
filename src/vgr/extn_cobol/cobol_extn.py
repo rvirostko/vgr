@@ -7,16 +7,12 @@ from typing import Dict, Callable
 from ..extn import VgrExtension
 from .cobol_stmts import (
     execute_exhibit,
-    execute_exit_perform,
     execute_move_to,
-    execute_perform_varying,
 )
 
 _HANDLERS = {
     'cobol_exhibit':            execute_exhibit,
-    'cobol_exit_perform':       execute_exit_perform,
     'cobol_move_to':            execute_move_to,
-    'cobol_perform_varying':    execute_perform_varying,
 }
 
 class CobolExtension(VgrExtension):

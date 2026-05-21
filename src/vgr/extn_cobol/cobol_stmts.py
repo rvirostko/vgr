@@ -6,126 +6,13 @@ from typing import Any
 
 from lark import Tree
 
-from ..app_exceptions import (
-    BlockType,
-    VgrStatementBreak,
-    VgrStatementContinue,
-)
-from ..evaluate import bind_operations, do_set, get_writable_var_path, _var_name_path
+from ..evaluate import do_set, get_writable_var_path, _var_name_path
 from ..exec_context import ExecContext
 from ..builtins import (
     bound_ops,
     poly_repr,
-    poly_true,
 )
 from ..redir import print_stdout
-from ..stmt_exec import LOOP_META_PATH, set_loop_meta
-from ..tags import control_statement
-
-@bound_ops("Exit Perform")
-def execute_exit_perform(_: ExecContext, statement: Tree) -> None:
-    """
-**Ends the execution of a Perform loop**
-
-* Exit Perform
-
-```vgr
-Repeat 3 Times:
-    Print "a"
-    Exit Perform
-    Print "b" # Never executes
-End-Repeat
-a
-```
-
-Also see `Break` and `Continue`
-"""
-    raise VgrStatementBreak(statement, BlockType.PERFORM)
-
-@control_statement
-@bound_ops("Perform Varying")
-def execute_perform_varying(ctx: ExecContext, statement: Tree) -> None:
-    """
-**Execute a block of statements while increasing or decreasing a variable's value**
-
-* Perform Varying *variable* From *expression* By *expression* Until *expression*\\
-  &emsp;&emsp;*statement*&hellip;\\
-  End-Perform
-* Perform With Test [Before | After] Varying *variable* From *expression* By *expression* Until *expression*\\
-  &emsp;&emsp;*statement*&hellip;\\
-  End-Perform
-
-If a `Break` is encountered, looping ends regardless of the
-expression's value. If `Continue` is encountered, statements
-following it are skipped and looping continues.
-
-If not specified, the test expression is performed before the block of statements.
-
-Statements have access to the *$loop* variable, but only *index* and _first_.
-
-```vgr
-Perform Varying counter From 0 By 1 Until counter > 5
-    Print counter, ":", counter ** 2
-End-Perform
-
-0 : 0
-1 : 1
-2 : 4
-3 : 9
-4 : 16
-5 : 25
-
-Perform Varying x From 2 By 2 Until x > 10
-    Print x, $loop
-End-Perform
-
-2 {'index': 0, 'first': True}
-4 {'index': 1, 'first': False}
-6 {'index': 2, 'first': False}
-8 {'index': 3, 'first': False}
-10 {'index': 4, 'first': False}
-```
-
-Also see `For Next` and `Exit Perform`
-"""
-    # Echo the control portion, not the statements
-    ctx.echo_source(statement, statement.children[-1])
-    ba_ind = statement.children[0]
-    if isinstance(ba_ind, Tree) and ba_ind.data in ('test_before', 'test_after'):
-        test_before = ba_ind.data == 'test_before'
-        cindex = 1
-    else:
-        test_before = True
-        cindex = 0
-    var_path = get_writable_var_path(ctx, statement.children[cindex])
-    cindex += 1
-    value = ctx.eval_to_number(bind_operations(statement.children[cindex]), 'Perform Varying start value')
-    cindex += 1
-    inc = ctx.eval_to_number(bind_operations(statement.children[cindex]), 'Perform Varying increment')
-    if inc == 0: raise ValueError('Perform Varying requires a non-zero increment')
-    cindex += 1
-    predicate = bind_operations(statement.children[cindex])
-    cindex += 1
-    meta = { }
-    ctx.dd.push_frame([(var_path, None), (LOOP_META_PATH, meta)])
-    try:
-        i = 0
-        while True:
-            set_loop_meta(meta, i)
-            ctx.set_var(value, *var_path)
-            if test_before and poly_true(ctx.eval_expr(predicate)): return
-            try:
-                ctx.dispatch_statements(statement.children[cindex:])
-            except VgrStatementBreak as e:
-                e.validate_for_block(BlockType.PERFORM)
-                return
-            except VgrStatementContinue as e:
-                e.validate_for_block(BlockType.PERFORM)
-            value += inc
-            if not test_before and poly_true(ctx.eval_expr(predicate)): return
-            i += 1
-    finally:
-        ctx.dd.pop_frame()
 
 @bound_ops("Move")
 def execute_move_to(ctx: ExecContext, statement: Tree) -> None:

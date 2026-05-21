@@ -2,19 +2,19 @@
 // Calculate and display Fibonacci numbers from fib(0) to fib(8)
 //---------------------------------------------------------------------
 
-PERFORM VARYING I FROM 0 BY 1 UNTIL I > 8
+FOR I = 0 TO 8 STEP 1
     IF I < 2
         PRINT "fib(", I, ") = ", I
             OFS IS NONE
     ELSE
         MOVE 0 TO FIB0
         MOVE 1 TO FIB1
-        PERFORM VARYING J FROM 2 BY 1 UNTIL J > I
+        FOR J = 2 TO I STEP 1
             ADD FIB0 TO FIB1 GIVING T
             MOVE FIB1 TO FIB0
             MOVE T TO FIB1
-        END-PERFORM
+        END-FOR
         PRINT "fib(", I, ") = ", FIB1
             OFS IS NONE
     END-IF
-END-PERFORM
+END-FOR

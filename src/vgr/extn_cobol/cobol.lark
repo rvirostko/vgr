@@ -1,18 +1,8 @@
 
-?cobol_statements: cobol_exit_perform
-    | cobol_exhibit
+?cobol_statements: cobol_exhibit
     | cobol_move_to
-    | cobol_perform_varying
-
 _cob_expr_list: expr (_SEP? expr)*
 _cob_var_list: var_name (_SEP? var_name)*
-
-cobol_exit_perform: "Exit"i "Perform"i
-
-// NB: Performs contain non-standard ":" separator (optional) to be compatible with other block statements
-cobol_perform_varying: "Perform"i varying_test_type? "Varying"i var_name "From"i expr "By"i expr "Until"i expr _CLAUSE_SEP? statement+ ("End-Perform"i | "End"i)?
-?varying_test_type: "With"i? "Test"i "Before"i -> test_before
-    | "With"i? "Test"i "After"i -> test_after
 
 cobol_exhibit: "Exhibit"i "*" // exhibit all
     | "Exhibit"i _cob_var_list

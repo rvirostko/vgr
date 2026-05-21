@@ -150,7 +150,6 @@ class BlockType(Enum):
     FOR_LOOP = auto()
     WHILE_LOOP = auto()
     # TODO UNTIL_LOOP?
-    PERFORM = auto() # COBOL
 
 class VgrFlowControlException(VgrException):
     def __init__(self, statement: Tree, msg: str, block_type: BlockType=BlockType.ALL_BLOCKS):
