@@ -37,7 +37,7 @@ from .doc_help import (
     constants_pattern,
     keyword_pattern,
     print_doc,
-    print_md,
+    md_println,
     search_entries,
     unique_by_func,
 )
@@ -118,10 +118,10 @@ class VGRCmdLine(CmdLine):
 
     def run(self):
         if self._ctx.verbose:
-            print_md(f"PWD={os.getcwd()}")
+            md_println(f"PWD={os.getcwd()}")
         else:
-            print_md(f"\n`VGR {__version__} ({__version_date__})`")
-        print_md('_Type **help** for more information_')
+            md_println(f"\n`VGR {__version__} ({__version_date__})`")
+        md_println('_Type **help** for more information_')
         return super().run()
 
     def execute_statements(self, text: str) -> bool:
@@ -221,7 +221,7 @@ For example **help Add** will return informtion for `Add()` while
                     self._display_statement_help(q, stmt_help)
                 else:
                     print()
-                    print_md('_Use **help topics** to list topics_')
+                    md_println('_Use **help topics** to list topics_')
                     print()
 
     def _md_fixup(self, text: str) -> str:
@@ -232,7 +232,7 @@ For example **help Add** will return informtion for `Add()` while
 
     def _print_md_doc(self, filename: str) -> None:
         print()
-        print_md(self._md_fixup(read_doc_file(filename)))
+        md_println(self._md_fixup(read_doc_file(filename)))
         print()
 
     def _print_running_help(self, _topic: str, _q: str) -> None:
@@ -240,11 +240,11 @@ For example **help Add** will return informtion for `Add()` while
 
     def _print_license_help(self, _topic: str, _q: str) -> None:
         print()
-        print_md(self._md_fixup(read_license_file()))
+        md_println(self._md_fixup(read_license_file()))
         print()
 
     def _print_authors_help(self, _topic: str, _q: str) -> None:
-        print_md(self._md_fixup(get_authors()))
+        md_println(self._md_fixup(get_authors()))
         print()
 
     def _print_variables_help(self, _topic: str, _q: str) -> None:
@@ -316,7 +316,7 @@ For example **help Add** will return informtion for `Add()` while
         if len(results) == 0:
             # We could not find anything
             print()
-            print_md(f'_Nothing matches{" " + repr(q) if q else ""}_')
+            md_println(f'_Nothing matches{" " + repr(q) if q else ""}_')
             print()
         elif len(results) == 1:
             # We got an single match
@@ -335,7 +335,7 @@ For example **help Add** will return informtion for `Add()` while
                 else:
                     lines.append(f'* `{name}`')
             print()
-            print_md('\n'.join(lines))
+            md_println('\n'.join(lines))
             print()
 
 def load_extensions(dd: DataDictionary, verbose: bool) -> VgrExtensionRegistry:

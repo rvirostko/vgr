@@ -7,7 +7,7 @@ Set formsys.base To "dc=example,dc=com"
 
 Print ""
 
-Echo on
+Echo On
 // Connect to the test server
 Ldap Connect To formsys.url
     User Is formsys.user
@@ -19,7 +19,7 @@ Print ""
 // Simple listing of groups
 // Note that the "dn" is also returned: it is a synthetic attribute
 // and cannot be used in a filter
-Print As Markdown "Groups".MdStrong()
+Print "Groups".MdStrong() As Markdown
 Set filter To "objectClass".LdapAttrEquals("groupOfUniqueNames")
 Ldap Search Base Is formsys.base
     Filter Is filter
@@ -29,7 +29,7 @@ Ldap Search Base Is formsys.base
 // Check the operation
 Assert groups.success : "Failed to get groups: {} (rc={})", groups.error, groups.result_code
 Sort groups.entries By ou
-Printf As Markdown "Filter: {}\n", filter.MdEmphasis()
+Printf "Filter: {}\n", filter.MdEmphasis() As Markdown
 Select ou.TitleCase() As "Group", uniqueMember.Length() As "Members", dn As "DN"
     From groups.entries
     For Batch Template
@@ -42,17 +42,17 @@ Define Function PrintPeople(filter):
         Giving people
     Assert people.success : "Failed to get people: {} (rc={})", groups.error, groups.result_code
     Sort people.entries By cn
-    Printf As Markdown "Filter: {}\n", filter.ReplaceStr("*", r"\*").MdEmphasis()
+    Printf "Filter: {}\n", filter.ReplaceStr("*", r"\*").MdEmphasis() As Markdown
     Select cn As "Name", mail.DefaultTo("") As "Email", telephoneNumber.FirstItem().DefaultTo("") As "Phone"
         From people.entries
         For Batch Template
     Print ""
 End-Function
 
-Print As Markdown "People".MdStrong()
+Print "People".MdStrong() As Markdown
 Call PrintPeople Using "objectClass".LdapAttrEquals("person")
 
-Print As Markdown "People with both mail and phone numbers".MdStrong()
+Print "People with both mail and phone numbers".MdStrong() As Markdown
 Call PrintPeople
     Using LdapFilterAnd("objectClass".LdapAttrEquals("person"),
                         "mail".LdapAttrExists(),
@@ -70,7 +70,7 @@ Call PrintPeople Using ToLdapFilter(qbe)
 
 // The Size Limit control the number of records returned
 // Additionally, when set to 1, the type of entries changes
-Print As Markdown "Size Limit behavior".MdStrong()
+Print "Size Limit behavior".MdStrong() As Markdown
 For-Each limit In [0, 1, 2]
     Ldap Search Base Is "ou=mathematicians," + formsys.base
         Scope Is ALL

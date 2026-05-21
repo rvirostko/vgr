@@ -22,19 +22,19 @@ Set alice_info to {"name": "Alice", "height": 10}
 Printf "{0[name]} is {0[height]} feet tall\n", alice_info
 
 # Explicit destinations
-Printf On Output "Out: {}\n", "value"
-Printf To Error "Error: {} ({})\n", "failure", 1
+Printf "Out: {}\n", "value" To Output
+Printf "Error: {} ({})\n", "failure", 1 To Error
 
 # Markdown output (always to console)
-Printf As Markdown "# {}\n", "Header"
-Printf Markdown "* {}\n", "item"
-Printf Markdown "{} - {}\n", "item1", "item2"
+Printf "# {}\n", "Header" As Markdown
+Printf "* {}\n", "item" As Markdown
+Printf "{} - {}\n", "item1", "item2" As Markdown
 
 # Mixed formatting
 Printf "Name: {}, Count: {}, Ratio: {:.3f}\n", "test", 5, 0.12345
 
 # Empty format string (no newline)
-Printf "" // no output
+Printf "" // no output, but flushes buffer
 Print ""
 Printf "\n" // newline only
 Printf None, 1, 2

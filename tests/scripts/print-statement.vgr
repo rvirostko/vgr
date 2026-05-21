@@ -4,8 +4,8 @@ Define Function set-env(ofs, ors)
 End-Function
 
 Define Function show-env()
-    Print Output "OFS :", env.OFS.Repr()
-    Print Output "ORS :", env.ORS.Repr()
+    Printf "OFS : {!r}\n", env.OFS To Output
+    Printf "ORS : {!r}\n", env.ORS To Output
 End-Function
 
 # Default behavior (env.OFS and env.ORS are None → space + newline)
@@ -15,20 +15,23 @@ Print "alpha", "beta", "gamma"
 # Set custom separators
 Call set-env(",", "|")
 Call show-env()
-Print "alpha", "beta", "gamma", Newline
+Print "alpha", "beta", "gamma"
+Printf Newline
 
 # Change only OFS
 Call set-env(" | ", None)
 Call show-env()
 Print "x", "y", "z"                # x | y | z\n
+Printf Newline
 
 # Explicit destinations
 Call set-env(Space, Newline)
 Call show-env()
-Print Output "out1", "out2"
-Print Error "err1", "err2"
-Print Markdown "# Title"
-Print Markdown "**line1**", "*line2*"
+Print "out1", "out2" To Output
+Print "err1", "err2" To Error
+Print "# Title" As Markdown
+Print "*one*", "**two**", "***three***" As Markdown
+Print "* item1", Newline, "* item2" As Markdown
 
 # Empty strings still emit ORS
 Print ""
@@ -42,16 +45,34 @@ Call set-env()
 Call show-env()
 Print "reset", "to", "defaults"    # reset to defaults\n
 
-# Markdown respects console behavior
-Print Markdown "* item1", "* item2"
-
 # Error stream example
-Print Error "warning:", "something happened"
+Print "warning:", "something happened" To Error
 
+# Output aliases
+Print "alpha" To stdout // Alias to Output
+Print "alpha" To stderr // Alias to Error
 
-Print "alpha"
-Print stdout "alpha"
-Print To stdout "alpha"
-Print On stdout "alpha"
-Print Markdown "*beta*"
-Print As Markdown "*beta*"
+# Immediate output flushing
+Print "alpha" Flush // Default
+Print "alpha" Flush Is True
+Print "alpha" Flush Is False
+Print "alpha" Flush Is None // use default behavior
+Print "alpha" No-Flush
+Print "alpha" No-Flush Is True
+Print "alpha" No-Flush Is False
+Print "alpha" No-Flush Is None // use default behavior
+
+# Separators
+Print "alpha", "beta" // use default separators
+Print "alpha", "beta" OFS Is ", " ORS Is Newline
+Print "alpha", "beta" ORS Is None // same as an empty string
+Printf Newline
+// Alternate long option names
+Print "alpha", "beta" Field Separator Is ", " Record Separator Is Newline
+
+# Multiple options, multiple lines
+Print "alpha", "beta"
+    To Error // destination comes first
+    Field Separator Is ", "
+    Record Separator Is Newline
+    No-Flush

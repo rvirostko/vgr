@@ -308,10 +308,16 @@ load_source_type: "CSV"i -> csv_file
 
 assert: "Assert"i expr (_CLAUSE_SEP _csep_list{expr})?
 
-print: "Print"i print_channel? _csep_list{expr}
-printf: "Printf"i print_channel? _csep_list{expr}
-?print_channel: ("On"i | "To"i)? (stderr | stdout)
-    | "As"i? "Markdown"i -> markdown
+print:  "Print"i _csep_list{expr} print_channel? _options_list{print_option}
+printf: "Printf"i _csep_list{expr} print_channel? _options_list{printf_option}
+?print_channel: "To"i (stderr | stdout) // -> stderr or stdout
+    | "As"i "Markdown"i                     -> markdown
+?print_sep_opt: (("Field"i "Separator"i) | "OFS"i) option_value  -> ofs
+    |           (("Record"i "Separator"i) | "ORS"i) option_value -> ors
+?print_flush_opt: ("Flush"i) option_value?                       -> flush
+    |             ("No-Flush"i) option_value?                    -> no_flush
+?print_option: print_sep_opt | print_flush_opt
+?printf_option: print_flush_opt
 
 log: "Log"i log_level _csep_list{expr}
    | "Log"i "Level"i log_level -> log_setlevel

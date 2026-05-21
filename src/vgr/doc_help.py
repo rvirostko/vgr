@@ -170,30 +170,40 @@ def create_md_lexer(_parser: Lark) -> None:
     # way that you think would work doesn't
     _STATE.lexer = VgrLexer()
 
-def print_md(s: str) -> None:
-    if s: _print(Console(theme=_THEME), s)
+_CONSOLE = Console(theme=_THEME)
+
+def md_println(s: str) -> None:
+    """
+    Note: trailing whitespace is always stripped.
+    Always outputs a newline at the end.
+    """
+    _print(_CONSOLE, s)
 
 def print_doc(func: Callable) -> None:
     doc = (func.__doc__ or "").strip()
-    console = Console(theme=_THEME)
+    console = _CONSOLE
     console.print("")
     if doc:
         _print(console, doc)
     else:
-        console.print(Markdown('_Sorry, no documentation available_'))
+        console.print(Markdown('***Sorry, no documentation available***'))
     console.print("")
 
 def _print(console: Console, s: str) -> None:
+    """Handles the formatting of VGR code blocks"""
     last_pos = 0
     for match in _VGR_CODE_BLOCK_PATTERN.finditer(s):
         start, end = match.span()
-        if start > last_pos: console.print(Markdown(s[last_pos:start]))
+        if start > last_pos:
+            console.print(Markdown(s[last_pos:start]), sep=None, end=None)
         _print_code_block(console, match.group(1))
         last_pos = end
     # Add remaining text
-    if last_pos < len(s): console.print(Markdown(s[last_pos:]))
+    if last_pos < len(s):
+        console.print(Markdown(s[last_pos:]), sep=None, end=None)
 
 def _print_code_block(console: Console, code_block: str) -> None:
+    """Write out a formatted VGR code block"""
     console.print("")  # outside blank line above
     console.print(Syntax(
         code=code_block.strip('\n'),
