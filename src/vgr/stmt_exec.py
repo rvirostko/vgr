@@ -1217,8 +1217,6 @@ STATEMENT_HANDLERS = {
     'sub_from':          execute_sub_from,
     'sub_giving':        execute_sub_giving,
     'swap':              execute_swap,
-    'troff':             execute_echo,
-    'tron':              execute_echo,
     'unless':            execute_unless,
     'unset':             execute_unset,
     'until':             execute_until,

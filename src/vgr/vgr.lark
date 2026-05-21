@@ -95,8 +95,6 @@ opt_statements: statement*
     | sub_from
     | sub_giving
     | swap
-    | troff
-    | tron
     | unset
     | verbose
     | zip
@@ -239,8 +237,6 @@ op_not_is_in: _not_is_in_operators
 // these are "proper statements" as they control the behavior of other statements
 debug: "Debug"i expr?
 echo: "Echo"i expr?
-tron: "Tron"i   // echo alias
-troff: "Troff"i // echo alias
 
 verbose: "Verbose"i expr?
 
