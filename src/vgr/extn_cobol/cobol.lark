@@ -3,7 +3,6 @@
     | cobol_exhibit
     | cobol_move_to
     | cobol_perform_varying
-    | cobol_string
 
 _cob_expr_list: expr (_SEP? expr)*
 _cob_var_list: var_name (_SEP? var_name)*
@@ -17,14 +16,6 @@ cobol_perform_varying: "Perform"i varying_test_type? "Varying"i var_name "From"i
 
 cobol_exhibit: "Exhibit"i "*" // exhibit all
     | "Exhibit"i _cob_var_list
-
-// Notes :
-//   * Does not support "[Not] On Size Error" (entirely N/A here)
-//   * Does not support "Pointer"
-// See https://www.ibm.com/docs/en/cobol-zos/6.3.0?topic=statements-string-statement
-cobol_string: "String"i _options_list{cobol_string_source} _SEP? "Into"i var_name "End-String"i?
-?cobol_string_source: expr ("Delimited"i "By"i "Size"i)? -> full
-    | expr "Delimited"i "By"i expr -> delimited
 
 cobol_move_to: "Move"i cobol_move_corr? expr "To"i var_name
 cobol_move_corr: ("Corresponding"i | "Corr"i)

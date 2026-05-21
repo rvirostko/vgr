@@ -10,7 +10,6 @@ from .cobol_stmts import (
     execute_exit_perform,
     execute_move_to,
     execute_perform_varying,
-    execute_string,
 )
 
 _HANDLERS = {
@@ -18,7 +17,6 @@ _HANDLERS = {
     'cobol_exit_perform':       execute_exit_perform,
     'cobol_move_to':            execute_move_to,
     'cobol_perform_varying':    execute_perform_varying,
-    'cobol_string':             execute_string,
 }
 
 class CobolExtension(VgrExtension):

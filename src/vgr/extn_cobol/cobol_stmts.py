@@ -3,14 +3,11 @@ COBOL statements
 """
 
 from typing import Any
-import sys
 
 from lark import Tree
-import pwinput
 
 from ..app_exceptions import (
     BlockType,
-    VgrRuntimeError,
     VgrStatementBreak,
     VgrStatementContinue,
 )
@@ -18,13 +15,10 @@ from ..evaluate import bind_operations, do_set, get_writable_var_path, _var_name
 from ..exec_context import ExecContext
 from ..builtins import (
     bound_ops,
-    poly_findstr,
     poly_repr,
-    poly_str,
     poly_true,
-    poly_type,
 )
-from ..redir import print_stderr, print_stdout
+from ..redir import print_stdout
 from ..stmt_exec import LOOP_META_PATH, set_loop_meta
 from ..tags import control_statement
 
@@ -189,73 +183,6 @@ Also see `Set` and `Add()` for combining dictionaries
         # Either not corresponding move or the src/dest are not a dicts
         # Just a "regular" set
         do_set(ctx, src_value, *var_path)
-
-@bound_ops("String")
-def execute_string(ctx: ExecContext, statement: Tree) -> None:
-    """
-**Concatenate strings**
-
-* String *value*&hellip; Into *variable*
-* String\\
-  &emsp;&emsp;*value* Delimited By Size\\
-  &emsp;&emsp;*value* Delimited By _delimiter_\\
-  &emsp;&emsp;Into *variable*\\
-  End-String
-
-All *value* arguments may be constants or expressions that yield a string,
-integer, or float. If a *value* is `None` it is ignored.
-
-If *variable* does not exist it is created. If it already exists, its
-value is overwritten.
-
-By default the entirety of each *value* is added to the result.
-If a delimiter is specified, as in the second form of the syntax, the part of
-the value to the left of _delimiter_ is used. If *value* does not contain the
-delimiter string, it is added in its entirety. The search for _delimiter_
-uses the same rules as `FindStr()`.
-
-```vgr
-Set h To "Hello"
-Set w To "World"
-String h, w Into s → "HelloWorld"
-String h, ", ", w Into s → "Hello, World"
-```
-
-```vgr
-Set Customer-Name To "Jones, Inc"
-Set Customer-Id To "A104"
-String
-    Customer-Name Delimited By ","
-    Customer-Id   Delimited By Size
-    Into Output-Buffer
-End-String
-Print Output-Buffer → "JonesA104"
-```
-
-Also see `FindStr()`
-"""
-    var_path = get_writable_var_path(ctx, statement.children[-1])
-    value = ''
-    for item in statement.children[:-1]:
-        part_type = item.data
-        expr = item.children[0]
-        part = ctx.eval_expr(expr)
-        if part is None:
-            part = ''
-        elif isinstance(part, (bool, int, float, str)):
-            part = poly_str(part)
-        else:
-            raise VgrRuntimeError(expr, ValueError(f'Cannot String {poly_type(part)!r}'))
-        if part_type == 'full':
-            value += part
-        elif part_type == 'delimited':
-            index = -1
-            delimiter = ctx.eval_to_str(item.children[-1], "Delimiter")
-            index = poly_findstr(part, delimiter) if delimiter else -1
-            value += part[0:index] if index >= 0 else part
-        else:
-            raise NotImplementedError(f'String option {part_type!r} not implemented')
-    do_set(ctx, value, *var_path)
 
 @bound_ops("Exhibit")
 def execute_exhibit(ctx: ExecContext, statement: Tree) -> None:
