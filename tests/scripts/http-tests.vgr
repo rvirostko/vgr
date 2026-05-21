@@ -72,7 +72,7 @@ Set n To 1
 // -------------------------------------------------------------------------
 // Simple standalone GET
 // -------------------------------------------------------------------------
-Echo on
+Echo On
 Http Get "https://httpbin.org/get"
 Echo off
 Call AssertResult(n)
@@ -82,7 +82,7 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // GET with single parameters
 // -------------------------------------------------------------------------
-Echo on
+Echo On
 Http Get "https://httpbin.org/get"
     Parameter "page=1"
     Parameter "q=hello world"
@@ -96,7 +96,7 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // GET with bulk parameters
 // -------------------------------------------------------------------------
-Echo on
+Echo On
 Http Get "https://httpbin.org/get"
     Parameters {
             "page": "2",
@@ -112,7 +112,7 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // GET with custom header — httpbin echoes headers back
 // -------------------------------------------------------------------------
-Echo on
+Echo On
 Http Get "https://httpbin.org/headers" Header " X-Test-Header : HelloWorld "
 Echo off
 Call AssertResult(n)
@@ -123,7 +123,7 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // POST with JSON body
 // -------------------------------------------------------------------------
-Echo on
+Echo On
 Http Post "https://httpbin.org/post" Body Is {"name": "alice", "role": "admin"} Header "Content-Type: application/json"
 Echo off
 Call AssertResult(n)
@@ -137,7 +137,7 @@ Add 1 to n
 // -------------------------------------------------------------------------
 Set user To "testuser"
 Set password To "testpass"
-Echo on
+Echo On
 Http Get "https://httpbin.org/basic-auth/{}/{}".Format(user, password)
     User Is user
     Password Is password
@@ -153,7 +153,7 @@ Add 1 to n
 // -------------------------------------------------------------------------
 Set user To "testuser"
 Set password To "testpass"
-Echo on
+Echo On
 Http Get "https://httpbin.org/basic-auth/{}/{}".Format(user, password)
     User Is user
     Password Is "BAD"
@@ -167,7 +167,7 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // Digest auth
 // -------------------------------------------------------------------------
-Echo on
+Echo On
 Http Get "https://httpbin.org/digest-auth/auth/{}/{}".Format(user, password)
     User Is user
     Password Is password
@@ -181,7 +181,7 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // Expected "not found" — reason should be set, script continues
 // -------------------------------------------------------------------------
-Echo on
+Echo On
 Http Get URL Is "https://httpbin.org/status/404"
 Echo off
 Call AssertStatus(n, http.status.not_found)
@@ -193,7 +193,7 @@ Add 1 to n
 // Timeout — delay endpoint with short timeout
 // expects transport failure result, not an exception
 // -------------------------------------------------------------------------
-Echo on
+Echo On
 Http Get URL Is "https://httpbin.org/delay/5" Timeout Is 1
 Echo off
 Call AssertStatus(n, None)
@@ -204,7 +204,7 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // Session connect, GET, disconnect
 // -------------------------------------------------------------------------
-Echo on
+Echo On
 Http Connect "https://httpbin.org/" Timeout Is 10.0 As httpbin
 Http Get URL Is "get" Using httpbin
 Echo off
@@ -216,7 +216,7 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // Session with URL params — override one, keep one, add one
 // -------------------------------------------------------------------------
-Echo on
+Echo On
 Http Connect "https://httpbin.org/?api_version=1&format=json"
     Timeout Is 10.0
     As httpbin
@@ -238,7 +238,7 @@ Http Disconnect httpbin
 // -------------------------------------------------------------------------
 Set user To "bob"
 Set password To "secret"
-Echo on
+Echo On
 Http Connect "https://httpbin.org/"
     User Is user
     Password Is password
@@ -256,7 +256,7 @@ Http Disconnect httpbin
 // -------------------------------------------------------------------------
 // Follow Redirects - off
 // -------------------------------------------------------------------------
-Echo on
+Echo On
 Http Connect "https://httpbin.org/"
     Follow Redirects Is False
     As httpbin
@@ -270,7 +270,7 @@ Http Disconnect httpbin
 // -------------------------------------------------------------------------
 // Follow Redirects - on, unlimited
 // -------------------------------------------------------------------------
-Echo on
+Echo On
 Http Connect "https://httpbin.org/"
     Follow Redirects
     Timeout Is 30.0
@@ -285,7 +285,7 @@ Http Disconnect httpbin
 // -------------------------------------------------------------------------
 // Follow Redirects - on, limited
 // -------------------------------------------------------------------------
-Echo on
+Echo On
 Http Connect "https://httpbin.org/"
     Follow Redirects
     Timeout Is 30.0
@@ -303,7 +303,7 @@ Http Disconnect httpbin
 // -------------------------------------------------------------------------
 // DELETE
 // -------------------------------------------------------------------------
-Echo on
+Echo On
 Http Delete URL Is "https://httpbin.org/delete"
 Echo off
 Call AssertResult(n)
@@ -313,7 +313,7 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // PUT with body
 // -------------------------------------------------------------------------
-Echo on
+Echo On
 Http Put URL Is "https://httpbin.org/put"
     Body Is { "key": "value" }
     Header "Content-Type: application/json"
@@ -326,7 +326,7 @@ Add 1 to n
 // -------------------------------------------------------------------------
 // PATCH with body
 // -------------------------------------------------------------------------
-Echo on
+Echo On
 Http Patch URL Is "https://httpbin.org/patch"
     Body Is { "status": "updated" }
     Header "Content-Type: application/json"
@@ -340,7 +340,7 @@ Add 1 to n
 // Giving tests - positive only
 // -------------------------------------------------------------------------
 # We can always restate the default and have it work
-Echo on
+Echo On
 Http Get "https://httpbin.org/get" Giving http.result
 Echo off
 Call AssertResult(n)
@@ -350,7 +350,7 @@ Add 1 to n
 # We can specify our own writable var
 Unset froboz
 Assert froboz Is None
-Echo on
+Echo On
 Http Get "https://httpbin.org/get" Giving froboz
 Echo off
 Assert froboz Is Not None
@@ -363,7 +363,7 @@ Add 1 to n
 For-Each test_case in [[1, 1.1], [1.1, 1.1], [2, 2], [" 2 ", 2]]
     Assign test_case.FirstItem() To version
     Assign "HTTP/" + test_case.LastItem() To expected
-    Echo on
+    Echo On
     Http Connect "https://httpbin.org" HTTP-Version Is version As httpbin
     Http Get "get" Using httpbin
     Echo off
@@ -387,7 +387,7 @@ For-Each host In [
         "wrong.host.badssl.com",
     ]:
     For-Each verify In [ True, False ]
-        Echo on
+        Echo On
         Http Connect "https://" + host Verify SSL Is verify Timeout Is 10.0 As ssl_test_conn
         Http Get URL Is "/" Using ssl_test_conn
         Echo off
