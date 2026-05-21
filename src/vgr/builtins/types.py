@@ -361,6 +361,7 @@ If *value* is `None` it is left as `None`.
 ```vgr
 **TODO**
 ```
+
 > **Note**\\
 > With a list, `ToString()` works distributively, applying the
 > operation to each item in the list in turn. To turn the
@@ -372,7 +373,7 @@ If *value* is `None` it is left as `None`.
     if isinstance(x, str): return x
     if isinstance(x, re.Pattern): return x.pattern
     if isinstance(x, list): return list(poly_str(x1) for x1 in x)
-    if isinstance(x, dict): return json.dumps(x, default=str)
+    if isinstance(x, dict): return json.dumps(x, allow_nan=True, default=str)
     return str(x)
 
 def poly_is_str(x: Any=None) -> bool:
