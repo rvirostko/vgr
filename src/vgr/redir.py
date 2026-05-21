@@ -51,11 +51,11 @@ All opened files are closed at program termination.
 **Options**
 
 * `Append` or `Extend` : output is added to the end of an existing file.
-  Used with `Output` and `Error`. Can be abbreviated as `A`.
+  Used with `Output` and `Error`.
 * `Overwrite` : overwrite existing files, which is the default.
-  Used with `Output` and `Error`. Can be abbreviated as `W`.
+  Used with `Output` and `Error`.
 * `No Overwrite` : operation fails if the file already exists.
-  Used with `Output` and `Error`. Can be abbreviated as `X`.
+  Used with `Output` and `Error`.
 * `Read` : can only be used with `Input`.
   This is the default mode for `Input`.
 * `Encoding [Is] expr` : Set the encoding for the file.
@@ -63,9 +63,9 @@ All opened files are closed at program termination.
 
 **Stream Aliases**
 
-* `stdout` or `sysprint` for `Output`
+* `stdout` for `Output`
 * `stderr` for `Error`
-* `stdin` or `sysin` for `Input`
+* `stdin` for `Input`
 
 > **Windows Note**\\
 > If you hard code paths, please use the slash as a universal

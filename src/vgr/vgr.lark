@@ -113,8 +113,8 @@ opt_statements: statement*
 ?giving_clause: "Giving"i var_name
 ?option_value: "Is"i? expr
 stderr: ("Error"i | "stderr"i)
-stdout: ("Output"i | "stdout"i | "sysprint"i)
-stdin: ("Input"i | "stdin"i | "sysin"i)
+stdout: ("Output"i | "stdout"i)
+stdin: ("Input"i | "stdin"i)
 encoding: "Encoding"i option_value
 
 block_statement: "Begin"i _CLAUSE_SEP? statement+ "End"i -> block
@@ -324,10 +324,10 @@ log: "Log"i log_level _csep_list{expr}
 
 open: "Open"i (stderr | stdout | stdin) _file_option? expr _options_list{open_option}
 ?open_option: encoding | open_mode
-?open_mode: ("Append"i | "Extend"i | "a"i) -> a
-    | ("Overwrite"i | "w"i)          -> w
-    | ("No"i "Overwrite"i | "x"i)    -> x
-    | ("Read"i | "r"i)               -> r
+?open_mode: ("Append"i | "Extend"i) -> a
+    |       "Overwrite"i            -> w
+    |       "No"i "Overwrite"i      -> x
+    |       "Read"i                 -> r
 close: "Close"i (stderr | stdout | stdin) _file_option?
 
 zip: ("Create-Zip"i | "Create"i "Zip"i) _file_option? expr _options_list{zip_option}
