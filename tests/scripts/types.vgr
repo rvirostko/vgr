@@ -1,5 +1,5 @@
 
-Tron
+Echo On
 
 Function f(x) -> x
 Set p To CompilePattern("x")
@@ -49,4 +49,4 @@ Assert 0.IsZero()
 Assert Zero.IsZero()
 Assert 1.IsZero() Is False
 
-Troff
+Echo Off

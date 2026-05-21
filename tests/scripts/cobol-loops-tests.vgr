@@ -1,7 +1,7 @@
 
 # Test out various syntax options for COBOL loops
 
-Tron
+Echo On
 
 # Perform Varying
 Perform Varying x From Zero By 1 Until x > 0: # keep colon

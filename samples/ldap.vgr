@@ -12,7 +12,7 @@ Echo On
 Ldap Connect To formsys.url
     User Is formsys.user
     Password Is formsys.psw
-Echo off
+Echo Off
 
 Print ""
 

@@ -3,7 +3,7 @@
 # an immutable variable, you actually get
 # a mutable copy
 
-Tron
+Echo On
 
 Print math
 
@@ -18,4 +18,4 @@ Assert math.inf == INF
 Assert t.inf == 0
 Assert 'new_var' Is In t
 
-Troff
+Echo Off

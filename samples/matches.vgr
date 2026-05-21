@@ -1,4 +1,4 @@
-Tron
+Echo On
 
 Assert Matches() Is False
 
@@ -16,11 +16,11 @@ Assert 1.0.Matches(None) Is False
 Assert "1".Matches(None) Is False
 Assert ["1"].Matches(None) Is False
 
-Troff
+Echo Off
 
 For-Each value In [True, False, Zero, Nan, Inf, "hello", ["world"]]
     Exhibit value
-    Tron
+    Echo On
     Assert value.Matches(value)
     Assert [value].Matches(value)
     Assert [value, "frog"].Matches(value) Is False
@@ -31,7 +31,7 @@ For-Each value In [True, False, Zero, Nan, Inf, "hello", ["world"]]
     Assert [value, "frog"].MatchesAll(value) Is False
     Assert value Matches All [value]
     Assert value.MatchesAll([value, "frog"]) Is False
-    Troff
+    Echo Off
 End-For
 
 # When neither type is a string or pattern
@@ -41,7 +41,7 @@ Assert 1 Matches 1.0
 Assert 1.0 Matches 1
 Assert Zero Matches False
 
-Tron
+Echo On
 
 # Pattern compilation is optional
 Set a_or_b To CompilePattern("^(a|b)+$")

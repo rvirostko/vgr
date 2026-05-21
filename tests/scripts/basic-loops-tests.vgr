@@ -1,7 +1,7 @@
 
 # Test out various syntax options for BASIC loops
 
-Tron
+Echo On
 
 # Do While
 Let x = 0

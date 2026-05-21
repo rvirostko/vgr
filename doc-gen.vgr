@@ -20,18 +20,18 @@ Set out_file = "doc-gen-{}-o.txt".Format(rnd)
 Set err_file = "doc-gen-{}-e.txt".Format(rnd)
 
 Open Error File setup_file
-Tron
+Echo On
 //-----------------------------------------------------------------------------
 // Set up stuff
 //-----------------------------------------------------------------------------
 
 //-----------------------------------------------------------------------------
-Troff
+Echo Off
 Close Error File
 
 Open Output File out_file // Results go to this file
 Open Error File err_file  // The echoed commands goes to this file
-Tron
+Echo On
 //-----------------------------------------------------------------------------
 // Documentation examples go here
 //-----------------------------------------------------------------------------
@@ -45,7 +45,7 @@ Remove-Key "b" From a
 Print a.Repr()
 
 //-----------------------------------------------------------------------------
-Troff
+Echo Off
 Close Error File
 Close Output File
 
