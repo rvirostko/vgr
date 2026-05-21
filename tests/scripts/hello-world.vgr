@@ -4,5 +4,3 @@
 Print "Hello, World!"
 
 Printf "{}\n", "Hello, World"
-
-Display "Hello, World!"

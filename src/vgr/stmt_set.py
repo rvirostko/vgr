@@ -162,7 +162,7 @@ This is fundamentally an arithmetic, scalar operation.
 ```vgr
 Set counter To 5
 Repeat 4 Times
-    Display counter " : " counter ** 2
+    Print counter, ":", counter ** 2
     Set counter Up By counter * 1.5
 End-Repeat
 
@@ -192,7 +192,7 @@ This is fundamentally an arithmetic, scalar operation.
 ```vgr
 Set counter To 5
 Repeat 4 Times
-    Display counter " : " counter ** 2
+    Print counter, ":", counter ** 2
     Set counter Down By counter * .5
 End
 

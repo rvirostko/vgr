@@ -3,7 +3,7 @@ Set data To vgr.source.FirstItem().DirectoryName() + os.sep + "data" + os.sep
 
 #-------------------------------------------------------------------------------
 Define Function sort_and_check(var):
-    Display "Sorting data in memory" Upon Output
+    Print "Sorting data in memory" To Output
     Assert var.IsList() And var.FirstItem().IsDictionary()
     Echo On
     Sort var On Asc Key name
@@ -17,7 +17,7 @@ End-Function
 
 #-------------------------------------------------------------------------------
 Define Function sort_file_and_check(fn):
-    Display "Sorting file in place" Upon Output
+    Print "Sorting file in place" To Output
     Echo On
     Sort File fn On Key name
     Echo Off
@@ -30,7 +30,8 @@ End-Function
 #-------------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------
-Display Newline "Sorting HCL data" Upon Output
+Print ""
+Print "Sorting HCL data" To Output
 Set fn = data + "animals.hcl"
 Open Output fn Overwrite Encoding "UTF-8"
 Printf "{}", """\
@@ -48,7 +49,8 @@ Call sort_and_check(t.animals)
 #-------------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------
-Display Newline "Sorting INI data" Upon Output
+Print ""
+Print "Sorting INI data" To Output
 Set fn = data + "animals.ini"
 Open Output fn, Overwrite, Encoding Is "ASCII"
 Printf "{}", """\
@@ -75,7 +77,8 @@ Call sort_and_check(t.GetValues())
 #-------------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------
-Display Newline "Sorting JSON data" Upon Output
+Print ""
+Print "Sorting JSON data" To Output
 Set fn = data + "animals.json"
 Open Output fn Encoding Is "UTF-8" Overwrite
 Printf "{}", """\
@@ -91,7 +94,8 @@ Call sort_file_and_check(fn)
 #-------------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------
-Display Newline "Sorting CSV data" Upon Output
+Print ""
+Print "Sorting CSV data" To Output
 Set fn = data + "animals.csv"
 Open Output fn Encoding Is "UTF-8"
 Printf "{}", """\
@@ -106,7 +110,8 @@ Call sort_file_and_check(fn)
 #-------------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------
-Display Newline "Sorting TEXT data" Upon Output
+Print ""
+Print "Sorting TEXT data" To Output
 Set fn = data + "animals.text"
 Open Output fn Encoding Is "ASCII"
 Printf "{}", """\

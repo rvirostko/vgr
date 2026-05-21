@@ -1,6 +1,5 @@
 
-?cobol_statements: cobol_display_on
-    | cobol_exit_perform
+?cobol_statements: cobol_exit_perform
     | cobol_exhibit
     | cobol_move_to
     | cobol_perform_varying
@@ -18,15 +17,6 @@ cobol_perform_varying: "Perform"i varying_test_type? "Varying"i var_name "From"i
 
 cobol_exhibit: "Exhibit"i "*" // exhibit all
     | "Exhibit"i _cob_var_list
-
-// Notes :
-//  * We do not enforce the order (or cardinality) of options
-//  * Output limits based on the destination are not enforced
-//
-// See https://www.ibm.com/docs/en/cobol-zos/6.3.0?topic=statements-display-statement
-cobol_display_on: "Display"i _cob_expr_list cobol_display_opt*
-?cobol_display_opt: ("Upon"i | "On"i) (stderr | stdout | stdin) -> upon
-    | "With"i? "No"i "Advancing"i -> no_advance
 
 // Notes :
 //   * Does not support "[Not] On Size Error" (entirely N/A here)

@@ -6,7 +6,6 @@ from typing import Dict, Callable
 
 from ..extn import VgrExtension
 from .cobol_stmts import (
-    execute_display_on,
     execute_exhibit,
     execute_exit_perform,
     execute_move_to,
@@ -15,7 +14,6 @@ from .cobol_stmts import (
 )
 
 _HANDLERS = {
-    'cobol_display_on':         execute_display_on,
     'cobol_exhibit':            execute_exhibit,
     'cobol_exit_perform':       execute_exit_perform,
     'cobol_move_to':            execute_move_to,

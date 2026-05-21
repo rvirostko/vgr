@@ -1,11 +1,14 @@
 Set filename To vgr.source.FirstItem().DirectoryName() + "/people.json"
 Set limit To 10
 
-Display "Reading from ", filename, "..."
-Load people From File filename
-Display $load.records, " record", $load.records.Plural()
+Set env.OFS = ''
+Set env.ORF = Newline
 
-Display Newline, "Original, first ", limit
+Print "Reading from ", filename, "..."
+Load people From File filename
+Print $load.records, " record", $load.records.Plural()
+
+Print Newline, "Original, first ", limit
 Select
     RightJustify($rowid + 1, 2) As "",
     RightJustify(age.DefaultTo(Space), 3) As "Age",
@@ -16,7 +19,7 @@ Limit limit
 For Batch Template
 
 Sort people On age Giving people_by_age
-Display Newline, "By Age, first ", limit, " (not null)"
+Print Newline, "By Age, first ", limit, " (not null)"
 Select
     RightJustify($rowid + 1, 2) As "",
     RightJustify(age.DefaultTo(Space), 3) As "Age",
@@ -28,7 +31,7 @@ Limit limit
 For Batch Template
 
 Sort people On last_name, first_name Giving people_by_names
-Display Newline, "By Name, first ", limit
+Print Newline, "By Name, first ", limit
 Select
     RightJustify($rowid + 1, 2) As "",
     last_name.DefaultTo(Space) As "Last Name",
@@ -47,13 +50,13 @@ Define Function ExtractAges(data_in):
     Return ages.StripNulls()
 End-Function
 
-Display Newline, "All ages from raw data", Newline, @ExtractAges(people)
+Print Newline, "All ages from raw data", Newline, @ExtractAges(people)
 
 // <list>.sort([<unique>[, <reverse>]])
-Display Newline, "Unique ages using Sort()", Newline, @ExtractAges(people).Sort(True)
+Print Newline, "Unique ages using Sort()", Newline, @ExtractAges(people).Sort(True)
 
 Sort people
     On age
     Unique On age
     Giving by_age
-Display Newline, "Unique ages using Sort statement", Newline, @ExtractAges(by_age)
+Print Newline, "Unique ages using Sort statement", Newline, @ExtractAges(by_age)

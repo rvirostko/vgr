@@ -37,9 +37,9 @@ def execute_exit_perform(_: ExecContext, statement: Tree) -> None:
 
 ```vgr
 Repeat 3 Times:
-    Display "a"
+    Print "a"
     Exit Perform
-    Display "b" # Never executes
+    Print "b" # Never executes
 End-Repeat
 a
 ```
@@ -71,7 +71,7 @@ Statements have access to the *$loop* variable, but only *index* and _first_.
 
 ```vgr
 Perform Varying counter From 0 By 1 Until counter > 5
-    Display counter " : " counter ** 2
+    Print counter, ":", counter ** 2
 End-Perform
 
 0 : 0
@@ -273,7 +273,7 @@ portion is displayed on its own line.
 
 With a single argument of *\\** all variables are displayed.
 
-Unlike `Display` et al, the values display are the _representation_ of the data, not
+Unlike `Print` et al, the values display are the _representation_ of the data, not
 its printable value. This lets you diferentiate between an integer and a string as
 well as seeing control characters.
 
@@ -282,7 +282,7 @@ Exhibit math.pi math.e
 math.pi = 3.141592653589793
 math.e = 2.718281828459045
 
-Display math.float
+Print math.float
 {'max': 1.7976931348623157e+308, 'min': 2.2250738585072014e-308}
 Exhibit math.float
 math.float.max = 1.7976931348623157e+308
@@ -292,7 +292,7 @@ Exhibit string.whitespace
 string.whitespace = ' \\t\\n\\r\\x0b\\x0c'
 ```
 
-Also see `Display`, `Print`, `Printf`, and `Repr()`
+Also see `Print`, `Printf`, and `Repr()`
 """
     def _exhibit_value(name: str, value: Any) -> None:
         if hasattr(value, 'keys') and callable(value.keys):
@@ -318,64 +318,3 @@ Also see `Display`, `Print`, `Printf`, and `Repr()`
         # No arguments dumps the entire dictionary
         for key in sorted(ctx.dd.keys()):
             _exhibit_value(key, ctx.get_var(key))
-
-@bound_ops("Display")
-def execute_display_on(ctx: ExecContext, statement: Tree) -> None:
-    """
-**Print values to either the output or error streams**
-
-* Display *expression*&hellip; [*option*]&hellip;
-
-The default is to print to the output stream.
-While similar to `Print`, `Display` does not use *env.OFS* or *env.ORS*, instead
-it defaults to no separator between items and always ending with a newline.
-
-*Options*
-
-* Upon [Output | Error] - send the output to stdout or stderr respectively. If this
-  option is not specified, output goes to stdout.
-* [With] No Advancing - do not add a newline at the end of the output
-
-```vgr
-Assign "Hello" To Greeting
-Assign "World" To Whom
-Print Greeting, Whom
-Hello World
-Printf "{}, {}!", Greeting, Whom
-Hello, World!
-Display Greeting Whom
-HelloWorld
-```
-
-Also see `Print`, `Printf`, and `Exhibit`, as well as `Open` and `Close`
-"""
-    dest_stdout = True
-    ender = None
-    flush = None
-    # Options appear after arguments
-    # We keep looking at the end of the list for known options
-    # and pull then off the list
-    args = list(statement.children)
-    while args:
-        last_child = args[-1]
-        if isinstance(last_child, Tree):
-            if last_child.data == 'upon':
-                where = last_child.children[0].data
-                if where in ['stdout', 'stderr']:
-                    dest_stdout = where == 'stdout'
-                else:
-                    raise VgrRuntimeError(last_child, ValueError(f'Cannot send output to {where!r}'))
-                args.pop()
-                continue
-            if last_child.data == 'no_advance':
-                ender = ''
-                flush = True
-                args.pop()
-                continue
-        # Not an option, so exit loop
-        break
-    args = list(ctx.eval_expr(expr) for expr in args)
-    if dest_stdout:
-        print_stdout(*args, sep='', end=ender, flush=flush)
-    else:
-        print_stderr(*args, sep='', end=ender, flush=flush)

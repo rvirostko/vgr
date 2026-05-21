@@ -5,29 +5,29 @@ Echo On
 
 # Perform Varying
 Perform Varying x From Zero By 1 Until x > 0: # keep colon
-    Display "Hello"
+    Print "Hello"
 End-Perform
 
 Perform Varying x From Zero By 1 Until x > 0
-    Display "Hello"
+    Print "Hello"
 End-Perform
 
 Perform Varying x From Zero By 1 Until x > 0
-    Display "Hello"
+    Print "Hello"
 End # keep untyped
 
 Perform With Test Before Varying x From Zero By 1 Until x > 0
-    Display "Hello"
+    Print "Hello"
 End-Perform
 
 Perform Test Before Varying x From Zero By 1 Until x > 0
-    Display "Hello"
+    Print "Hello"
 End-Perform
 
 Perform With Test After Varying x From Zero By 1 Until x > 0
-    Display "Hello"
+    Print "Hello"
 End-Perform
 
 Perform Test After Varying x From Zero By 1 Until x > 0
-    Display "Hello"
+    Print "Hello"
 End-Perform
