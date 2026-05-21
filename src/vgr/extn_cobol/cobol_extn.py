@@ -6,7 +6,6 @@ from typing import Dict, Callable
 
 from ..extn import VgrExtension
 from .cobol_stmts import (
-    execute_accept,
     execute_display_on,
     execute_exhibit,
     execute_exit_perform,
@@ -16,13 +15,6 @@ from .cobol_stmts import (
 )
 
 _HANDLERS = {
-    'cobol_accept_date':        execute_accept,
-    'cobol_accept_day':         execute_accept,
-    'cobol_accept_dow':         execute_accept,
-    'cobol_accept_input':       execute_accept,
-    'cobol_accept_time':        execute_accept,
-    'cobol_accept_yyyyddd':     execute_accept,
-    'cobol_accept_yyyymmdd':    execute_accept,
     'cobol_display_on':         execute_display_on,
     'cobol_exhibit':            execute_exhibit,
     'cobol_exit_perform':       execute_exit_perform,

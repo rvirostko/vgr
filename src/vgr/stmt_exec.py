@@ -55,6 +55,7 @@ from .redir import (
     print_stdout,
 )
 from .src_mgr import SSM
+from .stmt_accept import execute_accept_input
 from .stmt_cflags import (
     execute_debug,
     execute_echo,
@@ -1154,6 +1155,7 @@ class VarRefOptimizer(Transformer):
 # NB: Extension may add items to this list,
 #     but they can't replace existing ones
 STATEMENT_HANDLERS = {
+    'accept_input':      execute_accept_input,
     'add_giving':        execute_add_giving,
     'add_to':            execute_add_to,
     'assert':            execute_assert,

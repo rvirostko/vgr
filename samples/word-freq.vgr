@@ -11,7 +11,7 @@ If !vgr.stdout.isatty
 End-If
 
 Set non-alpha = CompilePattern("[^A-Za-z]")
-Set indent = " " * 3
+Set indent = Space * 3
 Set word_header = "Word"
 Set count_header = "Count"
 
@@ -19,7 +19,7 @@ Print "\n--- Word Frequency Counter ---"
 While True
     Set inp To ""
     Print "\nEnter a sentence:"
-    Accept inp From stdin
+    Accept Input From stdin To inp
     Set inp To inp.Strip()
     If inp Equals ""
         Break

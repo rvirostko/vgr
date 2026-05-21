@@ -1,6 +1,5 @@
 
-?cobol_statements: cobol_accept
-    | cobol_display_on
+?cobol_statements: cobol_display_on
     | cobol_exit_perform
     | cobol_exhibit
     | cobol_move_to
@@ -9,21 +8,6 @@
 
 _cob_expr_list: expr (_SEP? expr)*
 _cob_var_list: var_name (_SEP? var_name)*
-
-// DATE and TIME should accept either a keyword -or- a pattern
-cobol_accept: "Accept"i var_name "Upon"i "Console"i cobol_accept_option? -> cobol_accept_input // old standard
-    | "Accept"i var_name ("From"i ("Console"i | "Terminal"i | "Stdin"i | "Sysin"i | "Sysinp"i))? cobol_accept_option? -> cobol_accept_input
-    | "Accept"i var_name "From"i "Date"i -> cobol_accept_date
-    | "Accept"i var_name "From"i "Date"i "YYYYMMDD"i -> cobol_accept_yyyymmdd
-    | "Accept"i var_name "From"i "Day"i -> cobol_accept_day
-    | "Accept"i var_name "From"i "Day"i "YYYYDDD"i -> cobol_accept_yyyyddd
-    | "Accept"i var_name "From"i "Day-Of-Week"i -> cobol_accept_dow
-    | "Accept"i var_name "From"i "Time"i -> cobol_accept_time
-    | "Accept"i var_name "From"i ("Unix"i? "Epoch"i | "Timestamp"i) -> cobol_accept_epoch
-cobol_accept_option: "With"i? "Echo"i -> echo // AcuCobol (plus a "with")
-    | "With"i? "No"i "Echo"i -> no_echo // Micro Focus, AcuCobol, and GnuCobol
-    | "No-Echo"i -> no_echo // Micro Focus and GnuCobol
-    | "Secure"i -> secure // Micro Focus and GnuCobol
 
 cobol_exit_perform: "Exit"i "Perform"i
 

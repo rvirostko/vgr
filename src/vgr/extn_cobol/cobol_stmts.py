@@ -2,7 +2,6 @@
 COBOL statements
 """
 
-from datetime import datetime
 from typing import Any
 import sys
 
@@ -26,78 +25,8 @@ from ..builtins import (
     poly_type,
 )
 from ..redir import print_stderr, print_stdout
-from ..stmt_exec import exec_loop, exec_repeat, LOOP_META_PATH, set_loop_meta
+from ..stmt_exec import LOOP_META_PATH, set_loop_meta
 from ..tags import control_statement
-
-_DT_FUNCS = {
-    'cobol_accept_date':     lambda: datetime.now().strftime('%y%m%d'),
-    'cobol_accept_day':      lambda: datetime.now().strftime('%y%j'),
-    'cobol_accept_dow':      lambda: datetime.now().weekday() + 1,
-    'cobol_accept_time':     lambda: (now := datetime.now()).strftime('%H%M%S') + f'{now.microsecond // 10000:02d}',
-    'cobol_accept_yyyyddd':  lambda: datetime.now().strftime('%Y%j'),
-    'cobol_accept_yyyymmdd': lambda: datetime.now().strftime('%Y%m%d'),
-}
-
-@bound_ops("Accept")
-def execute_accept(ctx: ExecContext, statement: Tree) -> None:
-    """
-**Get user input or retrieve date and time values**
-
-* Accept *variable* [*option*]
-* Accept *variable* From [Console | Terminal | Stdin | Sysin | Sysinp] [*option*]
-* Accept *variable* From [Unix] Epoch
-* Accept *variable* From Date
-* Accept *variable* From Date YYYYMMDD
-* Accept *variable* From Day YYYYDDD
-* Accept *variable* From Day-Of-Week
-* Accept *variable* From Day
-* Accept *variable* From Time
-* Accept *variable* From Timestamp
-
-Note that `Timestamp` and `Epoch` are aliases, returning the number of seconds
-since 1-Jan-1970.
-
-For user input, when at end-of-file (when not interactive) or if the user hits return
-without entering any information, the contents of *variable* remains
-unchanged. There is no limit on the length of user input, but it is a single line.
-
-Options are
-
-* [With] Echo - this is the default
-* [With] No Echo - no output is generated
-* Secure - typing is masked with asterisks
-
-```vgr
-Accept value         // input displayed
-Accept value Echo    // input displayed
-Accept value No Echo // nothing displayed
-Accept value Secure  // asterisks displayed
-
-Accept value From Date YYYYMMDD
-Print value → "20251003"
-Accept now From Epoch
-Print now, time.now → 1759506164 1759506164
-```
-
-Also see `FormatTimestamp()`
-"""
-    var_path = get_writable_var_path(ctx, statement.children[0])
-    name = statement.data
-    if name in _DT_FUNCS:
-        do_set(ctx, _DT_FUNCS.get(statement.data)(), *var_path)
-    else:
-        option = None
-        for child in statement.children[1:]: option = child.data
-        if option in [None, 'stdin', 'echo']:
-            line = sys.stdin.readline()
-        elif option == 'no_echo':
-            line = pwinput.pwinput(prompt='', mask='')
-        elif option == 'secure':
-            line = pwinput.pwinput(prompt='', mask='*')
-        else:
-            raise VgrRuntimeError(statement.children[-1], ValueError(f'Accept option {option!r} not implemented')) # SNO
-        line = line.rstrip('\n') if line else line
-        if line: do_set(ctx, line, *var_path)
 
 @bound_ops("Exit Perform")
 def execute_exit_perform(_: ExecContext, statement: Tree) -> None:

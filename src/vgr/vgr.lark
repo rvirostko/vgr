@@ -55,7 +55,8 @@ opt_statements: statement*
 ?statement: (simple_statement | select | control_statements | define_statements {EXTN_STATEMENTS}) ";"?
     | ";" -> pass // blank statement synonymous with "pass"
 
-?simple_statement: add_giving
+?simple_statement: accept_input
+    | add_giving
     | add_to
     | assert
     | assign
@@ -244,6 +245,11 @@ troff: "Troff"i // echo alias
 verbose: "Verbose"i expr?
 
 pass: ("Pass"i | "Nop"i)
+
+accept_input: "Accept"i "Input"i ("From"i stdin)? "To"? var_name accept_input_option?
+?accept_input_option: "Echo"i        -> echo
+    | ("No-Echo"i | ("No"i "Echo"i)) -> no_echo
+    | "Secure"i                      -> secure
 
 sleep: "Sleep"i "For"i? expr _unit_seconds?
 
