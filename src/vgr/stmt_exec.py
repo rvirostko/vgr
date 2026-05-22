@@ -909,16 +909,15 @@ Also see `Perform Varying` and `For-Each`.
         name = 'For-Next increment'
         step_expr = statement.children[cindex]
         inc = _nbr(step_expr, name)
-        if inc == 0: raise VgrRuntimeError(step_expr, _err(inc, name))
         cindex += 1
     try:
         meta = { }
         ctx.dd.push_frame([(var_path, None), (LOOP_META_PATH, meta)])
         # NB: if start/end are the same, the loop executes once,
         #     which is typical for Basic implementations
-        length = int(max(0, math.floor((end - value) / inc) + 1))
+        length = None if inc == 0 else int(max(0, math.floor((end - value) / inc) + 1))
         i = 0
-        while (inc > 0 and value <= end) or (inc < 0 and value >= end):
+        while (inc == 0) or (inc > 0 and value <= end) or (inc < 0 and value >= end):
             set_loop_meta(meta, i, length)
             ctx.set_var(value, *var_path)
             try:
