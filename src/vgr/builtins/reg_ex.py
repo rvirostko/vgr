@@ -343,6 +343,10 @@ def _match(m: re.Match) -> dict:
         rc["start"] = m.start()
         rc["end"] = m.end()
     else:
+        if m.lastgroup is not None:
+            rc["lastgroup"] = m.lastgroup
+        else:
+            if m.lastindex is not None: rc["lastgroup"] = f"group{m.lastindex}"
         # When there are groups, start/end info
         # is partioned into "span" by the name
         def _add_group(name, value, start, end):
