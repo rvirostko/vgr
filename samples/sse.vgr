@@ -27,10 +27,10 @@ Set fps To args.Item(0).DefaultTo(30).Max(1).Min(60)
 Set loops To args.Item(1).DefaultTo(32).Max(1).Min(128)
 
 # Clear the screen and start!
-Term BG "Gray15", FG "Green3", Clear, CursorHide
+Terminal SetBackground "Gray15", SetForeground "Green3", ClearScreen, HideCursor
 For scene = Zero To loops
     # We recalc line on every scene in case for when the window is resized
-    Term GetTermSize
+    Terminal GetTerminalSize
     Assert term.size Is Not None: "Can't determine screen size"
     Set line To ((term.size.rows - sse.Length()) / 3).ToInteger()
     If scene Is Positive
@@ -41,16 +41,19 @@ For scene = Zero To loops
         # Pause for six frames
         Sleep 1 / (fps / 6) Second
     End-If
-    Term Home, Print "Delay: 1/{}s".Format(fps.ToInteger()), EraseEOS
+    Terminal HomeCursor
+    Printf "Delay: 1/{}s", fps.ToInteger()
+    Terminal EraseEOS
     If scene.Mod(2)
         # Right-to-Left movement
         For frame = 1 To (sse.FirstItem().Length() + term.size.cols)
             For j = Zero To sse.Length() - 1
                 Set l to (2 * line) + j
                 If frame <= sse_max
-                    Term Pos l,(term.size.cols - frame), Print sse.Item(j).LeftStr(frame)
+                    Terminal MoveCursorTo l:(term.size.cols - frame)
+                    Printf sse.Item(j).LeftStr(frame)
                 Else
-                    Term Pos l,1, DeleteChar 1
+                    Terminal MoveCursorTo l:1, DeleteChar 1
                 End-If
             Next
             Sleep 1 / fps Second
@@ -61,9 +64,10 @@ For scene = Zero To loops
             For j = Zero To sse.Length() - 1
                 Set l to line + j
                 If frame <= sse_max
-                    Term Pos l,1, Print sse.Item(j).RightStr(frame)
+                    Terminal MoveCursorTo l:1
+                    Printf sse.Item(j).RightStr(frame)
                 Else
-                    Term Pos l,1, InsertChar 1
+                    Terminal MoveCursorTo l:1, InsertChar 1
                 End-If
             Next
             Sleep 1 / fps Second
@@ -71,4 +75,4 @@ For scene = Zero To loops
     End-If
 Next
 
-Term BG None, FG None, Clear, CursorShow
+Terminal SetBackground None, SetForeground None, ClearScreen, ShowCursor

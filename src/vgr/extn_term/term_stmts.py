@@ -192,7 +192,7 @@ class TermConsts:
     SGR_REVERSE_OFF =    "\x1b[27m"
     SGR_HIDDEN_ON =      "\x1b[8m"
     SGR_HIDDEN_OFF =     "\x1b[28m"
-    SGR_STRIKETHRU_ON =  "\x1b[9m"
+    SGR_STRIKETHRU_ON =  "\x1b[9m" # NB: not supported in macOS Terminal.app
     SGR_STRIKETHRU_OFF = "\x1b[29m"
     SGR_RESET_FG =       "\x1b[39m"
     SGR_RESET_BG =       "\x1b[49m"
@@ -289,6 +289,12 @@ _COLOR_NAME_MAP = { }
 _DUMB_TERM = os.getenv('TERM', '').lower() == 'dumb'
 _NO_COLOR = "NO_COLOR" in os.environ
 
+def init_data() -> None:
+    for val, name in enumerate(TERM_COLORS):
+        _COLOR_NAME_MAP[_canonical_color_name(name)] = val
+    for name, val in AUX_COLORS.items():
+        _COLOR_NAME_MAP[_canonical_color_name(name)] = val
+
 def add_dd_constants(dd: DataDictionary, prefix: str) -> None:
     def _boxes():
         boxes = {}
@@ -298,12 +304,6 @@ def add_dd_constants(dd: DataDictionary, prefix: str) -> None:
     dd.set_var(_boxes(), prefix, 'box')
     dd.set_var([style.name for style in BoxStyle], prefix, 'box_styles')
     dd.set_var(TERM_COLORS, prefix, 'color_names')
-    # TODO this block seems misplaced
-    for val, name in enumerate(TERM_COLORS):
-        _COLOR_NAME_MAP[_canonical_color_name(name)] = val
-    for name, val in AUX_COLORS.items():
-        _COLOR_NAME_MAP[_canonical_color_name(name)] = val
-    #####
     dd.set_var(_DUMB_TERM, prefix, 'dumb_term')
     dd.set_var(_NO_COLOR, prefix, 'no_color')
     dd.set_var(json.loads(VgrExtension.read_resource_text(__package__, 'spinners.json')), prefix, 'spinner')
@@ -380,41 +380,41 @@ def _term_sgr_style(ctx: ExecContext, cmd: Tree) -> None:
             # This resets everything else
             _print(*_SGR_ALL_OFF)
             continue
-        # prefix of '+' means on, but that's the default of using the world
+        # prefix of '+' means on, but that's the default of using the word
         s = s.removeprefix('+')
         # prefix of '-' means off
         # If you combine them your command is likely to be ignored
         negate = s[0] == '-'
         s = s.removeprefix('-')
-        if s in ("bold", ):
+        if s == "bold":
             _print(TermConsts.SGR_BOLD_OFF if negate else TermConsts.SGR_BOLD_ON)
             continue
-        if s in ("dim",):
+        if s == "dim":
             _print(TermConsts.SGR_DIM_OFF if negate else TermConsts.SGR_DIM_ON)
             continue
-        if s in ("blink",):
+        if s == "blink":
             _print(TermConsts.SGR_BLINK_OFF if negate else TermConsts.SGR_BLINK_ON)
             continue
-        if s in ("italic", "italics"):
+        if s == "italics":
             _print(TermConsts.SGR_ITALIC_OFF if negate else TermConsts.SGR_ITALIC_ON)
             continue
-        if s in ("underline", "ul"):
+        if s == "underline":
             _print(TermConsts.SGR_UNDERLINE_OFF if negate else TermConsts.SGR_UNDERLINE_ON)
             continue
-        if s in ("reverse", "rev"):
+        if s == "reverse":
             _print(TermConsts.SGR_REVERSE_OFF if negate else TermConsts.SGR_REVERSE_ON)
             continue
-        if s in ("hidden", "hide"):
+        if s == "hidden":
             _print(TermConsts.SGR_HIDDEN_OFF if negate else TermConsts.SGR_HIDDEN_ON)
             continue
-        if s in ("strikethrough", "strikethru", "strikeout"):
+        if s == "strikethru":
             _print(TermConsts.SGR_STRIKETHRU_OFF if negate else TermConsts.SGR_STRIKETHRU_ON)
             continue
-        if s in ("double", "wide"):
-            _print(TermConsts.DECSWL if negate else TermConsts.DECDWL, sleep=0.01)
+        if s.startswith("double"):
+            _print(TermConsts.DECSWL if negate else TermConsts.DECDWL)
             continue
-        if s in ("single",):
-            _print(TermConsts.DECDWL if negate else TermConsts.DECSWL, sleep=0.01)
+        if s.startswith("single"):
+            _print(TermConsts.DECDWL if negate else TermConsts.DECSWL)
             continue
         # Failed all the keyword tests; see if it is a named
         # color for the foreground
@@ -422,6 +422,7 @@ def _term_sgr_style(ctx: ExecContext, cmd: Tree) -> None:
             c = _resolve_ansi_color(s)
             if c: _print(TermConsts.SGR_FG.format(c))
         # errors ignored
+        if ctx.verbose: ctx.print_verbose("Unknown SetStyle command", repr(s), "ignored on line", cmd.meta.line)
 
 def _term_set_clipboard(ctx: ExecContext, cmd: Tree) -> None:
     text = str(ctx.eval_expr(cmd.children[0])).strip() if len(cmd.children) > 0 else ''
@@ -579,7 +580,7 @@ def _term_with_count(ctx: ExecContext, cmd: Tree, control_seq: str) -> None:
     count = 1 if len(cmd.children) == 0 else ctx.eval_to_int(cmd.children[0], "Count")
     _print(control_seq.format(count))
 
-def _term_get_terminal_size(ctx: ExecContext, _: Tree) -> None:
+def _term_get_terminal_size(ctx: ExecContext, cmd: Tree) -> None:
     """
     Get the window size in term.size.rows/cols
     If not available, term.size will be empty
@@ -589,7 +590,7 @@ def _term_get_terminal_size(ctx: ExecContext, _: Tree) -> None:
         try:
             response =  shutil.get_terminal_size()
         except (OSError, ValueError):
-            pass
+            if ctx.verbose: ctx.print_verbose("Unable to get terminal size on line", cmd.meta.line)
     if response is None or len(response) < 2:
         ctx.set_var({}, 'term', 'size')
     else:
@@ -679,38 +680,6 @@ def _parse_dsr_response(seq: str, terminator: str) -> list[int]:
 _CMD_DISPATCH = {
     "box":            _term_draw_box,
     "clear":          lambda _ctx, _cmd: _print(TermConsts.ED_ALL, TermConsts.CUP_HOME),
-    "ctrl_ack":       lambda _ctx, _cmd: _print("\x06"),
-    "ctrl_bel":       lambda _ctx, _cmd: _print("\a"),
-    "ctrl_bs":        lambda _ctx, _cmd: _print("\b"),
-    "ctrl_can":       lambda _ctx, _cmd: _print("\x18"),
-    "ctrl_cr":        lambda _ctx, _cmd: _print("\r"),
-    "ctrl_dc1":       lambda _ctx, _cmd: _print("\x11"),
-    "ctrl_dc2":       lambda _ctx, _cmd: _print("\x12"),
-    "ctrl_dc3":       lambda _ctx, _cmd: _print("\x13"),
-    "ctrl_dc4":       lambda _ctx, _cmd: _print("\x14"),
-    "ctrl_dle":       lambda _ctx, _cmd: _print("\x10"),
-    "ctrl_em":        lambda _ctx, _cmd: _print("\x19"),
-    "ctrl_enq":       lambda _ctx, _cmd: _print("\x05"),
-    "ctrl_eot":       lambda _ctx, _cmd: _print("\x04"),
-    "ctrl_esc":       lambda _ctx, _cmd: _print("\x1b"),
-    "ctrl_etb":       lambda _ctx, _cmd: _print("\x17"),
-    "ctrl_etx":       lambda _ctx, _cmd: _print("\x03"),
-    "ctrl_ff":        lambda _ctx, _cmd: _print("\f"),
-    "ctrl_fs":        lambda _ctx, _cmd: _print("\x1c"),
-    "ctrl_gs":        lambda _ctx, _cmd: _print("\x1d"),
-    "ctrl_ht":        lambda _ctx, _cmd: _print("\t"),
-    "ctrl_lf":        lambda _ctx, _cmd: _print("\n"),
-    "ctrl_nak":       lambda _ctx, _cmd: _print("\x15"),
-    "ctrl_nul":       lambda _ctx, _cmd: _print("\x00"),
-    "ctrl_rs":        lambda _ctx, _cmd: _print("\x1e"),
-    "ctrl_si":        lambda _ctx, _cmd: _print("\x0f"),
-    "ctrl_so":        lambda _ctx, _cmd: _print("\x0e"),
-    "ctrl_soh":       lambda _ctx, _cmd: _print("\x01"),
-    "ctrl_stx":       lambda _ctx, _cmd: _print("\x02"),
-    "ctrl_sub":       lambda _ctx, _cmd: _print("\x1a"),
-    "ctrl_syn":       lambda _ctx, _cmd: _print("\x16"),
-    "ctrl_us":        lambda _ctx, _cmd: _print("\x1f"),
-    "ctrl_vt":        lambda _ctx, _cmd: _print("\v"),
     "cub":            lambda ctx, cmd: _term_with_count(ctx, cmd, TermConsts.CUB),
     "cud":            lambda ctx, cmd: _term_with_count(ctx, cmd, TermConsts.CUD),
     "cuf":            lambda ctx, cmd: _term_with_count(ctx, cmd, TermConsts.CUF),
@@ -751,7 +720,6 @@ _CMD_DISPATCH = {
     "il":             lambda ctx, cmd: _term_with_count(ctx, cmd, TermConsts.IL),
     "ind":            lambda _ctx, _cmd: _print(TermConsts.IND),
     "irm":            lambda ctx, cmd: _term_toggle(ctx, cmd, TermConsts.IRM_SET, TermConsts.IRM_RESET),
-    "print":          lambda ctx, cmd: (val := ctx.eval_expr(cmd.children[0])) is not None and _print(str(val)),
     "raise_window":   lambda _ctx, _cmd: _print(TermConsts.RAISE_WINDOW, flush=True),
     "rep":            lambda ctx, cmd: _term_with_count(ctx, cmd, TermConsts.REP),
     "reverse_video":  lambda ctx, cmd: _term_toggle(ctx, cmd, TermConsts.DECSCNM_SET, TermConsts.DECSCNM_RESET),
@@ -772,8 +740,6 @@ _CMD_DISPATCH = {
     "sgr_strikethru": lambda ctx, cmd: _term_toggle(ctx, cmd, TermConsts.SGR_STRIKETHRU_ON, TermConsts.SGR_STRIKETHRU_OFF),
     "sgr_style":       _term_sgr_style,
     "sgr_underline":  lambda ctx, cmd: _term_toggle(ctx, cmd, TermConsts.SGR_UNDERLINE_ON, TermConsts.SGR_UNDERLINE_OFF),
-    "space":          lambda _ctx, _cmd: _print(" "),
-    "del":            lambda _ctx, _cmd: _print("\x7F"),
     "tbc_all":        lambda _ctx, _cmd: _print(TermConsts.TBC_ALL),
     "tbc":            lambda _ctx, _cmd: _print(TermConsts.TBC),
     "term_size":      _term_get_terminal_size,
@@ -789,47 +755,46 @@ def execute_term_statement(ctx: ExecContext, statement: Tree) -> None:
 **Execute Terminal control commands**
 
 * Terminal *command* [, *command*]&hellip;
-* Term *command* [, *command*]&hellip;
 
-_Cursor Control Commands_
+***Cursor Control Commands***
 
-* [CursorPos | Pos] _line_, _column_ - Move cursor to line,column, ones based
-* [GetCursorPos | GetPos] - Read cursposition into _term.cursor_
-* Line [_line_] - Move cursor position to line
-* Col [_column_] - Move cursor position to column
-* [CursorHome | Home] - Move cursor to 1,1
-* [CursorSave | CSave] - Save the cursor location
-* [CursorRestore | CRestore] - Reposition cursor to last saved location
-* [CursorShow | CShow] - Make the cursor visiable
-* [CursorHide | CHide] - Hide the cursor
-* CursorVisible [_visible_] - Change cursor visibility
-* CursorUp [_lines_] - Move the cursor up one or more lines
-* CursorDown [_lines_] - Move the cursor down one or more lines
-* [CursorLeft | CursorBack] [_columns_] - Move the cursor left one or more columns
-* [CursorRight | CursorForward] [_columns_] - Move the cursor right one or more columns
+* MoveCursorTo *line*:*column* - Move cursor; line and column are ones based
+* GetCursorPos - Read cursposition into *term.cursor*
+* MoveCursorToLine [*line*] - Move cursor position to line
+* MoveCursorToCol [*column*] - Move cursor position to column
+* HomeCursor - Move cursor to 1,1
+* SaveCursor - Save the cursor location
+* RestoreCursor - Reposition cursor to last saved location
+* ShowCursor - Make the cursor visiable
+* HomeCursor - Hide the cursor
+* CursorVisible [*visible*] - Change cursor visibility
+* CursorUp [*lines*] - Move the cursor up one or more lines
+* CursorDown [*lines*] - Move the cursor down one or more lines
+* CursorBack [*columns*] - Move the cursor left one or more columns
+* CursorForward [*columns*] - Move the cursor right one or more columns
 
-_Screen Editing Commands_
+***Screen Editing Commands***
 
-* [InsertLine | InsertLines] [_count_] - Insert one or more lines
-* [DeleteLine | DeleteLines] [_count_] - Delete one or more lines
-* [InsertChar | InsertChars] [_count_] - Insert one or more characters at cursor
-* [DeleteChar | DeleteChars] [_count_] - Delete one or more characters at cursor
-* [EraseChar | EraseChars] [_count_] - Erase one or more characters at cursor
+* InsertLine [*count*] - Insert one or more lines
+* DeleteLine [*count*] - Delete one or more lines
+* InsertChar [*count*] - Insert one or more characters at cursor
+* DeleteChar [*count*] - Delete one or more characters at cursor
+* EraseChar [*count*] - Erase one or more characters at cursor
 * EraseLine - Erase the current line
 * EraseEOL - Erase from cursor to end of the line
 * EraseBOL - Erase from cursor to begining of the line
-* [EraseDisplay | EraseScreen] - Erase the screen
+* EraseDisplay - Erase the screen
 * EraseEOS - Erase from cursor to end of the screen
 * EraseBOS - Erase from cursor to begining of the screen
-* [Clear | CLS] - Erase the screen and home the cursor
+* ClearScreen - Erase the screen and home the cursor
 
-_Scrolling Commands_
+***Scrolling Commands***
 
 * ScrollUp - Scroll up one line
 * ScrollDown - Scroll down one line
-* ScrollRegion *start_line*, *end_line* - Scroll text in the given region
+* ScrollRegion *start_line*:*end_line* - Scroll text in the given region
 
-_Options Commands_
+***Options Commands***
 
 * S7C1 [*on_off*] - Change between 7 and 8-bit control sequences
 * S8C1 [*on_off*] - Change between 7 and 8-bit control sequences
@@ -841,58 +806,48 @@ _Options Commands_
 * SoftReset - Perform a sort reset on the terminal's settings
 * HardReset - Perform a hard reset on the terminal's settings
 * AlignmentTest - Display an alignment test pattern
-* TabSet - Set a tab stop at the cursor's column
-* TabClear - Clear a tab stop at the cursor's column
-* TabClearAll - Clear all tab stops
+* SetTab - Set a tab stop at the cursor's column
+* ClearTab - Clear a tab stop at the cursor's column
+* ClearAllTabs - Clear all tab stops
 
-_Printing Commands_
+***Printing Commands***
 
-* Print _text_ - Print the text starting at the cursor's position
-* DHPrint _text_ - Print text in double-high mode
-* RepeatChar [_count_] - Repeat the last character a number of times
+* PrintDHigh *text* - Print text in double-high mode
+* RepeatChar [*count*] - Repeat the last character a number of times
 
-_Windowing Commands_
+***Windowing Commands***
 
-* SetClipboard _text_ - Set the system clipboard to _text_
+* SetClipboard *text* - Set the system clipboard to *text*
 * DeIconify - De-iconify the terminal window
 * RaiseWindow - Raise the terminal window to the front
-* IconName _text_ - Set the icon name for the terminal window
-* WindowTitle _text_ - Set the terminal window's title
-* [GetWindowSize | GetTerminalSize | GetTermSize] - Retrieve the window's size; stored in _term.size_
+* SetIconName *text* - Set the icon name for the terminal window
+* SetTitle *text* - Set the terminal window's title
+* [GetTerminalSize | GetTermSize] - Retrieve the window's size; stored in *term.size*
 
-_Sending Control Characters_
+***Colors and Attrribute Commands***
 
-* NUL, SOH, STX, ETX, EOT, ENQ, ACK, BEL - 0x00 through 0x07
-* BS, HT, LF, VT, FF, CR, SO, SI - 0x08 through 0x0F
-* DLE, DC1, DC2, DC3, DC4, NAK, SYN, ETB - 0x10 through 0x17
-* CAN, EM, SUB, ESC, FS, GS, RS, US - 0x18 through 0x1F
-* SP - 0x20 (Space)
-* DEL - 0x7F (Delete)
-
-*Colors and Attrribute Commands*
-
-* Reset - Reset the colors and attributes
-* Style *style* - Intepret *style* as colors and attributes
+* ResetAttrs - Reset the colors and attributes
+* SetStyle *style* - Intepret *style* as colors and attributes
 * Bold [*on_off*] - Turn bold on/off
 * Dim [*on_off*] - Turn dim on/off
 * Blink [*on_off*] - Turn blink on/off
-* [Italic | Italics] [*on_off*] - Turn italics on/off
-* [Underline | UL] [*on_off*] - Turn underline on/off
-* [Foreground | FG] [*color*] - Set the foreground color
-* [Background | BG] [*color*] - Set the background color
-* [Reverse | Rev] [*on_off*] - Turn reverse on/off
-* [Hidden | Hide] [*on_off*] - Turn hidden text on/off
-* [Strikethrough | Strikethru | Strikeout ] [*on_off*] - Turn strikethrough text on/off
-* [Double | Wide] [*on_off*] - Change between double and single wide characters
-* Single [*on_off*] - Change between double and single wide characters
-* HighTop [*on_off*] - change the double-high setting of the cursor's line
-* HighBottom | HighBot [*on_off*] - change the double-high setting of the cursor's line
+* Italics [*on_off*] - Turn italics on/off
+* Underline [*on_off*] - Turn underline on/off
+* SetForeground *color* - Set the foreground color
+* SetBackground *color* - Set the background color
+* Reverse [*on_off*] - Turn reverse on/off
+* Hidden [*on_off*] - Turn hidden text on/off
+* Strikethru [*on_off*] - Turn strikethru text on/off
+* DoubleWide [*on_off*] - Change between double and single wide characters
+* SingleWide [*on_off*] - Change between double and single wide characters
+* DHighTop [*on_off*] - change the double-high setting of the cursor's line
+* DHighBottom [*on_off*] - change the double-high setting of the cursor's line
 
-*Box and Line Drawing Commands*
+***Box and Line Drawing Commands***
 
-* [DrawBox | Box] [*style*,] *height*, *width*
-* [DrawHLine | HLine] [*style*,] *length*
-* [DrawVLine | VLine] [*style*,] *height*
+* DrawBox [*style*:] *height*:*width*
+* DrawHLine [*style*:] *length*
+* DrawVLine [*style*:] *height*
 * Styles - Blank, ASCII, Single Double, SingleDouble, DoubleSingle,
   Brackets, Parens, Braces, Light, LightRounded, LightDash2,
   LightDash3, LightDash4, Heavy, HeavyDash2, HeavyDash3, HeavyDash4,

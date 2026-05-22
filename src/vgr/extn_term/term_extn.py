@@ -8,8 +8,9 @@ from ..extn import VgrExtension
 from ..data_dict import DataDictionary
 
 from .term_stmts import (
+    add_dd_constants,
     execute_term_statement,
-    add_dd_constants
+    init_data,
 )
 
 _FUNCTIONS = {
@@ -24,8 +25,10 @@ _TERM_PREFIX = 'term'
 
 class TermExtension(VgrExtension):
     def initialize(self, dd: DataDictionary) -> None:
+        init_data()
         dd.add_immutable_prefix(_TERM_PREFIX)
         add_dd_constants(dd, _TERM_PREFIX)
+
 
     def adds_statements(self):
         return True

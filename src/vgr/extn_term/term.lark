@@ -1,124 +1,89 @@
 _TERMINAL: "Terminal"i
-_TERM: "Term"i
 
 ?term_statements: term_statement
 
-term_statement: (_TERMINAL | _TERM) _options_list{term_cmd}
+term_statement: _TERMINAL _options_list{term_cmd}
+
 ?term_cmd: term_cursor_cmd
-        | term_opts_cmd
-        | term_edit_cmd
-        | term_misc_cmd
-        | term_scroll_cmd
-        | term_set_attr
-        | term_draw_box
+        |  term_opts_cmd
+        |  term_edit_cmd
+        |  term_misc_cmd
+        |  term_scroll_cmd
+        |  term_set_attr
+        |  term_draw_box
 
-term_cursor_cmd: ("CursorPos"i | "Pos"i) expr "," expr -> cup
-        | ("GetCursorPos"i | "GetPos"i) -> dsr_cursor
-        | "Line"i expr? -> vpa
-        | "Col"i expr? -> hpa
-        | ("CursorHome"i | "Home"i) -> cup_home
-        | ("CursorSave"i | "CSave"i) -> decsc
-        | ("CursorRestore"i | "CRestore"i) -> decrc
-        | ("CursorShow"i | "CShow"i) -> dectcem_set
-        | ("CursorHide"i | "CHide"i) -> dectcem_reset
-        | "CursorVisible"i expr? -> dectcem
-        | "CursorUp"i expr? -> cuu
-        | "CursorDown"i expr? -> cud
-        | ("CursorLeft"i | "CursorBack"i) expr? -> cub
-        | ("CursorRight"i | "CursorForward"i) expr? -> cuf
+term_cursor_cmd: "MoveCursorTo"i expr _CLAUSE_SEP expr     -> cup
+        |        "GetCursorPos"i                           -> dsr_cursor
+        |        "MoveCursorToLine"i expr?                 -> vpa
+        |        "MoveCursorToCol"i expr?                  -> hpa
+        |        "HomeCursor"i                             -> cup_home
+        |        "SaveCursor"i                             -> decsc
+        |        "RestoreCursor"i                          -> decrc
+        |        "ShowCursor"i                             -> dectcem_set
+        |        "HideCursor"i                             -> dectcem_reset
+        |        "CursorVisible"i expr?                    -> dectcem
+        |        "CursorUp"i expr?                         -> cuu
+        |        "CursorDown"i expr?                       -> cud
+        |        "CursorBack"i expr?                       -> cub
+        |        "CursorForward"i expr?                    -> cuf
 
-term_edit_cmd: ("InsertLine"i | "InsertLines"i) expr? -> il
-        | ("DeleteLine"i | "DeleteLines"i) expr?      -> dl
-        | ("InsertChar"i | "InsertChars"i) expr?      -> ich
-        | ("DeleteChar"i | "DeleteChars"i) expr?      -> dch
-        | ("EraseChar"i | "EraseChars"i) expr?        -> ech
-        | "EraseLine"i                                -> el
-        | "EraseEOL"i                                 -> el_eol
-        | "EraseBOL"i                                 -> el_bol
-        | ("EraseDisplay"i | "EraseScreen"i)          -> ed    // Erase w/o cursor moving
-        | "EraseEOS"i                                 -> ed_eos
-        | "EraseBOS"i                                 -> ed_bos
-        | ("Clear"i | "CLS"i)                         -> clear // Erase + Home cursor
+term_edit_cmd:   "InsertLine"i expr?                       -> il
+        |        "DeleteLine"i expr?                       -> dl
+        |        "InsertChar"i expr?                       -> ich
+        |        "DeleteChar"i expr?                       -> dch
+        |        "EraseChar"i expr?                        -> ech
+        |        "EraseLine"i                              -> el
+        |        "EraseEOL"i                               -> el_eol
+        |        "EraseBOL"i                               -> el_bol
+        |        "EraseDisplay"i                           -> ed    // Erase w/o cursor moving
+        |        "EraseEOS"i                               -> ed_eos
+        |        "EraseBOS"i                               -> ed_bos
+        |        "ClearScreen"i                            -> clear // Erase + Home cursor
 
-term_scroll_cmd: "ScrollUp"i -> ri
-        | "ScrollDown"i      -> ind
-        | "ScrollRegion"i expr "," expr -> secstbm
+term_scroll_cmd: "ScrollUp"i                               -> ri
+        |        "ScrollDown"i                             -> ind
+        |        "ScrollRegion"i expr _CLAUSE_SEP expr     -> secstbm
 
-term_opts_cmd: "S7C1"i expr? -> s7c1t
-        | "S8C1"i expr? -> s8c1t
-        | "DECSCNM"i expr? -> decscnm
-        | "SmoothScroll"i expr? -> decsclm
-        | "OriginMode"i expr? -> decom
-        | "AutoWrap"i expr? -> decawm
-        | "InsertMode"i expr? -> irm
+term_opts_cmd:   "S7C1"i expr?                             -> s7c1t
+        |        "S8C1"i expr?                             -> s8c1t
+        |        "DECSCNM"i expr?                          -> decscnm
+        |        "SmoothScroll"i expr?                     -> decsclm
+        |        "OriginMode"i expr?                       -> decom
+        |        "AutoWrap"i expr?                         -> decawm
+        |        "InsertMode"i expr?                       -> irm
 
-term_misc_cmd: "Print"i expr -> print
-        | "DHPrint"i expr -> dh_print // double high printing
-        | "SetClipboard"i expr -> term_set_clipboard
-        | "SoftReset"i -> decstr
-        | "HardReset"i -> ris
-        | "AlignmentTest"i -> decaln
-        | "TabSet"i -> hts
-        | "TabClear"i -> tbc
-        | "TabClearAll"i -> tbc_all
-        | "RepeatChar"i expr? -> rep
-        | "DeIconify"i -> deiconify
-        | "RaiseWindow"i -> raise_window
-        | "IconName"i expr -> icon_name
-        | "WindowTitle"i expr -> window_title
-        | ("GetWindowSize"i | "GetTerminalSize"i | "GetTermSize"i) -> term_size
-        | "NUL"i -> ctrl_nul
-        | "SOH"i -> ctrl_soh
-        | "STX"i -> ctrl_stx
-        | "ETX"i -> ctrl_etx
-        | "EOT"i -> ctrl_eot
-        | "ENQ"i -> ctrl_enq
-        | "ACK"i -> ctrl_ack
-        | "BEL"i -> ctrl_bel
-        | "BS"i  -> ctrl_bs
-        | "HT"i  -> ctrl_ht
-        | "LF"i  -> ctrl_lf
-        | "VT"i  -> ctrl_vt
-        | "FF"i  -> ctrl_ff
-        | "CR"i  -> ctrl_cr
-        | "SO"i  -> ctrl_so
-        | "SI"i  -> ctrl_si
-        | "DLE"i -> ctrl_dle
-        | "DC1"i -> ctrl_dc1
-        | "DC2"i -> ctrl_dc2
-        | "DC3"i -> ctrl_dc3
-        | "DC4"i -> ctrl_dc4
-        | "NAK"i -> ctrl_nak
-        | "SYN"i -> ctrl_syn
-        | "ETB"i -> ctrl_etb
-        | "CAN"i -> ctrl_can
-        | "EM"i  -> ctrl_em
-        | "SUB"i -> ctrl_sub
-        | "ESC"i -> ctrl_esc
-        | "FS"i  -> ctrl_fs
-        | "GS"i  -> ctrl_gs
-        | "RS"i  -> ctrl_rs
-        | "US"i  -> ctrl_us
-        | "SP"i  -> space
-        | "DEL"i -> del
+term_misc_cmd:   "PrintDHigh"i expr                        -> dh_print // double high printing
+        |        "SetClipboard"i expr                      -> term_set_clipboard
+        |        "SoftReset"i                              -> decstr
+        |        "HardReset"i                              -> ris
+        |        "AlignmentTest"i                          -> decaln
+        |        "SetTab"i                                 -> hts
+        |        "ClearTab"i                               -> tbc
+        |        "ClearAllTabs"i                           -> tbc_all
+        |        "RepeatChar"i expr?                       -> rep
+        |        "DeIconify"i                              -> deiconify
+        |        "RaiseWindow"i                            -> raise_window
+        |        "SetIconName"i expr                       -> icon_name
+        |        "SetTitle"i expr                          -> window_title
+        |        ("GetTerminalSize"i | "GetTermSize"i)     -> term_size
 
-term_set_attr: "Reset"i -> sgr_reset
-        | "Style"i expr -> sgr_style
-        | "Bold"i expr? -> sgr_bold
-        | "Dim"i expr? -> sgr_dim
-        | "Blink"i expr? -> sgr_blink
-        | ("Italic"i | "Italics"i) expr? -> sgr_italic
-        | ("Underline"i | "UL"i) expr? -> sgr_underline
-        | ("Foreground"i | "FG"i) expr? -> sgr_fg
-        | ("Background"i | "BG"i) expr? -> sgr_bg
-        | ("Reverse"i | "Rev"i) expr? -> sgr_reverse
-        | ("Hidden"i | "Hide"i) expr? -> sgr_hidden
-        | ("Strikethrough"i | "Strikethru"i | "Strikeout"i) expr? -> sgr_strikethru
-        | ("Double"i | "Wide"i) expr? -> decdwl
-        | "Single"i expr? -> decswl
-        | "HighTop"i expr? -> decdhl_top
-        | ("HighBottom"i | "HighBot"i) expr? -> decdhl_bot
+term_set_attr:   "SetStyle"i expr                          -> sgr_style
+        |        "SetForeground"i expr                     -> sgr_fg
+        |        "SetBackground"i expr                     -> sgr_bg
+        |        "ResetAttrs"i                             -> sgr_reset
+        |        "BoldAttr"i expr?                         -> sgr_bold
+        |        "DimAttr"i expr?                          -> sgr_dim
+        |        "BlinkAttr"i expr?                        -> sgr_blink
+        |        "ItalicsAttr"i expr?                      -> sgr_italic
+        |        "UnderlineAttr"i expr?                    -> sgr_underline
+        |        "ReverseAttr"i expr?                      -> sgr_reverse
+        |        "HiddenAttr"i expr?                       -> sgr_hidden
+        |        "StrikethruAttr"i expr?                   -> sgr_strikethru
+        |        "DoubleWide"i expr?                       -> decdwl
+        |        "SingleWide"i expr?                       -> decswl
+        |        "DHighTop"i expr?                         -> decdhl_top
+        |        "DHighBottom"i expr?                      -> decdhl_bot
 
-term_draw_box: ("DrawBox"i | "Box"i) expr "," expr ("," expr)? -> box
-             | ("DrawHLine"i | "HLine"i) expr ("," expr)?  -> hline
-             | ("DrawVLine"i | "VLine"i) expr ("," expr)? -> vline
+term_draw_box:   "DrawBox"i expr _CLAUSE_SEP expr (_CLAUSE_SEP expr)? -> box
+        |        "DrawHLine"i expr (_CLAUSE_SEP expr)?                -> hline
+        |        "DrawVLine"i expr (_CLAUSE_SEP expr)?                -> vline

@@ -95,7 +95,7 @@ Define Function render_7seg(n):
     Return rc
 End-Function
 
-For i = Zero To 99999
+For i = Zero To 99_999
     Set rows To None
     # Join the lines from the digits into single lines
     For-Each digit In @encode_7seg(i)
@@ -108,8 +108,10 @@ For i = Zero To 99999
             Next
         End-If
     End-For
-    Term CLS
+    Terminal ClearScreen, HideCursor
     For-Each row In rows
-        Print row
+        Print row No-Flush
     End-For
+    Printf "" Flush
+    Terminal ShowCursor
 Next

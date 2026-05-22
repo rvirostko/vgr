@@ -1,93 +1,123 @@
 # This is visual, so if it can't display anything...
 If !vgr.stdout.isatty
-    Print "stdout is not a TTY"
+    Print "stdout is not a TTY" To stderr
     Exit
 End-If
 
-Term GetWindowSize
+Terminal GetTermSize
 Assert term.size.cols ≥ 80 And term.size.rows ≥ 24 : "Window too small for demo"
 
-Set iter To 16
+Set iter To 3
 Set sleep_time To 5
 Set named_colors To term.color_names
 Set max_len To named_colors.StringLen().Max()
 
-Term CursorHide
+Function StartTest(title)
+    Terminal ResetAttrs, ClearScreen, SetTitle title
+    If title Is Not None
+        Terminal PrintDHigh title
+    End-If
+End-Function
+
+Function EndTest()
+    Terminal ResetAttrs
+    Sleep sleep_time Seconds
+End-Function
+
+Terminal HideCursor
 Repeat iter Times
 
     #-------------------------------------------------------------------------
-    Term Reset, Clear, DHPrint "Boxes and Lines"
-    Term FG "bright white", BG "bright red"
+    Call Function StartTest("Boxes and Lines")
+    Terminal SetForeground "bright white", SetBackground "bright red"
     For i = 1 To 7
-        Term Pos 2+i,0, HLine i*10
-        Term Pos 3,(i*10)+1, VLine i
+        Terminal MoveCursorTo 2+i:0,
+                 DrawHLine i*10
+        Terminal MoveCursorTo 3:(i*10)+1,
+                 DrawVLine i
     Next
     For i = 2 To 8
-        Term Pos 10,(i - 2)*10, Box i,i
-        Term Bold, Print "{0}x{0}".Format(i), Bold False
+        Terminal MoveCursorTo 10:(i - 2)*10,
+                 DrawBox i:i
+        Terminal BoldAttr True
+        Printf "{0}x{0}", i
+        Terminal BoldAttr False
     Next
     Set line To 19
     Set col To 1
     Set bwidth To term.box_styles.StringLen().Max() + 2
     Set bheight To 3
-    Term FG "bright white", BG "bright green"
+    Terminal SetForeground "bright white", SetBackground "bright green"
     For-Each style In term.box_styles
-        Term Pos line,col, DrawBox style,bheight,bwidth, Print style
+        Terminal MoveCursorTo line:col,
+                 DrawBox style:bheight:bwidth
+        Printf style
         Add bwidth To col
         If col >= (80 - bwidth)
             Add bheight To line
             Set col To 1
         End-If
     End-For
-    Term Reset
-    Sleep sleep_time Seconds
+    Call Function EndTest()
     #-------------------------------------------------------------------------
 
     #-------------------------------------------------------------------------
-    Term Reset, Clear, DHPrint "Font Styles"
-    Term Pos 3,1
+    Call Function StartTest("Font Styles")
+    Terminal MoveCursorTo 3:1
     Set styles To [
-        ["normal",        "Normal Text"],
-        ["bold",          "Bold Text"],
-        ["dim",           "Dim Text"],
-        ["blink",         "Blinking Text"],
-        ["italic",        "Italic Text"],
-        ["underline",     "Underlined Text"],
-        ["reverse",       "Reverse Text"],
-        ["strikethrough", "Strike-out Text"],
-        ["hidden",        "Hidden Text"],
-        ["bold blue rev", "Combined Settings"]
+        ["normal",             "Normal Text"],
+        ["bold",               "Bold Text"],
+        ["dim",                "Dim Text"],
+        ["blink",              "Blinking Text"],
+        ["italic",             "Italic Text"],
+        ["underline",          "Underlined Text"],
+        ["reverse",            "Reverse Text"],
+        ["strikethrough",      "Strike-out Text"],
+        ["hidden",             "Hidden Text"],
+        ["bold blue reverse",  "Combined Settings"]
     ]
     For-Each style In styles
-        Term Style style.FirstItem(),
-            Print style.LastItem().Center(20),
-            Style "Normal", FG None, BG None,
-            Print " {}\n".Format(style.FirstItem())
+        Terminal SetStyle style.FirstItem()
+        Printf style.LastItem().Center(20)
+        Terminal SetStyle "Normal",
+                 SetForeground None,
+                 SetBackground None
+        Printf " {}\n", style.FirstItem()
     End-For
-    Term Print "\n", Style "Reset wide", Print "Double Width Text\n"
-    Term Reset
-    Sleep sleep_time Seconds
+    Print Newline
+    Terminal SetStyle "Reset wide"
+    Print "Double Width Text"
+    Call Function EndTest()
     #-------------------------------------------------------------------------
 
     #-------------------------------------------------------------------------
-    Term Reset, Clear, DHPrint "Numbered Colors"
-    Term Pos 3,1
-    Term BG, FG "bright white", Print "Standard "
+    Call Function StartTest("Numbered Colors")
+    Terminal MoveCursorTo 3:1,
+             SetBackground None,
+             SetForeground "bright white"
+    Printf "Standard "
     For color = Zero To 15
-        Term BG color, Print color.RightJustify(4).LeftJustify(5)
+        Terminal SetBackground color
+        Printf color.RightJustify(4).LeftJustify(5)
         If color == 7
-            Term FG, BG, Print "\n Intense ", FG "black"
+            Terminal SetForeground None, SetBackground None
+            Printf "\n Intense "
+            Terminal SetForeground "black"
         End-If
     Next
-    Term BG, FG "bright white", Print "\n\n   Grays "
+    Terminal SetBackground None, SetForeground "bright white"
+    Printf "\n\n   Grays "
     For gray = Zero To 23
         Set color To 232 + gray
-        Term BG color, Print color.RightJustify(4).LeftJustify(5)
+        Terminal SetBackground color
+        Printf color.RightJustify(4).LeftJustify(5)
         If !((gray + 1) % 12)
-            Term BG, FG "black", Print "\n         "
+            Terminal SetBackground None, SetForeground "black"
+            Printf "\n         "
         End-If
     Next
-    Term BG, FG "bright white", Print "\n  Colors"
+    Terminal SetBackground None, SetForeground "bright white"
+    Printf "\n  Colors"
     Set start_line To 9
     Set line To start_line
     Set col To 10
@@ -95,37 +125,39 @@ Repeat iter Times
         If green == 18
             Set line To start_line
             Add 35 To col
-            Term FG "black"
+            Terminal SetForeground "black"
         End-If
         For red = Zero To (5 * 36) Step 36
-            Term Pos line, col
+            Terminal MoveCursorTo line:col
             For blue = Zero To 5 Step 1
                 Set color To 16 + red + green + blue
-                Term BG color, Print color.RightJustify(4).LeftJustify(5)
+                Terminal SetBackground color
+                Printf color.RightJustify(4).LeftJustify(5)
             Next
             Add 1 To line
         Next
         Add 1 To line
     Next
-    Term Reset
-    Sleep sleep_time Seconds
+    Call Function EndTest()
     #-------------------------------------------------------------------------
 
     #-------------------------------------------------------------------------
-    Term Reset, Clear, DHPrint "Named Colors"
-    Term Pos 3,1
+    Call Function StartTest("Named Colors")
+    Terminal MoveCursorTo 3:1
     For i = Zero To named_colors.Length() - 1
         Set color_name To named_colors.Item(i)
-        Term BG color_name, Print " ", Print color_name.ShortenStr(max_len).LeftJustify(max_len), Print " "
+        Terminal SetBackground color_name
+        Printf " " + color_name.ShortenStr(max_len).LeftJustify(max_len) + " "
         If !((i + 1) % 4)
             # Need resume default background in case we scroll
-            Term BG, CR, LF
+            Terminal SetBackground None, MoveCursorToCol 1
+            Print ""
         End-If
     Next
-    Term Reset
-    Sleep sleep_time Seconds
+    Call Function EndTest()
     #-------------------------------------------------------------------------
 
 End-Repeat
 
-Term Clear, Reset, CursorShow
+Terminal SetTitle None
+Terminal ClearScreen, ResetAttrs, ShowCursor
