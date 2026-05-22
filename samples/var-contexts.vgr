@@ -6,33 +6,33 @@ Define Function o_fn(a):
     # we want to make sure that we make a local
     # rather than getting the global reference
     Declare bob Local
-    Set bob = a + a
+    Set bob To a + a
     Return @$global.fn(a)
 End-Function
 
 Declare bob, v Global
-Set bob = "global_bob"
-Set v = "mark"
+Set bob To "global_bob"
+Set v To "mark"
 
 # Outside of a function, all the "bob"s are the global
 # and there is no "$outer" or "$local" scopes to refrence
-Set r0 = [bob, $global.bob, $outer.bob, $local.bob, $static.bob]
+Set r0 To [bob, $global.bob, $outer.bob, $local.bob, $static.bob]
 Assert r0 == [bob, bob, None, None, None]
 
 # From inside the function with "bob" as an parameter
 # we get what we passed in, the global, and the global
 # for the "$outer" scope
-Set r1 = @fn(v)
+Set r1 To @fn(v)
 Assert r1 == [v, bob, bob, v, None]
 
 # From nested function call, the only thing that
 # changes is the "$outer.bob" in the inner function
-Set r2 = @o_fn(v)
+Set r2 To @o_fn(v)
 Assert r2 == [v, bob, v + v, v, None]
 
 Define Function strify(a):
     Declare rc Local
-    Set rc = []
+    Set rc To []
     For-Each v in a
         Set rc += v.DefaultTo('None')
     End-For

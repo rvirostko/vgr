@@ -329,7 +329,7 @@ None && True → False
 ```
 
 ```vgr
-Set gcounter = 0
+Set gcounter To 0
 Define Function gcount()
     Add 1 to gcounter
     Return IsZero(gcounter % 2)
@@ -401,7 +401,7 @@ None Or False → False
 ```
 
 ```vgr
-Set gcounter = 0
+Set gcounter To Zero
 Define Function gcount()
     Add 1 to gcounter
     Return IsZero(gcounter % 2)

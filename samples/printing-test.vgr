@@ -3,9 +3,9 @@ Echo False
 Verbose False
 Debug False
 
-Set a = 5
-Set b = 10
-Set c = 15
+Set a To 5
+Set b To 10
+Set c To 15
 
 # Generates nothing
 Print "---Nothing between these lines---"
@@ -31,13 +31,13 @@ Printf "{}", env.ORS
 Printf "{0} > {1} && {1} < {2}\n", a, b, c
 Print "---Two identical lines---"
 
-Set rs_fmt = "\n---{}\n---OFS={}, ORS={}\n"
+Set rs_fmt To "\n---{}\n---OFS={}, ORS={}\n"
 Printf rs_fmt, "Defaults:", env.OFS.Repr(), env.ORS.Repr()
 Print a, b, c
 Print ""
 
-Set env.OFS = " | "
-Set env.ORS = " |\n"
+Set env.OFS To " | "
+Set env.ORS To " |\n"
 Printf rs_fmt, "Overrides:", env.OFS.Repr(), env.ORS.Repr()
 Print a, b, c
 Unset env.OFS, env.ORS

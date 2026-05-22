@@ -9,8 +9,8 @@ Assert term.size.cols ≥ 80 And term.size.rows ≥ 24 : "Window too small for d
 
 Set iter To 16
 Set sleep_time To 5
-Let named_colors = term.color_names
-Let max_len = named_colors.StringLen().Max()
+Set named_colors To term.color_names
+Set max_len To named_colors.StringLen().Max()
 
 Term CursorHide
 Repeat iter Times
@@ -26,10 +26,10 @@ Repeat iter Times
         Term Pos 10,(i - 2)*10, Box i,i
         Term Bold, Print "{0}x{0}".Format(i), Bold False
     Next
-    Set line = 19
-    Set col = 1
-    Set bwidth = term.box_styles.StringLen().Max() + 2
-    Set bheight = 3
+    Set line To 19
+    Set col To 1
+    Set bwidth To term.box_styles.StringLen().Max() + 2
+    Set bheight To 3
     Term FG "bright white", BG "bright green"
     For-Each style In term.box_styles
         Term Pos line,col, DrawBox style,bheight,bwidth, Print style
@@ -46,7 +46,7 @@ Repeat iter Times
     #-------------------------------------------------------------------------
     Term Reset, Clear, DHPrint "Font Styles"
     Term Pos 3,1
-    Set styles = [
+    Set styles To [
         ["normal",        "Normal Text"],
         ["bold",          "Bold Text"],
         ["dim",           "Dim Text"],
@@ -81,26 +81,26 @@ Repeat iter Times
     Next
     Term BG, FG "bright white", Print "\n\n   Grays "
     For gray = 0 To 23
-        Set color = 232 + gray
+        Set color To 232 + gray
         Term BG color, Print color.RightJustify(4).LeftJustify(5)
         If !((gray + 1) % 12)
             Term BG, FG "black", Print "\n         "
         End-If
     Next
     Term BG, FG "bright white", Print "\n  Colors"
-    Set start_line = 9
-    Set line = start_line
-    Set col = 10
+    Set start_line To 9
+    Set line To start_line
+    Set col To 10
     For green = 0 To (5 * 6) Step 6
         If green == 18
-            Set line = start_line
+            Set line To start_line
             Add 35 To col
             Term FG "black"
         End-If
         For red = 0 To (5 * 36) Step 36
             Term Pos line, col
             For blue = 0 To 5 Step 1
-                Set color = 16 + red + green + blue
+                Set color To 16 + red + green + blue
                 Term BG color, Print color.RightJustify(4).LeftJustify(5)
             Next
             Add 1 To line
@@ -115,7 +115,7 @@ Repeat iter Times
     Term Reset, Clear, DHPrint "Named Colors"
     Term Pos 3,1
     For i = 0 To named_colors.Length() - 1
-        Let color_name = named_colors.Item(i)
+        Set color_name To named_colors.Item(i)
         Term BG color_name, Print " ", Print color_name.ShortenStr(max_len).LeftJustify(max_len), Print " "
         If !((i + 1) % 4)
             # Need resume default background in case we scroll

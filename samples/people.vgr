@@ -1,8 +1,8 @@
 Set filename To vgr.source.FirstItem().DirectoryName() + "/people.json"
 Set limit To 10
 
-Set env.OFS = ''
-Set env.ORF = Newline
+Set env.OFS To ''
+Set env.ORF To Newline
 
 Print "Reading from ", filename, "..."
 Load people From File filename

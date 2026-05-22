@@ -55,7 +55,7 @@ Print @fn(5, 3)
 15
 
 # All functions are variables
-Set c = fn
+Set c To fn
 Print 5.@c(3), @fn(5, 3)
 15 15
 ```

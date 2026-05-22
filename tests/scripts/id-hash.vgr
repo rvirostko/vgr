@@ -16,7 +16,7 @@ Assert Hash(True) == Hash(!False)
 Assert Hash("foo") == Hash("f" + "oo")
 Assert Hash(0) == Hash(-1 + 1)
 
-Set z = [ {"a" : 1} ]
-Set z′ = z.Clone() // shallow clone
+Set z To [ {"a" : 1} ]
+Set z′ To z.Clone() // shallow clone
 Assert z.Id() Is Not z′.Id() // different lists
 Assert z.FirstItem().Id() Is z′.FirstItem().Id() // same contents

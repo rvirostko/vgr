@@ -14,10 +14,10 @@ Function deparen(s) -> s.StartsWith("(") and s.EndsWith(")") ? s.Slice(1,-1) : s
 Function arrow_join(x) -> x.Join(" → ")
 //-----------------------------------------------------------------------------
 
-Set rnd = math.random100
-Set setup_file = "doc-gen-{}-s.txt".Format(rnd)
-Set out_file = "doc-gen-{}-o.txt".Format(rnd)
-Set err_file = "doc-gen-{}-e.txt".Format(rnd)
+Set rnd To math.random100
+Set setup_file To "doc-gen-{}-s.txt".Format(rnd)
+Set out_file To "doc-gen-{}-o.txt".Format(rnd)
+Set err_file To "doc-gen-{}-e.txt".Format(rnd)
 
 Open Error File setup_file
 Echo On
@@ -36,11 +36,11 @@ Echo On
 // Documentation examples go here
 //-----------------------------------------------------------------------------
 
-Set d = {"a": 1, "b": 2}
+Set d To {"a": 1, "b": 2}
 Remove-Key "a" From d
 Print d.Repr()
 
-Set a = [ {"a": 1}, {"b": 2} ]
+Set a To [ {"a": 1}, {"b": 2} ]
 Remove-Key "b" From a
 Print a.Repr()
 

@@ -38,8 +38,8 @@ While True
         Continue
     End-If
     # Using the keys and the values, along with the headers, determine the column widths
-    Set word_col_width = Max(counter.GetKeys().StringLen().Max(), word_header.StringLen()).Add(1)
-    Set count_col_width = Max(counter.GetValues().Max().ToString().StringLen(), count_header.StringLen()).Add(1)
+    Set word_col_width To Max(counter.GetKeys().StringLen().Max(), word_header.StringLen()).Add(1)
+    Set count_col_width To Max(counter.GetValues().Max().ToString().StringLen(), count_header.StringLen()).Add(1)
     # Print a summary
     Set wc To wordCounter.GetValues().Sum()
     Printf Newline

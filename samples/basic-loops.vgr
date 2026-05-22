@@ -1,25 +1,22 @@
-# BASIC-like loops
 
-# Do-While Loop
 # Reverse words in a list until sentinel encountered
-Let words = ["apple", "banana", "cherry", None]
-Let index = 0
+Set words To ["apple", "banana", "cherry", None]
+Set index To 0
 While words.Item(index)
     # NB: $loop is available, but only index and first values
-    Let word = words.Item(index)
-    Let reversed_word = Reverse(word)
+    Set word To words.Item(index)
+    Set reversed_word To Reverse(word)
     Print "Original:", word, "\nReversed:", reversed_word
-    Let index = index + 1
+    Set index To index + 1
 End-While
 
-# Do-Until Loop
 # Collect characters from input until a vowel is found
-Let input_str = "bcdfghjklmnpqrustvwxyz"
-Let collected = ""
-Let index = 0
+Set input_str To "bcdfghjklmnpqrustvwxyz"
+Set collected To ""
+Set index To 0
 Until Lower(SubStr(input_str, index)) Is In "aeiou"
     # NB: $loop is available, but only index and first values
-    Let collected = collected + SubStr(input_str, index)
-    Let index = index + 1
+    Set collected To collected + SubStr(input_str, index)
+    Set index += 1
 End-Until
 Print "Input:", Repr(input_str), "\nBefore vowel:", Repr(collected)

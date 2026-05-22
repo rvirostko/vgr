@@ -1,4 +1,4 @@
-Set bar = "-" * 60
+Set bar To "-" * 60
 
 # NB: Both data and charsets can be a list or single entries
 #     because of the nature of For-Each
@@ -13,7 +13,7 @@ Define Function test_hex_encodings(data, charsets):
 End-Function
 
 Define Function hex_round_trip_test(s):
-    Set enc = s.HexEncode()
+    Set enc To s.HexEncode()
     Assert enc.HexDecode() == s
     If enc Is Not None
         # Leading/trailing whitespace is ignored
@@ -34,7 +34,7 @@ Define Function test_b64(data):
 End-Function
 
 Define Function b64_round_trip_test(s):
-    Set enc = s.Base64Encode()
+    Set enc To s.Base64Encode()
     Assert enc.Base64Decode() == s
     If enc Is Not None
         # Leading/trailing whitespace is ignored

@@ -20,11 +20,11 @@ End-Function
 Call start_test("For Next (BASIC, block=For)")
 For x = 1 To 3
     If $loop.first
-        Set continued = True
+        Set continued To True
         Continue-For
         Assert False: "Continue-For failed"
     Else
-        Set broke = True
+        Set broke To True
         Break-For
         Assert False: "Break-For failed"
     End-If
@@ -35,11 +35,11 @@ Call end_test()
 Call start_test("For Each (Basic, block=for)")
 For Each x In [1, 2, 3]
     If $loop.first
-        Set continued = True
+        Set continued To True
         Continue-For
         Assert False: "Continue-For failed"
     Else
-        Set broke = True
+        Set broke To True
         Break-For
         Assert False: "Break For failed"
     End-If
@@ -50,11 +50,11 @@ Call end_test()
 Call start_test("For Next (VGR)")
 For x = 1 To 3
     If $loop.first
-        Set continued = True
+        Set continued To True
         Continue
         Assert False: "Continue failed"
     Else
-        Set broke = True
+        Set broke To True
         Break
         Assert False: "Break failed"
     End-If
@@ -65,11 +65,11 @@ Call end_test()
 Call start_test("Repeat Times (VGR)")
 Repeat 3 Times:
     If $loop.first
-        Set continued = True
+        Set continued To True
         Continue
         Assert False: "Continue failed"
     Else
-        Set broke = True
+        Set broke To True
         Break
         Assert False: "Break failed"
     End-If
@@ -80,11 +80,11 @@ Call end_test()
 Call start_test("Until (VGR)")
 Until False
     If $loop.first
-        Set continued = True
+        Set continued To True
         Continue
         Assert False: "Continue failed"
     Else
-        Set broke = True
+        Set broke To True
         Break
         Assert False: "Break failed"
     End-If
@@ -95,11 +95,11 @@ Call end_test()
 Call start_test("While (VGR)")
 While True
     If $loop.first
-        Set continued = True
+        Set continued To True
         Continue
         Assert False: "Continue failed"
     Else
-        Set broke = True
+        Set broke To True
         Break
         Assert False: "Break failed"
     End-If
@@ -110,11 +110,11 @@ Call end_test()
 Call start_test("While (VGR, block=While)")
 While True
     If $loop.first
-        Set continued = True
+        Set continued To True
         Continue-While
         Assert False: "Continue While failed"
     Else
-        Set broke = True
+        Set broke To True
         Break-While
         Assert False: "Break-While failed"
     End-If
@@ -125,11 +125,11 @@ Call end_test()
 Call start_test("For-Each (VGR)")
 For-Each x In [1, 2, 3] : # keep single keyword form
     If $loop.first
-        Set continued = True
+        Set continued To True
         Continue
         Assert False: "Continue failed"
     Else
-        Set broke = True
+        Set broke To True
         Break
         Assert False: "Break failed"
     End-If
@@ -140,11 +140,11 @@ Call end_test()
 Call start_test("For-Each (VGR, block=for)")
 For-Each x In [1, 2, 3]
     If $loop.first
-        Set continued = True
+        Set continued To True
         Continue-For
         Assert False: "Continue-For failed"
     Else
-        Set broke = True
+        Set broke To True
         Break-For
         Assert False: "Break-For failed"
     End-If

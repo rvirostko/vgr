@@ -39,7 +39,7 @@ End-For
 Print "=" * 60
 
 Printf Newline
-Set p_kv = CompilePattern("(?P<key>\\w+)=(?P<value>[^ ]+)")
+Set p_kv To CompilePattern("(?P<key>\\w+)=(?P<value>[^ ]+)")
 
 Printf "={:=<58}=\n", " Key/Value Extraction "
 For-Each line In logs

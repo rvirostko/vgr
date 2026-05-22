@@ -82,8 +82,8 @@ env.OFS = " "
 env.ORS = "\\n"
 Print "alpha", "beta", "gamma" → "alpha beta gamma"
 
-Set env.OFS = " | "
-Set env.ORS = " |" + Newline
+Set env.OFS To " | "
+Set env.ORS To " |" + Newline
 Exhibit env.OFS, env.ORS
 env.OFS = " | "
 env.ORS = " |\\n"

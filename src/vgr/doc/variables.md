@@ -30,7 +30,7 @@ Print data
 Note that you didn't need to create `data` first, and the same goes for deeper hierarchies.
 
 ```vgr
-Set this.is.several.layers.deep = 5
+Set this.is.several.layers.deep To 5
 Print this
 {'is': {'several': {'layers': {'deep': 5}}}}
 ```
@@ -40,7 +40,7 @@ Print displays these variable paths as a Python dictionary, which is mostly inte
 Steps in a variable path can be expressed in _snake_ or _kabab_ case.
 
 ```vgr
-Set _this.is-several.layers_._deep_ = 5
+Set _this.is-several.layers_._deep_ To 5
 Print _this.is-several.layers_._deep_
 5
 ```
@@ -48,9 +48,9 @@ Print _this.is-several.layers_._deep_
 Steps in the variable path can contain ASCII alphanumeric characters, and the dash or underscore characters. They can start with an underscore, but not a dash:
 
 ```vgr
-Set _valid = 0
-Set -not-valid = 0
-Set -not-valid = 0
+Set _valid To 0
+Set -not-valid To 0
+Set -not-valid To 0
     ^
 Unexpected input at line 1, column 5.
 Expected NAME.
@@ -87,9 +87,9 @@ Besides obvious things like keywords in the language, there are some names that 
 ```vgr
 Set True To False
 Error : Invalid path: True contains reserved values
-Set my.inf = -1
+Set my.inf To -1
 Error : Invalid path: my.inf contains reserved values
-Set my._inf = -1
+Set my._inf To -1
 ```
 
 ### Examining Variables
@@ -118,8 +118,8 @@ vgr --execute 'Set a to 5; Set b to 6; Print a, b'
 Or you can change them at runtime:
 
 ```vgr
-Set env.OFS = " | "
-Set env.ORS = " |\n"
+Set env.OFS To " | "
+Set env.ORS To " |\n"
 Print "Hello", "World"
 Hello | World |
  ```

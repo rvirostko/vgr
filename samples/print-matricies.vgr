@@ -1,8 +1,6 @@
 # In the Digiac-3060 tradition
 # Printing math matricies
 
-Set Zero To 0 # for readability
-
 # Convert a value to a number, using zero as the default
 # Since it is strictly transformational, use a arrow function
 Function num_default(x) -> x.DefaultTo(Zero).ToNumber()
@@ -17,23 +15,23 @@ Function op.div(a,b) -> (@num_default(a) / @num_default(b))
 # Some more "advanced" math operations
 Define Function adv_op.pow(a, b): return @num_default(a).Pow(@num_default(b)); End-Function
 Define Function adv_op.gcd(a, b):
-    Set a = @num_default(a)
-    Set b = @num_default(b)
+    Set a To @num_default(a)
+    Set b To @num_default(b)
     While b != 0
-        Set t = b
-        Set b = a % b
-        Set a = t
+        Set t To b
+        Set b To a % b
+        Set a To t
     End-While
     Return a
 End-Function
 Define Function adv_op.lcm(a, b):
     Declare i, limit, g, s As Local
-    Set a = @num_default(a)
-    Set b = @num_default(b)
-    Set g = a.Max(b)  // Larger value
-    Set s = a.Min(b)  // Smaller value
-    Set i = g
-    Set limit = a * b
+    Set a To @num_default(a)
+    Set b To @num_default(b)
+    Set g To a.Max(b)  // Larger value
+    Set s To a.Min(b)  // Smaller value
+    Set i To g
+    Set limit To a * b
     While i <= limit
         If (i % s) == 0 Return i End-If
         Set i += g
@@ -44,8 +42,8 @@ End-Function
 Define Function print_matricies(operations, matrix_min, matrix_max):
     Assert operations.IsDictionary()
     Assert operations.Length() > 0 : "No operations defined"
-    Set matrix_min = matrix_min.ToInteger().DefaultTo(0).Clamp(0, 99)
-    Set matrix_max = matrix_max.ToInteger().DefaultTo(9).Clamp(matrix_min, 99)
+    Set matrix_min To matrix_min.ToInteger().DefaultTo(0).Clamp(0, 99)
+    Set matrix_max To matrix_max.ToInteger().DefaultTo(9).Clamp(matrix_min, 99)
     For-Each item in operations
         # operations is dictionary, so For-Each returns a key-value pair for each item
         Set op_name To item.FirstItem()
@@ -63,7 +61,7 @@ Define Function print_matricies(operations, matrix_min, matrix_max):
             # Print a row's worth of calculations
             Printf "{:>2d} | ", x
             For y = matrix_min To matrix_max
-                Set rc = @op_func(x, y)
+                Set rc To @op_func(x, y)
                 If rc.IsFinite()
                     Printf "{:>2d} ", rc.ToInteger()
                 Else

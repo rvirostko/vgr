@@ -170,7 +170,7 @@ still be shared.
 ***Simple types return the same object***
 
 ```vgr
-Set x = 5
+Set x To 5
 Print x.Id(), x.Clone().Id()
 4335020464 4335020464 // same object
 ```
@@ -178,7 +178,7 @@ Print x.Id(), x.Clone().Id()
 ***Cloning a complex object***
 
 ```vgr
-Set y = [1,2,3]
+Set y To [1,2,3]
 Print y.Id(), y.Clone().Id()
 4808334400 4807906688 // different objects
 ```
@@ -186,8 +186,8 @@ Print y.Id(), y.Clone().Id()
 ***Container is cloned, but complex objects are shared***
 
 ```vgr
-Set z = [ {"a" : 1} ]
-Set z′ = z.Clone()
+Set z To [ {"a" : 1} ]
+Set z′ To z.Clone()
 Print z.Id(), z′.Id()
 4810281856 4708798208 // different lists
 Print z.FirstItem().Id(), z′.FirstItem().Id()

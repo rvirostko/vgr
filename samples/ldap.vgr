@@ -58,7 +58,7 @@ Call PrintPeople
                         "mail".LdapAttrExists(),
                         "telephoneNumber".LdapAttrExists())
 
-Set qbe = {
+Set qbe To {
             "objectClass":     "person",
             "mail":            "*",
             "telephoneNumber": "*",

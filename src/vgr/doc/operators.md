@@ -11,13 +11,13 @@ If you've every done any coding you'll recognize many of the items that are foun
 * **Arrays** : Arrays themsleves are composed of expressions which may be constants or computed values. Arrays are hetrogenous and can be nested:
 
 ```vgr
-Set foo = 5
-Set bar = 3
-Set foo_bar = [ foo, bar, "foo", "bar" ]
+Set foo To 5
+Set bar To 3
+Set foo_bar To [ foo, bar, "foo", "bar" ]
 Print foo_bar
 [5, 3, 'foo', 'bar']
 
-Set foo_bar = [ [foo, bar], ["foo", "bar"] ]
+Set foo_bar To [ [foo, bar], ["foo", "bar"] ]
 Print foo_bar
 [[5, 3], ['foo', 'bar']]
 ```
@@ -38,9 +38,9 @@ The basic arithmetic operations are:
 * [Bit Shifting](https://en.wikipedia.org/wiki/Bitwise_operation#Shift_operations) : use `<<` for left shift and `>>` for right shift.
 
 ```vgr
-Set x = 5
-Set y = 3
-Set env.OFS=" | "
+Set x To 5
+Set y To 3
+Set env.OFS To " | "
 Print x + y, x - y, x / y, x // y, x % y
 8 | 2 | 1.6666666666666667 | 1 | 2
 
@@ -63,9 +63,9 @@ Comparison operations work with both numeric and non-numeric data.
 In the longer text versions, the `Is` is optional, and in all words can be in any mixture of upper and lower case. Results of comparison operations are always `True` or `False`.
 
 ```vgr
-Set x = 5
-Set y = 3
-Set env.OFS=" | "
+Set x To 5
+Set y To 3
+Set env.OFS To " | "
 Print x == y, x != y, x < y, x > y, x <= y, x >= y
 False | True | False | True | False | True
 ```
@@ -75,9 +75,9 @@ False | True | False | True | False | True
 Use parentheses if explicit order of evaluations is required.
 
 ```vgr
-Set x = 5
-Set y = 3
-Set env.OFS=" | "
+Set x To 5
+Set y To 3
+Set env.OFS To " | "
 Print x * y + 2, (x * y) + 2, x * (y + 2)
 25 | 17 | 25
 ```

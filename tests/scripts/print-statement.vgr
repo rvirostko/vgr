@@ -1,6 +1,6 @@
 Define Function set-env(ofs, ors)
-    Set env.OFS = ofs
-    Set env.ORS = ors
+    Set env.OFS To ofs
+    Set env.ORS To ors
 End-Function
 
 Define Function show-env()

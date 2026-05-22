@@ -1,10 +1,10 @@
 
 # Test the signatures and output equivalence of the Markdown functions
 
-Set text = "text"
-Set lang = "lang"
-Set level = 2
-Set url = "http://sample.org"
+Set text To "text"
+Set lang To "lang"
+Set level To 2
+Set url To "http://sample.org"
 
 Echo On
 

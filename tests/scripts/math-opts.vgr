@@ -1,11 +1,11 @@
 
 # Test the signatures and output equivalence of some of the math functions
 
-Set r = "r"
-Set s = "s"
-Set x = 2
-Set y = 3
-Set z = 4
+Set r To "r"
+Set s To "s"
+Set x To 2
+Set y To 3
+Set z To 4
 
 Echo On
 

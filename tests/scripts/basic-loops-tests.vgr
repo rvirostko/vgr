@@ -1,32 +1,32 @@
 
-# Test out various syntax options for BASIC loops
+# Test out various syntax options for loops
 
 Echo On
 
-# Do While
-Let x = 0
-While x < 1: # keep colon
-    Let x = x + 1
+# While
+Set x To 0
+While x < 1: # colon optional
+    Set x To x + 1
 End
 
-Let x = 0
+Set x To 0
 While x < 1
-    Let x = x + 1
+    Set x To x + 1
 End  # keep untyped
 
-# Do Until
-Let x = 0
-Until x == 1: # keep colon
-    Let x = x + 1
+# Until
+Set x To 0
+Until x == 1: # colon optional
+    Set x To x + 1
 End
 
-Let x = 0
+Set x To 0
 Until x == 1
-    Let x = x + 1
+    Set x To x + 1
 End  # keep untyped
 
 # For-Next
-For x = 0 To 1: # keep colon
+For x = 0 To 1: # colon optional
     NOP
 Next
 
@@ -39,7 +39,7 @@ For x = 0 To 1
 End  # keep untyped
 
 # For-Next w/By
-For x = 0 To 1 Step 1: # keep colon
+For x = 0 To 1 Step 1: # colon optional
     NOP
 Next
 
@@ -52,7 +52,7 @@ For x = 0 To 1 Step 1
 End  # keep untyped
 
 # For-Each
-For-Each x In [1, 2]: # keep colon
+For-Each x In [1, 2]: # colon optional
     NOP
 Next
 

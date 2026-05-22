@@ -136,7 +136,7 @@ class ArrowFunction(AbstractUserCallable):
 ***Missing and extra arguments***
 
 ```vgr
-Set add = (x, y) -> x + y
+Set add To (x, y) -> x + y
 Print @add(5) → None     // y defaults to None
 Print @add(5, 6) → 11
 Print @add(5, 6, 7) → 11 // Extra arg ignored
@@ -155,7 +155,7 @@ Print @fact(5) → 120
 ```vgr
 Unset a
 Print @a() → None
-Set a = "Hello"
+Set a To "Hello"
 Print @a(1, 2) → "Hello"
 ```
 """

@@ -3,8 +3,8 @@
 # subj="Hello Again!"
 # python3 -m vgr "${today}" "${subj}" mail-template.txt
 
-Set today = args.Item(0).DefaultTo(time.now.FormatTimestamp(time.format.ymd))
-Set subj = args.Item(1).DefaultTo("Hello")
+Set today To args.Item(0).DefaultTo(time.now.FormatTimestamp(time.format.ymd))
+Set subj To args.Item(1).DefaultTo("Hello")
 If args.Item(2) is None
     Print "Using default template."
     Set mail_template To """

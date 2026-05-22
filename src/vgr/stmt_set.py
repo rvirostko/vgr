@@ -89,7 +89,6 @@ def execute_set(ctx: ExecContext, statement: Tree) -> None:
 **Modify a variable's existing value**
 
 * Set *variable* [= | To] *expression* &emsp; *Assignment*
-* Let *variable* = *expression* &emsp; *BASIC-style assignment*
 * Set *variable* += *expression* &emsp; *Addition*
 * Set *variable* -= *expression* &emsp; *Subtraction*
 * Set *variable* *= *expression* &emsp; *Multiplication*
@@ -268,11 +267,11 @@ The *path* can be:
 > will create and return a *copy* of the original contents.
 
 ```vgr
-Set d = {"a": 1}
+Set d To {"a": 1}
 Set-Key "b" In d To 2 → {"a": 1, "b": 2}
 Set-Key "c.d" In d To 3 → {"a": 1, "b": 2, "c": {"d": 3}}
 
-Set a = [ {"a": 1}, {"b": 2} ]
+Set a To [ {"a": 1}, {"b": 2} ]
 Set-Key ["c", "d"] In a To 3 →
     [{"a": 1, "c": {"d": 3}}, {"b": 2, "c": {"d": 3}}]
 ```
@@ -319,10 +318,10 @@ The *path* can be:
 > will create and return a *copy* of the original contents.
 
 ```vgr
-Set d = {"a": 1, "b": 2}
+Set d To {"a": 1, "b": 2}
 Remove-Key "a" From d → {"b": 2}
 
-Set a = [ {"a": 1}, {"b": 2} ]
+Set a To [ {"a": 1}, {"b": 2} ]
 Remove-Key "b" From a → [{"a": 1}, {}]
 ```
 

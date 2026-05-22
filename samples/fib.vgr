@@ -3,13 +3,13 @@
 //---------------------------------------------------------------------
 
 // Use a list as the "stack" for the last two Fibonacci values
-Set fstack = []
-Set i = 0
+Set fstack To []
+Set i To Zero
 While i <= 8
     If fstack.Length() < 2
-        Set fib = 0
+        Set fib To Zero
     Else
-        Set fib = (i > 0 && i <= 2) ? 1 : fstack.Sum()
+        Set fib To (i > Zero && i <= 2) ? 1 : fstack.Sum()
         Remove First From fstack
     End-If
     Append fib To fstack

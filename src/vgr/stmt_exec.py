@@ -482,7 +482,7 @@ frog = None
 bog = None
 
 Define Function sqr(x):
-    Set frog = x.Pow(2)
+    Set frog To x.Pow(2)
     Return frog
 End-Function
 Print @sqr(5)
@@ -492,7 +492,7 @@ frog = 25
 
 Define Function sqr2(x):
     Declare frog Local
-    Set frog = x.Pow(2)
+    Set frog To x.Pow(2)
     Return frog
 End-Function
 Print @sqr2(6)
@@ -812,7 +812,7 @@ End-For
 ------------------------------------------------------------
 ```
 > **Note**\\
-> For BASIC compatibility, you can also use `Next` to close `For-Each`,
+> You can also use `Next` to close `For-Each`,
 > but `End-For` or just `End` are preferred.
 
 Also see `Break` and `Continue`
@@ -917,6 +917,7 @@ Also see `Perform Varying` and `For-Each`.
         #     which is typical for Basic implementations
         length = None if inc == 0 else int(max(0, math.floor((end - value) / inc) + 1))
         i = 0
+        # TODO can we simplify?
         while (inc == 0) or (inc > 0 and value <= end) or (inc < 0 and value >= end):
             set_loop_meta(meta, i, length)
             ctx.set_var(value, *var_path)

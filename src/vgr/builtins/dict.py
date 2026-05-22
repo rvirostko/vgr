@@ -103,7 +103,7 @@ Dictionary(["f.a", 1], ["f.b", 2]) → {"f": {"a": 1, "b": 2}}
 Dictionary([["f.a", 1], ["f.b", 2]]) → {"f": {"a": 1, "b": 2}}
 Dictionary({"f":{"a": 1}}, ["f.b", 2]) → {"f": {"a": 1, "b": 2}}
 
-Set lines = ["a | b | c", "1 | 2 | 3", "one | two | three"]
+Set lines To ["a | b | c", "1 | 2 | 3", "one | two | three"]
 Set records To List()
 For-Each line In lines
     Set elems To line.Split("|").Strip()

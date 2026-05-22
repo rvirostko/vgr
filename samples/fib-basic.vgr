@@ -3,20 +3,20 @@
 # Since we don't use ";" between print params to
 # indicate "no space", it has been converted to
 # "," and ofs is set to nothing.
-Set env.OFS = ""
+Set env.OFS To ""
 #----------------------------------------------------------------------
 
-LET fib0 = 0
-LET fib1 = 0
-LET i = 0
+SET fib0 TO 0
+SET fib1 TO 0
+SET i TO 0
 WHILE i <= 8
     IF i > 0 AND i <= 2
-        LET fib2 = 1
+        SET fib2 TO 1
     ELSE
-        LET fib2 = fib0 + fib1
+        SET fib2 TO fib0 + fib1
     END
-    LET fib0 = fib1
-    LET fib1 = fib2
+    SET fib0 TO fib1
+    SET fib1 TO fib2
     PRINT "fib(", i, ") = ", fib2
-    LET i = i + 1
+    SET i TO i + 1
 END

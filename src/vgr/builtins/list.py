@@ -409,7 +409,7 @@ Set f(acc, value, scale) -> acc + (value * scale.DefaultTo(1))
 Set double_it(n) -> n * 2
 Set get_count(d, default_value) -> d.GetKeyValue("count", default_value)
 Set sum_positive(acc, n) -> n >= 0 ? acc + n : acc
-Set counters = [
+Set counters To [
     { "name": "a", "count": 5 },
     { "name": "b" },
     { "name": "c", "count": 3 }
