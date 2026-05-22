@@ -1,18 +1,20 @@
 """
-Implementations of Print, PrintF, and MdPrint
+Implementations of Print, Printf, Exhibit
 """
 
 from io import StringIO
+from typing import Any
 import os
 import sys
 
 from lark import Tree
 
 from .app_exceptions import VgrRuntimeError
+from .evaluate import _var_name_path
 from .builtins import (
     bound_ops,
-    poly_bool,
     poly_format,
+    poly_repr,
     poly_str,
 )
 from .dd_config import OFS_PATH, ORS_PATH
@@ -201,3 +203,65 @@ def _get_flush(ctx: ExecContext, child: True) -> bool:
                              True) if child.children else True
     if value is None: return None
     return value if name == 'flush' else not value
+
+@bound_ops("Exhibit")
+def execute_exhibit(ctx: ExecContext, statement: Tree) -> None:
+    """
+**Display the names and values of variables**
+
+* Exhibit *
+* Exhibit *variable*&hellip;
+
+`Exhibit` is not typically used in scripts, but is useful for debugging
+and for working in the REPL.
+
+The values are displayed on individual lines. If a variable has sub-values, each
+portion is displayed on its own line.
+
+With a single argument of *\\** all variables are displayed.
+
+Unlike `Print` and `Printf`, the values display are the _representation_ of the data, not
+its printable value. This lets you diferentiate between an integer and a string as
+well as seeing control characters.
+
+```vgr
+Exhibit math.pi math.e
+math.pi = 3.141592653589793
+math.e = 2.718281828459045
+
+Print math.float
+{'max': 1.7976931348623157e+308, 'min': 2.2250738585072014e-308}
+Exhibit math.float
+math.float.max = 1.7976931348623157e+308
+math.float.min = 2.2250738585072014e-308
+
+Exhibit string.whitespace
+string.whitespace = ' \\t\\n\\r\\x0b\\x0c'
+```
+
+Also see `Print`, `Printf`, and `Repr()`
+"""
+    def _exhibit_value(name: str, value: Any) -> None:
+        if hasattr(value, 'keys') and callable(value.keys):
+            keys = value.keys()
+            if len(keys):
+                for key in sorted(keys):
+                    pkey = str(key)
+                    _exhibit_value(name + '.' + pkey if len(name) > 0 else pkey, value[key])
+            else:
+                print_stdout(name, '= -empty-')
+        else:
+            print_stdout(name, '=', poly_repr(value))
+    children = statement.children
+    if children:
+        for var_name in children:
+            var_path = _var_name_path(var_name)
+            exists, true_name, value = ctx.var_exists(*var_path)
+            if exists:
+                _exhibit_value(true_name, value)
+            else:
+                print_stdout(true_name, '= -not set-')
+    else:
+        # No arguments dumps the entire dictionary
+        for key in sorted(ctx.dd.keys()):
+            _exhibit_value(key, ctx.get_var(key))

@@ -100,6 +100,7 @@ from .stmt_math import (
 )
 from .stmt_sleep import execute_sleep
 from .stmt_print import (
+    execute_exhibit,
     execute_print,
     execute_printf,
 )
@@ -109,10 +110,11 @@ from .stmt_set import (
     execute_load_from,
     execute_remove_key,
     execute_reset,
-    execute_set,
+    execute_set_corresponding,
     execute_set_down,
     execute_set_key_value,
     execute_set_up,
+    execute_set,
     execute_swap,
     execute_unset,
 )
@@ -1181,6 +1183,7 @@ STATEMENT_HANDLERS = {
     'def_function':      execute_def_function,
     'div_by':            execute_div_by,
     'echo':              execute_echo,
+    'exhibit':           execute_exhibit,
     'exit':              execute_exit,
     'foreach':           execute_foreach,
     'for_next_by':       execute_for_next,
@@ -1210,6 +1213,7 @@ STATEMENT_HANDLERS = {
     'set_down':          execute_set_down,
     'set_key_value':     execute_set_key_value,
     'set_up':            execute_set_up,
+    'set_corresponding': execute_set_corresponding,
     'set':               execute_set,
     'sleep':             execute_sleep,
     'sort':              execute_sort,

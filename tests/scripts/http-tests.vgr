@@ -74,7 +74,7 @@ Set n To 1
 // -------------------------------------------------------------------------
 Echo On
 Http Get "https://httpbin.org/get"
-Echo off
+Echo Off
 Call AssertResult(n)
 Call PrintPassed(n)
 Add 1 to n
@@ -86,7 +86,7 @@ Echo On
 Http Get "https://httpbin.org/get"
     Parameter "page=1"
     Parameter "q=hello world"
-Echo off
+Echo Off
 Call AssertResult(n)
 Call CheckParam(n, "page", "1")
 Call CheckParam(n, "q", "hello world")
@@ -102,7 +102,7 @@ Http Get "https://httpbin.org/get"
             "page": "2",
             "q": "bulk params"
     }
-Echo off
+Echo Off
 Call AssertResult(n)
 Call CheckParam(n, "page", "2")
 Call CheckParam(n, "q", "bulk params")
@@ -114,7 +114,7 @@ Add 1 to n
 // -------------------------------------------------------------------------
 Echo On
 Http Get "https://httpbin.org/headers" Header " X-Test-Header : HelloWorld "
-Echo off
+Echo Off
 Call AssertResult(n)
 Call CheckHeader(n, "X-Test-Header", "HelloWorld")
 Call PrintPassed(n)
@@ -125,7 +125,7 @@ Add 1 to n
 // -------------------------------------------------------------------------
 Echo On
 Http Post "https://httpbin.org/post" Body Is {"name": "alice", "role": "admin"} Header "Content-Type: application/json"
-Echo off
+Echo Off
 Call AssertResult(n)
 Call CheckJson(n, "name", "alice")
 Call CheckJson(n, "role", "admin")
@@ -142,7 +142,7 @@ Http Get "https://httpbin.org/basic-auth/{}/{}".Format(user, password)
     User Is user
     Password Is password
     Auth Is Basic
-Echo off
+Echo Off
 Call AssertResult(n)
 Call CheckAuthenticated(n, True)
 Call PrintPassed(n)
@@ -158,7 +158,7 @@ Http Get "https://httpbin.org/basic-auth/{}/{}".Format(user, password)
     User Is user
     Password Is "BAD"
     # Auth Is Basic - this is the default
-Echo off
+Echo Off
 Call AssertStatus(n, http.status.unauthorized)
 Call CheckAuthenticated(n, None)
 Call PrintPassed(n)
@@ -172,7 +172,7 @@ Http Get "https://httpbin.org/digest-auth/auth/{}/{}".Format(user, password)
     User Is user
     Password Is password
     Auth Is Digest
-Echo off
+Echo Off
 Call AssertResult(n)
 Call CheckAuthenticated(n, True)
 Call PrintPassed(n)
@@ -183,7 +183,7 @@ Add 1 to n
 // -------------------------------------------------------------------------
 Echo On
 Http Get URL Is "https://httpbin.org/status/404"
-Echo off
+Echo Off
 Call AssertStatus(n, http.status.not_found)
 Call AssertReason(n, "NOT FOUND")
 Call PrintPassed(n)
@@ -195,7 +195,7 @@ Add 1 to n
 // -------------------------------------------------------------------------
 Echo On
 Http Get URL Is "https://httpbin.org/delay/5" Timeout Is 1
-Echo off
+Echo Off
 Call AssertStatus(n, None)
 Call AssertReason(n, "The read operation timed out")
 Call PrintPassed(n)
@@ -207,7 +207,7 @@ Add 1 to n
 Echo On
 Http Connect "https://httpbin.org/" Timeout Is 10.0 As httpbin
 Http Get URL Is "get" Using httpbin
-Echo off
+Echo Off
 Call AssertResult(n)
 Http Disconnect httpbin
 Call PrintPassed(n)
@@ -224,7 +224,7 @@ Http Get URL Is "get"
     Parameter "api_version=2"
     Parameter "page=1"
     Using httpbin
-Echo off
+Echo Off
 Call AssertResult(n)
 Call CheckParam(n, "format", "json") # From connect
 Call CheckParam(n, "page", "1") # From request
@@ -246,7 +246,7 @@ Http Connect "https://httpbin.org/"
     As httpbin
 # Credentials come from connect
 Http Get "basic-auth/{}/{}".Format(user, password) Using httpbin
-Echo off
+Echo Off
 Call AssertResult(n)
 Call CheckAuthenticated(n, True)
 Call PrintPassed(n)
@@ -261,7 +261,7 @@ Http Connect "https://httpbin.org/"
     Follow Redirects Is False
     As httpbin
 Http Get "redirect/1" Using httpbin
-Echo off
+Echo Off
 Call AssertStatus(n, http.status.found)
 Call PrintPassed(n)
 Add 1 to n
@@ -276,7 +276,7 @@ Http Connect "https://httpbin.org/"
     Timeout Is 30.0
     As httpbin
 Http Get "redirect/3" Using httpbin
-Echo off
+Echo Off
 Call AssertResult(n)
 Call PrintPassed(n)
 Add 1 to n
@@ -292,7 +292,7 @@ Http Connect "https://httpbin.org/"
     Max Redirects Is 3
     As httpbin
 Http Get "redirect/4" Using httpbin
-Echo off
+Echo Off
 Print http.result.FormatJson()
 Call AssertStatus(n, None)
 Call AssertReason(n, "Exceeded maximum allowed redirects")
@@ -305,7 +305,7 @@ Http Disconnect httpbin
 // -------------------------------------------------------------------------
 Echo On
 Http Delete URL Is "https://httpbin.org/delete"
-Echo off
+Echo Off
 Call AssertResult(n)
 Call PrintPassed(n)
 Add 1 to n
@@ -317,7 +317,7 @@ Echo On
 Http Put URL Is "https://httpbin.org/put"
     Body Is { "key": "value" }
     Header "Content-Type: application/json"
-Echo off
+Echo Off
 Call AssertResult(n)
 Call CheckJson(n, "key", "value")
 Call PrintPassed(n)
@@ -330,7 +330,7 @@ Echo On
 Http Patch URL Is "https://httpbin.org/patch"
     Body Is { "status": "updated" }
     Header "Content-Type: application/json"
-Echo off
+Echo Off
 Call AssertResult(n)
 Call CheckJson(n, "status", "updated")
 Call PrintPassed(n)
@@ -342,7 +342,7 @@ Add 1 to n
 # We can always restate the default and have it work
 Echo On
 Http Get "https://httpbin.org/get" Giving http.result
-Echo off
+Echo Off
 Call AssertResult(n)
 Call PrintPassed(n)
 Add 1 to n
@@ -352,7 +352,7 @@ Unset froboz
 Assert froboz Is None
 Echo On
 Http Get "https://httpbin.org/get" Giving froboz
-Echo off
+Echo Off
 Assert froboz Is Not None
 Call PrintPassed(n)
 Add 1 to n
@@ -366,7 +366,7 @@ For-Each test_case in [[1, 1.1], [1.1, 1.1], [2, 2], [" 2 ", 2]]
     Echo On
     Http Connect "https://httpbin.org" HTTP-Version Is version As httpbin
     Http Get "get" Using httpbin
-    Echo off
+    Echo Off
     Call AssertResult(n)
     Set received To http.result.http_version
     Print "HTTP version"
@@ -390,7 +390,7 @@ For-Each host In [
         Echo On
         Http Connect "https://" + host Verify SSL Is verify Timeout Is 10.0 As ssl_test_conn
         Http Get URL Is "/" Using ssl_test_conn
-        Echo off
+        Echo Off
         Printf "https://{} - Verify SSL is {}\n", host, verify
         If verify
             Call AssertStatus(n, None)

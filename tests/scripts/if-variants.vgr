@@ -25,7 +25,6 @@ Else
     Print "Hello"
 End # keep untyped
 
-# COBOL like (but in main/preferred syntax)
 If True: # keep colon
     Print "Hello"
 End-If

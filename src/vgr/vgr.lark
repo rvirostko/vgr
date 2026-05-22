@@ -68,6 +68,7 @@ opt_statements: statement*
     | declare
     | div_by
     | echo
+    | exhibit
     | exit
     | include
     | list_append
@@ -255,11 +256,11 @@ sleep: "Sleep"i "For"i? expr _unit_seconds?
 cmd_line_assign: var_name _assignment expr -> set
 
 // Combined "Set" and BASIC "Let" syntax
-// Up/Down By are "COBOL inspired"
 set:  "Set"i var_name (_assignment | IN_PLACE_OP) expr
     | "Let"i var_name _EQ expr
     | "Set"i var_name "Up"i "By"i expr   -> set_up
     | "Set"i var_name "Down"i "By"i expr -> set_down
+    | "Set"i "Corresponding"i expr "In"i "Dictionary"i? var_name -> set_corresponding
 IN_PLACE_OP: ("+=" | "-=" | "*=" | "/=" | "%=" | "**=" | "&=" | "|=" | "^=" | "<<=" | ">>=" )
 // Alternate to "Set" to get around conflicts
 assign: "Assign"i expr _assignment var_name
@@ -314,6 +315,9 @@ printf: "Printf"i _csep_list{expr} print_channel? _options_list{printf_option}
     |             ("No-Flush"i) option_value?                    -> no_flush
 ?print_option: print_sep_opt | print_flush_opt
 ?printf_option: print_flush_opt
+
+exhibit: "Exhibit"i "*" // exhibit all
+    |    "Exhibit"i var_name (_SEP? var_name)*
 
 log: "Log"i log_level _csep_list{expr}
    | "Log"i "Level"i log_level -> log_setlevel
@@ -516,7 +520,6 @@ _dict_entry: expr _CLAUSE_SEP expr // key and value
     // Boolean constants
     | "True"i               -> vtrue
     | "False"i              -> vfalse
-    // Figurative constants: where COBOL "inspired" only the singular version is used
     // Numeric figurative constants
     | "Nan"i                -> vnan
     | "Zero"i               -> vzero                    // becomes int 0

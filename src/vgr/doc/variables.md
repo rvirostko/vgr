@@ -146,7 +146,7 @@ Hello, World?
 
 ### Exhibit Statement
 
-`Exhibit` is inspired by COBOL and displays information about variables. When looking at a single value, there is little difference from using `Print`:
+`Exhibit` displays information about variables. When looking at a single value, there is little difference from using `Print`:
 
 ```vgr
 Print h

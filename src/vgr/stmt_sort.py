@@ -1,5 +1,5 @@
 """
-The Sort statement, based on Cobol with uniqueness extension.
+The Sort statement
 """
 
 import copy

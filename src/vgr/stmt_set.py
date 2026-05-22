@@ -149,6 +149,41 @@ Also see the `Set`
         new_value = ctx.eval_expr(statement.children[i])
         do_set(ctx, new_value, *var_path)
 
+
+@bound_ops("Set Corresponding")
+def execute_set_corresponding(ctx: ExecContext, statement: Tree) -> None:
+    """
+**Assign elements of one dictionary to another**
+
+* Set Corresponding *expression* In [Dictionary] *variable*
+
+This works with dictionaries, copying attributes from the
+evaluated *expression* to *variable* if the attribute already exists
+in *variable*.
+
+If *variable* does not exist or `None` the operation is skipped.
+Also, if *expression* does not resolve to a dictionary, the
+operation is skipped.
+
+```vgr
+Assign {"x": 1, "y": 2, "z": 3} To a
+Assign {"w": 5, "x": 10} To b
+Set Corresponding b In a
+Exhibit a
+a.x = 10
+a.y = 2
+a.z = 3
+```
+
+Also see `Set` and `Add()` for combining dictionaries
+"""
+    src_value = ctx.eval_expr(statement.children[0])
+    var_path = get_writable_var_path(ctx, statement.children[1])
+    dest_value = ctx.get_var(*var_path)
+    if isinstance(src_value, dict) and isinstance(dest_value, dict):
+        dest_value.update({k: src_value[k] for k in src_value if k in dest_value.keys()})
+        do_set(ctx, dest_value, *var_path)
+
 @bound_ops("Set Up")
 def execute_set_up(ctx: ExecContext, statement: Tree) -> None:
     """
