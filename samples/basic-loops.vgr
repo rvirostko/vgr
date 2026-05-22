@@ -1,7 +1,7 @@
 
 # Reverse words in a list until sentinel encountered
 Set words To ["apple", "banana", "cherry", None]
-Set index To 0
+Set index To Zero
 While words.Item(index)
     # NB: $loop is available, but only index and first values
     Set word To words.Item(index)
@@ -13,7 +13,7 @@ End-While
 # Collect characters from input until a vowel is found
 Set input_str To "bcdfghjklmnpqrustvwxyz"
 Set collected To ""
-Set index To 0
+Set index To Zero
 Until Lower(SubStr(input_str, index)) Is In "aeiou"
     # NB: $loop is available, but only index and first values
     Set collected To collected + SubStr(input_str, index)

@@ -7,7 +7,7 @@
     Set t.three_int To 3
     Set t.three_float To t.three_int.ToFloat()
     Set t.three_str To t.three_int.ToString()
-    Set t.three_pad_str To " " + t.three_str + " "
+    Set t.three_pad_str To Space + t.three_str + Space
     Set t.array1 To [t.three_int, t.three_float, t.three_str]
     Set t.array2 To [t.three_str, t.three_int, t.three_float]
 

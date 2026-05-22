@@ -10,7 +10,7 @@ Print math
 Set t To math
 Print t
 
-Set t.inf To 0
+Set t.inf To Zero
 Set t.new_var To "frog"
 Print t
 

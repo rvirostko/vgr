@@ -4,50 +4,50 @@
 Echo On
 
 # While
-Set x To 0
+Set x To Zero
 While x < 1: # colon optional
     Set x To x + 1
 End
 
-Set x To 0
+Set x To Zero
 While x < 1
     Set x To x + 1
 End  # keep untyped
 
 # Until
-Set x To 0
+Set x To Zero
 Until x == 1: # colon optional
     Set x To x + 1
 End
 
-Set x To 0
+Set x To Zero
 Until x == 1
     Set x To x + 1
 End  # keep untyped
 
 # For-Next
-For x = 0 To 1: # colon optional
+For x = Zero To 1: # colon optional
     NOP
 Next
 
-For x = 0 To 1
+For x = Zero To 1
     NOP
 Next
 
-For x = 0 To 1
+For x = Zero To 1
     NOP
 End  # keep untyped
 
 # For-Next w/By
-For x = 0 To 1 Step 1: # colon optional
+For x = Zero To 1 Step 1: # colon optional
     NOP
 Next
 
-For x = 0 To 1 Step 1
+For x = Zero To 1 Step 1
     NOP
 Next
 
-For x = 0 To 1 Step 1
+For x = Zero To 1 Step 1
     NOP
 End  # keep untyped
 

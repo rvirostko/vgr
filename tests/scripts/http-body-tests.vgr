@@ -181,7 +181,7 @@ Call CheckJsonResponse(n, expected, type) Giving n
 // String body with application/octet-stream
 // -------------------------------------------------------------------------
 Set expected To ""
-For c = 0 To 255: Set expected += Chr(c); Next
+For c = Zero To 255: Set expected += Chr(c); Next
 Assert expected.Length() == 256
 Set type To http.type.binary
 Http Post target_url Body Is expected Header "{}: {}".Format(http.header.content_type, type)

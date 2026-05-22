@@ -65,13 +65,13 @@ Define Function solve_quadratic(a, b, c):
         # Linear case: bx + c = 0
         Set eqn To "{}x {} {} = 0".Format(
                 b == 1 ? "" : b,
-                c < 0 ? '-' : '+',  c.Abs())
+                c Is Negative ? '-' : '+',  c.Abs())
         Set roots To [c.Negate() / b]
     Else
         Set eqn To "{}x² {} {}x {} {} = 0".Format(
                 a == 1 ? "" : a,
-                b < 0 ? '-' : '+', b.Abs(),
-                c < 0 ? '-' : '+', c.Abs())
+                b Is Negative ? '-' : '+', b.Abs(),
+                c Is Negative ? '-' : '+', c.Abs())
         Set sqrt_disc To (b² - 4.Mul(a, c))·⁵
         Set b To b.Negate()
         Set roots To [b + sqrt_disc, b - sqrt_disc].Div(2 * a)

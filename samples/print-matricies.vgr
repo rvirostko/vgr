@@ -41,7 +41,7 @@ End-Function
 
 Define Function print_matricies(operations, matrix_min, matrix_max):
     Assert operations.IsDictionary()
-    Assert operations.Length() > 0 : "No operations defined"
+    Assert operations.Length() Is Positive : "No operations defined"
     Set matrix_min To matrix_min.ToInteger().DefaultTo(0).Clamp(0, 99)
     Set matrix_max To matrix_max.ToInteger().DefaultTo(9).Clamp(matrix_min, 99)
     For-Each item in operations

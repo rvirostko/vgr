@@ -95,7 +95,7 @@ Define Function render_7seg(n):
     Return rc
 End-Function
 
-For i = 0 To 99999
+For i = Zero To 99999
     Set rows To None
     # Join the lines from the digits into single lines
     For-Each digit In @encode_7seg(i)
@@ -103,7 +103,7 @@ For i = 0 To 99999
         If $loop.first
             Set rows To enc
         Else
-            For i = 0 To Length(enc) - 1
+            For i = Zero To Length(enc) - 1
                 Replace i In rows With rows.Item(i) + "  " + enc.Item(i)
             Next
         End-If

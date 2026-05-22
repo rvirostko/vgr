@@ -28,12 +28,12 @@ Set loops To args.Item(1).DefaultTo(32).Max(1).Min(128)
 
 # Clear the screen and start!
 Term BG "Gray15", FG "Green3", Clear, CursorHide
-For scene = 0 To loops
+For scene = Zero To loops
     # We recalc line on every scene in case for when the window is resized
     Term GetTermSize
     Assert term.size Is Not None: "Can't determine screen size"
     Set line To ((term.size.rows - sse.Length()) / 3).ToInteger()
-    If scene > 0
+    If scene Is Positive
         # Flip the art
         Set sse To sse.ReverseStr().TranslateStr("/\\'`", "\\/`'")
         # Increase speed, but limit it
@@ -45,7 +45,7 @@ For scene = 0 To loops
     If scene.Mod(2)
         # Right-to-Left movement
         For frame = 1 To (sse.FirstItem().Length() + term.size.cols)
-            For j = 0 To sse.Length() - 1
+            For j = Zero To sse.Length() - 1
                 Set l to (2 * line) + j
                 If frame <= sse_max
                     Term Pos l,(term.size.cols - frame), Print sse.Item(j).LeftStr(frame)
@@ -58,7 +58,7 @@ For scene = 0 To loops
     Else
         # Left-to-Right movement
         For frame = 1 To (sse.FirstItem().Length() + term.size.cols)
-            For j = 0 To sse.Length() - 1
+            For j = Zero To sse.Length() - 1
                 Set l to line + j
                 If frame <= sse_max
                     Term Pos l,1, Print sse.Item(j).RightStr(frame)

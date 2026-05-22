@@ -73,14 +73,14 @@ Repeat iter Times
     Term Reset, Clear, DHPrint "Numbered Colors"
     Term Pos 3,1
     Term BG, FG "bright white", Print "Standard "
-    For color = 0 To 15
+    For color = Zero To 15
         Term BG color, Print color.RightJustify(4).LeftJustify(5)
         If color == 7
             Term FG, BG, Print "\n Intense ", FG "black"
         End-If
     Next
     Term BG, FG "bright white", Print "\n\n   Grays "
-    For gray = 0 To 23
+    For gray = Zero To 23
         Set color To 232 + gray
         Term BG color, Print color.RightJustify(4).LeftJustify(5)
         If !((gray + 1) % 12)
@@ -91,15 +91,15 @@ Repeat iter Times
     Set start_line To 9
     Set line To start_line
     Set col To 10
-    For green = 0 To (5 * 6) Step 6
+    For green = Zero To (5 * 6) Step 6
         If green == 18
             Set line To start_line
             Add 35 To col
             Term FG "black"
         End-If
-        For red = 0 To (5 * 36) Step 36
+        For red = Zero To (5 * 36) Step 36
             Term Pos line, col
-            For blue = 0 To 5 Step 1
+            For blue = Zero To 5 Step 1
                 Set color To 16 + red + green + blue
                 Term BG color, Print color.RightJustify(4).LeftJustify(5)
             Next
@@ -114,7 +114,7 @@ Repeat iter Times
     #-------------------------------------------------------------------------
     Term Reset, Clear, DHPrint "Named Colors"
     Term Pos 3,1
-    For i = 0 To named_colors.Length() - 1
+    For i = Zero To named_colors.Length() - 1
         Set color_name To named_colors.Item(i)
         Term BG color_name, Print " ", Print color_name.ShortenStr(max_len).LeftJustify(max_len), Print " "
         If !((i + 1) % 4)

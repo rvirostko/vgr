@@ -48,9 +48,9 @@ Print _this.is-several.layers_._deep_
 Steps in the variable path can contain ASCII alphanumeric characters, and the dash or underscore characters. They can start with an underscore, but not a dash:
 
 ```vgr
-Set _valid To 0
-Set -not-valid To 0
-Set -not-valid To 0
+Set _valid To Zero
+Set -not-valid To Zero
+Set -not-valid To Zero
     ^
 Unexpected input at line 1, column 5.
 Expected NAME.
