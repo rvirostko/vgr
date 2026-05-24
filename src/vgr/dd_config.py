@@ -3,7 +3,6 @@
 Utility routines for working with the global Data Dictionary
 """
 
-from datetime import datetime
 import getpass
 import math
 import os
@@ -16,7 +15,22 @@ import sys
 import uuid
 
 from . import __version__, __version_date__
-from .builtins import time_now
+from .builtins import (
+    get_day_name,
+    get_day_of_month,
+    get_day_of_year,
+    get_dow,
+    get_hour,
+    get_minute,
+    get_month,
+    get_month_name,
+    get_second,
+    get_week_of_year,
+    get_year,
+    get_datetime,
+    timezone,
+    utc_offset,
+)
 from .data_dict import DataDictionary, DynamicValue, MAX_FRAMES
 from .exec_context import ExecContext
 from .redir import _REDIRECTOR
@@ -48,54 +62,54 @@ _COMPACT = "compact"
 _FORMAT = "format"
 _TODAY = "today"
 _TIME_ENTRIES = {
-    ("dst",):                       DynamicValue(lambda: bool(datetime.now().astimezone().dst())),
-    ("now",):                       DynamicValue(time_now), # Unix Epoch time
+    ("now",):                       DynamicValue(get_datetime), # Unix Epoch time
     ("sec_per_day",):               60 * 60 * 24,
     ("sec_per_hr",):                60 * 60,
-    ("tz_name", ):                  DynamicValue(lambda: datetime.now().astimezone().tzname()),
-    ("utc_offset",):                DynamicValue(lambda: int(datetime.now().astimezone().utcoffset().total_seconds())),
+    ("tz_name", ):                  DynamicValue(timezone),
+    ("utc_offset",):                DynamicValue(utc_offset),
     # "today" is a composite object
-    (_TODAY, "day"):                DynamicValue(lambda: datetime.now().day),                 # 21
-    (_TODAY, "dow_abbr"):           DynamicValue(lambda: datetime.now().strftime("%a")),      # Sat
-    (_TODAY, "dow"):                DynamicValue(lambda: datetime.now().strftime("%A")),      # Saturday
-    (_TODAY, "hour"):               DynamicValue(lambda: datetime.now().hour),                # 14
-    (_TODAY, "minute"):             DynamicValue(lambda: datetime.now().minute),              # 23
-    (_TODAY, "month"):              DynamicValue(lambda: datetime.now().month),               # 6
-    (_TODAY, "second"):             DynamicValue(lambda: datetime.now().second),              # 45
-    (_TODAY, "weekday"):            DynamicValue(lambda: datetime.now().weekday()),           # 5 (Monday=0)
-    (_TODAY, "yday"):               DynamicValue(lambda: datetime.now().timetuple().tm_yday), # 172
-    (_TODAY, "year"):               DynamicValue(lambda: datetime.now().year),                # 2025
-    # Formats for timestamps et al
-    (_FORMAT, "dmy"):               "%d-%m-%Y",                  # 21-06-2025
-    (_FORMAT, "dt"):                "%Y-%m-%d %H:%M:%S",         # 2025-06-21 14:23:45
-    (_FORMAT, "hm"):                "%H:%M",                     # 14:23
-    (_FORMAT, "hms"):               "%H:%M:%S",                  # 14:23:45
-    (_FORMAT, "mdy"):               "%m/%d/%Y",                  # 06/21/2025
-    (_FORMAT, "ymd"):               "%Y-%m-%d",                  # 2025-06-21
+    (_TODAY, "day_name"):           DynamicValue(get_day_name),     # Saturday
+    (_TODAY, "day_of_week"):        DynamicValue(get_dow),          # 5 (Sunday=0)
+    (_TODAY, "day_of_year"):        DynamicValue(get_day_of_year),  # 172
+    (_TODAY, "day"):                DynamicValue(get_day_of_month), # 21
+    (_TODAY, "hour"):               DynamicValue(get_hour),         # 14
+    (_TODAY, "minute"):             DynamicValue(get_minute),       # 23
+    (_TODAY, "month"):              DynamicValue(get_month),        # 6
+    (_TODAY, "month_name"):         DynamicValue(get_month_name),   # June
+    (_TODAY, "second"):             DynamicValue(get_second),       # 45
+    (_TODAY, "week_of_year"):       DynamicValue(get_week_of_year), # 21
+    (_TODAY, "year"):               DynamicValue(get_year),         # 2025
+    # Formats for datetime value
+    (_FORMAT, "dmy"):               r"%d-%m-%Y",                    # 21-06-2025
+    (_FORMAT, "dt"):                r"%Y-%m-%d %H:%M:%S",           # 2025-06-21 14:23:45
+    (_FORMAT, "hm"):                r"%H:%M",                       # 14:23
+    (_FORMAT, "hms"):               r"%H:%M:%S",                    # 14:23:45
+    (_FORMAT, "mdy"):               r"%m/%d/%Y",                    # 06/21/2025
+    (_FORMAT, "ymd"):               r"%Y-%m-%d",                    # 2025-06-21
     # Compact variants
-    (_FORMAT, _COMPACT, "dmy"):     "%d%m%Y",                    # 21062025
-    (_FORMAT, _COMPACT, "dt"):      "%Y%m%d_%H%M%S",             # 20250621_142345
-    (_FORMAT, _COMPACT, "hm"):      "%H%M",                      # 1423
-    (_FORMAT, _COMPACT, "hms"):     "%H%M%S",                    # 142345
-    (_FORMAT, _COMPACT, "mdy"):     "%m%d%Y",                    # 06212025
-    (_FORMAT, _COMPACT, "ymd"):     "%Y%m%d",                    # 20250621
+    (_FORMAT, _COMPACT, "dmy"):     r"%d%m%Y",                      # 21062025
+    (_FORMAT, _COMPACT, "dt"):      r"%Y%m%d_%H%M%S",               # 20250621_142345
+    (_FORMAT, _COMPACT, "hm"):      r"%H%M",                        # 1423
+    (_FORMAT, _COMPACT, "hms"):     r"%H%M%S",                      # 142345
+    (_FORMAT, _COMPACT, "mdy"):     r"%m%d%Y",                      # 06212025
+    (_FORMAT, _COMPACT, "ymd"):     r"%Y%m%d",                      # 20250621
     # Standards
-    (_FORMAT, "iso8601_ms_offset"): "%Y-%m-%dT%H:%M:%S.%f%z",    # 2025-06-21T14:23:45.123456+0000
-    (_FORMAT, "iso8601_offset"):    "%Y-%m-%dT%H:%M:%S%z",       # 2025-06-21T14:23:45+0000
-    (_FORMAT, "iso8601_z"):         "%Y-%m-%dT%H:%M:%SZ",        # 2025-06-21T14:23:45Z
-    (_FORMAT, "iso8601"):           "%Y-%m-%dT%H:%M:%S",         # 2025-06-21T14:23:45
-    (_FORMAT, "rfc1123"):           "%a, %d %b %Y %H:%M:%S GMT", # Sat, 21 Jun 2025 14:23:45 GMT
-    (_FORMAT, "rfc2822"):           "%a, %d %b %Y %H:%M:%S %z",  # Sat, 21 Jun 2025 14:23:45 +0000
+    (_FORMAT, "iso8601_ms_offset"): r"%Y-%m-%dT%H:%M:%S.%f%z",      # 2025-06-21T14:23:45.123456+0000
+    (_FORMAT, "iso8601_offset"):    r"%Y-%m-%dT%H:%M:%S%z",         # 2025-06-21T14:23:45+0000
+    (_FORMAT, "iso8601_z"):         r"%Y-%m-%dT%H:%M:%SZ",          # 2025-06-21T14:23:45Z
+    (_FORMAT, "iso8601"):           r"%Y-%m-%dT%H:%M:%S",           # 2025-06-21T14:23:45
+    (_FORMAT, "rfc1123"):           r"%a, %d %b %Y %H:%M:%S GMT",   # Sat, 21 Jun 2025 14:23:45 GMT
+    (_FORMAT, "rfc2822"):           r"%a, %d %b %Y %H:%M:%S %z",    # Sat, 21 Jun 2025 14:23:45 +0000
     # Other standards
-    (_FORMAT, "eu_full"):           "%d %B %Y",                  # 21 June 2025
-    (_FORMAT, "log4j"):             "%Y-%m-%d %H:%M:%S,%f",      # 2025-06-21 14:23:45,123456
-    (_FORMAT, "ordinal_date"):      "%Y-%j",                     # 2025-172
-    (_FORMAT, "short_md"):          "%b %d",                     # Jun 21
-    (_FORMAT, "sql_ms"):            "%Y-%m-%d %H:%M:%S.%f",      # 2025-06-21 14:23:45.123456
-    (_FORMAT, "sql"):               "%Y-%m-%d %H:%M:%S",         # 2025-06-21 14:23:45
-    (_FORMAT, "time_12h"):          "%I:%M %p",                  # 02:23 PM
-    (_FORMAT, "us_full"):           "%B %d, %Y",                 # June 21, 2025
-    (_FORMAT, "week_date"):         "%G-W%V-%u",                 # 2025-W25-6
+    (_FORMAT, "eu_full"):           r"%d %B %Y",                    # 21 June 2025
+    (_FORMAT, "log4j"):             r"%Y-%m-%d %H:%M:%S,%f",        # 2025-06-21 14:23:45,123456
+    (_FORMAT, "ordinal_date"):      r"%Y-%j",                       # 2025-172
+    (_FORMAT, "short_md"):          r"%b %d",                       # Jun 21
+    (_FORMAT, "sql_ms"):            r"%Y-%m-%d %H:%M:%S.%f",        # 2025-06-21 14:23:45.123456
+    (_FORMAT, "sql"):               r"%Y-%m-%d %H:%M:%S",           # 2025-06-21 14:23:45
+    (_FORMAT, "time_12h"):          r"%I:%M %p",                    # 02:23 PM
+    (_FORMAT, "us_full"):           r"%B %d, %Y",                   # June 21, 2025
+    (_FORMAT, "week_date"):         r"%G-W%V-%u",                   # 2025-W25-6
 }
 
 _MATH_ENTRIES = {

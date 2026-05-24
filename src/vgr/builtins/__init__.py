@@ -261,8 +261,21 @@ from .strings import (
 from .sub import poly_sub
 from .time_funcs import (
     format_duration,
-    format_timestamp,
-    time_now,
+    format_datetime,
+    get_day_name,
+    get_day_of_month,
+    get_day_of_year,
+    get_dow,
+    get_hour,
+    get_minute,
+    get_month,
+    get_month_name,
+    get_second,
+    get_week_of_year,
+    get_year,
+    get_datetime,
+    timezone,
+    utc_offset,
 )
 from .type import poly_type
 from .types import (
