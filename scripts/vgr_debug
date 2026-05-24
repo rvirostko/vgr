@@ -1,0 +1,16 @@
+#!/bin/bash
+
+if [[ $# -eq 0 ]]; then
+    echo "Usage: $0 [args...]"
+    exit 1
+fi
+
+FIFO="./vgr_debug.fifo"
+
+# Create the FIFO if it doesn't exist
+if [[ ! -e "$FIFO" ]]; then
+    mkfifo "$FIFO" || { echo "Failed to create FIFO at $FIFO"; exit 1; }
+fi
+
+printf "Use tail -f $FIFO to monitor stderr\n"
+python3 -m vgr 2>"$FIFO" "$@"
