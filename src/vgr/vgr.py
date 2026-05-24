@@ -117,10 +117,8 @@ class VGRCmdLine(CmdLine):
         }
 
     def run(self):
-        if self._ctx.verbose:
-            md_println(f"PWD={os.getcwd()}")
-        else:
-            md_println(f"\n`VGR {__version__} ({__version_date__})`")
+        if self._ctx.verbose: self._ctx.print_verbose("CWD =", os.getcwd())
+        md_println(f"\n`VGR {__version__} ({__version_date__})`")
         md_println('_Type **help** for more information_')
         return super().run()
 
