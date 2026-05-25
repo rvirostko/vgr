@@ -1,0 +1,23 @@
+#!/bin/bash
+
+FIFO="./vgr_debug.fifo"
+
+fifo_created=0
+# Create the FIFO if it doesn't exist
+if [[ ! -e "$FIFO" ]]; then
+    mkfifo "$FIFO" || { echo "Failed to create FIFO at $FIFO"; exit 1; }
+    fifo_created=1
+fi
+FIFO=$(readlink -f n $FIFO)
+
+cleanup() {
+    printf "\033]0;\007"
+    printf "\033[?25h"
+    if [[ $fifo_created == 1 ]]; then
+        rm -f "$FIFO"
+    fi
+}
+
+trap cleanup EXIT INT TERM
+
+printf "\033]0;stderr -> ${FIFO}\007" && python3 -m vgr 2>"$FIFO" "$@"
