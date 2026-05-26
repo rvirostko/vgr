@@ -147,9 +147,6 @@ class VgrStatementAssert(VgrExitingException):
 
 class BlockType(Enum):
     ALL_BLOCKS = auto() # Can break/continue any control context
-    FOR_LOOP = auto()
-    WHILE_LOOP = auto()
-    # TODO UNTIL_LOOP?
 
 class VgrFlowControlException(VgrException):
     def __init__(self, statement: Tree, msg: str, block_type: BlockType=BlockType.ALL_BLOCKS):

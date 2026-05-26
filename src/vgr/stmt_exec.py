@@ -335,20 +335,12 @@ def do_source(ctx: ExecContext, path: Path, included: bool=False) -> None:
     finally:
         ctx.set_var(tval, *INCLUDED_PATH)
 
-@bound_ops("Break", "Break-For", "Break-While")
+@bound_ops("Break")
 def execute_break(_: ExecContext, statement: Tree) -> None:
     """
 **Exits the current block of statements**
 
 * Break
-* Break-For
-* Break-While
-
-Used with `While`, `Until`, `For-Each` and other looping statements
-
-Typed variants only break their matching loop type, serving as
-a logic check for large or complicated loops. Other than that,
-they are not functionally different.
 
 ```vgr
 Set i To Zero
@@ -365,24 +357,12 @@ Also see `Continue`
 """
     raise VgrStatementBreak(statement, BlockType.ALL_BLOCKS)
 
-def execute_break_for(_: ExecContext, statement: Tree) -> None:
-    raise VgrStatementBreak(statement, BlockType.FOR_LOOP)
-
-def execute_break_while(_: ExecContext, statement: Tree) -> None:
-    raise VgrStatementBreak(statement, BlockType.WHILE_LOOP)
-
-@bound_ops("Continue", "Continue-For", "Coninue-While")
+@bound_ops("Continue")
 def execute_continue(_: ExecContext, statement: Tree) -> None:
     """
 **Cause the current loop to start again**
 
 * Continue
-* Continue-For
-* Continue-While
-
-Typed variants only continue their matching loop type, serving as
-a logic check for large or complicated loops. Other than that,
-they are not functionally different.
 
 ```vgr
 Set evens To []
@@ -401,12 +381,6 @@ Print "Even numbers up to 20: {}\\n", evens
 Also see `Break`
 """
     raise VgrStatementContinue(statement, BlockType.ALL_BLOCKS)
-
-def execute_continue_for(_: ExecContext, statement: Tree) -> None:
-    raise VgrStatementContinue(statement, BlockType.FOR_LOOP)
-
-def execute_continue_while(_: ExecContext, statement: Tree) -> None:
-    raise VgrStatementContinue(statement, BlockType.WHILE_LOOP)
 
 @bound_ops("Pass", "NOP")
 def execute_pass(_: ExecContext, __: Tree) -> None:
@@ -697,7 +671,7 @@ End-While
 
 Also see `Until` in addition to `Break` and `Continue`
 """
-    exec_loop(ctx, statement, True, BlockType.WHILE_LOOP)
+    exec_loop(ctx, statement, True)
 
 @control_statement
 @bound_ops("Until")
@@ -847,10 +821,10 @@ Also see `Break` and `Continue`
                 try:
                     ctx.dispatch_statements(statement.children[2:])
                 except VgrStatementBreak as e:
-                    e.validate_for_block(BlockType.FOR_LOOP)
+                    e.validate_for_block(BlockType.ALL_BLOCKS)
                     return
                 except VgrStatementContinue as e:
-                    e.validate_for_block(BlockType.FOR_LOOP)
+                    e.validate_for_block(BlockType.ALL_BLOCKS)
         finally:
             ctx.dd.pop_frame()
 
@@ -924,12 +898,10 @@ Also see `Perform Varying` and `For-Each`.
             try:
                 ctx.dispatch_statements(statement.children[cindex:])
             except VgrStatementBreak as e:
-                # Can be either a Break or Exit For
-                e.validate_for_block(BlockType.FOR_LOOP)
+                e.validate_for_block(BlockType.ALL_BLOCKS)
                 return
             except VgrStatementContinue as e:
-                # Can be either a Continue or Continue For
-                e.validate_for_block(BlockType.FOR_LOOP)
+                e.validate_for_block(BlockType.ALL_BLOCKS)
             value += inc
             i += 1
     finally:
@@ -1163,8 +1135,6 @@ STATEMENT_HANDLERS = {
     'assert':            execute_assert,
     'assign':            execute_assign,
     'block':             execute_block,
-    'break_for':         execute_break_for,
-    'break_while':       execute_break_while,
     'break':             execute_break,
     'call_giving':       execute_call_giving,
     'call':              execute_call,
@@ -1172,8 +1142,6 @@ STATEMENT_HANDLERS = {
     'choose':            execute_choose,
     'close':             execute_close,
     'compile_arrow':     execute_compile_arrow,
-    'continue_for':      execute_continue_for,
-    'continue_while':    execute_continue_while,
     'continue':          execute_continue,
     'debug':             execute_debug,
     'debug_on':          lambda ctx, tree: execute_debug(ctx, tree, True),

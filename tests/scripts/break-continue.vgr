@@ -17,31 +17,31 @@ Define Function end_test():
     Assert broke : "Test never hit Break"
 End-Function
 
-Call start_test("For Next (BASIC, block=For)")
+Call start_test("For Next")
 For x = 1 To 3
     If $loop.first
         Set continued To True
-        Continue-For
-        Assert False: "Continue-For failed"
+        Continue
+        Assert False: "Continue failed"
     Else
         Set broke To True
-        Break-For
-        Assert False: "Break-For failed"
+        Break
+        Assert False: "Break failed"
     End-If
     Assert False: "Reached unexpected location"
 Next
 Call end_test()
 
-Call start_test("For Each (Basic, block=for)")
+Call start_test("For Each")
 For Each x In [1, 2, 3]
     If $loop.first
         Set continued To True
-        Continue-For
-        Assert False: "Continue-For failed"
+        Continue
+        Assert False: "Continue failed"
     Else
         Set broke To True
-        Break-For
-        Assert False: "Break For failed"
+        Break
+        Assert False: "Break failed"
     End-If
     Assert False: "Reached unexpected location"
 Next
@@ -107,22 +107,22 @@ While True
 End-While
 Call end_test()
 
-Call start_test("While (VGR, block=While)")
+Call start_test("While")
 While True
     If $loop.first
         Set continued To True
-        Continue-While
-        Assert False: "Continue While failed"
+        Continue
+        Assert False: "Continue failed"
     Else
         Set broke To True
-        Break-While
-        Assert False: "Break-While failed"
+        Break
+        Assert False: "Break failed"
     End-If
     Assert False: "Reached unexpected location"
 End-While
 Call end_test()
 
-Call start_test("For-Each (VGR)")
+Call start_test("For-Each")
 For-Each x In [1, 2, 3] : # keep single keyword form
     If $loop.first
         Set continued To True
@@ -135,19 +135,4 @@ For-Each x In [1, 2, 3] : # keep single keyword form
     End-If
     Assert False: "Reached unexpected location"
 End # keep untyped
-Call end_test()
-
-Call start_test("For-Each (VGR, block=for)")
-For-Each x In [1, 2, 3]
-    If $loop.first
-        Set continued To True
-        Continue-For
-        Assert False: "Continue-For failed"
-    Else
-        Set broke To True
-        Break-For
-        Assert False: "Break-For failed"
-    End-If
-    Assert False: "Reached unexpected location"
-End-For
 Call end_test()
