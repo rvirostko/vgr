@@ -26,7 +26,7 @@ Else
 End-If
 
 Set data_file To vgr.source.FirstItem().DirectoryName() + "/people.json"
-Assert data_file.FileExists() :
+Assert data_file.PathExists() :
     "Please run from the same directory where {} is stored", data_file
 
 Printf "Loading data..."

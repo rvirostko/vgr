@@ -218,7 +218,7 @@ For CSV
 Into File output_file Encoding Is "ASCII" /* encoding is optional */
 Load data_in From File output_file Type Is Text /* but we could read as CSV if we wanted */
 Printf "{}", data_in
-Assert RemoveFile(output_file)
+Assert RemoveFile(output_file).FirstItem()
 Unset data_in
 
 Print """
