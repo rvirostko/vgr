@@ -17,18 +17,19 @@ import uuid
 from . import __version__, __version_date__
 from .builtins import (
     get_cwd,
+    get_datetime,
     get_day_name,
     get_day_of_month,
     get_day_of_year,
     get_dow,
     get_hour,
     get_minute,
-    get_month,
     get_month_name,
+    get_month,
     get_second,
     get_week_of_year,
     get_year,
-    get_datetime,
+    poly_rnd,
     timezone,
     utc_offset,
 )
@@ -117,8 +118,8 @@ _MATH_ENTRIES = {
     ("neg_inf",):     -math.inf,
     ("float", "max"): sys.float_info.max,
     ("float", "min"): sys.float_info.min,
-    ("random",):      DynamicValue(random.random),
-    ("random100",):   DynamicValue(lambda: random.randrange(1, 100))
+    ("random",):      DynamicValue(poly_rnd),
+    ("random100",):   DynamicValue(lambda: poly_rnd(1, 100))
 }
 
 def _get_machine_uuid() -> str:

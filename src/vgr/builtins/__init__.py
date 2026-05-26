@@ -191,6 +191,10 @@ from .reg_ex import (
     poly_is_pattern,
     poly_regex_replace,
 )
+from .rnd import (
+    poly_rnd,
+    poly_random_choice,
+)
 from .shift import poly_shl, poly_shr
 from .slice import poly_slice
 from .stats import (
