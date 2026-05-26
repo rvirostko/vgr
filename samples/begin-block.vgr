@@ -5,7 +5,7 @@ While counter < 3
         Exhibit counter temp
     End
     # temp is scoped to Begin/End
-    Assert temp Is Null
+    Assert temp Is Not Defined
     Add 1 to counter
 End-While
 Print "Final counter:", counter
