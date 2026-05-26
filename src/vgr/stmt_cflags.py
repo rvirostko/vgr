@@ -17,7 +17,7 @@ from .tags import control_statement
 
 @control_statement # not really, but turns off echoing...
 @bound_ops("Echo")
-def execute_echo(ctx: ExecContext, statement: Tree) -> None:
+def execute_echo(ctx: ExecContext, statement: Tree, value: bool=None) -> None:
     """
 **Turn echo mode on or off**
 
@@ -46,11 +46,11 @@ vgr.echo = True
 
 Also see `Debug` and `Verbose`
 """
-    ctx.echo = _flag_value(ctx, bind_operations(statement))
+    ctx.echo = _flag_value(ctx, statement) if value is None else value
     ctx.print_verbose('Echo =', ctx.echo)
 
 @bound_ops("Debug")
-def execute_debug(ctx: ExecContext, statement: Tree) -> None:
+def execute_debug(ctx: ExecContext, statement: Tree, value: bool=None) -> None:
     """
 **Turn debug mode on or off**
 
@@ -76,11 +76,11 @@ debug !vgr.debug # read-only variable
 
 Also see `Echo` and `Verbose`
 """
-    ctx.debug = _flag_value(ctx, statement)
+    ctx.debug = _flag_value(ctx, statement) if value is None else value
     ctx.print_verbose('Debug =', ctx.debug)
 
 @bound_ops("Verbose")
-def execute_verbose(ctx: ExecContext, statement: Tree) -> None:
+def execute_verbose(ctx: ExecContext, statement: Tree, value: bool=None) -> None:
     """
 **Turn verbose mode on or off**
 
@@ -101,7 +101,7 @@ Set a To True
 Also see `Echo` and `Debug`
 """
     o_verbose = ctx.verbose
-    ctx.verbose = _flag_value(ctx, statement)
+    ctx.verbose = _flag_value(ctx, statement) if value is None else value
     if ctx.verbose or o_verbose: print_stderr('Verbose =', ctx.verbose)
 
 def _flag_value(ctx: ExecContext, statement: Tree) -> bool:

@@ -235,11 +235,15 @@ op_is_in: _is_in_operators
 op_not_is_in: _not_is_in_operators
 
 // simple boolean on/off, true/false
-// these are "proper statements" as they control the behavior of other statements
-debug: "Debug"i expr?
-echo: "Echo"i expr?
-
-verbose: "Verbose"i expr?
+debug: "Debug"i "On"i -> debug_on
+    |  "Debug"i "Off"i -> debug_off
+    |  "Debug"i expr?
+echo: "Echo"i "On"i -> echo_on
+    | "Echo"i "Off"i -> echo_off
+    | "Echo"i expr?
+verbose: "Verbose"i "On"i -> verbose_on
+    | "Verbose"i "Off"i -> verbose_off
+    | "Verbose"i expr?
 
 pass: ("Pass"i | "Nop"i)
 
