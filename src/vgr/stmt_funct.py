@@ -22,9 +22,22 @@ def execute_def_function(ctx: ExecContext, statement: Tree) -> None:
 * [Define] Function *variable*(_param_&hellip;) [:]\\
   &emsp;&emsp;*statement*&hellip;\\
   [End-Function | End]
+* [Define] Function *variable* (*arg*&hellip;) [-> | →] *expression*
+* [Define] Function *variable* (*arg*&hellip;) [-> | →] Compile(*expression*)
 
 ```vgr
-**TODO**
+Define Function lcm(a, b):
+    Declare i, limit, g, s As Local
+    Set g To a.Max(b)  // Larger value
+    Set s To a.Min(b)  // Smaller value
+    Set i To g
+    Set limit To a * b
+    While i <= limit
+        If (i % s) == 0 Return i End-If
+        Set i += g
+    End-While
+    Return limit
+End-Function
 ```
 
 ***Arrow Functions***
@@ -35,29 +48,31 @@ are a single name, not a dotted path.
 The arrow operator separates the parameter list from the body.
 The body is either an expression or a dynamic expression using _Compile_(&hellip;).
 
-* [Define] Function *variable* (*arg*&hellip;) [-> | →] *expression*
-* [Define] Function *variable* (*arg*&hellip;) [-> | →] Compile(*expression*)
-
 ```vgr
 # Simple expression
 Function fn(a, b) -> a * b
 Exhibit fn
 fn = (a,b)→a * b
 Print fn
-a * b
+ → "a * b"
 
 # Zero arg function
 Function now() -> time.now
 Function also_now -> time.now
 
+# Function invocation
+Call fn Using 5, 2 Giving c
+Print c
+ → 10
+
 # In-line invocation
 Print @fn(5, 3)
-15
+ → 15
 
 # All functions are variables
 Set c To fn
 Print 5.@c(3), @fn(5, 3)
-15 15
+ → 15 15
 ```
 
 ```vgr
@@ -67,7 +82,8 @@ Assert op in ["+", "-", "*", "/"]
 Function dyn(x, y) -> Compile("(x {} y) + 10".Format(op))
 ```
 
-Also see `Call` for details on invoking functions
+Also see `Call` for details on invoking functions.
+See `Return` for returning values and `Declare` for variable scoping.
 """
     # if count <= 2, then we don't have a list of params, just a name and statements
     count = len(statement.children)
