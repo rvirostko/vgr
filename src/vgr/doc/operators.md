@@ -103,5 +103,3 @@ Print x * y + +2, x * y - -2
 * `Is In` and `Is Not In` : is the left-side value present in the right-side value or not
 * `Contains` and `Does Not Contain` : is the right-side value present in the left-side or not; effectively the reverse of In
 * `Match` and `Does Not Match` : TBD. You can also use `~` and `!~` respectively
-
-There are also `IMatch` versions that performs comparisons indepent of case

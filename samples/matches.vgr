@@ -46,7 +46,8 @@ Echo On
 # Pattern compilation is optional
 Set a_or_b To CompilePattern("^(a|b)+$")
 Set all_a To CompilePattern("^a+$")
-Set all_b To CompilePattern("^b+$")
+# Or can be a regular expression literal
+Set all_b To r/^b+$/
 
 Assert "aaa" Matches a_or_b
 Assert "bb" Matches a_or_b
@@ -64,11 +65,11 @@ Assert "bbb".Matches([all_a, all_b])
 Assert "abba".Matches(all_a, all_b) Is False
 
 # Case insensitive matching
-Assert ("A" ~ a_or_b) Is False # case sensitive
-Assert "A" ~* a_or_b # case insensitive
-Assert "C" !~ a_or_b # case sensitive
-Assert "C" !~* a_or_b # case insensitive
-Assert ("B" !~* a_or_b) Is False # case insensitive
+Assert ("A" ~ a_or_b) Is False        # case sensitive
+Assert "A" ~ r/^(a|b)+$/i             # case insensitive
+Assert "C" !~ a_or_b                  # case sensitive
+Assert "C" !~ r/^(a|b)+$/i            # case insensitive
+Assert ("B" !~ r/^(a|b)+$/i) Is False # case insensitive
 
 # If the pattern and string are reversed
 # the pattern is treated as a string

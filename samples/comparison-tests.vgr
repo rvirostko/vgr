@@ -100,11 +100,11 @@ Assert "A" Does Not Match "a"
 Assert "Abc" Matches All ["^[Aa]", "[Cc]$"]
 
 // Matching (case insenstive)
-Assert "A" ~* "a"
-Assert "A" IMatches "a"
-Assert ("A" !~* "a") Is False
-Assert ("A" Not ~* "a") Is False
-Assert ("A" Does Not IMatch "a") Is False
+Assert "A" ~ r/a/i
+Assert "A" Matches r/a/i
+Assert ("A" !~ r/a/i) Is False
+Assert ("A" Not ~ r/a/i) Is False
+Assert ("A" Does Not Match r/a/i) Is False
 
 // Contains
 Set animals To ["cat", "dog", "fish"]
@@ -204,11 +204,11 @@ For-Each animal In ["cat", "donkey"]
         When Not ~ "x$", "y$", "z$"           Print animal.Repr(), "doesn't end with 'x', 'y', or 'z'"
         When !~ "[A-Z]"                       Print animal.Repr(), "has no capital letters"
         When Matches All "^[cd]", "[aeiouy]$" Print animal.Repr(), "starts with 'c' or 'd' and ends with a vowel"
-        When IMatches "[AEIOU]"               Print animal.Repr(), "has a vowel in it"
-        When ~* "Key", "At"                   Print animal.Repr(), "has 'At' or 'Key' in it"
-        When Does Not IMatch "A", "B", "C"    Print animal.Repr(), "doesn't have 'a', 'b', or 'c' in it"
-        When Not ~* "Z"                       Print animal.Repr(), "doesn't have 'z' in it"
-        When !~* "X"                          Print animal.Repr(), "doesn't have 'x' in it"
+        When Matches r/[AEIOU]/               Print animal.Repr(), "has a vowel in it"
+        When ~ r/Key/i, r/At/i                Print animal.Repr(), "has 'At' or 'Key' in it"
+        When Does Not Match r/[ABC]/i         Print animal.Repr(), "doesn't have 'a', 'b', or 'c' in it"
+        When Not ~ r/Z/i                      Print animal.Repr(), "doesn't have 'z' in it"
+        When !~ r/X/i                         Print animal.Repr(), "doesn't have 'x' in it"
     End-Choose
     Print ""
 End-For

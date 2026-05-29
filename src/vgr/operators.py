@@ -20,7 +20,6 @@ from .builtins import (
     poly_floor,
     poly_ge,
     poly_gt,
-    poly_imatches,
     poly_in,
     poly_is_even,
     poly_is_negative,
@@ -33,7 +32,6 @@ from .builtins import (
     poly_mod,
     poly_mul,
     poly_ne,
-    poly_not_imatch,
     poly_not_in,
     poly_not_match,
     poly_pow,
@@ -62,7 +60,6 @@ _OP_FUNCS: list[Callable[..., Any]] = [
     poly_floor, # poly_floor_op
     poly_ge, # ge_op
     poly_gt, # gt_op
-    poly_imatches, # imatches_op
     poly_in, # in_op
     poly_is_even, # is_even_op
     poly_is_negative, # is_negative_op
@@ -75,7 +72,6 @@ _OP_FUNCS: list[Callable[..., Any]] = [
     poly_mod, # mod_op
     poly_mul, # mul_op
     poly_ne, # neq_op
-    poly_not_imatch, # not_imatches_op
     poly_not_in, # not_in_op
     poly_not_match, # not_matches_op
     poly_pow, # pow_op

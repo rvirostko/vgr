@@ -11,7 +11,6 @@ Assert !(p_ab === p2)
 Assert "AAB" Does Not Match p_ab
 Assert "AAB" Matches p2
 Assert "AAB" Matches "(?i)a+b"
-Assert "AAB" IMatches "a+b"
 Assert "AAB" Matches r/a+b/i
 
 Set m To "true".ExtractMatch(re.pattern.boolean)

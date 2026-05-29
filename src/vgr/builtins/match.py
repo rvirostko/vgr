@@ -70,33 +70,6 @@ Also see operators `Does Not Match` and `Matches All` as well as `CompilePattern
     x, *args = args
     return _do_match(x, _pop_single(args)) if args else False
 
-@bound_ops("IMatches", "~*")
-def poly_imatches(*args) -> bool:
-    """
-**Perform a case independent regular expression match**
-
-* *value* IMatches *pattern*
-* *value* IMatches [ _pattern&hellip; ]
-* *value* ~* *pattern*
-* *value* ~* [ *pattern*&hellip; ]
-* IMatches(*value*, *pattern*&hellip;)
-* *value*.IMatches(*pattern*&hellip;)
-
-Operates identically to `Matches` except matching is performed independent
-of case. This applies to characters in both the *value* and the *pattern*.
-
-```vgr
-"aaa" ~* "^(a|b)+$" → True
-"Aaa" ~* "^(a|b)+$" → True
-"aaa" ~* "^(A|b)+$" → True
-```
-
-Also see operators `~` and `!~*`
-"""
-    if not args: return False
-    x, *args = args
-    return _do_match(x, _pop_single(args), True) if args else False
-
 @bound_ops("Matches All")
 def poly_matches_all(*args) -> bool:
     """
@@ -121,7 +94,7 @@ Also see `Matches` and `!~`
 """
     if not args: return False
     x, *args = args
-    return _do_match(x, _pop_single(args), False, True) if args else False
+    return _do_match(x, _pop_single(args), True) if args else False
 
 @bound_ops("Does Not Match", "!~")
 def poly_not_match(*args) -> bool:
@@ -144,56 +117,24 @@ does *not* match any of the patterns.
 "abba" !~ ["^a+$", "^b+$"] → True
 ```
 
-Also see operators `~` and `!~*`
+Also see operator `~`
 """
     if not args: return False
     x, *args = args
     return not _do_match(x, _pop_single(args)) if args else False
 
-@bound_ops("Does Not IMatch", "!~*")
-def poly_not_imatch(*args) -> bool:
-    """
-**Perform a negated case independent regular expression match**
-
-* *value* Does Not IMatch *pattern*
-* *value* Does Not IMatch [*pattern*&hellip;]
-* *value* !~* *pattern*
-* *value* !~* [ *pattern*&hellip; ]
-* DoesNotIMatch(*value*, *pattern*&hellip;)
-* *value*.DoesNotIMatch(*pattern*&hellip;)
-
-Operates identically to `Matches` except that the match is performed independent
-of case and it request that *value* does _not_ match any of the patterns.
-
-```vgr
-"Aaa" !~* "^b+$" → True
-"aaa" !~* ["^A+$", "^B+$"] → False
-"Abba" !~* ["^a+$", "^b+$"] → True
-```
-
-Also see operators `~*` and `!~`
-"""
-    if not args: return False
-    x, *args = args
-    return not _do_match(x, _pop_single(args), True) if args else False
-
-def _do_match(x: Any, y: Any, ci: bool=False, do_all: bool=False) -> bool:
+def _do_match(x: Any, y: Any, do_all: bool=False) -> bool:
     if isinstance(y, list):
-        if do_all: return all(_do_match(x, y1, ci, do_all) for y1 in y)
-        return any(_do_match(x, y1, ci, do_all) for y1 in y)
+        if do_all: return all(_do_match(x, y1, do_all) for y1 in y)
+        return any(_do_match(x, y1, do_all) for y1 in y)
     if x is None: return y is None
     if isinstance(x, list):
-        return all(_do_match(x1, y, ci, do_all) for x1 in x)
+        return all(_do_match(x1, y, do_all) for x1 in x)
     if isinstance(x, (bool, int, float)) and isinstance(y, (bool, int, float)): return poly_eq(x, y)
     if y is None: return False
-    if isinstance(y, re.Pattern):
-        if ci and y.flags & re.IGNORECASE == 0:
-            # If case insensitive requested and the compiled pattern
-            # doesn't have it, recompile with the desired setting
-            y = re.compile(y.pattern, y.flags | re.IGNORECASE)
-    else:
+    if not isinstance(y, re.Pattern):
         try:
-            y = re.compile(str(y), re.IGNORECASE if ci else 0)
+            y = re.compile(str(y))
         except Exception as e:
             raise ValueError(f'Match Pattern error: {y!r}') from e
     return re.search(y, poly_str(x)) is not None

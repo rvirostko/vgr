@@ -35,7 +35,6 @@ from .builtins import (
     poly_floor,
     poly_ge,
     poly_gt,
-    poly_imatches,
     poly_in,
     poly_is_empty,
     poly_is_even,
@@ -51,7 +50,6 @@ from .builtins import (
     poly_ne,
     poly_not_contains,
     poly_not_empty,
-    poly_not_imatch,
     poly_not_in,
     poly_not_match,
     poly_pow,
@@ -567,11 +565,6 @@ class OperationBinder(Transformer):
     def eq_op(self, tree): return SimpleOperation(tree, poly_eq)
     def ge_op(self, tree): return SimpleOperation(tree, poly_ge)
     def gt_op(self, tree): return SimpleOperation(tree, poly_gt)
-    def imatches_op(self, tree):
-        child = tree.children[1]
-        if isinstance(child, Tree) and child.data == 'op_imatches':
-            del tree.children[1]
-        return SimpleOperation(tree, poly_imatches)
     def in_op(self, tree): return SimpleOperation(tree, poly_in)
     def le_op(self, tree): return SimpleOperation(tree, poly_le)
     def lt_op(self, tree): return SimpleOperation(tree, poly_lt)
@@ -586,11 +579,6 @@ class OperationBinder(Transformer):
             del tree.children[1]
         return SimpleOperation(tree, poly_matches_all)
     def neq_op(self, tree): return SimpleOperation(tree, poly_ne)
-    def not_imatches_op(self, tree):
-        child = tree.children[1]
-        if isinstance(child, Tree) and child.data == 'op_not_imatches':
-            del tree.children[1]
-        return SimpleOperation(tree, poly_not_imatch)
     def not_in_op(self, tree): return SimpleOperation(tree, poly_not_in)
     def not_matches_op(self, tree):
         child = tree.children[1]

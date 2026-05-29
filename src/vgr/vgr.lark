@@ -171,8 +171,6 @@ _ge_operators: (">=" | "\u2265" | "\u00AC<" | "!<" | "Is"i? "Not"i "Less"i "Than
 _matches_operators: "~" | "Matches"i
 _not_matches_operators: "!~" | "Not"i "~" | "Does"i "Not"i "Match"i
 _matches_all_operators: "Matches"i "All"i
-_imatches_operators: "~*" | "IMatches"i
-_not_imatches_operators: "!~*" | "Not"i "~*" | "Does"i "Not"i "IMatch"i
 _contains_operators: "Contains"i
 _not_contains_operators: "Does"i "Not"i "Contain"i
 _contains_all_operators: "Contains"i "All"i
@@ -206,7 +204,7 @@ values_block: "When"i _is_empty_operators _CLAUSE_SEP? statement+               
     | "When"i "Not"i value_list _CLAUSE_SEP? statement+                          -> not_values_block
     // These operators work with one or more values
     // Note that the "op"s are optional, with the default being op_eq
-    | "When"i (op_eq | op_ne | op_xeq | op_contains | op_not_contains | op_contains_all | op_is_in | op_not_is_in | op_matches | op_not_matches | op_matches_all | op_imatches | op_not_imatches)? value_list _CLAUSE_SEP? statement+
+    | "When"i (op_eq | op_ne | op_xeq | op_contains | op_not_contains | op_contains_all | op_is_in | op_not_is_in | op_matches | op_not_matches | op_matches_all)? value_list _CLAUSE_SEP? statement+
 value_list: _csep_list{expr}
 otherwise_block: "Otherwise"i _CLAUSE_SEP? statement+
 choose_all: "All"i
@@ -221,8 +219,6 @@ op_ge: _ge_operators
 op_matches: _matches_operators
 op_not_matches: _not_matches_operators
 op_matches_all: _matches_all_operators
-op_imatches: _imatches_operators
-op_not_imatches: _not_imatches_operators
 op_contains: _contains_operators
 op_not_contains: _not_contains_operators
 op_contains_all: _contains_all_operators
@@ -501,10 +497,8 @@ ternary: expr "?" expr _CLAUSE_SEP expr -> c_ternary
     | expr2 _not_contains_operators expr2              -> not_contains_op
     | expr2 _contains_all_operators expr2              -> contains_all_op
     | expr2 _matches_operators expr2                   -> matches_op
-    | expr2 _matches_all_operators expr2               -> matches_all_op
-    | expr2 _imatches_operators expr2                  -> imatches_op
     | expr2 _not_matches_operators expr2               -> not_matches_op
-    | expr2 _not_imatches_operators expr2              -> not_imatches_op
+    | expr2 _matches_all_operators expr2               -> matches_all_op
     // Misc operations
     | "\u2308" expr "\u2309"                            -> ceil_op      // Unicode ceiling ⌈ x ⌉
     | "\u230A" expr "\u230B"                            -> floor_op     // Unicode floor ⌊ x ⌋

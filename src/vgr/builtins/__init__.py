@@ -149,9 +149,7 @@ from .markdown import (
 from .match import (
     poly_matches_all,
     poly_matches,
-    poly_not_imatch,
     poly_not_match,
-    poly_imatches,
 )
 from .misc_math import (
     poly_abs,

@@ -17,7 +17,6 @@ from .builtins import (
     poly_false,
     poly_ge,
     poly_gt,
-    poly_imatches,
     poly_in,
     poly_is_empty,
     poly_is_even,
@@ -31,7 +30,6 @@ from .builtins import (
     poly_ne,
     poly_not_contains,
     poly_not_empty,
-    poly_not_imatch,
     poly_not_in,
     poly_not_match,
     poly_true,
@@ -112,7 +110,6 @@ _CHOOSE_OPS = {
     'op_eq':              poly_eq,
     'op_ge':              poly_ge,
     'op_gt':              poly_gt,
-    'op_imatches':        poly_imatches,
     'op_is_in':           poly_in,
     'op_le':              poly_le,
     'op_lt':              poly_lt,
@@ -120,7 +117,6 @@ _CHOOSE_OPS = {
     'op_matches':         poly_matches,
     'op_ne':              poly_ne,
     'op_not_contains':    poly_not_contains,
-    'op_not_imatches':    poly_not_imatch,
     'op_not_is_in':       poly_not_in,
     'op_not_matches':     poly_not_match,
     'op_xeq':             poly_exact_eq,
@@ -135,7 +131,6 @@ _AND_OPS = [
     'op_matches_all',
     'op_ne',
     'op_not_contains',
-    'op_not_imatches',
     'op_not_is_in',
     'op_not_matches',
 ]
@@ -155,7 +150,6 @@ def execute_choose_using(ctx: ExecContext, statement: Tree) -> None:
   &emsp;&emsp;When [Not] Greater Than *expression* [:] *statement*&hellip;\\
   &emsp;&emsp;When [Not] Matches *expression* [, *expression*]&hellip; [:] *statement*&hellip;\\
   &emsp;&emsp;When Matches All *expression* [, *expression*]&hellip; [:] *statement*&hellip;\\
-  &emsp;&emsp;When [Not] IMatches *expression* [, *expression*]&hellip; [:] *statement*&hellip;\\
   &emsp;&emsp;When [Not] Contains *expression* [, *expression*]&hellip; [:] *statement*&hellip;\\
   &emsp;&emsp;When Contains All *expression* [, *expression*]&hellip; [:] *statement*&hellip;\\
   &emsp;&emsp;When [Not] *expression* [, *expression*]&hellip; [:] *statement*&hellip;\\
