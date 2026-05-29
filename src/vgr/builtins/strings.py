@@ -17,10 +17,14 @@ from .common import (
     X_None_Op,
 )
 from .inequ import poly_eq
-from .match import poly_matches_all
+from .match import poly_matches_all, poly_matches
 from .reg_ex import poly_regex_replace
 from .type import poly_type
 from .types import poly_str
+
+_NOT_FOUND = -1
+_SCALAR_TYPES = (bool, int, float, str, Pattern)
+
 
 # Operations table key for when Y value is a collection
 Y_Coll_Op = (AnyType, list)
@@ -865,8 +869,8 @@ def poly_count(x: Any=None, sub: Any=None) -> Any:
     """
 **Return the count of a value in another**
 
-* CountOf(*value*, *sub*)
-* *value*.CountOf(*sub*)
+* CountOf(*value*, *substr*)
+* *value*.CountOf(*substr*)
 
 ```vgr
 // General
@@ -899,7 +903,7 @@ fruit_colors.CountOf(r/a/) → 2 // both contain "a"
 """
     def _re_count(x: str, p: Pattern) -> int: return len(re.findall(p, x))
     if x is None: return 0
-    sub = str_arg(sub, 'Sub', False, True)
+    sub = str_arg(sub, 'Substr', False, True)
     if isinstance(x, dict): x = list(x.keys())
     if isinstance(x, list):
         if isinstance(sub, str) and len(sub) == 0: return len(x)
@@ -912,14 +916,14 @@ fruit_colors.CountOf(r/a/) → 2 // both contain "a"
     sub = '' if sub is None else sub
     return len(x) if len(sub) == 0 else _exec_x_y_op(x, sub, 'CountOf', poly_count, str.count, _string_loc_ops)
 
-def poly_index(x: Any=None, sub: Any=None) -> Any:
+def poly_index_of(value: Any=None, sub: Any=None) -> Any:
     """
 **Returns the *lowest* index of one item in another**
 
-* IndexOf(*value*, *sub*)
-* *value*.IndexOf(*sub*)
+* IndexOf(*value*, *substr*)
+* *value*.IndexOf(*substr*)
 
-The returned index is zero based, with -1 returned if *sub* is not found.
+The returned index is zero based, with -1 returned if *substr* is not found.
 When *value* is a string, the behavior is the same as with `FindStr()`.
 
 ```vgr
@@ -931,45 +935,46 @@ None.IndexOf("a") → -1
 "aaaBc".IndexOf("") → -1
 "aaaBc".IndexOf("z") → -1
 "aaaBc".IndexOf("aB") → 2
+"aaaBc".IndexOf(r/ab/i) → 2
 
 // With Lists
 Set fruits To ["apple", "banana", "apple", "orange", "apple"]
 fruits.IndexOf("apple") → 0
 fruits.IndexOf("grape") → -1
-
-// With Dictionaries
-Set fruit_colors To {"apple": "red", "banana": "yellow"}
-fruit_colors.IndexOf("apple") → 0  // key present
-fruit_colors.IndexOf("grape") → -1 // key not present
 ```
 
 Also see `RIndexOf()` and `FindStr()`
 """
-    def _re_find(x: str, p: Pattern) -> int:
-        m = re.search(p, x)
-        return -1 if m is None else m.start()
-    if x is None: return -1
-    sub = str_arg(sub, 'Sub', False, True)
-    if isinstance(x, dict): x = list(x.keys())
-    if isinstance(x, list):
-        if isinstance(sub, str) and len(sub) == 0: return -1
-        cmp = poly_matches_all if isinstance(sub, Pattern) else poly_eq
-        return next((i for i, x1 in enumerate(x) if cmp(x1, sub)), -1)
-    x = _as_str(x)
-    if len(x) == 0: return -1
-    if isinstance(sub, Pattern):
-        return _exec_x_y_op(x, sub, 'IndexOf', poly_index, _re_find, _string_loc_ops)
-    if sub is None or len(sub) == 0: return -1
-    return _exec_x_y_op(x, sub, 'IndexOf', poly_index, str.find, _string_loc_ops)
+    if value is None: return _NOT_FOUND
+    if isinstance(value, _SCALAR_TYPES):
+        if sub is None: return _NOT_FOUND
+        value = _as_str(value)
+        if isinstance(sub, Pattern): return _re_find(value, sub)
+        sub = _as_str(sub)
+        if isinstance(sub, str): return _NOT_FOUND if len(sub) == 0 else value.find(sub)
+        raise TypeError(f'Type {poly_type(sub)!r} cannot be used for Substr argument')
+    if isinstance(value, list):
+        if isinstance(sub, Pattern):
+            # We skip None, list, and dict
+            return next((i for i, v in enumerate(value)
+                         if isinstance(v, _SCALAR_TYPES) and poly_matches(_as_str(v), sub)),
+                        _NOT_FOUND)
+        return next((i for i, v in enumerate(value)
+                     if poly_eq(v, sub)),
+                    _NOT_FOUND)
+    raise TypeError(f'Type {poly_type(value)!r} cannot be used with IndexOf')
+
+def _re_find(x: str, p: Pattern) -> int:
+    return _NOT_FOUND if (m := re.search(p, x)) is None else m.start()
 
 def poly_rindex(x: Any=None, sub: Any=None) -> Any:
     """
 **Returns the _highest_ index of one item in another**
 
-* RIndexOf(*value*, *sub*)
-* *value*.RIndexOf(*sub*)
+* RIndexOf(*value*, *substr*)
+* *value*.RIndexOf(*substr*)
 
-The returned index is zero based, with -1 returned if *sub* is not found.
+The returned index is zero based, with -1 returned if *substr* is not found.
 When *value* is a string, the behavior is the same as with `RFindStr()`.
 
 ```vgr
@@ -995,29 +1000,38 @@ fruit_colors.RIndexOf("grape") → -1 // key not present
 
 Also see `IndexOf()` and `RFindStr()`
 """
-    # TODO regex behavior for sub
     if x is None: return -1
-    if isinstance(x, list): return next((i for i in range(len(x) - 1, -1, -1) if poly_eq(x[i], sub)), -1)
+    sub = str_arg(sub, 'str', False, True) or ''
+    if isinstance(x, list):
+        if isinstance(sub, str) and len(sub) == 0: return -1
+        cmp = poly_matches_all if isinstance(sub, Pattern) else poly_eq
+        return next((i for i in range(len(x) - 1, -1, -1) if cmp(x[i], sub)), -1)
     if isinstance(x, dict): return 0 if sub in x else -1
     if isinstance(x, (bool, int, float)): x = str(x)
-    sub = str_arg(sub, 'Sub', False) or ''
-    if len(sub) == 0: return -1
+
+    x = _as_str(x)
+    if len(x) == 0: return -1
+    if isinstance(sub, Pattern):
+        # TODO there is no "reverse" behavior here
+        return _exec_x_y_op(x, sub, 'RIndexOf', poly_rindex, _re_find, _string_loc_ops)
+    if sub is None or len(sub) == 0: return -1
+
     return _exec_x_y_op(x, sub, 'RIndexOf', poly_rindex, str.rfind, _string_loc_ops)
 
-def poly_findstr(x: Any=None, sub: Any=None) -> Any:
+def poly_findstr(value: Any=None, substr: Any=None) -> Any:
     """
-**Returns the _lowest_ index of one string in another**
+**Returns the *lowest* index of one string in another**
 
-* FindStr(*value*, _substr_)
-* *value*.FindStr(_substr_)
+* FindStr(*value*, *substr*)
+* *value*.FindStr(*substr*)
 
 The returned index is zero based.
 
-If _substr_ cannot be found, -1 is returned.
+If *substr* cannot be found, -1 is returned.
 
 ```vgr
 None.FindStr("a") → None
-"aaaBc".FindStr("") → 0
+"aaaBc".FindStr("") → -1
 "aaaBc".FindStr("z") → -1
 "aaaBc".FindStr("a") → 0
 ["A.b.c", "X.y.z"].FindStr(".") → [1, 1]
@@ -1026,20 +1040,36 @@ None.FindStr("a") → None
 
 Also see `RFindStr()` and `IndexOf()`
 """
-    # TODO regex behavior for sub
-    x = _as_str(x)
-    return _exec_x_y_op(x, str_arg(sub, 'Substr', False) or '', 'FindStr', poly_findstr, str.find, _string_loc_ops)
+    def _findstr(s: str, sub: Any) -> int:
+        if isinstance(sub, Pattern):
+            return _NOT_FOUND if (m := sub.search(s)) is None else m.start()
+        return _NOT_FOUND if len(sub) == 0 else s.find(sub)
+    value = _as_str(value)
+    if substr is None: return _NOT_FOUND
+    if isinstance(substr, Pattern):
+        pass
+    elif isinstance(substr, _SCALAR_TYPES):
+        substr = _as_str(substr)
+    else:
+        raise TypeError(f'Type {poly_type(substr)!r} cannot be used for Substr argument')
+    substr = substr if isinstance(substr, Pattern) else str_arg(substr, 'Substr', False)
+    return _exec_x_y_op(value, substr, 'FindStr', poly_findstr, _findstr, _string_loc_ops)
 
 def poly_rfindstr(x: Any=None, sub: Any=None) -> Any:
     """
 **Returns the _highest_ index of one string in another**
 
-* RFindStr(*value*, _substr_)
-* *value*.RFindStr(_substr_)
+* RFindStr(*value*, *substr*)
+* *value*.RFindStr(*substr*)
 
 The returned index is zero based.
 
-If _substr_ cannot be found, -1 is returned.
+If *substr* cannot be found, -1 is returned.
+
+When *substr* is a regular expression, the start position of the rightmost
+non-overlapping match, as calculated from the start of the string, is returned.
+For variable-length or complex patterns the semantics may conflict with
+using a fixed string.
 
 ```vgr
 None.RFindStr("a") → None
@@ -1052,9 +1082,13 @@ None.RFindStr("a") → None
 
 Also see `FindStr()` and `RIndexOf()`
 """
-    # TODO regex behavior for sub
+    def _rfindstr(s: str, sub: Any) -> int:
+        if isinstance(sub, Pattern):
+            return -1 if len(m := list(sub.finditer(s))) == 0 else m[-1].start()
+        return s.rfind(sub)
     x = _as_str(x)
-    return _exec_x_y_op(x, str_arg(sub, 'Substr', False) or '', 'RFindStr', poly_rfindstr, str.rfind, _string_loc_ops)
+    sub = sub if isinstance(sub, Pattern) else str_arg(sub, 'Substr', False) or ''
+    return _exec_x_y_op(x, sub, 'RFindStr', poly_rfindstr, _rfindstr, _string_loc_ops)
 
 #---------------------------------------------
 

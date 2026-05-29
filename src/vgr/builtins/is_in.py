@@ -6,12 +6,11 @@ scalar values.
 
 from typing import Any
 
-from .common import NoneType, bound_ops
-from .inequ import poly_eq
-from .type import poly_type
+from .common import bound_ops
+from .strings import poly_index_of
 
 @bound_ops("Is In", "∈")
-def poly_in(x: Any=None, y: Any=None) -> bool:
+def poly_in(value: Any=None, expr: Any=None) -> bool:
     """
 **Is a value contained in another value or collection**
 
@@ -40,12 +39,14 @@ Set point To {"x": 5, "y": 10}
 "z" Is In point → False // key not in dictionary
 ```
 
-Also see `IsNotIn()` and `ContainsAny()`
+Also see `IsNotIn()` and `Contains()`
 """
-    return _is_in(x, y, False)
+    if isinstance(expr, dict): expr = list(expr.keys())
+    if isinstance(value, list): return any(poly_index_of(expr, v) != -1 for v in value)
+    return poly_index_of(expr, value) != -1
 
 @bound_ops("Is Not In", "∉")
-def poly_not_in(x: Any=None, y: Any=None) -> Any:
+def poly_not_in(value: Any=None, expr: Any=None) -> Any:
     """
 **Is a value _not_ contained in another value or collection**
 
@@ -76,21 +77,12 @@ Set point To {"x": 5, "y": 10}
 
 Also see `IsIn()`
 """
-    return not _is_in(x, y, False)
-
-@bound_ops("Does Not Contain")
-def poly_not_contains(x: Any=None, y: Any=None) -> Any:
-    """
-**Is a value *not* contained in another value or collection**
-
-* *value* Does Not Contain *expression*
-
-See `Contains` operator
-"""
-    return not _is_in(y, x, False)
+    if isinstance(expr, dict): expr = list(expr.keys())
+    if isinstance(value, list): return all(poly_index_of(expr, v) == -1 for v in value)
+    return poly_index_of(expr, value) == -1
 
 @bound_ops("Contains")
-def poly_contains(x: Any=None, y: Any=None) -> Any:
+def poly_contains(value: Any=None, expr: Any=None) -> Any:
     """
 **Is a value contained in another value or collection**
 
@@ -121,12 +113,27 @@ point Contains "x" → True  // key in dictionary
 point Contains "z" → False // key not in dictionary
 ```
 
-Also see `ContainsAll()` and `IsIn()`
+Also see `ContainsAll()`, `IsIn()`, and `IndexOf()`
 """
-    return _is_in(y, x, False)
+    if isinstance(value, dict): value = list(value.keys())
+    if isinstance(expr, list): return any(poly_index_of(value, e) != -1 for e in expr)
+    return poly_index_of(value, expr) != -1
+
+@bound_ops("Does Not Contain")
+def poly_not_contains(value: Any=None, expr: Any=None) -> Any:
+    """
+**Is a value *not* contained in another value or collection**
+
+* *value* Does Not Contain *expression*
+
+See `Contains` operator
+"""
+    if isinstance(value, dict): value = list(value.keys())
+    if isinstance(expr, list): return all(poly_index_of(value, e) == -1 for e in expr)
+    return poly_index_of(value, expr) == -1
 
 @bound_ops("Contains All")
-def poly_contains_all(x: Any=None, y: Any=None) -> Any:
+def poly_contains_all(value: Any=None, expr: Any=None) -> Any:
     """
 **Is a value contained in another value or collection**
 
@@ -134,7 +141,7 @@ def poly_contains_all(x: Any=None, y: Any=None) -> Any:
 * ContainsAll(*value*, *expression*)
 * *value*.ContainsAll(*expression*)
 
-Functions identically to `ContainsAny()` except that when working with lists,
+Functions identically to `Contains()` except that when working with lists,
 all tests are satisfied.
 
 ```vgr
@@ -142,30 +149,15 @@ Set animals To ["cat", "dog", "fish"]
 animals Contains All "cat" → True
 animals Contains All ["cat", "dog"] → True
 animals Contains All ["cat", "frog"] → False
-animals Contains All ["rat", "frog"] → False
 
 Set point To {"x": 5, "y": 10}
 point Contains All "x" → True
+point Contains All ["x", "y"] → True
 point Contains All ["x", "y", "z"] → False
 ```
 
-Also see `ContainsAny()` and `IsIn()`
+Also see `Contains()` and `IsIn()`
 """
-    return _is_in(y, x, True)
-
-def _is_in(x: Any, y: Any, do_all: bool) -> Any:
-    """Does all the work for the in/contains operations"""
-    if isinstance(x, list):
-        t = (_is_in(x1, y, do_all) for x1 in x)
-        return all(t) if do_all else any(t)
-    if not isinstance(x, (NoneType, bool, int, str, float)):
-        raise TypeError(f'Cannot use {poly_type(x)!r} with In/Contains')
-    if isinstance(y, str): return isinstance(x, str) and x in y
-    if isinstance(y, list): return x in y
-    if isinstance(y, dict): return x in y.keys()
-    try:
-        # NOTE arguments could be made here for
-        # using <= for numeric conditions "2 In 10"->T, "10 in 2"->F
-        return poly_eq(x, y)
-    except TypeError:
-        return False
+    if isinstance(value, dict): value = list(value.keys())
+    if isinstance(expr, list): return all(poly_index_of(value, e) != -1 for e in expr)
+    return poly_index_of(value, expr) != -1

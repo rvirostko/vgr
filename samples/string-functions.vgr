@@ -50,10 +50,8 @@ Printf fmt, "RightStr(1)", a, a.RightStr(1), b, b.RightStr(1), c, c.RightStr(1),
 Printf fmt, "SubStr(1,2)", a, a.SubStr(1,2), b, b.SubStr(1,2), c, c.SubStr(1,2), d, d.SubStr(1,2)
 
 Printf fmt, "CountOf(\"l\")", a, a.CountOf("l"), b, b.CountOf("l"), c, c.CountOf("l"), d, d.CountOf("l")
-Printf fmt, "IndexOf(\"l\")", a, a.IndexOf("l"), b, b.IndexOf("l"), c, c.IndexOf("l"), d, d.IndexOf("l")
-Printf fmt, "RIndexOf(\"l\")", a, a.RIndexOf("l"), b, b.RIndexOf("l"), c, c.RIndexOf("l"), d, d.RIndexOf("l")
-// NB: IndexOf() and RIndexOf() raise an exception if the string is not found
-//     FindStr() and RFindStr() return -1 if the string is not found
+Printf fmt, "IndexOf(\"l\")", a, a.IndexOf("l"), b, b.IndexOf("l"), c, c.IndexOf("l"), d, "not supported"
+Printf fmt, "RIndexOf(\"l\")", a, a.RIndexOf("l"), b, b.RIndexOf("l"), c, c.RIndexOf("l"), d, "not supported"
 Printf fmt, "FindStr(\"l\")", a, a.FindStr("l"), b, b.FindStr("l"), c, c.FindStr("l"), d, d.FindStr("l")
 Printf fmt, "RFindStr(\"l\")", a, a.RFindStr("l"), b, b.RFindStr("l"), c, c.RFindStr("l"), d, d.RFindStr("l")
 Printf fmt, "FindStr(\"z\")", a, a.FindStr("z"), b, b.FindStr("z"), c, c.FindStr("z"), d, d.FindStr("z")

@@ -1,0 +1,102 @@
+
+# IndexOf(value, sub)
+
+Assign -1 To not_found
+
+# None is not subscriptable
+Assert None.IndexOf("any") == not_found
+Assert IsFalse("abc" Matches None)
+Assert "abc".FindStr(None) == not_found
+Assert "abc".IndexOf(None) == not_found
+
+# (ordinals, Pattern) : ordinals
+# In these cases, it behaves identical to FindStr()
+# We cross check behavior with Contains/Is In
+Assert "any".IndexOf(None) == not_found  # nothing to search for
+Assert "any".FindStr(None) == not_found
+Assert "any" Does Not Contain None
+Assert None Is Not In "any"
+##
+Assert "any".IndexOf("") == not_found    # nothing to search for
+Assert "any".FindStr("") == not_found
+Assert "any" Does Not Contain ""
+Assert "" Is Not In "any"
+##
+Assert "abc".IndexOf("b") == 1           # simple string index
+Assert "abc".FindStr("b") == 1
+Assert "abc" Contains "b"
+Assert "b" Is In "abc"
+##
+Assert 123.IndexOf("2") == 1             # value is stringized
+Assert 123.FindStr("2") == 1
+Assert 123 Contains "2"
+Assert "2" Is In 123
+##
+Assert r/abc/.IndexOf("b") == 1          # value is stringized
+Assert r/abc/.FindStr("b") == 1
+Assert r/abc/ Contains "b"
+Assert "b" Is In r/abc/
+##
+Assert "123".IndexOf(2) == 1             # pattern is stringized
+Assert "123".FindStr(2) == 1
+Assert "123" Contains 2
+Assert 2 Is In "123"
+
+# (ordinals, Pattern) : Pattern
+Assert "abc".IndexOf(r/b/) == 1          # equiv regex for "b"
+Assert "abc".FindStr(r/b/) == 1
+Assert "abc" Matches r/b/
+Assert "abc" Contains r/b/
+Assert r/b/ Is In "abc"
+##
+Assert "".IndexOf(r/^$/) == 0
+Assert "".FindStr(r/^$/) == 0
+Assert "" Matches r/^$/
+Assert "" Contains r/^$/
+Assert r/^$/ Is In ""
+##
+Assert 123.IndexOf(r/[02468]/) == 1
+Assert 123.FindStr(r/[02468]/) == 1
+Assert 123 Matches r/[02468]/
+Assert 123 Contains r/[02468]/
+Assert r/[02468]/ Is In 123
+##
+Assert r/[a-z]/.IndexOf("z") == 3
+Assert r/[a-z]/.FindStr("z") == 3
+Assert r/[a-z]/ Matches "z"
+Assert r/[a-z]/ Contains "z"
+Assert "z" Is In r/[a-z]/
+
+# list : any type
+# Pattern uses a stringized version of element, skiping None and non-ordinals
+Assign ["a", "b", "c", None] To value
+Assert value.IndexOf("z") == not_found
+Assert value Does Not Contain "z"
+Assert value Contains "b"
+Assert "b" Is In value
+Assert IsFalse("z" Is In value)
+Assert value.IndexOf("b") == 1
+##
+Assert value.IndexOf(r/b/) == 1
+Assert value.Slice(0, -1) Matches r/[abc]/ # have to exclude None, expand pattern
+Assert value Contains r/b/
+Assert r/b/ Is In value
+Assert value.IndexOf(None) == 3
+Assert value Contains None
+Assert None Is In value
+
+# Complex lists
+Assign ["a", ["b"], ["c", "d"]] To value
+Assert value.IndexOf("b") == 1    # special case
+Assert value Contains "b"
+Assert "b" Is In value
+##
+Assert value.IndexOf(["b"]) == 1
+Assert value Contains ["b"]
+
+Assert value.IndexOf(["c", "d"]) == 2
+
+Assert value.IndexOf(["d", "c"]) == not_found
+
+# Negative tests
+# Print {}.IndexOf("a")

@@ -220,7 +220,7 @@ from .strings import (
     poly_expand_tabs,
     poly_findstr,
     poly_format,
-    poly_index,
+    poly_index_of,
     poly_is_alnum,
     poly_is_alpha,
     poly_is_ascii,
