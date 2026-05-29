@@ -24,24 +24,34 @@ def poly_matches(*args) -> bool:
 * Matches(*value*, *pattern*&hellip;)
 * *value*.Matches(*pattern*&hellip;)
 
+If pattern is a string it is compiled to a regular expression.
+Additionally, regular expression literals can also be used.
+
+```vgr
+"aaa" Matches "^(a|b)+$"                 # automatically compiled
+"aaa" Matches CompilePattern("^(a|b)+$") # explicit compilation
+"aaa" Matches r/^(a|b)+$/                # literal regular expression
+```
+
 If *value* is a collection, then *all* values in it must match *pattern*
-for the expression to be `True`. If *pattern* is a collection, then one or
-more of its contents must match for the expression to be `True`.
+for the expression to be `True`. If *pattern* is a collection, then
+at least one its contents must match for the expression to be `True`.
 
 ```vgr
 "aaa" Matches "^(a|b)+$" → True
 "bb" Matches "^(a|b)+$" → True
-["aaa", "bb"] Matches "^(a|b)+$" → False
-["aaa", "bb", "abba"] Matches "^(a|b)+$" → False
+["aaa", "bb"] Matches "^(a|b)+$" → True
+["aaa", "bb", "cab"] Matches "^(a|b)+$"
+ → False  # "cab" did not match
 ```
 
 In its functional form, one or values for *pattern* may be specified, acting as
-if it was a collection of patterns.
+if it was a collection of patterns connected by *or*.
 
 ```vgr
-"aaa".Matches("^a+$", "^b+$") → True
-"bbb".Matches("^a+$", "^b+$") → True
-"abba".Matches("^a+$", "^b+$") → False
+"aaa".Matches("^a+$", "^b+$") → True    # all "a"s
+"bbb".Matches("^a+$", "^b+$") → True    # all "b"s
+"abba".Matches("^a+$", "^b+$") → False  # neither all "a"s or "b"s
 ```
 
 While fundamentally a string/regular expression operation, it will
@@ -49,12 +59,12 @@ work with ordinals, but only if the *pattern* is also an ordinal, performing an
 equality comparison.
 
 ```vgr
-5 ~ 5 → True
-5 ~ 10 → False
-5 ~ [5, 10] → Cannot perform Match on 'int'
+5 Matches 5 → True
+5 Matches 10 → False
+5 Matches [5, 10] → True
 ```
 
-Also see operators `!~` and `~*`
+Also see operators `Does Not Match` and `Matches All` as well as `CompilePattern()`
 """
     if not args: return False
     x, *args = args
