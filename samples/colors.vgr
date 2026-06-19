@@ -4,7 +4,7 @@ If !vgr.stdout.isatty
     Exit
 End-If
 
-Terminal GetTermSize
+Terminal GetTerminalSize
 Assert term.size.cols ≥ 80 And term.size.rows ≥ 24 : "Window too small for demo"
 
 Set iter To 3

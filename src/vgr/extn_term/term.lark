@@ -65,7 +65,7 @@ term_misc_cmd:   "PrintDHigh"i expr                        -> dh_print // double
         |        "RaiseWindow"i                            -> raise_window
         |        "SetIconName"i expr                       -> icon_name
         |        "SetTitle"i expr                          -> window_title
-        |        ("GetTerminalSize"i | "GetTermSize"i)     -> term_size
+        |        "GetTerminalSize"i                        -> term_size
 
 term_set_attr:   "SetStyle"i expr                          -> sgr_style
         |        "SetForeground"i expr                     -> sgr_fg

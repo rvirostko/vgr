@@ -754,7 +754,7 @@ def execute_term_statement(ctx: ExecContext, statement: Tree) -> None:
     """
 **Execute Terminal control commands**
 
-* Terminal *command* [, *command*]&hellip;
+* Terminal *command*[, *command*]&hellip;
 
 ***Cursor Control Commands***
 
@@ -822,7 +822,7 @@ def execute_term_statement(ctx: ExecContext, statement: Tree) -> None:
 * RaiseWindow - Raise the terminal window to the front
 * SetIconName *text* - Set the icon name for the terminal window
 * SetTitle *text* - Set the terminal window's title
-* [GetTerminalSize | GetTermSize] - Retrieve the window's size; stored in *term.size*
+* GetTerminalSize - Retrieve the window's size; stored in *term.size*
 
 ***Colors and Attrribute Commands***
 
