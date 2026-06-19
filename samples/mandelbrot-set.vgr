@@ -1,0 +1,85 @@
+# Mandelbrot set rendered to terminal using 16 ANSI colors.
+# No 2D arrays available, so each row is built as a list of characters
+# and printed/colored cell-by-cell as we go (no need to store the
+# whole screen at once).
+# Sizes are the default...
+Set WIDTH = 80
+Set HEIGHT = 25
+Set MAX_ITER = 12.0
+
+# Complex-plane window. Mandelbrot's interesting region is roughly
+# real: -2.5..1.0, imag: -1.25..1.25. We widen the real range slightly
+# to compensate for character cells being taller than they are wide.
+Set RE_MIN = -2.0
+Set RE_MAX = .75
+Set IM_MIN = -1.25
+Set IM_MAX = 1.25
+
+# 16-color escape-iteration ramp, low iteration count (escapes fast,
+# far outside the set) to high iteration count (escapes slowly, near
+# the boundary). Points that never escape (MAX_ITER reached) are the
+# set itself, rendered in white-on-black with a solid block.
+Set COLOR_RAMP = [
+    "Black",       "Blue",       "Green",       "Cyan",       "Red",       "Magenta",       "Yellow",       "White",
+    "BrightBlack", "BrightBlue", "BrightGreen", "BrightCyan", "BrightRed", "BrightMagenta", "BrightYellow", "BrightWhite"
+]
+Set COLOR_RAMP_SIZE = Length(COLOR_RAMP)
+Set COLOR_RAMP_LAST = COLOR_RAMP_SIZE - 1
+Define Function ColorForIteration(iter) → COLOR_RAMP.Item(((iter * COLOR_RAMP_SIZE) / MAX_ITER).Clamp(0, COLOR_RAMP_LAST))
+
+Set CHAR_RAMP = [" ", ".", ":", "-", "=", "+", "*", "#", "%", "@"]
+Set CHAR_RAMP_SIZE = Length(CHAR_RAMP)
+Set CHAR_RAMP_LAST = CHAR_RAMP_SIZE - 1
+Define Function CharForIteration(iter) → CHAR_RAMP.Item(((iter * CHAR_RAMP_SIZE) / MAX_ITER).Clamp(0, CHAR_RAMP_LAST))
+
+Define Function MandelbrotSet()
+    Terminal ClearScreen
+    Set col_offset = ToInteger(WIDTH / 2)
+    Set col_max = WIDTH + col_offset - 1
+    For row = 0 To HEIGHT - 1
+        Set im = IM_MIN + (row / (HEIGHT - 1)) * (IM_MAX - IM_MIN)
+        For col = col_offset To col_max
+            Set region = RE_MIN + (col / (WIDTH - 1)) * (RE_MAX - RE_MIN)
+            Set iter = @EscapeIterations(region, im)
+            Terminal MoveCursorTo (row + 1):(col + 1 - col_offset)
+            Terminal SetForeground @ColorForIteration(iter)
+            Printf @CharForIteration(iter)
+        Next
+    Next
+    # Park the cursor below the rendered field and reset color so the next prompt isn't tinted
+    Terminal MoveCursorTo HEIGHT + 1:1
+    Terminal SetForeground "White"
+End-Function
+
+Define Function EscapeIterations(cx, cy)
+    Set x = 0.0
+    Set y = 0.0
+    Set iter = 0
+    For n = 1 To MAX_ITER
+        Set x′ = x²
+        Set y′ = y²
+        # Checked against the previous iteration's x,y, so n=1 can
+        # never break here -- iter reported is one less than the
+        # number of update-then-check cycles actually run.
+        If (x′ + y′) > 4.0 Then
+            Break
+        End-If
+        Set y = Mul(2.0, x, y) + cy
+        Set x = x′ - y′ + cx
+        Set iter = n
+    Next
+    Return iter
+End-Function
+
+// To automatically run, we can't be sourced or included and have to have a TTY
+If Length(vgr.source) <= 1 And
+    !vgr.included And
+    vgr.stdout.isatty Then
+    // Update our default size
+    Terminal GetTerminalSize
+    Assert term.size.cols ≥ 80 And term.size.rows ≥ 24 : "Window too small for demo"
+    Set WIDTH = term.size.cols
+    Set HEIGHT = term.size.rows
+    // Display the visualization
+    Call Function MandelbrotSet
+End-If
