@@ -83,7 +83,7 @@ _IN_PLACE_OP = {
     ">>=": poly_shr,
 }
 
-@bound_ops("Set", "Let")
+@bound_ops("Set")
 def execute_set(ctx: ExecContext, statement: Tree) -> None:
     """
 **Modify a variable's existing value**
