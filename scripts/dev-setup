@@ -100,7 +100,7 @@ EOF
 fi
 
 if [ "$OKAY" -eq 1 ]; then
-    export VGR_PATH="${VGR_PATH:=$(pwd)/samples}"
+    export VGR_PATH="${VGR_PATH:=$(pwd)/samples:$(pwd)/tests/scripts}"
     echo "VGR_PATH=${VGR_PATH}"
 fi
 
