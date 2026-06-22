@@ -156,7 +156,7 @@ def execute_sort(ctx: ExecContext, statement: Tree) -> None:
 
 The *keys* option
 
-* &hellip; [On | By] *key_spec* [, *key_spec* &hellip;] &hellip;
+* &hellip; [On | By] *key_spec*[, *key_spec* &hellip;] &hellip;
 * *key_spec* : [Ascending | Descending] [Key] *expression*
 * Ascending and Descending may be abbreviated as Asc or Des
 * Ascending is the default ordering
@@ -166,7 +166,7 @@ The *keys* option
 The *unique* option
 
 * &hellip; Unique &hellip;
-* &hellip; Unique On *expression* [, *expression* &hellip;] &hellip;
+* &hellip; Unique On *expression*[, *expression* &hellip;] &hellip;
 * Without a list of keys, uniqueness performed on keys used to perform the sort
 * When sorting non-dictionary items, no keys are required.
   The only available key is *line*.
