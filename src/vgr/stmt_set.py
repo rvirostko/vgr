@@ -89,15 +89,15 @@ def execute_set(ctx: ExecContext, statement: Tree) -> None:
 **Modify a variable's existing value**
 
 * Set *variable* [= | To] *expression* &emsp; *Assignment*
-* Set *variable* += *expression* &emsp; *Addition*
-* Set *variable* -= *expression* &emsp; *Subtraction*
-* Set *variable* *= *expression* &emsp; *Multiplication*
-* Set *variable* /= *expression* &emsp; *Division*
-* Set *variable* %= *expression* &emsp; *Modulo*
+* Set *variable* += *expression* &emsp;  *Addition*
+* Set *variable* -= *expression* &emsp;  *Subtraction*
+* Set *variable* *= *expression* &emsp;  *Multiplication*
+* Set *variable* /= *expression* &emsp;  *Division*
+* Set *variable* %= *expression* &emsp;  *Modulo*
 * Set *variable* **= *expression* &emsp; *Power*
-* Set *variable* &= *expression* &emsp; *Bit And*
-* Set *variable* |= *expression* &emsp; *Bit Or*
-* Set *variable* ^= *expression* &emsp; *Bit Xor*
+* Set *variable* &= *expression* &emsp;  *Bit And*
+* Set *variable* |= *expression* &emsp;  *Bit Or*
+* Set *variable* ^= *expression* &emsp;  *Bit Xor*
 * Set *variable* <<= *expression* &emsp; *Bit Shift Left*
 * Set *variable* >>= *expression* &emsp; *Bit Shift Right*
 
@@ -129,25 +129,23 @@ def execute_assign(ctx: ExecContext, statement: Tree) -> None:
     """
 **Modify a variable's existing value**
 
-* Assign *expression* [= | To] *variable*
+* Assign *expression* To *variable*
+* Assign *expression* To *variable*[, *expression* To *variable*]&hellip;
 
 ```vgr
-Assign 5 To a
-Assign 3 To b
+Assign 5 To a, 3 To b
 Set a *= b
 Exhibit a b
 a = 15
 b = 3
 ```
 
-Also see the `Set`
+Also see the `Set` statement.
 """
-    # Set up for multiple assigns, but the grammar doesn't yet support it
     for i in range(0, len(statement.children), 2):
         var_path = get_writable_var_path(ctx, statement.children[i + 1])
         new_value = ctx.eval_expr(statement.children[i])
         do_set(ctx, new_value, *var_path)
-
 
 @bound_ops("Set Corresponding")
 def execute_set_corresponding(ctx: ExecContext, statement: Tree) -> None:

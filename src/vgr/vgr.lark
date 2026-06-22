@@ -256,7 +256,8 @@ set:  "Set"i var_name (_assignment | IN_PLACE_OP) expr
     | "Set"i "Corresponding"i expr "In"i "Dictionary"i? var_name -> set_corresponding
 IN_PLACE_OP: ("+=" | "-=" | "*=" | "/=" | "%=" | "**=" | "&=" | "|=" | "^=" | "<<=" | ">>=" )
 // Alternate to "Set" to get around conflicts
-assign: "Assign"i expr "To"i var_name
+_assign: expr "To"i var_name
+assign: "Assign"i _csep_list{_assign}
 
 add_to:     "Add"i _csep_list{expr} "To"i var_name
 add_giving: "Add"i _csep_list{expr} "To"i expr "Giving"i var_name
