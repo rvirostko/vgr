@@ -847,12 +847,14 @@ Also see `LeftStr()`, `RightStr()`, and `Slice()`
 """
     # For these types, the operation is idempotent
     if isinstance(x, (NoneType, bool, int, float)): return x
-    start = max(0, int_arg(start, 'Start'))
+    start = int_arg(start, 'Start')
     length = 1 if length is None else max(0, int_arg(length, 'Length'))
     if isinstance(x, list): return list(poly_substr(x1, start, length) for x1 in x)
     if isinstance(x, dict): return {key: poly_substr(value, start, length) for key, value in x.items()}
     x = _as_str(x)
-    if isinstance(x, str): return x[start:start + length]
+    if isinstance(x, str):
+        start = start if start >= 0 else start + len(x)
+        return x[start:start + length]
     raise ValueError(f'SubStr() on {poly_type(x)!r} not possible')
 
 _string_loc_ops = {
