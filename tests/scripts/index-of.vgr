@@ -45,9 +45,13 @@ Assert 2 Is In "123"
 # (ordinals, Pattern) : Pattern
 Assert "abc".IndexOf(r/b/) == 1          # equiv regex for "b"
 Assert "abc".FindStr(r/b/) == 1
+Assert "abc".FindStr(r/B/i) == 1
 Assert "abc" Matches r/b/
+Assert "abc" Matches r/B/i
 Assert "abc" Contains r/b/
+Assert "abc" Contains r/B/i
 Assert r/b/ Is In "abc"
+Assert r/B/i Is In "abc"
 ##
 Assert "".IndexOf(r/^$/) == 0
 Assert "".FindStr(r/^$/) == 0
@@ -98,5 +102,10 @@ Assert value.IndexOf(["c", "d"]) == 2
 
 Assert value.IndexOf(["d", "c"]) == not_found
 
-# Negative tests
-# Print {}.IndexOf("a")
+# Reverse String
+Assert "frogger".RIndexOf("g") == 4
+Assert "frogger".RIndexOf(r/g/) == 4
+Assert "frogger".RIndexOf(r/G/i) == 4
+Assert "frogger".RFindStr("g") == 4
+Assert "frogger".RFindStr(r/g/) == 4
+Assert "frogger".RFindStr(r/G/i) == 4
