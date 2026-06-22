@@ -18,7 +18,7 @@ def execute_accept_input(ctx: ExecContext, statement: Tree) -> None:
 **Get user input**
 
 * Accept Input [To] *variable* [*option*]
-* Accept Input From [Console | Terminal | Stdin | Sysin | Sysinp] [To] *variable* [*option*]
+* Accept Input From [Input | Stdin] [To] *variable* [*option*]
 
 When at end-of-file (or when not interactive) or if the user hits return
 without entering any information, the contents of *variable* remains
