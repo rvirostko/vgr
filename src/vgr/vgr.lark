@@ -460,6 +460,7 @@ ternary: expr "?" expr _CLAUSE_SEP expr -> c_ternary
     | ("!" | "\uFF01" | "\u00AC") expr2 -> unary_not // Unicode ！(fullwidth excl) and ¬ (logical not)
     | expr2 "." dotfunction                            -> dotfunction_call
     | expr2 "." NAME                                   -> deref
+    | expr2 ("[" expr "]")+                            -> subscript
     | expr2 "." "@" var_name "(" _csep_list{expr}? ")" -> invoke_func_inline
     | "@" var_name "(" _csep_list{expr}? ")"           -> invoke_func
     | function                                         -> function_call

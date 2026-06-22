@@ -57,6 +57,7 @@ from .builtins import (
     poly_shl,
     poly_shr,
     poly_sub,
+    poly_subscript,
     poly_true,
     poly_type,
     poly_shorten,
@@ -224,7 +225,7 @@ class InvokeInlineFunctionOperation(Operation):
     """
     Invoke a user function inline
 
-    ```
+    ```vgr
     Function adder(a, b) -> a.DefaultTo(0) + b.DefaultTo(0)
     print 1.@adder(2)
     ````
@@ -239,6 +240,20 @@ class InvokeInlineFunctionOperation(Operation):
 
     def op_name(self) -> str:
         return 'invoke_in_linefunc'
+
+class Subscript(Operation):
+    """
+    Dereference a value using a subscript or key value
+    """
+    def execute(self, ctx: ExecContext, args: list) -> Any:
+        # <expr>[<expr>]...
+        value = ctx.eval_expr(args[0]) # the in-line <expr>
+        for arg in args[1:]:
+            value = poly_subscript(value, arg)
+        return value
+
+    def op_name(self) -> str:
+        return 'subscript'
 
 def is_var_defined(ctx: ExecContext, expr: Tree) -> bool:
     # non-var references are defined (expr or constant)
@@ -622,6 +637,7 @@ class OperationBinder(Transformer):
     #def assignment_expr(self, tree): return AssignmentExpr(tree)
     def invoke_func(self, tree): return InvokeFunctionOperation(tree)
     def invoke_func_inline(self, tree): return InvokeInlineFunctionOperation(tree)
+    def subscript(self, tree): return Subscript(tree)
 
     # Transformational pipeline style: "foo".Upper()
     def dotfunction_call(self, tree):
