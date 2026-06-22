@@ -1463,7 +1463,7 @@ None.RSplit() → []
 
 Also see `Split()`
 """
-    # TODO regex behavior for sep
+    if isinstance(sep, Pattern): return _re_rsplit(x, sep, maxsplit)
     return _split('RSplit', poly_rsplit, str.rsplit, x, sep, maxsplit)
 
 def _re_split(x: Any, sep: Pattern, maxsplit: int=0):
@@ -1473,6 +1473,29 @@ def _re_split(x: Any, sep: Pattern, maxsplit: int=0):
     if isinstance(x, list): return list(_re_split(x1, sep, maxsplit) for x1 in x)
     if isinstance(x, dict): return {key: _re_split(value, sep, maxsplit) for key, value in x.items()}
     raise TypeError(f'Split of {poly_type(x)!r} not supported')
+
+def _re_rsplit(x: Any, sep: Pattern, maxsplit: int=0):
+    if x is None: x = ''
+    x = _as_str(x)
+    if isinstance(x, str):
+        maxsplit = max(0, maxsplit)
+        if maxsplit == 0: return re.split(sep, x)
+        matches = list(sep.finditer(x))
+        if not matches: return [x]
+        # Only the last `maxsplit` matches act as split points.
+        split_matches = matches[-maxsplit:]
+        result = []
+        prev_end = 0
+        for m in split_matches:
+            result.append(x[prev_end:m.start()])
+            # Include captured groups, same as re.split does
+            result.extend(g if g is not None else None for g in m.groups())
+            prev_end = m.end()
+        result.append(x[prev_end:])
+        return result
+    if isinstance(x, list): return list(_re_rsplit(x1, sep, maxsplit) for x1 in x)
+    if isinstance(x, dict): return {key: _re_rsplit(value, sep, maxsplit) for key, value in x.items()}
+    raise TypeError(f'RSplit of {poly_type(x)!r} not supported')
 
 def _split(name: str, p_op, str_op, x: Any, sep: str=None, maxsplit: int=-1):
     if sep is not None:
