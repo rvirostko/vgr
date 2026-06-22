@@ -406,12 +406,13 @@ def log_exception(ctx: ExecContext, log_label: str, e: VgrException) -> None:
 def main():
     clp = argparse.ArgumentParser(
         formatter_class=argparse.RawDescriptionHelpFormatter,
+        prog='vgr',
         description=f'Version {__version__} ({__version_date__})',
         epilog="""Statements added with --execute, --file, --include, and --assign are executed in the order they are given.
 
 Following that, statements are read from stdin if they are available.
 
-If no --execute and --file arguments are given, and stdin is interactive, by default the REPL is started.
+If no --execute, --file, --stdin arguments are given, and stdin is interactive, the REPL is started.
 
 Additional arguments are added as strings to the "args" list variable.
 
@@ -441,8 +442,8 @@ Environment variables:
                      help='Enable debug mode')
     clp.add_argument('--echo', action='store_true',
                      help='Enable statement echo')
-    clp.add_argument('--repl', action='store_true',
-                     help='Request REPL. REPL automatically starts if --execute/--file are not used')
+    clp.add_argument('--stdin', action='store_true',
+                     help='Execute commands read from stdin after all other actions')
     clp.add_argument('--logfile', type=str, default=None,
                      help='Path to the log file')
     clp.add_argument('--loglevel', type=str, default='info',
@@ -539,16 +540,16 @@ Environment variables:
             except Exception as e:
                 raise VgrException(None, e, '<cmd-line>', svalue) from e
             raise NotImplementedError(f'Statement source {stype!r} not implemented') # SNO
-        if sys.stdin.isatty():
-            if args.repl or not cmds_provided:
-                ctx.print_verbose('Starting the REPL...')
-                VGRCmdLine(ctx).run()
-                ctx.print_verbose('REPL exited')
-        else:
+        if args.stdin:
             # Read from stdin, most likely from a "here" document
             # but can be from a pipe or just a "<"
             ctx.print_verbose('Executing statements from stdin...')
             ctx.execute_statements(sys.stdin.read(), '<stdin>')
+        else:
+            if sys.stdin.isatty() and not cmds_provided:
+                ctx.print_verbose('Starting the REPL...')
+                VGRCmdLine(ctx).run()
+                ctx.print_verbose('REPL exited')
     except VgrExitingException as e:
         exit_code = e.exit_code
         if isinstance(e, VgrStatementAssert):
