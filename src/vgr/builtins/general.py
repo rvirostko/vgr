@@ -7,7 +7,7 @@ from .common import (
     bool_arg,
     dist_x,
     int_arg,
-    str_to_number,
+    str_to_int,
 )
 from .inequ import (
     poly_eq,
@@ -334,8 +334,10 @@ Also see `FirstItem()` and `LastItem()`
 """
     if not isinstance(x, list): return x
     if isinstance(index, list): return dist_x(poly_get_item, x, index)
-    i: int = int(index) if isinstance(index, (int, float)) else str_to_number(index) if isinstance(index, str) else None
-    return x[i] if i is not None and 0 <= i < len(x) else None
+    i: int = int(index) if isinstance(index, (int, float)) else str_to_int(index) if isinstance(index, str) else None
+    l = len(x)
+    if i >= 0: return x[i] if i < l else None
+    return x[i] if l >= abs(i) else None
 
 def poly_first_item(x: Any=None) -> Any:
     """
@@ -381,8 +383,7 @@ None.LastItem() → None
 
 Also see `Item()` and `FirstItem()`
 """
-    if not isinstance(x, list): return x
-    return x[-1] if len(x) > 0 else None
+    return poly_get_item(x, -1)
 
 def poly_unique(x: Any=None) -> Any:
     """
