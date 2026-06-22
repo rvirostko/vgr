@@ -142,21 +142,21 @@ def execute_choose_using(ctx: ExecContext, statement: Tree) -> None:
 **Choose from a set of statements based on a value**
 
 * Choose [All] Using *expression* [:]\\
-  &emsp;&emsp;When [Not] Empty  [:] *statement*&hellip;\\
+  &emsp;&emsp;When [Not] Empty [:] *statement*&hellip;\\
   &emsp;&emsp;When [Not] [Defined | Undefined] [:] *statement*&hellip;\\
   &emsp;&emsp;When [Not] [Negative | Positive] [:] *statement*&hellip;\\
   &emsp;&emsp;When [Not] [Even | Odd] [:] *statement*&hellip;\\
   &emsp;&emsp;When [Not] Less Than *expression* [:] *statement*&hellip;\\
   &emsp;&emsp;When [Not] Greater Than *expression* [:] *statement*&hellip;\\
-  &emsp;&emsp;When [Not] Matches *expression* [, *expression*]&hellip; [:] *statement*&hellip;\\
-  &emsp;&emsp;When Matches All *expression* [, *expression*]&hellip; [:] *statement*&hellip;\\
-  &emsp;&emsp;When [Not] Contains *expression* [, *expression*]&hellip; [:] *statement*&hellip;\\
-  &emsp;&emsp;When Contains All *expression* [, *expression*]&hellip; [:] *statement*&hellip;\\
-  &emsp;&emsp;When [Not] *expression* [, *expression*]&hellip; [:] *statement*&hellip;\\
+  &emsp;&emsp;When [Not] Matches *expression*[, *expression*]&hellip; [:] *statement*&hellip;\\
+  &emsp;&emsp;When Matches All *expression*[, *expression*]&hellip; [:] *statement*&hellip;\\
+  &emsp;&emsp;When [Not] Contains *expression*[, *expression*]&hellip; [:] *statement*&hellip;\\
+  &emsp;&emsp;When Contains All *expression*[, *expression*]&hellip; [:] *statement*&hellip;\\
+  &emsp;&emsp;When [Not] *expression*[, *expression*]&hellip; [:] *statement*&hellip;\\
   &emsp;&emsp;When [Not] *expression* [To | Through | Thru] *expression* [:] *statement*&hellip;\\
-  &emsp;&emsp;When Is [Not] Equal To *expression* [, *expression*]&hellip; [:] *statement*&hellip;\\
-  &emsp;&emsp;When Is [Not] In *expression* [, *expression*]&hellip; [:] *statement*&hellip;\\
-  &emsp;&emsp;When === *expression* [, *expression*]&hellip; [:] *statement*&hellip;\\
+  &emsp;&emsp;When Is [Not] Equal To *expression*[, *expression*]&hellip; [:] *statement*&hellip;\\
+  &emsp;&emsp;When Is [Not] In *expression*[, *expression*]&hellip; [:] *statement*&hellip;\\
+  &emsp;&emsp;When === *expression*[, *expression*]&hellip; [:] *statement*&hellip;\\
   &emsp;&emsp;Otherwise [:] *statement*&hellip;\\
   [End-Choose | End]
 

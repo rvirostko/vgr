@@ -23,7 +23,7 @@ CompilePattern("[abc]").Type() → "pattern"
 ["five", 5, 5.0].Type() → "list"
 {"One": 1, "Two": 2}.Type() → "dictionary"
 
-Set f(x) -> x+2
+Function f(x) -> x+2
 f.Type() -> "function"
 ```
 

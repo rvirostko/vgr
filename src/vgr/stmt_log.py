@@ -43,7 +43,7 @@ def execute_log(ctx: ExecContext, statement: Tree) -> None:
 **Send a message to the log or set the logging level**
 
 * Log *level*
-* Log *level* *expression* [, *expression*]&hellip;
+* Log *level* *expression*[, *expression*]&hellip;
 * Log Level *level*
 
 The logging level must be one of `Debug`, `Info`, `Warn`, or `Error`

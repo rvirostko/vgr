@@ -226,7 +226,7 @@ def execute_source(ctx: ExecContext, statement: Tree) -> None:
     """
 **Execute statements stored in a file**
 
-* Source [File | Files] *file_name* [, *file_name*]&hellip;
+* Source [File | Files] *file_name*[, *file_name*]&hellip;
 
 Each argument is evaluated to a file name. Statements in the file
 are executed, inheriting the current state of all variable and
@@ -268,7 +268,7 @@ def execute_include(ctx: ExecContext, statement: Tree) -> None:
     """
 **Execute statements stored in a file once per run**
 
-* @Include [File | Files] *file_name* [, *file_name*]&hellip;
+* @Include [File | Files] *file_name*[, *file_name*]&hellip;
 
 Similar to `Source` but files are only included once per run, unless
 cleared by `Reset`.
@@ -565,7 +565,7 @@ expression's value. If `Continue` is encountered, statements
 following it are skipped, and the expression is checked again.
 
 ```vgr
-Set is_valid(item) -> /* logic here */
+Function is_valid(item) -> /* logic here */
 Set result To None
 Set attempts To Zero
 Unless result Is Not None Or attempts > 42:

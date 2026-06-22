@@ -76,7 +76,7 @@ def execute_assert(ctx: ExecContext, statement: Tree) -> None:
 **Assert that a condition is met, halting execution if it is not**
 
 * Assert *expression*
-* Assert *expression* : *expression* [, *expression*]&hellip;
+* Assert *expression* : *expression*[, *expression*]&hellip;
 
 The first expression is evaluated as a boolean value which must be true for execution to continue.
 

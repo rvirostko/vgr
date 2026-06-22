@@ -207,8 +207,8 @@ class InvokeFunctionOperation(Operation):
     Invoke a user function stand-alone
 
     ```
-    set adder to (a, b) -> a.DefaultTo(0) + b.DefaultTo(0)
-    print @adder(1,2)
+    Function adder to (a, b) -> a.DefaultTo(0) + b.DefaultTo(0)
+    Print @adder(1,2)
     ````
     """
     def execute(self, ctx: ExecContext, args: list) -> Any:
@@ -225,7 +225,7 @@ class InvokeInlineFunctionOperation(Operation):
     Invoke a user function inline
 
     ```
-    set adder to (a, b) -> a.DefaultTo(0) + b.DefaultTo(0)
+    Function adder(a, b) -> a.DefaultTo(0) + b.DefaultTo(0)
     print 1.@adder(2)
     ````
     """

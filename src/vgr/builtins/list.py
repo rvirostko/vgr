@@ -22,9 +22,9 @@ def build_list(*args: Any) -> list[Any]:
 **Create a list from the collected values**
 
 * **[** **]**
-* **[** *expression* [, *expression*]&hellip; **]**
+* **[** *expression*[, *expression*]&hellip; **]**
 * List()
-* List(*expression* [, *expression*]&hellip;)
+* List(*expression*[, *expression*]&hellip;)
 
 Lists can contain any type including `None`, other lists, and dictionaries.
 
@@ -326,39 +326,39 @@ def poly_apply(x: Any, funct, *args, ctx=None) -> Any:
     """
 **Applies one or more user defined functions to a value or a list of values**
 
-* Apply(*value*, _function_ [, *arg*&hellip;])
-* *value*.Apply(_function_ [, *arg*&hellip;])
+* Apply(*value*, *function*[, *arg*&hellip;])
+* *value*.Apply(*function*[, *arg*&hellip;])
 
-When *value* is a list, each value within it is passed to _function_. Additional arguments, if
-any, passed following it.
-When not a list, *value* is passed as the first argument to _function_ followed by any additional
+When *value* is a list, each value within it is passed to *function*. Additional arguments, if
+any, are passed following it.
+When not a list, *value* is passed as the first argument to *function* followed by any additional
 arguments.
-If _function_ is not a user defined function, it acts as a function returning that value.
-If _function_ is a list, the functions within it are executed in order, chaining their results.
+If *function* is not a user defined function, it acts as a function returning that value.
+If *function* is a list, the functions within it are executed in order, chaining their results.
 The same additional arguments are passed to all functions, which may use or ignore as appropriate.
 
 ```vgr
-Set by_two(x) -> x * 2
+Function by_two(x) -> x * 2
 None.Apply(by_two) → None
 5.Apply(by_two) → 10
 5.Apply(None) → None
 5.Apply(6) → 6
 [5, 6].Apply(by_two) → [10, 12]
 
-Set adder(x, y, z) -> x + y + z
+Function adder(x, y, z) -> x + y + z
 6.Apply(adder) → 6
 6.Apply(adder, 2) → 8
 6.Apply(adder, 2, 3) → 11
 6.Apply(adder, 2, 3, 4) → 11
 
-Set v_adder() -> Sum($args)
+Function v_adder() -> Sum($args)
 6.Apply(v_adder, 2, 3, 4) → 15
 [0, 1, 2].Apply(v_adder, 4, 5, 6) → [15, 16, 17]
 
 [5, 6].Apply([adder, by_two], 5, 6) → [32, 34]
 [5, 6].Apply([by_two, adder], 5, 6) → [21, 23]
 
-Set slen(x, default_value) -> Type(x) Is "str" ? StringLen(x) : default_value.DefaultTo(0)
+Function slen(x, default_value) -> Type(x) Is "str" ? StringLen(x) : default_value.DefaultTo(0)
 ["hello", "world", 5].Length() → 3
 ["hello", "world", 5].StringLen() → [5, 5, None]
 ["hello", "world", 5].Apply(slen) → [5, 5, 0]
@@ -378,37 +378,37 @@ def poly_combine_using(x: Any, funct, *args, **kwargs) -> Any:
     """
 **Combine values into a single value using a user defined function**
 
-* CombineUsing(*value*, _function_ [, _initial_value_ [, *arg*&hellip;]])
-* *value*.CombineUsing(_function_ [, _initial_value_ [, *arg*&hellip;]])
+* CombineUsing(*value*, *function*[, *initial_value*[, *arg*&hellip;]])
+* *value*.CombineUsing(*function*[, *initial_value*[, *arg*&hellip;]])
 
 When *value* is a list, each value within it is passed to _function_. Additional arguments, if
 any, passed following it.
 When not a list, *value* is passed as the first argument to _function_ followed by any additional
 arguments.
 
-The signature for _function_ should be _f(accumulator, value [,args])_ where
-_accumulator_ is the result of previous calls, starting with _initial_value_.
-The default value for _initial_value_ is `None`, and while optional,
-depending upon the operations within _function_, you may need to
+The signature for *function* should be *f(accumulator, value[, args])* where
+*accumulator* is the result of previous calls, starting with *initial_value*.
+The default value for *initial_value* is `None`, and while optional,
+depending upon the operations within *function*, you may need to
 specify a starting value.
 
 ```vgr
-Set add_it(acc, value) -> acc + value
+Function add_it(acc, value) -> acc + value
 None.CombineUsing(add_it) → None
 5.CombineUsing(None) → None
 5.CombineUsing(add_it) → 5
 5.CombineUsing(6) → 6
 [5, 6].CombineUsing(add_it) → 11
 
-Set f(acc, value, scale) -> acc + (value * scale.DefaultTo(1))
+Function f(acc, value, scale) -> acc + (value * scale.DefaultTo(1))
 2.CombineUsing(f) → 2
 2.CombineUsing(f, 0) → 2
 2.CombineUsing(f, 0, 2) → 4
 2.CombineUsing(f, 0, .5) → 1.0
 
-Set double_it(n) -> n * 2
-Set get_count(d, default_value) -> d.GetKeyValue("count", default_value)
-Set sum_positive(acc, n) -> n >= 0 ? acc + n : acc
+Function double_it(n) -> n * 2
+Function get_count(d, default_value) -> d.GetKeyValue("count", default_value)
+Function sum_positive(acc, n) -> n >= 0 ? acc + n : acc
 Set counters To [
     { "name": "a", "count": 5 },
     { "name": "b" },
@@ -439,8 +439,8 @@ def poly_combine_lists(*args) -> list:
     """
 **Combine elements of collections into a list of lists**
 
-* CombineLists(_expresssion_ [,*expression*&hellip;])
-* *value*.CombineLists(_expresssion_ [,*expression*&hellip;])
+* CombineLists(*expresssion*[, *expression*&hellip;])
+* *value*.CombineLists(*expresssion*[, *expression*&hellip;])
 
 Combines the elements of the listed collections into an array of arrays.
 Each element will have the Nth matching values joined together.

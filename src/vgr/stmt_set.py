@@ -348,7 +348,7 @@ def execute_unset(ctx: ExecContext, statement: Tree) -> None:
     """
 **Remove one or more variables**
 
-* Unset *variable* [, *variable*]&hellip;
+* Unset *variable*[, *variable*]&hellip;
 
 More than setting the variable to `None`, the variable is entirely removed.
 To be removed, the variable must be mutable.
@@ -385,7 +385,7 @@ def execute_reset(ctx: ExecContext, statement: Tree) -> None:
 **Reset global state to initial conditions**
 
 * Reset
-* Reset *option* [, *option*]&hellip;
+* Reset *option*[, *option*]&hellip;
 
 Where *option* is
 

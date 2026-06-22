@@ -265,7 +265,7 @@ def _is_function(obj: Any=None) -> Any:
 
 ```vgr
 None.IsFunction() → False
-Set f(x) -> x+1
+Function f(x) -> x+1
 f.IsFunction() → True
 ```
 """

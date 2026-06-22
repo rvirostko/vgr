@@ -22,7 +22,7 @@ def execute_zip(ctx: ExecContext, statement: Tree):
 **Create a ZIP Archive**
 
 * Create-Zip [File] *zip-file*\\
-  &emsp;&emsp;[*option* [, *option*]&hellip;]
+  &emsp;&emsp;[*option*[, *option*]&hellip;]
 
 Options are
 

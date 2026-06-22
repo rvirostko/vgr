@@ -24,7 +24,7 @@ def build_dict(*values: Any) -> dict:
 **Create a dictionary from the collected key/value pairs**
 
 * **{** **}** *an empty dictionary*
-* **{** _key_ **:** *value* [, _key_ **:** *value*]&hellip; **}** *an initialized dictionary*
+* **{** *key* **:** *value*[, *key* **:** *value*]&hellip; **}** *an initialized dictionary*
 
 Keys can be any ordinal type: integer, float, string. `None` cannot be a key.
 
@@ -83,7 +83,7 @@ def poly_dict_create(*args: Any) -> dict:
 **Compose a dictionary from hetrogenous data**
 
 * Dictionary()
-* Dictionary(*expression* [, *expression*&hellip;])
+* Dictionary(*expression*[, *expression*&hellip;])
 
 Creates a dictionary and optionally initializes it.
 Sources for initialization can be ordinals used as keys or composite keys,
@@ -484,8 +484,8 @@ def poly_lookup_item(x: Any=None, path: Any=None, values: Any=None, limit: Any=N
     """
 **Find a matching entries in a list by value**
 
-* LookupItem(_list_, *path*, *value* [, *limit*])
-* _list_.LookupItem(_path_, *value* [, *limit*])
+* LookupItem(*list*, *path*, *value*[, *limit*])
+* *list*.LookupItem(*path*, *value*[, *limit*])
 
 The *path* can be:
 
@@ -517,7 +517,7 @@ points.LookupItem("space", 3).LookupItem("z", None).GetKeyValue("name")
 points.LookupItem("name", CompilePattern("p[24]")).GetKeyValue("name")
     → ["p2", "p4"]
 
-Set filter(x) -> x.EndsWith("2", "3")
+Function filter(x) -> x.EndsWith("2", "3")
 points.LookupItem("name", filter).GetKeyValue("name") → ["p2", "p3"]
 ```
 
