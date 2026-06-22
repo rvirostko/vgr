@@ -1,0 +1,18 @@
+
+# An implementaiton of Python's partition()/rpartition()
+
+Define Function Partition(text, pattern)
+    Set result To text.ExtractMatch(pattern)
+    Return result.IsEmpty() ? [text, "", ""] : [ text.Slice(0, result.start), result.match, text.Slice(result.end) ]
+End-Function
+
+Define Function RPartition(text, pattern)
+    Set result To text.ExtractAllMatches(pattern)[-1]
+    Return result.IsEmpty() ? [text, "", ""] : [ text.Slice(0, result.start), result.match, text.Slice(result.end) ]
+End-Function
+
+Print None.@Partition("=")
+Print "no match".@RPartition("=")
+Print "a=b".@Partition("=")
+Print "a<=b".@Partition(r/[=<>!]+/)
+Print "a==b!>c".@RPartition(r/[=<>!]+/)
