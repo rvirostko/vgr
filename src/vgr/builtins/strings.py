@@ -969,7 +969,7 @@ def _re_find(x: str, p: Pattern) -> int:
 
 def poly_rindex(x: Any=None, sub: Any=None) -> Any:
     """
-**Returns the _highest_ index of one item in another**
+**Returns the *highest* index of one item in another**
 
 * RIndexOf(*value*, *substr*)
 * *value*.RIndexOf(*substr*)
@@ -1012,8 +1012,7 @@ Also see `IndexOf()` and `RFindStr()`
     x = _as_str(x)
     if len(x) == 0: return -1
     if isinstance(sub, Pattern):
-        # TODO there is no "reverse" behavior here
-        return _exec_x_y_op(x, sub, 'RIndexOf', poly_rindex, _re_find, _string_loc_ops)
+        return -1 if len(m := list(sub.finditer(x))) == 0 else m[-1].start()
     if sub is None or len(sub) == 0: return -1
 
     return _exec_x_y_op(x, sub, 'RIndexOf', poly_rindex, str.rfind, _string_loc_ops)
@@ -1057,7 +1056,7 @@ Also see `RFindStr()` and `IndexOf()`
 
 def poly_rfindstr(x: Any=None, sub: Any=None) -> Any:
     """
-**Returns the _highest_ index of one string in another**
+**Returns the *highest* index of one string in another**
 
 * RFindStr(*value*, *substr*)
 * *value*.RFindStr(*substr*)
