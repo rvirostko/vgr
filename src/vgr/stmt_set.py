@@ -6,7 +6,7 @@ from io import TextIOWrapper
 from typing import Any
 import os
 
-from lark import Tree
+from lark import Tree, Token
 
 from .app_exceptions import VgrRuntimeError
 from .builtins import (
@@ -69,7 +69,7 @@ def _inplace_add_shim(x: Any, y: Any) -> Any:
         return x
     return poly_add(x, y)
 
-_IN_PLACE_OP = {
+_SET_OP = {
     "+=":  _inplace_add_shim,
     "-=":  poly_sub,
     "*=":  poly_mul,
@@ -103,9 +103,10 @@ def execute_set(ctx: ExecContext, statement: Tree) -> None:
 
 Not that when `+=` is used with two lists, the lists are concatenated.
 
+Multiple assingments can be performed by separating them with commas.
+
 ```vgr
-Set a To 5
-Set b To 3
+Set a To 5, b To 3
 Set a *= b
 Exhibit a b
 a = 15
@@ -114,15 +115,19 @@ b = 3
 
 Also see the `Assign`, `Add`, `Subtract`, `Multiply`, and `Divide` statements.
 """
-    var_path = get_writable_var_path(ctx, statement.children[0])
-    if len(statement.children) == 2:
-        # <var> <expr> : direct assignment
-        new_value = ctx.eval_expr(statement.children[1])
-    else:
-        # <var> <op> <expr> : modify existing value
-        op = _IN_PLACE_OP[statement.children[1].value.lower()]
-        new_value = op(ctx.get_var(*var_path), ctx.eval_expr(statement.children[2]))
-    do_set(ctx, new_value, *var_path)
+    i = 0
+    last = len(statement.children)
+    while i < last:
+        var_path = get_writable_var_path(ctx, statement.children[i])
+        i += 1
+        if isinstance(statement.children[i], Token) and statement.children[i].type == 'SET_OP':
+            op = _SET_OP[statement.children[i].value.lower()]
+            i += 1
+            new_value = op(ctx.get_var(*var_path), ctx.eval_expr(statement.children[i]))
+        else:
+            new_value = ctx.eval_expr(statement.children[i])
+        i += 1
+        do_set(ctx, new_value, *var_path)
 
 @bound_ops("Assign")
 def execute_assign(ctx: ExecContext, statement: Tree) -> None:

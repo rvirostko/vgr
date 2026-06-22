@@ -250,11 +250,12 @@ sleep: "Sleep"i "For"i? expr _unit_seconds?
 //     and only simple assignment can be performed.
 cmd_line_assign: var_name _assignment expr -> set
 
-set:  "Set"i var_name (_assignment | IN_PLACE_OP) expr
+_set: var_name (_assignment | SET_OP) expr
+set:  "Set"i _csep_list{_set}
     | "Set"i var_name "Up"i "By"i expr   -> set_up
     | "Set"i var_name "Down"i "By"i expr -> set_down
     | "Set"i "Corresponding"i expr "In"i "Dictionary"i? var_name -> set_corresponding
-IN_PLACE_OP: ("+=" | "-=" | "*=" | "/=" | "%=" | "**=" | "&=" | "|=" | "^=" | "<<=" | ">>=" )
+SET_OP: ("+=" | "-=" | "*=" | "/=" | "%=" | "**=" | "&=" | "|=" | "^=" | "<<=" | ">>=" )
 // Alternate to "Set" to get around conflicts
 _assign: expr "To"i var_name
 assign: "Assign"i _csep_list{_assign}
