@@ -92,6 +92,7 @@ from .general import (
     poly_repr,
     poly_reverse,
     poly_sort,
+    poly_subscript,
     poly_unique,
 )
 from .inequ import (

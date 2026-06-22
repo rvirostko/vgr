@@ -9,12 +9,14 @@ from .common import (
     int_arg,
     str_to_int,
 )
+from .dict import poly_get_key_value
 from .inequ import (
     poly_eq,
     poly_gt,
     poly_lt,
     poly_ne,
 )
+from .strings import poly_substr
 from .type import poly_type
 
 def poly_reverse(x: Any=None) -> Any:
@@ -305,6 +307,12 @@ Also see `Unique()`
         rc = list(sorted(x, key=cmp_to_key(_cmp_to_key_asc), reverse=reverse))
         return _unique_sorted(rc) if unique else rc
     return x
+
+def poly_subscript(x:Any=None, index: Any=None) -> Any:
+    if x is None: return None
+    if isinstance(x, list): return poly_get_item(x, index)
+    if isinstance(x, dict): return poly_get_key_value(x, index)
+    return poly_substr(x, index)
 
 def poly_get_item(x:Any=None, index: Any=0) -> Any:
     """
