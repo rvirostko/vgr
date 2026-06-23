@@ -429,15 +429,13 @@ limit_clause: _limit_offset | _fetch_first
 _limit_offset: "Limit"i option_value (_SEP? "Offset"i option_value)?
 _fetch_first: "Fetch"i "First"i expr "Rows"i "Only"i
 
-product_clause: "Cartesian"i? "Product"i product_cols
-product_cols: "All"i -> all
-    | "None"i -> none
-### TODO    | _csep_list{expr}
+product_clause: "Cartesian"i? "Product"i "Of"i? product_cols
+product_cols: "All"i -> all | _csep_list{expr}
 
 ?expr: ternary | and_expr
 
 // NB: Python style has multiple grammar issues
-//     and while we diferentiate the style by name
+//     and while we diferentiate the style by name,
 //     it is unlikely that anything other than a
 //     'C'/Java style will be supported.
 ternary: expr "?" expr _CLAUSE_SEP expr -> c_ternary
@@ -451,7 +449,8 @@ ternary: expr "?" expr _CLAUSE_SEP expr -> c_ternary
 // Flattening operations out here allows the parse tree to hold
 // the operation type explicitly instead of a generic "OP" where
 // we need to deal with aliases.
-// See previous comment on use of Unicode alternates
+// NB: subscripts cannot be used with var_name, thus they
+//     cannot be used when invoking user functions
 ?expr2: atom
     # Reserved: not working
     #| (var_name ":=" expr)                       -> assignment_expr
@@ -472,7 +471,7 @@ ternary: expr "?" expr _CLAUSE_SEP expr -> c_ternary
     | expr2 _is_undefined_operators                    -> is_undefined_op
     | expr2 _is_empty_operators                        -> is_empty_op
     | expr2 _is_not_empty_operators                    -> is_not_empty_op
-    // Polymorphic operations than *could* be chained
+    // Binary operators
     | expr2 ("+" | "\uFF0B") expr2                     -> add_op // Unicode ＋ (fullwidth plus)
     | expr2 ("-" | "\u2212" | "\uFF0D") expr2          -> sub_op // Unicode − (minus sign) and － (fullwidth minus)
     | expr2 ("*" | "\u00D7") expr2                     -> mul_op // Unicode × (multiplication)
@@ -484,7 +483,7 @@ ternary: expr "?" expr _CLAUSE_SEP expr -> c_ternary
     | expr2 "^" expr2                                  -> bit_xor_op
     | expr2 "<<" expr2                                 -> shl_op
     | expr2 ">>" expr2                                 -> shr_op
-    // Return bools, typically not "chained"
+    // Relation operators bools
     | expr2 _exact_eq_operators expr2                  -> exact_eq_op
     | expr2 _eq_operators expr2                        -> eq_op
     | expr2 _neq_operators expr2                       -> neq_op
@@ -500,7 +499,7 @@ ternary: expr "?" expr _CLAUSE_SEP expr -> c_ternary
     | expr2 _matches_operators expr2                   -> matches_op
     | expr2 _not_matches_operators expr2               -> not_matches_op
     | expr2 _matches_all_operators expr2               -> matches_all_op
-    // Misc operations
+    // Misc operators
     | "\u2308" expr "\u2309"                            -> ceil_op      // Unicode ceiling ⌈ x ⌉
     | "\u230A" expr "\u230B"                            -> floor_op     // Unicode floor ⌊ x ⌋
     | expr2 SUPERSCRIPT_FLOAT                           -> pow_op
