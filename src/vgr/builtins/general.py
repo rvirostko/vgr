@@ -366,7 +366,7 @@ None.FirstItem() → None
 [].FirstItem() → None
 [None].FirstItem() → None
 ["apple", "banana", "cantaloupe"].FirstItem() → "apple"
-"apple".FirstItem() → "apple"
+"apple".FirstItem() → "a"
 5.FirstItem() → 5
 ```
 
@@ -390,7 +390,7 @@ None.LastItem() → None
 [].LastItem() → None
 [None].LastItem() → None
 ["apple", "banana", "cantaloupe"].LastItem() → "cantaloupe"
-"apple".LastItem() → "apple"
+"apple".LastItem() → "e"
 5.LastItem() → 5
 ```
 
