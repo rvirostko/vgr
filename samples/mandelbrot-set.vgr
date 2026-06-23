@@ -25,7 +25,7 @@ Set COLOR_RAMP = [
 ]
 Set COLOR_RAMP_SIZE = Length(COLOR_RAMP)
 Set COLOR_RAMP_LAST = COLOR_RAMP_SIZE - 1
-Define Function ColorForIteration(iter) → COLOR_RAMP.Item(((iter * COLOR_RAMP_SIZE) / MAX_ITER).Clamp(0, COLOR_RAMP_LAST))
+Define Function ColorForIteration(iter) → COLOR_RAMP[((iter * COLOR_RAMP_SIZE) / MAX_ITER).Clamp(0, COLOR_RAMP_LAST)]
 
 Set CHAR_RAMP = [" ", ".", ":", "-", "=", "+", "*", "#", "%", "@"]
 Set CHAR_RAMP_SIZE = Length(CHAR_RAMP)
