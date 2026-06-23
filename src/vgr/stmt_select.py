@@ -23,6 +23,7 @@ from .builtins import (
     poly_false,
     poly_int,
     poly_plural,
+    poly_repr,
     poly_str,
     poly_type,
 )
@@ -292,12 +293,16 @@ class SelectAnalyzer(Visitor):
         # If they have some type of constant, we'll use it if it is a simple type
         if isinstance(node, Token):
             value = node.value
-            return str(value).strip() if isinstance(value, (str, int, float)) else ''
-        if isinstance(node, Tree):
-            # For variable names, we just make that into a string
-            if node.data == 'var_ref': return '.'.join(name.value for name in node.children)
-            # We'll inherit the name for function calls, but not other ops
-            if node.data in ['function_call', 'dotfunction_call']: return cls.get_default_col_name(node.children[0])
+            if isinstance(value, (re.Pattern, bool, int, float)): return poly_repr(value)
+            if isinstance(value, (str)):
+                value = str(value).strip()
+                return value if value else None
+        else:
+            if isinstance(node, Tree):
+                # For variable names, we just make that into a string
+                if node.data == 'var_ref': return '.'.join(name.value for name in node.children)
+                # We'll inherit the name for function calls, but not other ops
+                if node.data in ['function_call', 'dotfunction_call']: return cls.get_default_col_name(node.children[0])
         # We'll figure out the default later
         return None
 
@@ -307,7 +312,7 @@ class SelectAnalyzer(Visitor):
         counter = {}
         rc = []
         for i, name in enumerate(col_names):
-            # Assign unamed cols their index
+            # Assign unnamed cols their index
             if name is None: name = f'col_{i + 1}'
             # If name exists append the count to the name
             if name in counter:
