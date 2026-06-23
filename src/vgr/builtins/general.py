@@ -309,10 +309,9 @@ Also see `Unique()`
     return x
 
 def poly_subscript(x:Any=None, index: Any=None) -> Any:
-    if x is None: return None
-    if isinstance(x, list): return poly_get_item(x, index)
+    if isinstance(x, (list, str)): return poly_get_item(x, index)
     if isinstance(x, dict): return poly_get_key_value(x, index)
-    return poly_substr(x, index)
+    return x
 
 def poly_get_item(x:Any=None, index: Any=0) -> Any:
     """
@@ -320,6 +319,7 @@ def poly_get_item(x:Any=None, index: Any=0) -> Any:
 
 * Item(*value*, *index*)
 * *value*.Item(*index*)
+* *value*[*index*]
 
 For non-list types *value* is returned unchanged.
 If *index* itself is a list, the corresponding items
@@ -333,16 +333,19 @@ None.Item(0) → None
 [None].Item(0) → None
 ["apple", "banana", "cantaloupe"].Item(1) → "banana"
 ["apple", "banana", "cantaloupe"].Item(5) → None
+["apple", "banana", "cantaloupe"].Item(-2) → "banana"
 ["apple", "banana", "cantaloupe"].Item(-5) → None
-"apple".Item(1) → "apple"
+"apple".Item(1) → "p"
 5.Item(1) → 5
 ```
 
 Also see `FirstItem()` and `LastItem()`
 """
+    if isinstance(x, str): return poly_substr(x, index)
     if not isinstance(x, list): return x
     if isinstance(index, list): return dist_x(poly_get_item, x, index)
     i: int = int(index) if isinstance(index, (int, float)) else str_to_int(index) if isinstance(index, str) else None
+    if i is None: i = 0
     l = len(x)
     if i >= 0: return x[i] if i < l else None
     return x[i] if l >= abs(i) else None
@@ -353,6 +356,7 @@ def poly_first_item(x: Any=None) -> Any:
 
 * FirstItem(*value*)
 * *value*.FirstItem()
+* *value*[0]
 
 If the list is empty then `None` is returned.
 For non-list types *value* is returned unchanged.
@@ -376,6 +380,7 @@ def poly_last_item(x: Any=None) -> Any:
 
 * LastItem(*value*)
 * *value*.LastItem()
+* *value*[-1]
 
 If the list is empty then `None` is returned.
 For non-list types *value* is returned unchanged.
