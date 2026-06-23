@@ -249,7 +249,7 @@ class Subscript(Operation):
         # <expr>[<expr>]...
         value = ctx.eval_expr(args[0]) # the in-line <expr>
         for arg in args[1:]:
-            value = poly_subscript(value, arg)
+            value = poly_subscript(value, ctx.eval_expr(arg))
         return value
 
     def op_name(self) -> str:
