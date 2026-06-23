@@ -219,6 +219,7 @@ def poly_get_key_value(data: Any=None, path: Any=None, default_value: Any=None) 
 * GetKeyValue(*value*, *path*, *default_value*)
 * *value*.GetKeyValue(*path*)
 * *value*.GetKeyValue(*path*, *default_value*)
+* *value*[*path*]
 
 The *value* must either be a dictionary, a list, or `None`.
 

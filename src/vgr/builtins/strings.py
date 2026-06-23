@@ -830,6 +830,7 @@ def poly_substr(x: Any=None, start: Any=0, length: Any=1) -> Any:
 * *value*.SubStr()
 * *value*.SubStr(*start*)
 * *value*.SubStr(*start*, *length*)
+* *value*[*index*]
 
 If not provided, *start* defaults to zero and *length* to one.
 The *start* index is zero based.
