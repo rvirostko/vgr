@@ -430,7 +430,8 @@ _limit_offset: "Limit"i option_value (_SEP? "Offset"i option_value)?
 _fetch_first: "Fetch"i "First"i expr "Rows"i "Only"i
 
 product_clause: "Cartesian"i? "Product"i "Of"i? product_cols
-product_cols: "All"i -> all | _csep_list{expr}
+product_cols: ("All"i | "*") -> product_all
+    | _csep_list{expr}
 
 ?expr: ternary | and_expr
 

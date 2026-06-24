@@ -167,6 +167,7 @@ class SelectAnalyzer(Visitor):
         self._output_controls = {}
         self._output_opts = {}
         self._headers = []
+        self._product_cols = []
         # set in analyze()
         self._select_statement = None
 
@@ -217,7 +218,80 @@ class SelectAnalyzer(Visitor):
             self._headers = headers
             self._output_statements = outputs_statements
         self._output_opts['headers'] = self.make_cols_names_unique(self._headers)
+        self._output_opts['product'] = self.create_product_cols(attrs)
         return self._output_opts
+
+    def create_product_cols(self, attrs: list[str]) -> list[bool]:
+        # create the indicators for cartesian product
+        if self._product_cols == '*': return [True] * len(self._headers)
+        if len(self._product_cols) == 0: return None
+        col_labels = self._output_opts['headers']
+        ncols = len(col_labels)
+        name_to_index = {}
+        # First priority is the labels as it is the user's
+        # prefered name for the column
+        for i, label in enumerate(col_labels, 0):
+            if label not in name_to_index: name_to_index[label] = i
+        # Then fully qualified versions of variable references
+        # Constant and expressions are not included: you have to use
+        # numeric references
+        def _get_source_text(s) -> str:
+            return '.'.join(c.value for c in s.children) if isinstance(s, Tree) and s.data == 'var_ref' else None
+        for i, output_statement in enumerate(self._output_statements, 0):
+            src = _get_source_text(output_statement)
+            if src is not None and src not in name_to_index: name_to_index[src] = i
+        # Lastly shorthands for attributes referenced in the output
+        # as a 2nd pass so it has the least priority when there are conflicts
+        # eg: Select bob, X.bob From lst as X
+        target_prefix = self._from_opts[_TARGET] + '.'
+        for i, output_statement in enumerate(self._output_statements, 0):
+            src = _get_source_text(output_statement)
+            if src is not None and src.startswith(target_prefix):
+                src = src[len(target_prefix)]
+                if src not in name_to_index: name_to_index[src] = i
+        # Create a list with everything excluded and set only the
+        # items referenced in the product clause
+        product = [False] * len(self._headers)
+        def _colref_range_check(expr, col_ref, ncols):
+            if col_ref < 1: raise VgrRuntimeError(expr, ValueError(f"Numeric column reference must be greater than zero; found {poly_repr(col_ref)!r}"))
+            if col_ref > ncols: raise VgrRuntimeError(expr, ValueError(f"Numeric column reference out of range; found {poly_repr(col_ref)!r}, maximum is {ncols}"))
+            return col_ref - 1 # convert to 0 based
+        def _set_col_ref(col_ref: Any) -> None:
+            if col_ref is None: return # skip over None value
+            if isinstance(col_ref, list):
+                for item in col_ref: _set_col_ref(item)
+                return
+            if isinstance(col_ref, (int, float)):
+                i = name_to_index.get(col_ref)
+                if i is not None:
+                    product[i] = True
+                else:
+                    product[_colref_range_check(expr, int(col_ref), ncols)] = True
+                return
+            if isinstance(col_ref, re.Pattern): col_ref = poly_repr(col_ref)
+            if isinstance(col_ref, str):
+                # 1-to-1 match with something?
+                i = name_to_index.get(col_ref)
+                if i is not None:
+                    product[i] = True
+                    return
+                # See if the user added a superflous prefix to the reference
+                if col_ref.startswith(target_prefix):
+                    short = col_ref[len(target_prefix):]
+                    if short in attrs:
+                        i = name_to_index.get(short)
+                        if i is not None:
+                            product[i] = True
+                            return
+                # Is is a numeric reference, but provided as a string?
+                if col_ref.isdigit() and col_ref.isascii():
+                    product[_colref_range_check(expr, poly_int(col_ref), ncols)] = True
+                    return
+                raise VgrRuntimeError(expr, ValueError(f"Cannot find output column named {col_ref!r}"))
+            raise VgrRuntimeError(expr, TypeError(f"Unsupported type for column reference: {poly_type(col_ref)!r}"))
+        for expr in self._product_cols:
+            _set_col_ref(self.ctx.eval_expr_or_const(expr))
+        return product
 
     def get_output_statements(self) -> list:
         if not self._output_statements_bound:
@@ -286,7 +360,7 @@ class SelectAnalyzer(Visitor):
         if as_value is None or isinstance(as_value, (str, int, float)):
             self._headers.append(as_value)
         else:
-            raise VgrRuntimeError(as_node, TypeError(f"Value for 'As' must be a simple type; found {poly_type(as_value)!r}"))
+            raise VgrRuntimeError(as_node, TypeError(f"Invalid type for 'As'; found {poly_type(as_value)!r}"))
 
     @classmethod
     def get_default_col_name(cls, node: Tree) -> str:
@@ -380,8 +454,12 @@ class SelectAnalyzer(Visitor):
         if len(children) >= 2: self._output_controls['offset'] = self.ctx.eval_to_int(node.children[1], 'Offset', True)
 
     def product_clause(self, node: Tree):
-        node = bind_operations(node)
-        # TODO
+        if node.children[0].data == 'product_all':
+            self._product_cols = '*'
+        else:
+            node = bind_operations(node)
+            # Record for future use
+            self._product_cols = node.children[0].children
 
     def for_text(self, node: Tree):
         """... For Text <opts>* ..."""
