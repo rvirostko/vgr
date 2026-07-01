@@ -188,7 +188,7 @@ class SelectAnalyzer(Visitor):
     def into_opts(self) -> dict:
         return self._into_opts
 
-    def create_output_opts(self, attrs: list[str]) -> dict:
+    def create_output_opts(self, attrs: list[str]):
         # We add these here because they get passed to down to
         # writers et al for possible extra output (mostly Templates)
         self._output_opts['debug'] = self.ctx.debug
@@ -218,10 +218,12 @@ class SelectAnalyzer(Visitor):
             self._headers = headers
             self._output_statements = outputs_statements
         self._output_opts['headers'] = self.make_cols_names_unique(self._headers)
-        self._output_opts['product'] = self.create_product_cols(attrs)
-        return self._output_opts
+        # If the type was not set, we use the default
+        self._output_opts[_TYPE] = self._output_opts.get(_TYPE, 'csv')
+        self._output_controls['product'] = self._create_product_cols(attrs)
+        return self._output_opts, self._output_controls
 
-    def create_product_cols(self, attrs: list[str]) -> list[bool]:
+    def _create_product_cols(self, attrs: list[str]) -> list[bool]:
         # create the indicators for cartesian product
         if self._product_cols == '*': return [True] * len(self._headers)
         if len(self._product_cols) == 0: return None
@@ -304,10 +306,6 @@ class SelectAnalyzer(Visitor):
             self._predicates = [bind_operations(self.add_implicit(p)) for p in self._predicates]
             self._predicates_bound = True
         return self._predicates
-
-    @property
-    def output_controls(self) -> dict:
-        return self._output_controls
 
     #----
     # visitor methods
@@ -446,7 +444,15 @@ class SelectAnalyzer(Visitor):
         # NB: do not bind
         self._predicates.extend(node.children)
 
-    def limit_clause(self, node: Tree):
+    def limit_input(self, node: Tree):
+        self._output_controls['limit_input'] = True
+        self._limit_and_offset(node)
+
+    def limit_output(self, node: Tree):
+        self._output_controls['limit_output'] = True
+        self._limit_and_offset(node)
+
+    def _limit_and_offset(self, node: Tree):
         """... Limit <limit> (Offset <offset>)? ..."""
         node = bind_operations(node)
         children = node.children
@@ -631,11 +637,146 @@ class ImplicitContextAdder(Transformer):
 @bound_ops("Select")
 def execute_select(ctx: ExecContext, statement: Tree):
     """
-**A Select statement to compose, filter, and output data**
+**Extract and format records from data**
 
-```vgr
+* Select [Records]\\
+  &emsp;&emsp;*output*[, *output*]&hellip;\\
+  &emsp;&emsp;From *source*\\
+  &emsp;&emsp;[Where *expression*[, *expression*]&hellip;]\\
+  &emsp;&emsp;[[Cartesian] Product [Of] *column-ref*[, *column-ref*]&hellip;]\\
+  &emsp;&emsp;[*limit*]\\
+  &emsp;&emsp;[*for*]\\
+  &emsp;&emsp;[*into*] [;]
+
+The `Select` statement extracts, filters, and reformats records from data,
+typically a list variable or from a file.
+Records are filtered through the optional `Where` clause allowing you to keep
+only the ones needed, which are then reshaped by the column outputs.
+Column data can be Cartesian-expanded if desired.
+
+Results are rendered to JSON, CSV, Markdown, flat text, or sent to a Jinja template.
+The rendered data is sent to stdout by default, but can be sent to stderr, a variable,
+or straight to a file.
+
+Everything is optional except for defining the output columns and the data source
+with a `From` clause.
+
+**Column *output* definitions**
+
+* *expression* [As *expression*]\\
+  Expressions may reference values within the record, constants, or arbitrary expressions\\
+  Without an `As` alias, a column's label is auto-generated
+* *\\
+  Expands to one output column per field for data sources composed of dictionaries.\\
+  Otherwise, it reflects the entire input record. Can be used multiple times.
+
+**`From` clause - specify source data**
+
+* From *expression* [As *expression*]\\
+  *expression* can evaluate to any value, but typically a
+  list of dictionaries is used.
+* From File *expression* [*options*] [As *expression*]
+  The expression should evaluate to a a string file name.
+  The options are the same as those for the `Load` statement and
+  include the file's type and encoding.
+* In either case, the `As` expression should resolved
+  to a simple variable name. This can be used as a prefix for fields
+  in both output expressions and the `Where` clause should there be
+  naming conflicts between a global and a property of the record.
+  If not specified, `$record` is used.
+
+**`Where` clause - optional filtering**
+
+* Where *expression*[, *expression* &hellip;]
+  Filters records prior to extraction.
+  Multiple expressions are combined with `And`.
+
+**`Product` clause - optional expansion of records**
+
+* [Cartesian] Product [Of] [Column[s]] *column*[, *column*]&hellip;
+  Defines the columns that will take place in the Cartesian product.
+  Using `*` or `All` adds all columns to the expansion process.
+  When selecting individual columns, it can be specified as a column
+  index (ones based), the name used with the column's `As` alias
+  or the automatically assigned alias. Lastly, you can specify the
+  name of the column's contents if used in an expression.
+* Duplicate column references and references to `None` are ignored.
+* If the column reference expression resolves to a list, the items
+  within it are used as individual references.
+
+**`Limit` and `Offset` clause - limit output**
+
+* Limit [Input] *count* [Record[s]][, Offset *count*]
+* Without *Input*, *count* and *Offset* apply to output (post-*product*) records
+* With *Input*, *count* and *Offset* apply to source (pre-*product*) records
+* If the count expressions are `None` then there is no limit or offset
+
+**`For` Clause - render output**
+
+* For *format* [*options*]&hellip;
+* Selects the output formatter and its options
+* If omitted, defaults to CSV
+**TODO common options**
+
+**JSON output**
+
+* For JSON\\
+  &emsp;Root *expression*\\
+  &emsp;Indent *expression*\\
+  &emsp;Compact [*expression*]\\
+  &emsp;Array Wrapper [*expression*]\\
+  &emsp;Sort [Keys] [*expression*]
+* *Root* names a top-level key wrapping an array of records
+* *Indent* sets pretty-print indentation; omit for compact output
+* *Compact** TODO
+* *Array Wrapper* wraps records in an array even when only one record is produced
+* *Sort Keys* sorts each record's keys alphabetically
+
+**CSV output**
+
+* For CSV\\
+  &emsp;Delimiter [Char] *expression*\\
+  &emsp;Quote Char *expression*\\
+  &emsp;Escape Char *expression*\\
+  &emsp;Line Terminator *expression*\\
+  &emsp;Quoting Style *expression*
+* *Delimiter* defaults to a comma
+* *Quote* TODO
+* *Escape* TODO
+* *Line Terminator* TODO
+* *Quoting Style* is one of: All, Minimal, Non-Numeric, None
+
+**Markdown output**
+
+* For MarkDown
+* Produces a Markdown table from the records
+
+**Text output**
+
+* For Tex\\
+  &emsp;Field Separator *expression*\\
+  &emsp;Header Separator *expression*\\
+  &emsp;Record Separator *expression*
+* Produces flat delimited text, independent of the CSV format
+* *Field Separator* separates columns within a record
+* *Header Separator* separates the header line from records
+* *Record Separator* separates records
+
+**Template output — **TODO**
+
+* For [Record | Batch] [Template | Jinja]
+**TODO*
+
+**`Into` Clause - specify output destination**
 **TODO**
-```
+
+***Note: Evaluation order***
+
+* Expression in *output* values (but not `As` aliases) and those in `Where` are evaluated
+  per record while iterating the source data
+* All other expression, such as in `Product`, `Limit`, `For` et al are evaluated once,
+  before iteration begins
+
 """
     into_opts = {}
     buffer_data = None
@@ -652,11 +793,9 @@ def execute_select(ctx: ExecContext, statement: Tree):
         extractor = create_extractor(ctx, from_opts)
         if ctx.debug: ctx.print_debug(repr(extractor))
         # create the final outputs
-        output_opts = select.create_output_opts(extractor.attrs)
-        # If the type was not set, we use the default
-        output_opts[_TYPE] = output_opts.get(_TYPE, 'csv')
+        output_opts, output_controls = select.create_output_opts(extractor.attrs)
         def exec_query(dest):
-            writer = create_writer(output_opts, select.output_controls, dest)
+            writer = create_writer(output_opts, output_controls, dest)
             if ctx.debug: ctx.print_debug(repr(writer))
             QueryRunner(ctx, select, writer).run_extraction(extractor)
         into_opts = select.into_opts
@@ -856,9 +995,12 @@ def create_writer(opts: dict, controls: dict, dest) -> RecordWriter:
     else:
         # CSV is the ultimate fallback
         writer = CSVRecordWriter(dest, stderr=stderr(), **opts)
-    # Order is important since projections can generate more than one row
-    # It depends upon how you want to interpret the limit/offset, and that is TBD
-    # TODO option on "product" like "before or after limit"
-    writer = RecordLimiter.wrap(writer, **controls)
-    writer = RecordCartesianProduct.wrap(writer, **controls)
+    if 'limit_input' in controls:
+        # any limit/offset counts input before cartesian product
+        writer = RecordCartesianProduct.wrap(writer, **controls)
+        writer = RecordLimiter.wrap(writer, **controls)
+    else:
+        # any limit/offset counts output afer cartesian product
+        writer = RecordLimiter.wrap(writer, **controls)
+        writer = RecordCartesianProduct.wrap(writer, **controls)
     return writer

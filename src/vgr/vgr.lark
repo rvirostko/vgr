@@ -359,26 +359,35 @@ list_remove_last: "Remove"i "Last"i "Item"i? "From"i "List"i? var_name giving_cl
 list_replace: "Replace"i ("Position"i | "Index"i)? expr "In"i "List"i? var_name "With"i expr giving_clause?
 list_all: "All"i
 
-select: "Select"i select_outputs from_clause where_clause? product_clause? limit_clause? for_clause? into_clause?
+_records: ("Record"i | "Records"i)
+_columns: ("Column"i | "Columns"i)
+
+select: "Select"i _records? select_outputs from_clause where_clause? product_clause? limit_clause? for_clause? into_clause?
 
 ?select_outputs: _csep_list{select_output} _SEP?
-
-select_output: "*"    -> output_all
-    | expr "As"i expr -> output_as
-    | expr            -> output
+select_output: "*"   -> output_all
+    | expr as_clause -> output_as
+    | expr           -> output
+?as_clause: "As"i expr
 
 ?from_clause: "From"i (expr_from | file_from)
 expr_from: expr as_clause?
 file_from: _file_option expr (_SEP? (load_from_opts | as_clause))*
-?as_clause: "As"i expr
+
+where_clause: "Where"i _csep_list{expr}
+
+product_clause: "Cartesian"i? "Product"i "Of"i? _columns? product_cols
+product_cols: ("All"i | "*") -> product_all
+    |         _csep_list{expr}
+
+limit_clause: "Limit"i "Input"i option_value _records? (_SEP? "Offset"i option_value)? -> limit_input
+    |         "Limit"i          option_value _records? (_SEP? "Offset"i option_value)? -> limit_output
+
+?for_clause: "For"i (for_json | for_csv | for_markdown | for_text | for_template)
 
 into_clause: "Into"i var_name
     | "Into"i (stdout | stderr)
     | "Into"i _file_option expr _options_list{open_option}
-
-where_clause: "Where"i _csep_list{expr}
-
-?for_clause: "For"i (for_json | for_csv | for_markdown | for_text | for_template)
 
 for_json: "JSON"i _options_list{json_option}
 ?json_option: exclude_nulls | include_nulls
@@ -402,7 +411,7 @@ for_markdown: "MarkDown"i _options_list{markdown_option}
 
 for_template: template_type? ("Template"i | "Jinja"i | "Jinja2"i) (template_filename | "Default"i)? _options_list{template_option}
 ?template_type: "Record"i -> record
-    | "Batch"i            -> batch
+    |           "Batch"i  -> batch
 template_filename: _file_option? expr
 ?template_option: include_headers | exclude_headers
     | "Auto"i "Escape"i option_value?                   -> auto_escape
@@ -422,16 +431,6 @@ include_headers: "Include"i _headers_option option_value?
 exclude_headers: "Exclude"i _headers_option option_value?
 exclude_nulls: "Exclude"i _null_values_option option_value?
 include_nulls: "Include"i _null_values_option option_value?
-
-// Either LIMIT <number> (OFFSET <number>)?
-// or FETCH FIRST <number> ROWS ONLY
-limit_clause: _limit_offset | _fetch_first
-_limit_offset: "Limit"i option_value (_SEP? "Offset"i option_value)?
-_fetch_first: "Fetch"i "First"i expr "Rows"i "Only"i
-
-product_clause: "Cartesian"i? "Product"i "Of"i? product_cols
-product_cols: ("All"i | "*") -> product_all
-    | _csep_list{expr}
 
 ?expr: ternary | and_expr
 
