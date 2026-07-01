@@ -154,7 +154,7 @@ def execute_sort(ctx: ExecContext, statement: Tree) -> None:
 * Sort *variable* *keys* [*unique*] [*target*]
 * Sort File *file_name* [*file_type*] *keys* [*unique*] [*target*]
 
-The *keys* option
+**The *keys* option**
 
 * &hellip; [On | By] *key_spec*[, *key_spec* &hellip;] &hellip;
 * *key_spec* : [Ascending | Descending] [Key] *expression*
@@ -163,7 +163,7 @@ The *keys* option
 * When sorting non-dictionary items, no keys are required.
   The only available key is *line*.
 
-The *unique* option
+**The *unique* option**
 
 * &hellip; Unique &hellip;
 * &hellip; Unique On *expression*[, *expression* &hellip;] &hellip;
@@ -171,14 +171,14 @@ The *unique* option
 * When sorting non-dictionary items, no keys are required.
   The only available key is *line*.
 
-The *target* option
+**The *target* option**
 
 * &hellip; Giving *variable* &hellip;
 * &hellip; Giving File *file_name* &hellip;
 * &hellip; Giving File *file_name* [*file_type*] &hellip;
 * If omitted, sort is performed in-place
 
-The *file_type* option
+**The *file_type* option**
 
 * &hellip; Type [Is] *file_type* [Encoding [Is] *encoding*] &hellip;
 * *file_type* is one of:\\
