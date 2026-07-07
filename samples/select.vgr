@@ -1,10 +1,10 @@
-Print """"
+Print """
 The default variable name is $record"""
 Select *
 From 1 /* As $record */
 For Template
 
-Print """"
+Print """
 With various options"""
 Select * From 1 For Record Template
 Select * From 1 For Batch Template
@@ -42,16 +42,16 @@ For Batch Template
 
 Print """
 Select maintains a variable reflecting the current
-row number. $rowid starts at zero."""
+row number. $rec-index starts at zero."""
 Select
-    $rowid, *
+    $rec-index, *
 From [ "A", "B", "C" ] As Character
 For Batch Template
 
 Print """
-$rowid reflects the input sequence, not the output"""
+$rec-index reflects the input sequence, not the output"""
 Select
-    $rowid, *
+    $rec-index, *
 From [ "A", "B", "C" ] As Character
 Where Character >= "B"
 For Batch Template
@@ -69,7 +69,7 @@ as a column value."""
 Set counter To 1
 Select
     @row_number() As "Output Row",
-    $rowid As "Input Row",
+    $rec-index As "Input Row",
     *
 From [ "A", "B", "C", "D" ] As Character
 Where Character Is Not In ["B", "D"]
@@ -128,7 +128,7 @@ For Batch Template
 Print """
 Select can read directly from a file."""
 Select
-    RightJustify($rowid + 1, 3) As "Row",
+    RightJustify($rec-index + 1, 3) As "Row",
     RightJustify(age.DefaultTo(Space), 3) As "age".Capitalize(), /* labels are expressions */
     last_name.DefaultTo(Space) As "Last Name",
     first_name.DefaultTo(Space) As "First Name",

@@ -10,7 +10,7 @@ Print $load.records, " record", $load.records.Plural()
 
 Print Newline, "Original, first ", limit
 Select
-    RightJustify($rowid + 1, 2) As "",
+    RightJustify($rec-index + 1, 2) As "",
     RightJustify(age.DefaultTo(Space), 3) As "Age",
     last_name.DefaultTo(Space) As "Last Name",
     first_name.DefaultTo(Space) As "First Name"
@@ -21,7 +21,7 @@ For Batch Template
 Sort people On age Giving people_by_age
 Print Newline, "By Age, first ", limit, " (not null)"
 Select
-    RightJustify($rowid + 1, 2) As "",
+    RightJustify($rec-index + 1, 2) As "",
     RightJustify(age.DefaultTo(Space), 3) As "Age",
     last_name.DefaultTo(Space) As "Last Name",
     first_name.DefaultTo(Space) As "First Name"
@@ -33,7 +33,7 @@ For Batch Template
 Sort people On last_name, first_name Giving people_by_names
 Print Newline, "By Name, first ", limit
 Select
-    RightJustify($rowid + 1, 2) As "",
+    RightJustify($rec-index + 1, 2) As "",
     last_name.DefaultTo(Space) As "Last Name",
     first_name.DefaultTo(Space) As "First Name",
     RightJustify(age.DefaultTo(Space), 3) As "Age"

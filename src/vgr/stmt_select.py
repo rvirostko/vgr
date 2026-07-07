@@ -58,7 +58,7 @@ from .tags import control_statement
 from .var_name import VAR_NAME
 from .xtract_memory import InMemoryExtractor
 
-_ROWID_PATH = ('$rowid', ) # NB: zero based
+_REC_INDEX = ('$rec-index', ) # NB: zero based, reflects the source number
 _DEFAULT_TARGET_NAME = '$record'
 
 _TYPE = 'type'
@@ -781,7 +781,7 @@ with a `From` clause.
     into_opts = {}
     buffer_data = None
     dest = None
-    ctx.dd.push_frame([(_ROWID_PATH, 0)])
+    ctx.dd.push_frame([(_REC_INDEX, 0)])
     try:
         select = SelectAnalyzer(ctx).analyze(statement)
         # NB: at this point not all operations will show as bound
@@ -845,7 +845,7 @@ class QueryRunner(QueryFilter, InfoOutput):
     @rowid.setter
     def rowid(self, value: int) -> int:
         self._rowid = int(value)
-        self.ctx.set_var(self._rowid, *_ROWID_PATH)
+        self.ctx.set_var(self._rowid, *_REC_INDEX)
 
     def inc_rowid(self):
         self.rowid += 1
