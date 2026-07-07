@@ -134,7 +134,7 @@ Select
     first_name.DefaultTo(Space) As "First Name",
     email.DefaultTo(Space) As "Email"
 From File filename
-    Type is JSON Encoding Is "UTF-8" /* optional values */
+    Type Is JSON Encoding Is "UTF-8" /* optional values */
 Where (age Is None Or first_name Is None) And email Is Not None
 Limit 5
 For Batch Template
