@@ -209,7 +209,7 @@ End-If
 """
 
 @control_statement
-@bound_ops("Begin", "Block")
+@bound_ops("Begin")
 def execute_block(ctx: ExecContext, statement: Tree) -> None:
     """
 **Defines a group of statements with local variable scoping**
