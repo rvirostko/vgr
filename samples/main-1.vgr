@@ -3,9 +3,9 @@
 # Source a file relative to our location
 Source vgr.source.FirstItem().DirectoryName() + os.sep + "main-2.vgr"
 
-// Length() == 0 : run from REPL, command line, or read from stdin
-// Length() == 1 : sourced or included from REPL or command line
-// Length() > 1 : sourced or included from another file
+// Length() == 0 : a command run from REPL or command line, or file read from stdin
+// Length() == 1 : file sourced or included from REPL or command line
+// Length() > 1 : file sourced or included from another file
 // vgr.included indicates if execution came from a source or an include
 // Also see vgr.includes for a list of files which have be loaded with @Include
 If Length(vgr.source) <= 1 && !vgr.included
