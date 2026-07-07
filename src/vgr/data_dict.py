@@ -35,9 +35,18 @@ class DataDictionary():
         self._immutable_prefixes: set = set()
         for context in _CONTEXT_KEYS: self.add_immutable_prefix(context)
 
-    def add_immutable_prefix(self, prefix: str) -> None:
+    def add_immutable_prefix(self, prefix: str) -> list:
         """Immutable prefixes means you can't change any part of them"""
         self._immutable_prefixes.add(self._assert_valid_prefix(prefix))
+        return self.immutable_prefixes
+
+    def remove_immutable_prefix(self, prefix: str) -> list:
+        self._immutable_prefixes.remove(self._assert_valid_prefix(prefix))
+        return self.immutable_prefixes
+
+    @property
+    def immutable_prefixes(self) -> list:
+        return list(self._immutable_prefixes)
 
     def _assert_valid_prefix(self, prefix: str) -> str:
         """Prefixes cannot contain "." or be a reserved word"""
