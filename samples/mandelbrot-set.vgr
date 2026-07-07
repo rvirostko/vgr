@@ -2,34 +2,31 @@
 # No 2D arrays available, so each row is built as a list of characters
 # and printed/colored cell-by-cell as we go (no need to store the
 # whole screen at once).
-# Sizes are the default...
-Set WIDTH = 80
-Set HEIGHT = 25
-Set MAX_ITER = 12.0
+Constant MAX_ITER = 12.0
 
 # Complex-plane window. Mandelbrot's interesting region is roughly
 # real: -2.5..1.0, imag: -1.25..1.25. We widen the real range slightly
 # to compensate for character cells being taller than they are wide.
-Set RE_MIN = -2.0
-Set RE_MAX = .75
-Set IM_MIN = -1.25
-Set IM_MAX = 1.25
+Constant RE_MIN = -2.0
+Constant RE_MAX = .75
+Constant IM_MIN = -1.25
+Constant IM_MAX = 1.25
 
 # 16-color escape-iteration ramp, low iteration count (escapes fast,
 # far outside the set) to high iteration count (escapes slowly, near
 # the boundary). Points that never escape (MAX_ITER reached) are the
 # set itself, rendered in white-on-black with a solid block.
-Set COLOR_RAMP = [
+Constant COLOR_RAMP = [
     "Black",       "Blue",       "Green",       "Cyan",       "Red",       "Magenta",       "Yellow",       "White",
     "BrightBlack", "BrightBlue", "BrightGreen", "BrightCyan", "BrightRed", "BrightMagenta", "BrightYellow", "BrightWhite"
 ]
-Set COLOR_RAMP_SIZE = Length(COLOR_RAMP)
-Set COLOR_RAMP_LAST = COLOR_RAMP_SIZE - 1
+Constant COLOR_RAMP_SIZE = Length(COLOR_RAMP)
+Constant COLOR_RAMP_LAST = COLOR_RAMP_SIZE - 1
 Define Function ColorForIteration(iter) → COLOR_RAMP[((iter * COLOR_RAMP_SIZE) / MAX_ITER).Clamp(0, COLOR_RAMP_LAST)]
 
-Set CHAR_RAMP = [" ", ".", ":", "-", "=", "+", "*", "#", "%", "@"]
-Set CHAR_RAMP_SIZE = Length(CHAR_RAMP)
-Set CHAR_RAMP_LAST = CHAR_RAMP_SIZE - 1
+Constant CHAR_RAMP = [" ", ".", "·", ":", ";", "-", "=", "+", "*", "S", "%", "#", "▒", "▓", "█"]
+Constant CHAR_RAMP_SIZE = Length(CHAR_RAMP)
+Constant CHAR_RAMP_LAST = CHAR_RAMP_SIZE - 1
 Define Function CharForIteration(iter) → CHAR_RAMP.Item(((iter * CHAR_RAMP_SIZE) / MAX_ITER).Clamp(0, CHAR_RAMP_LAST))
 
 Define Function MandelbrotSet()
@@ -52,9 +49,7 @@ Define Function MandelbrotSet()
 End-Function
 
 Define Function EscapeIterations(cx, cy)
-    Set x = 0.0
-    Set y = 0.0
-    Set iter = 0
+    Set x = 0.0, y = 0.0, iter = 0
     For n = 1 To MAX_ITER
         Set x′ = x²
         Set y′ = y²
@@ -78,8 +73,8 @@ If Length(vgr.source) <= 1 And
     // Update our default size
     Terminal GetTerminalSize
     Assert term.size.cols ≥ 80 And term.size.rows ≥ 24 : "Window too small for demo"
-    Set WIDTH = term.size.cols
-    Set HEIGHT = term.size.rows
+    Constant WIDTH = term.size.cols
+    Constant HEIGHT = term.size.rows
     // Display the visualization
     Call Function MandelbrotSet
 End-If

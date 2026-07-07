@@ -7,10 +7,12 @@ from contextlib import redirect_stdout, redirect_stderr
 import pytest
 
 from vgr.data_dict import DataDictionary
-from vgr.dd_config import dd_init, set_user_args
+from vgr.dd_config import dd_init
+from vgr.user_args import set_user_args
 from vgr.functions import add_builtin_functions
 from vgr.vgr import load_extensions, create_parser, create_md_lexer
-from vgr.stmt_exec import create_exec_context, ExecContext, do_source
+from vgr.stmt_exec import create_exec_context, ExecContext
+from vgr.stmt_include import do_source
 from vgr.app_exceptions import VgrException, VgrExitingException
 from vgr.redir import print_stderr
 
@@ -27,19 +29,23 @@ _state = {
 def vgr_init():
     """Simulates command line start up"""
     if not _state['init']:
-        dd = DataDictionary()
-        dd_init(dd)
-        add_builtin_functions()
-        extensions = load_extensions(dd, False)
-        parser = create_parser(extensions, False, False)
-        create_md_lexer(parser)
-        ctx = create_exec_context(parser, dd)
-        _state['ctx'] = ctx
-        ctx.debug = False
-        ctx.verbose = False
-        ctx.echo = False
-        set_user_args(ctx, [])
-    _state['init'] = True
+        try:
+            dd = DataDictionary()
+            dd_init(dd)
+            add_builtin_functions()
+            extensions = load_extensions(dd, False)
+            parser = create_parser(extensions, False, False)
+            create_md_lexer(parser)
+            ctx = create_exec_context(parser, dd)
+            _state['ctx'] = ctx
+            ctx.debug = False
+            ctx.verbose = False
+            ctx.echo = False
+            set_user_args(ctx, [])
+            _state['init'] = True
+        except Exception as e:
+            print(e)
+            raise
 
 def run_vgr_test_file(path: Path) -> tuple[int, str]:
     """Simulates running a file from the command line"""
@@ -54,7 +60,7 @@ def run_vgr_test_file(path: Path) -> tuple[int, str]:
             ctx.echo = False
             ctx.verbose = False
             ctx.execute_statements("Reset All", '<test>')
-            ctx.execute_statements("Set dev_test To True", '<test>') # like --assign
+            ctx.execute_statements("Const dev_test Is True", '<test>') # like --assign
             do_source(ctx, path) # like --file
         except VgrExitingException as e:
             exit_code = e.exit_code

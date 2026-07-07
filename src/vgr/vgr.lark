@@ -63,6 +63,7 @@ opt_statements: statement*
     | break
     | call
     | close
+    | const
     | continue
     | debug
     | declare
@@ -131,21 +132,25 @@ declare: _decl _csep_list{var_name}
     |    _decl _csep_list{var_name} "As"i? "Global"i -> declare_global
 _decl: "Declare"i
 
-define_statements: _def_function var_name def_params? _CLAUSE_SEP? def_body ("End-Function"i | "End"i) -> def_function
-    |              _def_function var_name def_params? _function_arrow expr                             -> def_arrow
-    |              _def_function var_name def_params? _function_arrow "Compile"i "(" expr ")"          -> compile_arrow
-_def_function: "Define"i? "Function"i
+
+function_def: "Define"i? func_modifier* "Function"i
+func_modifier: "Pure"i                                -> mod_pure
+    |          ("Constant"i | "Const"i)               -> mod_const
+    |          ("Cached"i | "Cache"i) ("(" expr ")")? -> mod_cached
 _function_arrow: "->" | "=>" | "\u2192"
+define_statements: function_def var_name func_params? _CLAUSE_SEP? func_body ("End-Function"i | "End"i) -> def_function
+    |              function_def var_name func_params? _function_arrow expr                              -> def_arrow
+    |              function_def var_name func_params? _function_arrow "Compile"i "(" expr ")"           -> compile_arrow
 // NB: doesn't work with template; probably should be changed to use var_name anyway
-def_params: "(" (NAME (_SEP NAME)*)? ")" -> params
-def_body: statement+ -> body
+func_params: "(" (NAME (_SEP NAME)*)? ")" -> params
+func_body: statement+ -> body
 
 // Note: this combines BASIC-like syntax (For Each) and VGR (For-Each)
-foreach_statement: ("For-Each"i | "For"i "Each"i) var_name "In"i expr _CLAUSE_SEP? statement+ ("Next"i | "End-For"i | "End"i) -> foreach
+foreach_statement: ("For-Each"i | "For"i "Each"i) var_name "In"i expr _CLAUSE_SEP? statement+ _end_for -> foreach
 
-for_next: "For"i var_name _EQ expr "To"i expr _CLAUSE_SEP? statement+ _end_for_next
-    |     "For"i var_name _EQ expr "To"i expr "Step"i expr _CLAUSE_SEP? statement+ _end_for_next -> for_next_by
-_end_for_next: "End-For"i | "Next"i | "End"i
+for_next: "For"i var_name _EQ expr "To"i expr _CLAUSE_SEP? statement+ _end_for
+    |     "For"i var_name _EQ expr "To"i expr "Step"i expr _CLAUSE_SEP? statement+ _end_for -> for_next_by
+_end_for: "End-For"i | "Next"i | "End"i
 
 // The addition of the optional "Then" allows a BASIC-like If syntax usage
 if_statement: "If"i expr ("Then"i | _CLAUSE_SEP)? statement+ else_clause? ("End-If"i | "End"i) -> if
@@ -184,6 +189,8 @@ _is_even_operators: ("Is"i "Even"i | "Is"i? "Not"i "Odd"i)
 _is_odd_operators: ("Is"i "Odd"i | "Is"i? "Not"i "Even"i)
 _is_defined_operators: "Is"i ("Defined"i | "Not"i "Undefined"i)
 _is_undefined_operators: "Is"i ("Undefined"i | "Not"i "Defined"i)
+_is_const_operators: "Is"i ("Constant"i | "Const"i) // TODO
+_is_not_const_operators: "Is"i "Not"i ("Constant"i | "Const"i) // TODO
 
 choose_statement: "Choose"i choose_all? _CLAUSE_SEP? choice_block* otherwise_block? ("End-Choose"i | "End"i)   -> choose
     | "Choose"i choose_all? "Using"i expr _CLAUSE_SEP? values_block* otherwise_block? ("End-Choose"i | "End"i) -> choose_using
@@ -196,6 +203,8 @@ values_block: "When"i _is_empty_operators _CLAUSE_SEP? statement+               
     | "When"i _is_odd_operators _CLAUSE_SEP? statement+                          -> is_odd_block
     | "When"i _is_defined_operators _CLAUSE_SEP? statement+                      -> is_defined_block
     | "When"i _is_undefined_operators _CLAUSE_SEP? statement+                    -> is_undefined_block
+    | "When"i _is_const_operators _CLAUSE_SEP? statement+                        -> is_const_block // TODO
+    | "When"i _is_not_const_operators _CLAUSE_SEP? statement+                    -> is_not_const_block // TODO
     | "When"i expr _through expr _CLAUSE_SEP? statement+                         -> range_block
     | "When"i "Not"i expr _through expr _CLAUSE_SEP? statement+                  -> not_range_block
     // These operators work with a single value
@@ -260,6 +269,9 @@ SET_OP: ("+=" | "-=" | "*=" | "/=" | "%=" | "**=" | "&=" | "|=" | "^=" | "<<=" |
 _assign: expr "To"i var_name
 assign: "Assign"i _csep_list{_assign}
 
+_const_set: var_name (_EQ | "Is"i) expr
+const: ("Constant"i | "Const"i) _csep_list{_const_set}
+
 add_to:     "Add"i _csep_list{expr} "To"i var_name
 add_giving: "Add"i _csep_list{expr} "To"i expr "Giving"i var_name
 
@@ -277,11 +289,12 @@ swap: "Swap"i var_name ("With"i | "And"i) var_name
 unset: "Unset"i _csep_list{var_name}
 
 reset: "Reset"i _options_list{reset_opt}
-?reset_opt: "All"i               -> all
-    | "Data"i                    -> data
-    | "Args"i                    -> args
-    | "Output"i                  -> output
-    | ("Include"i | "Includes"i) -> includes
+?reset_opt: "All"i                     -> all
+    |       "Args"i                    -> args
+    |       "Constants"i               -> consts
+    |       "Data"i                    -> data
+    |       "Includes"i                -> includes
+    |       "Output"i                  -> output
 
 source: "Source"i _files_option? _csep_list{expr}
 include: "@Include"i _files_option? _csep_list{expr}
@@ -469,6 +482,8 @@ ternary: expr "?" expr _CLAUSE_SEP expr -> c_ternary
     | expr2 _is_odd_operators                          -> is_odd_op
     | expr2 _is_defined_operators                      -> is_defined_op
     | expr2 _is_undefined_operators                    -> is_undefined_op
+    | expr2 _is_const_operators                        -> is_const_op // TODO
+    | expr2 _is_not_const_operators                    -> is_not_const_op // TODO
     | expr2 _is_empty_operators                        -> is_empty_op
     | expr2 _is_not_empty_operators                    -> is_not_empty_op
     // Binary operators

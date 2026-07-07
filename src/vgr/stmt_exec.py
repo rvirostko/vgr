@@ -1,6 +1,5 @@
 
 from functools import lru_cache
-from pathlib import Path
 from typing import Any, Iterable
 import ast
 import math
@@ -22,9 +21,6 @@ from .builtins import compile_pattern
 from .data_dict import DataDictionary, DynamicValue
 from .dbg import print_tree
 from .dd_config import (
-    add_include,
-    INCLUDED_PATH,
-    is_included,
     VGR_PREFIX,
 )
 from .evaluate import (
@@ -77,6 +73,10 @@ from .stmt_funct import (
     execute_def_arrow,
     execute_def_function,
 )
+from .stmt_include import (
+    execute_include,
+    execute_source,
+)
 from .stmt_list import (
     execute_list_append,
     execute_list_insert,
@@ -107,6 +107,7 @@ from .stmt_print import (
 from .stmt_select import execute_select
 from .stmt_set import (
     execute_assign,
+    execute_const,
     execute_load_from,
     execute_remove_key,
     execute_reset,
@@ -140,200 +141,6 @@ def set_loop_meta(meta: dict, index: int, length: int=None) -> dict:
         meta[_LOOP_META_LAST] = index == (length-1)
         meta[_LOOP_META_LENGTH] = length
     return meta
-
-_VGR_PATH: list[Path] = []
-
-def get_vgr_path() -> list[Path]:
-    """
-    Parse VGR_PATH into a list of paths.
-    If if not defined in the environment, platform specific defaults
-    are choosen. The parsing is done once, so changing `env.VGR_PATH` does not
-    affect this.
-    """
-    if len(_VGR_PATH) == 0:
-        envpath = os.environ.get("VGR_PATH")
-        if envpath is not None:
-            entries = [(path.strip() or '.') for path in envpath.split(os.pathsep)]
-        else:
-            # OS-appropriate sensible defaults
-            if os.name == 'posix':
-                entries = ['.', str(Path.home() / '.vgr'), '/usr/local/share/vgr', '/usr/share/vgr']
-            elif os.name == 'nt':
-                entries = ['.', str(Path.home() / 'vgr')]
-                pf = os.environ.get('PROGRAMFILES')
-                if pf: entries.append(str(Path(pf) / 'vgr' / "lib"))
-            else:
-                entries = ['.', str(Path.home() / 'vgr')]
-        for entry in entries:
-            # Don't check for exist() here: user can create after start in repl
-            _VGR_PATH.append(Path(expand_filename(entry)))
-    return _VGR_PATH
-
-def vgrpath_resolve(filename: str) -> Path:
-    """
-    Using get_vgr_path(), try to find a VGR source file.
-    If filename contains any path info, it must be relative to the CWD.
-    Returning None means we didn't find it on the path.
-    It does _NOT_ mean the file doesn't exist.
-    Likewise, returning a non-None value doesn't mean the item is
-    a readable file, only that it exists.
-
-    Behavior is modeled after AWKPATH:
-    https://www.gnu.org/software/gawk/manual/html_node/AWKPATH-Variable.html
-    """
-    # If filename does not include a path component
-    # we consult the path
-    if (os.sep not in filename) and (not os.altsep or os.altsep not in filename):
-        search_dirs = get_vgr_path()
-        def _search(name: str):
-            for d in search_dirs:
-                if d.exists():
-                    candidate = d / name
-                    if candidate.exists(): return candidate.resolve()
-            return None
-        # First pass: exact name
-        found = _search(filename)
-        if found: return found
-        # Second pass: try with extension
-        if not filename.lower().endswith('.vgr'):
-            found = _search(filename + '.vgr')
-            if found: return found
-    return None
-
-def find_vgr_source(filename: str) -> Path:
-    """
-    Find a VGR source file for sourcing or including
-    """
-    filepath = vgrpath_resolve(filename)
-    if filepath is not None: return filepath
-    # Require that it be a local reference
-    full_path = expand_filename(filename)
-    cwd = expand_filename(os.getcwd())
-    if os.path.commonpath([cwd, full_path]) != cwd:
-        raise ValueError(f'File {poly_repr(full_path)} not relative to {poly_repr(cwd)}')
-    return Path(full_path)
-
-def _find_source(ctx: ExecContext, expr: Tree) -> Path:
-    """
-    Internal version of find_vgr_source() that works with values
-    from the parse tree.
-    """
-    filename = ctx.eval_to_str(expr, 'File name', True)
-    return None if filename is None else find_vgr_source(filename)
-
-@bound_ops("Source")
-def execute_source(ctx: ExecContext, statement: Tree) -> None:
-    """
-**Execute statements stored in a file**
-
-* Source [File | Files] *file_name*[, *file_name*]&hellip;
-
-Each argument is evaluated to a file name. Statements in the file
-are executed, inheriting the current state of all variable and
-input/output redirection.
-
-If *file_name* does not include a path, the *VGR_PATH* defined
-in the environment is searched for the file. If not found initially,
-and the file does not contain an extension, the search is performed
-again using an extension of *vgr*.
-
-> **Windows Note**\\
-> If you hard code paths, please use the slash as a universal
-> directory separator. Since the backslash is an escape character, if you use
-> it in a string, you will either need to double it or use a *raw string*.
-
-```vgr
-Source None # ignored
-Source File "init.vgr"
-Source Files "step1.vgr", "step2.vgr"
-Source "session_" + session_id
-
-# Looks only for file in the same directory as the
-# current source
-Set filename To vgr.source.FirstItem().DirectoryName() + "/people.vgr"
-Source filename
-```
-
-Also see `@Include`, `Reset`, and `DirectoryName()`
-"""
-    for child in statement.children:
-        try:
-            path = _find_source(ctx, child)
-            if path is not None: do_source(ctx, path)
-        except Exception as e:
-            raise VgrRuntimeError(child, e) from e
-
-@bound_ops("@Include")
-def execute_include(ctx: ExecContext, statement: Tree) -> None:
-    """
-**Execute statements stored in a file once per run**
-
-* @Include [File | Files] *file_name*[, *file_name*]&hellip;
-
-Similar to `Source` but files are only included once per run, unless
-cleared by `Reset`.
-
-If *file_name* does not include a path, the *VGR_PATH* defined
-in the environment is searched for the file. If not found initially,
-and the file does not contain an extension, the search is performed
-again using an extension of *vgr*.
-
-> **Windows Note**\\
-> If you hard code paths, please use the slash as a universal
-> directory separator. Since the backslash is an escape character, if you use
-> it in a string, you will either need to double it or use a *raw string*.
-
-```vgr
-Verbose
-Verbose = True
-@Include None
-@Include File "init.vgr"
-Executing statements from "/Users/tc/VGR/init.vgr"...
-@Include File "init.vgr"
-Skipping "/Users/tc/VGR/init.vgr": previously included
-Reset Includes
-Resetting includes
-@Include File "init.vgr"
-Executing statements from "/Users/tc/VGR/init.vgr"...
-```
-
-Also see `Source` and `Reset`
-"""
-    for child in statement.children:
-        try:
-            path = _find_source(ctx, child)
-            if path is not None: do_include(ctx, path)
-        except Exception as e:
-            raise VgrRuntimeError(child, e) from e
-
-def do_include(ctx: ExecContext, path: Path) -> None:
-    if is_included(path):
-        if ctx.verbose: ctx.print_verbose(f'Skipping {poly_repr(str(path))}: previously included')
-    else:
-        do_source(ctx, path, True)
-        add_include(path)
-
-def do_source(ctx: ExecContext, path: Path, included: bool=False) -> None:
-    filename = str(path)
-    if not path.exists():
-        raise FileNotFoundError(0, f'File {filename!r} not found')
-    if not path.is_file():
-        raise IsADirectoryError(0, f'{filename!r} does not reference a file')
-    if not os.access(path, os.R_OK):
-        raise PermissionError(0, f'File {filename!r} not readable')
-    statements = None
-    if ctx.verbose: ctx.print_verbose(f'Executing statements from {poly_repr(filename)}...')
-    # If we replace the errors, it probably won't parse (unless it is in a comment)
-    # but this way the user can find the error line, rather than getting a
-    # cryptic error from the read
-    with open(path, 'r', encoding='utf-8', errors='backslashreplace') as f:
-        statements = f.read()
-    tval = ctx.get_var(*INCLUDED_PATH)
-    try:
-        ctx.set_var(included, *INCLUDED_PATH)
-        ctx.execute_statements(statements, str(path))
-    finally:
-        ctx.set_var(tval, *INCLUDED_PATH)
 
 @bound_ops("Break")
 def execute_break(_: ExecContext, statement: Tree) -> None:
@@ -860,7 +667,7 @@ Next
 4.0 {'index': 4, 'first': False, 'last': True, 'length': 5}
 ```
 
-Also see `Perform Varying` and `For-Each`.
+Also see `For-Each`.
 """
     def _err(value: Any, name: str) -> str: return ValueError(f"Can't use {str(value).title()} for {name}")
     def _nbr(expr: Tree, name: str) -> Any:
@@ -1142,6 +949,7 @@ STATEMENT_HANDLERS = {
     'choose':            execute_choose,
     'close':             execute_close,
     'compile_arrow':     execute_compile_arrow,
+    'const':             execute_const,
     'continue':          execute_continue,
     'debug':             execute_debug,
     'debug_on':          lambda ctx, tree: execute_debug(ctx, tree, True),
@@ -1222,7 +1030,7 @@ class DefaultExecContext(ExecContext):
         self._source_stack = []
         # We maintain the state, but the user can still
         # read the values, which are global.
-        self.set_var(DynamicValue(lambda: self.source_stack), VGR_PREFIX,  'source')
+        self.set_var(DynamicValue(lambda: self._source_stack), VGR_PREFIX,  'source')
         self.set_var(DynamicValue(lambda: self.debug), VGR_PREFIX,  'debug')
         self.set_var(DynamicValue(lambda: self.echo), VGR_PREFIX, 'echo')
         self.set_var(DynamicValue(lambda: self.verbose), VGR_PREFIX, 'verbose')
@@ -1265,12 +1073,18 @@ class DefaultExecContext(ExecContext):
         raise VgrRuntimeError(expr, TypeError(f'{name} must be an integer; found {poly_type(rc)!r}'))
 
     def eval_to_number(self, expr: Tree, name: str, allow_none: bool=False):
+        """
+        Evaluate the expression to a number.
+        Ints and floats are returned as-is.
+        Strings are converted to numbers via poly_number().
+        Booleans are converted to 0 or 1.
+        """
         rc = self.eval_expr(expr)
         if rc is None and allow_none: return None
         # TODO better error handling including None check
-        if isinstance(rc, str): return poly_number(rc)
-        if isinstance(rc, bool): return int(rc)
         if isinstance(rc, (int, float)): return rc
+        if isinstance(rc, bool): return int(rc)
+        if isinstance(rc, str): return poly_number(rc)
         raise VgrRuntimeError(expr, TypeError(f'{name} must be a number; found {poly_type(rc)!r}'))
 
     def eval_to_bool(self, expr: Tree, name: str, allow_none: bool=False) -> bool:
@@ -1283,10 +1097,6 @@ class DefaultExecContext(ExecContext):
 
     def get_source(self, tree, end_tree = None) -> str:
         return (SSM.source_for(tree, end_tree) or '').strip()
-
-    @property
-    def source_stack(self) -> list[str]:
-        return self._source_stack
 
     @ExecContext.echo.setter
     def echo(self, v: bool):
@@ -1337,7 +1147,7 @@ class DefaultExecContext(ExecContext):
             # which don't really have a file name.
             # the source stack is strictly for file name context
             origin = '' if origin.startswith('<') and origin.endswith('>') else origin
-            if origin: self.source_stack.insert(0, origin)
+            if origin: self._source_stack.insert(0, origin)
             try:
                 tree = self._parser.parse(statement_text, start=start or self._DEFAULT_PARSE_START)
                 # NB: this assumes that a user provided "start" is a single statement
@@ -1345,7 +1155,7 @@ class DefaultExecContext(ExecContext):
             except exceptions.LarkError as e:
                 raise VgrException(e, e, *SSM.current) from e
             finally:
-                if origin: self.source_stack.pop(0)
+                if origin: self._source_stack.pop(0)
                 SSM.pop()
 
     def dispatch_statements(self, statements: Iterable[Tree]) -> None:

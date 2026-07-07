@@ -1,0 +1,95 @@
+
+Echo On
+Reset Constants
+Assert vgr.constants.Length() Is Zero
+
+Set a To 1
+Assert "a" Is Not In vgr.constants
+Assert a Is Not Constant
+
+Constant b Is 2
+Assert "b" Is In vgr.constants
+Assert b Is Constant
+
+Constant c Is {
+    "one": 1,
+    "two": 2,
+}
+Assert c Is Constant
+Assert c.one Is Constant
+Assert c.two Is Constant
+Assert c.three Is Not Constant # has to exist too
+
+Reset Constants
+Assert vgr.constants.Length() Is Zero
+Assert b Is Not Constant
+
+Assert 1 Is Constant
+Assert None Is Constant
+
+# We only track what the user adds
+Assert "math" Is Not In vgr.constants
+Assert "re" Is Not In vgr.constants
+Assert math Is Constant
+Assert re.pattern Is Constant
+Assert re.patterns Is Not Constant # doesn't exist
+
+Set z To Zero
+Function x()
+    Add 1 To z
+    Return z
+End-Function
+Assert x Is Not Constant # the function itself is not a constant
+Assert z Is Zero
+Assert @x() Is Not Constant # this is an expression; it is evaluated for side effects
+Assert z Is 1
+
+Set a To 1
+Constant b Is 2
+
+Choose All Using a
+    When Is Constant: Assert "a should not be a constant"
+    When Is Not Constant: Nop # expected result
+    Otherwise: Assert False # SNO
+End-Choose
+
+Choose All Using b
+    When Is Constant: Nop # expected result
+    When Is Not Constant: Assert "b should be a constant"
+    Otherwise: Assert False # SNO
+End-Choose
+
+Reset Constants
+Constant a1 Is 1, b2 Is 2, c3 Is 3
+Print vgr.constants
+Assert a1 Is Constant And b2 Is Constant And c3 Is Constant
+
+# Exercise the arrow function grammar
+Reset Constants
+Define Const Function fc1() -> $self
+Define Constant Function fc2() -> $self
+Constant Function fc3() -> Compile("$self")
+Print vgr.constants
+Assert fc1 Is Constant And fc2 Is Constant And fc3 Is Constant
+Assert @fc1() == fc1 And @fc2() == fc2 And @fc3() == fc3
+
+# Exercise the long form of function declaration
+Reset Constants
+Define Const Function fc1(a, b)
+    Add b To a
+    Return a
+End
+
+Define Constant Function fc2(a, b)
+    Subtract b From a
+    Return a
+End
+
+Constant Function fc3(a)
+    Divide a By 2
+    Return a
+End
+Print vgr.constants
+Assert fc1 Is Constant And fc2 Is Constant And fc3 Is Constant
+Constant a Is 5, b Is 3
+Assert @fc3(@fc1(a, b) + @fc2(a, b)) == a

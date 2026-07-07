@@ -2,13 +2,30 @@
 User defined function implementations
 """
 
+from typing import Any
 from lark import Tree
 
-from .builtins import bound_ops
-from .evaluate import do_set, get_writable_var_path, create_param_list, get_function
+from .app_exceptions import VgrRuntimeError
+from .builtins import (
+    bound_ops,
+)
+from .evaluate import (
+    bind_operations,
+    create_param_list,
+    do_set,
+    get_function,
+    get_writable_var_path,
+)
 from .exec_context import ExecContext
 from .tags import control_statement
-from .user_callable import UserFunction
+from .stmt_set import (
+    assert_var_okay_for_const,
+    do_set_constant,
+)
+from .user_callable import (
+    ArrowFunction,
+    UserFunction,
+)
 
 @control_statement
 @bound_ops("Define Function")
@@ -16,14 +33,25 @@ def execute_def_function(ctx: ExecContext, statement: Tree) -> None:
     """
 **Define a function**
 
-* [Define] Function *variable* [:]\\
+* [Define] [*modifiers*&hellip;] Function *variable* [:]\\
   &emsp;&emsp;*statement*&hellip;\\
   [End-Function | End]
-* [Define] Function *variable*(_param_&hellip;) [:]\\
+* [Define] [*modifiers*&hellip;] Function *variable*(_param_&hellip;) [:]\\
   &emsp;&emsp;*statement*&hellip;\\
   [End-Function | End]
-* [Define] Function *variable* (*arg*&hellip;) [-> | →] *expression*
-* [Define] Function *variable* (*arg*&hellip;) [-> | →] Compile(*expression*)
+* [Define] [*modifiers*&hellip;] Function *variable*(*arg*&hellip;) [-> | →] *expression*
+* [Define] [*modifiers*&hellip;] Function *variable*(*arg*&hellip;) [-> | →] Compile(*expression*)
+
+**Modifiers**
+
+* Constant - the *variable* for the function cannot be modified, just as with the `Constant` statement
+* Pure - the function can only reference arguments and local variables, not globals
+* Cache or Cached - results are kepts in an LRU cache. Caching results introduces time and
+  memory overhead, so this is should be used only for unctions with complicated or long computations,
+  or those making idempotent calls to external systems.\\
+  Cache size can be set by using `Cache(expression)` where *expression* resolves at definition time
+  to an integer greater than zero. If `None`, the default cache size is used. If less than zero,
+  caching is turned off.
 
 ```vgr
 Define Function lcm(a, b):
@@ -85,26 +113,73 @@ Function dyn(x, y) -> Compile("(x {} y) + 10".Format(op))
 Also see `Call` for details on invoking functions.
 See `Return` for returning values and `Declare` for variable scoping.
 """
-    # if count <= 2, then we don't have a list of params, just a name and statements
-    count = len(statement.children)
-    ctx.echo_source(statement, statement.children[2 if count > 2 else 1])
-    var_path = get_writable_var_path(ctx, statement.children[0])
-    param_paths = create_param_list(ctx, statement.children[1]) if count > 2 else []
-    do_set(ctx, UserFunction(param_paths, statement.children[-1].children), *var_path)
+    # Echo only the declaration and signature (if present)
+    if ctx.echo:
+        # if count <= 2, then we don't have a list of params, just a name and statements
+        # TODO: not sure if working corectly...
+        #count = len(statement.children)
+        ctx.echo_source(statement, statement.children[-1])#2 if count > 3 else 1])
+    _create_function(ctx, statement, _new_user_function)
 
 def execute_def_arrow(ctx: ExecContext, statement: Tree) -> None:
     """-documentation combined with Function-"""
-    var_path = get_writable_var_path(ctx, statement.children[0])
-    param_paths = create_param_list(ctx, statement.children[1])
-    expr = statement.children[-1]
-    do_set(ctx, UserFunction.from_expression(ctx.get_source(expr), expr, param_paths), *var_path)
+    _create_function(ctx, statement, _new_arrow_function)
 
 def execute_compile_arrow(ctx: ExecContext, statement: Tree) -> None:
     """-documentation combined with Function-"""
-    var_path = get_writable_var_path(ctx, statement.children[0])
-    param_paths = create_param_list(ctx, statement.children[1])
-    expr = statement.children[-1]
-    do_set(ctx, UserFunction.compile(ctx, ctx.eval_expr(expr), param_paths), *var_path)
+    _create_function(ctx, statement, _compile_arrow_function)
+
+def _create_function(ctx: ExecContext, statement: Tree, ctor) -> None:
+    is_const, is_pure, cache_size = _read_function_def(ctx, statement.children[0])
+    name_node = statement.children[1]
+    var_path = get_writable_var_path(ctx, name_node)
+    if is_const: assert_var_okay_for_const(ctx, name_node, var_path)
+    new_value = ctor(ctx,
+                is_pure, cache_size,
+                create_param_list(ctx, statement.children[2]),
+                statement.children[-1])
+    if is_pure: raise ValueError('Pure function not yet supported') # TODO
+    if cache_size != 0: raise ValueError('Results caching not yet supported') # TODO
+    if is_const:
+        do_set_constant(ctx, new_value, *var_path)
+    else:
+        do_set(ctx, new_value, *var_path)
+
+def _new_user_function(ctx: ExecContext, is_pure: bool, cache_size: int, param_paths: tuple, body: Tree) -> Any:
+    return UserFunction(param_paths, body.children)
+
+def _new_arrow_function(ctx: ExecContext, is_pure: bool, cache_size: int, param_paths: tuple, body: Tree) -> Any:
+    return ArrowFunction(ctx.get_source(body), body, param_paths)
+
+def _compile_arrow_function(ctx: ExecContext, is_pure: bool, cache_size: int, param_paths: tuple, body: Tree) -> Any:
+    return UserFunction.compile(ctx, ctx.eval_expr(body), param_paths)
+
+def _read_function_def(ctx: ExecContext, definition: Tree) -> tuple:
+    """returns (is_const, is_pure, cache_size)"""
+    is_const: bool = None
+    is_pure: bool = None
+    is_cached: bool = None
+    cache_size: int = None
+    def _redundant(m): raise VgrRuntimeError(m, TypeError('Redundant modifier'))
+    for modifier in definition.children:
+        mod: str = modifier.data
+        if mod == 'mod_const':
+            if is_const: _redundant(modifier)
+            is_const = True;
+        elif mod == 'mod_pure':
+            if is_pure: _redundant(modifier)
+            is_pure = True
+        elif mod == 'mod_cached':
+            if is_cached: _redundant(modifier)
+            is_cached = True
+            if len(modifier.children):
+                cache_size = ctx.eval_to_int(bind_operations(modifier.children[0]), "Cache size", True)
+                # cache_size <= 0 turns it off (but remembers it has been used)
+                if cache_size is not None and cache_size < 1:
+                    is_cached, cache_size = (False, None)
+        else:
+            raise ValueError(f'{mod} not implemented')
+    return (bool(is_const), bool(is_pure), cache_size if bool(is_cached) else 0)
 
 @bound_ops("Call")
 def execute_call(ctx: ExecContext, statement: Tree) -> None:

@@ -36,16 +36,15 @@ from .builtins import (
     poly_sub,
     poly_type,
 )
-from .dd_config import (
-    clear_includes,
-    dd_init,
-    get_user_args,
+from .user_args import (
+    USER_ARGS,
     set_user_args,
 )
 from .encoding import parse_encoding
 from .evaluate import do_set, do_unset, get_writable_var_path
 from .exec_context import ExecContext
 from .redir import close_all_redirects
+from .stmt_include import clear_includes
 
 _LOAD_META_PATH = ('$load',)
 
@@ -88,7 +87,12 @@ def execute_set(ctx: ExecContext, statement: Tree) -> None:
     """
 **Modify a variable's existing value**
 
-* Set *variable* [= | To] *expression* &emsp; *Assignment*
+*Assignment*
+
+* Set *variable* [= | To] *expression*[, *variable* [= | To] *expression]&hellip;
+
+*In-place modification*
+
 * Set *variable* += *expression* &emsp;  *Addition*
 * Set *variable* -= *expression* &emsp;  *Subtraction*
 * Set *variable* *= *expression* &emsp;  *Multiplication*
@@ -101,9 +105,9 @@ def execute_set(ctx: ExecContext, statement: Tree) -> None:
 * Set *variable* <<= *expression* &emsp; *Bit Shift Left*
 * Set *variable* >>= *expression* &emsp; *Bit Shift Right*
 
-Not that when `+=` is used with two lists, the lists are concatenated.
+Note that when `+=` is used with two lists, the lists are concatenated.
 
-Multiple assingments can be performed by separating them with commas.
+Multiple assingments are performed by separating them with commas.
 
 ```vgr
 Set a To 5, b To 3
@@ -113,7 +117,7 @@ a = 15
 b = 3
 ```
 
-Also see the `Assign`, `Add`, `Subtract`, `Multiply`, and `Divide` statements.
+Also see the `Assign`, `Constant`, `Add`, `Subtract`, `Multiply`, and `Divide` statements.
 """
     i = 0
     last = len(statement.children)
@@ -134,8 +138,9 @@ def execute_assign(ctx: ExecContext, statement: Tree) -> None:
     """
 **Modify a variable's existing value**
 
-* Assign *expression* To *variable*
 * Assign *expression* To *variable*[, *expression* To *variable*]&hellip;
+
+Multiple assingments are performed by separating them with commas.
 
 ```vgr
 Assign 5 To a, 3 To b
@@ -163,7 +168,7 @@ This works with dictionaries, copying attributes from the
 evaluated *expression* to *variable* if the attribute already exists
 in *variable*.
 
-If *variable* does not exist or `None` the operation is skipped.
+If *variable* does not exist or is `None` the operation is skipped.
 Also, if *expression* does not resolve to a dictionary, the
 operation is skipped.
 
@@ -382,6 +387,56 @@ Also see `Set` and `Reset`
     for child in statement.children:
         do_unset(ctx, *get_writable_var_path(ctx, child))
 
+_USER_CONSTANTS = [] # the prefixes
+
+def get_user_constants() -> list:
+    return sorted(_USER_CONSTANTS)
+
+@bound_ops("Constant", "Const")
+def execute_const(ctx: ExecContext, statement: Tree) -> None:
+    """
+**Create an immutable value**
+
+* Constant *variable* [= | Is] *expression*
+
+May be abbreviated as `Const`
+
+** TODO
+
+Also see `Assign`, `Set`, `Unset`, and `Reset`
+"""
+    i = 0
+    last = len(statement.children)
+    while i < last:
+        # Using get_writable_var_path performs a check so we don't overwrite other constants
+        name_node = statement.children[i]
+        var_path = assert_var_okay_for_const(ctx, name_node, get_writable_var_path(ctx, name_node))
+        i += 1
+        new_value = ctx.eval_expr(statement.children[i])
+        i += 1
+        do_set_constant(ctx, new_value, *var_path)
+
+def do_set_constant(ctx: ExecContext, new_value: Any, *path) -> None:
+    assert ctx.dd.in_local_frame is False
+    assert len(path) == 1
+    do_set(ctx, new_value, *path)
+    # Make the item immutable and add to our list
+    prefix = path[0]
+    ctx.dd.add_immutable_prefix(prefix)
+    _USER_CONSTANTS.append(prefix)
+
+def assert_var_okay_for_const(ctx: ExecContext, name_node: Tree, var_path: tuple) -> tuple:
+    """
+    Has to be for a global frame and only have one element
+    """
+    # Must be global!
+    if ctx.dd.in_local_frame:
+        raise VgrRuntimeError(name_node, TypeError('Constant must be declared at the global level'))
+    # Make sure it is a single item: prevents futzing with "$global" prefix etc
+    if len(var_path) != 1:
+        raise VgrRuntimeError(name_node, TypeError('Constant must have a simple name'))
+    return var_path
+
 @bound_ops("Reset")
 def execute_reset(ctx: ExecContext, statement: Tree) -> None:
     """
@@ -392,10 +447,11 @@ def execute_reset(ctx: ExecContext, statement: Tree) -> None:
 
 Where *option* is
 
-* Data - Resets all user set data except for user arguments
-  and the settings for Debug, Verbose, and Echo
+* Args - Resets user arguments stored in the *args* variable
+* Constants - Resets all user constants
+* Data - Resets user variables except for user arguments and constants
+  and `Debug`, `Verbose`, and `Echo` settings
 * Includes - Clears the list of `@Include` files
-* Args - Resets user arguments stored in *args* list
 * Output - Resets all output redirection
 * All - Resets all of the above plus `Debug`, `Echo`, and `Verbose` settings
 
@@ -417,28 +473,37 @@ b = -not set-
 c = -not set-
 ```
 
-Also see `Set` and `Unset`
+Also see `Assign`, `Set`, `Constant`, and `Unset`
 """
     def _output():
         ctx.print_verbose('Resetting Output/Error redirection')
         close_all_redirects()
     def _data():
-        ctx.print_verbose('Resetting all user data')
-        # We preserve args but reset everything else
-        t_args = get_user_args(ctx)
-        dd_init(ctx.dd)
-        set_user_args(ctx, t_args)
+        ctx.print_verbose('Resetting user variables')
+        # Immutables and user args are preserved
+        prefixes = list(set(ctx.dd.keys()) - (set(ctx.dd.immutable_prefixes)))
+        prefixes.remove(USER_ARGS)
+        prefixes.remove('env') # TODO should we restore this?
+        for prefix in prefixes:
+            ctx.dd.unset_var(prefix)
     def _includes():
         ctx.print_verbose('Resetting includes')
         clear_includes()
     def _args():
         ctx.print_verbose('Resetting user args')
-        set_user_args(ctx, None)
+        set_user_args(ctx, [])
     def _flags():
         ctx.print_verbose('Resetting Debug, Echo, and Verbose settings')
         ctx.debug = False
         ctx.echo = False
         ctx.verbose = False
+    def _consts():
+        ctx.print_verbose('Resetting user constants')
+        while _USER_CONSTANTS:
+            prefix = _USER_CONSTANTS.pop()
+            # Tell the DD it's mutable and then remove it entirely
+            ctx.dd.remove_immutable_prefix(prefix)
+            ctx.dd.unset_var(prefix)
 
     if len(statement.children) == 0:
         _output()
@@ -451,6 +516,7 @@ Also see `Set` and `Unset`
             s = str(opt.data).casefold()
             if s in ('all', 'output'): _output()
             if s in ('all', 'data'): _data()
+            if s in ('all', 'consts'): _consts()
             if s in ('all', 'includes'): _includes()
             if s in ('all', 'args'): _args()
             if s in ('all'): _flags()

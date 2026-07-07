@@ -36,6 +36,7 @@ from .builtins import (
 )
 from .evaluate import (
     bind_operations,
+    is_var_constant,
     is_var_defined,
 )
 
@@ -243,21 +244,21 @@ def _exec_choose(ctx: ExecContext, do_all: bool, statement_children: Iterator, e
                 # After the expression to test the iterator
                 # points to the following statements
                 chosen_block = choice_children
-        elif block_name == 'is_defined_block':
-            if is_var_defined(ctx, expr):
+        elif block_name in ('is_const_block', 'is_not_const_block'):
+            if is_var_constant(ctx, expr) is not (block_name == 'is_not_const_block'):
                 ctx.echo_source(when_block, when_block.children[0])
                 chosen_block = values_children
-        elif block_name == 'is_undefined_block':
-            if not is_var_defined(ctx, expr):
+        elif block_name in ('is_defined_block', 'is_undefined_block'):
+            if is_var_defined(ctx, expr) is not (block_name == 'is_undefined_block'):
                 ctx.echo_source(when_block, when_block.children[0])
                 chosen_block = values_children
         # These tests don't use an expression
-        elif block_name in ['is_empty_block', 'is_not_empty_block', 'is_neg_block', 'is_pos_block', 'is_even_block', 'is_odd_block']:
+        elif block_name in ('is_empty_block', 'is_not_empty_block', 'is_neg_block', 'is_pos_block', 'is_even_block', 'is_odd_block'):
             test_op = _CHOOSE_OPS.get(when_block.data)
             if test_op(desired_value):
                 ctx.echo_source(when_block, when_block.children[0])
                 chosen_block = values_children
-        elif block_name in ['values_block', 'not_values_block']:
+        elif block_name in ('values_block', 'not_values_block'):
             # If there is a node in front of our list of values
             # it is a specialized operator rather than one
             # implied by the block name
@@ -281,14 +282,14 @@ def _exec_choose(ctx: ExecContext, do_all: bool, statement_children: Iterator, e
             else:
                 # Otherwise, tests treat the comma as an "or":
                 #     "when 1,2,3" -> "when 1 <or> 2 <or> 3"
-                # The first test to pass ends evaluation and executes the block
+                # The first test to pass ends evaluation and selects the block
                 for target_expr in next(values_children, None).children:
                     if test_op(desired_value, ctx.eval_expr(bind_operations(target_expr))):
                         chosen_block = values_children
                         break
             if chosen_block:
                 ctx.echo_source(when_block, when_block.children[when_end_index])
-        elif block_name in ['range_block', 'not_range_block']:
+        elif block_name in ('range_block', 'not_range_block'):
             test_op = _CHOOSE_OPS.get(when_block.data)
             lo_value = ctx.eval_expr(bind_operations(next(values_children)))
             hi_value = ctx.eval_expr(bind_operations(next(values_children)))
@@ -300,11 +301,13 @@ def _exec_choose(ctx: ExecContext, do_all: bool, statement_children: Iterator, e
             if test_op(desired_value, ctx.eval_expr(bind_operations(next(values_children)))):
                 ctx.echo_source(when_block, when_block.children[2])
                 chosen_block = values_children
-        else:
+        elif block_name == 'otherwise_block':
+            # the block is automatically selected if none others have been
             if not choice_made:
-                # it is 'otherwise_block' which is automatically selected
                 ctx.echo_source(when_block, when_block.children[0])
                 chosen_block = values_children
+        else:
+            raise ValueError(f'{block_name} not implemented') # SNO
         # If a block of statements was chosen execute them
         if chosen_block is not None:
             choice_made = True

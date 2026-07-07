@@ -216,6 +216,7 @@ overwritten.
         context, data, path = self._resolve_context(self._current_frame, *path)
         if not path: raise ValueError(f'Missing variable name after {context!r}')
         if data is not None:
+            # TODO is this correct? For starting at the global frame, yes... local?
             is_immutable = path[0] in self._immutable_prefixes
             for step in path:
                 if step in _CONTEXT_KEYS:
@@ -254,11 +255,22 @@ overwritten.
 
     def validate_user_set_path(self, *path: str) -> tuple:
         """
-        Check the path for validity in setting, preventing alterations immutable areas
+        Check the path for validity in setting, preventing alterations
+        of immutable areas in the global context.
         """
+        global_frame = self._global_frame
+        frame = self._current_frame
+        # NB - we don't handle any of the "$<context>" values here, because they are
+        #      only valid for reading (at least for now).
+        #      Using it as a lvalue results in "Cannot alter '$<context>...'" error
         prefix: str = path[0]
-        if prefix in self._immutable_prefixes:
-            raise ValueError(f'Cannot alter {".".join(path)!r} - {prefix!r} is immutable')
+        while True:
+            if frame == global_frame:
+                if prefix not in self._immutable_prefixes: break
+                raise ValueError(f'Cannot alter {".".join(path)!r} - {prefix!r} is immutable')
+            else: # a local frame
+                if prefix in frame.data: break
+                frame = frame.outer_frame()
         return path
 
     def _value_for(self, data: Any) -> Any:

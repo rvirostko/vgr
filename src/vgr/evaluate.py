@@ -255,6 +255,50 @@ class Subscript(Operation):
     def op_name(self) -> str:
         return 'subscript'
 
+def is_var_constant(ctx: ExecContext, expr: Tree) -> bool:
+    # Actual constants (string, ints, None, inf, etc) are constants
+    if _is_constant(expr): return True
+    # References to a variable might be constants
+    # Critically, they have to exist
+    return _is_var_ref(expr) and (expr.children[0] in ctx.dd.immutable_prefixes) and ctx.var_exists(*_var_name_path(expr))[0]
+
+
+class IsVarConstant(Operation):
+    @bound_ops("Is Constant")
+    def execute(self, ctx: ExecContext, args: list) -> Any:
+        """
+** Check to see if a variable is a constant **
+
+* *x* Is Constant
+
+** TODO
+Also See `Is Not Constant`
+"""
+        expr = args[0]
+        ctx.eval_expr(expr) # evaluated for side effects
+        return is_var_constant(ctx, expr)
+
+    def op_name(self) -> str:
+        return 'is_constant'
+
+class IsVarNotConstant(Operation):
+    @bound_ops("Is Not Constant")
+    def execute(self, ctx: ExecContext, args: list) -> Any:
+        """
+** Check to see if a variable is constant **
+
+* *x* Is Not Constant
+
+** TODO
+Also See `Is Constant`
+"""
+        expr = args[0]
+        ctx.eval_expr(expr) # evaluated for side effects
+        return not is_var_constant(ctx, expr)
+
+    def op_name(self) -> str:
+        return 'is_not_constant'
+
 def is_var_defined(ctx: ExecContext, expr: Tree) -> bool:
     # non-var references are defined (expr or constant)
     if not _is_var_ref(expr): return True
@@ -272,7 +316,9 @@ class IsVarDefined(Operation):
 ** TODO
 Also See `Is Undefined`
 """
-        return is_var_defined(ctx, args[0])
+        expr = args[0]
+        ctx.eval_expr(expr) # evaluated for side effects
+        return is_var_defined(ctx, expr)
 
     def op_name(self) -> str:
         return 'is_defined'
@@ -289,7 +335,9 @@ class IsVarUndefined(Operation):
 ** TODO
 Also See `Is Defined`
 """
-        return not is_var_defined(ctx, args[0])
+        expr = args[0]
+        ctx.eval_expr(expr) # evaluated for side effects
+        return not is_var_defined(ctx, expr)
 
     def op_name(self) -> str:
         return 'is_undefined'
@@ -500,6 +548,9 @@ def _is_var_name(node) -> bool:
 def _is_var_ref(node) -> bool:
     return isinstance(node, Tree) and node.data == 'var_ref'
 
+def _is_constant(node) -> bool:
+    return isinstance(node, Token) and node.type == 'CONST'
+
 def _var_name_path(node: Tree) -> tuple[str]:
     """
     Returns a path into the data dictionary, typically used with lvalues.
@@ -623,6 +674,8 @@ class OperationBinder(Transformer):
     def is_odd_op(self, tree): return SimpleOperation(tree, poly_is_odd)
     def is_defined_op(self, tree): return IsVarDefined(tree)
     def is_undefined_op(self, tree): return IsVarUndefined(tree)
+    def is_const_op(self, tree): return IsVarConstant(tree)
+    def is_not_const_op(self, tree): return IsVarNotConstant(tree)
     def is_empty_op(self, tree): return SimpleOperation(tree, poly_is_empty)
     def is_not_empty_op(self, tree): return SimpleOperation(tree, poly_not_empty)
 

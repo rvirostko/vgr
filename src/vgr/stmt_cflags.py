@@ -8,9 +8,6 @@ from .builtins import(
     bound_ops,
     poly_bool,
 )
-from .evaluate import(
-    bind_operations,
-)
 from .exec_context import ExecContext
 from .redir import print_stderr
 from .tags import control_statement

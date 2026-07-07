@@ -27,6 +27,7 @@ class AbstractUserCallable(VgrCallable):
     def __init__(self, param_paths: list[tuple[str]]):
         assert isinstance(param_paths, list)
         self._param_paths = param_paths
+        # TODO cache info
 
     def __repr__(self): return self._sig() + '\u2192' + str(self)
 
@@ -62,6 +63,7 @@ class UserFunction(AbstractUserCallable):
         super().__init__(param_paths)
         assert statements is not None and isinstance(statements, list)
         self._statements = statements
+        # TODO cache info
 
     def __str__(self): return '<function>'
 
@@ -77,7 +79,8 @@ class UserFunction(AbstractUserCallable):
     def invoke(ctx: ExecContext, fn: Any, arg_values: list) -> Any:
         """
         Handles the attempted execution of an a user defined function.
-        None is ignored, and the execution is distributed across lists
+        None is ignored, and the execution is distributed across lists and dictionaries.
+
         """
         if fn is None: return None
         if isinstance(fn, AbstractUserCallable): return fn.evaluate(ctx, arg_values)
@@ -86,30 +89,27 @@ class UserFunction(AbstractUserCallable):
             return list(UserFunction.invoke(ctx, f1, arg_values) for f1 in fn)
         if isinstance(fn, dict):
             return {key: UserFunction.invoke(ctx, value, arg_values) for key, value in fn.items()}
-        # This allows the user to be sloppy and for us to work through lists and dicts
-        # without damaging the structure
+        # By returning "fn" unmodified we can work through lists and dicts without problems
         return fn
 
     @staticmethod
-    def from_expression(source: str, expr: Tree, param_paths: list[tuple[str]]):
-        return ArrowFunction(source, expr, param_paths)
-
-    @staticmethod
     def compile(ctx: ExecContext, source: Any, param_paths: list[tuple[str]]) -> Any:
-        """Constructs an Arrow Function from source text"""
+        """Construct a function from source text"""
         if source is None: return None
         if isinstance(source, str):
             # Normally we expect a string to parse
             return ArrowFunction(source, ctx.parse_expression(source), param_paths)
-        if isinstance(source, ArrowFunction):
-            # This effectively changes the argument paths (maybe)
-            return UserFunction.compile(ctx, source._source, param_paths)
+        if isinstance(source, (int, float, bool)):
+            # These should end up being functions returning constants
+            # TODO regex?
+            return UserFunction.compile(ctx, str(source), param_paths) # TODO use poly_repr
         if isinstance(source, list):
             # Create a list of Arrow Functions
             return list(UserFunction.compile(ctx, s1, param_paths) for s1 in source)
-        if isinstance(source, (int, float, bool)):
-            # These should end up being functions returning constants
-            return UserFunction.compile(ctx, str(source), param_paths)
+        # NB: we can execute a dict as a template, but to compile it, everything
+        #     would need to be either expressions as strings or constants. You COULD
+        #     have string constants returned by using "ToString('const string')" but
+        #     it seems like a hack, so we don't support it.
         raise TypeError(f'Cannot use {poly_type(source)!r} as the source for an Arrow Function')
 
 # TODO move this doc to Call
@@ -161,6 +161,7 @@ Print @a(1, 2) → "Hello"
 """
 
     def __init__(self, source: str, expr: Tree, param_paths: list[tuple[str]]):
+        # TODO cache
         super().__init__(param_paths)
         assert source and isinstance(source, str)
         self._source = source

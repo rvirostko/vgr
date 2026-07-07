@@ -26,12 +26,12 @@ from .builtins import (
 from .data_dict import DataDictionary
 from .dd_config import (
     dd_init,
-    set_user_args,
     EXEC_NAME_PATH,
     EXEC_VER_PATH,
     VER_DATE_PATH,
     VER_PATH,
 )
+from .user_args import set_user_args
 from .doc_help import (
     create_md_lexer,
     constants_pattern,
@@ -62,11 +62,13 @@ from .redir import print_stderr
 from .exec_context import ExecContext
 from .stmt_exec import (
     create_exec_context,
-    do_source,
-    do_include,
-    find_vgr_source,
     get_statement_entries,
     STATEMENT_HANDLERS,
+)
+from .stmt_include import (
+    do_include,
+    do_source,
+    find_vgr_source,
 )
 from .var_name import VAR_NAME
 from .vscode_extn import create_vscode_extension
