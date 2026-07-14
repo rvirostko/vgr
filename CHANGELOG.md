@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD024 -->
+
 # VGR Changelog
 
 ## [Unreleased]
