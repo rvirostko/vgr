@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "vgr"
-version = "1.2.0"
+version = "1.2.1"
 description = "VGR - A Scripting Language"
 readme = "README.md"
 requires-python = ">=3.9"
