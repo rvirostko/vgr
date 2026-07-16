@@ -1,0 +1,80 @@
+name: Feature Request
+description: Propose new VGR syntax, semantics, or tooling
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for the proposal. VGR is under active, single-maintainer
+        development — see [Project Status](../../blob/main/CONTRIBUTING.md#project-status)
+        for current contribution policy. Design discussion is welcome even
+        when implementation PRs aren't being accepted yet.
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / Motivation
+      description: >
+        What are you trying to do that VGR doesn't currently support well?
+        Describe the problem before proposing a solution — see the
+        [FAQ](../../wiki/FAQ) on why this ordering matters at this stage
+        of the language's design.
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed Syntax / Behavior
+      description: >
+        If you have a concrete syntax in mind, show it. Not required —
+        a well-described problem without a proposed solution is still
+        useful.
+      render: text
+      placeholder: |
+        Select x, y From @records
+            Where x > 10
+            Limit 5
+    validations:
+      required: false
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives Considered
+      description: Other syntax forms or workarounds you've considered, and why they fall short.
+    validations:
+      required: false
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: What part of VGR does this touch?
+      options:
+        - Grammar / syntax
+        - Standard library / built-in functions
+        - Runtime / evaluation semantics
+        - Tooling (CLI, debug, packaging)
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Checklist
+      options:
+        - label: I searched existing issues/discussions for a duplicate before opening this one
+          required: true
+        - label: I understand this is a design proposal, not a pull request, per current contribution policy
+          required: true
