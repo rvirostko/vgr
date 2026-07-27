@@ -19,10 +19,10 @@ rm -rf "$OUTPUT_DIR" "$BUILD_DIR"
 mkdir -p "$OUTPUT_DIR"
 
 # Upgrade build tools
-pip install --quiet --use-feature=in-tree-build --upgrade pip setuptools wheel build
+python3 -m pip install --upgrade "pip>=23.0"
+pip install --quiet --upgrade setuptools wheel build
 
 # Build the wheel
-#python3 -m build --quiet --use-feature=in-tree-build --wheel --outdir "$OUTPUT_DIR"
 python3 -m build --quiet --wheel --outdir "$OUTPUT_DIR"
 rm -rf "$BUILD_DIR"
 
