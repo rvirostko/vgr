@@ -11,7 +11,6 @@ requires-python = ">=3.9"
 license = "LicenseRef-Hippocratic-HL3"
 license-files = ["LICENSE.md"]
 authors = [
-    { name = "Ross Virostko", email = "ross.virostko@citizensbank.com" },
     { name = "Ross Virostko", email = "rvirostko@icloud.com" },
 ]
 # NB: hcl2 8.1.x has bugs
@@ -94,3 +93,8 @@ minversion = "8.0"
 addopts = "-v"
 testpaths = ["tests"]
 pythonpath = ["."]
+# Ldap3 with pyasn1 versions after 0.6.0 triggers a deprecation warning; fix not release as of 2026-July
+filterwarnings = [
+    "ignore:tagMap is deprecated.*:DeprecationWarning:ldap3.utils.asn1",
+    "ignore:typeMap is deprecated.*:DeprecationWarning:ldap3.utils.asn1"
+]

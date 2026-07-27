@@ -1,0 +1,12 @@
+{
+    "http-method-tests.vgr" : "External system frequently down / corporate block",
+    "http-body-tests.vgr" :   "External system frequently down / corporate block",
+    "http-tests.vgr" :        "External system frequently down / corporate block",
+    "http-param-tests.vgr" :  "External system frequently down / corporate block",
+
+    "ldap-connect.vgr" :      "External system / corporate block",
+    "ldap.vgr" :              "External system / corporate block",
+
+    "vault-test-runner.vgr" : "Experimental"
+
+}
