@@ -3,7 +3,6 @@ from functools import lru_cache
 from typing import Any, Iterable
 import ast
 import math
-import os
 import re
 import warnings
 
@@ -33,12 +32,10 @@ from .exec_context import ExecContext
 from .builtins import (
     bound_ops,
     build_dict,
-    expand_filename,
     poly_bool,
     poly_int,
     poly_list,
     poly_number,
-    poly_repr,
     poly_true,
     poly_type,
     str_to_number,
@@ -62,6 +59,7 @@ from .stmt_choose import (
     execute_choose_using,
 )
 from .stmt_exit import (
+    execute_abort,
     execute_assert,
     execute_exit,
     execute_return,
@@ -936,6 +934,7 @@ class VarRefOptimizer(Transformer):
 # NB: Extension may add items to this list,
 #     but they can't replace existing ones
 STATEMENT_HANDLERS = {
+    'abort':             execute_abort,
     'accept_input':      execute_accept_input,
     'add_giving':        execute_add_giving,
     'add_to':            execute_add_to,

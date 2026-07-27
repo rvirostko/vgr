@@ -48,12 +48,12 @@ Exit -5.1 → -5
 Exit " 5 " → 5
 ```
 
-Also see `Assert`, `ToBoolean()`, and `ToInteger()`
+Also see `Assert` and `Abort` statements, and the `ToBoolean()` and `ToInteger()` functions
 """
     def bool_return(x) -> int: return VgrExitingException.EXIT_SUCCESS if poly_true(poly_bool(x)) else VgrExitingException.EXIT_FAILED
     # If no argument provided, then "success"
     rc = VgrExitingException.EXIT_SUCCESS
-    if statement.children:
+    if len(statement.children) > 0:
         x = ctx.eval_expr(statement.children[0])
         # Generally, None or python truthiness return "success"
         # If the value can be converted to an int, for example "5" then
@@ -67,8 +67,32 @@ Also see `Assert`, `ToBoolean()`, and `ToInteger()`
                 except ValueError:
                     rc = bool_return(x)
     msg = f'Exiting with rc = {rc}'
-    _LOG.info('%s(%s): %s', SSM.current[0], statement.meta.line, msg.strip())
+    # A request to exit is not automatically consiered an "error"
+    (_LOG.error if rc else _LOG.info)('%s(%s): %s', SSM.current[0], statement.meta.line, msg.strip())
     raise VgrExitingException(rc, statement, msg)
+
+@bound_ops("Abort")
+def execute_abort(ctx: ExecContext, statement: Tree) -> None:
+    """
+**End the script with an error condition**
+
+* Abort
+* Abort *expression*[, *expression*]&hellip;
+
+The optional expressions compose a string message sent to the error output and the log.
+It is composed in the same manner as `Printf`, with the first expression as a string containing
+formatting syntax as used by `Format()`.
+
+If no message is given a default message is generated.
+
+Execution ends with an exit code of 1 indicating failure.
+
+Also see `Exit`, `Assert`, and `Format()`
+"""
+    msg: str = _get_msg(ctx, statement, statement.children)
+    msg = str(msg) if poly_not_empty(msg) else SSM.source_for(statement)
+    _LOG.error('%s(%s): %s', SSM.current[0], statement.meta.line, msg.strip())
+    raise VgrStatementAssert(statement, msg)
 
 @bound_ops("Assert")
 def execute_assert(ctx: ExecContext, statement: Tree) -> None:
@@ -80,31 +104,34 @@ def execute_assert(ctx: ExecContext, statement: Tree) -> None:
 
 The first expression is evaluated as a boolean value which must be true for execution to continue.
 
-The optional expressions following the colon compose a a string message printed if the first expression
-is not `True`. It is composed in the same manner as `Printf`, with the first one being a string containing
-formatting syntax as used by `Format()`.
+The optional expressions following the colon compose a string message printed if the first expression
+evaluates to `False`. It is composed in the same manner as `Printf`, with the first argument as a
+string containing formatting syntax as used by `Format()`.
 
-If no message is given the the failing expression is used as the message
+If no message is given the the failing expression is used as the message.
 
-Execution ends with an exit code of 1 indicating failure
+Execution ends with an exit code of 0 indicating failure.
 
-Also see `Exit` and `Format()`
+Also see `Exit`, `Abort`, and `Format()`
 """
     exprs = statement.children
-    v: bool = poly_true(ctx.eval_expr(exprs[0])) if len(exprs) else False
-    if not v:
-        msg: str = None
-        if len(exprs) > 1:
-            try:
-                msg = ctx.eval_to_str(exprs[1], 'Format string', True)
-                if poly_not_empty(msg):
-                    msg = msg.format(*[ctx.eval_expr(expr) for expr in exprs[2:]])
-            except (ValueError, TypeError) as e:
-                print_stderr(f'While evaluating {SSM.source_for(statement)} on line {statement.meta.line}: ', e)
+    if not poly_true(ctx.eval_expr(exprs[0])):
+        msg: str = _get_msg(ctx, statement, exprs[1:])
         msg = str(msg) if poly_not_empty(msg) else f'{SSM.source_for(statement)} failed'
         _LOG.warning('%s(%s): %s', SSM.current[0], statement.meta.line, msg.strip())
-        # Point the "error" at the expression being tested
+        # Point the "error" at the expression under test
         raise VgrStatementAssert(exprs[0], msg)
+
+def _get_msg(ctx: ExecContext, statement: Tree, exprs) -> str:
+    msg: str = None
+    if len(exprs) > 0:
+        try:
+            msg = ctx.eval_to_str(exprs[0], 'Format string', True)
+            if poly_not_empty(msg):
+                msg = msg.format(*[ctx.eval_expr(expr) for expr in exprs[1:]])
+        except (ValueError, TypeError) as e:
+            print_stderr(f'While evaluating {SSM.source_for(statement)} on line {statement.meta.line}: ', e)
+    return msg
 
 @bound_ops("Return")
 def execute_return(ctx: ExecContext, statement: Tree) -> None:
