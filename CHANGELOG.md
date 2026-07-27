@@ -6,13 +6,26 @@
 
 ### Added
 
+- Added the "Abort" statement, which is an unconditional error exit,
+  but unlike "Assert" does not require a test to pass/fail.
+- Added generated github issue templates
+- Added basic CONTRIBUTING.md
+- Backfilled this change log from tags
+
 ### Changed
+
+- Clean up of test output: ignore unfixed error in ldap3 that generates a deprecated error message,
+  add a way to add "xfail" to script testing so we can be smarter about external systems, or WIP samples.
+- Improved README.md, focusing on new users and devlopment
 
 ### Deprecated
 
 ### Removed
 
 ### Fixed
+
+- Fix the "in-tree-build" issue by making sure we have a version of pip that
+  no longer requires the option. We'll automatically upgrade to 23.0 if we need to.
 
 ### Security
 
