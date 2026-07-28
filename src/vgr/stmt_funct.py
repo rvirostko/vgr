@@ -45,7 +45,6 @@ def execute_def_function(ctx: ExecContext, statement: Tree) -> None:
 **Modifiers**
 
 * Constant - the *variable* for the function cannot be modified, just as with the `Constant` statement
-* Pure - the function can only reference arguments and local variables, not globals
 * Cache or Cached - results are kepts in an LRU cache. Caching results introduces time and
   memory overhead, so this is should be used only for unctions with complicated or long computations,
   or those making idempotent calls to external systems.\\
@@ -130,34 +129,32 @@ def execute_compile_arrow(ctx: ExecContext, statement: Tree) -> None:
     _create_function(ctx, statement, _compile_arrow_function)
 
 def _create_function(ctx: ExecContext, statement: Tree, ctor) -> None:
-    is_const, is_pure, cache_size = _read_function_def(ctx, statement.children[0])
+    is_const, cache_size = _read_function_def(ctx, statement.children[0])
     name_node = statement.children[1]
     var_path = get_writable_var_path(ctx, name_node)
     if is_const: assert_var_okay_for_const(ctx, name_node, var_path)
     new_value = ctor(ctx,
-                is_pure, cache_size,
+                cache_size,
                 create_param_list(ctx, statement.children[2]),
                 statement.children[-1])
-    if is_pure: raise ValueError('Pure function not yet supported') # TODO
     if cache_size != 0: raise ValueError('Results caching not yet supported') # TODO
     if is_const:
         do_set_constant(ctx, new_value, *var_path)
     else:
         do_set(ctx, new_value, *var_path)
 
-def _new_user_function(ctx: ExecContext, is_pure: bool, cache_size: int, param_paths: tuple, body: Tree) -> Any:
+def _new_user_function(ctx: ExecContext, cache_size: int, param_paths: tuple, body: Tree) -> Any:
     return UserFunction(param_paths, body.children)
 
-def _new_arrow_function(ctx: ExecContext, is_pure: bool, cache_size: int, param_paths: tuple, body: Tree) -> Any:
+def _new_arrow_function(ctx: ExecContext, cache_size: int, param_paths: tuple, body: Tree) -> Any:
     return ArrowFunction(ctx.get_source(body), body, param_paths)
 
-def _compile_arrow_function(ctx: ExecContext, is_pure: bool, cache_size: int, param_paths: tuple, body: Tree) -> Any:
+def _compile_arrow_function(ctx: ExecContext, cache_size: int, param_paths: tuple, body: Tree) -> Any:
     return UserFunction.compile(ctx, ctx.eval_expr(body), param_paths)
 
 def _read_function_def(ctx: ExecContext, definition: Tree) -> tuple:
-    """returns (is_const, is_pure, cache_size)"""
+    """returns (is_const, cache_size)"""
     is_const: bool = None
-    is_pure: bool = None
     is_cached: bool = None
     cache_size: int = None
     def _redundant(m): raise VgrRuntimeError(m, TypeError('Redundant modifier'))
@@ -166,9 +163,6 @@ def _read_function_def(ctx: ExecContext, definition: Tree) -> tuple:
         if mod == 'mod_const':
             if is_const: _redundant(modifier)
             is_const = True;
-        elif mod == 'mod_pure':
-            if is_pure: _redundant(modifier)
-            is_pure = True
         elif mod == 'mod_cached':
             if is_cached: _redundant(modifier)
             is_cached = True
@@ -179,7 +173,7 @@ def _read_function_def(ctx: ExecContext, definition: Tree) -> tuple:
                     is_cached, cache_size = (False, None)
         else:
             raise ValueError(f'{mod} not implemented')
-    return (bool(is_const), bool(is_pure), cache_size if bool(is_cached) else 0)
+    return (bool(is_const), cache_size if bool(is_cached) else 0)
 
 @bound_ops("Call")
 def execute_call(ctx: ExecContext, statement: Tree) -> None:

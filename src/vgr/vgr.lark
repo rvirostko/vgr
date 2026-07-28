@@ -135,8 +135,7 @@ _decl: "Declare"i
 
 
 function_def: "Define"i? func_modifier* "Function"i
-func_modifier: "Pure"i                                -> mod_pure
-    |          ("Constant"i | "Const"i)               -> mod_const
+func_modifier: ("Constant"i | "Const"i)               -> mod_const
     |          ("Cached"i | "Cache"i) ("(" expr ")")? -> mod_cached
 _function_arrow: "->" | "=>" | "\u2192"
 define_statements: function_def var_name func_params? _CLAUSE_SEP? func_body ("End-Function"i | "End"i) -> def_function
