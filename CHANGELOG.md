@@ -22,6 +22,8 @@
 
 ### Removed
 
+- Unimplemented Pure modifier for Function removed
+
 ### Fixed
 
 - Fix the "in-tree-build" issue by making sure we have a version of pip that
