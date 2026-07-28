@@ -10,6 +10,7 @@ from typing import Iterable
 import ast
 import os
 import re
+import signal
 import socket
 import subprocess
 import time
@@ -191,6 +192,7 @@ class CmdLine:
             # POSIX (Linux, macOS, WSL, etc.)
             shell = os.environ.get('SHELL', '/bin/sh')
             cmd_flag = "-c"
+        old_handler = signal.signal(signal.SIGINT, signal.SIG_IGN)
         try:
             if args:
                 # Command(s) executed by the shell
@@ -201,6 +203,8 @@ class CmdLine:
         except OSError as e:
             # Only failure we care about: shell could not be created
             raise RuntimeError(f"Unable to start '{shell}': {e}") from e
+        finally:
+            signal.signal(signal.SIGINT, old_handler)
 
     def _exec_help(self, *args) -> None: pass
 
