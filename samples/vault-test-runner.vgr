@@ -1,0 +1,165 @@
+# EXPERIMENTAL
+# Test runner for HashiCorp Vault HTTP-ish test specs.
+# Discovers test-*.<ext> files in a directory, loads each, normalizes
+# its contents into a flat list of test records, and executes them
+# in file order.
+
+
+# --- Configuration -----------------------------------------------------
+
+Const DEFAULT_EXPECTED_STATUS Is 200
+
+# Stub — result comparison is genuinely open-ended (deep equality?
+# subset match? schema check?). Flagging rather than guessing.
+Define Function CompareExpectedResult(response, expected_result)
+    Abort "expected_result comparison is not yet implemented; remove expected_result from the test or implement CompareExpectedResult()."
+End-Function
+
+
+Define Function VaultTestRunner(runner_defaults, files)
+    Set results To List()
+    For Each filename In args
+        Call RunVaultTestFile(filename, dir_path, runner_defaults) Giving outcomes
+        Append All outcomes To results
+        If outcomes.LookupItem("outcome", "fail").LookupItem("fail_on_error", True).IsNotEmpty()
+            Printf "Aborting run: fail_on_error test failed in {!r}\n", filename
+            Break
+        End-If
+    End-For
+    Return results
+End-Function
+
+Define Function LoadVaultTestFile(filename)
+    If filename.StartsWith("test-") And filename.EndsWith([".json", ".yaml", ".yml"])
+        Load tests From File filename
+        Choose Using tests.Type()
+            When "list"
+                Return tests
+            When "dictionary"
+                Set keys To tests.GetKeys()
+                If Length(keys) Is 1 And keys.FirstItem() Is "tests"
+                    Return tests.tests.ToList()
+                End-If
+        End-Choose
+        Abort "Malformed test file {!r}: neither a list nor a dictionary", filename
+    End-If
+    Return [] # Not a test file, ignore
+End-Function
+
+Define Function RunVaultTestFile(filename, runner_defaults)
+    Set index To Zero
+    Set results To List()
+    For Each test In @LoadVaultTestFile(filename)
+        Call ExecuteVaultTest(test, filename, index, runner_defaults) Giving outcome
+        Append outcome To List results
+        If outcome.outcome Is "fail" And outcome.fail_on_error
+            Break
+        End-If
+        Add 1 To index
+    End-For
+    Return results
+End-Function
+
+/*
+ * {
+ *   "name" -> name for the test, optional. Generated if not present.
+ *   "host" -> protocol + host name, optional. Default to runner_defaults.host.
+ *   "token" -> optional. Defaults to runner_defaults.token.
+ *   "namespace" -> optional. Defaults to runner_defaults.namespace.
+ *   "operation" -> HTTP operations (get, list, delete, post, patch). Defaults to get.
+ *   "path" -> Vault operation path, required.
+ *   "result" -> HTTP return code(s), optional. Defaults to 200.
+ *   "returns" -> expected contents of "data" from Vault reply, optional.
+ *   "matches" -> pattern(s) matched against stringized version of "data" from Vault reply, optional.
+ *   "fail_on_error" -> halt all tests if fails, optional. Defaults to False.
+ *   "skip" -> skip this test, optional. Defaults To False.
+ * }
+ */
+Define Function ExecuteVaultTest(test, source_file, index_in_file, runner_defaults)
+    Define Function _result(outcome, detail)
+        Return {
+            "name":          name,
+            "outcome":       outcome,
+            "detail":        detail,
+            "fail_on_error": fail_on_error
+        }
+    End-Function
+    Set name To test.name.DefaultTo(source_file + "#" + index_in_file)
+    Set fail_on_error To test.fail_on_error.ToBoolean().DefaultTo(False)
+    Set skip To test.skip.ToBoolean().DefaultTo(False)
+    If skip
+        Return @_result("skip", "Skipped")
+    End-If
+    Set conn To "vault_test_runner"
+    Vault Connect To Host test.host.DefaultTo(runner_default.host)
+        With Token test.token.DefaultTo(runner_default.token)
+        As conn
+    Set namespace To test.namespace.DefaultTo(runner_default.namespace)
+    Set operation To test.operation.DefaultTo("Get")
+    Set path To test.path.EncodeUrl()
+    Set data To test.data.DefaultTo({})
+    Log Info name
+    Choose Using operation.Lower()
+        When "get"
+            Vault Get path Using conn Namespace Is namespace Giving vresult
+        When "list"
+            Vault List path Using conn Namespace Is namespace Giving vresult
+        When "delete"
+            Vault Delete path Using conn Namespace Is namespace Giving vresult
+        When "post"
+            Vault Get path Using conn Namespace Is namespace Data Is data Giving vresult
+        When "patch"
+            Vault Patch path Using conn Namespace Is namespace Data Is data Giving vresult
+        Otherwise
+            Abort "Don't know how to perform {!r}", operation
+    End-Choose
+    Vault Disconnect From conn
+    # First test the HTTP expected status
+    Set expected To test.result.DefaultTo(200)
+    Set status To vresult.vclient.status_code
+    If status Is Not In expected_statuses
+        Return @_result("fail", "expected {!r}, got status of {!r}".Format(expected, status))
+    End-If
+    # You should probably only have a "returns" or a "matches", but it's not enforced
+    If test.returns Is Defined
+        If vresult.data Not Equal To test.returns
+            Return @_result("fail", "result mismatch") #TODO more detail
+        End-If
+    End-If
+    If test.matches Is Defined
+        If vresult.data Matches test.returns
+            Return @_result("fail", "result mismatch") #TODO more detail
+        End-If
+    End-If
+    Return @_result("pass", "Passed")
+End-Function
+
+Define Function PrintVaultTestRunnerSummary(results)
+    Set passed To Zero, failed To Zero, skipped To Zero
+    For Each result In results
+        Choose Using result.outcome
+            When "skip" Add 1 To skipped
+            When "pass" Add 1 To passed
+            When "fail"
+                Add 1 To failed
+                Printf "  FAIL  {}: {}\n", r.name, r.detail
+            Otherwise
+                Abort "unknown outcome: {!r}", result.outcome # SNO
+        End-Choose
+    End-For
+    Printf "\n{} passed, {} failed, {} skipped ({} total)\n",
+        passed, failed, skipped, Length(results)
+End-Function
+
+If Length(vgr.source) <= 1 And vgr.included Is False
+    If args.IsNotEmpty()
+        # Then this file is run as "main"
+        Set runner_defaults To {
+            "host":      env.VAULT_ADDR,
+            "token":     env.VAULT_TOKEN,
+            "namespace": env.VAULT_NAMESPACE.DefaultTo(""), # default to 'root'
+        }
+        Call VaultTestRunner(runner_defaults, args) Giving results
+        Call PrintVaultTestRunnerSummary(results)
+    End-If
+End-If
