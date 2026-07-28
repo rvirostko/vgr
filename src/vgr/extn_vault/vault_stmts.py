@@ -141,12 +141,12 @@ Also see `Vault Connect`
 # Generic API execution
 #-------------------------------------------------------------------------------
 
-@bound_ops("Vault ApiDelete")
+@bound_ops("Vault Delete")
 def execute_api_delete(ctx: ExecContext, statement: Tree) -> None:
     """
 **Send a DELETE to a Vault API**
 
-* Vault ApiDelete *path* [*options*]&hellip;
+* Vault Delete *path* [*options*]&hellip;
 
 *Options*
 
@@ -161,12 +161,12 @@ def execute_api_delete(ctx: ExecContext, statement: Tree) -> None:
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.do_delete(url, namespace))
 
-@bound_ops("Vault ApiGet")
+@bound_ops("Vault Get")
 def execute_api_get(ctx: ExecContext, statement: Tree) -> None:
     """
 **Send a GET to a Vault API**
 
-* Vault ApiGet *path* [*options*]&hellip;
+* Vault Get *path* [*options*]&hellip;
 
 *Options*
 
@@ -181,12 +181,12 @@ def execute_api_get(ctx: ExecContext, statement: Tree) -> None:
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.do_get(url, namespace))
 
-@bound_ops("Vault ApiList")
+@bound_ops("Vault List")
 def execute_api_list(ctx: ExecContext, statement: Tree) -> None:
     """
 **Send a LIST to a Vault API**
 
-* Vault ApiList *path* [*options*]&hellip;
+* Vault List *path* [*options*]&hellip;
 
 *Options*
 
@@ -201,12 +201,12 @@ def execute_api_list(ctx: ExecContext, statement: Tree) -> None:
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.do_list(url, namespace))
 
-@bound_ops("Vault ApiPatch")
+@bound_ops("Vault Patch")
 def execute_api_patch(ctx: ExecContext, statement: Tree) -> None:
     """
 **Send a PATCH to a Vault API**
 
-* Vault ApiPatch *path* [*options*]&hellip;
+* Vault Patch *path* [*options*]&hellip;
 
 *Options*
 
@@ -223,12 +223,12 @@ def execute_api_patch(ctx: ExecContext, statement: Tree) -> None:
     client =_CONNECTIONS.get_connection(_get_conn_name(args))
     _set_result(ctx, args, client.do_patch(url, data, namespace))
 
-@bound_ops("Vault ApiPost")
+@bound_ops("Vault Post")
 def execute_api_post(ctx: ExecContext, statement: Tree) -> None:
     """
 **Send a POST to a Vault API**
 
-* Vault ApiPost *path* [*options*]&hellip;
+* Vault Post *path* [*options*]&hellip;
 
 *Options*
 

@@ -29,6 +29,7 @@
 - Speculative fix for ^C breaking REPL in Windows
 - Fix the "in-tree-build" issue by making sure we have a version of pip that
   no longer requires the option. We'll automatically upgrade to 23.0 if we need to.
+- Fix documentation for Vault List, Get, Post et al commands
 
 ### Security
 
