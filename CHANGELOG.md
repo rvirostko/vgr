@@ -43,6 +43,7 @@
 - Accept Input's "To" was not case insensitive
 - Accept Input lacked hyphenated version
 - Errors in Log Level value point to the level not the start of the statement
+- --logoverwrite behavior was backwards (acting like append)
 
 ### Security
 

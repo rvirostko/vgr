@@ -37,7 +37,7 @@ class VgrLogFormatter(logging.Formatter):
         t = datetime.fromtimestamp(record.created)
         return t.strftime('%Y-%m-%dT%H:%M:%S.') + f'{int(record.msecs):03d}'
 
-def init_logging(logfile: str, append: bool=True):
+def init_logging(logfile: str, overwrite: bool=True):
     if logfile is None:
         logfile = f'{datetime.now().strftime("%Y-%m-%d")} - vgr_log.txt'
     try:
@@ -50,7 +50,7 @@ def init_logging(logfile: str, append: bool=True):
         os.makedirs(log_dir, exist_ok=True)
     handler = logging.FileHandler(
                 logfile,
-                mode='a' if append else 'w',
+                mode='w' if overwrite else 'a',
                 encoding='utf-8', errors='backslashreplace'
                 )
     handler.setLevel(logging.NOTSET) # No filtering by the handler, only loggers
