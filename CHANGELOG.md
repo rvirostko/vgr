@@ -35,6 +35,7 @@
 - Fix the "in-tree-build" issue by making sure we have a version of pip that
   no longer requires the option. We'll automatically upgrade to 23.0 if we need to.
 - Fix documentation for Vault List, Get, Post et al commands
+- Fix regression with echo on/off (but not no-args or expr) echoing itself.
 
 ### Security
 

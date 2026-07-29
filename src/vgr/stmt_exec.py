@@ -931,6 +931,11 @@ class VarRefOptimizer(Transformer):
                     tree = c1
         return tree
 
+@control_statement # not really, but turns off echoing...
+def _exec_echo_on(ctx: ExecContext, statement: Tree) -> None: execute_echo(ctx, statement, True)
+@control_statement # same as above
+def _exec_echo_off(ctx: ExecContext, statement: Tree) -> None: execute_echo(ctx, statement, False)
+
 # NB: Extension may add items to this list,
 #     but they can't replace existing ones
 STATEMENT_HANDLERS = {
@@ -960,8 +965,8 @@ STATEMENT_HANDLERS = {
     'def_function':      execute_def_function,
     'div_by':            execute_div_by,
     'echo':              execute_echo,
-    'echo_on':           lambda ctx, tree: execute_echo(ctx, tree, True),
-    'echo_off':          lambda ctx, tree: execute_echo(ctx, tree, False),
+    'echo_on':           _exec_echo_on,
+    'echo_off':          _exec_echo_off,
     'exhibit':           execute_exhibit,
     'exit':              execute_exit,
     'foreach':           execute_foreach,

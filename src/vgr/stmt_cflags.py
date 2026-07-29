@@ -10,9 +10,7 @@ from .builtins import(
 )
 from .exec_context import ExecContext
 from .redir import print_stderr
-from .tags import control_statement
 
-@control_statement # not really, but turns off echoing...
 @bound_ops("Echo")
 def execute_echo(ctx: ExecContext, statement: Tree, value: bool=None) -> None:
     """
