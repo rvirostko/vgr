@@ -57,7 +57,7 @@ from .dist_meta import (
     read_license_file,
     get_authors,
 )
-from .log_config import init_logging, set_logging_level
+from .log_config import init_logging
 from .redir import print_stderr
 from .exec_context import ExecContext
 from .stmt_exec import (
@@ -69,6 +69,9 @@ from .stmt_include import (
     do_include,
     do_source,
     find_vgr_source,
+)
+from .stmt_log import (
+    init_app_log
 )
 from .var_name import VAR_NAME
 from .vscode_extn import create_vscode_extension
@@ -455,7 +458,7 @@ Environment variables:
     clp.add_argument('--logfile', type=str, default=None,
                      help='Path to the log file')
     clp.add_argument('--loglevel', type=str, default='info',
-                     help='Logging level (debug, info, warning, error, critical, or off)')
+                     help='Root logging level (debug, info, warning, error, critical, or off)')
     clp.add_argument('--logoverwrite', action='store_true',
                      help='Overwrite log file instead of appending')
     clp.add_argument('--gen-doc', action='store_true',
@@ -466,8 +469,7 @@ Environment variables:
                      help='Additional arguments. Values maybe booleans, numbers, or strings')
     args = clp.parse_args()
 
-    init_logging(args.logfile, args.logoverwrite)
-    set_logging_level(args.loglevel)
+    logfile_path = init_logging(args.logfile, args.loglevel, args.logoverwrite)
     LOG.info('Starting')
     # Since it's startup, and everything else relies on the DD...
     if args.verbose: print('Creating data dictionary...', file=sys.stderr)
@@ -490,6 +492,7 @@ Environment variables:
     ctx.debug = args.debug
     ctx.verbose = args.verbose
     ctx.echo = args.echo
+    init_app_log(ctx, logfile_path)
     ctx.print_verbose('Setting user args...')
     set_user_args(ctx, args.args)
     # Dump some basics for diagnostic purposes

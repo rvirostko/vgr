@@ -43,7 +43,6 @@ from .stmt_set import get_user_constants
 VGR_PREFIX = 'vgr'
 VER_PATH = (VGR_PREFIX, 'version')
 VER_DATE_PATH = (VGR_PREFIX, 'version_date')
-LOG_LEVEL_PATH = (VGR_PREFIX, 'log_level')
 EXEC_NAME_PATH = (VGR_PREFIX, 'python', 'executable')
 EXEC_VER_PATH = (VGR_PREFIX, 'python', 'version')
 

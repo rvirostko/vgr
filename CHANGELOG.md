@@ -15,6 +15,8 @@
 - Added Vault operation aliases for "Read" (GET) as well as "Create" and "Update" (POST)
 - Logging support the Critical level
 - Log Level accepts Off to disable logging
+- Clarified what "--loglevel" does, which is configure the root logger
+- vgr.log.file now contains the name of the logging file
 - Added generated github issue templates
 - Added basic CONTRIBUTING.md
 - Backfilled this change log from tags
@@ -24,6 +26,8 @@
 - Clean up of test output: ignore unfixed error in ldap3 that generates a deprecated error message,
   add a way to add "xfail" to script testing so we can be smarter about external systems, or WIP samples.
 - Improved README.md, focusing on new users and devlopment
+- vgr.log_level has be changed to vgr.log.level.
+  It is also populated at start-up (previously undefined)
 
 ### Deprecated
 

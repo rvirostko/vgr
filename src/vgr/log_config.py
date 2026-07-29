@@ -9,14 +9,14 @@ import re
 
 from .builtins import verify_relative_path, expand_filename
 
-_LEVEL_MAP = {
-    'debug':    logging.DEBUG,
-    'info':     logging.INFO,
-    'warn':     logging.WARNING,
-    'warning':  logging.WARNING,
-    'error':    logging.ERROR,
-    'critical': logging.CRITICAL,
-    'off':      logging.CRITICAL + 1,
+LOG_LEVEL_MAP = {
+    "Debug":    logging.DEBUG,
+    "Info":     logging.INFO,
+    "Warn":     logging.WARNING,
+    "Warning":  logging.WARNING,
+    "Error":    logging.ERROR,
+    "Critical": logging.CRITICAL,
+    "Off":      logging.CRITICAL + 1,
 }
 
 # remove leading/trailing carriage control characters
@@ -37,7 +37,8 @@ class VgrLogFormatter(logging.Formatter):
         t = datetime.fromtimestamp(record.created)
         return t.strftime('%Y-%m-%dT%H:%M:%S.') + f'{int(record.msecs):03d}'
 
-def init_logging(logfile: str, overwrite: bool=True):
+def init_logging(logfile: str, level_str: str, overwrite: bool=True) -> str:
+    """Returns the full path name of the logging file"""
     if logfile is None:
         logfile = f'{datetime.now().strftime("%Y-%m-%d")} - vgr_log.txt'
     try:
@@ -49,7 +50,7 @@ def init_logging(logfile: str, overwrite: bool=True):
     if log_dir and not os.path.exists(log_dir):
         os.makedirs(log_dir, exist_ok=True)
     handler = logging.FileHandler(
-                logfile,
+                logfile_path,
                 mode='w' if overwrite else 'a',
                 encoding='utf-8', errors='backslashreplace'
                 )
@@ -57,11 +58,5 @@ def init_logging(logfile: str, overwrite: bool=True):
     handler.setFormatter(VgrLogFormatter('%(asctime)s %(levelname)-5s %(message)s'))
     logging.getLogger().handlers.clear()
     logging.getLogger().addHandler(handler)
-    logging.getLogger().setLevel(logging.INFO)
-
-def set_logging_level(level_str: str):
-    """
-    Set the log level based on a user-provided string.
-    Accepts: 'off', 'debug', 'info', 'warning', 'error', 'critical' (case-insensitive).
-    """
-    logging.getLogger().setLevel(_LEVEL_MAP.get(level_str.strip().lower(), logging.INFO))
+    logging.getLogger().setLevel(LOG_LEVEL_MAP.get(level_str.strip().title(), logging.INFO))
+    return logfile_path
