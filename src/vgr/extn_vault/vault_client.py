@@ -185,10 +185,10 @@ class VaultClient():
                     self._error(retcode, ' on ', self._addr + url, ' : ', status)
             return rc
         except ConnectionError as e:
-            self._error(str(e), ' on ', self._addr + url)
+            self._error(str(e), ' on ', method + " " + self._addr + url)
             raise
         except HTTPError as e:
-            self._error(e.code, ' on ', self._addr + url)
+            self._error(e.code, ' on ', method + " " + self._addr + url)
             raise
 
     def _request_with_reconnect(self, *, url, method, headers, body):
