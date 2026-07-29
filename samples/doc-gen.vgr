@@ -37,11 +37,11 @@ Echo On
 //-----------------------------------------------------------------------------
 
 Set d To {"a": 1, "b": 2}
-Remove-Key "a" From d
+Remove Key "a" From d
 Print d.Repr()
 
 Set a To [ {"a": 1}, {"b": 2} ]
-Remove-Key "b" From a
+Remove Key "b" From a
 Print a.Repr()
 
 //-----------------------------------------------------------------------------
