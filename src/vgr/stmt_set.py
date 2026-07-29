@@ -251,13 +251,13 @@ Also see `Set Up`, `+`, and `Set`
     y = poly_number(ctx.eval_expr(statement.children[1])) or 0
     do_set(ctx, poly_sub(x, y), *var_path)
 
-@bound_ops("Set-Key")
+@bound_ops("Set Key")
 def execute_set_key_value(ctx: ExecContext, statement: Tree) -> None:
     """
 **Traverse a path in a dictionary and sets a value**
 
-* Set-Key *path* In [Dictionary] *variable*
-* Set-Key *path* In [Dictionary] *variable* [= | To] *expression*
+* Set Key *path* In [Dictionary] *variable*
+* Set Key *path* In [Dictionary] *variable* [= | To] *expression*
 
 The *variable* must either be a dictionary or list.
 If it does not exist, it will be created as a dictionary.
@@ -270,21 +270,21 @@ The *path* can be:
 * A list composed of path components
 
 > **Note**\\
-> The `Set-Key` statement operates directly on data.
+> The `Set Key` statement operates directly on data.
 > While `SetKeyValue()` performs the same operations, it
 > will create and return a *copy* of the original contents.
 
 ```vgr
 Set d To {"a": 1}
-Set-Key "b" In d To 2 → {"a": 1, "b": 2}
-Set-Key "c.d" In d To 3 → {"a": 1, "b": 2, "c": {"d": 3}}
+Set Key "b" In d To 2 → {"a": 1, "b": 2}
+Set Key "c.d" In d To 3 → {"a": 1, "b": 2, "c": {"d": 3}}
 
 Set a To [ {"a": 1}, {"b": 2} ]
-Set-Key ["c", "d"] In a To 3 →
+Set Key ["c", "d"] In a To 3 →
     [{"a": 1, "c": {"d": 3}}, {"b": 2, "c": {"d": 3}}]
 ```
 
-Also see `Remove-Key` and `SetKeyValue()`
+Also see `Remove Key` and `SetKeyValue()`
 """
     key_path_expr = statement.children[0]
     key_path = ctx.eval_expr_or_const(key_path_expr)
@@ -306,12 +306,12 @@ Also see `Remove-Key` and `SetKeyValue()`
         raise VgrRuntimeError(key_path_expr, e) from e
     if ctx.verbose: ctx.print_verbose('Set Key', repr(key_path), 'In', '.'.join(var_path), 'To', poly_shorten(repr(new_value)))
 
-@bound_ops("Remove-Key")
+@bound_ops("Remove Key")
 def execute_remove_key(ctx: ExecContext, statement: Tree) -> None:
     """
 **Remove a key from a dictionary**
 
-* Remove-Key *path* From [Dictionary] *variable*
+* Remove Key *path* From [Dictionary] *variable*
 
 The *value* must either be a dictionary, a list, or `None`.
 
@@ -321,19 +321,19 @@ The *path* can be:
 * A list composed of path components
 
 > **Note**\\
-> The `Remove-Key` statement operates directly on data.
+> The `Remove Key` statement operates directly on data.
 > While `RemoveKey()` performs the same operations, it
 > will create and return a *copy* of the original contents.
 
 ```vgr
 Set d To {"a": 1, "b": 2}
-Remove-Key "a" From d → {"b": 2}
+Remove Key "a" From d → {"b": 2}
 
 Set a To [ {"a": 1}, {"b": 2} ]
-Remove-Key "b" From a → [{"a": 1}, {}]
+Remove Key "b" From a → [{"a": 1}, {}]
 ```
 
-Also see `Set-Key` and `RemoveKey()`
+Also see `Set Key` and `RemoveKey()`
 """
     key_path_expr = statement.children[0]
     key_path = ctx.eval_expr_or_const(key_path_expr)

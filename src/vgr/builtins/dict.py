@@ -275,7 +275,7 @@ The *path* can be:
 > When `SetKeyValue()` operates on a list or dictionary, it will
 > return a *copy*, not the original contents.
 > \\
-> Use the `Set-Key` statement to directly operate on data.
+> Use the `Set Key` statement to directly operate on data.
 
 ```vgr
 Set point1 To {"x": 5, "y": 7, "meta": {"type": "2d", "name": "p1"}}
@@ -309,7 +309,7 @@ point2.SetKeyValue(["meta", "extra", "layer"], 3)
     → [None, {"x": 5, "y": 7, "meta": {"type": "2d", "name": "p1", "flag": True}}]
 ```
 
-Also see `GetKeyValue()` and the `Set-Key` statement
+Also see `GetKeyValue()` and the `Set Key` statement
 """
     return dict_set_key_value(data, path, value)
 
@@ -422,7 +422,7 @@ The *path* can be:
 > When `RemoveKey()` operates on a list or dictionary, it will
 > return a *copy*, not the original contents.
 > \\
-> Use the `Remove-Key` statement to directly operate on data.
+> Use the `Remove Key` statement to directly operate on data.
 
 ```vgr
 Set point1 To {"x": 5, "y": 7, "meta": {"type": "2d", "name": "p1"}}
@@ -440,7 +440,7 @@ Set point2 To {"x": 7, "y": 29, "meta": {"type": "2d", "name": "p2"}}
        {"x": 7, "y": 29, "meta": {"name": "p2"}}]
 ```
 
-Also see `SetKeyValue()` and the `Remove-Key` statement
+Also see `SetKeyValue()` and the `Remove Key` statement
 """
     return dict_remove_key(data, path, True)
 
