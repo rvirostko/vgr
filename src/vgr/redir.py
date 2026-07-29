@@ -41,7 +41,7 @@ def execute_open(ctx: ExecContext, statement: Tree) -> None:
     """
 **Send output to a file**
 
-* Open [Output | Error | Input] [File] *file_name* [options...,]*
+* Open [Output | Error | Input] [File] *file_name* [options]&hellip;
 
 The *file_name* argument is a string for the file to be opened.
 
