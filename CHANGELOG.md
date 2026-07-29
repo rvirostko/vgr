@@ -9,6 +9,9 @@
 - Added the "Abort" statement, which is an unconditional error exit,
   but unlike "Assert" does not require a test to pass/fail.
 - Vault response now includes the namespace passed in the request
+- Vault client logged messages now include the connection name.
+  The name also appears in the Vault response.
+- Vault connection errors go to the log
 - Added generated github issue templates
 - Added basic CONTRIBUTING.md
 - Backfilled this change log from tags

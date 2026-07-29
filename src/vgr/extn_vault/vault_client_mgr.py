@@ -17,7 +17,7 @@ class VaultClientManager:
         if addr is None: raise ValueError('Vault address must be provided')
         # if we had one previously, close it
         self.disconnect(name)
-        client = VaultClient(addr, token)
+        client = VaultClient(name, addr, token)
         client.open()
         self._connections[name] = client
         return client

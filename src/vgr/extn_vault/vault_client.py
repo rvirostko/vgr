@@ -63,7 +63,9 @@ def _encode_url(s: str) -> str: return urllib.parse.quote(s)
 
 class VaultClient():
 
-    def __init__(self, addr: str, token: str, default_ns: str=None):
+    def __init__(self, name: str, addr: str, token: str, default_ns: str=None):
+        if name is None: raise ValueError("Client name not provided")
+        self._name = name
         if addr is None: raise ValueError("Vault host address not provided")
         self._addr = addr
         self._token = token # This may be None or blank for auth requests
@@ -152,14 +154,15 @@ class VaultClient():
             retcode = response.status
             # details for those interested
             rc["vclient"] = {
-                # NB: keep in sync with HTTP statements
+                # NB: keep in sync with HTTP statements where appropriate
+                "connection":       self._name,         # Vault specific
                 "url":              response.geturl(),
                 "request-url":      url,
-                "namespace":        namespace,
+                "namespace":        namespace,          # Vault specific
                 "method":           method,
                 "status_code":      retcode,
                 "headers":          { key.title() : value for key, value in response.headers.items() },
-                "http_version":     response.version,  # 10 for HTTP/1.0, 11 for HTTP/1.1, 20 for HTTP/2.0
+                "http_version":     response.version,   # 10 for HTTP/1.0, 11 for HTTP/1.1, 20 for HTTP/2.0
                 "is_client_error":  400 <= retcode < 500,
                 "is_server_error":  500 <= retcode < 600,
                 "is_error":         400 <= retcode < 600,
@@ -181,6 +184,9 @@ class VaultClient():
                 else:
                     self._error(retcode, ' on ', self._addr + url, ' : ', status)
             return rc
+        except ConnectionError as e:
+            self._error(str(e), ' on ', self._addr + url)
+            raise
         except HTTPError as e:
             self._error(e.code, ' on ', self._addr + url)
             raise
@@ -625,24 +631,20 @@ class VaultClient():
         # in the constructor, or default to "root"
         return ns if ns else self._default_ns if self._default_ns else ''
 
-    @staticmethod
-    def _error(*args) -> None:
-        _LOG.error(''.join(str(arg) for arg in args))
+    def _log_msg(self, *args) -> str:
+        return self._name + " : " + ''.join(str(arg) for arg in args)
 
-    @staticmethod
-    def _warn(*args) -> None:
-        if _LOG.isEnabledFor(logging.WARNING):
-            _LOG.warning(''.join(str(arg) for arg in args))
+    def _error(self, *args) -> None:
+        if _LOG.isEnabledFor(logging.ERROR): _LOG.error(self._log_msg(*args))
 
-    @staticmethod
-    def _info(*args) -> None:
-        if _LOG.isEnabledFor(logging.INFO):
-            _LOG.info(''.join(str(arg) for arg in args))
+    def _warn(self, *args) -> None:
+        if _LOG.isEnabledFor(logging.WARNING): _LOG.warning(self._log_msg(*args))
 
-    @staticmethod
-    def _debug(*args) -> None:
-        if _LOG.isEnabledFor(logging.DEBUG):
-            _LOG.debug(''.join(str(arg) for arg in args))
+    def _info(self, *args) -> None:
+        if _LOG.isEnabledFor(logging.INFO): _LOG.info(self._log_msg(*args))
+
+    def _debug(self, *args) -> None:
+        if _LOG.isEnabledFor(logging.DEBUG): _LOG.debug(self._log_msg(*args))
 
 def _create_kv_data(data: Any) -> Dict[str, Any]:
     """Create a data dictionary for kv data."""
