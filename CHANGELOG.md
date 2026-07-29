@@ -38,6 +38,8 @@
 - Fix regression with echo on/off (but not no-args or expr) echoing itself.
 - Fix for documentation missing for Is Defined, Is Empty, Is Constant and their
   negated versions.
+- Accept Input's "To" was not case insensitive
+- Accept Input lacked hyphenated version
 
 ### Security
 

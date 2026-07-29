@@ -247,7 +247,7 @@ verbose: "Verbose"i "On"i -> verbose_on
 
 pass: ("Pass"i | "Nop"i)
 
-accept_input: "Accept"i "Input"i ("From"i stdin)? "To"? var_name accept_input_option?
+accept_input: ("Accept-Input"i | "Accept"i "Input"i) ("From"i stdin)? "To"i? var_name accept_input_option?
 ?accept_input_option: "Echo"i        -> echo
     | ("No-Echo"i | ("No"i "Echo"i)) -> no_echo
     | "Secure"i                      -> secure
