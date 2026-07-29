@@ -543,7 +543,7 @@ a = 2
 b = 1
 ```
 
-Also see `Set`
+Also see `Set` and `Assign`
 """
     path1 = get_writable_var_path(ctx, statement.children[0])
     path2 = get_writable_var_path(ctx, statement.children[1])
@@ -558,8 +558,7 @@ def execute_load_from(ctx: ExecContext, statement: Tree) -> None:
 
 * Load *variable* From [File] *file_name*\\
   &emsp;&emsp;[Type [Is]] *file_type*\\
-  &emsp;&emsp;[Encoding [Is] _encoding_]\\
-
+  &emsp;&emsp;[Encoding [Is] _encoding_]
 
 The *file_name* argument is a string expression for the file to be loaded.
 
