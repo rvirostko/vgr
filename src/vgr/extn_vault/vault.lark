@@ -80,10 +80,10 @@
     // The expr is the path part of the URL. It should include everything
     // except the host name and port. It may have to be URL encoded.
     //------------------------------------------------------------
-    | "Vault"i "Get"i expr vault_args    -> vault_api_get
+    | "Vault"i ("Get"i | "Read"i) expr vault_args    -> vault_api_get
     | "Vault"i "List"i expr vault_args   -> vault_api_list
     | "Vault"i "Delete"i expr vault_args -> vault_api_delete
-    | "Vault"i "Post"i expr vault_args   -> vault_api_post
+    | "Vault"i ("Post"i | "Create"i | "Update"i) expr vault_args   -> vault_api_post
     | "Vault"i "Patch"i expr vault_args  -> vault_api_patch
 
 vault_conn_arg: "To"i "Host"i? expr -> conn_addr

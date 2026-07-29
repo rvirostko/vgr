@@ -84,10 +84,10 @@ def _vault_help(_ctx, _statement) -> None:
 
 *Generic API Calls*
 
-* Vault Get *path* - Send a GET to a Vault API
+* Vault [Get | Read] *path* - Send a GET to a Vault API
 * Vault List *path* - Send a LIST to a Vault API
 * Vault Delete *path* - Send a DELETE to a Vault API
-* Vault Post *path* - Send a POST to a Vault API
+* Vault [Post | Create | Update] *path* - Send a POST to a Vault API
 * Vault Patch *path* - Send a PATCH to a Vault API
 
 *Namespace Management*

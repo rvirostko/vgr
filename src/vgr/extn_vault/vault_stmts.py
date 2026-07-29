@@ -167,6 +167,7 @@ def execute_api_get(ctx: ExecContext, statement: Tree) -> None:
 **Send a GET to a Vault API**
 
 * Vault Get *path* [*options*]&hellip;
+* Vault Read *path* [*options*]&hellip;
 
 *Options*
 
@@ -229,6 +230,8 @@ def execute_api_post(ctx: ExecContext, statement: Tree) -> None:
 **Send a POST to a Vault API**
 
 * Vault Post *path* [*options*]&hellip;
+* Vault Create *path* [*options*]&hellip;
+* Vault Update *path* [*options*]&hellip;
 
 *Options*
 
