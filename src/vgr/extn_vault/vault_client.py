@@ -204,7 +204,7 @@ class VaultClient():
 
     def open(self):
         if self._conn is None:
-            self._info('Opening connection to', self._addr)
+            self._info('Opening connection to ', self._addr)
             if self._scheme == 'https':
                 self._conn = http.client.HTTPSConnection(self._hostname,
                                                          self._port,
