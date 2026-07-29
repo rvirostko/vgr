@@ -8,6 +8,7 @@
 
 - Added the "Abort" statement, which is an unconditional error exit,
   but unlike "Assert" does not require a test to pass/fail.
+- Vault response now includes the namespace passed in the request
 - Added generated github issue templates
 - Added basic CONTRIBUTING.md
 - Backfilled this change log from tags

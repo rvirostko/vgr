@@ -155,6 +155,7 @@ class VaultClient():
                 # NB: keep in sync with HTTP statements
                 "url":              response.geturl(),
                 "request-url":      url,
+                "namespace":        namespace,
                 "method":           method,
                 "status_code":      retcode,
                 "headers":          { key.title() : value for key, value in response.headers.items() },
@@ -620,7 +621,7 @@ class VaultClient():
         self.close()
 
     def _ns(self, ns: str) -> str:
-        # Go thought the options: what the user provided on the call,
+        # Go through the options: what the user provided on the call,
         # in the constructor, or default to "root"
         return ns if ns else self._default_ns if self._default_ns else ''
 
