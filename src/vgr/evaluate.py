@@ -267,7 +267,7 @@ class IsVarConstant(Operation):
     @bound_ops("Is Constant")
     def execute(self, ctx: ExecContext, args: list) -> Any:
         """
-** Check to see if a variable is a constant **
+**Check to see if a variable is a constant**
 
 * *x* Is Constant
 
@@ -285,7 +285,7 @@ class IsVarNotConstant(Operation):
     @bound_ops("Is Not Constant")
     def execute(self, ctx: ExecContext, args: list) -> Any:
         """
-** Check to see if a variable is constant **
+**Check to see if a variable is constant**
 
 * *x* Is Not Constant
 
@@ -308,7 +308,7 @@ class IsVarDefined(Operation):
     @bound_ops("Is Defined", "Is Not Undefined")
     def execute(self, ctx: ExecContext, args: list) -> Any:
         """
-** Check to see if a variable is defined **
+**Check to see if a variable is defined**
 
 * *x* Is Defined
 * *x* Is Not Undefined
@@ -327,7 +327,7 @@ class IsVarUndefined(Operation):
     @bound_ops("Is Undefined", "Is Not Defined")
     def execute(self, ctx: ExecContext, args: list) -> Any:
         """
-** Check to see if a variable is undefined **
+**Check to see if a variable is undefined**
 
 * *x* Is Undefined
 * *x* Is Not Defined
@@ -353,7 +353,7 @@ class AndOperation(Operation):
 * *x* And *y*
 * *x* ∧ *y*
 
-The values for *x* and *y*  are evaluated as booleans.
+The values for *x* and *y* are evaluated as booleans.
 A full `And` expression can contain more than two operands.
 
 ***Optimized Evaluation : Short-Circuit Behavior***

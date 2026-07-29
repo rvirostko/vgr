@@ -1,7 +1,14 @@
 from functools import lru_cache
 from typing import Any, Callable
 
-from .evaluate import AndOperation, OrOperation
+from .evaluate import (
+    AndOperation,
+    IsVarConstant,
+    IsVarDefined,
+    IsVarNotConstant,
+    IsVarUndefined,
+    OrOperation,
+)
 
 from .builtins import (
     build_dict,
@@ -21,6 +28,8 @@ from .builtins import (
     poly_ge,
     poly_gt,
     poly_in,
+    poly_is_empty,
+    poly_not_empty,
     poly_is_even,
     poly_is_negative,
     poly_is_odd,
@@ -42,10 +51,13 @@ from .builtins import (
 
 # Needs to include all items bound to operators
 _OP_FUNCS: list[Callable[..., Any]] = [
-    poly_false, # ! (not) TODO is this really used?!?
     build_dict, # dict
     build_list, # array
     AndOperation.execute, # and_op
+    IsVarConstant.execute, # is_const_op
+    IsVarDefined.execute, # is_defined_op
+    IsVarNotConstant.execute, # is_not_const_op
+    IsVarUndefined.execute, # is_undefined_op
     OrOperation.execute, # or_op
     poly_add, # add_op
     poly_bit_and, # bit_and_op
@@ -57,14 +69,17 @@ _OP_FUNCS: list[Callable[..., Any]] = [
     poly_div, # div_op
     poly_eq, # eq_op
     poly_exact_eq, # exact_eq_op
+    poly_false, # unary_not
     poly_floor, # poly_floor_op
     poly_ge, # ge_op
     poly_gt, # gt_op
     poly_in, # in_op
+    poly_is_empty, # is_empty_op
     poly_is_even, # is_even_op
     poly_is_negative, # is_negative_op
     poly_is_odd, # is_odd_op
     poly_is_positive, # is_positive_op
+    poly_not_empty, # is_not_empty_op
     poly_le, # le_op
     poly_lt, # lt_op
     poly_matches_all, # matches_all_op
