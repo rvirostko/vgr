@@ -753,7 +753,7 @@ with a `From` clause.
 
 **Text output**
 
-* For Tex\\
+* For Text\\
   &emsp;Field Separator *expression*\\
   &emsp;Header Separator *expression*\\
   &emsp;Record Separator *expression*
