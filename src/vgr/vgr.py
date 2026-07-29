@@ -269,7 +269,9 @@ For example **help Add** will return informtion for `Add()` while
             self._print_md_doc("statements.md")
 
     def _list_statements(self) -> None:
-        self._display_statement_help(None, self._all_help(get_statement_entries()))
+        all_stmts = self._all_help(get_statement_entries())
+        all_stmts.sort(key=lambda t: t[0])
+        self._display_statement_help(None, all_stmts)
 
     def _print_function_help(self, _topic: str, q: str) -> None:
         if q:
@@ -278,7 +280,9 @@ For example **help Add** will return informtion for `Add()` while
             self._print_md_doc("functions.md")
 
     def _list_functions(self) -> None:
-        self._display_function_help(None, self._all_help(get_function_entries()))
+        all_funcs = self._all_help(get_function_entries())
+        all_funcs.sort(key=lambda t: t[0])
+        self._display_function_help(None, all_funcs)
 
     def _print_operator_help(self, _topic: str, q: str) -> None:
         if q:
@@ -287,10 +291,12 @@ For example **help Add** will return informtion for `Add()` while
             self._print_md_doc("operators.md")
 
     def _list_operators(self) -> None:
-        self._display_operator_help(None, self._all_help(get_operator_entries()))
+        all_ops = self._all_help(get_operator_entries())
+        all_ops.sort(key=lambda t: t[1].bound_ops[0])
+        self._display_operator_help(None, all_ops)
 
     def _all_help(self, entries: list) -> list:
-        return unique_by_func([(name, entries[name][0]) for name in sorted(entries.keys())])
+        return unique_by_func([(name, entries[name][0]) for name in entries.keys()])
 
     def _get_operator_help(self, q: str) -> list:
         return search_entries(get_operator_entries(), q)
