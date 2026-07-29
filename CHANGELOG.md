@@ -13,6 +13,8 @@
   The name also appears in the Vault response.
 - Vault connection errors go to the log
 - Added Vault operation aliases for "Read" (GET) as well as "Create" and "Update" (POST)
+- Logging support the Critical level
+- Log Level accepts Off to disable logging
 - Added generated github issue templates
 - Added basic CONTRIBUTING.md
 - Backfilled this change log from tags
@@ -40,6 +42,7 @@
   negated versions.
 - Accept Input's "To" was not case insensitive
 - Accept Input lacked hyphenated version
+- Errors in Log Level value point to the level not the start of the statement
 
 ### Security
 

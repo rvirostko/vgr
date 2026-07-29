@@ -14,7 +14,7 @@
     "iso_date":      "(?P<date>\\d{4}-\\d{2}-\\d{2})",
     "iso_timestamp": "(?P<ts>(?P<date>\\d{4}-\\d{2}-\\d{2})[T ](?P<time>\\d{2}:\\d{2}:\\d{2})(?:\\.(?P<ms>\\d+))?(?P<tz>Z|[+-]\\d{2}:\\d{2})?)",
     "key_value":     "(?P<key>(?i:[a-z_][a-z0-9_]*))=(?P<value>\"[^\"]*\"|'[^']*'|[^ ]+)",
-    "log_level":     "(?P<level>(?i:INFO|DEBUG|WARN|ERROR|TRACE))",
+    "log_level":     "(?P<level>(?i:INFO|DEBUG|CRIT|WARN|ERROR|TRACE))",
     "mac":           "(?P<mac>(?i:(?:[0-9a-f]{2}([:-]?)[0-9a-f]{2})(?:(?:\\2|\\.)(?:[0-9a-f]{2}([:-]?)[0-9a-f]{2})){2}))",
     "number":        "(?P<number>-?\\d+(?:\\.\\d+)?)",
     "quoted_string": "([\"'])(?P<string>.*?(?<!\\\\)(\\\\\\\\)*?)\\1",

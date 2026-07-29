@@ -16,6 +16,7 @@ _LEVEL_MAP = {
     'warning':  logging.WARNING,
     'error':    logging.ERROR,
     'critical': logging.CRITICAL,
+    'off':      logging.CRITICAL + 1,
 }
 
 # remove leading/trailing carriage control characters
@@ -26,6 +27,8 @@ class VgrLogFormatter(logging.Formatter):
     def format(self, record):
         if record.levelname == 'WARNING':
             record.levelname = 'WARN'
+        elif record.levelname == 'CRITICAL':
+            record.levelname = 'CRIT'
         if isinstance(record.msg, str):
             record.msg = _CTRL_STRIP.sub('', record.msg)
         return super().format(record)
@@ -59,6 +62,6 @@ def init_logging(logfile: str, append: bool=True):
 def set_logging_level(level_str: str):
     """
     Set the log level based on a user-provided string.
-    Accepts: 'debug', 'info', 'warning', 'error', 'critical' (case-insensitive).
+    Accepts: 'off', 'debug', 'info', 'warning', 'error', 'critical' (case-insensitive).
     """
     logging.getLogger().setLevel(_LEVEL_MAP.get(level_str.strip().lower(), logging.INFO))

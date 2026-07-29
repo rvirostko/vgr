@@ -455,7 +455,7 @@ Environment variables:
     clp.add_argument('--logfile', type=str, default=None,
                      help='Path to the log file')
     clp.add_argument('--loglevel', type=str, default='info',
-                     help='Logging level (debug, info, warning, error, critical)')
+                     help='Logging level (debug, info, warning, error, critical, or off)')
     clp.add_argument('--logoverwrite', action='store_true',
                      help='Overwrite log file instead of appending')
     clp.add_argument('--gen-doc', action='store_true',

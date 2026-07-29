@@ -334,6 +334,8 @@ log: "Log"i log_level _csep_list{expr}
     | "Info"i -> info
     | ("Warn"i | "Warning"i) -> warn
     | "Error"i -> error
+    | "Critical"i -> critical
+    | "Off"i -> off
 
 open: "Open"i (stderr | stdout | stdin) _file_option? expr _options_list{open_option}
 ?open_option: encoding | open_mode
