@@ -17,7 +17,11 @@ def print_tree(item: Any, indent=2) -> None:
         op = getattr(tree, "op_name", lambda: "")()
         meta = tree.meta
         if meta:
-            pos_info = f' (Pos: {meta.line}:{meta.column}-{meta.end_line}:{meta.end_column})'
+            line = getattr(meta, "line", "?")
+            column = getattr(meta, "column", "?")
+            end_line = getattr(meta, "end_line", "?")
+            end_column = getattr(meta, "end_column", "?")
+            pos_info = f' (Pos: {line}:{column}-{end_line}:{end_column})'
         else:
             pos_info = ''
         print_stderr(f'{prefix}({tree.data}:{op}{pos_info}', end=('\n' if tree.children else ''))
