@@ -81,7 +81,7 @@ from . import __version__, __version_date__, __description__
 
 _CMD_LINE_ASSIGN = 'cmd_line_assign'
 
-LOG = logging.getLogger()
+_LOG = logging.getLogger()
 
 class VGRCmdLine(CmdLine):
     _DEFAULT_HISTORY = '~/.vgr_history'
@@ -407,15 +407,17 @@ def print_debug(debug: bool, /, *args, **kwargs) -> None:
     """If debug is on print to stderr and maybe the log"""
     if debug:
         print_stderr(*args, **kwargs)
-        if LOG.isEnabledFor(logging.DEBUG):
-            LOG.debug(*args, **kwargs)
+        if _LOG.isEnabledFor(logging.DEBUG):
+            _LOG.debug(*args, **kwargs)
 
 def log_exception(ctx: ExecContext, log_label: str, e: VgrException) -> None:
-    LOG.exception(log_label)
-    print_stderr(str(e))
+    err = str(e)
+    print_stderr(err)
     if ctx.debug:
+        _LOG.exception(log_label)
         traceback.print_exc(file=sys.stderr)
-        print_debug(ctx.debug, e)
+    elif not isinstance(e, VgrExitingException):
+        _LOG.error(f"{log_label}\n{err}")
 
 def main():
     clp = argparse.ArgumentParser(
@@ -473,7 +475,7 @@ Environment variables:
     args = clp.parse_args()
 
     logfile_path = init_logging(args.logfile, args.loglevel, args.logoverwrite)
-    LOG.info('Starting')
+    _LOG.info('Starting')
     # Since it's startup, and everything else relies on the DD...
     if args.verbose: print('Creating data dictionary...', file=sys.stderr)
     dd = DataDictionary()
@@ -495,7 +497,7 @@ Environment variables:
     ctx.debug = args.debug
     ctx.verbose = args.verbose
     ctx.echo = args.echo
-    init_app_log(ctx, logfile_path)
+    init_app_log(ctx, logfile_path, args.loglevel)
     ctx.print_verbose('Setting user args...')
     set_user_args(ctx, args.args)
     # Dump some basics for diagnostic purposes
@@ -503,7 +505,7 @@ Environment variables:
         value = ctx.get_var(*path)
         var = '.'.join(path)
         ctx.print_verbose(var, '=', poly_repr(value))
-        LOG.info('%s = %s', var, poly_repr(value))
+        _LOG.info('%s = %s', var, poly_repr(value))
     # These control how some requests are made, so
     # it is good to know their values when there are
     # issues with certificates
@@ -511,8 +513,8 @@ Environment variables:
         value = os.environ.get(var)
         if value:
             ctx.print_verbose(var, '=', poly_repr(value))
-            LOG.info('%s = %s', var, poly_repr(value))
-    LOG.info('Ready')
+            _LOG.info('%s = %s', var, poly_repr(value))
+    _LOG.info('Ready')
 
     # NB: args.execute and args.file will always be None
     #     as there values have been accumulated in
@@ -578,5 +580,5 @@ Environment variables:
         exit_code = VgrExitingException.EXIT_FAILED
         log_exception(ctx, 'Exception', VgrException(None, e, None, None))
     ctx.print_verbose('Exit code is', exit_code)
-    LOG.info('Exiting')
+    _LOG.info('Exiting')
     sys.exit(exit_code)

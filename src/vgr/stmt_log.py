@@ -80,14 +80,19 @@ Also see `Print` and `Format()` for formatting details
         value = poly_format(format_string, *list(ctx.eval_expr(expr) for expr in statement.children[2:]))
     log_func(value)
 
-def init_app_log(ctx: ExecContext, logname: str) -> None:
+def init_app_log(ctx: ExecContext, logname: str, level_name: str) -> None:
     """Updates the DD with the name and sets the initial log level"""
     ctx.print_verbose('Log file is', logname)
     ctx.set_var(logname, *_LOG_FILE_PATH)
-    _set_log_level(ctx, LOG_LEVEL_MAP.get(_DEFAULT_LOG_LEVEL), _DEFAULT_LOG_LEVEL)
+    level_name = level_name.strip().title() if level_name else _DEFAULT_LOG_LEVEL
+    level = LOG_LEVEL_MAP.get(level_name, None)
+    if level is None:
+        level_name = _DEFAULT_LOG_LEVEL
+        level = LOG_LEVEL_MAP.get(_DEFAULT_LOG_LEVEL)
+    _set_log_level(ctx, level, level_name)
 
 def _set_log_level(ctx: ExecContext, level: int, level_name: str) -> None:
-    """Updates the user's logger and the DD"""
-    _USER_LOGGER.setLevel(level)
+    """Updates the root logger and the DD"""
+    logging.getLogger().setLevel(level)
     ctx.set_var(level_name, *_LOG_LEVEL_PATH)
     ctx.print_verbose('Log Level set to', level_name)
