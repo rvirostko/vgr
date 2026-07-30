@@ -509,7 +509,7 @@ class VaultClient():
         """
         # https://developer.hashicorp.com/vault/api-docs/secret/ldap
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_post(_encode_url(f'/v1/{mount_point}static-cred/{name}'), config, namespace)
+        return self.do_post(_encode_url(f'/v1/{mount_point}static-role/{name}'), config, namespace)
 
     def read_ldap_role(self, mount_point: str, name: str, namespace: str=None) -> Dict[str, Any]:
         """
@@ -517,7 +517,7 @@ class VaultClient():
         """
         # https://developer.hashicorp.com/vault/api-docs/secret/ldap
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_get(_encode_url(f'/v1/{mount_point}static-cred/{name}'), namespace)
+        return self.do_get(_encode_url(f'/v1/{mount_point}static-role/{name}'), namespace)
 
     def update_ldap_role(self, mount_point: str, name: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         """
@@ -532,7 +532,7 @@ class VaultClient():
         """
         # https://developer.hashicorp.com/vault/api-docs/secret/ldap
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_delete(_encode_url(f'/v1/{mount_point}static-cred/{name}'), namespace)
+        return self.do_delete(_encode_url(f'/v1/{mount_point}static-role/{name}'), namespace)
 
     def list_ldap_roles(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
         """
@@ -540,7 +540,7 @@ class VaultClient():
         """
         # https://developer.hashicorp.com/vault/api-docs/secret/ldap
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_list(_encode_url(f'/v1/{mount_point}static-cred'), namespace)
+        return self.do_list(_encode_url(f'/v1/{mount_point}static-role'), namespace)
 
     def rotate_ldap_role(self, mount_point: str, name: str, namespace: str=None) -> Dict[str, Any]:
         """
@@ -548,7 +548,7 @@ class VaultClient():
         """
         # https://developer.hashicorp.com/vault/api-docs/secret/ldap
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_post(_encode_url(f'/v1/{mount_point}static-cred/{name}/rotate'), None, namespace)
+        return self.do_post(_encode_url(f'/v1/{mount_point}rotale-role/{name}'), None, namespace)
 
     def create_database_connection(self, mount_point: str, name: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         # https://developer.hashicorp.com/vault/api-docs/secret/databases#configure-connection

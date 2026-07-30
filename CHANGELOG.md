@@ -50,6 +50,8 @@
 - --logoverwrite behavior was backwards (acting like append)
 - In the REPL, the exit code from "Exit" was not propogated to the shell
 - Abort and Assert statements no longer cause the REPL to exit
+- Fix end point used to work with Vault static LDAP roles
+  (now "static-role", previous "static-cred")
 
 ### Security
 
