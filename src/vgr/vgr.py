@@ -13,6 +13,7 @@ from rapidfuzz.fuzz import ratio
 from .app_exceptions import (
     VgrException,
     VgrExitingException,
+    VgrStatementAbort,
     VgrStatementAssert,
 )
 from .auto_doc import (
@@ -130,9 +131,11 @@ class VGRCmdLine(CmdLine):
     def execute_statements(self, text: str) -> tuple:
         try:
             self._ctx.execute_statements(text.rstrip(), '<repl>')
-        except VgrExitingException as e:
-            return (False, e.exit_code)
         except VgrException as e:
+            # An "Exit" terminates the REPL
+            # An "Abort" or "Assert" does not
+            if isinstance(e, VgrExitingException) and not isinstance(e, (VgrStatementAbort, VgrStatementAssert)):
+                return (False, e.exit_code)
             if self._ctx.debug:
                 traceback.print_exc(file=sys.stderr)
             else:
@@ -563,6 +566,8 @@ Environment variables:
                 ctx.print_verbose('REPL exited')
     except VgrExitingException as e:
         exit_code = e.exit_code
+        if isinstance(e, VgrStatementAbort):
+            log_exception(ctx, 'Aborted', e)
         if isinstance(e, VgrStatementAssert):
             log_exception(ctx, 'Assertion', e)
     except VgrException as e:

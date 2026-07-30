@@ -49,6 +49,7 @@
 - Errors in Log Level value point to the level not the start of the statement
 - --logoverwrite behavior was backwards (acting like append)
 - In the REPL, the exit code from "Exit" was not propogated to the shell
+- Abort and Assert statements no longer cause the REPL to exit
 
 ### Security
 
