@@ -48,6 +48,7 @@
 - Accept Input lacked hyphenated version
 - Errors in Log Level value point to the level not the start of the statement
 - --logoverwrite behavior was backwards (acting like append)
+- In the REPL, the exit code from "Exit" was not propogated to the shell
 
 ### Security
 

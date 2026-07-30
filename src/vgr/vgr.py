@@ -121,17 +121,17 @@ class VGRCmdLine(CmdLine):
             stmt_key:  self._list_statements,
         }
 
-    def run(self):
+    def run(self) -> int:
         if self._ctx.verbose: self._ctx.print_verbose("CWD =", os.getcwd())
         md_println(f"\n`VGR {__version__} ({__version_date__})`")
         md_println('_Type **help** for more information_')
         return super().run()
 
-    def execute_statements(self, text: str) -> bool:
+    def execute_statements(self, text: str) -> tuple:
         try:
             self._ctx.execute_statements(text.rstrip(), '<repl>')
-        except VgrExitingException:
-            return False
+        except VgrExitingException as e:
+            return (False, e.exit_code)
         except VgrException as e:
             if self._ctx.debug:
                 traceback.print_exc(file=sys.stderr)
@@ -142,7 +142,7 @@ class VGRCmdLine(CmdLine):
                 traceback.print_exc(file=sys.stderr)
             else:
                 print(str(VgrException(None, e, None, None)))
-        return True
+        return (True, None)
 
     def print_verbose(self, *args, **kwargs) -> None:
         self._ctx.print_verbose(*args, **kwargs)
@@ -559,7 +559,7 @@ Environment variables:
         else:
             if sys.stdin.isatty() and not cmds_provided:
                 ctx.print_verbose('Starting the REPL...')
-                VGRCmdLine(ctx).run()
+                exit_code = VGRCmdLine(ctx).run()
                 ctx.print_verbose('REPL exited')
     except VgrExitingException as e:
         exit_code = e.exit_code

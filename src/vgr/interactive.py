@@ -262,7 +262,7 @@ class CmdLine:
     @property
     def max_history_entries(self) -> int: return self._max_history_entries
 
-    def run(self) -> None:
+    def run(self) -> int:
         session = PromptSession(history=self._history)
         while True:
             try:
@@ -272,7 +272,7 @@ class CmdLine:
             except KeyboardInterrupt:
                 continue
             except EOFError:
-                break
+                return 0
             else:
                 if not text.isspace():
                     # Determine if the user entered a REPL command rather than
@@ -284,5 +284,6 @@ class CmdLine:
                             self._dispatch[command](*options)
                             continue
                     # Didn't look like a REPL command, so it must be a statement
-                    if not self.execute_statements(text):
-                        break
+                    loop, exit_code = self.execute_statements(text)
+                    if not loop:
+                        return exit_code
