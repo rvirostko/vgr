@@ -119,7 +119,7 @@ Also see `Exit`, `Abort`, and `Format()`
     if not poly_true(ctx.eval_expr(exprs[0])):
         msg: str = _get_msg(ctx, statement, exprs[1:])
         msg = str(msg) if poly_not_empty(msg) else f'{SSM.source_for(statement)} failed'
-        _LOG.warning('%s(%s): %s', SSM.current[0], statement.meta.line, msg.strip())
+        _LOG.error('%s(%s): %s', SSM.current[0], statement.meta.line, msg.strip())
         # Point the "error" at the expression under test
         raise VgrStatementAssert(exprs[0], msg)
 
