@@ -8,6 +8,7 @@ from lark import Tree
 
 from .app_exceptions import (
     VgrExitingException,
+    VgrStatementAbort,
     VgrStatementAssert,
     VgrStatementReturn,
 )
@@ -92,7 +93,7 @@ Also see `Exit`, `Assert`, and `Format()`
     msg: str = _get_msg(ctx, statement, statement.children)
     msg = str(msg) if poly_not_empty(msg) else SSM.source_for(statement)
     _LOG.error('%s(%s): %s', SSM.current[0], statement.meta.line, msg.strip())
-    raise VgrStatementAssert(statement, msg)
+    raise VgrStatementAbort(statement, msg)
 
 @bound_ops("Assert")
 def execute_assert(ctx: ExecContext, statement: Tree) -> None:

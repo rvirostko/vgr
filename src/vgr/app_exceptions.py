@@ -116,8 +116,8 @@ class VgrException(Exception):
             return "Invalid syntax"
         # Strip  numeric codes at front of OSError
         rc = _ERRNO_RE.sub('', str(e)) if isinstance(e, OSError) else str(e)
-        # For asserts, text is created either from the source or from a user format, so use verbatim
-        return rc if isinstance(self, VgrStatementAssert) else rc.strip()
+        # For these, the text is created either from the source or from a user format, so use verbatim
+        return rc if isinstance(self, (VgrStatementAbort, VgrStatementAssert)) else rc.strip()
 
     @staticmethod
     def rewrap(e: "VgrException") -> "VgrException":
@@ -139,8 +139,14 @@ class VgrExitingException(VgrException):
         self.exit_code = exit_code
         self.statement = statement
 
+class VgrStatementAbort(VgrExitingException):
+    """Raised by an Abort statement"""
+
+    def __init__(self, statement: Tree, message):
+        super().__init__(VgrExitingException.EXIT_FAILED, statement, message)
+
 class VgrStatementAssert(VgrExitingException):
-    """Raised by an assertion"""
+    """Raised by a failed Assert statement"""
 
     def __init__(self, statement: Tree, message):
         super().__init__(VgrExitingException.EXIT_FAILED, statement, message)
