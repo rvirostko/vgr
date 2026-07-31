@@ -56,7 +56,9 @@ _LANG_CONFIG = {
         { "open": "[", "close": "]" },
         { "open": "(", "close": ")" },
         { "open": "\"", "close": "\"" },
-        { "open": "'", "close": "'" }
+        { "open": "'", "close": "'" },
+        { "open": "‘", "close": "’" },
+        { "open": "“", "close": "”" }
     ]
 }
 
@@ -119,37 +121,26 @@ def _vscode_syntax_highlighting(keyword_pattern: str, constants_pattern: str, fu
             {
                 "name": "string.quoted.vgr",
                 "patterns": [
-                    # Triple quotes
-                    {
-                        "name": "string.quoted.triple.double.vgr",
-                        "begin": r'"""',
-                        "end": r'"""',
-                        "patterns": [{"name": "constant.character.escape.vgr", "match": r'\\.'}]
-                    },
-                    # Raw strings
-                    {
-                        "name": "string.quoted.raw.double.vgr",
-                        "begin": r'r"',
-                        "end": r'"'
-                    },
-                    {
-                        "name": "string.quoted.raw.single.vgr",
-                        "begin": r"r'",
-                        "end": r"'"
-                    },
-                    # Standard strings
-                    {
-                        "name": "string.quoted.double.vgr",
-                        "begin": r'"',
-                        "end": r'"',
-                        "patterns": [{"name": "constant.character.escape.vgr", "match": r'\\.'}]
-                    },
-                    {
-                        "name": "string.quoted.single.vgr",
-                        "begin": r"'",
-                        "end": r"'",
-                        "patterns": [{"name": "constant.character.escape.vgr", "match": r'\\.'}]
-                    }
+                    # _ESC_TRIPLE_STRING:   /(""".*?(?<!\\)(\\\\)*?"""|'''.*?(?<!\\)(\\\\)*?''')/s
+                    { "name": "string.quoted.triple.vgr", "begin": r'("""|\'\'\')', "end": r'\1',
+                      "patterns": [{"name": "constant.character.escape.vgr", "match": r'\\.'}] },
+                    # _ESC_STRING:          /("(?!"").*?(?<!\\)(\\\\)*?"|'(?!'').*?(?<!\\)(\\\\)*?')/
+                    { "name": "string.quoted.vgr", "begin": r'("|\')', "end": r'\1',
+                      "patterns": [{"name": "constant.character.escape.vgr", "match": r'\\.'}] },
+                    #_RAW_TRIPLE_STRING:   /[Rr](""".*?"""|'''.*?''')/s
+                    { "name": "string.quoted.raw.triple.vgr", "begin": r'[Rr]("""|\'\'\')', "end": r'\1' },
+                    #_RAW_STRING:          /[Rr]("(?!"").*?"|'(?!'').*?')/
+                    { "name": "string.quoted.raw.vgr", "begin": r'[Rr]("|\')', "end": r'\1' },
+                    # _ESC_T_DQUOTE_STRING: /\u201C.*?(?<!\\)(\\\\)*?\u201D/
+                    { "name": "string.quoted.typo.double.vgr", "begin": '\u201C', "end": '\u201D',
+                       "patterns": [{"name": "constant.character.escape.vgr", "match": r'\\.'}] },
+                    # _ESC_T_SQUOTE_STRING: /\u2018.*?(?<!\\)(\\\\)*?\u2019/
+                    { "name": "string.quoted.typo.single.vgr", "begin": '\u2018', "end": '\u2019',
+                       "patterns": [{"name": "constant.character.escape.vgr", "match": r'\\.'}] },
+                    #_RAW_T_DQUOTE_STRING: /[Rr]\u201C.*?\u201D/
+                    { "name": "string.quoted.typo.double.raw.vgr", "begin": '[Rr]\u201C', "end": '\u201D' },
+                    #_RAW_T_SQUOTE_STRING: /[Rr]\u2018.*?\u2019/
+                    { "name": "string.quoted.typo.single.raw.vgr", "begin": '[Rr]\u2018', "end": '\u2019' }
                 ]
             }
         ],

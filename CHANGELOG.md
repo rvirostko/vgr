@@ -12,7 +12,8 @@
 - Vault client logged messages now include the connection name.
   The name also appears in the Vault response.
 - Vault connection errors go to the log
-- Added Vault operation aliases for "Read" (GET) as well as "Create" and "Update" (POST)
+- Added Vault operation aliases for "Read" (GET) as well as
+  "Create" and "Update" (POST)
 - Logging support the Critical level
 - Log Level accepts Off to disable logging
 - Clarified what "--loglevel" does, which is configure the root logger
@@ -23,8 +24,9 @@
 
 ### Changed
 
-- Clean up of test output: ignore unfixed error in ldap3 that generates a deprecated error message,
-  add a way to add "xfail" to script testing so we can be smarter about external systems, or WIP samples.
+- Clean up of test output: ignore unfixed error in ldap3 that generates
+  a deprecated error message, add a way to add "xfail" to script testing
+  so we can be smarter about external systems, or WIP samples.
 - Improved README.md, focusing on new users and devlopment
 - vgr.log_level has be changed to vgr.log.level.
   It is also populated at start-up (previously undefined)
@@ -40,10 +42,12 @@
 - Speculative fix for ^C breaking REPL in Windows
 - Fix the "in-tree-build" issue by making sure we have a version of pip that
   no longer requires the option. We'll automatically upgrade to 23.0 if we need to.
+- Fix for raw strings parse error when the last character is a
+  backslash.
 - Fix documentation for Vault List, Get, Post et al commands
 - Fix regression with echo on/off (but not no-args or expr) echoing itself.
-- Fix for documentation missing for Is Defined, Is Empty, Is Constant and their
-  negated versions.
+- Fix for documentation missing for Is Defined, Is Empty, Is Constant and
+  their negated versions.
 - Accept Input's "To" was not case insensitive
 - Accept Input lacked hyphenated version
 - Errors in Log Level value point to the level not the start of the statement

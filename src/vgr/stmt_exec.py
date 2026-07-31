@@ -885,27 +885,19 @@ class ConstantsNormalizer(Transformer):
 
     @staticmethod
     def tolerant_literal_eval(s: str) -> str:
+        if s[0].lower() == 'r':
+            return ConstantsNormalizer.raw_literal_eval(s[1:])
         try:
-            return ConstantsNormalizer.make_str(ConstantsNormalizer.quiet_literal_eval(s))
+            return ConstantsNormalizer.quiet_literal_eval(s)
         except (SyntaxError, ValueError) as e:
-            # Raw string should not have any problems with bad
-            # backslash problems, so must be something we can't fix
-            if s[0].lower() == 'r': raise e
             # escape stray backslashes not part of valid escape sequences
             try:
                 safe = re.sub(r'(?<!\\)\\(?![\\abfnrtv\'"xuU0-9])', r'\\\\', s)
-                return ConstantsNormalizer.make_str(ConstantsNormalizer.quiet_literal_eval(safe))
+                return ConstantsNormalizer.quiet_literal_eval(safe)
             except (SyntaxError, ValueError):
                 # that didn't fix it, so treat it as a
                 # raw string and let any problems flow upward
-                return ConstantsNormalizer.make_str(ConstantsNormalizer.quiet_literal_eval('r' + s))
-
-    @staticmethod
-    def make_str(s: Any) -> str:
-        if isinstance(s, str): return s
-        # Far future: need to remove when we actually support "bytes"
-        if isinstance(s, bytes): return s.decode()
-        raise TypeError(type(s))
+                return ConstantsNormalizer.raw_literal_eval(s)
 
     @staticmethod
     def quiet_literal_eval(s: str) -> str:
@@ -913,6 +905,16 @@ class ConstantsNormalizer(Transformer):
             warnings.simplefilter("ignore", DeprecationWarning) # older
             warnings.simplefilter("ignore", SyntaxWarning) # newer
             return ast.literal_eval(s)
+
+    @staticmethod
+    def raw_literal_eval(s: str) -> str:
+        i = 0
+        while s[i] not in ("'", '"'):
+            i += 1
+        prefix, rest = s[:i], s[i:]
+        quote_char = rest[0]
+        quote_len = 3 if rest[:3] == quote_char * 3 else 1
+        return rest[quote_len:-quote_len]
 
 # pylint: enable=invalid-name
 

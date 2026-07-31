@@ -1,0 +1,94 @@
+
+Echo On
+
+// Double quotes, standard escaping
+Assert "".Length() == 0
+Assert "abc".Length() == 3
+Assert "a\"b".Length() == 3
+Assert "a\\".Length() == 2
+Assert "a\\\"b".Length() == 4
+
+// Single quotes, standard escaping
+Assert ''.Length() == 0
+Assert 'abc'.Length() == 3
+Assert 'a\'b'.Length() == 3
+Assert 'a\\'.Length() == 2
+Assert 'a\\\'b'.Length() == 4
+
+// Double quotes, raw string
+Assert r"".Length() == 0
+Assert r"abc".Length() == 3
+Assert r"abc\".Length() == 4
+Assert r"a\b".Length() == 3
+
+// Single quotes, raw string
+Assert r''.Length() == 0
+Assert r'abc'.Length() == 3
+Assert r'abc\'.Length() == 4
+Assert r'a\b'.Length() == 3
+
+// Double quotes, standard escaping
+Assert """""".Length() == 0
+Assert """abc""".Length() == 3
+Assert """a\"b""".Length() == 3
+Assert """a\\""".Length() == 2
+Assert """a\\\"b""".Length() == 4
+Assert """a
+b""".Length() == 3
+
+// Single quotes, standard escaping
+Assert ''''''.Length() == 0
+Assert '''abc'''.Length() == 3
+Assert '''a\"b'''.Length() == 3
+Assert '''a\\'''.Length() == 2
+Assert '''a\\\"b'''.Length() == 4
+Assert '''a
+b'''.Length() == 3
+
+# Double quotes, raw string
+Assert r"""abc""".Length() == 3
+Assert r"""""".Length() == 0
+Assert r"""abc\""".Length() == 4
+Assert r"""a\b""".Length() == 3
+Assert r"""a
+b\""".Length() == 4
+
+# Single quotes, raw string
+Assert r'''abc'''.Length() == 3
+Assert r''''''.Length() == 0
+Assert r'''abc\'''.Length() == 4
+Assert r'''a\b'''.Length() == 3
+Assert r'''a
+b\'''.Length() == 4
+
+# Typographic double quotes
+Assert “”.Length() == 0
+Assert “abc”.Length() == 3
+#Assert “a\”b”.Length() == 3 // BUG
+Assert “a\\”.Length() == 2
+#Assert “a\\\”b”.Length() == 4 // BUG
+
+Assert r“abc”.Length() == 3
+Assert r“”.Length() == 0
+Assert r“abc\”.Length() == 4
+Assert r“a\b”.Length() == 3
+
+# Typographic single quotes
+Assert ‘’.Length() == 0
+Assert ‘abc’.Length() == 3
+#Assert ‘a\’b’.Length() == 3 // BUG
+Assert ‘a\\’.Length() == 2
+#Assert ‘a\\\’b’.Length() == 4 // BUG
+
+Assert r‘abc’.Length() == 3
+Assert r‘’.Length() == 0
+Assert r‘abc\’.Length() == 4
+Assert r‘a\b’.Length() == 3
+
+// BUG
+// The tagged lines have problems not with parsing but
+// with interpretation. The \<quote> are NOT converted
+// by Python the way we'd expect in these strings.
+// The way we interpret typographic quoted strings will
+// need to convert the "\<quotes>" for their types into
+// the correct values before sending for interpretation.
