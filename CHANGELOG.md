@@ -56,6 +56,7 @@
 - Abort and Assert statements no longer cause the REPL to exit
 - Fix end point used to work with Vault static LDAP roles
   (now "static-role", previous "static-cred")
+- Fix bug in fib.vgr sample and remove unneeded code
 
 ### Security
 
