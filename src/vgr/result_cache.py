@@ -1,73 +1,117 @@
 from collections import OrderedDict
 
-class ResultCacheRegistry(dict):
-
-    def create(self, name: str, size: int) -> "ResultCache":
-        cache = ResultCache(name, size)
-        self[name] = cache
-        return cache
-
-    def clear(self):
-        for name in tuple(self.keys()):
-            cache = self.pop(name, None)
-            if cache is not None: cache.clear()
-
-    def __setitem__(self, name: str, cache):
-        old = self.get(name)
-        if old is not None: old.clear()
-        super().__setitem__(name, cache)
+from typing import Any
+from threading import RLock
 
 class ResultCache:
-    """
-    Per-function LRU cache, bounded to `size` entries. Registered under
-    `name` in a ResultCacheRegistry.
+    """A cached set of results"""
 
-    Backed by OrderedDict, which preserves insertion order.
-    """
-
-    def __init__(self, name: str, size: int):
-        assert name is not None
+    def __init__(self, key: str, size: int):
+        """key: identifier for the cache, size: max number of entries possible"""
+        assert key is not None
         assert size >= 1
-        self.name = name
-        self.size = size
+        self._key = key
+        self._size = size
         self._data = OrderedDict()
+        self._lock = RLock()
+        self._requests = 0
+        self._hits = 0
 
     @staticmethod
     def create_key(*args) -> tuple:
-        """Build a hashable cache key tuple from positional arguments."""
-        def _key_part(value):
+        """Build a hashable key for cache entries"""
+        def _key_for(value):
             if type(value).__hash__ is not None: return value
             return type(value).__name__ + "::" + str(id(value))
-        return tuple(_key_part(a) for a in args)
+        return tuple(_key_for(a) for a in args)
 
-    def __len__(self):
+    def __str__(self) -> str:
+        return f"{self.key} - {self.size}, {len(self)}, {self.hit_percentage:.1f}%"
+
+    def __len__(self) -> int:
         return len(self._data)
 
-    def __contains__(self, key):
-        return key in self._data
+    def keys(self) -> list:
+        return list(self._data.keys())
+
+    def clear(self) -> None:
+        """Clears data and statistics"""
+        self._data.clear()
+        self._requests = 0
+        self._hits = 0
+
+    @property
+    def key(self) -> str: return self._key
+
+    @property
+    def size(self) -> int: return self._size
+
+    @property
+    def requests(self) -> int: return self._requests
+
+    @property
+    def hits(self) -> int: return self._hits
+
+    @property
+    def hit_percentage(self) -> float:
+        return 0 if self.requests == 0 else 100 if self.hits == self.requests else (self.hits / self.requests) * 100
+
+    def fetch(self, key: tuple) -> tuple:
+        """Get an existing value from the cache
+
+Returns tuple: [0]-bool, found or not, [1]-the requested key, [2]-cached value"""
+        with self._lock:
+            self._requests += 1
+            if key in self._data:
+                self._hits += 1
+                self._data.move_to_end(key)
+                return (True, key, self._data[key])
+            return (False, key, None)
+
+    def store(self, key: tuple, value: Any) -> None:
+        """Adds a ***NEW*** entry to the cache"""
+        with self._lock:
+            if key in self._data:
+                self._data.move_to_end(key)
+            else:
+                # evict least-recently-used which is at the top
+                if len(self._data) >= self._size:
+                    self._data.popitem(last=False)
+                self._data[key] = value
+
+class ResultCacheRegistry():
+    """Manages a set of caches"""
+
+    def __init__(self):
+        self._caches = dict()
+
+    def create(self, key: str, size: int) -> ResultCache:
+        """key: identifier for the cache, size: max number of entries possible"""
+        # If one existed, we clear it out
+        self._dispose(key)
+        # If not a valid size, then we don't create an instance
+        return None if size is None or size < 1 else self._add(key, ResultCache(key, size))
 
     def clear(self):
-        self._data.clear()
+        """Disposes of all caches"""
+        for key in self.keys(): self._dispose(key)
 
-    def __getitem__(self, key: tuple):
-        if key not in self._data:
-            raise KeyError(key)
-        self._data.move_to_end(key)
-        return self._data[key]
+    def _dispose(self, key: str) -> None:
+        cache = self._caches.pop(key, None)
+        if cache is not None: cache.clear()
 
-    def __setitem__(self, key: tuple, value):
-        if key in self._data:
-            self._data.move_to_end(key)
-        self._data[key] = value
-        if len(self._data) > self.size:
-            # evict least-recently-used which is at the top
-            self._data.popitem(last=False)
+    def _add(self, key: str, cache: ResultCache) -> ResultCache:
+        self._caches[key] = cache
+        return cache
 
-    def get(self, key: tuple, default=None):
-        if key not in self._data:
-            return default
-        self._data.move_to_end(key)
-        return self._data[key]
+    def __getitem__(self, key: str) -> ResultCache:
+        return self._caches[key]
 
-    def set(self, key: tuple, value):
-        self[key] = value
+    def __contains__(self, key: str) -> bool:
+        return key in self._caches
+
+    def __len__(self) -> int:
+        return len(self._caches)
+
+    def keys(self) -> list:
+        return list(self._caches.keys())

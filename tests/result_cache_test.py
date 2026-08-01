@@ -12,11 +12,15 @@ def registry():
 
 def test_create_adds_new_entry(registry):
     cache = registry.create("alpha", CACHE_SIZE)
+    assert isinstance(cache, ResultCache)
+    assert cache.key == "alpha"
+    assert cache.size == CACHE_SIZE
+    assert len(cache) == 0
+    assert cache.requests == 0
+    assert cache.hits == 0
     assert "alpha" in registry
     assert registry["alpha"] is cache
-    assert isinstance(cache, ResultCache)
-    assert cache.name == "alpha"
-    assert cache.size == CACHE_SIZE
+    print(str(cache))
 
 def test_create_multiple_distinct_names(registry):
     alpha = registry.create("alpha", CACHE_SIZE)
@@ -27,30 +31,20 @@ def test_create_multiple_distinct_names(registry):
 
 def test_create_with_existing_name_overwrites(registry):
     first = registry.create("gamma", CACHE_SIZE)
-    second = registry.create("gamma", CACHE_SIZE)
-    assert registry["gamma"] is second
-    assert registry["gamma"] is not first
     assert len(registry) == 1
+    assert registry["gamma"] is first
+    second = registry.create("gamma", CACHE_SIZE)
+    assert len(registry) == 1
+    assert registry["gamma"] is not first
+    assert registry["gamma"] is second
 
 def test_overwrite_clears_the_old_cache_instance(registry):
     first = registry.create("delta", CACHE_SIZE)
-    with patch.object(first, "clear") as mock_clear:
-        registry.create("delta", CACHE_SIZE)
-        mock_clear.assert_called_once()
-
-def test_direct_setitem_overwrite_clears_old_cache(registry):
-    first = registry.create("epsilon", CACHE_SIZE)
-    replacement = ResultCache("epsilon", CACHE_SIZE)
-    with patch.object(first, "clear") as mock_clear:
-        registry["epsilon"] = replacement
-        mock_clear.assert_called_once()
-    assert registry["epsilon"] is replacement
-
-def test_setitem_on_new_name_does_not_call_clear(registry):
-    new_cache = ResultCache("zeta", CACHE_SIZE)
-    with patch.object(new_cache, "clear") as mock_clear:
-        registry["zeta"] = new_cache
-        mock_clear.assert_not_called()
+    first.store((1), 1)
+    assert len(first) == 1
+    second = registry.create("delta", CACHE_SIZE)
+    assert first is not second
+    assert len(first) == 0
 
 def test_clear_removes_all_entries(registry):
     registry.create("eta", CACHE_SIZE)
@@ -68,7 +62,8 @@ def test_clear_calls_clear_on_every_registered_cache(registry):
     assert set(called_on) == set(caches)
 
 def test_clear_on_empty_registry_is_a_no_op(registry):
-    registry.clear()  # should not raise
+    assert len(registry) == 0
+    registry.clear()
     assert len(registry) == 0
 
 class _Unhashable:
