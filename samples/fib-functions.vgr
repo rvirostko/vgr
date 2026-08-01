@@ -1,0 +1,48 @@
+//---------------------------------------------------------------------
+// Calculate and display Fibonacci numbers using various functions
+//---------------------------------------------------------------------
+
+Reset All
+
+Define Function FibonacciRecursive(n)
+    Choose Using n
+        When Less Than Zero: Abort "Negative numbers not supported"
+        When Zero, 1:        Return n
+        Otherwise:           Return @$self(n - 1) + @$self(n - 2)
+    End-Choose
+End-Function
+
+Define Function FibonacciIterative(n)
+    Choose Using n
+        When Less Than Zero: Abort "Negative numbers not supported"
+        When Zero, 1:        Return n
+        Otherwise:
+            Set prev To Zero, curr To 1
+            For i = 2 To n
+                Set next_val To prev + curr
+                Set prev To curr, curr To next_val
+            Next
+            Return curr
+    End-Choose
+End-Function
+
+Define Cache(vgr.max_cache_size) Function FibonacciRecursiveCached(n)
+    Choose Using n
+        When Less Than Zero: Abort "Negative numbers not supported"
+        When Zero, 1:        Return n
+        Otherwise:           Return @$self(n - 1) + @$self(n - 2)
+    End-Choose
+End-Function
+
+Define Function TestFunction(name, func, iterations)
+    Assign time.now To start_time
+    For n = Zero To iterations
+        Call func(n)
+    Next
+    Printf "{} : {:,d} iterations took {}\n", name, iterations, FormatDuration(start_time, time.now)
+End-Function
+
+Set iterations To 18
+Call TestFunction("FibonacciRecursive", FibonacciRecursive, iterations)
+Call TestFunction("FibonacciIterative", FibonacciIterative, iterations * 10)
+Call TestFunction("FibonacciRecursiveCached", FibonacciRecursiveCached, iterations * 80)

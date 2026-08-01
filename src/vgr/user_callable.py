@@ -1,5 +1,5 @@
 """
-Functor compilation and execution
+Function creation and execution
 """
 
 from abc import abstractmethod
@@ -15,7 +15,11 @@ from .app_exceptions import (
 )
 from .builtins import poly_type
 from .exec_context import ExecContext
+from .result_cache import ResultCacheRegistry, ResultCache
+from .src_mgr import SSM
 from .vgr_callable import VgrCallable
+
+_CACHE_REGISTRY = ResultCacheRegistry()
 
 class AbstractUserCallable(VgrCallable):
     _SELF_PATH = ('$self',)
@@ -24,23 +28,35 @@ class AbstractUserCallable(VgrCallable):
     # we should show where it came from: file and start line/col
     # probably need a generic "meta" object that covers that and the source
     # which was kind of what SSM was supposed to be
-    def __init__(self, param_paths: list[tuple[str]]):
+    def __init__(self, statement: Tree, cache_size: int, param_paths: list[tuple[str]]):
         assert isinstance(param_paths, list)
         self._param_paths = param_paths
-        # TODO cache info
+        # NB: this may return NONE, which is correct based on the cache size
+        self._result_cache = _CACHE_REGISTRY.create(f"{SSM.current[0]}::{statement.meta.line}::{statement.meta.column}::{id(self)}", cache_size)
 
     def __repr__(self): return self._sig() + '\u2192' + str(self)
 
     def evaluate(self, ctx: ExecContext, arg_values: list) -> Any:
+        result_key = None
+        if self._result_cache is not None:
+            found, result_key, value = self._result_cache.fetch(ResultCache.create_key(*arg_values))
+            if found: return value
         ctx.dd.push_frame(self._create_locals_list(arg_values))
         try:
-            return self._evaluate(ctx)
+            result = self._evaluate(ctx)
+            if self._result_cache is not None:
+                self._result_cache.store(result_key, result)
+            return result
         except (VgrStatementContinue, VgrStatementBreak) as e:
             # We can't let these popagate outside the function scope.
             # rewrap removes their special meaning.
             raise VgrException.rewrap(e) from e
         finally:
             ctx.dd.pop_frame()
+
+    @property
+    def cache_key(self) -> str:
+        return None if self._result_cache is None else self._result_cache.key()
 
     @abstractmethod
     def _evaluate(self, ctx: ExecContext) -> Any: pass
@@ -59,11 +75,10 @@ class AbstractUserCallable(VgrCallable):
     def _sig(self): return '(' +  ','.join('.'.join(t) for t in self._param_paths) + ')'
 
 class UserFunction(AbstractUserCallable):
-    def __init__(self, param_paths: list[tuple[str]], statements: list):
-        super().__init__(param_paths)
+    def __init__(self, statement: Tree, cache_size: int, param_paths: list[tuple[str]], statements: list):
+        super().__init__(statement, cache_size, param_paths)
         assert statements is not None and isinstance(statements, list)
         self._statements = statements
-        # TODO cache info
 
     def __str__(self): return '<function>'
 
@@ -93,19 +108,19 @@ class UserFunction(AbstractUserCallable):
         return fn
 
     @staticmethod
-    def compile(ctx: ExecContext, source: Any, param_paths: list[tuple[str]]) -> Any:
+    def compile(ctx: ExecContext, statement: Tree, source: Any, cache_size: int, param_paths: list[tuple[str]]) -> Any:
         """Construct a function from source text"""
         if source is None: return None
         if isinstance(source, str):
             # Normally we expect a string to parse
-            return ArrowFunction(source, ctx.parse_expression(source), param_paths)
+            return ArrowFunction(statement, cache_size, source, ctx.parse_expression(source), param_paths)
         if isinstance(source, (int, float, bool)):
             # These should end up being functions returning constants
             # TODO regex?
-            return UserFunction.compile(ctx, str(source), param_paths) # TODO use poly_repr
+            return UserFunction.compile(ctx, statement, str(source), cache_size, param_paths) # TODO use poly_repr
         if isinstance(source, list):
             # Create a list of Arrow Functions
-            return list(UserFunction.compile(ctx, s1, param_paths) for s1 in source)
+            return list(UserFunction.compile(ctx, statement, s1, cache_size, param_paths) for s1 in source)
         # NB: we can execute a dict as a template, but to compile it, everything
         #     would need to be either expressions as strings or constants. You COULD
         #     have string constants returned by using "ToString('const string')" but
@@ -149,7 +164,6 @@ fact(n) -> (n <= 1 ? 1 : n * @$self(n - 1))
 Print @fact(5) → 120
 ```
 
-
 ***Invocation of variables which are _not_ functions***
 
 ```vgr
@@ -160,9 +174,8 @@ Print @a(1, 2) → "Hello"
 ```
 """
 
-    def __init__(self, source: str, expr: Tree, param_paths: list[tuple[str]]):
-        # TODO cache
-        super().__init__(param_paths)
+    def __init__(self, statement: Tree, cache_size: int, source: str, expr: Tree, param_paths: list[tuple[str]]):
+        super().__init__(statement, cache_size, param_paths)
         assert source and isinstance(source, str)
         self._source = source
         assert expr and isinstance(expr, (Tree, Token))

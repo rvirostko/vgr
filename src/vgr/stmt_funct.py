@@ -8,6 +8,7 @@ from lark import Tree
 from .app_exceptions import VgrRuntimeError
 from .builtins import (
     bound_ops,
+    poly_clamp,
 )
 from .evaluate import (
     bind_operations,
@@ -26,6 +27,10 @@ from .user_callable import (
     ArrowFunction,
     UserFunction,
 )
+
+# This is used when user requests caching for a function but doesn't specify a size
+DEFAULT_CACHE_SIZE: int = 64
+MAX_CACHE_SIZE: int = 32_768
 
 @control_statement
 @bound_ops("Define Function")
@@ -134,23 +139,23 @@ def _create_function(ctx: ExecContext, statement: Tree, ctor) -> None:
     var_path = get_writable_var_path(ctx, name_node)
     if is_const: assert_var_okay_for_const(ctx, name_node, var_path)
     new_value = ctor(ctx,
+                statement,
                 cache_size,
                 create_param_list(ctx, statement.children[2]),
                 statement.children[-1])
-    if cache_size != 0: raise ValueError('Results caching not yet supported') # TODO
     if is_const:
         do_set_constant(ctx, new_value, *var_path)
     else:
         do_set(ctx, new_value, *var_path)
 
-def _new_user_function(ctx: ExecContext, cache_size: int, param_paths: tuple, body: Tree) -> Any:
-    return UserFunction(param_paths, body.children)
+def _new_user_function(ctx: ExecContext, statement: Tree, cache_size: int, param_paths: tuple, body: Tree) -> Any:
+    return UserFunction(statement, cache_size, param_paths, body.children)
 
-def _new_arrow_function(ctx: ExecContext, cache_size: int, param_paths: tuple, body: Tree) -> Any:
-    return ArrowFunction(ctx.get_source(body), body, param_paths)
+def _new_arrow_function(ctx: ExecContext, statement: Tree, cache_size: int, param_paths: tuple, body: Tree) -> Any:
+    return ArrowFunction(statement, cache_size, ctx.get_source(body), body, param_paths)
 
-def _compile_arrow_function(ctx: ExecContext, cache_size: int, param_paths: tuple, body: Tree) -> Any:
-    return UserFunction.compile(ctx, ctx.eval_expr(body), param_paths)
+def _compile_arrow_function(ctx: ExecContext, statement: Tree, cache_size: int, param_paths: tuple, body: Tree) -> Any:
+    return UserFunction.compile(ctx, statement, ctx.eval_expr(body), cache_size, param_paths)
 
 def _read_function_def(ctx: ExecContext, definition: Tree) -> tuple:
     """returns (is_const, cache_size)"""
@@ -167,10 +172,9 @@ def _read_function_def(ctx: ExecContext, definition: Tree) -> tuple:
             if is_cached: _redundant(modifier)
             is_cached = True
             if len(modifier.children):
-                cache_size = ctx.eval_to_int(bind_operations(modifier.children[0]), "Cache size", True)
-                # cache_size <= 0 turns it off (but remembers it has been used)
-                if cache_size is not None and cache_size < 1:
-                    is_cached, cache_size = (False, None)
+                cache_size = poly_clamp(ctx.eval_to_int(bind_operations(modifier.children[0]), "Cache size", True), 0, MAX_CACHE_SIZE)
+            else:
+                cache_size = DEFAULT_CACHE_SIZE
         else:
             raise ValueError(f'{mod} not implemented')
     return (bool(is_const), cache_size if bool(is_cached) else 0)

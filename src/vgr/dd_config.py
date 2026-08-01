@@ -39,6 +39,10 @@ from .stmt_include import (
     get_is_included,
 )
 from .stmt_set import get_user_constants
+from .stmt_funct import (
+    DEFAULT_CACHE_SIZE,
+    MAX_CACHE_SIZE,
+)
 
 VGR_PREFIX = 'vgr'
 VER_PATH = (VGR_PREFIX, 'version')
@@ -161,6 +165,9 @@ _VGR_ENTRIES = {
     ("stderr", _STREAM_FILE,):   DynamicValue(_REDIRECTOR.stderr().filename),
     ("stderr", _STREAM_ISATTY,): DynamicValue(_REDIRECTOR.stderr().isatty),
     ('max_frames',):             MAX_FRAMES,
+    ('default_cache_size',):     DEFAULT_CACHE_SIZE,
+    ('max_cache_size',):         MAX_CACHE_SIZE,
+    # ('caches',):               DynamicValue(??) # TODO
 }
 
 def dd_init(dd: DataDictionary) -> None:
