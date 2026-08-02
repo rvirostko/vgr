@@ -182,15 +182,61 @@ def _read_function_def(ctx: ExecContext, definition: Tree) -> tuple:
 @bound_ops("Call")
 def execute_call(ctx: ExecContext, statement: Tree) -> None:
     """
-**Invoke a function**
+**Invoke a user function**
 
 * Call *variable* [Giving *variable*]
 * Call *variable* Using *expression*&hellip; [Giving *variable*]
 * Call *variable*(*expression*&hellip;) [Giving *variable*]
+* @*variable*(*expression*&hellip;)
+* *value*.@*variable*(*expression*&hellip;)
+
+User functions can be invoked using the `Call` statement
+or inside an expression using `@variable(&hellip;)`
+
+***Missing and extra arguments***
+
+User functions, regardless of their declaration, can be invoked
+as if they have a variable number of parameters. Argument values are assigned
+to the named parameters, with `None` assigned to those where no
+argument is provided.
 
 ```vgr
-**TODO**
+Function add_points(x, y) -> x + y
+Call add_points(5) → None     // y defaults to None
+Call add_points(5, 6) → 11
+Call add_points(5, 6, 7) → 11 // Extra arg ignored
 ```
+
+All arguments are passed to the function in a separate parameter
+called `$args`, which is a mutable list.
+
+***Invocation of non-functions***
+
+All variable can act as functions. If a non-function is invoked,
+the variable's value is returned.
+Attempting to invoke an undefined variable or one who's value is `None`
+results in an error.
+
+```vgr
+Set a To "Hello"
+Print @a(1, 2) → "Hello"
+
+Unset a
+Call a() // function not defined error
+```
+
+***Notes***
+
+* Inside a function, the variable `$self` is a reference to the function
+  and should be used for recursive calls
+* The `$args` variable which contins the arguments as passed by the caller.
+* If a parameter is `Unset` inside a function it may expose a global value if one exists
+* When invoked in-line, the preceeding *value* is the first argument passed to the function,
+  that is `x.@f(y)` is equivalent to `@f(x, y)`
+* Function call depth is limited. The hard-coded limit can be displayed by using
+  `Exhibit vgr.max_frames`
+* The `$global` and `$outer` variable prefixes may be used to resolve variables defined
+  outside of the function: both should be used sparingly
 """
     fn = get_function(ctx, statement.children[0])
     values = [ctx.eval_expr(arg) for arg in statement.children[1:]]

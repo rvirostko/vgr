@@ -127,52 +127,7 @@ class UserFunction(AbstractUserCallable):
         #     it seems like a hack, so we don't support it.
         raise TypeError(f'Cannot use {poly_type(source)!r} as the source for an Arrow Function')
 
-# TODO move this doc to Call
 class ArrowFunction(AbstractUserCallable):
-    """
-
-***Invocation***
-
-* @*variable*(*arg*&hellip;) - Stand-alone
-* *value*.@*variable*(*arg*&hellip;) - Inline
-
-***Special Rules***
-
-* Inside the function, the variable `$self` is the same function for recursive calls
-* Also, there is a `$args` variable which contins the arguments as passed by the caller.
-  This may contain more or less than the named arguments.
-* If a parameter is `Unset` inside a function it exposes a global value if one exists
-* When invoked inline, the preceeding *value* is the first argument passed to the function
-* Arrow Functions can read but not change global state except by acting on arguments that are
-  passed by reference, such as lists and dictionaries
-* The `$global` and `$outer` prefixes may be used to resolve variables defined outside of
-  the function: both should be used sparingly
-
-***Missing and extra arguments***
-
-```vgr
-Function add(x, y) -> x + y
-Print @add(5) → None     // y defaults to None
-Print @add(5, 6) → 11
-Print @add(5, 6, 7) → 11 // Extra arg ignored
-```
-
-***Recursive function using compact notation***
-
-```vgr
-fact(n) -> (n <= 1 ? 1 : n * @$self(n - 1))
-Print @fact(5) → 120
-```
-
-***Invocation of variables which are _not_ functions***
-
-```vgr
-Unset a
-Print @a() → None
-Set a To "Hello"
-Print @a(1, 2) → "Hello"
-```
-"""
 
     def __init__(self, statement: Tree, cache_size: int, source: str, expr: Tree, param_paths: list[tuple[str]]):
         super().__init__(statement, cache_size, param_paths)
