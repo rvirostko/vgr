@@ -1,0 +1,40 @@
+
+Echo On
+
+# This should destroy any pre-existing
+# functions so that are counts are correct
+Reset Constants, Data
+Exhibit vgr.caches
+Assert Length(vgr.caches) Is Zero
+
+Define Cached Function a() -> "a"
+Exhibit vgr.caches
+Assert Length(vgr.caches) Is 1
+
+Define Cached Function b() -> "b"
+Exhibit vgr.caches
+Assert Length(vgr.caches) Is 2
+
+Swap a With b
+Exhibit vgr.caches
+Assert Length(vgr.caches) Is 2
+
+Set b To a
+Exhibit vgr.caches
+Assert Length(vgr.caches) Is 1
+
+Unset a
+Exhibit vgr.caches
+Assert Length(vgr.caches) Is 1
+
+Unset b
+Exhibit vgr.caches
+Assert Length(vgr.caches) Is Zero
+
+Define Cached Function c() -> "c"
+Exhibit vgr.caches
+Assert Length(vgr.caches) Is 1
+
+Reset Caches # clears, but does not destroy
+Exhibit vgr.caches
+Assert Length(vgr.caches) Is 1
