@@ -126,6 +126,7 @@ class VGRCmdLine(CmdLine):
         if self._ctx.verbose: self._ctx.print_verbose("CWD =", os.getcwd())
         md_println(f"\n`VGR {__version__} ({__version_date__})`")
         md_println('_Type **help** for more information_')
+        self._ctx.set_var(True, 'vgr', 'repl')
         return super().run()
 
     def execute_statements(self, text: str) -> tuple:

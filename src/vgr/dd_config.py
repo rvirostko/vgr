@@ -164,6 +164,7 @@ _VGR_ENTRIES = {
     ("stdout", _STREAM_ISATTY,): DynamicValue(_REDIRECTOR.stdout().isatty),
     ("stderr", _STREAM_FILE,):   DynamicValue(_REDIRECTOR.stderr().filename),
     ("stderr", _STREAM_ISATTY,): DynamicValue(_REDIRECTOR.stderr().isatty),
+    ("repl",):                   False, # may be changed later...
     ('max_frames',):             MAX_FRAMES,
     ('default_cache_size',):     DEFAULT_CACHE_SIZE,
     ('max_cache_size',):         MAX_CACHE_SIZE,
