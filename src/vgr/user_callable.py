@@ -21,6 +21,10 @@ from .vgr_callable import VgrCallable
 
 _CACHE_REGISTRY = ResultCacheRegistry()
 
+def clear_caches() -> None:
+    # NB: _CACHE_REGISTRY.clear() clears out the registry itself!
+    for key in _CACHE_REGISTRY.keys(): _CACHE_REGISTRY[key].clear()
+
 class AbstractUserCallable(VgrCallable):
     _SELF_PATH = ('$self',)
     _ARGS_PATH = ('$args',)

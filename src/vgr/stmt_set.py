@@ -45,6 +45,7 @@ from .evaluate import do_set, do_unset, get_writable_var_path
 from .exec_context import ExecContext
 from .redir import close_all_redirects
 from .stmt_include import clear_includes
+from .user_callable import clear_caches
 
 _LOAD_META_PATH = ('$load',)
 
@@ -483,7 +484,7 @@ Also see `Assign`, `Set`, `Constant`, and `Unset`
         # Immutables and user args are preserved
         prefixes = list(set(ctx.dd.keys()) - (set(ctx.dd.immutable_prefixes)))
         prefixes.remove(USER_ARGS)
-        prefixes.remove('env') # TODO should we restore this?
+        prefixes.remove('env')
         for prefix in prefixes:
             ctx.dd.unset_var(prefix)
     def _includes():
@@ -504,11 +505,15 @@ Also see `Assign`, `Set`, `Constant`, and `Unset`
             # Tell the DD it's mutable and then remove it entirely
             ctx.dd.remove_immutable_prefix(prefix)
             ctx.dd.unset_var(prefix)
+    def _caches():
+        ctx.print_verbose('Resetting user function caches')
+        clear_caches()
 
     if len(statement.children) == 0:
         _output()
         _data()
         _includes()
+        _caches()
         _args()
         _flags()
     else:
@@ -519,6 +524,7 @@ Also see `Assign`, `Set`, `Constant`, and `Unset`
             if s in ('all', 'consts'): _consts()
             if s in ('all', 'includes'): _includes()
             if s in ('all', 'args'): _args()
+            if s in ('all', 'caches'): _caches()
             if s in ('all'): _flags()
 
 @bound_ops("Swap")

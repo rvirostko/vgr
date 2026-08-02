@@ -292,6 +292,7 @@ reset: "Reset"i _options_list{reset_opt}
 ?reset_opt: "All"i                     -> all
     |       "Args"i                    -> args
     |       "Constants"i               -> consts
+    |       "Caches"i                  -> caches
     |       "Data"i                    -> data
     |       "Includes"i                -> includes
     |       "Output"i                  -> output
