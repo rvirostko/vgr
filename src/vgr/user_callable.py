@@ -39,7 +39,7 @@ class AbstractUserCallable(VgrCallable):
         assert isinstance(param_paths, list)
         self._param_paths = param_paths
         # NB: this may return NONE, which is correct based on the cache size
-        self._result_cache = _CACHE_REGISTRY.create(f"{SSM.current[0]}::{statement.meta.line}::{statement.meta.column}::{id(self)}", cache_size)
+        self._result_cache = _CACHE_REGISTRY.create(f"{SSM.current[0]}@{statement.meta.line},{statement.meta.column}:{id(self):x}", cache_size)
 
     def __repr__(self): return self._sig() + '\u2192' + str(self)
 
