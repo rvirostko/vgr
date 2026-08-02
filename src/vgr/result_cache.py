@@ -56,6 +56,16 @@ class ResultCache:
     def hit_percentage(self) -> float:
         return 0 if self.requests == 0 else 100 if self.hits == self.requests else (self.hits / self.requests) * 100
 
+    @property
+    def info(self) -> dict:
+        return {
+            "key":            self.key,
+            "size":           self.size,
+            "requests":       self.requests,
+            "hits":           self.hits,
+            "hit_percentage": self.hit_percentage
+        }
+
     def fetch(self, key: tuple) -> tuple:
         """Get an existing value from the cache
 

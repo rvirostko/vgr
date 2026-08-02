@@ -56,7 +56,14 @@ class AbstractUserCallable(VgrCallable):
 
     @property
     def cache_key(self) -> str:
-        return None if self._result_cache is None else self._result_cache.key()
+        return None if self._result_cache is None else self._result_cache.key
+
+    @property
+    def cache_info(self) -> dict:
+        return None if self._result_cache is None else self._result_cache.info
+
+    def clear_cache(self) -> None:
+        if self._result_cache: self._result_cache.clear()
 
     @abstractmethod
     def _evaluate(self, ctx: ExecContext) -> Any: pass
