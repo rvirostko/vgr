@@ -1,7 +1,8 @@
 from collections import OrderedDict
 
-from typing import Any
 from threading import RLock
+from typing import Any
+from weakref import WeakValueDictionary
 
 class ResultCache:
     """A cached set of results"""
@@ -93,7 +94,7 @@ class ResultCacheRegistry():
     """Manages a set of caches"""
 
     def __init__(self):
-        self._caches = dict()
+        self._caches = WeakValueDictionary()
 
     def create(self, key: str, size: int) -> ResultCache:
         """key: identifier for the cache, size: max number of entries possible"""
