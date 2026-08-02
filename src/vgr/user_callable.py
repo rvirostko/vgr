@@ -25,6 +25,9 @@ def clear_caches() -> None:
     # NB: _CACHE_REGISTRY.clear() clears out the registry itself!
     for key in _CACHE_REGISTRY.keys(): _CACHE_REGISTRY[key].clear()
 
+def cache_keys() -> list:
+    return _CACHE_REGISTRY.keys()
+
 class AbstractUserCallable(VgrCallable):
     _SELF_PATH = ('$self',)
     _ARGS_PATH = ('$args',)
