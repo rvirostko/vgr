@@ -14,7 +14,7 @@
 - Vault connection errors go to the log
 - Added Vault operation aliases for "Read" (GET) as well as
   "Create" and "Update" (POST)
-- Logging support the Critical level
+- Logging supports the Critical level
 - Log Level accepts Off to disable logging
 - Clarified what "--loglevel" does, which is configure the root logger
 - vgr.log.file now contains the name of the logging file
@@ -30,6 +30,8 @@
 - Improved README.md, focusing on new users and devlopment
 - vgr.log_level has be changed to vgr.log.level.
   It is also populated at start-up (previously undefined)
+- Exhibit displays additional information about variables when
+  Verbose mode is on
 
 ### Deprecated
 
@@ -57,6 +59,7 @@
 - Fix end point used to work with Vault static LDAP roles
   (now "static-role", previous "static-cred")
 - Fix bug in fib.vgr sample and remove unneeded code
+- Exhibit uses proper terminolgy for undefined variables
 
 ### Security
 
