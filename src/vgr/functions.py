@@ -123,6 +123,7 @@ from .builtins import (
     poly_is_even,
     poly_is_finite,
     poly_is_float,
+    poly_is_function,
     poly_is_inf,
     poly_is_int,
     poly_is_list,
@@ -252,24 +253,6 @@ from .builtins import (
     strip_nulls,
     get_datetime,
 )
-from .vgr_callable import VgrCallable
-
-# Note: This needs to stay here because
-# builtins doesn't know about VgrCallable
-def _is_function(obj: Any=None) -> Any:
-    """
-**Is a value a function**
-
-* IsFunction(*value*)
-* *value*.IsFunction()
-
-```vgr
-None.IsFunction() → False
-Function f(x) -> x+1
-f.IsFunction() → True
-```
-"""
-    return isinstance(obj, VgrCallable)
 
 _BUILT_IN_FUNCS: dict[str, Callable[..., Any]] = {
     "Abs":            poly_abs,
@@ -368,7 +351,7 @@ _BUILT_IN_FUNCS: dict[str, Callable[..., Any]] = {
     "IsFile":         is_file,
     "IsFinite":       poly_is_finite,
     "IsFloat":        poly_is_float,
-    "IsFunction":     _is_function,
+    "IsFunction":     poly_is_function,
     "IsGreaterThan":  poly_gt,
     "IsIn":           poly_in,
     "IsInf":          poly_is_inf,

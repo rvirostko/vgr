@@ -7,6 +7,8 @@ import json
 import math
 import re
 
+from ..vgr_callable import VgrCallable
+
 from .common import (
     bound_ops,
     str_to_bool,
@@ -488,3 +490,18 @@ def default_to(value: Any=None, default: Any=None) -> Any:
 ```
 """
     return default if value is None else value
+
+def poly_is_function(obj: Any=None) -> Any:
+    """
+**Is a value a function**
+
+* IsFunction(*value*)
+* *value*.IsFunction()
+
+```vgr
+None.IsFunction() → False
+Function f(x) -> x+1
+f.IsFunction() → True
+```
+"""
+    return isinstance(obj, VgrCallable)
