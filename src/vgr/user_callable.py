@@ -21,9 +21,56 @@ from .vgr_callable import VgrCallable
 
 _CACHE_REGISTRY = ResultCacheRegistry()
 
-def clear_caches() -> None:
-    # NB: _CACHE_REGISTRY.clear() clears out the registry itself!
-    for key in _CACHE_REGISTRY.keys(): _CACHE_REGISTRY[key].clear()
+import re
+def clear_caches(*args) -> int:
+    """
+**Clear the cache used for one or more functions**
+
+* ClearCache()
+* ClearCache(*expression*&hellip;)
+* *expression*.ClearCache()
+
+The *expression*s define which caches to clear. What they do depends upon the type.
+
+* If it is a reference to a function, the cache for that function, if any, is cleared
+* If it is a string, the cache matching that key is cleared
+* If it is a regular expression, all caches with keys matching the pattern are cleared
+
+The operation is distributed across lists and the value of dictionaries.
+If no argument is provided, all caches are cleared.
+
+The function returns the number of caches actually cleared.
+
+"""
+    # TODO make a method on the registry class?
+    clear_count = 0
+    if len(args) == 0:
+        # NB: _CACHE_REGISTRY.clear() clears out the registry itself!
+        for key in _CACHE_REGISTRY.keys():
+            _CACHE_REGISTRY[key].clear()
+            clear_count += 1
+    else:
+        for arg in args:
+            if isinstance(arg, AbstractUserCallable):
+                if arg.clear_cache(): clear_count += 1
+            elif isinstance(arg, str):
+                # look it up and clear it
+                cache = _CACHE_REGISTRY[arg.strip()]
+                if cache is not None:
+                    cache.clear()
+                    clear_count += 1
+            elif isinstance(arg, re.Pattern):
+                for key in list(filter(arg.search, _CACHE_REGISTRY.keys())):
+                    cache = _CACHE_REGISTRY[key]
+                    if cache is not None:
+                        cache.clear()
+                        clear_count += 1
+            elif isinstance(arg, list):
+                for value in arg: clear_count += clear_caches(value)
+            elif isinstance(arg, dict):
+                for value in arg.values(): clear_count += clear_caches(value)
+            # Everything else is just ignored
+    return clear_count
 
 def cache_keys() -> list:
     return _CACHE_REGISTRY.keys()
@@ -36,12 +83,13 @@ class AbstractUserCallable(VgrCallable):
     # probably need a generic "meta" object that covers that and the source
     # which was kind of what SSM was supposed to be
     def __init__(self, statement: Tree, cache_size: int, param_paths: list[tuple[str]]):
+        super().__init__(f"F@{id(self):x}", SSM.current[0], statement.meta.line, statement.meta.column)
         assert isinstance(param_paths, list)
         self._param_paths = param_paths
         # NB: this may return NONE, which is correct based on the cache size
-        self._result_cache = _CACHE_REGISTRY.create(f"{SSM.current[0]}@{statement.meta.line},{statement.meta.column}:{id(self):x}", cache_size)
+        self._result_cache = _CACHE_REGISTRY.create(self._name, cache_size)
 
-    def __repr__(self): return self._sig() + '\u2192' + str(self)
+    def __repr__(self): return self._sig()
 
     def evaluate(self, ctx: ExecContext, arg_values: list) -> Any:
         result_key = None
@@ -63,14 +111,19 @@ class AbstractUserCallable(VgrCallable):
 
     @property
     def cache_key(self) -> str:
+        """Returns the key for the cache or None if caching is not used"""
         return None if self._result_cache is None else self._result_cache.key
 
     @property
     def cache_info(self) -> dict:
         return None if self._result_cache is None else self._result_cache.info
 
-    def clear_cache(self) -> None:
-        if self._result_cache: self._result_cache.clear()
+    def clear_cache(self) -> bool:
+        """Returns True if the cache was cleared"""
+        if self._result_cache:
+            self._result_cache.clear()
+            return True
+        return False
 
     @abstractmethod
     def _evaluate(self, ctx: ExecContext) -> Any: pass
@@ -93,8 +146,6 @@ class UserFunction(AbstractUserCallable):
         super().__init__(statement, cache_size, param_paths)
         assert statements is not None and isinstance(statements, list)
         self._statements = statements
-
-    def __str__(self): return '<function>'
 
     def _evaluate(self, ctx: ExecContext) -> Any:
         try:
@@ -150,7 +201,7 @@ class ArrowFunction(AbstractUserCallable):
         assert expr and isinstance(expr, (Tree, Token))
         self._expr = expr
 
-    def __str__(self): return self._source
+    def __repr__(self): return self._sig() + '\u2192' + self._source
 
     def _evaluate(self, ctx: ExecContext) -> Any:
         return ctx.eval_expr(self._expr)

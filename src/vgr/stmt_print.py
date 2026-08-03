@@ -14,8 +14,10 @@ from .evaluate import _var_name_path
 from .builtins import (
     bound_ops,
     poly_format,
+    poly_is_function,
     poly_repr,
     poly_str,
+    poly_type,
 )
 from .dd_config import OFS_PATH, ORS_PATH
 from .doc_help import md_println
@@ -241,17 +243,26 @@ string.whitespace = ' \\t\\n\\r\\x0b\\x0c'
 
 Also see `Print`, `Printf`, and `Repr()`
 """
+    def _ptype(x): return "<" + poly_type(x) + ">"
+    verbose = ctx.verbose
     def _exhibit_value(name: str, value: Any) -> None:
-        if hasattr(value, 'keys') and callable(value.keys):
+        if isinstance(value, dict):
             keys = value.keys()
-            if len(keys):
-                for key in sorted(keys):
-                    pkey = str(key)
-                    _exhibit_value(name + '.' + pkey if len(name) > 0 else pkey, value[key])
+            if verbose:
+                print_stdout(name, '=', poly_repr({}), _ptype(value))
             else:
-                print_stdout(name, '= -empty-')
+                print_stdout(name, '=', poly_repr({}))
+            for key in sorted(keys):
+                pkey = str(key)
+                _exhibit_value(name + '.' + pkey if len(name) > 0 else pkey, value[key])
         else:
-            print_stdout(name, '=', poly_repr(value))
+            if verbose:
+                if poly_is_function(value):
+                    print_stdout(name, '=', poly_repr(value), _ptype(value), value.name)
+                else:
+                    print_stdout(name, '=', poly_repr(value), _ptype(value))
+            else:
+                print_stdout(name, '=', poly_repr(value))
     children = statement.children
     if children:
         for var_name in children:
@@ -260,7 +271,7 @@ Also see `Print`, `Printf`, and `Repr()`
             if exists:
                 _exhibit_value(true_name, value)
             else:
-                print_stdout(true_name, '= -not set-')
+                print_stdout(true_name, '= -not defined-')
     else:
         # No arguments dumps the entire dictionary
         for key in sorted(ctx.dd.keys()):
