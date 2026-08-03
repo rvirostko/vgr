@@ -291,6 +291,7 @@ from .types import (
     poly_is_empty,
     poly_is_finite,
     poly_is_float,
+    poly_is_function,
     poly_is_inf,
     poly_is_int,
     poly_is_nan,
