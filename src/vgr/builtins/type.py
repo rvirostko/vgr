@@ -38,4 +38,5 @@ Also see `IsNone()`, `IsBoolean()`, `IsDictionary()`, `IsInteger()`,
     if isinstance(x, re.Pattern): return 'pattern'
     if isinstance(x, str): return 'string'
     if isinstance(x, VgrCallable): return 'function'
+    if callable(x) and not isinstance(x, type): return poly_type(x())
     return (x if isinstance(x, type) else type(x)).__name__
