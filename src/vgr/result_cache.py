@@ -17,6 +17,7 @@ class ResultCache:
         self._lock = RLock()
         self._requests = 0
         self._hits = 0
+        self._evictions = 0
 
     @staticmethod
     def create_key(*args) -> tuple:
@@ -27,7 +28,7 @@ class ResultCache:
         return tuple(_key_for(a) for a in args)
 
     def __str__(self) -> str:
-        return f"{self.key} - {self.size}, {len(self)}, {self.hit_percentage:.1f}%"
+        return f"{self.key} - {self.size}, {len(self)}, {self.hit_percentage:.1f}%, {self.eviction_percentage:.1f}%"
 
     def __len__(self) -> int:
         return len(self._data)
@@ -40,6 +41,7 @@ class ResultCache:
         self._data.clear()
         self._requests = 0
         self._hits = 0
+        self._evictions = 0
 
     @property
     def key(self) -> str: return self._key
@@ -57,14 +59,24 @@ class ResultCache:
     def hit_percentage(self) -> float:
         return 0 if self.requests == 0 else 100 if self.hits == self.requests else (self.hits / self.requests) * 100
 
+
+    @property
+    def evictions(self) -> int: return self._evictions
+
+    @property
+    def eviction_percentage(self) -> float:
+        return 0 if self.requests == 0 else 100 if self.evictions == self.requests else (self.evictions / self.requests) * 100
+
     @property
     def info(self) -> dict:
         return {
-            "key":            self.key,
-            "size":           self.size,
-            "requests":       self.requests,
-            "hits":           self.hits,
-            "hit_percentage": self.hit_percentage
+            "key":                 self.key,
+            "size":                self.size,
+            "requests":            self.requests,
+            "hits":                self.hits,
+            "hit_percentage":      self.hit_percentage,
+            "evictions":           self.evictions,
+            "eviction_percentage": self.eviction_percentage
         }
 
     def fetch(self, key: tuple) -> tuple:
@@ -88,6 +100,7 @@ Returns tuple: [0]-bool, found or not, [1]-the requested key, [2]-cached value""
                 # evict least-recently-used which is at the top
                 if len(self._data) >= self._size:
                     self._data.popitem(last=False)
+                    self._evictions += 1
                 self._data[key] = value
 
 class ResultCacheRegistry():
