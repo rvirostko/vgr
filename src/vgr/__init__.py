@@ -1,7 +1,7 @@
 
 # These are maintained by bump_version.sh
 __version__ = "1.2.1"
-__version_date__ = "2026-07-14"
+__version_date__ = "2026-08-04"
 
 __description__ = "A scripting language for report writing"
 

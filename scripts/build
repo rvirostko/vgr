@@ -1,0 +1,31 @@
+#! /usr/bin/env bash
+set -euo pipefail
+
+if [ ! -d "./src/vgr" ]; then
+    echo "You are not in the project root" >&2
+    exit 1
+fi
+
+PROJECT_ROOT=$(pwd)
+OUTPUT_DIR="${PROJECT_ROOT}/dist"
+BUILD_DIR="${PROJECT_ROOT}/build"
+
+VERSION=$(grep -m1 '^version' pyproject.toml | sed -E 's/version *= *"(.*)"/\1/')
+
+# Ensure output directories exists and are empty
+rm -rf "$OUTPUT_DIR" "$BUILD_DIR"
+mkdir -p "$OUTPUT_DIR"
+
+python3 -m build --quiet --outdir "$OUTPUT_DIR"
+rm -rf "$BUILD_DIR"
+
+# Zip up the samples
+SAMPLES_ZIP="$OUTPUT_DIR/vgr-${VERSION}-samples.zip"
+git archive --format=zip --output="$SAMPLES_ZIP" HEAD -- samples
+
+# Checksums + metadata sanity check on everything shipped.
+if command -v sha256sum >/dev/null 2>&1; then
+    (cd "$OUTPUT_DIR" && sha256sum -- * > SHA256SUMS)
+else
+    (cd "$OUTPUT_DIR" && shasum -a 256 -- * > SHA256SUMS)
+fi

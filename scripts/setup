@@ -1,6 +1,6 @@
 #! /usr/bin/env bash
 
-# Must use 'source dev-setup' instead of just running it
+# Must use 'source scipts/setup' instead of just running it
 # We can check in bash and zsh
 # NB: zsh execution will sometimes emulate bash
 if [ -n "${BASH_SOURCE[0]+set}" ]; then
@@ -65,7 +65,7 @@ if [ "$OKAY" -eq 1 ]; then
 fi
 
 if [ "$OKAY" -eq 1 ]; then
-    python3 -m pip install --upgrade "pip>=23.0"
+    python3 -m pip install --quiet --upgrade "pip>=23.0"
     python3 -m pip install --quiet -r requirements-dev.txt
 fi
 
@@ -107,21 +107,6 @@ fi
 
 if [ "$OKAY" -eq 1 ]; then
     unset NO_COLOR
-fi
-
-add_to_path() {
-    local dir="$1"
-    # Expand ~ to $HOME
-    dir="${dir/#\~/$HOME}"
-    # Only add if not already in PATH
-    case ":$PATH:" in
-        *":$dir:"*) return ;;  # already in PATH
-    esac
-    PATH="$dir:$PATH"
-}
-
-if [ "$OKAY" -eq 1 ]; then
-    add_to_path "$(pwd)/scripts"
 fi
 
 if [ "$OKAY" -eq 1 ]; then

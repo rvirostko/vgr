@@ -1,0 +1,13 @@
+#! /usr/bin/env bash
+set -euo pipefail
+
+if [ ! -d "./src/vgr" ]; then
+    echo "You are not in the project root" >&2
+    exit 1
+fi
+
+if [[ -n "${CI:-}" ]]; then
+    pytest -s "$@"
+else
+    pytest -s "$@" --cov=vgr --cov-branch --cov-report=xml
+fi
