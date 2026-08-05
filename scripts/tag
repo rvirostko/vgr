@@ -6,42 +6,55 @@ if [ ! -d "./src/vgr" ]; then
     exit 1
 fi
 
-VERSION=$(python3 - <<'EOF'
-try:
-    import tomllib as tomli  # Python 3.11+
-except ImportError:
-    import tomli  # fallback for older versions
-with open("pyproject.toml","rb") as f:
-    data = tomli.load(f)
-print(data["project"]["version"])
-EOF
-)
+VERSION=$(grep -m1 '^version' pyproject.toml | sed -E 's/version *= *"(.*)"/\1/')
 echo "Version: $VERSION"
 
+CHANGELOG="CHANGELOG.md"
+
+if ! grep -q "^## \[${VERSION}\]" "$CHANGELOG"; then
+    printf "error: %s has no entry for ${VERSION}\nMove Unreleased items into a versioned section first\n" "$CHANGELOG" >&2
+    exit 1
+fi
+
+if awk '/^## \[Unreleased\]/{f=1;next}/^## \[/{f=0}f' "$CHANGELOG" | grep -q '[^[:space:]]'; then
+    printf "error: %s 'Unreleased' section still has content\nFinalize it before tagging\n" "$CHANGELOG" >&2
+    exit 1
+fi
+
+# Tag is just the version preceeded with a "v"
 TAG="v$VERSION"
 
-TMPFILE=$(mktemp /tmp/git_tag_msg.XXXXXX)
-echo "Release $TAG" > "$TMPFILE"
-"${EDITOR:-vi}" "$TMPFILE"
+NOTES_FILE=$(mktemp -t "release-notes-${VERSION}-XXXX").md
+awk -v ver="$VERSION" '
+    $0 ~ "^## \\[" ver "\\]" {flag=1; print; next}
+    flag && /^## \[/ {exit}
+    flag
+' "$CHANGELOG" > "$NOTES_FILE"
+
+"${EDITOR:-vi}" "$NOTES_FILE"
 
 BAR="------------------------------------------"
 echo
 echo "$BAR"
 echo "Tag: ${TAG}"
 echo "$BAR"
-cat "$TMPFILE"
+cat "$NOTES_FILE"
 echo "$BAR"
 echo
 
 read -r -p "Proceed [y/N]: " CONFIRM
 case "$CONFIRM" in
     [yY][eE][sS]|[yY])
-        git tag -a "$TAG" -F "$TMPFILE"
-        git push origin --tags
+        # Uncomment these if you need to re-do a tag
+        # BUT BE CAREFUL
+        #git tag --delete "$TAG" 2>/dev/null || true
+        #git push origin --delete "$TAG" 2>/dev/null || true
+###        git tag -a "$TAG" -F "$NOTES_FILE"
+###        git push origin --tags
         ;;
     *)
         echo "Tag not set"
         ;;
 esac
 
-rm -f "$TMPFILE"
+rm -f "$NOTES_FILE"
