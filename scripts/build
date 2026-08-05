@@ -10,6 +10,11 @@ msg() {
     fi
 }
 
+if [[ $# -gt 1 ]]; then
+    msg "ERROR: Usage: $0 [TAG]" >&2
+    exit 1
+fi
+
 if [ ! -d "./src/vgr" ]; then
     msg "ERROR: You are not in the project root" >&2
     exit 1
@@ -20,8 +25,29 @@ if ! python3 -m build --version >/dev/null 2>&1; then
     exit 1
 fi
 
+# This is all cross checks with what the CI pipeline
+# thinks is going to be built
+SOURCE_VERSION=$(grep -m1 '^version' pyproject.toml | sed -E 's/version *= *"(.*)"/\1/')
+if [[ $# -eq 1 ]]; then
+    TAG="$1"
+    if [[ "$TAG" != v* ]]; then
+        msg "ERROR: Invalid tag '${TAG}' — expected a tag beginning with 'v'" >&2
+        exit 1
+    fi
+    VERSION="${TAG#v}"
+    if [[ "$VERSION" != "$SOURCE_VERSION" ]]; then
+        msg "ERROR: Tag version '${VERSION}' does not match source version '${SOURCE_VERSION}'" >&2
+        exit 1
+    fi
+else
+    TAG="v${SOURCE_VERSION}"
+    VERSION="$SOURCE_VERSION"
+fi
+
+msg "VERSION is ${VERSION}"
+msg "Release TAG is ${TAG}"
+
 PROJECT_ROOT=$(pwd)
-VERSION=$(grep -m1 '^version' pyproject.toml | sed -E 's/version *= *"(.*)"/\1/')
 DIST_DIR="${PROJECT_ROOT}/dist"
 SAMPLES_DIR="${PROJECT_ROOT}/samples"
 CHANGELOG="${PROJECT_ROOT}/CHANGELOG.md"
