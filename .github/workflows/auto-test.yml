@@ -16,4 +16,8 @@ jobs:
         with:
           python-version: '3.9'
       - run: python -m pip install ".[dev]"
-      - run: ./scripts/test --cov-report=term
+      - run: ./scripts/test --cov-report=html
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage-html
+          path: htmlcov/
