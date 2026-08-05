@@ -6,8 +6,16 @@ if [ ! -d "./src/vgr" ]; then
     exit 1
 fi
 
-if [[ -n "${CI:-}" ]]; then
-    pytest -s "$@"
-else
-    pytest -s "$@" --cov=vgr --cov-branch --cov-report=xml
+PYTEST_ARGS=("$@")
+HAS_COV_REPORT=false
+for arg in "$@"; do
+    if [[ "$arg" == --cov-report=* ]]; then
+        HAS_COV_REPORT=true
+        break
+    fi
+done
+if [[ "$HAS_COV_REPORT" == false ]]; then
+    PYTEST_ARGS+=(--cov-report=xml)
 fi
+
+python -m pytest --capture=no "${PYTEST_ARGS[@]}" --cov=vgr --cov-branch
