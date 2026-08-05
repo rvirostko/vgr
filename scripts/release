@@ -1,5 +1,5 @@
 #! /usr/bin/env bash
-set -e
+set -euo pipefail
 
 if [ ! -d "./src/vgr" ]; then
     echo "You are not in the project root" >&2
@@ -25,36 +25,26 @@ fi
 TAG="v$VERSION"
 
 NOTES_FILE=$(mktemp -t "release-notes-${VERSION}-XXXX").md
+trap 'rm -f "$NOTES_FILE"' EXIT
 awk -v ver="$VERSION" '
-    $0 ~ "^## \\[" ver "\\]" {flag=1; print; next}
-    flag && /^## \[/ {exit}
-    flag
-' "$CHANGELOG" > "$NOTES_FILE"
-
-"${EDITOR:-vi}" "$NOTES_FILE"
+    $0 ~ "^## \\[" ver "\\]" {flag=1}
+    flag {
+        if ($0 ~ "^## \\[" && $0 !~ "^## \\[" ver "\\]") exit
+        print
+    }' "$CHANGELOG" > "$NOTES_FILE"
 
 BAR="------------------------------------------"
-echo
-echo "$BAR"
-echo "Tag: ${TAG}"
-echo "$BAR"
+printf "\n%s\nTag: %s\n%s\n" "$BAR" "$TAG" "$BAR"
 cat "$NOTES_FILE"
-echo "$BAR"
-echo
+printf "%s\n\n" "$BAR"
 
 read -r -p "Proceed [y/N]: " CONFIRM
 case "$CONFIRM" in
     [yY][eE][sS]|[yY])
-        # Uncomment these if you need to re-do a tag
-        # BUT BE CAREFUL
-        #git tag --delete "$TAG" 2>/dev/null || true
-        #git push origin --delete "$TAG" 2>/dev/null || true
-###        git tag -a "$TAG" -F "$NOTES_FILE"
-###        git push origin --tags
+        git tag -a "$TAG" -F "$NOTES_FILE"
+        git push origin "$TAG"
         ;;
     *)
-        echo "Tag not set"
+        echo "Release tag not set"
         ;;
 esac
-
-rm -f "$NOTES_FILE"
