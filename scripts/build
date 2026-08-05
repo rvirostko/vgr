@@ -62,10 +62,11 @@ python3 -m build --quiet --outdir "$DIST_DIR"
 
 # Grab the changes for this version
 awk -v ver="$VERSION" '
-    $0 ~ "^## \\[" ver "\\]" {flag=1; next}
-    flag && /^## \[/ {exit}
-    flag
-' "$CHANGELOG" > "$RELEASE_NOTES"
+    $0 ~ "^## \\[" ver "\\]" {flag=1}
+    flag {
+        if ($0 ~ "^## \\[" && $0 !~ "^## \\[" ver "\\]") exit
+        print
+    }' "$CHANGELOG" > "$RELEASE_NOTES"
 if [ ! -s "$RELEASE_NOTES" ]; then
     msg "WARNING: $(basename "${RELEASE_NOTES}") is missing or empty — no CHANGELOG entry found for ${VERSION}?" >&2
 else
