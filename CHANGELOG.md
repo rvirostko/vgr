@@ -2,7 +2,7 @@
 
 # VGR Changelog
 
-## [Unreleased]
+## [1.2.1] - 2026-08-05
 
 ### Added
 
@@ -33,8 +33,6 @@
 - Exhibit displays additional information about variables when
   Verbose mode is on
 
-### Deprecated
-
 ### Removed
 
 - Unimplemented Pure modifier for Function removed
@@ -60,8 +58,6 @@
   (now "static-role", previous "static-cred")
 - Fix bug in fib.vgr sample and remove unneeded code
 - Exhibit uses proper terminolgy for undefined variables
-
-### Security
 
 ## [1.2.0] - 2026-07-13
 
@@ -296,7 +292,8 @@ have been checked and documented.
 Fixes for Windows and newer
 revs of Python.
 
-[Unreleased]: https://github.com/rvirostko/vgr/compare/v1.2.0...HEAD
+[Unreleased]: https://github.com/rvirostko/vgr/compare/v1.2.1...HEAD
+[1.2.1]: https://github.com/rvirostko/vgr/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/rvirostko/vgr/compare/v1.1.10...v1.2.0
 [1.1.10]: https://github.com/rvirostko/vgr/compare/v1.1.9...v1.1.10
 [1.1.9]: https://github.com/rvirostko/vgr/compare/v1.1.8...v1.1.9
