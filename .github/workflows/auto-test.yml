@@ -28,3 +28,9 @@ jobs:
           name: coverage-html
           path: htmlcov/
           retention-days: 14
+      - run: pylint src/vgr --output-format=text > pylint-report.txt
+      - uses: actions/upload-artifact@v4
+        with:
+          name: pylint-report
+          path: pylint-report.txt
+          retention-days: 14
