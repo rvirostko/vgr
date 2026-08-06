@@ -1,27 +1,28 @@
 #! /usr/bin/env bash
 set -euo pipefail
 
-# Usage: msg "some text"
+# Like printf, but adds bold if permitted
 msg() {
     if [[ -n "${NO_COLOR:-}" || ! -t 1 ]]; then
-        echo "$1"
+        printf "$@"
     else
-        printf '\033[1m%s\033[0m\n' "$1"
+        printf '\033[1m'
+        printf "$@"
+        printf '\033[0m'
     fi
 }
-
 if [[ $# -gt 1 ]]; then
-    msg "ERROR: Usage: $0 [TAG]" >&2
+    msg "ERROR:\nUsage: %s [TAG]\n" "$0" >&2
     exit 1
 fi
 
 if [ ! -d "./src/vgr" ]; then
-    msg "ERROR: You are not in the project root" >&2
+    msg "ERROR:\nYou are not in the project root\n" >&2
     exit 1
 fi
 
 if ! python3 -m build --version >/dev/null 2>&1; then
-    msg "ERROR: 'build' is not installed" >&2
+    msg "ERROR:\n'build' is not installed\n" >&2
     exit 1
 fi
 
@@ -31,12 +32,12 @@ SOURCE_VERSION=$(grep -m1 '^version' pyproject.toml | sed -E 's/version *= *"(.*
 if [[ $# -eq 1 ]]; then
     TAG="$1"
     if [[ "$TAG" != v* ]]; then
-        msg "ERROR: Invalid tag '${TAG}' — expected a tag beginning with 'v'" >&2
+        msg "ERROR:\nInvalid tag '%s' — expected a tag beginning with 'v'\n" "${TAG}">&2
         exit 1
     fi
     VERSION="${TAG#v}"
     if [[ "$VERSION" != "$SOURCE_VERSION" ]]; then
-        msg "ERROR: Tag version '${VERSION}' does not match source version '${SOURCE_VERSION}'" >&2
+        msg "ERROR:\nTag version '%s' does not match source version '%s'\n" "${VERSION}" "${SOURCE_VERSION}" >&2
         exit 1
     fi
 else
@@ -44,8 +45,8 @@ else
     VERSION="$SOURCE_VERSION"
 fi
 
-msg "VERSION is ${VERSION}"
-msg "Release TAG is ${TAG}"
+msg "VERSION is %s\n" "${VERSION}"
+msg "Release TAG is %s\n" "${TAG}"
 
 PROJECT_ROOT=$(pwd)
 DIST_DIR="${PROJECT_ROOT}/dist"
@@ -61,27 +62,40 @@ mkdir -p "$DIST_DIR"
 python3 -m build --quiet --outdir "$DIST_DIR"
 
 # Grab the changes for this version
-awk -v ver="$VERSION" '
-    $0 ~ "^## \\[" ver "\\]" {flag=1}
+RELEASE_SECTION="$VERSION"
+if ! grep -q "^## \[$VERSION\]" "$CHANGELOG"; then
+    if grep -q "^## \[Unreleased\]" "$CHANGELOG"; then
+        RELEASE_SECTION="Unreleased"
+        msg "WARNING:\nUsing '%s' for Release Notes\n" "${RELEASE_SECTION}" >&2
+    fi
+fi
+awk -v section="$RELEASE_SECTION" '
+    $0 ~ "^## \\[" section "\\]" {flag=1}
     flag {
-        if ($0 ~ "^## \\[" && $0 !~ "^## \\[" ver "\\]") exit
+        if ($0 ~ "^## \\[" && $0 !~ "^## \\[" section "\\]") exit
+        if ($0 ~ "^## \\[" section "\\]") {
+            sub("^## \\[" section "\\]", "## " section)
+        }
         print
     }' "$CHANGELOG" > "$RELEASE_NOTES"
 if [ ! -s "$RELEASE_NOTES" ]; then
-    msg "WARNING: $(basename "${RELEASE_NOTES}") is missing or empty — no CHANGELOG entry found for ${VERSION}?" >&2
-else
-    msg "Successfully created $(basename "${RELEASE_NOTES}")"
-fi
-
-if [ ! -d "$SAMPLES_DIR" ]; then
-    msg "ERROR: $(basename "${SAMPLES_DIR}") is missing" >&2
+    msg "ERROR:\n%s is missing or empty\n" "$(basename "${RELEASE_NOTES}")" >&2
     exit 1
 fi
-(cd "$SAMPLES_DIR" && git archive --format=zip --output="$SAMPLES_FILE" -9 HEAD -- .)
+msg "Successfully created %s\n" "$(basename "${RELEASE_NOTES}")"
+
+if [ ! -d "$SAMPLES_DIR" ]; then
+    msg "ERROR:\n%s is missing\n" "$(basename "${SAMPLES_DIR}")" >&2
+    exit 1
+fi
+(cd "$SAMPLES_DIR" && zip -q -r -9 "$SAMPLES_FILE" . \
+    -x "*.DS_Store" \
+    -x "__pycache__/*" \
+    -x "*.pyc")
 if [ ! -s "$SAMPLES_FILE" ]; then
-    msg "WARNING: $(basename "${SAMPLES_FILE}") is missing or empty" >&2
+    msg "WARNING:\n%s is missing or empty\n" "$(basename "${SAMPLES_FILE}")" >&2
 else
-    msg "Successfully created $(basename "${SAMPLES_FILE}")"
+    msg "Successfully created %s\n" "$(basename "${SAMPLES_FILE}")"
 fi
 
 if command -v sha256sum >/dev/null 2>&1; then
@@ -93,4 +107,4 @@ fi
 SUMS=$(cd "$DIST_DIR" && "${SHA_BIN[@]}" -- *)
 echo "$SUMS" > "${DIST_DIR}/SHA256SUMS"
 
-msg "$SUMS"
+msg "\n%s\n" "$SUMS"
