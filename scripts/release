@@ -2,7 +2,7 @@
 set -euo pipefail
 
 if [ ! -d "./src/vgr" ]; then
-    echo "You are not in the project root" >&2
+    printf "You are not in the project root\n" >&2
     exit 1
 fi
 
@@ -12,39 +12,47 @@ echo "Version: $VERSION"
 CHANGELOG="CHANGELOG.md"
 
 if ! grep -q "^## \[${VERSION}\]" "$CHANGELOG"; then
-    printf "error: %s has no entry for ${VERSION}\nMove Unreleased items into a versioned section first\n" "$CHANGELOG" >&2
+    printf "ERROR:\n%s has no entry for %s\nMove Unreleased items into a versioned section first\n" "$CHANGELOG" "${VERSION}" >&2
     exit 1
 fi
 
 if awk '/^## \[Unreleased\]/{f=1;next}/^## \[/{f=0}f' "$CHANGELOG" | grep -q '[^[:space:]]'; then
-    printf "error: %s 'Unreleased' section still has content\nFinalize it before tagging\n" "$CHANGELOG" >&2
+    printf "ERROR:\n%s 'Unreleased' section still has content\nFinalize it before releasing\n" "$CHANGELOG" >&2
     exit 1
 fi
 
 # Tag is just the version preceeded with a "v"
 TAG="v$VERSION"
 
-NOTES_FILE=$(mktemp -t "release-notes-${VERSION}-XXXX").md
-trap 'rm -f "$NOTES_FILE"' EXIT
+RELEASE_NOTES=$(mktemp -t "release-notes-${VERSION}.md")
+trap 'rm -f "$RELEASE_NOTES"' EXIT
 awk -v ver="$VERSION" '
     $0 ~ "^## \\[" ver "\\]" {flag=1}
     flag {
         if ($0 ~ "^## \\[" && $0 !~ "^## \\[" ver "\\]") exit
+        if ($0 ~ "^## \\[" ver "\\]") {
+            sub("^## \\[" ver "\\]", "## " section)
+        }
         print
-    }' "$CHANGELOG" > "$NOTES_FILE"
+    }' "$CHANGELOG" > "$RELEASE_NOTES"
+if [ ! -s "$RELEASE_NOTES" ]; then
+    printf "ERROR:\n%s is missing or empty\n" $(basename "${RELEASE_NOTES}") >&2
+    exit 1
+fi
 
 BAR="------------------------------------------"
 printf "\n%s\nTag: %s\n%s\n" "$BAR" "$TAG" "$BAR"
-cat "$NOTES_FILE"
+cat "$RELEASE_NOTES"
 printf "%s\n\n" "$BAR"
 
 read -r -p "Proceed [y/N]: " CONFIRM
 case "$CONFIRM" in
     [yY][eE][sS]|[yY])
-        git tag -a "$TAG" -F "$NOTES_FILE"
+        git tag -a "$TAG" -F "$RELEASE_NOTES"
         git push origin "$TAG"
         ;;
     *)
-        echo "Release tag not set"
+        printf "\nNOTE:\nRelease tag not set" >&2
+        exit 1
         ;;
 esac
