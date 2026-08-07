@@ -6,6 +6,9 @@
 
 ### Added
 
+- Added "GetFileInfo()" to retrieve information on one or more file/directory paths.
+  Variable length arguments and supports polymorphism with lists and dictionaries.
+
 ### Changed
 
 ### Deprecated

@@ -70,6 +70,7 @@ from .files import (
     base_name,
     dir_name,
     expand_filename,
+    poly_get_file_info,
     path_exists,
     get_cwd,
     is_dir,
