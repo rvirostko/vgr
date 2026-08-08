@@ -559,7 +559,7 @@ def _var_name_path(node: Tree) -> tuple[str]:
     * var_ref tree: same as var_name
     * NAME token: single level path
 
-    The path is partially validate: steps are checked, but we
+    The path is partially validated: steps are checked, but we
     can't check for valid write because we don't know the context.
 
     See get_writable_var_path()
