@@ -269,8 +269,8 @@ SET_OP: ("+=" | "-=" | "*=" | "/=" | "%=" | "**=" | "&=" | "|=" | "^=" | "<<=" |
 _assign: expr "To"i var_name
 assign: "Assign"i _csep_list{_assign}
 
-_const_set: var_name (_EQ | "Is"i) expr
-const: ("Constant"i | "Const"i) _csep_list{_const_set}
+const_set: var_name ((_EQ | "Is"i) expr)?
+const: ("Constant"i | "Const"i) _csep_list{const_set}
 
 add_to:     "Add"i _csep_list{expr} "To"i var_name
 add_giving: "Add"i _csep_list{expr} "To"i expr "Giving"i var_name

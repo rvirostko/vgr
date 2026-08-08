@@ -41,7 +41,7 @@ from .user_args import (
     set_user_args,
 )
 from .encoding import parse_encoding
-from .evaluate import do_set, do_unset, get_writable_var_path
+from .evaluate import do_set, do_unset, get_writable_var_path, _var_name_path
 from .exec_context import ExecContext
 from .redir import close_all_redirects
 from .stmt_include import clear_includes
@@ -398,33 +398,78 @@ def execute_const(ctx: ExecContext, statement: Tree) -> None:
     """
 **Create an immutable value**
 
-* Constant *variable* [= | Is] *expression*
+* Constant *name* [= | Is] *expression**&hellip;
+* Constant *name*&hellip;
 
-May be abbreviated as `Const`
+Constant names must be valid for any variable, but be a simple name, e.g. not a dotted path.
+All constants are global and are tracked by the interval variable `vgr.constants`.
 
-** TODO
+The first form is similar to `Set`: *expression* is evaluated and assigned to *name*,
+which is then made immutable.
+
+In the second form, an already initialized variable is made immutable.
+
+One statement can be used to create multiple constants, and the two forms can be intermixed.
+
+The statement may be abbreviated as `Const`.
+
+```vgr
+Constant Aspect Is 4/3
+Print Aspect
+1.3333333333333333
+
+Constant Red-Light Is "#B81D13", Yellow-Light Is "#EFB700", Green-Light Is "#008450"
+Exhibit vgr.constants
+vgr.constants = ["Green-Light", "Red-Light", "Yellow-Light"]
+
+Set Origin.X To 0, Origin.Y To 0
+Print Origin Is Constant
+False
+Constant Origin
+Print Origin Is Constant
+True
+Unset Origin
+Cannot alter 'Origin' - 'Origin' is immutable
+Print Origin Is Defined
+True
+Reset Constants    # ALL constants are removed
+Print Origin Is Defined
+False
+```
 
 Also see `Assign`, `Set`, `Unset`, and `Reset`
 """
-    i = 0
-    last = len(statement.children)
-    while i < last:
-        # Using get_writable_var_path performs a check so we don't overwrite other constants
-        name_node = statement.children[i]
-        var_path = assert_var_okay_for_const(ctx, name_node, get_writable_var_path(ctx, name_node))
-        i += 1
-        new_value = ctx.eval_expr(statement.children[i])
-        i += 1
-        do_set_constant(ctx, new_value, *var_path)
+    for action in statement.children:
+        name_node = action.children[0]
+        if len(action.children) == 1:
+            # Make a defined var into a const
+            var_path = assert_var_okay_for_const(ctx, name_node, _var_name_path(name_node))
+            exists, var_name, _value = ctx.dd.var_exists(*var_path)
+            if not exists: raise VgrRuntimeError(name_node, ValueError(f'Cannot make an undefined variable into a constant'))
+            prefix = var_path[0]
+            if prefix in ctx.dd.immutable_prefixes:
+                ctx.print_verbose(prefix, "is already a constant")
+            else:
+                _add_const_prefix(ctx, prefix)
+        else:
+            # Like set, but make it a constant value
+            # Using get_writable_var_path performs a check so we don't overwrite other constants
+            var_path = assert_var_okay_for_const(ctx, name_node, get_writable_var_path(ctx, name_node))
+            new_value = ctx.eval_expr(action.children[1])
+            do_set_constant(ctx, new_value, *var_path)
 
 def do_set_constant(ctx: ExecContext, new_value: Any, *path) -> None:
+    # NB: used here and by functions
     assert ctx.dd.in_local_frame is False
     assert len(path) == 1
     do_set(ctx, new_value, *path)
+    _add_const_prefix(ctx, path[0])
+
+def _add_const_prefix(ctx: ExecContext, prefix: str) -> None:
     # Make the item immutable and add to our list
-    prefix = path[0]
     ctx.dd.add_immutable_prefix(prefix)
     _USER_CONSTANTS.append(prefix)
+    ctx.print_verbose(prefix, "is now a constant")
 
 def assert_var_okay_for_const(ctx: ExecContext, name_node: Tree, var_path: tuple) -> tuple:
     """
