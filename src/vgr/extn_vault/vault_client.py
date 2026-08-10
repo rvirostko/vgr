@@ -156,7 +156,6 @@ class VaultClient():
             rc["vclient"] = {
                 # NB: keep in sync with HTTP statements where appropriate
                 "connection":       self._name,         # Vault specific
-# TODO bug: no attribure 'url'                "url":              response.url,
                 "request-url":      url,
                 "namespace":        namespace,          # Vault specific
                 "method":           method,
