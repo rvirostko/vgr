@@ -14,10 +14,17 @@
 - Constant statement can now create a constant from an initialized variable
   without having to use an assignment (e.g. "Set x To 5; Constant x").
   Additionally, this form of the statement is idempotent.
+- "load-from-test" updated with newer syntax
 
 ### Deprecated
 
 ### Removed
+
+- GetKeyValue() and other dictionary functions had an undocumented behavior
+  of using a dotted path to traverse levels. This made it impossible to
+  retrieve valid keys that contained periods. This behavior has been removed.
+  If you need this type of behavior, use a list for the path, as each
+  element is a single step.
 
 ### Fixed
 

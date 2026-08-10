@@ -575,20 +575,15 @@ def _deref(data: Any, path: list) -> tuple:
 
 def _normalize_path(path: Any) -> Any:
     def _validate_step(step: Any) -> Any:
-        if isinstance(step, (bool, int, float)):
-            return step
-        if isinstance(step, str):
-            if len(step.strip()) == 0:
-                raise TypeError(f'Cannot have a zero-length step in a variable path')
+        if step is None: return None
+        if isinstance(step, (bool, int, float, str)):
             return step
         raise TypeError(f'Cannot use a {poly_type(step)!r} in a variable path')
     if path is None: return None
     # If the user sent in a list, that means they've decided how
     # to separate the steps in the path. Otherwise, we turn it
     # into a list of steps, one way or another.
-    if not isinstance(path, list):
-        # Single step (path is just a key) or dotted path in a string
-        path = path.split('.') if isinstance(path, str) else [path]
+    if not isinstance(path, list): path = [path]
     # Strip out Nones and validate each step's type
     path[:] = [_validate_step(step) for step in path if step is not None]
     # Just skip empty requests
