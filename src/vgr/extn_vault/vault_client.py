@@ -156,7 +156,7 @@ class VaultClient():
             rc["vclient"] = {
                 # NB: keep in sync with HTTP statements where appropriate
                 "connection":       self._name,         # Vault specific
-                "url":              response.geturl(),
+                "url":              response.url,
                 "request-url":      url,
                 "namespace":        namespace,          # Vault specific
                 "method":           method,
