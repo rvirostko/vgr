@@ -5,7 +5,7 @@ Functions for working with files and directories
 from pathlib import Path
 from re import Pattern
 from typing import Any
-import grp
+# TOD import grp
 import os
 import pwd
 
@@ -235,14 +235,15 @@ When an error has occurred-
     def _get_owner(stat):
         owner = None
         group = None
-        try:
-            owner = pwd.getpwuid(stat.st_uid).pw_name
-        except KeyError:
-            pass
-        try:
-            group = grp.getgrgid(stat.st_gid).gr_name
-        except KeyError:
-            pass
+# TODO fix this!
+#        try:
+#            owner = pwd.getpwuid(stat.st_uid).pw_name
+#        except KeyError:
+#            pass
+#        try:
+#            group = grp.getgrgid(stat.st_gid).gr_name
+#        except KeyError:
+#            pass
         return owner, group
     def _get_file_info(path: str) -> dict:
         path: Path = Path(verify_relative_path(path)).resolve()
