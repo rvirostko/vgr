@@ -21,6 +21,9 @@
 
 ### Fixed
 
+- Vault calls broken by "HttpResponse object has no attribute url"
+- Http returns url and request_url as strings rather than URL instances
+
 ### Security
 
 ## [1.2.1] - 2026-08-06
