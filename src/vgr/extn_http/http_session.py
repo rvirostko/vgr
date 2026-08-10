@@ -141,8 +141,8 @@ class HttpSession:
         body = self._decode_body(response, content_type)
         result = {
             "response":         body,
-            "url":              response.url,
-            "request-url":      response.request.url,
+            "url":              str(response.url),
+            "request-url":      str(response.request.url),
             "method":           response.request.method,
             "status_code":      response.status_code,
             "headers":          { key.title() : value for key, value in response.headers.items() },
