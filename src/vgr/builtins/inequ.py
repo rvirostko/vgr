@@ -12,10 +12,12 @@ from .common import (
     bound_ops,
 )
 from .type import poly_type
+from .registry import builtin
 
 def _type_error(x, y): return TypeError(f"Cannot compare types {poly_type(x)!r} and {poly_type(y)!r}")
 
 @bound_ops("Is Equal To", "==", "⩵", "Equals", "Is")
+@builtin("IsEqualTo")
 def poly_eq(x: Any=None, y: Any=None) -> bool:
     """
 **Equality comparison**
@@ -119,6 +121,7 @@ Also see the `==` and `!=` operators
         raise _type_error(x, y) from e
 
 @bound_ops("Is Not Equal To", "!=", "≠", "<>", "¬=")
+@builtin("IsNotEqualTo")
 def poly_ne(x: Any=None, y: Any=None) -> bool:
     """
 **Not equals comparison**
@@ -178,6 +181,7 @@ Also see the `==` and `===` operators
     return not poly_eq(x, y)
 
 @bound_ops("Is Less Than", "<", "＜")
+@builtin("IsLessThan")
 def poly_lt(x: Any=None, y: Any=None) -> bool:
     """
 **Less than comparison**
@@ -236,6 +240,7 @@ Also see the `>` and `<=` operators
         raise _type_error(x, y) from e
 
 @bound_ops("Is Greater Than", ">", "＞")
+@builtin("IsGreaterThan")
 def poly_gt(x: Any=None, y: Any=None) -> Any:
     """
 **Greater than comparison**
@@ -294,6 +299,7 @@ Also see the `<` and `>=` operators
         raise _type_error(x, y) from e
 
 @bound_ops("<=", "Is Not Greater Than", "≤", "¬>", "!>")
+@builtin("IsNotGreaterThan")
 def poly_le(x: Any=None, y: Any=None) -> bool:
     """
 **Less than or equal to comparison**
@@ -354,6 +360,7 @@ Also see the `<` and `>=` operators
         raise _type_error(x, y) from e
 
 @bound_ops(">=", "Is Not Less Than", "≥", "¬<", "!<")
+@builtin("IsNotLessThan")
 def poly_ge(x: Any=None, y: Any=None) -> bool:
     """
 **Greater than or equal to comparison**
@@ -413,6 +420,7 @@ Also see the `>` and `<=` operators
     except TypeError as e:
         raise _type_error(x, y) from e
 
+@builtin("IsBetween")
 def poly_is_between(x: Any=None, y: Any=None, z: Any=None) -> bool:
     """
 **Determine if a value is within an inclusive range**
@@ -445,6 +453,7 @@ Also see `Succ()` and `Pred()`, as well as `IsLessThan()` and `IsGreaterThan()` 
     # We always want to use x as a base as it influences conversions
     return poly_ge(x, low) and poly_le(x, high)
 
+@builtin("Clamp")
 def poly_clamp(x: Any=None, y: Any=None, z: Any=None) -> Any:
     """
 **Constrain a value within an inclusive range**
@@ -480,6 +489,7 @@ Also see `Succ()` and `Pred()` as well as `IsLessThan()` and `IsGreaterThan()` f
     return low if poly_lt(x, low) else high if poly_gt(x, high) else x
 
 @bound_ops('Is Negative', 'Is Not Positive')
+@builtin("IsNegative")
 def poly_is_negative(x: Any=None) -> Any:
     """
 **Is the value less than zero**
@@ -514,6 +524,7 @@ Also see `Is Negative` and `Sign()`
     return isinstance(x, (str, int, float)) and poly_lt(x, 0)
 
 @bound_ops('Is Positive', 'Is Not Negative')
+@builtin("IsPositive")
 def poly_is_positive(x: Any=None) -> Any:
     """
 **Is the value greater than zero**

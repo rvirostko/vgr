@@ -197,7 +197,6 @@ from .rnd import (
 from .shift import poly_shl, poly_shr
 from .slice import poly_slice
 from .stats import (
-    poly_max,
     poly_mean,
     poly_median,
     poly_min,
