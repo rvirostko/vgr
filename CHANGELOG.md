@@ -15,6 +15,9 @@
   without having to use an assignment (e.g. "Set x To 5; Constant x").
   Additionally, this form of the statement is idempotent.
 - "load-from-test" updated with newer syntax
+- The "Paths" option of Create-Zip now has an optional leading "Keep",
+  so you either "Keep Paths" or "Junk Paths"
+- Internal change: automatic registration of built-in functions
 
 ### Deprecated
 
