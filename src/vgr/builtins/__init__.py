@@ -214,7 +214,6 @@ from .strings import (
     poly_append,
     poly_capitalize,
     poly_casefold,
-    poly_center,
     poly_count,
     poly_ends_with,
     poly_expand_tabs,
@@ -232,7 +231,6 @@ from .strings import (
     poly_is_title,
     poly_is_upper,
     poly_leftstr,
-    poly_ljust,
     poly_lower,
     poly_lstrip,
     poly_prepend,
@@ -242,7 +240,6 @@ from .strings import (
     poly_rfindstr,
     poly_rightstr,
     poly_rindex,
-    poly_rjust,
     poly_rstrip,
     poly_shorten,
     poly_starts_with,
@@ -253,7 +250,6 @@ from .strings import (
     poly_swapcase,
     poly_title,
     poly_upper,
-    poly_zero_fill,
 )
 from .sub import poly_sub
 from .time_funcs import (
