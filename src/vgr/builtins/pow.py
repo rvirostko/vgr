@@ -12,8 +12,10 @@ from .common import (
     get_operation,
 )
 from .type import poly_type
+from .registry import builtin
 
 @bound_ops("**")
+@builtin("Pow")
 def poly_pow(*args) -> Any:
     """
 **Raise a value to a power**
