@@ -2,6 +2,7 @@ from functools import reduce
 from re import Pattern
 from typing import Any
 
+from .registry import builtin
 from .common import (
     bound_ops,
     get_operation,
@@ -14,6 +15,7 @@ from .dict import poly_set_key_value
 from .type import poly_type
 
 @bound_ops("+", "＋")
+@builtin("Add")
 def poly_add(*args):
     """
 **Addition/concatenation operation**

@@ -6,7 +6,6 @@ from .add import (
 from .bases import (
     poly_base64_decode,
     poly_base64_encode,
-    poly_bin,
     poly_hex,
     poly_hex_decode,
     poly_hex_encode,
