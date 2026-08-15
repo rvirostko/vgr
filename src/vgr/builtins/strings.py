@@ -21,10 +21,10 @@ from .match import poly_matches_all, poly_matches
 from .reg_ex import poly_regex_replace
 from .type import poly_type
 from .types import poly_str
+from .registry import builtin
 
 _NOT_FOUND = -1
 _SCALAR_TYPES = (bool, int, float, str, Pattern)
-
 
 # Operations table key for when Y value is a collection
 Y_Coll_Op = (AnyType, list)
@@ -53,6 +53,7 @@ _str_operations = {
 def _exec_str_op(x: Any, name: str, op: Callable[[Any], Any], string_op) -> Any:
     return _exec_x_op(x, name, op, string_op, _str_operations)
 
+@builtin("StringLen")
 def poly_stringlen(x: Any=None) -> Any:
     """
 **Return the length of a string**
@@ -72,6 +73,7 @@ Also see `Length()`
 """
     return _exec_str_op(x, 'StringLen', poly_stringlen, str.__len__)
 
+@builtin("ReverseStr")
 def poly_reversestr(x: Any=None) -> Any:
     """
 **Returns the characters of the string in reverse order**
@@ -90,6 +92,7 @@ Also see `Reverse()`
 """
     return _exec_str_op(x, 'ReverseStr', poly_reversestr, lambda s: s[::-1])
 
+@builtin("Capitalize")
 def poly_capitalize(x: Any=None) -> Any:
     """
 **Return the capitalized version of a string**
@@ -108,6 +111,7 @@ None.Capitalize() → None
 """
     return _exec_str_op(x, 'Capitalize', poly_capitalize, str.capitalize)
 
+@builtin("CaseFold")
 def poly_casefold(x: Any=None) -> Any:
     """
 **Return a caseless version of a string**
@@ -126,6 +130,7 @@ None.CaseFold() → None
 """
     return _exec_str_op(x, 'CaseFold', poly_casefold, str.casefold)
 
+@builtin("Lower")
 def poly_lower(x: Any=None) -> Any:
     """
 **Return a lowercase version of a string**
@@ -144,6 +149,7 @@ None.Lower() → None
 """
     return _exec_str_op(x, 'Lower', poly_lower, str.lower)
 
+@builtin("SwapCase")
 def poly_swapcase(x: Any=None) -> Any:
     """
 **Return a string with upper and lower case characters swapped**
@@ -162,6 +168,7 @@ None.SwapCase() → None
 """
     return _exec_str_op(x, 'SwapCase', poly_swapcase, str.swapcase)
 
+@builtin("TitleCase")
 def poly_title(x: Any=None) -> Any:
     """
 **Title-case words in a string**
@@ -180,6 +187,7 @@ None.TitleCase() → None
 """
     return _exec_str_op(x, 'TitleCase', poly_title, str.title)
 
+@builtin("Upper")
 def poly_upper(x: Any=None) -> Any:
     """
 **Return an upper case version of a string**
@@ -215,6 +223,7 @@ _bool_operations = {
 def _exec_bool_op(x: Any, name: str, op: Callable[[Any], Any], string_op) -> Any:
     return _exec_x_op(x, name, op, string_op, _bool_operations)
 
+@builtin("IsAlphaNumeric")
 def poly_is_alnum(x: Any=None) -> Any:
     """
 **Is a value an alpha-numeric string**
@@ -237,6 +246,7 @@ Also see `IsAlpha()` and `IsNumeric()`
 """
     return _exec_bool_op(x, 'IsAlphaNnumeric', poly_is_alnum, str.isalnum)
 
+@builtin("IsAlpha")
 def poly_is_alpha(x: Any=None) -> Any:
     """
 **Is a value an alphabetic string**
@@ -255,6 +265,7 @@ are alphabetic and there is at least one character in the string.
 """
     return _exec_bool_op(x, 'IsAlpha', poly_is_alpha, str.isalpha)
 
+@builtin("IsAscii")
 def poly_is_ascii(x: Any=None) -> Any:
     """
 **Is a value a string composed of all ASCII characters**
@@ -276,6 +287,7 @@ Also see `IsPrintable()`
 """
     return _exec_bool_op(x, 'IsAscii', poly_is_ascii, str.isascii)
 
+@builtin("IsDecimal")
 def poly_is_decimal(x: Any=None) -> Any:
     """
 **Is the value a string of decimal characters**
@@ -300,6 +312,7 @@ Also see `IsDigit()` and `IsNumeric()`
 """
     return _exec_bool_op(x, 'IsDecimal', poly_is_decimal, str.isdecimal)
 
+@builtin("IsDigit")
 def poly_is_digit(x: Any=None) -> Any:
     """
 **Is a value a string of digits**
@@ -322,6 +335,7 @@ Also see `IsDecimal()` and `IsNumeric()`
 """
     return _exec_bool_op(x, 'IsDigit', poly_is_digit, str.isdigit)
 
+@builtin("IsLower")
 def poly_is_lower(x: Any=None) -> Any:
     """
 **Is a value a string of lowercase characters**
@@ -340,6 +354,7 @@ are lowercase and there is at least one cased character in the string.
 """
     return _exec_bool_op(x, 'IsLower', poly_is_lower, str.islower)
 
+@builtin("IsNumeric")
 def poly_is_numeric(x: Any=None) -> Any:
     """
 **Is a value a string of numeric characters**
@@ -364,6 +379,7 @@ Also see `IsDecimal()` and `IsDigit()`
 """
     return _exec_bool_op(x, 'IsNumeric', poly_is_numeric, str.isnumeric)
 
+@builtin("IsPrintable")
 def poly_is_printable(x: Any=None) -> Any:
     """
 **Is a value a string of printable characters**
@@ -382,6 +398,7 @@ or if it is empty.
 """
     return _exec_bool_op(x, 'IsPrintable', poly_is_printable, str.isprintable)
 
+@builtin("IsSpace")
 def poly_is_space(x: Any=None) -> Any:
     """
 **Is a value a string of whitespace characters**
@@ -400,6 +417,7 @@ and there is at least one character in the string.
 """
     return _exec_bool_op(x, 'IsSpace', poly_is_space, str.isspace)
 
+@builtin("IsTitle")
 def poly_is_title(x: Any=None) -> Any:
     """
 **Is a value a string of title-case characters**
@@ -418,6 +436,7 @@ follow uncased characters and lowercase characters only cased ones.
 """
     return _exec_bool_op(x, 'IsTitle', poly_is_title, str.istitle)
 
+@builtin("IsUpper")
 def poly_is_upper(x: Any=None) -> Any:
     """
 **Is a value a string of uppercase characters**
@@ -473,6 +492,7 @@ def _exec_str_str_op(x: Any, y: Any, name: str, op: Callable[[Any, Any], Any], s
 
 #---------------------------------------------
 
+@builtin("Strip")
 def poly_strip(*args) -> Any:
     """
 **Remove leading and trailing characters from a string**
@@ -512,6 +532,7 @@ Also see `LeftStrip()` and `RightStrip()`
     if isinstance(x, (NoneType, bool, int, float, Pattern)): return x
     return _strip(x) if not args else reduce(_strip, args, x)
 
+@builtin("LeftStrip")
 def poly_lstrip(*args) -> Any:
     """
 **Remove leading characters from a string**
@@ -544,6 +565,7 @@ Also see `Strip()` and `RightStrip()`
     if isinstance(x, (NoneType, bool, int, float, Pattern)): return x
     return _lstrip(x) if not args else reduce(_lstrip, args, x)
 
+@builtin("RightStrip")
 def poly_rstrip(*args) -> Any:
     """
 **Remove trailing characters from a string**
@@ -577,6 +599,7 @@ Also see `Strip()` and `LeftStrip()`
     if isinstance(x, (NoneType, bool, int, float, Pattern)): return x
     return _rstrip(x) if not args else reduce(_rstrip, args, x)
 
+@builtin("RemovePrefix")
 def poly_remove_prefix(*args) -> Any:
     """
 **Remove a prefix from a string if present**
@@ -614,9 +637,10 @@ Also see `RemoveSuffix()`
     x = _as_str(x)
     return reduce(_removeprefix, args, x)
 
+@builtin("RemoveSuffix")
 def poly_remove_suffix(*args) -> Any:
     """
-**Remvoe a suffix from a string if present**
+**Remove a suffix from a string if present**
 
 * RemoveSuffix(*value*)
 * RemoveSuffix(*value*, *prefix*&hellip;)
@@ -673,6 +697,7 @@ def _exec_bool_str_op(x: Any, y: Any, name: str, op: Callable[[Any, Any], Any], 
                     raise ValueError(f'{name}() between {poly_type(x)!r} and {poly_type(y1)!r} not possible')
     return False
 
+@builtin("StartsWith")
 def poly_starts_with(*args: Any) -> Any:
     """
 **Does a string start with one or more prefixes**
@@ -704,6 +729,7 @@ Also see `EndsWith()`
     if not args: return False
     return _exec_bool_str_op(args[0], list(args[1:]), "StartsWith", poly_starts_with, _starts_with)
 
+@builtin("EndsWith")
 def poly_ends_with(*args: Any) -> bool:
     """
 **Does a string end with one or more prefixes**
@@ -749,6 +775,7 @@ def exec_str_int_op(x: Any, y: Any, name: str, op: Callable[[Any, Any], Any], st
     if isinstance(x, (NoneType, bool, int, float, Pattern)): return x
     return _exec_x_y_op(x, y, name, op, string_op, _string_int_ops)
 
+@builtin("ExpandTabs")
 def poly_expand_tabs(x: Any=None, tabsize: Any=8) -> Any:
     """
 **Converts tabs in a string into spaces**
@@ -770,6 +797,7 @@ None.ExpandTabs() → None
 """
     return exec_str_int_op(x, min(max(0, int_arg(tabsize, 'Tabsize')), 64), "ExpandTabs", poly_expand_tabs, str.expandtabs)
 
+@builtin("LeftStr")
 def poly_leftstr(x: Any=None, length: Any=1) -> Any:
     """
 **Returns the leftmost characters of a string**
@@ -794,6 +822,7 @@ Also see `RightStr()` and `SubStr()`
 """
     return exec_str_int_op(_as_str(x), max(1, int_arg(length, 'Length')), "LeftStr", poly_leftstr, lambda x, length: x[:length])
 
+@builtin("RightStr")
 def poly_rightstr(x: Any=None, length: Any=1) -> Any:
     """
 **Retunrs the rightmost characters of a string**
@@ -820,6 +849,7 @@ Also see `LeftStr()` and `SubStr()`
 
 #---------------------------------------------
 
+@builtin("SubStr")
 def poly_substr(x: Any=None, start: Any=0, length: Any=1) -> Any:
     """
 **Return a portion of a string**
@@ -868,6 +898,7 @@ _string_loc_ops = {
                                           },
 }
 
+@builtin("CountOf")
 def poly_count(x: Any=None, sub: Any=None) -> Any:
     """
 **Return the count of a value in another**
@@ -919,6 +950,7 @@ fruit_colors.CountOf(r/a/) → 2 // both contain "a"
     sub = '' if sub is None else sub
     return len(x) if len(sub) == 0 else _exec_x_y_op(x, sub, 'CountOf', poly_count, str.count, _string_loc_ops)
 
+@builtin("IndexOf")
 def poly_index_of(value: Any=None, sub: Any=None) -> Any:
     """
 **Returns the *lowest* index of one item in another**
@@ -970,6 +1002,7 @@ Also see `RIndexOf()` and `FindStr()`
 def _re_find(x: str, p: Pattern) -> int:
     return _NOT_FOUND if (m := re.search(p, x)) is None else m.start()
 
+@builtin("RIndexOf")
 def poly_rindex(x: Any=None, sub: Any=None) -> Any:
     """
 **Returns the *highest* index of one item in another**
@@ -1020,6 +1053,7 @@ Also see `IndexOf()` and `RFindStr()`
 
     return _exec_x_y_op(x, sub, 'RIndexOf', poly_rindex, str.rfind, _string_loc_ops)
 
+@builtin("FindStr")
 def poly_findstr(value: Any=None, substr: Any=None) -> Any:
     """
 **Returns the *lowest* index of one string in another**
@@ -1057,6 +1091,7 @@ Also see `RFindStr()` and `IndexOf()`
     substr = substr if isinstance(substr, Pattern) else str_arg(substr, 'Substr', False)
     return _exec_x_y_op(value, substr, 'FindStr', poly_findstr, _findstr, _string_loc_ops)
 
+@builtin("RFindStr")
 def poly_rfindstr(x: Any=None, sub: Any=None) -> Any:
     """
 **Returns the *highest* index of one string in another**
@@ -1102,6 +1137,7 @@ def _layout_opt(x: Any, width: int, fillchar: str, op, str_op) -> Any:
     x = poly_str(x) if isinstance(x, dict) else _as_str(x)
     return str_op(x, width, fillchar)
 
+@builtin("Center")
 def poly_center(x: Any=None, width: int=0, fillchar: str=' ') -> Any:
     """
 **Create a centered string of the given width**
@@ -1131,6 +1167,7 @@ Also see `LeftJustify()` and `RightJustify()`
 """
     return _layout_opt(x, width, fillchar, poly_center, str.center)
 
+@builtin("LeftJustify")
 def poly_ljust(x: Any=None, width: int=0, fillchar: str=' ') -> Any:
     """
 **Create a string of the given width with contents left aligned**
@@ -1160,6 +1197,7 @@ Also see `Center()` and `RightJustify()`
 """
     return _layout_opt(x, width, fillchar, poly_ljust, str.ljust)
 
+@builtin("RightJustify")
 def poly_rjust(x: Any=None, width: int=0, fillchar: str=' ') -> Any:
     """
 **Create a string of the given width with contents right aligned**
@@ -1189,6 +1227,7 @@ Also see `Center()` and `LeftJustify()`
 """
     return _layout_opt(x, width, fillchar, poly_rjust, str.rjust)
 
+@builtin("ZeroFill")
 def poly_zero_fill(x: Any=None, width: int=0) -> Any:
     """
 **Create a string of the given width with contents right aligned, padded with zeroes**
@@ -1214,6 +1253,7 @@ Also see `RightJustify()`
 
 #---------------------------------------------
 
+@builtin("ShortenStr")
 def poly_shorten(x: str=None, length: int=32, placeholder: str="\u2026") -> str:
     """
 **Shorten a string's length, optionally adding a placeholder**
@@ -1254,6 +1294,7 @@ string.digits.ShortenStr(7, " etc") → "012 etc"
 
 #---------------------------------------------
 
+@builtin("AppendStr")
 def poly_append(*args) -> Any:
     """
 **Concatenate strings**
@@ -1263,7 +1304,7 @@ def poly_append(*args) -> Any:
 * *value*.AppendStr()
 * *value*.AppendStr(*arg*&hellip;)
 
-The argument values are concatenated to end of*value*.
+The argument values are concatenated to end of *value*.
 
 ```vgr
 None.AppendStr() → None
@@ -1280,6 +1321,7 @@ Also see `PrependStr()`
     if not args: return None
     return reduce(_append, args[1:], args[0])
 
+@builtin("PrependStr")
 def poly_prepend(*args) -> Any:
     """
 **Concatenate string placing values at the beginning of the string**
@@ -1306,6 +1348,7 @@ Also see `AppendStr()`
     if not args: return None
     return reduce(_prepend, args[1:], args[0])
 
+@builtin("ReplaceStr")
 def poly_replace(*args) -> Any:
     """
 **Replace or delete values in a string**
@@ -1395,6 +1438,7 @@ def _as_str(value: Any) -> Any:
     if isinstance(value, Pattern): value = value.pattern
     return value
 
+@builtin("Split")
 def poly_split(x: Any=None, sep: str=None, maxsplit: int=-1) -> Any:
     """
 **Split a string based on a separator string**
@@ -1439,6 +1483,7 @@ Also see `RSplit()` and `CompilePattern()`
     if isinstance(sep, Pattern): return _re_split(x, sep, maxsplit)
     return _split('Split', poly_split, str.split, x, sep, maxsplit)
 
+@builtin("RSplit")
 def poly_rsplit(x: Any=None, sep: str=None, maxsplit: int=-1) -> Any:
     """
 **Split a string based on a separator string**
@@ -1515,6 +1560,7 @@ def _split(name: str, p_op, str_op, x: Any, sep: str=None, maxsplit: int=-1):
     if isinstance(x, dict): return {key: p_op(value, sep, maxsplit) for key, value in x.items()}
     raise TypeError(f'{name} of {poly_type(x)!r} not supported')
 
+@builtin("SplitLines")
 def poly_split_lines(x: Any=None, keepends: bool=False) -> Any:
     """
 **Split a string into multiple lines**
@@ -1538,6 +1584,7 @@ None.SplitLines() → None
     if isinstance(x, list): return list(poly_split_lines(x1, keepends) for x1 in x)
     raise TypeError(f'Splitlines with {poly_type(x)!r} not supported')
 
+@builtin("Join")
 def poly_join(x: Any=None, sep: str=None) -> Any:
     """
 **Join together the elements of a list as strings**
@@ -1603,6 +1650,7 @@ class SafeFormatter(string.Formatter):
         # Filter out unsupported types
         return value if isinstance(value, (bool, int, float, str, list, dict, Pattern)) else None
 
+@builtin("Format")
 def poly_format(*args) -> str:
     """
 **Format values into a string**
@@ -1683,6 +1731,7 @@ Set person To {"name": "Alice", "age": 25}
         return list(poly_format(f, *args) for f in format_string)
     raise TypeError(f'Format with {poly_type(format_string)!r} not supported')
 
+@builtin("TranslateStr")
 def poly_translate(x: Any=None, from_str: Any=None, to_str: Any=None) -> Any:
     """
 **Perform character-by-character conversion or deletion**
@@ -1724,6 +1773,7 @@ the characters are deleted.
 
 #---------------------------------------------
 
+@builtin("Ord")
 def poly_ord(x:Any=None) -> Any:
     """
 **Convert a string to its ordinal values**
@@ -1753,6 +1803,7 @@ Also see `Chr()`
     if isinstance(x, dict): return {k: poly_ord(v) for k, v in x.items()}
     return x
 
+@builtin("Chr")
 def poly_chr(x: Any=None) -> Any:
     """
 **Convert a number to a single character string**
@@ -1780,6 +1831,7 @@ Also see `Ord()`
 
 #---------------------------------------------
 
+@builtin("Plural")
 def poly_plural(x: Any=None, plural: Any='s', singular: Any='') -> Any:
     """
 **Return a suffix for pluralization**

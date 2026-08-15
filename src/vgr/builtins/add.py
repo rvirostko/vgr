@@ -113,6 +113,7 @@ _add_operations = {
     (Pattern, Pattern): lambda _, x, y: x.pattern + y.pattern,
 }
 
+@builtin("Sum")
 def poly_sum(*args) -> Any:
     """
 **Recursively sums lists of numbers**
