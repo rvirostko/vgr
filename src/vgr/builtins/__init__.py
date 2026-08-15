@@ -196,59 +196,11 @@ from .rnd import (
 )
 from .shift import poly_shl, poly_shr
 from .slice import poly_slice
-from .stats import (
-    poly_mean,
-    poly_median,
-    poly_min,
-    poly_mode,
-    poly_multimode,
-    poly_pstdev,
-    poly_pvariance,
-    poly_stdev,
-    poly_variance,
-)
 from .plural import poly_plural
 from .format import poly_format
 from .strings import (
-    poly_append,
-    poly_capitalize,
-    poly_casefold,
-    poly_count,
-    poly_ends_with,
-    poly_expand_tabs,
-    poly_findstr,
-    poly_index_of,
-    poly_is_alnum,
-    poly_is_alpha,
-    poly_is_ascii,
-    poly_is_decimal,
-    poly_is_digit,
-    poly_is_lower,
-    poly_is_numeric,
-    poly_is_printable,
-    poly_is_space,
-    poly_is_title,
-    poly_is_upper,
-    poly_leftstr,
-    poly_lower,
-    poly_lstrip,
-    poly_prepend,
-    poly_remove_prefix,
-    poly_remove_suffix,
-    poly_replace,
-    poly_rfindstr,
-    poly_rightstr,
-    poly_rindex,
-    poly_rstrip,
-    poly_shorten,
-    poly_starts_with,
-    poly_strip,
-    poly_stringlen,
-    poly_reversestr,
-    poly_substr,
-    poly_swapcase,
-    poly_title,
-    poly_upper,
+     poly_shorten,
+     poly_strip,
 )
 from .sub import poly_sub
 from .time_funcs import (
