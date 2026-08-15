@@ -1,0 +1,86 @@
+// Experimental
+
+// Questions:
+// What is the impact on multi threading on parts of the DD?
+
+// Submit is similar in structure to "Call Function"
+// TODO make improvements to the arg construction and re-use
+//      the whole pattern here for the call
+submit_statement: _submit var_name ("(" _csep_list{expr}? ")")? giving_clause?
+    |             _submit var_name "Using"i _csep_list{expr} giving_clause?
+
+// First variant is for parallel tasks
+// Second is for a single task invoked multiple times
+parallel: _run_parallel giving_clause? _CLAUSE_SEP? submit_statement+ _end_parallel
+    |     _run_parallel _for_each var_name "In"i expr giving_clause? _CLAUSE_SEP? submit_statement _end_parallel
+
+// TODO reuse these where possible
+_for_each: ("For-Each"i | "For"i "Each"i)
+_end_parallel: ("End-Parallel"i | "End"i)
+_run_parallel: ("Run-Parallel"i | "Run"i "Parallel"i)
+_run_shell: ("Run-Shell"i | "Run"i "Shell"i)
+_run_command: ("Run-Command"i | "Run"i "Command"i)
+_submit: ("Submit-Function"i | "Submit"i "Function"i?)
+
+// Run Parallel Pool Size Is 30 Giving results
+//   Submit Foo(a,b,c) Giving f_results
+//   Submit Bar(d,e) Giving b_results
+// # On-Error # part of standard block events
+// On-Finish # part of standard block events
+//   # f_results and b_results are defined here as locals
+//   # results is define in parent frame and available here
+//   # size is two: [f_results + b_results]
+//   Print f_results, b_results
+// End-Parallel
+//
+// Run Parallel Pool(n) For Each v In values Giving results
+//   Submit Foo(v,a) # Giving clause here is meaningless but allowed
+// End-Parallel
+// # results is a list with returned values in order submitted
+
+// Run Shell "grep -i error app.log" Giving result
+// If "Giving" not provided, stdout/err go to the currently destinated as specified by "Open"
+// If present result contains captured output and error (optionally merged)
+// and the exit code
+
+// Run Shell "jq '.records[] | select(.active)' | wc -l"
+//     Input Is jsonPayload
+//     Timeout Is 30
+//     Giving countResult
+// If input is NOT provided, same as doing "< /dev/null"
+// Input is always a variable. If using "Run Shell", use the file if you
+// have a file. If using "Run Command" and the program MUST read from
+// stdin, then do a "Load From" to get its input.
+
+// Run Shell "psql -h dbhost -U admin -d mydb -c '\copy mytable from stdin with csv'"
+//     Input Is csvText
+//     Environment Is { "PGPASSWORD": dbPassword }
+//     Timeout Is 300
+//     Giving importResult
+// If the command part is a list, Join(" "). If multiple items, they are likewise joined.
+// Environment is either a dictionary or a list of strings
+// If not specified, then Python's full env is passed.
+// Timeout include optional trailing "Seconds" like elsewhee
+
+// Run Command ["grep", "-i", pattern, "app.log"] Giving result
+// Run Command "grep", "-i" pattern "app.log" Giving result
+// Command is similar in all respects to Shell, except for the arguments
+// in this case, a list is desired.
+
+// Run Command ["some_noisy_tool", "--verbose"]
+//     Merged Output
+//     Timeout Is 60
+//     Giving result
+// "Merged Output" combined stderr w/stdout in the results; stderr is always an empty string.
+
+// Load csvText From File "bulk.csv" As Text
+// Run Command ["mysql", "-h", dbhost, "-u", "admin", "mydb"]
+//     Input Is csvText
+//     Environment Is ["MYSQL_PWD=" + dbPassword]
+//     Timeout Is 300
+//     Giving importResult
+// Example of environment array and piping stdin for a command
+// that requires input in that manner.
+
+// Run Shell/Command unresolved
+// - Encoding of stdin and decoding of stdout. What is a good default?

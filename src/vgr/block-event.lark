@@ -1,0 +1,26 @@
+
+error: ("Raise-Error"i | "Raise"i? "Error"i) _csep_list{expr}
+
+// Invoked when user raises an error with the Error statement
+on_error:    ("On-Error"i    | "On"i "Error"i)    _CLAUSE_SEP? statement+
+// The "finally" for the block.
+on_finish:   ("On-Finish"i   | "On"i "Finish"i)   _CLAUSE_SEP? statement+
+// Called when a Break statement is encountered in the loop
+on_break:    ("On-Break"i    | "On"i "Break"i)    _CLAUSE_SEP? statement+
+//
+on_complete: ("On-Complete"i | "On"i "Complete"i) _CLAUSE_SEP? statement+
+
+?std_events: on_error? on_finish?
+?loop_events: on_complete? on_break? std_events
+
+// loop_events are added to While, Until, Repeat, For-Each, For
+// std_events are added to Begin, Function, Run Parallel
+
+// On-Error receives the object defined by the Raise-Error in $error
+
+// Continue - does not count as an "event"
+// Break - triggers On-Break, On-Finish; propogated if no On-Break
+// loop end - triggers On-Complete, On-Finish; N/A on propogation
+// Return - triggers On-Finish; propogated if not a function
+// Error - triggers On-Error, On-Finish; propogated if no On-Error
+// runtime error - triggers On-Finish; propogated
