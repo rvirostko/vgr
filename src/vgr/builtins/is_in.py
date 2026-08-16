@@ -8,8 +8,10 @@ from typing import Any
 
 from .common import bound_ops
 from .strings import poly_index_of
+from .registry import builtin
 
 @bound_ops("Is In", "∈")
+@builtin("IsIn")
 def poly_in(value: Any=None, expr: Any=None) -> bool:
     """
 **Is a value contained in another value or collection**
@@ -46,6 +48,7 @@ Also see `IsNotIn()` and `Contains()`
     return poly_index_of(expr, value) != -1
 
 @bound_ops("Is Not In", "∉")
+@builtin("IsNotIn")
 def poly_not_in(value: Any=None, expr: Any=None) -> Any:
     """
 **Is a value _not_ contained in another value or collection**
@@ -82,6 +85,7 @@ Also see `IsIn()`
     return poly_index_of(expr, value) == -1
 
 @bound_ops("Contains")
+@builtin("Contains")
 def poly_contains(value: Any=None, expr: Any=None) -> Any:
     """
 **Is a value contained in another value or collection**
@@ -133,6 +137,7 @@ See `Contains` operator
     return poly_index_of(value, expr) == -1
 
 @bound_ops("Contains All")
+@builtin("ContainsAll")
 def poly_contains_all(value: Any=None, expr: Any=None) -> Any:
     """
 **Is a value contained in another value or collection**

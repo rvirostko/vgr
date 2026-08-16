@@ -17,6 +17,7 @@ from .inequ import poly_eq
 from .match import poly_matches
 from .type import poly_type
 from .types import poly_to_boolean
+from .registry import builtin
 
 @bound_ops("{...}")
 def build_dict(*values: Any) -> dict:
@@ -78,6 +79,7 @@ Also see `Dictionary()`, `GetKeyValue()`, and `LookupItem()`
     # and recombine into pairs using zip()
     return None if values is None else dict(zip(values[::2], values[1::2]))
 
+@builtin("Dictionary")
 def poly_dict_create(*args: Any) -> dict:
     """
 **Compose a dictionary from hetrogenous data**
@@ -193,6 +195,7 @@ def _merge_dict(a: dict, b: dict) -> dict:
     return a
 
 
+@builtin("IsDictionary")
 def poly_is_dict(x: Any=None) -> bool:
     """
 **Is a value a dictionary**
@@ -211,6 +214,7 @@ Also see `Type()`
 """
     return isinstance(x, dict)
 
+@builtin("GetKeyValue")
 def poly_get_key_value(data: Any=None, path: Any=None, default_value: Any=None) -> Any:
     """
 **Traverse a path in a dictionary and return its value**
@@ -254,6 +258,7 @@ Also see `SetKeyValue()` and `LookupItem()`
     found, rc = _deref(data, path)
     return copy(rc if found else default_value)
 
+@builtin("SetKeyValue")
 def poly_set_key_value(data: Any=None, path: Any=None, value: Any=None) -> Any:
     """
 **Traverse a path in a dictionary and sets a value**
@@ -343,6 +348,7 @@ def dict_set_key_value(data: Any=None, path: Any=None, value: Any=None, do_copy:
     d[key] = deepcopy(value)
     return data
 
+@builtin("GetKeys")
 def poly_get_keys(data: Any=None) -> list:
     """
 **Retrieve the keys used in a dictionary**
@@ -373,6 +379,7 @@ Also see `GetValues()`
         return list(keys)
     return []
 
+@builtin("GetValues")
 def poly_get_values(data: Any=None) -> list:
     """
 **Return a list of all the values in a dictionary**
@@ -403,6 +410,7 @@ Also see `GetKeys()`
         return values
     return []
 
+@builtin("RemoveKey")
 def poly_remove_key(data: Any=None, path: Any=None) -> Any:
     """
 **Remove a key from a dictionary**
@@ -481,6 +489,7 @@ def dict_remove_key(data: Any=None, path: Any=None, do_copy: bool=True) -> Any:
     return data
 
 @requires_exec_context
+@builtin("LookupItem")
 def poly_lookup_item(x: Any=None, path: Any=None, values: Any=None, limit: Any=None, *, ctx=None) -> Any:
     """
 **Find a matching entries in a list by value**

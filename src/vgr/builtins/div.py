@@ -9,8 +9,10 @@ from .common import (
     get_operation,
 )
 from .type import poly_type
+from .registry import builtin
 
 @bound_ops("/", "÷")
+@builtin("Div")
 def poly_div(*args):
     """
 **Division operation**
@@ -51,7 +53,7 @@ Also see `FloorDiv()` and `DivMod()`
     return reduce(_div, args[1:], args[0]) if args else None
 
 def _div(x: Any, y: Any) -> Any:
-    operation = get_operation(x, y, div_operations, numeric_operations)
+    operation = get_operation(x, y, _DIV_OPERATIONS, numeric_operations)
     try:
         return operation(_div, x, y) if operation else x / y
     except TypeError as e:
@@ -59,7 +61,8 @@ def _div(x: Any, y: Any) -> Any:
     except ZeroDivisionError:
         return nan
 
-def poly_fdiv(*args):
+@builtin("FloorDiv")
+def poly_floor_div(*args):
     """
 **Floor division operation**
 
@@ -100,7 +103,7 @@ Also `Div()` and `DivMod()`
     return reduce(_fdiv, args[1:], args[0]) if args else None
 
 def _fdiv(x: Any, y: Any) -> Any:
-    operation = get_operation(x, y, div_operations, numeric_operations)
+    operation = get_operation(x, y, _DIV_OPERATIONS, numeric_operations)
     try:
         return operation(_fdiv, x, y) if operation else x // y
     except TypeError as e:
@@ -108,6 +111,7 @@ def _fdiv(x: Any, y: Any) -> Any:
     except ZeroDivisionError:
         return nan
 
+@builtin("DivMod")
 def poly_divmod(x: Any=None, y: Any=1) -> Any:
     """
 **Division/modulo operation**
@@ -145,7 +149,7 @@ None.DivMod("2") → [0, 0]
 
 Also `Div()` and `Mod()`
 """
-    operation = get_operation(x, y, div_operations, numeric_operations)
+    operation = get_operation(x, y, _DIV_OPERATIONS, numeric_operations)
     try:
         return operation(poly_divmod, x, y) if operation else list(divmod(x, y))
     except TypeError as e:
@@ -153,6 +157,6 @@ Also `Div()` and `Mod()`
     except ZeroDivisionError:
         return nan
 
-div_operations = {
+_DIV_OPERATIONS = {
     (str, str): lambda op, x, y: op(empty_is_zero(x), empty_is_zero(y)),
 }

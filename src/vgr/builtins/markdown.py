@@ -7,6 +7,7 @@ from typing import Any
 
 from .common import int_arg
 from .types import poly_to_string
+from .registry import builtin
 
 _MD_STRONG_DELIMITER = '**'
 _MD_EMPHASIS_DELIMITER = '*'
@@ -28,6 +29,7 @@ def _to_str(s):
 def _fmt(text: str, code: str) -> str:
     return _BLANK if len(text) == 0 else f"{code}{text}{code}"
 
+@builtin("MdStrong")
 def md_strong(text: Any=None) -> Any:
     """
 **Format the text in Markdown as strong text**
@@ -46,6 +48,7 @@ Also see `Print` and using the *As Markdown* clause.
     if isinstance(text, list): return type(text)(md_strong(item) for item in text)
     return _fmt(_to_str(text), _MD_STRONG_DELIMITER)
 
+@builtin("MdEmphasis")
 def md_emphasis(text: Any=None) -> Any:
     """
 **Format the text in Markdown as emphasised text**
@@ -64,6 +67,7 @@ Also see `Print` and using the *As Markdown* clause.
     if isinstance(text, list): return type(text)(md_emphasis(item) for item in text)
     return _fmt(_to_str(text), _MD_EMPHASIS_DELIMITER)
 
+@builtin("MdStrikeThrough")
 def md_strikethrough(text: Any=None) -> Any:
     """
 **Format the text in Markdown as strike-through**
@@ -82,6 +86,7 @@ Also see `Print` and using the *As Markdown* clause.
     if isinstance(text, list): return type(text)(md_strikethrough(item) for item in text)
     return _fmt(_to_str(text), _MD_STRIKETHROUGH_DELIMITER)
 
+@builtin("MdCode")
 def md_code(text: Any=None) -> Any:
     """
 **Format the text in Markdown as code text**
@@ -100,6 +105,7 @@ Also see `Print` and using the *As Markdown* clause.
     if isinstance(text, list): return type(text)(md_code(item) for item in text)
     return _fmt(_to_str(text), _MD_CODE_DELIMITER)
 
+@builtin("MdLink")
 def md_link(text: Any=None, url: Any=None) -> Any:
     """
 **Format the text in Markdown as a link**
@@ -127,6 +133,7 @@ Also see `Print` and using the *As Markdown* clause.
         return _BLANK if len(text) == 0 else "<" + text + ">"
     return "[" + text + "](" + url + ")"
 
+@builtin("MdHeading")
 def md_heading(text: Any=None, level: int=1) -> Any:
     """
 **Format the text in Markdown as a heading**
@@ -151,6 +158,7 @@ Also see `Print` and using the *As Markdown* clause.
     text = _to_str(text)
     return _BLANK if len(text) == 0 else f"{'#' * level} {text}\n"
 
+@builtin("MdBlockQuote")
 def md_blockquote(text: Any=None) -> Any:
     """
 **Format the text in Markdown as a block quote**
@@ -176,6 +184,7 @@ Also see `Print` and using the *As Markdown* clause.
     text = _to_str(text)
     return _BLANK if len(text) == 0 else md_blockquote(text.splitlines())
 
+@builtin("MdUnorderedList")
 def md_unordered_list(text: Any=None) -> Any:
     """
 **Format the text in Markdown as an unordered list item**
@@ -199,6 +208,7 @@ Also see `Print` and using the *As Markdown* clause.
     text = _to_str(text)
     return _BLANK if len(text) == 0 else md_unordered_list(text.splitlines())
 
+@builtin("MdOrderedList")
 def md_ordered_list(text: Any=None) -> Any:
     """
 **Format the text in Markdown as an ordered list item**
@@ -228,6 +238,7 @@ Also see `Print` and using the *As Markdown* clause.
     text = _to_str(text)
     return _BLANK if len(text) == 0 else md_ordered_list(text.splitlines())
 
+@builtin("MdCodeBlock")
 def md_code_block(text: Any=None, lang: str=None) -> Any:
     """
 **Format the text in Markdown as a code block**

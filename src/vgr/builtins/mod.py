@@ -15,8 +15,12 @@ from .common import (
     str_to_number,
 )
 from .type import poly_type
+from .registry import builtin
+
+_NUMERIC_TYPES = (bool, int, float, str)
 
 @bound_ops("%")
+@builtin("Mod")
 def poly_mod(*args):
     """
 **Modulo operation**
@@ -55,7 +59,7 @@ None % "5" → 0
     return reduce(_mod, args[1:], args[0]) if args else None
 
 def _mod(x: Any, y: Any) -> Any:
-    operation = get_operation(x, y, _mod_operations, numeric_operations)
+    operation = get_operation(x, y, _MOD_OPERATIONS, numeric_operations)
     try:
         return operation(_mod, x, y) if operation else x % y
     except TypeError as e:
@@ -63,11 +67,12 @@ def _mod(x: Any, y: Any) -> Any:
     except ZeroDivisionError:
         return nan
 
-_mod_operations = {
+_MOD_OPERATIONS = {
     (str, str): lambda op, x, y: op(empty_is_zero(x), empty_is_zero(y)),
 }
 
 @bound_ops('Is Even', 'Is Not Odd')
+@builtin("IsEven")
 def poly_is_even(x: Any) -> bool:
     """
 **Is the value an even integral value**
@@ -103,6 +108,7 @@ Also see `Is Odd` and `Mod()`
     return _check_remainder(x, 0)
 
 @bound_ops('Is Odd', 'Is Not Even')
+@builtin("IsOdd")
 def poly_is_odd(x: Any) -> bool:
     """
 **Is the value an odd integral value**
@@ -137,7 +143,6 @@ Also see `Is Even` and `Mod()`
 """
     return _check_remainder(x, 1)
 
-_NUMERIC_TYPES = (bool, int, float, str)
 def _check_remainder(x: Any, remainder: int) -> bool:
     if not isinstance(x, _NUMERIC_TYPES): return False
     if isinstance(x, Pattern): x = x.pattern

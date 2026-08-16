@@ -15,7 +15,7 @@ import uuid
 
 from . import __version__, __version_date__
 from .builtins import (
-    get_cwd,
+    get_current_directory,
     get_datetime,
     get_day_name,
     get_day,
@@ -215,7 +215,7 @@ def _get_os_consts() -> dict:
     rc = { key: value for key, value in _get_consts(os).items() if key in _OS_CONSTS }
     rc['login'] = DynamicValue(lambda: getpass.getuser() or 'unknown')
     rc['pid'] = DynamicValue(os.getpid)
-    rc['cwd'] = DynamicValue(get_cwd)
+    rc['cwd'] = DynamicValue(get_current_directory)
     rc['system'] = platform.system()
     rc['node'] = platform.node()
     rc['hostname'] = socket.gethostname()

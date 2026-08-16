@@ -50,30 +50,14 @@ from .dict import (
     build_dict,
     dict_remove_key,
     dict_set_key_value,
-    poly_dict_create,
     poly_get_keys,
-    poly_get_key_value,
-    poly_get_values,
-    poly_is_dict,
-    poly_lookup_item,
-    poly_remove_key,
-    poly_set_key_value,
 )
 from .div import (
     poly_div,
-    poly_fdiv,
-    poly_divmod,
 )
 from .files import (
-    base_name,
-    dir_name,
     expand_filename,
-    poly_get_file_info,
-    path_exists,
-    get_cwd,
-    is_dir,
-    is_file,
-    remove_file,
+    get_current_directory,
     verify_relative_path,
 )
 from .general import (
@@ -110,18 +94,6 @@ from .list import (
     poly_to_list,
 )
 from .logic import poly_is_true, poly_is_false
-from .markdown import (
-    md_blockquote,
-    md_strong,
-    md_code_block,
-    md_code,
-    md_heading,
-    md_emphasis,
-    md_link,
-    md_ordered_list,
-    md_strikethrough,
-    md_unordered_list,
-)
 from .match import (
     poly_matches_all,
     poly_matches,
