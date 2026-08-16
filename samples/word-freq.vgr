@@ -25,7 +25,7 @@ While True
     End-If
     # Split the sentence into words and tally their count using a dictionary
     Set wordCounter To Dictionary()
-    # Normalize the words: lowercase ASCII letters
+    # Normalize the words: lowercase Ascii letters
     For-Each word In sentence.Split().RegexReplace(non-alpha).Lower()
         If Length(word) Is Positive
             Set wordCounter To wordCounter.SetKeyValue(word, wordCounter.GetKeyValue(word, 0).Add(1))

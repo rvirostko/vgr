@@ -848,7 +848,7 @@ def execute_term_statement(ctx: ExecContext, statement: Tree) -> None:
 * DrawBox [*style*:] *height*:*width*
 * DrawHLine [*style*:] *length*
 * DrawVLine [*style*:] *height*
-* Styles - Blank, ASCII, Single Double, SingleDouble, DoubleSingle,
+* Styles - Blank, Ascii, Single Double, SingleDouble, DoubleSingle,
   Brackets, Parens, Braces, Light, LightRounded, LightDash2,
   LightDash3, LightDash4, Heavy, HeavyDash2, HeavyDash3, HeavyDash4,
   LightHeavy, HeavyLight

@@ -9,9 +9,11 @@ from typing import Any
 import _hashlib
 
 from .common import str_arg
+from .registry import builtin
 
 _DEFAULT_ALGO = 'md5'
 
+@builtin("Checksum")
 def poly_checksum(x: Any=None, algo: str=_DEFAULT_ALGO) -> str:
     """
 **Generate a checksum string for a value**
@@ -33,9 +35,12 @@ Available algorithms are: *md5*, *sha1*, *sha224*, *sha256*, *sha384*,
 
 ```vgr
 None.Checksum() → None
-"".Checksum() → "d41d8cd98f00b204e9800998ecf8427e"
-"Hello".Checksum() → "8b1a9953c4611296a827abf8c47804d7"
-"Hello".Checksum("MD5") → "8b1a9953c4611296a827abf8c47804d7"
+"".Checksum() →
+    "d41d8cd98f00b204e9800998ecf8427e"
+"Hello".Checksum() →
+    "8b1a9953c4611296a827abf8c47804d7"
+"Hello".Checksum("MD5") →
+    "8b1a9953c4611296a827abf8c47804d7"
 "Hello".Checksum("sha256") →
     "185f8db32271fe25f561a6fc938b2e264306ec304eda518007d1764826381969"
 ```

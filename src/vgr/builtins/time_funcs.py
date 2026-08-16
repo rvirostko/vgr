@@ -8,9 +8,11 @@ import time
 
 from .common import int_arg, str_arg, dist_x
 from .type import poly_type
+from .registry import builtin
 
 _DEFAULT_TS_FORMAT = '%FT%T'
 
+@builtin("GetDateTime")
 def get_datetime() -> int:
     """
 **Return the Unix Epoch time in seconds**
@@ -26,6 +28,7 @@ Also see `FormatDateTime()` and the `time.now` variable
 """
     return int(time.time()) # Unix Epoch time
 
+@builtin("FormatDuration")
 def format_duration(x: Any=None, y: Any=None) -> Any:
     """
 **Format the duration between two date-time values**
@@ -70,6 +73,7 @@ Also see `GetDateTime()` and the `time.now` variable
     if isinstance(x, list): return dist_x(format_duration, x, y)
     raise TypeError(f'Unsupported type for FormatDuration: {poly_type(x)!r}')
 
+@builtin("FormatDateTime")
 def format_datetime(x: Any=None, y: Any=None) -> Any:
     """
 **Format the value for a point in time as a string**
@@ -150,7 +154,8 @@ later.FormatDateTime(time.format.compact.hm) → "1801"
     if isinstance(x, datetime): return x.strftime(y)
     raise TypeError(f'Unsupported type for FormatDateTime: {poly_type(x)!r}')
 
-def timezone(x: Any=None) -> str:
+@builtin("GetTimeZone")
+def get_timezone(x: Any=None) -> str:
     """
 **Return the local timezone name for a point in time**
 
@@ -172,9 +177,10 @@ Printf "{}, {} {}, {} {:02d}:{:02d}:{:02d} {} (UTC{}{})\n",
 
 Use `Exhibit time` for equivalent variables
 """
-    return _generic_ts_func("GetTimeZone", timezone, lambda ts: ts.astimezone().tzname(), x)
+    return _generic_ts_func("GetTimeZone", get_timezone, lambda ts: ts.astimezone().tzname(), x)
 
-def utc_offset(x: Any=None) -> int:
+@builtin("GetUtcOffset")
+def get_utc_offset(x: Any=None) -> int:
     """
 **Return the UTC offset for the local timezone in seconds for a point in time**
 
@@ -196,9 +202,10 @@ Printf "{}, {} {}, {} {:02d}:{:02d}:{:02d} {} (UTC{}{})\n",
 
 Use `Exhibit time` for equivalent variables
 """
-    return _generic_ts_func("UtcOffset", utc_offset, lambda ts: int(ts.astimezone().utcoffset().total_seconds()), x)
+    return _generic_ts_func("UtcOffset", get_utc_offset, lambda ts: int(ts.astimezone().utcoffset().total_seconds()), x)
 
-def get_day_of_month(x: Any=None) -> int:
+@builtin("GetDay")
+def get_day(x: Any=None) -> int:
     """
 **Return the day number within the month for a point in time**
 
@@ -222,8 +229,9 @@ Printf "{}, {} {}, {} {:02d}:{:02d}:{:02d} {} (UTC{}{})\n",
 
 Use `Exhibit time` for equivalent variables
 """
-    return _generic_ts_func("GetDay", get_day_of_month, lambda ts: ts.day, x)
+    return _generic_ts_func("GetDay", get_day, lambda ts: ts.day, x)
 
+@builtin("GetDayName")
 def get_day_name(x: Any=None) -> str:
     """
 **Return the name of the day of the week for a point in time**
@@ -248,6 +256,7 @@ Use `Exhibit time` for equivalent variables
 """
     return _generic_ts_func("GetDayName", get_day_name, lambda ts: ts.strftime("%A"), x)
 
+@builtin("GetMonthName")
 def get_month_name(x: Any=None) -> str:
     """
 **Return the name of the month for a point in time**
@@ -272,6 +281,7 @@ Use `Exhibit time` for equivalent variables
 """
     return _generic_ts_func("GetMonthName", get_day_name, lambda ts: ts.strftime("%B"), x)
 
+@builtin("GetHour")
 def get_hour(x: Any=None) -> int:
     """
 **Return the hour of the day (0-23) for a point in time**
@@ -296,13 +306,14 @@ Use `Exhibit time` for equivalent variables
 """
     return _generic_ts_func("GetHour", get_hour, lambda ts: ts.hour, x)
 
+@builtin("GetMinute")
 def get_minute(x: Any=None) -> int:
     """
 **Return the minute within the hour for a point in time**
 
-* *value*.GetHour()
-* GetHour()
-* GetHour(*value*)
+* *value*.GetMinute()
+* GetMinute()
+* GetMinute(*value*)
 
 If *value* is omitted or `None` then the current date and time are used.
 
@@ -320,6 +331,7 @@ Use `Exhibit time` for equivalent variables
 """
     return _generic_ts_func("GetMinute", get_minute, lambda ts: ts.minute, x)
 
+@builtin("GetMonth")
 def get_month(x: Any=None) -> int:
     """
 **Return the month within the year for a point in time**
@@ -340,6 +352,7 @@ Use `Exhibit time` for equivalent variables
 """
     return _generic_ts_func("GetMonth", get_month, lambda ts: ts.month, x)
 
+@builtin("GetSecond")
 def get_second(x: Any=None) -> int:
     """
 **Return the second within the hour for a point in time**
@@ -364,7 +377,8 @@ Use `Exhibit time` for equivalent variables
 """
     return _generic_ts_func("GetSecond", get_second, lambda ts: ts.second, x)
 
-def get_dow(x: Any=None) -> int:
+@builtin("GetDayOfWeek")
+def get_day_of_week(x: Any=None) -> int:
     """
 **Return the number (0-6) for the day of the week for a point in time**
 
@@ -381,8 +395,9 @@ Printf "{} is {}\n", GetDayName(), GetDayOfWeek()
 
 Use `Exhibit time` for equivalent variables
 """
-    return _generic_ts_func("GetDayOfWeek", get_dow, lambda ts: (ts.weekday() + 1) % 7, x)
+    return _generic_ts_func("GetDayOfWeek", get_day_of_week, lambda ts: (ts.weekday() + 1) % 7, x)
 
+@builtin("GetDayOfYear")
 def get_day_of_year(x: Any=None) -> int:
     """
 **Return the number of the day within the year for a point in time**
@@ -404,6 +419,7 @@ Use `Exhibit time` for equivalent variables
 """
     return _generic_ts_func("GetDayOfYear", get_day_of_year, lambda ts: ts.timetuple().tm_yday, x)
 
+@builtin("GetYear")
 def get_year(x: Any=None) -> int:
     """
 **Return the year for a point in time**
@@ -428,6 +444,7 @@ Use `Exhibit time` for equivalent variables
 """
     return _generic_ts_func("GetYear", get_year, lambda ts: ts.year, x)
 
+@builtin("GetWeekOfYear")
 def get_week_of_year(x: Any=None) -> int:
     """
 **Return the week within the year for a point in time**
@@ -449,7 +466,7 @@ Use `Exhibit time` for equivalent variables
 """
     return _generic_ts_func("GetWeekOfYear", get_week_of_year, lambda ts: int(ts.strftime("%W")), x)
 
-def _generic_ts_func(name, func, impl, x) -> Any:
+def _generic_ts_func(name: str, func, impl, x: Any) -> Any:
     if x is None: return impl(datetime.now())
     if isinstance(x, datetime): return impl(x)
     if isinstance(x, list): return list(func(x1) for x1 in x)

@@ -52,7 +52,7 @@ Call sort_and_check(t.animals)
 Print ""
 Print "Sorting INI data" To Output
 Set fn To data + "animals.ini"
-Open Output fn, Overwrite, Encoding Is "ASCII"
+Open Output fn, Overwrite, Encoding Is "Ascii"
 Printf "{}", """\
 [animal.1]
 name=elephant
@@ -113,7 +113,7 @@ Call sort_file_and_check(fn)
 Print ""
 Print "Sorting TEXT data" To Output
 Set fn To data + "animals.text"
-Open Output fn Encoding Is "ASCII"
+Open Output fn Encoding Is "Ascii"
 Printf "{}", """\
 elephant
 dog

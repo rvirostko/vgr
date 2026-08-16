@@ -215,7 +215,7 @@ Select *
 From File filename
 Limit 5
 For CSV
-Into File output_file Encoding Is "ASCII" /* encoding is optional */
+Into File output_file Encoding Is "Ascii" /* encoding is optional */
 Load data_in From File output_file Type Is Text /* but we could read as CSV if we wanted */
 Printf "{}", data_in
 Assert RemoveFile(output_file).FirstItem()

@@ -18,7 +18,9 @@ from .inequ import (
 )
 from .strings import poly_substr
 from .type import poly_type
+from .registry import builtin
 
+@builtin("Reverse")
 def poly_reverse(x: Any=None) -> Any:
     """
 **Reverses the contents of a list or string**
@@ -41,6 +43,7 @@ If *value* is an ordinal rather than a list, it is returned unchanged.
     if isinstance(x, str): return x[::-1]
     return x
 
+@builtin("Negate")
 def poly_negate(x: Any=None) -> Any:
     """
 **Returns the negation of a value**
@@ -71,6 +74,7 @@ None.Negate() → True
     if isinstance(x, dict): return {k: poly_negate(v) for k, v in x.items()}
     return x
 
+@builtin("Length")
 def poly_length(x: Any=None) -> Any:
     """
 **Return the length of an an item**
@@ -96,12 +100,16 @@ Also see `StringLen()`
     if isinstance(x, Pattern): x = x.pattern
     return len(x) if hasattr(x, '__len__') else None
 
+@builtin("Ascii")
 def poly_ascii(x: Any=None) -> str:
     """
-**Returns a printable ASCII string for an item**
+**Returns a printable Ascii string for an item**
+
+* Ascii(*value*)
+* *value*.Ascii()
 
 Similar to both `Repr()` and `ToString()`.
-Characters outside of ASCII printables are encoded
+Characters outside of Ascii printables are encoded
 with backslash sequences.
 
 ```vgr
@@ -114,6 +122,7 @@ with backslash sequences.
 """
     return ascii(x.pattern if isinstance(x, Pattern) else x)
 
+@builtin("Hash")
 def poly_hash(x: Any=None) -> int:
     """
 **Returns the internal hashcode for an object**
@@ -134,6 +143,7 @@ Also see `Id()`
 """
     return None if isinstance(x, (list, dict)) else hash(x)
 
+@builtin("Id")
 def poly_id(obj: Any=None) -> Any:
     """
 **Returns the internal, unique ID used by the value**
@@ -156,6 +166,7 @@ Also see `Hash()`
 """
     return id(obj)
 
+@builtin("Clone")
 def poly_clone(x: Any=None) -> Any:
     """
 **Ceates a copy of complex objects**
@@ -201,9 +212,13 @@ Also see `Id()` and `Hash()`
     if isinstance(x, (list, dict)): return copy(x)
     return x
 
+@builtin("Repr")
 def poly_repr(x: Any=None) -> str:
     """
 **Returns a string representation of an item**
+
+* Repr(*value*)
+* *value*.Repr()
 
 Differs slightly from `ToString()` as it surrounds string values with quotes
 and escapes non-printable characters.
@@ -245,6 +260,7 @@ Also see `Ascii()`
     if isinstance(x, list): return '[' + ', '.join(poly_repr(x1) for x1 in x) + ']'
     return repr(x)
 
+@builtin("Enumerate")
 def poly_enumerate(obj: Any=None, start_at: int=0) -> Any:
     """
 **Create an enumeration for a collection**
@@ -276,6 +292,7 @@ math.float.Enumerate(1) → [[1, "max", 1.7976931348623157e+308],
         return [[i, x] for i, x in enumerate(obj, start=start_at)]
     return [[start_at, obj]]
 
+@builtin("Sort")
 def poly_sort(x: Any=None, unique: bool=False, reverse: bool=False) -> Any:
     """
 **Sort lists and strings with unique and reverse**
@@ -313,6 +330,7 @@ def poly_subscript(x:Any=None, index: Any=None) -> Any:
     if isinstance(x, dict): return poly_get_key_value(x, index)
     return x
 
+@builtin("Item")
 def poly_get_item(x:Any=None, index: Any=0) -> Any:
     """
 **Return the N-th item from a list**
@@ -350,6 +368,7 @@ Also see `FirstItem()` and `LastItem()`
     if i >= 0: return x[i] if i < l else None
     return x[i] if l >= abs(i) else None
 
+@builtin("FirstItem")
 def poly_first_item(x: Any=None) -> Any:
     """
 **Return the first item from a list**
@@ -374,6 +393,7 @@ Also see `Item()` and `LastItem()`
 """
     return poly_get_item(x, 0)
 
+@builtin("LastItem")
 def poly_last_item(x: Any=None) -> Any:
     """
 **Return the last item from a list**
@@ -398,6 +418,7 @@ Also see `Item()` and `FirstItem()`
 """
     return poly_get_item(x, -1)
 
+@builtin("Unique")
 def poly_unique(x: Any=None) -> Any:
     """
 **A unique that works with lists or strings**

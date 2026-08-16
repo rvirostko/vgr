@@ -1,6 +1,6 @@
 Echo On
 
-// Basic ASCII Latin letters
+// Basic Ascii Latin letters
 Set abc To 5
 Assert (abc + 1) == 6
 
@@ -36,7 +36,7 @@ Assert ($ĂĔŎ + 1) == 10
 Set $1foo To 42
 Assert ($1foo + 8) == 50
 
-// Basic ASCII letters with numbers
+// Basic Ascii letters with numbers
 Set bar2 To 10
 Assert (bar2 * 3) == 30
 

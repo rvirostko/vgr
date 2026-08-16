@@ -37,7 +37,6 @@ from .bit_ops import (
     poly_is_bit_set,
     poly_toggle_bit,
 )
-from .checksum import poly_checksum
 from .common import (
     bound_ops,
     get_requires_exec_context,
@@ -78,22 +77,10 @@ from .files import (
     verify_relative_path,
 )
 from .general import (
-    dsort,
-    poly_ascii,
-    poly_clone,
-    poly_enumerate,
-    poly_first_item,
-    poly_get_item,
-    poly_hash,
-    poly_id,
-    poly_last_item,
-    poly_length,
-    poly_negate,
-    poly_repr,
-    poly_reverse,
-    poly_sort,
-    poly_subscript,
-    poly_unique,
+     dsort,
+     poly_repr,
+     poly_sort,
+     poly_subscript,
 )
 from .inequ import (
     poly_is_between,
@@ -201,9 +188,9 @@ from .time_funcs import (
     format_duration,
     format_datetime,
     get_day_name,
-    get_day_of_month,
+    get_day,
     get_day_of_year,
-    get_dow,
+    get_day_of_week,
     get_hour,
     get_minute,
     get_month,
@@ -212,8 +199,8 @@ from .time_funcs import (
     get_week_of_year,
     get_year,
     get_datetime,
-    timezone,
-    utc_offset,
+    get_timezone,
+    get_utc_offset,
 )
 from .type import poly_type
 from .types import (

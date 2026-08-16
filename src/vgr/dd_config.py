@@ -18,9 +18,9 @@ from .builtins import (
     get_cwd,
     get_datetime,
     get_day_name,
-    get_day_of_month,
+    get_day,
     get_day_of_year,
-    get_dow,
+    get_day_of_week,
     get_hour,
     get_minute,
     get_month_name,
@@ -29,8 +29,8 @@ from .builtins import (
     get_week_of_year,
     get_year,
     poly_random,
-    timezone,
-    utc_offset,
+    get_timezone,
+    get_utc_offset,
 )
 from .data_dict import DataDictionary, DynamicValue, MAX_FRAMES
 from .redir import _REDIRECTOR
@@ -71,13 +71,13 @@ _TIME_ENTRIES = {
     ("now",):                       DynamicValue(get_datetime), # Unix Epoch time
     ("sec_per_day",):               60 * 60 * 24,
     ("sec_per_hr",):                60 * 60,
-    ("tz_name", ):                  DynamicValue(timezone),
-    ("utc_offset",):                DynamicValue(utc_offset),
+    ("tz_name", ):                  DynamicValue(get_timezone),
+    ("utc_offset",):                DynamicValue(get_utc_offset),
     # "today" is a composite object
     (_TODAY, "day_name"):           DynamicValue(get_day_name),     # Saturday
-    (_TODAY, "day_of_week"):        DynamicValue(get_dow),          # 5 (Sunday=0)
+    (_TODAY, "day_of_week"):        DynamicValue(get_day_of_week),          # 5 (Sunday=0)
     (_TODAY, "day_of_year"):        DynamicValue(get_day_of_year),  # 172
-    (_TODAY, "day"):                DynamicValue(get_day_of_month), # 21
+    (_TODAY, "day"):                DynamicValue(get_day), # 21
     (_TODAY, "hour"):               DynamicValue(get_hour),         # 14
     (_TODAY, "minute"):             DynamicValue(get_minute),       # 23
     (_TODAY, "month"):              DynamicValue(get_month),        # 6

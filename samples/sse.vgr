@@ -15,7 +15,7 @@ End-If
 
 Reset Data
 Assert vgr.source.FirstItem() Is Not None
-# ASCII art file should be stored in the same dir as this script
+# Ascii art file should be stored in the same dir as this script
 # so use the source name's directory to always find it
 Load sse from vgr.source.FirstItem().DirectoryName() + "/NCC-1701A.txt" Type Is Text Lines
 Set sse_max To sse.StringLen().Max()

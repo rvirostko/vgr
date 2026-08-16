@@ -267,13 +267,13 @@ are alphabetic and there is at least one character in the string.
 @builtin("IsAscii")
 def poly_is_ascii(x: Any=None) -> Any:
     """
-**Is a value a string composed of all ASCII characters**
+**Is a value a string composed of all Ascii characters**
 
 * IsAscii(*value*)
 * *value*.IsAscii()
 
-ASCII characters are those in the range U+0000 to U+007F.
-Additionally, an empty string considers ASCII.
+Ascii characters are those in the range U+0000 to U+007F.
+Additionally, an empty string is considered Ascii.
 
 ```vgr
 "Foo\nBar".IsAscii() → True
@@ -321,7 +321,7 @@ def poly_is_digit(x: Any=None) -> Any:
 
 A string is a digit string if all characters in the string
 are digits and there is at least one character in the string.
-Digit characters include non-ASCII digits, but not special
+Digit characters include non-Ascii digits, but not special
 characters such as circled numbers.
 
 ```vgr
