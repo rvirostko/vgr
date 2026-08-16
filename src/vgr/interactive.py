@@ -18,7 +18,7 @@ import time
 from prompt_toolkit import PromptSession
 from prompt_toolkit.history import FileHistory
 
-from .builtins import poly_bool, expand_filename
+from .builtins import poly_to_boolean, expand_filename
 
 class CustomArgParser(ArgumentParser):
     """A non-exiting argument parser"""
@@ -103,7 +103,7 @@ class CmdLine:
                     .argument('--max', type=int)
                     .parser())
     _MULTILINE_PARSER: ArgumentParser = (ParserBuilder()
-                    .argument('multiline', nargs=OPTIONAL, type=poly_bool)
+                    .argument('multiline', nargs=OPTIONAL, type=poly_to_boolean)
                     .parser())
     _NO_ARGS_PARSER: ArgumentParser = ParserBuilder().parser()
 

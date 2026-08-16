@@ -9,7 +9,7 @@ from lark import Tree
 from .app_exceptions import VgrRuntimeError
 from .builtins import (
     bound_ops,
-    poly_int,
+    poly_to_integer,
     poly_type,
 )
 from .evaluate import get_writable_var_path
@@ -328,7 +328,7 @@ def _normalize_positions(pos_expr, list_len: int, positions) -> list:
 def _to_int(item: Any) -> int:
     if isinstance(item, int): return item
     if isinstance(item, float): return int(item)
-    if isinstance(item, str): return poly_int(item)
+    if isinstance(item, str): return poly_to_integer(item)
     raise ValueError(f'Cannot use {poly_type(item)!r} as a list position')
 
 def _remove_items(dst: list, removals: list) -> list:

@@ -14,8 +14,8 @@ from .app_exceptions import (
 )
 from .builtins import (
     bound_ops,
-    poly_bool,
-    poly_int,
+    poly_to_boolean,
+    poly_to_integer,
     poly_not_empty,
     poly_true,
 )
@@ -51,7 +51,7 @@ Exit " 5 " → 5
 
 Also see `Assert` and `Abort` statements, and the `ToBoolean()` and `ToInteger()` functions
 """
-    def bool_return(x) -> int: return VgrExitingException.EXIT_SUCCESS if poly_true(poly_bool(x)) else VgrExitingException.EXIT_FAILED
+    def bool_return(x) -> int: return VgrExitingException.EXIT_SUCCESS if poly_true(poly_to_boolean(x)) else VgrExitingException.EXIT_FAILED
     # If no argument provided, then "success"
     rc = VgrExitingException.EXIT_SUCCESS
     if len(statement.children) > 0:
@@ -64,7 +64,7 @@ Also see `Assert` and `Abort` statements, and the `ToBoolean()` and `ToInteger()
                 rc = bool_return(x)
             else:
                 try:
-                    rc = poly_int(x)
+                    rc = poly_to_integer(x)
                 except ValueError:
                     rc = bool_return(x)
     msg = f'Exiting with rc = {rc}'

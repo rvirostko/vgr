@@ -32,10 +32,10 @@ from .exec_context import ExecContext
 from .builtins import (
     bound_ops,
     build_dict,
-    poly_bool,
-    poly_int,
+    poly_to_boolean,
+    poly_to_integer,
     poly_list,
-    poly_number,
+    poly_to_number,
     poly_true,
     poly_type,
     str_to_number,
@@ -419,7 +419,7 @@ def exec_loop(ctx: ExecContext, statement: Tree, desired_value: bool, block_type
 def exec_repeat(ctx: ExecContext, statement: Tree, block_types=BlockType.ALL_BLOCKS) -> None:
     """Internal implementation for loops with a fixed count"""
     ctx.echo_source(statement, statement.children[1])
-    counter = poly_int(ctx.eval_expr(bind_operations(statement.children[0])))
+    counter = poly_to_integer(ctx.eval_expr(bind_operations(statement.children[0])))
     if isinstance(counter, (int, float)):
         counter = math.floor(counter)
         if counter > 0:
@@ -1090,7 +1090,7 @@ class DefaultExecContext(ExecContext):
         # TODO better error handling including None check
         if isinstance(rc, (int, float)): return rc
         if isinstance(rc, bool): return int(rc)
-        if isinstance(rc, str): return poly_number(rc)
+        if isinstance(rc, str): return poly_to_number(rc)
         raise VgrRuntimeError(expr, TypeError(f'{name} must be a number; found {poly_type(rc)!r}'))
 
     def eval_to_bool(self, expr: Tree, name: str, allow_none: bool=False) -> bool:
@@ -1099,7 +1099,7 @@ class DefaultExecContext(ExecContext):
         if rc is None and allow_none: return None
         if not isinstance(rc, (bool, int, float, str)):
             raise VgrRuntimeError(expr, TypeError(f'{name} must be a boolean; found {poly_type(rc)!r}'))
-        return poly_bool(rc)
+        return poly_to_boolean(rc)
 
     def get_source(self, tree, end_tree = None) -> str:
         return (SSM.source_for(tree, end_tree) or '').strip()

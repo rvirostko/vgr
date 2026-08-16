@@ -6,7 +6,7 @@ from .builtins import (
     poly_add,
     poly_div,
     poly_mul,
-    poly_number,
+    poly_to_number,
     poly_sub,
 )
 from .evaluate import get_writable_var_path
@@ -46,14 +46,14 @@ d = 29
 Also see `Add()` and `Sum()`, `+`, and `Set`
 """
     var_path = get_writable_var_path(ctx, statement.children[-1])
-    x = poly_number(ctx.get_var(*var_path)) or 0
-    args = list(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
+    x = poly_to_number(ctx.get_var(*var_path)) or 0
+    args = list(poly_to_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
     do_set(ctx, poly_add(x, *args), *var_path)
 
 # Doc added to add_to
 def execute_add_giving(ctx: ExecContext, statement: Tree) -> None:
     var_path = get_writable_var_path(ctx, statement.children[-1])
-    args = list(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
+    args = list(poly_to_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
     do_set(ctx, poly_add(*args), *var_path)
 
 @bound_ops("Subtract")
@@ -89,14 +89,14 @@ d = 1
 Also see `Sub()`, `-`, and `Set`
 """
     var_path = get_writable_var_path(ctx, statement.children[-1])
-    x = poly_number(ctx.get_var(*var_path)) or 0
-    args = list(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
+    x = poly_to_number(ctx.get_var(*var_path)) or 0
+    args = list(poly_to_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
     do_set(ctx, poly_sub(x, *args), *var_path)
 
 # Doc added to sub_from
 def execute_sub_giving(ctx: ExecContext, statement: Tree) -> None:
     var_path = get_writable_var_path(ctx, statement.children[-1])
-    args = list(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
+    args = list(poly_to_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[:-1])
     do_set(ctx, poly_sub(args[-1], *args[:-1]), *var_path)
 
 @bound_ops("Multipy")
@@ -124,8 +124,8 @@ b = 11
 Also see `Mul()`, `*`, and `Set`
 """
     var_path = get_writable_var_path(ctx, statement.children[0])
-    x = poly_number(ctx.get_var(*var_path)) or 0
-    args = list(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[1:])
+    x = poly_to_number(ctx.get_var(*var_path)) or 0
+    args = list(poly_to_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[1:])
     value = poly_mul(x, *args)
     do_set(ctx, value, *var_path)
 
@@ -153,7 +153,7 @@ b = 5
 Also see `Div()`, `/`, and `Set`
 """
     var_path = get_writable_var_path(ctx, statement.children[0])
-    x = poly_number(ctx.get_var(*var_path)) or 0
-    args = list(poly_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[1:])
+    x = poly_to_number(ctx.get_var(*var_path)) or 0
+    args = list(poly_to_number(ctx.eval_expr(expr)) or 0 for expr in statement.children[1:])
     value = poly_div(x, *args)
     do_set(ctx, value, *var_path)

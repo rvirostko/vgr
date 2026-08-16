@@ -16,7 +16,7 @@ from .builtins import (
     poly_format,
     poly_is_function,
     poly_repr,
-    poly_str,
+    poly_to_str,
     poly_type,
 )
 from .dd_config import OFS_PATH, ORS_PATH
@@ -98,7 +98,7 @@ Also see `Printf`, `Open`, and `Close`
         exists, _true_name, value = ctx.var_exists(*name)
         return value if exists and value is not None else default
     def _to_str(v) -> str:
-        return '' if v is None else poly_str(v)
+        return '' if v is None else poly_to_str(v)
     values = []
     channel = 'stdout'
     ofs = _get_sep(OFS_PATH, ' ')

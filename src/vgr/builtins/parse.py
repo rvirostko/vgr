@@ -8,8 +8,11 @@ import csv
 import hcl2
 import yaml
 
+from .registry import builtin
+
 _PASS_THRU_TYPES = (dict, list)
 
+@builtin("ParseJSON")
 def poly_parse_json(value: Any=None) -> Any:
     """
 **Parse a value as JSON data**
@@ -30,6 +33,7 @@ and the `Load` statement.
     if isinstance(value, _PASS_THRU_TYPES): return value
     return parse_json(str(value))
 
+@builtin("ParseCSV")
 def poly_parse_csv(value: Any=None) -> Any:
     """
 **Parse a value as CSV data**
@@ -51,6 +55,7 @@ and the `Load` statement.
     if isinstance(value, dict): return [value]
     return parse_csv(str(value))
 
+@builtin("ParseYAML")
 def poly_parse_yaml(value: Any=None) -> Any:
     """
 **Parse a value as YAML data**
@@ -71,6 +76,7 @@ and the `Load` statement.
     if isinstance(value, _PASS_THRU_TYPES): return value
     return parse_yaml(str(value))
 
+@builtin("ParseHCL")
 def poly_parse_hcl(value: Any=None) -> Any:
     """
 **Parse a value as HCL data**
@@ -91,6 +97,7 @@ and the `Load` statement.
     if isinstance(value, _PASS_THRU_TYPES): return value
     return parse_hcl(str(value))
 
+@builtin("ParseINI")
 def poly_parse_ini(value: Any=None) -> Any:
     """
 **Parse a value as INI file data**

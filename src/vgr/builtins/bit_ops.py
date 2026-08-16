@@ -12,7 +12,7 @@ from .common import (
     Y_None_Op,
 )
 
-from .types import poly_bool
+from .types import poly_to_boolean
 
 _MAX_BITS = 256
 _MAX_BIT_INDEX = _MAX_BITS - 1
@@ -201,7 +201,7 @@ Also see `ClearBit()` and `ToggleBit()`
     if isinstance(x, list): return list(poly_set_bit(x1, index) for x1 in x)
     if isinstance(x, str): x = str_to_number(x)
     if isinstance(x, (int, float)):
-        return int(x) | (1 << index) if poly_bool(do_set) else int(x) & ~(1 << index)
+        return int(x) | (1 << index) if poly_to_boolean(do_set) else int(x) & ~(1 << index)
     return x
 
 def poly_clear_bit(x: Any=None, index: int=0) -> Any:

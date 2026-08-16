@@ -7,12 +7,17 @@ import json
 
 from .common import int_arg, bool_arg
 
+from .registry import builtin
+
+@builtin("StripNulls")
 def strip_nulls(obj: Any=None) -> Any:
     """
 **Recursively remove `None` values from dictionaries and lists**
 
 * StripNulls(*value*)
 * *value*.StripNulls()
+
+Typically used with data loaded from a JSON file.
 
 ```vgr
 StripNulls(None) → None
@@ -59,6 +64,8 @@ data.StripNulls() →
   },
   "value": 3.14
 }
+
+Also see `ParseJSON` and the `Load` statements.
 ```
 """
     if isinstance(obj, dict):
@@ -67,6 +74,7 @@ data.StripNulls() →
         return list(strip_nulls(v) for v in obj if v is not None)
     return obj
 
+@builtin("FormatJson")
 def format_json(obj: Any=None, indent: int=2, sort_keys: bool=False) -> Any:
     """
 **Format the object as a JSON string**

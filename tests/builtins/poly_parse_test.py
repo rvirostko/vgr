@@ -1,6 +1,6 @@
 import pytest
 
-from vgr.builtins import (
+from vgr.builtins.parse import (
     poly_parse_json,
     poly_parse_csv,
     poly_parse_yaml,

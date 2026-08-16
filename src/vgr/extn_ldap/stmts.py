@@ -10,11 +10,11 @@ from ldap3 import ANONYMOUS, SIMPLE, NTLM, BASE, LEVEL, SUBTREE, ALL_ATTRIBUTES,
 from ..app_exceptions import VgrRuntimeError
 from ..builtins import (
     bound_ops,
-    poly_bool,
-    poly_int,
+    poly_to_boolean,
+    poly_to_integer,
     poly_is_empty,
     poly_list,
-    poly_str,
+    poly_to_str,
     poly_strip,
     poly_type,
 )
@@ -270,7 +270,7 @@ def _resolve_int_arg(ctx: ExecContext, opt: Tree, name: str) -> str:
     if isinstance(rc, (int, float)): return int(rc)
     if isinstance(rc, str):
         try:
-            return poly_int(rc)
+            return poly_to_integer(rc)
         except ValueError as e:
             raise VgrRuntimeError(expr, e) from e
     raise VgrRuntimeError(expr, TypeError(f'{name} must be a number; found {poly_type(rc)!r}'))
@@ -294,7 +294,7 @@ def _resolve_bool_arg(ctx: ExecContext, opt: Tree, name: str) -> bool:
     rc = ctx.eval_expr_or_const(expr)
     if rc is None: return False
     if isinstance(rc, (dict, list)): raise VgrRuntimeError(expr, TypeError(f'{name} must be a boolean; found {poly_type(rc)!r}'))
-    return poly_bool(rc)
+    return poly_to_boolean(rc)
 
 def _resolve_opt_bool_arg(ctx: ExecContext, opt: Tree, name: str) -> bool:
     """Presence of option means True, but has an optional child expression which must be a bool"""
@@ -357,7 +357,7 @@ def _resolve_attrs_arg(ctx: ExecContext, opt: Tree, name: str) -> Any:
         rc = poly_list(rc)
     attrs = []
     # Report on non-strings (like nested lists or dicts)
-    for attr in poly_strip(poly_str(rc)):
+    for attr in poly_strip(poly_to_str(rc)):
         # Filter out Nones and blank strings
         if attr:
             if isinstance(attr, str):

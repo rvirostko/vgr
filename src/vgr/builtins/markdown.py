@@ -6,7 +6,7 @@ from itertools import starmap
 from typing import Any
 
 from .common import int_arg
-from .types import poly_str
+from .types import poly_to_str
 
 _MD_STRONG_DELIMITER = '**'
 _MD_EMPHASIS_DELIMITER = '*'
@@ -172,7 +172,7 @@ Also see `Print` and using the *As Markdown* clause.
 """
     if isinstance(text, list):
         if not text: return _BLANK
-        return "\n" + ("\n".join([f"{_MD_BLOCK_QUOTE_MARKER}{line}" for line in [poly_str(i) for i in text] if line is not None])) + "\n"
+        return "\n" + ("\n".join([f"{_MD_BLOCK_QUOTE_MARKER}{line}" for line in [poly_to_str(i) for i in text] if line is not None])) + "\n"
     text = _to_str(text)
     return _BLANK if len(text) == 0 else md_blockquote(text.splitlines())
 
@@ -195,7 +195,7 @@ Also see `Print` and using the *As Markdown* clause.
 """
     if isinstance(text, list):
         if not text: return _BLANK
-        return "\n" + ("\n".join([f"- {item}" for item in [poly_str(i) for i in text] if item is not None])) + "\n"
+        return "\n" + ("\n".join([f"- {item}" for item in [poly_to_str(i) for i in text] if item is not None])) + "\n"
     text = _to_str(text)
     return _BLANK if len(text) == 0 else md_unordered_list(text.splitlines())
 
@@ -221,7 +221,7 @@ Also see `Print` and using the *As Markdown* clause.
     if isinstance(text, list):
         if not text: return _BLANK
         # Convert to strings, then filter out the nulls
-        strs = [poly_str(i) for i in text]
+        strs = [poly_to_str(i) for i in text]
         strs = [item for item in strs if item is not None and len(item) != 0]
         # Now enumerate to get the index
         return "\n" + ("\n".join([f"{index + 1}. {item}" for index, item in enumerate(strs)])) + "\n"

@@ -19,12 +19,12 @@ from lark.tree import Meta
 from .app_exceptions import VgrRuntimeError
 from .builtins import (
     bound_ops,
-    poly_bool,
+    poly_to_boolean,
     poly_false,
-    poly_int,
+    poly_to_integer,
     poly_plural,
     poly_repr,
-    poly_str,
+    poly_to_str,
     poly_type,
 )
 from .data_xtract import (
@@ -287,7 +287,7 @@ class SelectAnalyzer(Visitor):
                             return
                 # Is is a numeric reference, but provided as a string?
                 if col_ref.isdigit() and col_ref.isascii():
-                    product[_colref_range_check(expr, poly_int(col_ref), ncols)] = True
+                    product[_colref_range_check(expr, poly_to_integer(col_ref), ncols)] = True
                     return
                 raise VgrRuntimeError(expr, ValueError(f"Cannot find output column named {col_ref!r}"))
             raise VgrRuntimeError(expr, TypeError(f"Unsupported type for column reference: {poly_type(col_ref)!r}"))
@@ -565,19 +565,19 @@ class SelectAnalyzer(Visitor):
 
     def _bool_arg(self, node:Tree, name: str) -> bool:
         # no argument means "true"
-        return poly_bool(self.ctx.eval_expr_or_const(node.children[0])) if node.children else True
+        return poly_to_boolean(self.ctx.eval_expr_or_const(node.children[0])) if node.children else True
 
     def _int_arg(self, node:Tree, name: str, default: int=0) -> int:
         if not node.children: return default
         expr = node.children[0]
         rc = self.ctx.eval_expr_or_const(expr)
-        return rc if rc is None or isinstance(rc, int) else poly_int(rc)
+        return rc if rc is None or isinstance(rc, int) else poly_to_integer(rc)
 
     def _str_arg(self, node:Tree, name: str, default: str=None) -> str:
         if not node.children: return default
         expr = node.children[0]
         rc = self.ctx.eval_expr_or_const(expr)
-        return rc if rc is None or isinstance(rc, str) else poly_str(rc)
+        return rc if rc is None or isinstance(rc, str) else poly_to_str(rc)
 
     def _csv_quote_arg(self, node:Tree) -> str:
         expr = node.children[0]

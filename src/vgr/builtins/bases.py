@@ -7,7 +7,7 @@ import base64
 
 from .common import NoneType
 from .type import poly_type
-from .types import poly_int
+from .types import poly_to_integer
 from .registry import builtin
 
 @builtin("ToBinary")
@@ -33,7 +33,7 @@ Also see `ToOctal()` and `ToHex()`
 """
     if x is None: return None
     if isinstance(x, (bool, int, float)): return bin(int(x))
-    if isinstance(x, str): return bin(poly_int(x))
+    if isinstance(x, str): return bin(poly_to_integer(x))
     if isinstance(x, list): return list(poly_bin(x1) for x1 in x)
     raise TypeError(f'Binary format with {poly_type(x)!r} not supported')
 
@@ -60,7 +60,7 @@ Also see `ToBinary()` and `ToHex()`
 """
     if x is None: return None
     if isinstance(x, (bool, int, float)): return oct(int(x))
-    if isinstance(x, str): return oct(poly_int(x))
+    if isinstance(x, str): return oct(poly_to_integer(x))
     if isinstance(x, list): return list(poly_oct(x1) for x1 in x)
     raise TypeError(f'Octal format with {poly_type(x)!r} not supported')
 
@@ -87,7 +87,7 @@ Also see `ToBinary()` and `ToOctal()`
 """
     if x is None: return None
     if isinstance(x, (bool, int, float)): return hex(int(x))
-    if isinstance(x, str): return hex(poly_int(x))
+    if isinstance(x, str): return hex(poly_to_integer(x))
     if isinstance(x, list): return list(poly_hex(x1) for x1 in x)
     raise TypeError(f'Hexadecimal format with {poly_type(x)!r} not supported')
 

@@ -7,7 +7,7 @@ from urllib.parse import urlparse, quote
 from urllib.error import URLError
 
 from .common import dist_x, str_arg
-from .types import poly_bool
+from .types import poly_to_boolean
 
 def parse_url(url: Any=None, remove_nulls: bool=True) -> Any:
     """
@@ -40,7 +40,7 @@ parsed.fragment → "frag"
 ```
 """
     if url is None: return None
-    remove_nulls = poly_bool(remove_nulls)
+    remove_nulls = poly_to_boolean(remove_nulls)
     if isinstance(url, list): return dist_x(parse_url, url, remove_nulls)
     if not isinstance(url, str): return None
     url = url.strip()

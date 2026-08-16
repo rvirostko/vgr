@@ -14,7 +14,9 @@ from .common import (
     str_to_bool,
     str_to_number,
 )
+from .registry import builtin
 
+@builtin("IsNone")
 def poly_is_none(x: Any=None) -> Any:
     """
 **Is a value equal to `None`**
@@ -30,6 +32,7 @@ Also see `IsNotNone()`
 """
     return x is None
 
+@builtin("IsNotNone")
 def poly_not_none(x: Any=None) -> Any:
     """
 **Is a value anything but `None`**
@@ -46,7 +49,8 @@ Also see `IsNone()`
 """
     return x is not None
 
-def poly_bool(x: Any=None) -> Any:
+@builtin("ToBoolean")
+def poly_to_boolean(x: Any=None) -> Any:
     """
 **Converts the value to a boolean**
 
@@ -75,19 +79,20 @@ Conversion is distributed over lists.
 
 """
     if x is None: return False
-    if poly_is_bool(x): return x
+    if poly_is_boolean(x): return x
     if poly_is_number(x): return bool(x)
-    if poly_is_str(x):
+    if poly_is_string(x):
         try:
             return str_to_bool(x)
         except ValueError:
             # Not, null, and not empty, so Python truthy
             return True
     if isinstance(x, list):
-        return list(poly_bool(x1) for x1 in x)
+        return list(poly_to_boolean(x1) for x1 in x)
     return True
 
-def poly_is_bool(x: Any=None) -> bool:
+@builtin("IsBoolean")
+def poly_is_boolean(x: Any=None) -> bool:
     """
 **Is the value value a boolean**
 
@@ -107,7 +112,8 @@ Also see `Type()`, `IsInteger()`, `IsFloat()`, `IsNumber()`, and `IsString()`
 # Unique sentinel object
 _SENTINEL = object()
 
-def poly_float(x: Any=None, default: Any=_SENTINEL) -> Any:
+@builtin("ToFloat")
+def poly_to_float(x: Any=None, default: Any=_SENTINEL) -> Any:
     """
 **Converts the value to a floating point number**
 
@@ -126,15 +132,16 @@ to a number. It can be any value, including `None`.
 ```
 """
     if isinstance(x, (bool, int, float)): return float(x)
-    if poly_is_str(x):
+    if poly_is_string(x):
         try:
             return float(str_to_number(x))
         except ValueError as e:
             if default is _SENTINEL: raise e
             return default
-    if isinstance(x, list): return list(poly_float(x1, default) for x1 in x)
+    if isinstance(x, list): return list(poly_to_float(x1, default) for x1 in x)
     return None if default is _SENTINEL else default
 
+@builtin("IsFloat")
 def poly_is_float(x: Any=None) -> bool:
     """
 **Is a value a floating point number**
@@ -153,7 +160,8 @@ Also see `Type()`, `IsBoolean()`, `IsInteger()`, `IsNumber()`, and `IsString()`
 """
     return isinstance(x, float)
 
-def poly_int(x: Any=None, default: Any = _SENTINEL) -> Any:
+@builtin("ToInteger")
+def poly_to_integer(x: Any=None, default: Any = _SENTINEL) -> Any:
     """
 **Converts the value to an integer**
 
@@ -172,16 +180,17 @@ to a number. It can be any value, including `None`.
 ```
 """
     if isinstance(x, (bool, int, float)): return int(x)
-    if poly_is_str(x):
+    if poly_is_string(x):
         try:
             return int(str_to_number(x))
         except ValueError as e:
             if default is _SENTINEL: raise e
             return default
-    if isinstance(x, list): return list(poly_int(x1, default) for x1 in x)
+    if isinstance(x, list): return list(poly_to_integer(x1, default) for x1 in x)
     return None if default is _SENTINEL else default
 
-def poly_is_int(x: Any=None) -> bool:
+@builtin("IsInteger")
+def poly_is_integer(x: Any=None) -> bool:
     """
 **Is a value an integer**
 
@@ -199,7 +208,8 @@ Also see `Type()`, `IsBoolean()`, `IsFloat()`, `IsNumber()`, and `IsString()`
 """
     return isinstance(x, int)
 
-def poly_number(x: Any=None, default: Any = _SENTINEL) -> Any:
+@builtin("ToNumber")
+def poly_to_number(x: Any=None, default: Any = _SENTINEL) -> Any:
     """
 **Converts the value to a number, which may be an integer or floating point number**
 
@@ -221,15 +231,16 @@ Also see `ToInteger()` and `ToFloat()`
 """
     if isinstance(x, bool): return int(x)
     if isinstance(x, (int, float)): return x
-    if poly_is_str(x):
+    if poly_is_string(x):
         try:
             return str_to_number(x)
         except ValueError as e:
             if default is _SENTINEL: raise e
             return default
-    if isinstance(x, list): return list(poly_number(x1, default) for x1 in x)
+    if isinstance(x, list): return list(poly_to_number(x1, default) for x1 in x)
     return None if default is _SENTINEL else default
 
+@builtin("IsNumber")
 def poly_is_number(x: Any=None) -> bool:
     """
 **Is a value a number**
@@ -252,6 +263,7 @@ Also see `Type()`, `IsBoolean()`, `IsInteger()`, `IsFloat()`, and `IsString()`
 """
     return not isinstance(x, bool) and isinstance(x, (int, float))
 
+@builtin("Sign")
 def poly_sign(x: Any=None) -> Any:
     """
 **Return an integer value indicating the sign of a number**
@@ -272,6 +284,7 @@ For all other types, `None` is returned.
     if isinstance(x, str): x = str_to_number(x)
     return (x > 0) - (x < 0) if isinstance(x, (int, float)) else None
 
+@builtin("IsInf")
 def poly_is_inf(x: Any=None) -> bool:
     """
 **Is a value equal to infinity**
@@ -288,6 +301,7 @@ math.neg_inf.IsInf() → True
 """
     return math.isinf(x) if isinstance(x, (int, float)) else False
 
+@builtin("IsFinite")
 def poly_is_finite(x: Any=None) -> bool:
     """
 **Is the value a number that is not infinite**
@@ -307,6 +321,7 @@ False.IsFinite() → True
 """
     return math.isfinite(x) if isinstance(x, (int, float)) else False
 
+@builtin("IsNan")
 def poly_is_nan(x: Any=None) -> bool:
     """
 **Is a value the special _not a number_ constant**
@@ -325,6 +340,7 @@ True.IsNan() → False
 """
     return math.isnan(x) if isinstance(x, float) else False
 
+@builtin("IsZero")
 def poly_is_zero(x: Any=None) -> bool:
     """
 **Is the value equal to zero**
@@ -351,7 +367,8 @@ False.IsZero() → True
             return False
     return x == 0 if isinstance(x, (int, float)) else False
 
-def poly_str(x: Any=None) -> Any:
+@builtin("ToString")
+def poly_to_str(x: Any=None) -> Any:
     """
 **Converts the value to its string representation**
 
@@ -374,11 +391,12 @@ If *value* is `None` it is left as `None`.
     if isinstance(x, bytes): return x.decode('utf-8')
     if isinstance(x, str): return x
     if isinstance(x, re.Pattern): return x.pattern
-    if isinstance(x, list): return list(poly_str(x1) for x1 in x)
+    if isinstance(x, list): return list(poly_to_str(x1) for x1 in x)
     if isinstance(x, dict): return json.dumps(x, allow_nan=True, default=str)
     return str(x)
 
-def poly_is_str(x: Any=None) -> bool:
+@builtin("IsString")
+def poly_is_string(x: Any=None) -> bool:
     """
 **Is the value a string**
 
@@ -399,6 +417,7 @@ Also see `Type()` and `IsNumber()`
     return isinstance(x, str)
 
 @bound_ops("Is Empty")
+@builtin("IsEmpty")
 def poly_is_empty(x: Any=None) -> bool:
     """
 **Test a value to see if it is empty**
@@ -440,6 +459,7 @@ Also see `IsNotEmpty()`
     return x is None
 
 @bound_ops("Is Not Empty")
+@builtin("IsNotEmpty")
 def poly_not_empty(x: Any=None) -> bool:
     """
 **Test a value to see if it is *not* empty**
@@ -478,6 +498,7 @@ Also see `IsEmpty()`
     if isinstance(x, (int, float)): return bool(x)
     return x is not None
 
+@builtin("DefaultTo")
 def default_to(value: Any=None, default: Any=None) -> Any:
     """
 **Returns the default if a value is `None`**
@@ -491,6 +512,7 @@ def default_to(value: Any=None, default: Any=None) -> Any:
 """
     return default if value is None else value
 
+@builtin("IsFunction")
 def poly_is_function(obj: Any=None) -> Any:
     """
 **Is a value a function**

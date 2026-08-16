@@ -26,14 +26,14 @@ from ..app_exceptions import VgrRuntimeError
 from ..builtins import (
     bound_ops,
     default_to,
-    poly_bool,
+    poly_to_boolean,
     poly_clamp,
     poly_is_empty,
     poly_strip,
     poly_type,
     poly_is_number,
-    poly_number,
-    poly_is_str,
+    poly_to_number,
+    poly_is_string,
     strip_nulls,
 )
 
@@ -234,13 +234,13 @@ def _resolve_bool(ctx: ExecContext, opt: Tree, name: str) -> bool:
     rc = ctx.eval_expr_or_const(expr)
     if isinstance(rc, (dict, list)):
         raise VgrRuntimeError(expr, TypeError(f'{name} must be a boolean; found {poly_type(rc)!r}'))
-    return None if rc is None or (isinstance(rc, str) and poly_is_empty(rc)) else poly_bool(rc)
+    return None if rc is None or (isinstance(rc, str) and poly_is_empty(rc)) else poly_to_boolean(rc)
 
 def _to_number(expr: Tree, name: str, value: any) -> Any:
     if not poly_is_number(value):
-        if poly_is_str(value):
+        if poly_is_string(value):
             try:
-                value = poly_number(value)
+                value = poly_to_number(value)
             except ValueError as e:
                 raise VgrRuntimeError(expr, e) from e
         else:

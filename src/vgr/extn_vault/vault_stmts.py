@@ -10,9 +10,9 @@ from ..app_exceptions import VgrRuntimeError
 from ..builtins import (
     bound_ops,
     poly_clamp,
-    poly_int,
+    poly_to_integer,
     poly_list,
-    poly_number,
+    poly_to_number,
     poly_type,
 )
 from ..data_dict import DataDictionary, DynamicValue
@@ -1407,7 +1407,7 @@ def _get_version_data(args: dict) -> dict:
     rc = {"versions": [] }
     if _VERSION_ARG in args:
         # Convert it to a list of integers
-        rc["versions"] = poly_list(poly_int(args[_VERSION_ARG]))
+        rc["versions"] = poly_list(poly_to_integer(args[_VERSION_ARG]))
     return rc
 
 def _extract_args(ctx: ExecContext, statement: Tree) -> dict:
@@ -1441,7 +1441,7 @@ def _resolve_int_arg(ctx: ExecContext, expr: Tree, name: str, allow_none: bool=F
 
 def _resolve_number_arg(ctx: ExecContext, expr: Tree, name: str, allow_none: bool=False) -> Any:
     rc = ctx.eval_expr_or_const(expr)
-    if isinstance(rc, (str, int, float)): return poly_number(rc)
+    if isinstance(rc, (str, int, float)): return poly_to_number(rc)
     if rc is None and allow_none: return None
     raise TypeError(f'{name} must be a number or string; found {poly_type(rc)!r}')
 

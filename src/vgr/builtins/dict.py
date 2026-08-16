@@ -16,7 +16,7 @@ from .common import (
 from .inequ import poly_eq
 from .match import poly_matches
 from .type import poly_type
-from .types import poly_bool
+from .types import poly_to_boolean
 
 @bound_ops("{...}")
 def build_dict(*values: Any) -> dict:
@@ -538,7 +538,7 @@ Also see `GetKeyValue()` and `CompilePattern()`
         if limit <= 0: limit = None
     def _test(x: Any, y: Any) -> bool:
         # If the desired value is a function, then x is passed to it for evaluation
-        if isinstance(y, VgrCallable): return poly_bool(y.evaluate(ctx, [x]))
+        if isinstance(y, VgrCallable): return poly_to_boolean(y.evaluate(ctx, [x]))
         # If the desired value is a Pattern, use matches rather than equals
         return poly_matches(x, y) if isinstance(y, Pattern) else poly_eq(x, y)
     def _in_list(value: Any, values: list) -> bool:

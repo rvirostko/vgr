@@ -116,7 +116,6 @@ from .is_in import (
     poly_not_in,
 )
 from .json_funcs import (
-    format_json,
     strip_nulls,
 )
 from .list import (
@@ -171,11 +170,6 @@ from .mod import (
 )
 from .mul import poly_mul
 from .parse import (
-    poly_parse_csv,
-    poly_parse_hcl,
-    poly_parse_ini,
-    poly_parse_json,
-    poly_parse_yaml,
     parse_csv,
     parse_hcl,
     parse_ini,
@@ -224,26 +218,15 @@ from .time_funcs import (
 from .type import poly_type
 from .types import (
     default_to,
-    poly_bool,
-    poly_float,
-    poly_int,
-    poly_is_bool,
+    poly_to_boolean,
+    poly_to_integer,
     poly_is_empty,
-    poly_is_finite,
-    poly_is_float,
     poly_is_function,
-    poly_is_inf,
-    poly_is_int,
-    poly_is_nan,
-    poly_is_none,
-    poly_not_none,
     poly_is_number,
-    poly_is_str,
-    poly_is_zero,
+    poly_is_string,
     poly_not_empty,
-    poly_number,
-    poly_sign,
-    poly_str,
+    poly_to_number,
+    poly_to_str,
 )
 from .web import parse_url, encode_url
 

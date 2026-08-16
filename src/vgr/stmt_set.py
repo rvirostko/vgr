@@ -26,7 +26,7 @@ from .builtins import (
     poly_get_keys,
     poly_mod,
     poly_mul,
-    poly_number,
+    poly_to_number,
     poly_plural,
     poly_pow,
     poly_repr,
@@ -218,8 +218,8 @@ End-Repeat
 Also see `Set Down`, `-`, and `Set`
 """
     var_path = get_writable_var_path(ctx, statement.children[0])
-    x = poly_number(ctx.get_var(*var_path)) or 0
-    y = poly_number(ctx.eval_expr(statement.children[1])) or 0
+    x = poly_to_number(ctx.get_var(*var_path)) or 0
+    y = poly_to_number(ctx.eval_expr(statement.children[1])) or 0
     do_set(ctx, poly_add(x, y), *var_path)
 
 @bound_ops("Set Down")
@@ -248,8 +248,8 @@ End
 Also see `Set Up`, `+`, and `Set`
 """
     var_path = get_writable_var_path(ctx, statement.children[0])
-    x = poly_number(ctx.get_var(*var_path)) or 0
-    y = poly_number(ctx.eval_expr(statement.children[1])) or 0
+    x = poly_to_number(ctx.get_var(*var_path)) or 0
+    y = poly_to_number(ctx.eval_expr(statement.children[1])) or 0
     do_set(ctx, poly_sub(x, y), *var_path)
 
 @bound_ops("Set Key")
