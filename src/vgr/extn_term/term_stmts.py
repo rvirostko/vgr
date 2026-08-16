@@ -828,16 +828,16 @@ def execute_term_statement(ctx: ExecContext, statement: Tree) -> None:
 
 * ResetAttrs - Reset the colors and attributes
 * SetStyle *style* - Intepret *style* as colors and attributes
-* Bold [*on_off*] - Turn bold on/off
-* Dim [*on_off*] - Turn dim on/off
-* Blink [*on_off*] - Turn blink on/off
-* Italics [*on_off*] - Turn italics on/off
-* Underline [*on_off*] - Turn underline on/off
+* BoldAttr [*on_off*] - Turn bold on/off
+* DimAttr [*on_off*] - Turn dim on/off
+* BlinkAttr [*on_off*] - Turn blink on/off
+* ItalicsAttr [*on_off*] - Turn italics on/off
+* UnderlineAttr [*on_off*] - Turn underline on/off
 * SetForeground *color* - Set the foreground color
 * SetBackground *color* - Set the background color
-* Reverse [*on_off*] - Turn reverse on/off
-* Hidden [*on_off*] - Turn hidden text on/off
-* Strikethru [*on_off*] - Turn strikethru text on/off
+* ReverseAttr [*on_off*] - Turn reverse on/off
+* HiddenAttr [*on_off*] - Turn hidden text on/off
+* StrikeThruAttr [*on_off*] - Turn strike-through text on/off
 * DoubleWide [*on_off*] - Change between double and single wide characters
 * SingleWide [*on_off*] - Change between double and single wide characters
 * DHighTop [*on_off*] - change the double-high setting of the cursor's line

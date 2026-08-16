@@ -78,7 +78,7 @@ term_set_attr:   "SetStyle"i expr                          -> sgr_style
         |        "UnderlineAttr"i expr?                    -> sgr_underline
         |        "ReverseAttr"i expr?                      -> sgr_reverse
         |        "HiddenAttr"i expr?                       -> sgr_hidden
-        |        "StrikethruAttr"i expr?                   -> sgr_strikethru
+        |        "StrikeThruAttr"i expr?                   -> sgr_strikethru
         |        "DoubleWide"i expr?                       -> decdwl
         |        "SingleWide"i expr?                       -> decswl
         |        "DHighTop"i expr?                         -> decdhl_top
