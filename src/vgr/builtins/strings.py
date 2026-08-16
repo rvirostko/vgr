@@ -19,7 +19,7 @@ from .inequ import poly_eq
 from .match import poly_matches_all, poly_matches
 from .reg_ex import poly_regex_replace
 from .type import poly_type
-from .types import poly_to_str
+from .types import poly_to_string
 from .registry import builtin
 
 _NOT_FOUND = -1

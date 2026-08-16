@@ -8,7 +8,7 @@ import re
 
 from .common import bound_ops
 from .inequ import poly_eq
-from .types import poly_to_str
+from .types import poly_to_string
 
 def _pop_single(args): return args[0] if len(args) == 1 else [*args]
 
@@ -137,4 +137,4 @@ def _do_match(x: Any, y: Any, do_all: bool=False) -> bool:
             y = re.compile(str(y))
         except Exception as e:
             raise ValueError(f'Match Pattern error: {y!r}') from e
-    return re.search(y, poly_to_str(x)) is not None
+    return re.search(y, poly_to_string(x)) is not None

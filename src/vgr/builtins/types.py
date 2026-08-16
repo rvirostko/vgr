@@ -368,7 +368,7 @@ False.IsZero() → True
     return x == 0 if isinstance(x, (int, float)) else False
 
 @builtin("ToString")
-def poly_to_str(x: Any=None) -> Any:
+def poly_to_string(x: Any=None) -> Any:
     """
 **Converts the value to its string representation**
 
@@ -391,7 +391,7 @@ If *value* is `None` it is left as `None`.
     if isinstance(x, bytes): return x.decode('utf-8')
     if isinstance(x, str): return x
     if isinstance(x, re.Pattern): return x.pattern
-    if isinstance(x, list): return list(poly_to_str(x1) for x1 in x)
+    if isinstance(x, list): return list(poly_to_string(x1) for x1 in x)
     if isinstance(x, dict): return json.dumps(x, allow_nan=True, default=str)
     return str(x)
 

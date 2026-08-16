@@ -14,7 +14,7 @@ from ..builtins import (
     poly_to_integer,
     poly_is_empty,
     poly_list,
-    poly_to_str,
+    poly_to_string,
     poly_strip,
     poly_type,
 )
@@ -357,7 +357,7 @@ def _resolve_attrs_arg(ctx: ExecContext, opt: Tree, name: str) -> Any:
         rc = poly_list(rc)
     attrs = []
     # Report on non-strings (like nested lists or dicts)
-    for attr in poly_strip(poly_to_str(rc)):
+    for attr in poly_strip(poly_to_string(rc)):
         # Filter out Nones and blank strings
         if attr:
             if isinstance(attr, str):

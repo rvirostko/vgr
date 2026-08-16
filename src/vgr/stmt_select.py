@@ -24,7 +24,7 @@ from .builtins import (
     poly_to_integer,
     poly_plural,
     poly_repr,
-    poly_to_str,
+    poly_to_string,
     poly_type,
 )
 from .data_xtract import (
@@ -577,7 +577,7 @@ class SelectAnalyzer(Visitor):
         if not node.children: return default
         expr = node.children[0]
         rc = self.ctx.eval_expr_or_const(expr)
-        return rc if rc is None or isinstance(rc, str) else poly_to_str(rc)
+        return rc if rc is None or isinstance(rc, str) else poly_to_string(rc)
 
     def _csv_quote_arg(self, node:Tree) -> str:
         expr = node.children[0]

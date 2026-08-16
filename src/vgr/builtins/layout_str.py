@@ -4,7 +4,7 @@ from typing import Any
 from .common import int_arg, str_arg
 from .as_str import as_str
 from .registry import builtin
-from .types import poly_to_str
+from .types import poly_to_string
 
 @builtin("Center")
 def poly_center(x: Any=None, width: int=0, fillchar: str=' ') -> Any:
@@ -125,5 +125,5 @@ def _layout_opt(x: Any, width: int, fillchar: str, op, str_op) -> Any:
     fillchar = ' ' if fillchar is None else str_arg(fillchar, "Fillchar")[0]
     if x is None: return fillchar * width
     if isinstance(x, list): return list(op(x1, width, fillchar) for x1 in x)
-    x = poly_to_str(x) if isinstance(x, dict) else as_str(x)
+    x = poly_to_string(x) if isinstance(x, dict) else as_str(x)
     return str_op(x, width, fillchar)

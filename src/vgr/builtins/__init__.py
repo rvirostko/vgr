@@ -226,7 +226,7 @@ from .types import (
     poly_is_string,
     poly_not_empty,
     poly_to_number,
-    poly_to_str,
+    poly_to_string,
 )
 from .web import parse_url, encode_url
 
