@@ -13,7 +13,7 @@ from ..builtins import (
     poly_to_boolean,
     poly_to_integer,
     poly_is_empty,
-    poly_list,
+    poly_to_list,
     poly_to_string,
     poly_strip,
     poly_type,
@@ -354,7 +354,7 @@ def _resolve_attrs_arg(ctx: ExecContext, opt: Tree, name: str) -> Any:
     if isinstance(rc, dict):
         rc = list(rc.keys())
     else:
-        rc = poly_list(rc)
+        rc = poly_to_list(rc)
     attrs = []
     # Report on non-strings (like nested lists or dicts)
     for attr in poly_strip(poly_to_string(rc)):

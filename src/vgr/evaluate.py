@@ -19,7 +19,7 @@ from .functions import get_function_op
 from .builtins import (
     bound_ops,
     build_dict,
-    build_list,
+    poly_list,
     get_requires_exec_context,
     poly_add,
     poly_bit_and,
@@ -683,7 +683,7 @@ class OperationBinder(Transformer):
     def c_ternary(self, tree): return Ternary(tree, (0, 1, 2))
 
     # Other operations
-    def array(self, tree): return SimpleOperation(tree, build_list)
+    def array(self, tree): return SimpleOperation(tree, poly_list)
     def dict(self, tree): return SimpleOperation(tree, build_dict)
     def deref(self, tree): return SimpleOperation(tree, deref_var)
     def var_ref(self, tree): return VarRef(tree)

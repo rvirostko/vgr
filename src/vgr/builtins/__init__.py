@@ -106,19 +106,8 @@ from .json_funcs import (
     strip_nulls,
 )
 from .list import (
-    build_list,
-    poly_apply,
-    poly_combine_lists,
-    poly_combine_using,
-    poly_is_list,
-    poly_list_append,
-    poly_list_insert,
-    poly_list_prepend,
-    poly_list_remove_first,
-    poly_list_remove_last,
-    poly_list_remove,
-    poly_list_replace,
     poly_list,
+    poly_to_list,
 )
 from .logic import poly_is_true, poly_is_false
 from .markdown import (
@@ -166,10 +155,6 @@ from .parse import (
 from .pow import poly_pow
 from .reg_ex import (
     compile_pattern,
-    poly_extract_all_matches,
-    poly_extract_match,
-    poly_is_pattern,
-    poly_regex_replace,
 )
 from .rnd import (
     poly_random,

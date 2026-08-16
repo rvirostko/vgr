@@ -11,7 +11,7 @@ from ..builtins import (
     bound_ops,
     poly_clamp,
     poly_to_integer,
-    poly_list,
+    poly_to_list,
     poly_to_number,
     poly_type,
 )
@@ -1407,7 +1407,7 @@ def _get_version_data(args: dict) -> dict:
     rc = {"versions": [] }
     if _VERSION_ARG in args:
         # Convert it to a list of integers
-        rc["versions"] = poly_list(poly_to_integer(args[_VERSION_ARG]))
+        rc["versions"] = poly_to_list(poly_to_integer(args[_VERSION_ARG]))
     return rc
 
 def _extract_args(ctx: ExecContext, statement: Tree) -> dict:

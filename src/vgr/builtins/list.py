@@ -13,11 +13,13 @@ from .common import (
     int_arg,
     requires_exec_context,
 )
+from .registry import builtin
 
 from ..vgr_callable import VgrCallable
 
 @bound_ops("[...]")
-def build_list(*args: Any) -> list[Any]:
+@builtin("List")
+def poly_list(*args: Any) -> list[Any]:
     """
 **Create a list from the collected values**
 
@@ -64,6 +66,7 @@ and the `List()` and `ToList()` functions
 """
     return list(args)
 
+@builtin("IsList")
 def poly_is_list(x: Any=None) -> bool:
     """
 **Is the value a list**
@@ -82,7 +85,8 @@ Also see `ToList()`
 """
     return isinstance(x, list)
 
-def poly_list(x: Any=None) -> list:
+@builtin("ToList")
+def poly_to_list(x: Any=None) -> list:
     """
 **Converts a value to a list**
 
@@ -108,6 +112,7 @@ Also see `IsList()`
     if isinstance(x, dict): return [[key, x[key]] for key in sorted(x)] if x else []
     return [x]
 
+@builtin("ListAppend")
 def poly_list_append(*args) -> list:
     """
 **Adds items to the end of a list**
@@ -133,10 +138,11 @@ Also see `ListPrepend()`
 and the `Append` statement, which acts directly on a variable
 """
     if not args: return []
-    x: list = copy(poly_list(args[0]))
+    x: list = copy(poly_to_list(args[0]))
     for arg in args[1:]: x.append(arg)
     return x
 
+@builtin("ListPrepend")
 def poly_list_prepend(*args) -> list:
     """
 **Adds items to the start of a list**
@@ -162,13 +168,14 @@ Also see `ListAppend()`
 and the `Prepend` statement, which acts directly on a variable
 """
     if not args: return []
-    x: list = copy(poly_list(args[0]))
+    x: list = copy(poly_to_list(args[0]))
     index = 0
     for arg in args[1:]:
         x.insert(index, arg)
         index += 1
     return x
 
+@builtin("ListRemoveFirst")
 def poly_list_remove_first(x: Any=None) -> list:
     """
 **Removes the first item from a list**
@@ -189,10 +196,11 @@ fruits.ListRemoveFirst() → ["banana", "orange"]
 Also see `ListRemoveLast()`, `ListRemove()`,
 and the`Remove` statement, which acts directly on a variable
 """
-    x: list = copy(poly_list(x))
+    x: list = copy(poly_to_list(x))
     if len(x) > 0: x.pop(0)
     return x
 
+@builtin("ListRemoveLast")
 def poly_list_remove_last(x: Any=None) -> list:
     """
 **Removes the last item from a list**
@@ -213,10 +221,11 @@ fruits.ListRemoveLast() → ["apple", "banana"]
 Also see `ListRemoveFirst()`, `ListRemove()`,
 and the`Remove` statement, which acts directly on a variable
 """
-    x: list = copy(poly_list(x))
+    x: list = copy(poly_to_list(x))
     if len(x) > 0: x.pop()
     return x
 
+@builtin("ListRemove")
 def poly_list_remove(x: Any=None, index: int=0) -> list:
     """
 **Removes an item from a list by index**
@@ -240,7 +249,7 @@ fruits.ListRemove(5) → ["apple", "banana", "orange"]
 Also see `ListRemoveFirst()`, `ListRemoveLast()`,
 and the `Remove` statement, which acts directly on a variable
 """
-    x: list = poly_list(x)
+    x: list = poly_to_list(x)
     if index is not None:
         index = int_arg(index, "Index")
         if 0 <= index < len(x):
@@ -248,6 +257,7 @@ and the `Remove` statement, which acts directly on a variable
             x.pop(index)
     return x
 
+@builtin("ListReplace")
 def poly_list_replace(x: Any=None, index: Any=0, value: Any=None) -> list:
     """
 **Replace an item in a list by index**
@@ -273,7 +283,7 @@ fruits.ListReplace(5, "cantoloupe") → ["apple", "banana", "orange"]
 Also see `ListInsert()`
 and the `Replace` statement, which acts directly on a variable
 """
-    x: list = poly_list(x)
+    x: list = poly_to_list(x)
     if index is not None:
         index = int_arg(index, "Index")
         if 0 <= index <= len(x):
@@ -281,6 +291,7 @@ and the `Replace` statement, which acts directly on a variable
             x[index] = value
     return x
 
+@builtin("ListInsert")
 def poly_list_insert(*args) -> list:
     """
 **Insert items into a list by index**
@@ -311,7 +322,7 @@ and the `Insert` statement, which acts directly on a variable
 """
     x, index = (args + (None, 0))[:2]
     values = args[2:]
-    x: list = poly_list(x)
+    x: list = poly_to_list(x)
     if index is not None:
         index = int_arg(index, "Index")
         if 0 <= index <= len(x):
@@ -322,6 +333,7 @@ and the `Insert` statement, which acts directly on a variable
     return x
 
 @requires_exec_context
+@builtin("Apply")
 def poly_apply(x: Any, funct, *args, ctx=None) -> Any:
     """
 **Applies one or more user defined functions to a value or a list of values**
@@ -374,6 +386,7 @@ Also see `CombineUsing()`
     return [_apply_it(x1, funct) for x1 in x] if isinstance(x, list) else _apply_it(x, funct)
 
 @requires_exec_context
+@builtin("CombineUsing")
 def poly_combine_using(x: Any, funct, *args, **kwargs) -> Any:
     """
 **Combine values into a single value using a user defined function**
@@ -435,6 +448,7 @@ Also see `Apply()`
         return acc
     return _combine_it(acc, x)
 
+@builtin("CombineLists")
 def poly_combine_lists(*args) -> list:
     """
 **Combine elements of collections into a list of lists**

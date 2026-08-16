@@ -6,7 +6,7 @@ from typing import Any
 
 from .builtins import (
     poly_get_keys,
-    poly_list,
+    poly_to_list,
 )
 from .data_xtract import (
     DataExtractor,
@@ -21,7 +21,7 @@ class InMemoryExtractor(DataExtractor):
     def __init__(self, target: str, data: Any):
         super().__init__()
         self._target = target
-        self._data = poly_list(data)
+        self._data = poly_to_list(data)
         self._as_kv = False
         if isinstance(data, list):
             self._attrs = poly_get_keys(self._data)

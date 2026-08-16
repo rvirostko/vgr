@@ -9,7 +9,9 @@ import re
 
 from .common import NoneType
 from .type import poly_type
+from .registry import builtin
 
+@builtin("IsPattern")
 def poly_is_pattern(x:Any=None) -> bool:
     """
 **Is a value a pre-compiled regular expression pattern**
@@ -26,6 +28,7 @@ Also see `CompilePattern()`
 """
     return isinstance(x, re.Pattern)
 
+@builtin("CompilePattern")
 def compile_pattern(x: Any=None, flags: int=0) -> Any:
     """
 **Create a pre-compiled regular expression pattern**
@@ -95,6 +98,7 @@ def _compose_flags(f: Any) -> int:
         return flags
     raise ValueError(f'Cannot convert a {poly_type(f)!r} to flags for a pattern')
 
+@builtin("ExtractMatch")
 def poly_extract_match(*args) -> Any:
     """
 **Extract the first substring matching a Regular Expression**
@@ -163,6 +167,7 @@ Also see `CompilePattern()` and `ExtractAllMatches()`
     if not patterns: return None
     return _regex_search(value, patterns)
 
+@builtin("ExtractAllMatches")
 def poly_extract_all_matches(*args) -> Any:
     """
 **Extract all substrings matching a Regular Expression**
@@ -224,6 +229,7 @@ Also see `CompilePattern()` and `ExtractMatch()`
     if not patterns: return None
     return _regex_search_all(value, patterns)
 
+@builtin("RegexReplace")
 def poly_regex_replace(*args) -> Any:
     """
 **Regular Expression replacement**

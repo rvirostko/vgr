@@ -34,7 +34,7 @@ from .builtins import (
     build_dict,
     poly_to_boolean,
     poly_to_integer,
-    poly_list,
+    poly_to_list,
     poly_to_number,
     poly_is_true,
     poly_type,
@@ -601,17 +601,16 @@ Also see `Break` and `Continue`
     collection = ctx.eval_expr(bind_operations(statement.children[1]))
     if collection is None: return # very fast fail
     if isinstance(collection, list):
-        if not collection: return # fast fail
         # Lists are copied to allow mutation within the loop
         collection = collection.copy()
     else:
-        # poly_list() converts
+        # poly_to_list() converts
         #   - Single values to an list of one
         #   - Tuples to mutable arrays
         #   - Dictionaries into name/value list
         # The user does not have access to these collections
         # so they can't mutate them, so there is no need to copy
-        collection = poly_list(collection)
+        collection = poly_to_list(collection)
     length = len(collection)
     if length:
         meta = { }

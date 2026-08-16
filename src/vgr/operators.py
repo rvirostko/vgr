@@ -12,7 +12,7 @@ from .evaluate import (
 
 from .builtins import (
     build_dict,
-    build_list,
+    poly_list,
     poly_add,
     poly_bit_and,
     poly_bit_or,
@@ -52,7 +52,7 @@ from .builtins import (
 # Needs to include all items bound to operators
 _OP_FUNCS: list[Callable[..., Any]] = [
     build_dict, # dict
-    build_list, # array
+    poly_list, # array
     AndOperation.execute, # and_op
     IsVarConstant.execute, # is_const_op
     IsVarDefined.execute, # is_defined_op
