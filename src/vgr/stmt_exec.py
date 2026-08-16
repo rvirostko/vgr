@@ -36,7 +36,7 @@ from .builtins import (
     poly_to_integer,
     poly_list,
     poly_to_number,
-    poly_true,
+    poly_is_true,
     poly_type,
     str_to_number,
     verify_relative_path,
@@ -304,7 +304,7 @@ def _declare(ctx: ExecContext, statement: Tree, as_local: bool) -> None:
 def exec_if_else(ctx: ExecContext, statement: Tree, desired_value: bool) -> None:
     ctx.echo_source(statement, statement.children[1])
     has_else = statement.children[-1].data == 'else'
-    if poly_true(ctx.eval_expr(bind_operations(statement.children[0]))) == desired_value:
+    if poly_is_true(ctx.eval_expr(bind_operations(statement.children[0]))) == desired_value:
         # Execute true side: skips the expression and the else if present
         ctx.dispatch_statements(statement.children[1:-1 if has_else else None])
     else:
@@ -403,7 +403,7 @@ def exec_loop(ctx: ExecContext, statement: Tree, desired_value: bool, block_type
     try:
         i = 0
         while True:
-            if poly_true(ctx.eval_expr(predicate)) != desired_value: return
+            if poly_is_true(ctx.eval_expr(predicate)) != desired_value: return
             set_loop_meta(meta, i)
             try:
                 ctx.dispatch_statements(statement.children[1:])

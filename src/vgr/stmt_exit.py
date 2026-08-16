@@ -17,7 +17,7 @@ from .builtins import (
     poly_to_boolean,
     poly_to_integer,
     poly_not_empty,
-    poly_true,
+    poly_is_true,
 )
 from .exec_context import ExecContext
 from .redir import print_stderr
@@ -51,7 +51,7 @@ Exit " 5 " → 5
 
 Also see `Assert` and `Abort` statements, and the `ToBoolean()` and `ToInteger()` functions
 """
-    def bool_return(x) -> int: return VgrExitingException.EXIT_SUCCESS if poly_true(poly_to_boolean(x)) else VgrExitingException.EXIT_FAILED
+    def bool_return(x) -> int: return VgrExitingException.EXIT_SUCCESS if poly_is_true(poly_to_boolean(x)) else VgrExitingException.EXIT_FAILED
     # If no argument provided, then "success"
     rc = VgrExitingException.EXIT_SUCCESS
     if len(statement.children) > 0:
@@ -116,7 +116,7 @@ Execution ends with an exit code of 0 indicating failure.
 Also see `Exit`, `Abort`, and `Format()`
 """
     exprs = statement.children
-    if not poly_true(ctx.eval_expr(exprs[0])):
+    if not poly_is_true(ctx.eval_expr(exprs[0])):
         msg: str = _get_msg(ctx, statement, exprs[1:])
         msg = str(msg) if poly_not_empty(msg) else f'{SSM.source_for(statement)} failed'
         _LOG.error('%s(%s): %s', SSM.current[0], statement.meta.line, msg.strip())

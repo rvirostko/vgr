@@ -133,7 +133,7 @@ from .list import (
     poly_list_replace,
     poly_list,
 )
-from .logic import poly_true, poly_false
+from .logic import poly_is_true, poly_is_false
 from .markdown import (
     md_blockquote,
     md_strong,
@@ -185,7 +185,7 @@ from .reg_ex import (
     poly_regex_replace,
 )
 from .rnd import (
-    poly_rnd,
+    poly_random,
     poly_random_choice,
 )
 from .shift import poly_shl, poly_shr

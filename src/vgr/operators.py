@@ -23,7 +23,7 @@ from .builtins import (
     poly_div,
     poly_eq,
     poly_exact_eq,
-    poly_false,
+    poly_is_false,
     poly_floor,
     poly_ge,
     poly_gt,
@@ -69,7 +69,7 @@ _OP_FUNCS: list[Callable[..., Any]] = [
     poly_div, # div_op
     poly_eq, # eq_op
     poly_exact_eq, # exact_eq_op
-    poly_false, # unary_not
+    poly_is_false, # unary_not
     poly_floor, # poly_floor_op
     poly_ge, # ge_op
     poly_gt, # gt_op

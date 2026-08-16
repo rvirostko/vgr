@@ -5,8 +5,10 @@ Boolean logic functions
 from typing import Any
 
 from .common import bound_ops
+from .registry import builtin
 
-def poly_true(x: Any=None) -> bool:
+@builtin("IsTrue")
+def poly_is_true(x: Any=None) -> bool:
     """
 **Check for logical True**
 
@@ -36,13 +38,16 @@ Also see `ToBoolean()` and `IsFalse()`
     return True
 
 @bound_ops("!", "！", "¬")
-def poly_false(x: Any=None) -> bool:
+@builtin("IsFalse", "Not")
+def poly_is_false(x: Any=None) -> bool:
     """
 **Logical Negation (Not) operation**
 
-* ! *x*
+* !*x*
 * ！*x*
-* ¬ *x*
+* ¬*x*
+* Not(*value*)
+* *value*.Not()
 * IsFalse(*value*)
 * *value*.IsFalse()
 

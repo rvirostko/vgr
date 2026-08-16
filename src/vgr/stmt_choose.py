@@ -14,7 +14,7 @@ from .builtins import (
     poly_contains_all,
     poly_eq,
     poly_exact_eq,
-    poly_false,
+    poly_is_false,
     poly_ge,
     poly_gt,
     poly_in,
@@ -32,7 +32,7 @@ from .builtins import (
     poly_not_empty,
     poly_not_in,
     poly_not_match,
-    poly_true,
+    poly_is_true,
 )
 from .evaluate import (
     bind_operations,
@@ -105,7 +105,7 @@ _CHOOSE_OPS = {
     'is_not_empty_block': poly_not_empty,
     'is_odd_block':       poly_is_odd,
     'is_pos_block':       poly_is_positive,
-    'not_range_block':    poly_false,
+    'not_range_block':    poly_is_false,
     'op_contains':        poly_contains,
     'op_contains_all':    poly_contains_all,
     'op_eq':              poly_eq,
@@ -121,7 +121,7 @@ _CHOOSE_OPS = {
     'op_not_is_in':       poly_not_in,
     'op_not_matches':     poly_not_match,
     'op_xeq':             poly_exact_eq,
-    'range_block':        poly_true,
+    'range_block':        poly_is_true,
 }
 
 # These apply only to values blocks

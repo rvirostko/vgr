@@ -192,7 +192,7 @@ def execute_sort(ctx: ExecContext, statement: Tree) -> None:
 
 ```vgr
 # Sort the contents of a variable and write to a file
-Sort persons On Key fname, lname Giving File "persons.sorted" Type Is Json
+Sort persons On Key fname, lname Giving File "persons.sorted" Type Is JSON
 
 # Sort a CSV file in place
 Sort File export + ".dat" Type Is CSV On Asc Key id, Des env

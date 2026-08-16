@@ -28,7 +28,7 @@ from .builtins import (
     get_second,
     get_week_of_year,
     get_year,
-    poly_rnd,
+    poly_random,
     timezone,
     utc_offset,
 )
@@ -122,8 +122,8 @@ _MATH_ENTRIES = {
     ("neg_inf",):     -math.inf,
     ("float", "max"): sys.float_info.max,
     ("float", "min"): sys.float_info.min,
-    ("random",):      DynamicValue(poly_rnd),
-    ("random100",):   DynamicValue(lambda: poly_rnd(1, 100))
+    ("random",):      DynamicValue(poly_random),
+    ("random100",):   DynamicValue(lambda: poly_random(1, 100))
 }
 
 def _get_machine_uuid() -> str:

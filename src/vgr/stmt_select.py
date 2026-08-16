@@ -20,7 +20,7 @@ from .app_exceptions import VgrRuntimeError
 from .builtins import (
     bound_ops,
     poly_to_boolean,
-    poly_false,
+    poly_is_false,
     poly_to_integer,
     poly_plural,
     poly_repr,
@@ -901,7 +901,7 @@ class QueryRunner(QueryFilter, InfoOutput):
         predicates = self._select.get_predicates()
         if predicates:
             for predicate in predicates:
-                if poly_false(self.ctx.eval_expr(predicate)): return False
+                if poly_is_false(self.ctx.eval_expr(predicate)): return False
         record: list = None
         outputs = self._select.get_output_statements()
         # TODO this likely no longer applies

@@ -10,8 +10,10 @@ from .common import (
 )
 from .dict import poly_remove_key
 from .type import poly_type
+from .registry import builtin
 
 @bound_ops("-", "－")
+@builtin("Sub")
 def poly_sub(*args):
     """
 **Subtraction operation**
@@ -56,7 +58,7 @@ None - "5" → -5
     return reduce(_sub, args[1:], args[0]) if args else None
 
 def _sub(x: Any, y: Any) -> Any:
-    operation = get_operation(x, y, _sub_operations, numeric_operations)
+    operation = get_operation(x, y, _SUB_OPERATIONS, numeric_operations)
     try:
         return operation(_sub, x, y) if operation else x - y
     except TypeError as e:
@@ -71,7 +73,7 @@ def _remove_keys(_op, x: dict, y: dict) -> dict:
     keys = list(y.keys())
     return {k:v for k, v in x.items() if k not in keys}
 
-_sub_operations = {
+_SUB_OPERATIONS = {
     (str, str):      lambda op, x, y: op(empty_is_zero(x), empty_is_zero(y)),
     (dict, bool):    _remove_key,
     (dict, int):     _remove_key,

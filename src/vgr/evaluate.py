@@ -31,7 +31,7 @@ from .builtins import (
     poly_div,
     poly_eq,
     poly_exact_eq,
-    poly_false,
+    poly_is_false,
     poly_floor,
     poly_ge,
     poly_gt,
@@ -58,7 +58,7 @@ from .builtins import (
     poly_shr,
     poly_sub,
     poly_subscript,
-    poly_true,
+    poly_is_true,
     poly_type,
     poly_shorten,
 )
@@ -407,7 +407,7 @@ Also see `And` and `IsTrue()`
 """
         for arg in args:
             # Short circuit, ending evaluation after first False
-            if not poly_true(ctx.eval_expr(arg)): return False
+            if not poly_is_true(ctx.eval_expr(arg)): return False
         return True
 
     def op_name(self) -> str:
@@ -478,7 +478,7 @@ Also see `And` and `IsTrue()`
 """
         for arg in args:
             # Short circuit, ending evaluation after first True
-            if poly_true(ctx.eval_expr(arg)): return True
+            if poly_is_true(ctx.eval_expr(arg)): return True
         return False
 
     def op_name(self) -> str:
@@ -488,7 +488,7 @@ class NotOperation(Operation):
 
     def execute(self, ctx: ExecContext, args: list) -> Any:
         # NB: grammar defines this as taking a single arg
-        return poly_false(ctx.eval_expr(args[0]))
+        return poly_is_false(ctx.eval_expr(args[0]))
 
     def op_name(self) -> str:
         return 'not'
@@ -514,7 +514,7 @@ class Ternary(Operation):
         Then depending upon the truth value, execute the "true" or
         "false" part and return the result.
         """
-        if poly_true(ctx.eval_expr(args[self._seq[0]])):
+        if poly_is_true(ctx.eval_expr(args[self._seq[0]])):
             return ctx.eval_expr(args[self._seq[1]])
         return ctx.eval_expr(args[self._seq[2]])
 

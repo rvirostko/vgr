@@ -13,8 +13,10 @@ from .common import (
     Y_None_Op,
 )
 from .type import poly_type
+from .registry import builtin
 
 @bound_ops("*", "×")
+@builtin("Mul")
 def poly_mul(*args):
     """
 **Multiplication operation**
@@ -60,16 +62,16 @@ None * "5" → None
     return reduce(_mul, args[1:], args[0]) if args else None
 
 def _mul(x: Any, y: Any) -> Any:
-    operation = get_operation(x, y, mul_operations)
+    operation = get_operation(x, y, _MUL_OPERATIONS)
     try:
         return operation(_mul, x, y) if operation else x * y
     except TypeError as e:
         raise TypeError(f"Cannot multiply type {poly_type(x)!r} by {poly_type(y)!r}") from e
 
-def product_list(_, x: list, y: Any) -> list:
+def _product_list(_, x: list, y: Any) -> list:
     return [list(p) for p in itertools.product(iter(x), iter(y))]
 
-mul_operations = {
+_MUL_OPERATIONS = {
     X_None_Op:        lambda _, _x, _y: None,
     Y_None_Op:        lambda _, _x, _y: None,
     (int, Pattern):   lambda _, x, y: x * y.pattern,
@@ -83,7 +85,7 @@ mul_operations = {
     (list, int):      dist_x,
     (list, float):    dist_x,
     (list, str):      dist_x,
-    (list, list):     product_list,
+    (list, list):     _product_list,
     (list, Pattern):  dist_x,
     (Pattern, int):   lambda _, x, y: x.pattern * y,
     (Pattern, float): lambda _, x, y: x.pattern * int(y),

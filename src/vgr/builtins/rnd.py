@@ -5,10 +5,10 @@ from .common import (
     int_arg,
 )
 from .inequ import poly_lt
+from .registry import builtin
 
-
-
-def poly_rnd(n: Any=None, m: Any=None) -> Any:
+@builtin("Random")
+def poly_random(n: Any=None, m: Any=None) -> Any:
     """
 **Generate a random number within limits
 
@@ -29,7 +29,7 @@ Random(1, 3) → 1, 2, or 3
 
 Also see `RandomChoice()`
 """
-    if isinstance(n, list): return list(poly_rnd(n1, m) for n1 in n)
+    if isinstance(n, list): return list(poly_random(n1, m) for n1 in n)
     # No arguments: return float [0.0, 1.0)
     if n is None and m is None: return random.random()
     if m is None:
@@ -41,6 +41,7 @@ Also see `RandomChoice()`
     low, high = (low, high) if poly_lt(low, high) else (high, low)
     return random.randint(low, high)
 
+@builtin("RandomChoice")
 def poly_random_choice(*args: Any) -> Any:
     """
 **Return a random item from a collection**

@@ -11,9 +11,8 @@ class BuiltinRegistry:
     _LOADED = False
     _BUILTINS: dict[str, Callable[..., Any]] = {}
     @staticmethod
-    def register(function_name: str, function: Callable[..., Any]) -> Callable[..., Any]:
+    def register(function_name: str, function: Callable[..., Any]) -> None:
         BuiltinRegistry._BUILTINS[function_name] = function
-        return function
     @staticmethod
     def items():
         # Load everything in our module to trigger the decorators registering
@@ -24,7 +23,8 @@ class BuiltinRegistry:
             BuiltinRegistry._LOADED = True
         return BuiltinRegistry._BUILTINS.items()
 
-def builtin(function_name:str):
+def builtin(*args):
     def decorator(function: Callable[..., Any]):
-        return BuiltinRegistry.register(function_name, function)
+        for function_name in args: BuiltinRegistry.register(function_name, function)
+        return function
     return decorator
