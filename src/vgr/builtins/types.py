@@ -384,7 +384,7 @@ If *value* is `None` it is left as `None`.
 > **Note**\\
 > With a list, `ToString()` works distributively, applying the
 > operation to each item in the list in turn. To turn the
-> list into a single string, consider using `FormatJson()`.
+> list into a single string, consider using `FormatJSON()`.
 
 """
     if x is None: return None

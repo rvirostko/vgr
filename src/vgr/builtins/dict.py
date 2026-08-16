@@ -113,7 +113,7 @@ For-Each line In lines
         Append Dictionary(CombineLists(headers, elems)) To records
     End-If
 End-For
-Print records.FormatJson(2, True)
+Print records.FormatJSON(2, True)
 [
   {
     "A": "1",

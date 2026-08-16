@@ -74,17 +74,17 @@ Also see `ParseJSON` and the `Load` statements.
         return list(strip_nulls(v) for v in obj if v is not None)
     return obj
 
-@builtin("FormatJson")
+@builtin("FormatJSON")
 def format_json(obj: Any=None, indent: int=2, sort_keys: bool=False) -> Any:
     """
 **Format the object as a JSON string**
 
-* FormatJson(*value*)
-* FormatJson(*value*, *indent*)
-* FormatJson(*value*, *indent*, *sort_keys*)
-* *value*.FormatJson()
-* *value*.FormatJson(*indent*)
-* *value*.FormatJson(*indent*, *sort_keys*)
+* FormatJSON(*value*)
+* FormatJSON(*value*, *indent*)
+* FormatJSON(*value*, *indent*, *sort_keys*)
+* *value*.FormatJSON()
+* *value*.FormatJSON(*indent*)
+* *value*.FormatJSON(*indent*, *sort_keys*)
 
 If *indent* is `None` then the value is formatted without indentation or line breaks.
 When zero, only line breaks are added. The value for *indent* is constrained from
@@ -95,33 +95,33 @@ The default value for *sort_key* is `False`.
 `Nan` and `Inf` values will generate an error as they are not JSON compliant.
 
 ```vgr
-None.FormatJson() → "null"
-5.FormatJson() → "5"
-5.1.FormatJson() → "5.1"
-"Hello".FormatJson() → "Hello"
-True.FormatJson() → true
-[5, 10, 15].FormatJson() → "[
+None.FormatJSON() → "null"
+5.FormatJSON() → "5"
+5.1.FormatJSON() → "5.1"
+"Hello".FormatJSON() → "Hello"
+True.FormatJSON() → true
+[5, 10, 15].FormatJSON() → "[
   5,
   10,
   15
 ]"
-[5, 10, 15].FormatJson(None) → "[5, 10, 15]"
-[True, "Hello", None].FormatJson(None) → "[true, "Hello", null]"
+[5, 10, 15].FormatJSON(None) → "[5, 10, 15]"
+[True, "Hello", None].FormatJSON(None) → "[true, "Hello", null]"
 
-{"c": "sea", "b": "bee", "a": "eh"}.FormatJson(4) →
+{"c": "sea", "b": "bee", "a": "eh"}.FormatJSON(4) →
 {
     "c": "sea",
     "b": "bee",
     "a": "eh"
 }
 
-{"c": "sea", "b": "bee", "a": "eh"}.FormatJson(4, True) → {
+{"c": "sea", "b": "bee", "a": "eh"}.FormatJSON(4, True) → {
     "a": "eh",
     "b": "bee",
     "c": "sea"
 }
 
-Nan.FormatJson()
+Nan.FormatJSON()
     ^
 Out of range float values are not JSON compliant: nan
 ```
