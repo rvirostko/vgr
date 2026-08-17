@@ -429,7 +429,7 @@ Ord("Hello").RotateLeft(2, 8) → [33, 149, 177, 177, 189]
 {"a": 5}.RotateLeft(2, 8) → {"a": 5}
 ```
 
-Also see `RotateLeft()` and `LeftShift()`
+Also see `RotateLeft()` and `ShiftLeft()`
     """
     if x is None: return None
     count: int = int_arg(count, "Count")
@@ -458,7 +458,7 @@ Ord("Hello").RotateRight(2, 8) → [18, 89, 27, 27, 219]
 {"a": 5}.RotateRight(2, 8) → {"a": 5}
 ```
 
-Also see `RotateLeft()` and `RightShift()`
+Also see `RotateLeft()` and `ShiftRight()`
 """
     if x is None: return None
     count: int = int_arg(count, "Count")

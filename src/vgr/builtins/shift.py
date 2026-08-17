@@ -15,15 +15,17 @@ from .common import (
     Y_None_Op,
 )
 from .type import poly_type
+from .registry import builtin
 
 @bound_ops("<<")
+@builtin("ShiftLeft")
 def poly_shl(*args) -> Any:
     """
 **Bitwise Shift Left operation**
 
 * *x* << *y*
-* LeftShift(*x*, *y*&hellip;)
-* *x*.LeftShift(*y*&hellip;)
+* ShiftLeft(*x*, *y*&hellip;)
+* *x*.ShiftLeft(*y*&hellip;)
 
 The values of both *x* and *y* are converted to
 integers to perform the operation.
@@ -54,18 +56,19 @@ None << "2" → 0
 [5, 7] << 2 → [20, 28]
 ```
 
-Also see `RightShift()`
+Also see `ShiftRight()`
 """
     return reduce(_shl, args[1:], args[0]) if args else _shr(None, None)
 
 @bound_ops(">>")
+@builtin("ShiftRight")
 def poly_shr(*args):
     """
 **Bitwise Shift Right operation**
 
 * *x* >> *y*
-* RightShift(*x*, *y*&hellip;)
-* *x*.RightShift(*y*&hellip;)
+* ShiftRight(*x*, *y*&hellip;)
+* *x*.ShiftRight(*y*&hellip;)
 
 The values of both *x* and *y* are converted to
 integers to perform the operation.
@@ -96,25 +99,25 @@ None >> "2" → 0
 [5, 7] >> 2 → [1, 1]
 ```
 
-Also see `LeftShift()`
+Also see `ShiftLeft()`
 """
     return reduce(_shr, args[1:], args[0]) if args else _shr(None, None)
 
 def _shl(x: Any, y: Any) -> Any:
-    operation = get_operation(x, y, shift_operations)
+    operation = get_operation(x, y, _SHIFT_OPERATIONS)
     try:
         return operation(_shl, x, y) if operation else x << y
     except TypeError as e:
         raise TypeError(f"Cannot shift type {poly_type(x)!r} with {poly_type(y)!r}") from e
 
 def _shr(x: Any, y: Any) -> Any:
-    operation = get_operation(x, y, shift_operations)
+    operation = get_operation(x, y, _SHIFT_OPERATIONS)
     try:
         return operation(_shr, x, y) if operation else x >> y
     except TypeError as e:
         raise TypeError(f"Cannot shift type {poly_type(x)!r} with {poly_type(y)!r}") from e
 
-shift_operations = {
+_SHIFT_OPERATIONS = {
     X_None_Op: lambda op, _, y: None if y is None else op(matching_default(y), y),
     Y_None_Op: lambda op, x, _: op(x, matching_default(x)),
     (int, str): lambda op, x, y: op(x, empty_is_zero(y)),

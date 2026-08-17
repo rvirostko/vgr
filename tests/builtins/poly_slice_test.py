@@ -2,7 +2,7 @@ from typing import Any
 
 import pytest
 
-from vgr.builtins import poly_slice
+from vgr.builtins.slice import poly_slice
 
 @pytest.mark.parametrize(
     "input_obj, start, stop, step, expected",

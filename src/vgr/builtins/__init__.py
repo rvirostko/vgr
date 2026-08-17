@@ -133,7 +133,6 @@ from .rnd import (
     poly_random_choice,
 )
 from .shift import poly_shl, poly_shr
-from .slice import poly_slice
 from .plural import poly_plural
 from .format import poly_format
 from .strings import (
@@ -172,6 +171,5 @@ from .types import (
     poly_to_number,
     poly_to_string,
 )
-from .web import parse_url, encode_url
 
 __all__ = [ ]

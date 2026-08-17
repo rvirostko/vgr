@@ -9,10 +9,12 @@ import re
 from .common import bound_ops
 from .inequ import poly_eq
 from .types import poly_to_string
+from .registry import builtin
 
 def _pop_single(args): return args[0] if len(args) == 1 else [*args]
 
 @bound_ops("Matches", "~")
+@builtin("Matches")
 def poly_matches(*args) -> bool:
     """
 **Perform a regular expression match**
@@ -71,6 +73,7 @@ Also see operators `Does Not Match` and `Matches All` as well as `CompilePattern
     return _do_match(x, _pop_single(args)) if args else False
 
 @bound_ops("Matches All")
+@builtin("MatchesAll")
 def poly_matches_all(*args) -> bool:
     """
 **Perform a regular expression match**
@@ -97,6 +100,7 @@ Also see `Matches` and `!~`
     return _do_match(x, _pop_single(args), True) if args else False
 
 @bound_ops("Does Not Match", "!~")
+@builtin("DoesNotMatch")
 def poly_not_match(*args) -> bool:
     """
 **Perform a negated regular expression match**

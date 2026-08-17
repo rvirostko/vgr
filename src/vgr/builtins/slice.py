@@ -4,7 +4,9 @@ from typing import Any
 from collections.abc import Sequence, Iterable
 
 from .common import int_arg
+from .registry import builtin
 
+@builtin("Slice")
 def poly_slice(x: Any=None, start: int=None, stop: int=None, step: int=None) -> Any:
     """
 **Extract a portion of a list, string, or dictionary**

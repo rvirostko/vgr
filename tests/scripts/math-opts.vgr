@@ -51,19 +51,19 @@ Assert FloorDiv(x) == x.FloorDiv()
 Assert FloorDiv(x, y) == x.FloorDiv(y)
 Assert FloorDiv(x, y, z) == x.FloorDiv(y, z)
 
-Assert LeftShift() == None
-Assert LeftShift() == None.LeftShift()
-Assert LeftShift() == LeftShift(None)
-Assert LeftShift(x) == x.LeftShift()
-Assert LeftShift(x, y) == x.LeftShift(y)
-Assert LeftShift(x, y, z) == x.LeftShift(y, z)
+Assert ShiftLeft() == None
+Assert ShiftLeft() == None.ShiftLeft()
+Assert ShiftLeft() == ShiftLeft(None)
+Assert ShiftLeft(x) == x.ShiftLeft()
+Assert ShiftLeft(x, y) == x.ShiftLeft(y)
+Assert ShiftLeft(x, y, z) == x.ShiftLeft(y, z)
 
-Assert RightShift() == None
-Assert RightShift() == None.RightShift()
-Assert RightShift() == RightShift(None)
-Assert RightShift(x) == x.RightShift()
-Assert RightShift(x, y) == x.RightShift(y)
-Assert RightShift(x, y, z) == x.RightShift(y, z)
+Assert ShiftRight() == None
+Assert ShiftRight() == None.ShiftRight()
+Assert ShiftRight() == ShiftRight(None)
+Assert ShiftRight(x) == x.ShiftRight()
+Assert ShiftRight(x, y) == x.ShiftRight(y)
+Assert ShiftRight(x, y, z) == x.ShiftRight(y, z)
 
 Assert Mod() == None
 Assert Mod() == None.Mod()
