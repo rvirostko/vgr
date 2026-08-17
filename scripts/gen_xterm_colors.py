@@ -1,3 +1,4 @@
+#! env python3
 import json
 import urllib.request
 import sys
