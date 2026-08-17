@@ -1,0 +1,18 @@
+
+# Bad values for "ndigits" argument
+Print 0.Round([])
+Print 0.Round({})
+Print 0.Round(r/a/)
+
+# Bad values for "multiple" argument
+Print 0.CeilMultiple([])
+Print 0.CeilMultiple({})
+Print 0.CeilMultiple(r/a/)
+#
+Print 0.FloorMultiple([])
+Print 0.FloorMultiple({})
+Print 0.FloorMultiple(r/a/)
+#
+Print 0.RoundMultiple([])
+Print 0.RoundMultiple({})
+Print 0.RoundMultiple(r/a/)

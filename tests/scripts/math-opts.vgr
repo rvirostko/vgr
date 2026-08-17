@@ -179,51 +179,97 @@ Assert Abs() == None
 Assert Abs() == None.Abs()
 Assert Abs() == Abs(None)
 Assert Abs(x) == x.Abs()
+Assert Abs(3.5) == "3.5".Abs()
+Assert [-1].Abs() == [1]
+Assert Abs({}) == {}
 
 Assert Ceil() == None
 Assert Ceil() == None.Ceil()
 Assert Ceil() == Ceil(None)
 Assert Ceil(x) == x.Ceil()
+Assert Ceil(3.5) == "3.5".Ceil()
+Assert [3.5].Ceil() == [4]
+Assert Ceil({}) == {}
+Assert ⌈ 3.5 ⌉ == Ceil(3.5)
 
 Assert CeilMultiple() == None
 Assert CeilMultiple() == None.CeilMultiple()
 Assert CeilMultiple() == CeilMultiple(None)
 Assert CeilMultiple(x) == x.CeilMultiple()
+Assert 3.125.CeilMultiple(1/4) == 3.25
+Assert "3.125".CeilMultiple(1/4) == 3.25
+Assert 3.125.CeilMultiple(".25") == 3.25
+Assert [3.125].CeilMultiple(".25") == [3.25]
+Assert {}.CeilMultiple() == {}
 
 Assert Floor() == None
 Assert Floor() == None.Floor()
 Assert Floor() == Floor(None)
 Assert Floor(x) == x.Floor()
+Assert Floor(3.5) == "3.5".Floor()
+Assert ⌊ 3.5 ⌋ == Floor(3.5)
+Assert [3.5].Floor() == [3]
+Assert Floor({}) == {}
 
 Assert FloorMultiple() == None
 Assert FloorMultiple() == None.FloorMultiple()
 Assert FloorMultiple() == FloorMultiple(None)
 Assert FloorMultiple(x) == x.FloorMultiple()
+Assert 3.125.FloorMultiple(1/4) == 3
+Assert "3.125".FloorMultiple(1/4) == 3
+Assert 3.125.FloorMultiple(".25") == 3
+Assert [3.125].FloorMultiple(".25") == [3]
+Assert {}.FloorMultiple() == {}
 
 Assert Round() == None
 Assert Round() == None.Round()
 Assert Round() == Round(None)
 Assert Round(x) == x.Round()
+Assert Round(3.125, 2) == 3.13
+Assert Round("3.125", 2) == 3.13
+Assert Round(3.125, "2") == 3.13
+Assert Round([3.125], "2") == [3.13]
+Assert Round({}) == {}
 
 Assert RoundMultiple() == None
 Assert RoundMultiple() == None.RoundMultiple()
 Assert RoundMultiple() == RoundMultiple(None)
 Assert RoundMultiple(x) == x.RoundMultiple()
+Assert 3.125.RoundMultiple(1/4) == 3.25
+Assert "3.125".RoundMultiple(1/4) == 3.25
+Assert 3.125.RoundMultiple(".25") == 3.25
+Assert [3.125].RoundMultiple(".25") == [3.25]
+Assert {}.RoundMultiple() == {}
 
 Assert Trunc() == None
 Assert Trunc() == None.Trunc()
 Assert Trunc() == Trunc(None)
 Assert Trunc(x) == x.Trunc()
+Assert Trunc(3.5) == "3.5".Trunc()
+Assert [3.5].Trunc() == [3]
+Assert Trunc({}) == {}
 
 Assert Pred() == None
 Assert Pred() == None.Pred()
 Assert Pred() == Pred(None)
 Assert Pred(x) == x.Pred()
+Assert Pred(True) == False
+Assert Pred(False) == False
+Assert Pred(1) == Zero
+Assert Pred(1.0) < 1.0
+Assert Pred([1]) == [Zero]
+Assert Pred({}) == {}
 
 Assert Succ() == None
 Assert Succ() == None.Succ()
 Assert Succ() == Succ(None)
 Assert Succ(x) == x.Succ()
+Assert Succ(True) == True
+Assert Succ(False) == True
+Assert Succ(1) == 2
+Assert Succ(1.0) > 1.0
+Assert Succ([1]) == [2]
+Assert Succ({}) == {}
 
 Assert BitAnd() == None
 Assert BitAnd() == None.BitAnd()

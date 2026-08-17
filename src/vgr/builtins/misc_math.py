@@ -1,7 +1,13 @@
 """Arithmetic functions"""
 
 from typing import Any, Callable
-import math
+from math import (
+    ceil,
+    floor,
+    inf,
+    nextafter,
+    trunc,
+)
 
 from .common import bound_ops, str_to_number, dist_x
 from .type import poly_type
@@ -57,7 +63,7 @@ Also see `Floor()` and `Trunc()`
 """
     if x is None: return None
     if isinstance(x, str): return poly_ceil(str_to_number(x))
-    return math.ceil(x) if hasattr(x, '__ceil__') else _dist(poly_ceil, x)
+    return ceil(x) if hasattr(x, '__ceil__') else _dist(poly_ceil, x)
 
 @builtin("Trunc")
 def poly_trunc(x: Any=None) -> Any:
@@ -79,7 +85,7 @@ Also see `Ceil()` and `Floor()`
 """
     if x is None: return None
     if isinstance(x, str): return poly_trunc(str_to_number(x))
-    return math.trunc(x) if hasattr(x, '__trunc__') else _dist(poly_trunc, x)
+    return trunc(x) if hasattr(x, '__trunc__') else _dist(poly_trunc, x)
 
 @bound_ops("⌊...⌋")
 @builtin("Floor")
@@ -105,10 +111,9 @@ None.Floor() → None
 
 Also see `Ceil()` and `Trunc()`
 """
-
     if x is None: return None
     if isinstance(x, str): return poly_floor(str_to_number(x))
-    return math.floor(x) if hasattr(x, '__floor__') else _dist(poly_floor, x)
+    return floor(x) if hasattr(x, '__floor__') else _dist(poly_floor, x)
 
 def arithmetic_round(n: float, ndigits: int = 0) -> float:
     """Python's round() uses banker's rounding, so this can be used instead"""
@@ -156,18 +161,8 @@ Also see `RoundMultiple()`
         if isinstance(ndigits, str): return poly_round(x, str_to_number(ndigits))
         raise TypeError(f'Unsupported type for NDigits: {poly_type(ndigits)!r}')
     if isinstance(x, (int, float)): return arithmetic_round(x, ndigits)
-    if hasattr(x, '__round__'): return round(x, ndigits)
     if isinstance(x, list): return dist_x(poly_round, x, ndigits)
     return x
-
-def _get_multiple_arg(multiple: Any) -> Any:
-    if not isinstance(multiple, (int, float)):
-        if isinstance(multiple, str):
-            multiple = str_to_number(multiple)
-        else:
-            raise TypeError(f'Unsupported type for multiple: {poly_type(multiple)!r}')
-    multiple = abs(multiple)
-    return 1 if multiple == 0 else multiple
 
 @builtin("RoundMultiple")
 def poly_round_multiple(x: Any=None, multiple: Any=1) -> Any:
@@ -261,7 +256,7 @@ Also see `Floor()` and `CeilMultiple()`
     if x is None: return None
     multiple = _get_multiple_arg(multiple)
     if isinstance(x, str): x = str_to_number(x)
-    if isinstance(x, (int, float)): return multiple * math.floor(x / multiple)
+    if isinstance(x, (int, float)): return multiple * floor(x / multiple)
     if isinstance(x, list): return dist_x(poly_floor_multiple, x, multiple)
     return x
 
@@ -305,14 +300,9 @@ Also see `Ceil()` and `FloorMultiple()`
     if x is None: return None
     multiple = _get_multiple_arg(multiple)
     if isinstance(x, str): x = str_to_number(x)
-    if isinstance(x, (int, float)): return multiple * math.ceil(x / multiple)
+    if isinstance(x, (int, float)): return multiple * ceil(x / multiple)
     if isinstance(x, list): return dist_x(poly_ceil_multiple, x, multiple)
     return x
-
-def _dist(op: Callable[[Any], Any], x: Any) -> Any:
-    if x is None: return None
-    # Distribute the operation over the collection
-    return list(op(x1) for x1 in x) if isinstance(x, list) else x
 
 @builtin("Pred")
 def poly_pred(x: Any=None) -> Any:
@@ -339,9 +329,8 @@ Also see `Succ()`
     if isinstance(x, str): x = str_to_number(x)
     if isinstance(x, bool): return False
     if isinstance(x, int): return x - 1
-    if isinstance(x, float): return math.nextafter(x, -math.inf)
-    if isinstance(x, list): return list(poly_pred(x1) for x1 in x)
-    return x
+    if isinstance(x, float): return nextafter(x, -inf)
+    return _dist(poly_pred, x)
 
 @builtin("Succ")
 def poly_succ(x: Any=None) -> Any:
@@ -368,6 +357,18 @@ Also see `Pred()`
     if isinstance(x, str): x = str_to_number(x)
     if isinstance(x, bool): return True
     if isinstance(x, int): return x + 1
-    if isinstance(x, float): return math.nextafter(x, math.inf)
-    if isinstance(x, list): return list(poly_succ(x1) for x1 in x)
-    return x
+    if isinstance(x, float): return nextafter(x, inf)
+    return _dist(poly_succ, x)
+
+def _dist(op: Callable[[Any], Any], x: Any) -> Any:
+    """Distribute the operation over a collection if possible"""
+    return list(op(x1) for x1 in x) if isinstance(x, list) else x
+
+def _get_multiple_arg(multiple: Any) -> Any:
+    if not isinstance(multiple, (int, float)):
+        if isinstance(multiple, str):
+            multiple = str_to_number(multiple)
+        else:
+            raise TypeError(f'Unsupported type for multiple: {poly_type(multiple)!r}')
+    multiple = abs(multiple)
+    return 1 if multiple == 0 else multiple
