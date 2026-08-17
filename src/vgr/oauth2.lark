@@ -1,0 +1,34 @@
+
+?oauth2_statements: "Oauth2"i -> oauth_help // acts as a "pass", providing a help anchor
+            | "Oauth2"i "ClientCredentials"i ("URL"i "Is"i?)? expr _options_list{oauth_arg} giving_clause -> oauth_cc
+            | "Oauth2"i "UsernamePassword"i  ("URL"i "Is"i?)? expr _options_list{oauth_arg} giving_clause -> oauth_up
+            | "Oauth2"i "RefreshToken"i      ("URL"i "Is"i?)? expr _options_list{oauth_arg} giving_clause -> oauth_rt
+
+    // bool: whether to validate the OAuth server's SSL/TLS certificate chain
+?oauth_opt: ("Verify"i "SSL"i) option_value?             -> aopt_verify_ssl
+    // int/float: max time to wait for the token/auth endpoint to respond
+    | "Timeout"i option_value _unit_seconds?             -> aopt_connect_timeout
+    // constrained: 1, 1.1, 2 — HTTP protocol version to use for the token request
+    | "HTTP-Version"i option_value                       -> aopt_http_version
+    // int: cap on redirects followed during the auth/token exchange
+    | ("Maximum"i | "Max"i) ("Redirect"i | "Redirects"i) option_value -> aopt_max_redirects
+    // string: OAuth client/application identifier registered with the provider
+    | "Id"i option_value                                 -> aopt_client_id
+    // string: OAuth client secret paired with the client id
+    | "Secret"i option_value                             -> aopt_client_secret
+    // string: space-delimited list of requested OAuth scopes
+    | "Scope"i option_value                              -> aopt_scope
+    // string: intended recipient/resource identifier for the issued token (RFC 8707 / provider-specific)
+    | "Audience" option_value                            -> aopt_audience
+    // string: resource-owner username, for password-grant flows
+    | "Username" option_value                            -> aopt_username
+    // string: resource-owner password, for password-grant flows
+    | "Password" option_value                            -> aopt_password
+    // string: existing refresh token to exchange for a new access token
+    | "RefreshToken" option_value                        -> aopt_refresh_token
+    // constrained: "basic", "post" — how client credentials are sent to the token endpoint (Authorization header vs. body params)
+    | ("ClientAuth"i | "ClientAuthMethod"i) option_value -> aopt_client_auth_method
+    // string: proxy URL for the token request (e.g. "http://proxy.internal:8080")
+    | "Proxy"i option_value                              -> aopt_proxy
+    // dict: additional non-standard body parameters passed through to the token request
+    | "ExtraParams"i option_value                        -> aopt_extra_params
