@@ -4,7 +4,7 @@ Functions using regular expressions
 
 from functools import reduce
 from typing import Any
-import math
+from sys import maxsize
 import re
 
 from .common import NoneType
@@ -380,7 +380,7 @@ def _match(m: re.Match) -> dict:
         for name in named_groups:
             if name in rc:
                 rename = name + "_"
-                for n in range(1, math.max_int):
+                for n in range(1, maxsize):
                     if rename + str(n) not in rc:
                         rename += str(n)
                         break
