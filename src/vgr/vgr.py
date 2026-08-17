@@ -45,7 +45,7 @@ from .doc_help import (
 from .extn import VgrExtension, VgrExtensionRegistry, VER
 from .functions import (
     add_builtin_functions,
-    add_function,
+    add_functions,
     function_names_pattern,
     get_function_defs,
     get_function_entries,
@@ -362,8 +362,7 @@ def load_extensions(dd: DataDictionary, verbose: bool) -> VgrExtensionRegistry:
                 if name in STATEMENT_HANDLERS:
                     raise ValueError(f'Extension {extn_name!r} tried to redefine {name!r}')
                 STATEMENT_HANDLERS[name] = handler
-        for func_name, func in extn.functions().items():
-            add_function(extn_name, func_name, func)
+        add_functions(extn_name, extn.functions().items())
     dd.set_var(list(list(extn) for extn in extns), *('vgr', 'extensions'))
     return VER
 

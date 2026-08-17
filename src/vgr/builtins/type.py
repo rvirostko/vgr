@@ -2,8 +2,11 @@
 from typing import Any
 import re
 
+from .registry import builtin
+
 from ..vgr_callable import VgrCallable
 
+@builtin("Type")
 def poly_type(x: Any=None) -> str:
     """
 **Return the internal data type of an item**

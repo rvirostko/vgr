@@ -30,9 +30,9 @@ from .builtins import (
     poly_plural,
     poly_pow,
     poly_repr,
-    poly_shl,
+    poly_shift_left,
     poly_shorten,
-    poly_shr,
+    poly_shift_right,
     poly_sub,
     poly_type,
 )
@@ -79,8 +79,8 @@ _SET_OP = {
     "&=":  poly_bit_and,
     "|=":  poly_bit_or,
     "^=":  poly_bit_xor,
-    "<<=": poly_shl,
-    ">>=": poly_shr,
+    "<<=": poly_shift_left,
+    ">>=": poly_shift_right,
 }
 
 @bound_ops("Set")

@@ -11,8 +11,9 @@ from .common import (
     X_None_Op,
     Y_None_Op,
 )
-
 from .types import poly_to_boolean
+from .registry import builtin
+
 
 _MAX_BITS = 256
 _MAX_BIT_INDEX = _MAX_BITS - 1
@@ -20,6 +21,7 @@ _BYTE_WIDTH = 8 # when not specified, work on a byte
 _LSB = 0 # when not specified, start on LSB
 
 @bound_ops("&")
+@builtin("BitAnd")
 def poly_bit_and(*args) -> Any:
     """
 **Bitwise And operation**
@@ -61,6 +63,7 @@ Also see `BitOr()` and `BitXor()`
     return reduce(_bit_and, args[1:], args[0]) if args else None
 
 @bound_ops("|")
+@builtin("BitOr")
 def poly_bit_or(*args) -> Any:
     """
 **Bitwise Or operation**
@@ -102,6 +105,7 @@ Also see `BitAnd()` and `BitXor()`
     return reduce(_bit_or, args[1:], args[0]) if args else None
 
 @bound_ops("^")
+@builtin("BitXor")
 def poly_bit_xor(*args) -> Any:
     """
 **Bitwise Exclusive Or operation**
@@ -142,6 +146,7 @@ Also see `BitAnd()` and `BitOr()`
 """
     return reduce(_bit_xor, args[1:], args[0]) if args else None
 
+@builtin("BitNot")
 def poly_bit_not(x: Any=None) -> Any:
     """
 **Bitwise invert (negation) operation**
@@ -164,7 +169,7 @@ None.BitNot() → None
 Also see `BitXor()`
 """
     if x is None: return None
-    operation = _bit_operations.get((type(x), int))
+    operation = _BIT_OPERATIONS.get((type(x), int))
     if operation: return operation(lambda x, _: poly_bit_not(x), x, 0)
     mask = 0xFF # Default to at least 8 bits
     if x != 0:
@@ -176,6 +181,7 @@ Also see `BitXor()`
         mask = (1 << rounded_bits) - 1
     return x ^ mask
 
+@builtin("SetBit")
 def poly_set_bit(x: Any=None, index: int=0, do_set: bool=True) -> Any:
     """
 **Set bit at an index to one**
@@ -204,6 +210,7 @@ Also see `ClearBit()` and `ToggleBit()`
         return int(x) | (1 << index) if poly_to_boolean(do_set) else int(x) & ~(1 << index)
     return x
 
+@builtin("ClearBit")
 def poly_clear_bit(x: Any=None, index: int=0) -> Any:
     """
 **Set bit at an index to zero**
@@ -227,6 +234,7 @@ Also see `SetBit()` and `ToggleBit()`
     if isinstance(x, (int, float)): return int(x) & ~(1 << index)
     return x
 
+@builtin("ToggleBit")
 def poly_toggle_bit(x: Any=None, index: int=0) -> Any:
     """
 **Reverse the setting of the bit at an index**
@@ -250,6 +258,7 @@ Also see `SetBit()` and `ClearBit()`
     if isinstance(x, (int, float)): return int(x) ^ (1 << index)
     return x
 
+@builtin("IsBitSet")
 def poly_is_bit_set(x: Any=None, index: int=0):
     """
 **Return `True` if the bit at index is one**
@@ -273,6 +282,7 @@ Also see `SetBit()`, `ClearBit()`, and `ToggleBit()`
     if isinstance(x, (int, float)): return ((int(x) >> index) & 1) == 1
     return x
 
+@builtin("CountOneBits")
 def poly_count_ones(x: Any=None):
     """
 **Return the number of one bits in a value**
@@ -295,6 +305,7 @@ Also see `CountZeroBits()`
     if isinstance(x, (int, float)): return _bit_count(int(x))
     return x
 
+@builtin("CountZeroBits")
 def poly_count_zeros(x: Any=None, width: int=_BYTE_WIDTH):
     """
 **Return the number of zero bits in a value, treating it as being *width* bits long**
@@ -318,6 +329,7 @@ Also see `CountLeadingZeroBits()`, `CountTrailingZeroBits()`, and `CountOneBits(
     if isinstance(x, (int, float)): return width - _bit_count((int(x) & ((1 << width) - 1)))
     return x
 
+@builtin("CountLeadingZeroBits")
 def poly_count_leading_zeros(x: Any=None, width: int=_BYTE_WIDTH):
     """
 **Return the number of _leading_ zero bits in a value, treating it as being *width* bits long**
@@ -343,6 +355,7 @@ Also see `CountZeroBits()`, `CountTrailingZeroBits()`, and `CountOneBits()`
         return width if masked == 0 else width - masked.bit_length()
     return x
 
+@builtin("CountTrailingZeroBits")
 def poly_count_trailing_zeros(x: Any=None):
     """
 **Return the number of _trailing_ zero bits in a value**
@@ -367,6 +380,7 @@ Also see `CountZeroBits()`, `CountLeadingZeroBits()`, and `CountOneBits()`
         return 0 if x == 0 else (x & -x).bit_length() - 1
     return x
 
+@builtin("HighestOneBit")
 def poly_highest_one_bit(x: Any=None):
     """
 **Return a value with only its most significant one bit preserved**
@@ -391,6 +405,7 @@ Also see `LowestOneBit()`
         return 0 if x == 0 else 1 << (x.bit_length() - 1)
     return x
 
+@builtin("LowestOneBit")
 def poly_lowest_one_bit(x: Any=None):
     """
 **Return a value with only its least significant one bit preserved**
@@ -415,6 +430,7 @@ Also see `HighestOneBit()`
         return x & -x
     return x
 
+@builtin("RotateLeft")
 def poly_rotate_left(x: Any=None, count: int=0, width: int=_BYTE_WIDTH):
     """
 **Rotate right by *count* bits within a unsigned space of *width* bits**
@@ -444,6 +460,7 @@ Also see `RotateLeft()` and `ShiftLeft()`
         return ((x << d) | (x >> (width - d))) & mask
     return x
 
+@builtin("RotateRight")
 def poly_rotate_right(x: Any=None, count: int=0, width: int=_BYTE_WIDTH):
     """
 **Rotate right by *count* bits within a unsigned space of *width* bits**
@@ -473,6 +490,7 @@ Also see `RotateLeft()` and `ShiftRight()`
         return ((x >> d) | (x << (width - d))) & mask
     return x
 
+@builtin("ReverseBits")
 def poly_reverse_bits(x: Any=None, width: int=_BYTE_WIDTH):
     """
 **Reverse the order of bits within an unsigned space of *width* bits**
@@ -502,6 +520,7 @@ Also see `ReverseBytes()`
     return x
 
 # TODO this name is WRONG: change width to be bytes, not bits
+@builtin("ReverseBytes")
 def poly_reverse_bytes(x: Any=None, width: int=_BYTE_WIDTH):
     """
 **Swaps byte order for correct interpretation**
@@ -534,6 +553,7 @@ Also see `ReverseBits()`
         return result
     return x
 
+@builtin("SetBits")
 def poly_set_bits(x: Any=None, bits: int=0, start: int=_LSB, width: int=_BYTE_WIDTH) -> Any:
     """
 **Sets one or more bits at a specific location in a value**
@@ -576,6 +596,7 @@ Also see `SetBit()`, `ClearBit()`, and `ExtractBits()`
         return x
     return x
 
+@builtin("ExtractBits")
 def poly_extract_bits(x: Any=None, start: int=_LSB, width: int=_BYTE_WIDTH) -> Any:
     """
 **Extracts one or more bits at a specific location in a value**
@@ -651,19 +672,19 @@ def _str_str_op(op: Callable[[Any, Any], Any], x: str, y: str) -> str:
 def _bit_and(x: Any, y: Any) -> Any:
     x = _coerce_str_to_int(x)
     y = _coerce_str_to_int(y)
-    operation = get_operation(x, y, _bit_operations)
+    operation = get_operation(x, y, _BIT_OPERATIONS)
     return operation(_bit_and, x, y) if operation else x & y
 
 def _bit_or(x: Any, y: Any) -> Any:
     x = _coerce_str_to_int(x)
     y = _coerce_str_to_int(y)
-    operation = get_operation(x, y, _bit_or_operations, _bit_operations)
+    operation = get_operation(x, y, _BIT_OR_OPERATIONS, _BIT_OPERATIONS)
     return operation(_bit_or, x, y) if operation else x | y
 
 def _bit_xor(x: Any, y: Any) -> Any:
     x = _coerce_str_to_int(x)
     y = _coerce_str_to_int(y)
-    operation = get_operation(x, y, _bit_operations)
+    operation = get_operation(x, y, _BIT_OPERATIONS)
     return operation(_bit_xor, x, y) if operation else x ^ y
 
 def _bit_count(x: int) -> int:
@@ -675,7 +696,7 @@ def _bit_count(x: int) -> int:
     return bin(abs(x)).count('1')
 
 # pylint: disable=arguments-out-of-order
-_bit_operations = {
+_BIT_OPERATIONS = {
     X_None_Op: lambda op, _, y: None if y is None else op(0, y),
     Y_None_Op: lambda op, x, _: op(x, 0),
     (int, float): lambda op, x, y: op(x, int(y)),
@@ -696,7 +717,7 @@ _bit_operations = {
 # pylint: enable=arguments-out-of-order
 
 # Collection-to-collection "or" combines contents
-_bit_or_operations = {
+_BIT_OR_OPERATIONS = {
     (list, list): lambda _, x, y: x + y,
     (dict, dict): lambda _, x, y: {**x, **y},
 }

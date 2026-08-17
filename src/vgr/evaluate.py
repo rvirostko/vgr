@@ -54,8 +54,8 @@ from .builtins import (
     poly_not_match,
     poly_pow,
     poly_repr,
-    poly_shl,
-    poly_shr,
+    poly_shift_left,
+    poly_shift_right,
     poly_sub,
     poly_subscript,
     poly_is_true,
@@ -661,8 +661,8 @@ class OperationBinder(Transformer):
     def mod_op(self, tree): return SimpleOperation(tree, poly_mod)
     def mul_op(self, tree): return SimpleOperation(tree, poly_mul)
     def pow_op(self, tree): return SimpleOperation(tree, poly_pow)
-    def shl_op(self, tree): return SimpleOperation(tree, poly_shl)
-    def shr_op(self, tree): return SimpleOperation(tree, poly_shr)
+    def shl_op(self, tree): return SimpleOperation(tree, poly_shift_left)
+    def shr_op(self, tree): return SimpleOperation(tree, poly_shift_right)
     def sub_op(self, tree): return SimpleOperation(tree, poly_sub)
 
     # Polymorphic operations with a single arg

@@ -44,8 +44,8 @@ from .builtins import (
     poly_not_in,
     poly_not_match,
     poly_pow,
-    poly_shl,
-    poly_shr,
+    poly_shift_left,
+    poly_shift_right,
     poly_sub,
 )
 
@@ -90,8 +90,8 @@ _OP_FUNCS: list[Callable[..., Any]] = [
     poly_not_in, # not_in_op
     poly_not_match, # not_matches_op
     poly_pow, # pow_op
-    poly_shl, # shl_op
-    poly_shr, # shr_op
+    poly_shift_left, # shl_op
+    poly_shift_right, # shr_op
     poly_sub, # sub_op
 ]
 

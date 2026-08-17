@@ -132,7 +132,7 @@ from .rnd import (
     poly_random,
     poly_random_choice,
 )
-from .shift import poly_shl, poly_shr
+from .shift import poly_shift_left, poly_shift_right
 from .plural import poly_plural
 from .format import poly_format
 from .strings import (

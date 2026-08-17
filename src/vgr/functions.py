@@ -1,60 +1,12 @@
 """
 Functions is responsible for converting a requested function name to an implementation.
-It also generates the grammar fragments used to identify the functions.
+It also generates the grammar fragments used to identify the built-in functions.
 """
 
 from collections import defaultdict
 from functools import lru_cache
 from typing import Any, Callable
 import inspect
-
-from .builtins import (
-    poly_bit_and,
-    poly_bit_not,
-    poly_bit_or,
-    poly_bit_xor,
-    poly_clear_bit,
-    poly_count_leading_zeros,
-    poly_count_ones,
-    poly_count_trailing_zeros,
-    poly_count_zeros,
-    poly_extract_bits,
-    poly_highest_one_bit,
-    poly_lowest_one_bit,
-    poly_reverse_bits,
-    poly_reverse_bytes,
-    poly_rotate_left,
-    poly_rotate_right,
-    poly_set_bit,
-    poly_set_bits,
-    poly_is_bit_set,
-    poly_toggle_bit,
-    poly_type,
-)
-
-_BUILT_IN_FUNCS: dict[str, Callable[..., Any]] = {
-    "BitAnd":         poly_bit_and,
-    "BitNot":         poly_bit_not,
-    "BitOr":          poly_bit_or,
-    "BitXor":         poly_bit_xor,
-    "ClearBit":       poly_clear_bit,
-    "CountLeadingZeroBits": poly_count_leading_zeros,
-    "CountOneBits":   poly_count_ones,
-    "CountTrailingZeroBits": poly_count_trailing_zeros,
-    "CountZeroBits":  poly_count_zeros,
-    "ExtractBits":    poly_extract_bits,
-    "HighestOneBit":  poly_highest_one_bit,
-    "IsBitSet":       poly_is_bit_set,
-    "LowestOneBit":   poly_lowest_one_bit,
-    "ReverseBits":    poly_reverse_bits,
-    "ReverseBytes":   poly_reverse_bytes,
-    "RotateLeft":     poly_rotate_left,
-    "RotateRight":    poly_rotate_right,
-    "SetBit":         poly_set_bit,
-    "SetBits":        poly_set_bits,
-    "ToggleBit":      poly_toggle_bit,
-    "Type":           poly_type,
-}
 
 # Binds a (pretty) name to the function to be executed
 # Additionally, we should use functions here rather than lambdas
@@ -86,16 +38,14 @@ def function_names_pattern() -> str:
 
 def add_builtin_functions() -> None:
     from .builtins.registry import BuiltinRegistry
-    # TODO this is the new way
-    for name, function in BuiltinRegistry.items(): add_function('registry', name, function)
-    # TODO this is the old way
-    for name, function in _BUILT_IN_FUNCS.items(): add_function('built-in', name, function)
+    add_functions('built-in', BuiltinRegistry.items())
 
-def add_function(extn_name: str, name: str, function: Callable) -> None:
-    lc = name.lower()
-    if lc in _FUNC_INDEX: raise ValueError(f'Extension {extn_name!r} tried to redefine {name!r}')
-    _FUNC_OPS[name] = function
-    _FUNC_INDEX[lc] = name
+def add_functions(extn_name: str, function_mapping) -> None:
+    for name, function in function_mapping:
+        lc = name.lower()
+        if lc in _FUNC_INDEX: raise ValueError(f'Extension {extn_name!r} tried to redefine {name!r}')
+        _FUNC_OPS[name] = function
+        _FUNC_INDEX[lc] = name
 
 # The max value of an arg range when we have variable arguments
 _IS_VARARGS = float('inf')

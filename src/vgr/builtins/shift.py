@@ -19,7 +19,7 @@ from .registry import builtin
 
 @bound_ops("<<")
 @builtin("ShiftLeft")
-def poly_shl(*args) -> Any:
+def poly_shift_left(*args) -> Any:
     """
 **Bitwise Shift Left operation**
 
@@ -58,11 +58,11 @@ None << "2" → 0
 
 Also see `ShiftRight()`
 """
-    return reduce(_shl, args[1:], args[0]) if args else _shr(None, None)
+    return reduce(_shift_left, args[1:], args[0]) if args else _shift_right(None, None)
 
 @bound_ops(">>")
 @builtin("ShiftRight")
-def poly_shr(*args):
+def poly_shift_right(*args):
     """
 **Bitwise Shift Right operation**
 
@@ -101,19 +101,19 @@ None >> "2" → 0
 
 Also see `ShiftLeft()`
 """
-    return reduce(_shr, args[1:], args[0]) if args else _shr(None, None)
+    return reduce(_shift_right, args[1:], args[0]) if args else _shift_right(None, None)
 
-def _shl(x: Any, y: Any) -> Any:
+def _shift_left(x: Any, y: Any) -> Any:
     operation = get_operation(x, y, _SHIFT_OPERATIONS)
     try:
-        return operation(_shl, x, y) if operation else x << y
+        return operation(_shift_left, x, y) if operation else x << y
     except TypeError as e:
         raise TypeError(f"Cannot shift type {poly_type(x)!r} with {poly_type(y)!r}") from e
 
-def _shr(x: Any, y: Any) -> Any:
+def _shift_right(x: Any, y: Any) -> Any:
     operation = get_operation(x, y, _SHIFT_OPERATIONS)
     try:
-        return operation(_shr, x, y) if operation else x >> y
+        return operation(_shift_right, x, y) if operation else x >> y
     except TypeError as e:
         raise TypeError(f"Cannot shift type {poly_type(x)!r} with {poly_type(y)!r}") from e
 
