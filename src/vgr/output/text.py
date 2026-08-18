@@ -25,20 +25,11 @@ class TextRecordWriter(FileRecordWriter):
         self._header_sep = ':'
         self._field_sep = ' '
         self._record_sep = '\n'
-        self._include_nulls = True
         self.include_headers = False
         self._setattrs(**kwargs)
 
     def _attrs(self) -> list:
-        return super()._attrs() + ['include_nulls', 'header_sep', 'field_sep', 'record_sep']
-
-    @property
-    def include_nulls(self) -> bool:
-        return self._include_nulls
-
-    @include_nulls.setter
-    def include_nulls(self, enable: bool):
-        self._include_nulls = bool(enable)
+        return super()._attrs() + ['header_sep', 'field_sep', 'record_sep']
 
     @property
     def header_sep(self) -> bool:
@@ -64,24 +55,24 @@ class TextRecordWriter(FileRecordWriter):
     def record_sep(self, value: str):
         self._record_sep = '' if value is None else str(value)
 
+    def write_headers(self):
+        if self.include_headers:
+            first = True
+            for header in self.headers:
+                if first:
+                    self.print(header)
+                    first = False
+                else:
+                    self.print(self._header_sep, header)
+            self.print(self.record_sep)
+
     def write(self, record: list[any]) -> bool:
         first = True
-        if self.include_headers:
-            for header, item in zip(self.headers, record):
-                if self.include_nulls or item is not None:
-                    if first:
-                        self.print(header, self._header_sep, self.stringify(item))
-                        first = False
-                    else:
-                        self.print(self._field_sep, header, self._header_sep, self.stringify(item))
-        else:
-            for item in record:
-                if self.include_nulls or item is not None:
-                    if first:
-                        self.print(self.stringify(item))
-                        first = False
-                    else:
-                        self.print(self._field_sep, self.stringify(item))
-        # Only print a record sep if we printed anything
-        if not first: self.print(self.record_sep)
+        for item in record:
+            if first:
+                self.print(self.stringify(item))
+                first = False
+            else:
+                self.print(self._field_sep, self.stringify(item))
+        self.print(self.record_sep)
         return True

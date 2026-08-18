@@ -13,6 +13,10 @@
 
 - Breaking change: Left/RightShift() renamed to ShiftLeft/Right()
   to match RotateLeft/Right()
+- Breaking change: Include/Exclude Nulls removed from Select For Text. They
+  we inherited from JSON output, but made not sense here.
+- Breaking change: Select For Text headers now works more like CSV output
+  rather than JSON.
 - Constant statement can now create a constant from an initialized variable
   without having to use an assignment (e.g. "Set x To 5; Constant x").
   Additionally, this form of the statement is idempotent.

@@ -177,14 +177,25 @@ For Markdown
     Include Headers Is True    // these are equivalent
 
 Print """
-Text-"""
+Text- w/header-"""
 Select *
 From File filename
 Where (age Is None Or first_name Is None) And email Is Not None
 Limit 5
 For Text
     Include Headers,
-    Exclude Nulls,
+    Field Separator Is "!!",
+    Header Separator Is "::",
+    Record Separator Is "<" + Newline
+
+Print """
+Text, no headers-"""
+Select *
+From File filename
+Where (age Is None Or first_name Is None) And email Is Not None
+Limit 5
+For Text
+    Exclude Headers,
     Field Separator Is "!!",
     Header Separator Is "::",
     Record Separator Is "<" + Newline

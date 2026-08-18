@@ -9,6 +9,8 @@ from typing import Any
 import json
 import sys
 
+from ..builtins import poly_to_string
+
 class RecordWriter(ABC):
 
     def __init__(self):
@@ -187,9 +189,9 @@ class FileRecordWriter(RecordWriter):
         Collections are converted to a  comma separated list.
         """
         if obj is None: return ''
-        if not isinstance(obj, (str, int, float)):
-            # Compact JSON format for dictionaries
-            if isinstance(obj, dict): return json.dumps(obj, separators=(",", ":"))
-            # Recursively stringify iterable elements
-            if isinstance(obj, Iterable): return ", ".join(map(cls.stringify, obj))
-        return str(obj)
+        # Compact JSON format for dictionaries
+        # TODO this and "ToString" need to be recursive with values
+        if isinstance(obj, dict): return json.dumps(obj, separators=(",", ":"))
+        # Recursively stringify to comma separated elements, but NO square brackets
+        if isinstance(obj, list): return ", ".join(map(cls.stringify, obj))
+        return poly_to_string(obj)

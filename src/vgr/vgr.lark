@@ -439,7 +439,6 @@ template_filename: _file_option? expr
 
 for_text: "Text"i _options_list{for_text_option}
 ?for_text_option: include_headers | exclude_headers
-    | exclude_nulls | include_nulls
     | "Field"i "Separator"i option_value  -> field_sep
     | "Header"i "Separator"i option_value -> header_sep
     | "Record"i "Separator"i option_value -> record_sep
