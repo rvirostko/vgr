@@ -1,6 +1,8 @@
 
+Define Function func() -> 5
+
 // Simple loop to test type acceptance for hashable types
-For-Each item in [None, True, False, 0, 1, -.1, "", "foo", CompilePattern("foo")]
+For-Each item in [None, True, False, 0, 1, -.1, "", "foo", r/foo/, func]
     Print Repr(item), Type(item), Id(item), Hash(item)
     Assert Hash(item) Is Not None
 End-For
