@@ -567,14 +567,17 @@ def _var_name_path(node: Tree) -> tuple[str]:
     def _step_name(token: Token) -> str:
         # extracts and validates the parts of the path
         try:
-            if not _is_name_token(token): raise ValueError('Expected NAME') # SNO
+            if not _is_name_token(token):
+                # SNO
+                raise ValueError('Expected NAME') # pragma no cover
             return DataDictionary.valid_path_step(token.value)
         except ValueError as e:
             raise VgrRuntimeError(token, e) from e
 
     if _is_var_name(node) or _is_var_ref(node): return tuple(_step_name(name) for name in node.children)
     if _is_name_token(node): return (_step_name(node),)
-    raise VgrRuntimeError(node, TypeError('Expected var_name, var_ref or NAME')) # SNO
+    # SNO
+    raise VgrRuntimeError(node, TypeError('Expected var_name, var_ref or NAME')) # pragma no cover
 
 def eval_expr_or_const(ctx: ExecContext, expr: Any) -> Any:
     """

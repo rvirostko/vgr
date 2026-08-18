@@ -144,7 +144,8 @@ class SortAnalyzer(Visitor):
             # Extract the path (which seems risky...)
             io[iotype] = list(name.value for name in node.children[0].children)
         else:
-            raise VgrRuntimeError(node, NotImplementedError('Sort type not implemented')) # SNO
+            # SNO
+            raise VgrRuntimeError(node, NotImplementedError('Sort type not implemented')) # pragma no cover
 
 @bound_ops("Sort")
 def execute_sort(ctx: ExecContext, statement: Tree) -> None:

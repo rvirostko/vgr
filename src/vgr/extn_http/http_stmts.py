@@ -438,7 +438,9 @@ _OPTION_HANDLERS = {
 def _dispatch_option(ctx: ExecContext, node: Tree, data: HttpData) -> None:
     opt_key = node.data
     handler = _OPTION_HANDLERS.get(opt_key)
-    if handler is None: raise VgrRuntimeError(node, ValueError(f'Option {opt_key!r} not handled')) # SNO
+    if handler is None:
+        # SNO
+        raise VgrRuntimeError(node, ValueError(f'Option {opt_key!r} not handled')) # pragma no cover
     handler(ctx, node, data)
 
 # ---------------------------------------------------------------------------

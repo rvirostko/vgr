@@ -101,7 +101,8 @@ Also see `Close`, `Print`, and `Printf`.
         elif name == 'encoding':
             encoding = parse_encoding(ctx, child)
         else:
-            raise VgrRuntimeError(child, ValueError(f'Option {name!r} not handled')) # SNO
+            # SNO
+            raise VgrRuntimeError(child, ValueError(f'Option {name!r} not handled')) # pragma no cover
     mode = mode or ('r' if stream == 'stdin' else 'w')
     encoding = encoding or 'utf-8'
     try:
@@ -167,4 +168,5 @@ def _eval_stream_name(node: Tree) -> str:
     """The node's data (name) is the stream name"""
     stream = node.data.lower()
     if stream in ('stderr', 'stdout', 'stdin'): return stream
-    raise VgrRuntimeError(node, ValueError('Unknown stream name')) # SNO
+    # SNO
+    raise VgrRuntimeError(node, ValueError('Unknown stream name')) # pragma no cover

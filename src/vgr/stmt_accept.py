@@ -54,7 +54,8 @@ Accept Input value Secure  // asterisks displayed
     elif option == 'secure':
         line = pwinput.pwinput(prompt='', mask='*')
     else:
-        raise VgrRuntimeError(statement.children[-1], ValueError(f'Accept option {option!r} not implemented')) # SNO
+        # SNO
+        raise VgrRuntimeError(statement.children[-1], ValueError(f'Accept option {option!r} not implemented')) # pragma no cover
     # Remove the trailing newline
     line = line.rstrip('\n') if line else line
     if line:

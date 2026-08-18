@@ -555,7 +555,8 @@ Environment variables:
                 raise e
             except Exception as e:
                 raise VgrException(None, e, '<cmd-line>', svalue) from e
-            raise NotImplementedError(f'Statement source {stype!r} not implemented') # SNO
+            # SNO
+            raise NotImplementedError(f'Statement source {stype!r} not implemented') # pragma no cover
         if args.stdin:
             # Read from stdin, most likely from a "here" document
             # but can be from a pipe or just a "<"

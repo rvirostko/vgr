@@ -819,7 +819,8 @@ with a `From` clause.
                 exec_query(buffer)
                 buffer_data = buffer.getvalue()
         else:
-            raise TypeError(f"Destination type {dest!r} not handled") # SNO
+            # SNO
+            raise TypeError(f"Destination type {dest!r} not handled") # pragma no cover
     finally:
         ctx.dd.pop_frame()
     # Now that we are out of the local frame for the select

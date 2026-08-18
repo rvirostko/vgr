@@ -148,7 +148,8 @@ def matching_default(x: Any) -> Any:
     """Given an object, return a *default* value that matches its type"""
     default = _DEFAULTS_BY_TYPE.get(type(x))
     if default is not None: return default
-    raise TypeError(f'No default value for {poly_type(x)!r}') # SNO
+    # SNO
+    raise TypeError(f'No default value for {poly_type(x)!r}') # pragma no cover
 
 def op_key(x: Any, y: Any) -> tuple:
     """The key used to look up behavior by operand type"""

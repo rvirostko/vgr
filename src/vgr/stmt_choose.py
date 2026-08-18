@@ -307,7 +307,8 @@ def _exec_choose(ctx: ExecContext, do_all: bool, statement_children: Iterator, e
                 ctx.echo_source(when_block, when_block.children[0])
                 chosen_block = values_children
         else:
-            raise ValueError(f'{block_name} not implemented') # SNO
+             # SNO
+            raise ValueError(f'{block_name} not implemented') # pragma: no cover
         # If a block of statements was chosen execute them
         if chosen_block is not None:
             choice_made = True

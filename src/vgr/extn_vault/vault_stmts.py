@@ -103,9 +103,11 @@ Also see `Vault Disconnect`
                 v = _resolve_int_arg(ctx, child.children[0], 'Vault Connection Blocksize', True)
                 blocksize = None if v is None else poly_clamp(v, 256, 1024 * 512) # 256 bytes to 512k
             else:
-                raise VgrRuntimeError(child, NotImplementedError(f'Argument {name!r} not handled')) # SNO
+                # SNO
+                raise VgrRuntimeError(child, NotImplementedError(f'Argument {name!r} not handled')) # pragma no cover
         else:
-            raise VgrRuntimeError(child, ValueError(f'Unexpected Vault argument {child!r}')) # SNO
+            # SNO
+            raise VgrRuntimeError(child, ValueError(f'Unexpected Vault argument {child!r}')) # pragma no cover
     try:
         client = _CONNECTIONS.connect(conn_name, addr, token)
         if timeout is not None:
@@ -1425,9 +1427,11 @@ def _extract_args(ctx: ExecContext, statement: Tree) -> dict:
             elif arg_name in _ARG_EXPR:
                 args[arg_name] = ctx.eval_expr_or_const(arg_node)
             else:
-                raise VgrRuntimeError(child, NotImplementedError(f'Vault argument {arg_name!r} not implemented')) # SNO
+                # SNO
+                raise VgrRuntimeError(child, NotImplementedError(f'Vault argument {arg_name!r} not implemented')) # pragma no cover
         else:
-            raise VgrRuntimeError(child, ValueError(f'Unexpected Vault argument {child.data!r}:{poly_type(child)!r}')) # SNO
+            # SNO
+            raise VgrRuntimeError(child, ValueError(f'Unexpected Vault argument {child.data!r}:{poly_type(child)!r}')) # pragma no cover
     return args
 
 def _resolve_str_arg(ctx: ExecContext, expr: Tree, name: str, allow_none: bool=False) -> str:

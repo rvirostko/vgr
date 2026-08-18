@@ -84,7 +84,9 @@ by an `Include` that match those given patterns.
         elif arg_type == 'keep_paths': junk_paths = False                                             # zip -p/--paths/-p
         elif arg_type in ('a', 'w', 'x'): mode = arg_type
         elif arg_type == 'r': raise VgrRuntimeError(child, ValueError('Invalid mode for writing'))
-        else: raise VgrRuntimeError(child, ValueError(f'Unhandled type {arg_type!r}')) # SNO
+        else:
+            # SNO
+            raise VgrRuntimeError(child, ValueError(f'Unhandled type {arg_type!r}')) # pragma no cover
     added_files = set()
     # General follow zip's -r behavior when it comes to subdirs
     for pattern in include_patterns:

@@ -721,7 +721,8 @@ Returns a tuple with the data and metadata used for the $load variable:
     elif dtype == 'ini_file':
         data = parse_ini(data)
     else:
-        raise ValueError(f'Unknown file content type {dtype!r}') # SNO
+        # SNO
+        raise ValueError(f'Unknown file content type {dtype!r}') # pragma no cover
     return (data,
             {
                 'filename': filename,

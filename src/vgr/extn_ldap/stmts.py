@@ -399,10 +399,12 @@ _OPT_HANDLER = {
 def _extract_args(ctx: ExecContext, args: dict, opts: list) -> dict:
     for opt in opts:
         if not isinstance(opt, Tree) or not opt.data.startswith('lopt_'):
-            raise VgrRuntimeError(opt, ValueError(f'Unexpected Ldap argument {opt.data!r}:{poly_type(opt)!r}')) # SNO
+            # SNO
+            raise VgrRuntimeError(opt, ValueError(f'Unexpected Ldap argument {opt.data!r}:{poly_type(opt)!r}')) # pragma no cover
         arg_name = opt.data[5:]
         if arg_name not in _OPT_HANDLER:
-            raise VgrRuntimeError(opt, NotImplementedError(f'Ldap argument {arg_name!r} not implemented')) # SNO
+            # SNO
+            raise VgrRuntimeError(opt, NotImplementedError(f'Ldap argument {arg_name!r} not implemented')) # pragma no cover
         name, handler = _OPT_HANDLER[arg_name]
         args[arg_name] = handler(ctx, opt, name)
     return args

@@ -241,7 +241,9 @@ def _token_to_filter(attr: str, token: str) -> str:
     else:
         op, raw_val = "=", token  # default equality
     builder = _OP_MAP.get(op)
-    if builder is None: raise ValueError(f"Unsupported operator {op!r} for attribute {attr!r}") # SNO
+    if builder is None:
+        # SNO
+        raise ValueError(f"Unsupported operator {op!r} for attribute {attr!r}") # pragma no cover
     return builder(attr, raw_val)
 
 def _reduce_attr_tokens_to_filter(attr: str, parts: List[str]) -> str:

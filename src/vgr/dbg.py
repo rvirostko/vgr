@@ -32,4 +32,5 @@ def print_tree(item: Any, indent=2) -> None:
             pos_info = _fmt_pos(token)
             print_stderr(f'{prefix}{token.type}: {token.value!r} {poly_type(token.value)!r}{pos_info}')
         else:
-            raise ValueError(item.type()) # SNO: What else can there be?
+            # SNO: What else can there be?
+            raise ValueError(item.type()) # pragma no cover

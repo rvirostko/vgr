@@ -53,13 +53,17 @@ _IS_VARARGS = float('inf')
 def get_function(name: str) -> tuple[str, Callable[..., Any]]:
     """Get the entry for the named function: (canonical_name, function)"""
     canonical_name = _FUNC_INDEX.get(name.lower(), None)
-    if canonical_name is None: raise ValueError(f'Function {name!r} has no canonical name') # SNO
+    if canonical_name is None:
+        # SNO
+        raise ValueError(f'Function {name!r} has no canonical name') # pragma no cover
     return (canonical_name, _FUNC_OPS.get(canonical_name))
 
 def get_function_op(name: str) -> Callable[..., Any]:
     """Given a function name get the function that implements it"""
     function = get_function(name)
-    if not function: raise NotImplementedError(f'Function {name!r} not implemented') # SNO
+    if not function:
+        # SNO
+        raise NotImplementedError(f'Function {name!r} not implemented') # pragma no cover
     return function[1]
 
 def get_function_defs(weight: int=99) -> str:
