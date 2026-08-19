@@ -7,8 +7,12 @@ from typing import Any
 from .common import bound_ops
 from .registry import builtin
 
+def _apply_vargs(args, op):
+    """Super simple handling for variable arguments"""
+    return None if len(args) == 0 else op(args[0]) if len(args) == 1 else [op(x) for x in args]
+
 @builtin("IsTrue")
-def poly_is_true(x: Any=None) -> bool:
+def poly_is_true(*args) -> bool:
     """
 **Check for logical True**
 
@@ -33,13 +37,15 @@ False.IsTrue() → False
 
 Also see `ToBoolean()` and `IsFalse()`
 """
-    if x is None: return False
-    if isinstance(x, (int, float)): return bool(x)
-    return True
+    def _op(x):
+        if x is None: return False
+        if isinstance(x, (int, float)): return bool(x)
+        return True
+    return _apply_vargs(args, _op)
 
 @bound_ops("!", "！", "¬")
 @builtin("IsFalse", "Not")
-def poly_is_false(x: Any=None) -> bool:
+def poly_is_false(*args) -> bool:
     """
 **Logical Negation (Not) operation**
 
@@ -68,6 +74,8 @@ False.IsFalse() → True
 
 Also see `ToBoolean()` and `IsTrue()`
 """
-    if x is None: return True
-    if isinstance(x, (int, float)): return not bool(x)
-    return False
+    def _op(x):
+        if x is None: return True
+        if isinstance(x, (int, float)): return not bool(x)
+        return False
+    return _apply_vargs(args, _op)

@@ -36,7 +36,8 @@
   If so, it is used for the length/size value rather than one of the
   inputs to be transformed.
 - The following general purpose functions now support variable arguments:
-  Clone(), Hash(), Id(), Length(), Negate(), Repr(), Reverse().
+  Clone(), Hash(), Id(), IsFalse(), IsTrue(), Length(), Negate(),
+  Repr(), Reverse().
 - Internal change: automatic registration of built-in functions
 
 ### Deprecated
