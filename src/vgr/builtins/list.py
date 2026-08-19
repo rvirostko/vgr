@@ -334,7 +334,7 @@ and the `Insert` statement, which acts directly on a variable
 
 @requires_exec_context
 @builtin("Apply")
-def poly_apply(x: Any, funct, *args, ctx=None) -> Any:
+def poly_apply(x: Any=None, funct=None, *args, ctx=None) -> Any:
     """
 **Applies one or more user defined functions to a value or a list of values**
 
@@ -387,7 +387,7 @@ Also see `CombineUsing()`
 
 @requires_exec_context
 @builtin("CombineUsing")
-def poly_combine_using(x: Any, funct, *args, **kwargs) -> Any:
+def poly_combine_using(x: Any=None, funct=None, *args, ctx=None) -> Any:
     """
 **Combine values into a single value using a user defined function**
 
@@ -435,7 +435,6 @@ counters.
 
 Also see `Apply()`
 """
-    ctx = kwargs.pop("ctx")
     if args:
         acc, *args = args
     else:
