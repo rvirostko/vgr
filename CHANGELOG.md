@@ -17,6 +17,8 @@
   we inherited from JSON output, but made not sense here.
 - Breaking change: Select For Text headers now works more like CSV output
   rather than JSON.
+- Breaking change: IsTitle() renamed to IsTitleCase() to match the
+  TitleCase() operation.
 - Constant statement can now create a constant from an initialized variable
   without having to use an assignment (e.g. "Set x To 5; Constant x").
   Additionally, this form of the statement is idempotent.

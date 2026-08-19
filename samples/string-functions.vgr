@@ -29,7 +29,7 @@ Printf fmt, "IsLower()", a, a.IsLower(), b, b.IsLower(), c, c.IsLower(), d, d.Is
 Printf fmt, "IsNumeric()", a, a.IsNumeric(), b, b.IsNumeric(), c, c.IsNumeric(), d, d.IsNumeric()
 Printf fmt, "IsPrintable()", a, a.IsPrintable(), b, b.IsPrintable(), c, c.IsPrintable(), d, d.IsPrintable()
 Printf fmt, "IsSpace()", a, a.IsSpace(), b, b.IsSpace(), c, c.IsSpace(), d, d.IsSpace()
-Printf fmt, "IsTitle()", a, a.IsTitle(), b, b.IsTitle(), c, c.IsTitle(), d, d.IsTitle()
+Printf fmt, "IsTitleCase()", a, a.IsTitleCase(), b, b.IsTitleCase(), c, c.IsTitleCase(), d, d.IsTitleCase()
 Printf fmt, "IsUpper()", a, a.IsUpper(), b, b.IsUpper(), c, c.IsUpper(), d, d.IsUpper()
 
 Printf fmt, "Strip()", a, a.Strip(), b, b.Strip(), c, c.Strip(), d, d.Strip()

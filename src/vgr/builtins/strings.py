@@ -416,24 +416,24 @@ and there is at least one character in the string.
 """
     return _exec_bool_op(x, 'IsSpace', poly_is_space, str.isspace)
 
-@builtin("IsTitle")
-def poly_is_title(x: Any=None) -> Any:
+@builtin("IsTitleCase")
+def poly_is_titlecase(x: Any=None) -> Any:
     """
 **Is a value a string of title-case characters**
 
-* IsTitle(*value*)
-* *value*.IsTitle()
+* IsTitleCase(*value*)
+* *value*.IsTitleCase()
 
 In a title-cased string, upper- and title-case characters may only
 follow uncased characters and lowercase characters only cased ones.
 
 ```vgr
-"Foo".IsTitle() → True
-"foo".IsTitle() → False
-["aA","Bb"].IsTitle() → [False, True]
+"Foo".IsTitleCase() → True
+"foo".IsTitleCase() → False
+["aA","Bb"].IsTitleCase() → [False, True]
 ```
 """
-    return _exec_bool_op(x, 'IsTitle', poly_is_title, str.istitle)
+    return _exec_bool_op(x, 'IsTitleCase', poly_is_titlecase, str.istitle)
 
 @builtin("IsUpper")
 def poly_is_upper(x: Any=None) -> Any:
