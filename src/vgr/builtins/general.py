@@ -20,8 +20,12 @@ from .strings import poly_substr
 from .type import poly_type
 from .registry import builtin
 
+def _apply_vargs(args, op):
+    """Super simple handling for variable arguments"""
+    return None if len(args) == 0 else op(args[0]) if len(args) == 1 else [op(x) for x in args]
+
 @builtin("Reverse")
-def poly_reverse(x: Any=None) -> Any:
+def poly_reverse(*args) -> Any:
     """
 **Reverses the contents of a list or string**
 
@@ -38,13 +42,15 @@ If *value* is an ordinal rather than a list, it is returned unchanged.
 "One Two".Reverse() → "owT enO"
 ```
 """
-    if isinstance(x, list): return list(reversed(x))
-    if isinstance(x, Pattern): x = x.pattern
-    if isinstance(x, str): return x[::-1]
-    return x
+    def _op(x):
+        if isinstance(x, list): return list(reversed(x))
+        if isinstance(x, Pattern): x = x.pattern
+        if isinstance(x, str): return x[::-1]
+        return x
+    return _apply_vargs(args, _op)
 
 @builtin("Negate")
-def poly_negate(x: Any=None) -> Any:
+def poly_negate(*args) -> Any:
     """
 **Returns the negation of a value**
 
@@ -67,15 +73,17 @@ None.Negate() → True
 {"c": "sea", "b": True, "a": 1}.Negate() → {"c": "sea", "b": False, "a": -1}
 ```
 """
-    if x is None: return True
-    if isinstance(x, bool): return not x
-    if isinstance(x, (int, float)): return -x
-    if isinstance(x, list): return list(poly_negate(x1) for x1 in x)
-    if isinstance(x, dict): return {k: poly_negate(v) for k, v in x.items()}
-    return x
+    def _op(x):
+        if x is None: return True
+        if isinstance(x, bool): return not x
+        if isinstance(x, (int, float)): return -x
+        if isinstance(x, list): return list(poly_negate(x1) for x1 in x)
+        if isinstance(x, dict): return {k: poly_negate(v) for k, v in x.items()}
+        return x
+    return _apply_vargs(args, _op)
 
 @builtin("Length")
-def poly_length(x: Any=None) -> Any:
+def poly_length(*args) -> Any:
     """
 **Return the length of an an item**
 
@@ -97,33 +105,13 @@ None.Length() → None
 
 Also see `StringLen()`
 """
-    if isinstance(x, Pattern): x = x.pattern
-    return len(x) if hasattr(x, '__len__') else None
-
-@builtin("Ascii")
-def poly_ascii(x: Any=None) -> str:
-    """
-**Returns a printable Ascii string for an item**
-
-* Ascii(*value*)
-* *value*.Ascii()
-
-Similar to both `Repr()` and `ToString()`.
-Characters outside of Ascii printables are encoded
-with backslash sequences.
-
-```vgr
-"five".Ascii() → "five"
-5.Ascii() → 5
-5.0.Ascii() → 5.0
-["five", 5, 5.0].Ascii() → ["five", 5, 5.0]
-"One\\nTwo".Ascii() → "One\\nTwo"
-```
-"""
-    return ascii(x.pattern if isinstance(x, Pattern) else x)
+    def _op(x):
+        if isinstance(x, Pattern): x = x.pattern
+        return len(x) if hasattr(x, '__len__') else None
+    return _apply_vargs(args, _op)
 
 @builtin("Hash")
-def poly_hash(x: Any=None) -> int:
+def poly_hash(*args) -> int:
     """
 **Returns the internal hashcode for an object**
 
@@ -141,10 +129,11 @@ Cannot be applied to lists or dictionaries.
 
 Also see `Id()`
 """
-    return None if isinstance(x, (list, dict)) else hash(x)
+    def _op(x): return None if isinstance(x, (list, dict)) else hash(x)
+    return _apply_vargs(args, _op)
 
 @builtin("Id")
-def poly_id(obj: Any=None) -> Any:
+def poly_id(*args) -> Any:
     """
 **Returns the internal, unique ID used by the value**
 
@@ -164,10 +153,10 @@ None.Id() → 4387076688
 
 Also see `Hash()`
 """
-    return id(obj)
+    return _apply_vargs(args, id)
 
 @builtin("Clone")
-def poly_clone(x: Any=None) -> Any:
+def poly_clone(*args) -> Any:
     """
 **Ceates a copy of complex objects**
 
@@ -209,11 +198,11 @@ Print z.FirstItem().Id(), z′.FirstItem().Id()
 
 Also see `Id()` and `Hash()`
 """
-    if isinstance(x, (list, dict)): return copy(x)
-    return x
+    def _op(x): return copy(x) if isinstance(x, (list, dict)) else x
+    return _apply_vargs(args, _op)
 
 @builtin("Repr")
-def poly_repr(x: Any=None) -> str:
+def poly_repr(*args) -> str:
     """
 **Returns a string representation of an item**
 
@@ -224,13 +213,11 @@ Differs slightly from `ToString()` as it surrounds string values with quotes
 and escapes non-printable characters.
 
 ```vgr
-"five".Repr() → 'five'
-5.Repr() → 5
-5.0.Repr() → 5.0
-["five", 5, 5.0].Repr() → ['five', 5, 5.0]
+"five".Repr() → '"five"'
+5.Repr() → '5'
+5.0.Repr() → '5.0'
+["five", 5, 5.0].Repr() → ['"five"', '5', '5.0']
 ```
-
-Also see `Ascii()`
 """
     import re
     def _decode_flags(x: Pattern) -> str:
@@ -247,18 +234,20 @@ Also see `Ascii()`
             # If not re.A, then re.U, so we skip it
             if f & re.X: rc += 'x'
         return rc
-    # These are of limited aesthetic value
-    if isinstance(x, str) and '"' not in x:
-        r = repr(x)
-        if r[0] == r[-1] == "'":
-            return '"' + r[1:-1] + '"'
-        return r
-    if isinstance(x, Pattern):
-        # NB: there are probably escaping issue with "/"
-        #     inside the pattern...
-        return 'r/' + x.pattern + '/' + _decode_flags(x)
-    if isinstance(x, list): return '[' + ', '.join(poly_repr(x1) for x1 in x) + ']'
-    return repr(x)
+    def _op(x):
+        # These are of limited aesthetic value
+        if isinstance(x, str) and '"' not in x:
+            r = repr(x)
+            if r[0] == r[-1] == "'":
+                return '"' + r[1:-1] + '"'
+            return r
+        if isinstance(x, Pattern):
+            # NB: there are probably escaping issue with "/"
+            #     inside the pattern...
+            return 'r/' + x.pattern + '/' + _decode_flags(x)
+        if isinstance(x, list): return '[' + ', '.join(poly_repr(x1) for x1 in x) + ']'
+        return repr(x)
+    return _apply_vargs(args, _op)
 
 @builtin("Enumerate")
 def poly_enumerate(obj: Any=None, start_at: int=0) -> Any:

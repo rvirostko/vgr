@@ -35,6 +35,8 @@
   the final one is checked to see if it is None or a numeric value.
   If so, it is used for the length/size value rather than one of the
   inputs to be transformed.
+- The following general purpose functions now support variable arguments:
+  Clone(), Hash(), Id(), Length(), Negate(), Repr(), Reverse().
 - Internal change: automatic registration of built-in functions
 
 ### Deprecated
@@ -46,6 +48,7 @@
   retrieve valid keys that contained periods. This behavior has been removed.
   If you need this type of behavior, use a list for the path, as each
   element is a single step.
+- Ascii() has been removed; use Repr() instead
 
 ### Fixed
 
