@@ -25,6 +25,11 @@
 - "load-from-test" updated with newer syntax
 - The "Paths" option of Create-Zip now has an optional leading "Keep",
   so you either "Keep Paths" or "Junk Paths"
+- The following string functions now support variable arguments:
+  Capitalize(), CaseFold(), IsAlpha(), IsAlphaNumeric(), IsAscii(),
+  IsDecimal(), IsDigit(), IsLower(), IsNumeric(), IsPrintable(),
+  IsSpace(), IsTitleCase(), IsUpper(), Lower(), ReverseStr(),
+  StringLen(), SwapCase(), TitleCase(), Upper()
 - Internal change: automatic registration of built-in functions
 
 ### Deprecated

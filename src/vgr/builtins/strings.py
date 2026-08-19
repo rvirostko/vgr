@@ -9,7 +9,6 @@ import re
 
 from .common import (
     AnyType,
-    bool_arg,
     int_arg,
     NoneType,
     str_arg,
@@ -19,7 +18,6 @@ from .inequ import poly_eq
 from .match import poly_matches_all, poly_matches
 from .reg_ex import poly_regex_replace
 from .type import poly_type
-from .types import poly_to_string
 from .registry import builtin
 
 _NOT_FOUND = -1
@@ -38,29 +36,31 @@ def _exec_x_op(x: Any, name: str, op: Callable[[Any], Any], string_op, op_table)
 
 # For no-args string methods that return a string, e.g. "x.Upper()"
 # These are transformational on string items, but idempotent on others
-_str_operations = {
+_STRING_OPERATIONS = {
     NoneType: lambda _op, _x, _sm: None,
     bool:     lambda _op,  x, _sm: x,
     int:      lambda _op,  x, _sm: x,
     float:    lambda _op,  x, _sm: x,
     str:      lambda _op,  x,  sm: sm(x),
-    list:     lambda  op,  x, _sm: [op(x1) for x1 in x ],
+    list:     lambda  op,  x, _sm: [op(x1) for x1 in x],
     dict:     lambda  op,  x, _sm: {key: op(value) for key, value in x.items()},
     Pattern:  lambda _op,  x,  sm: sm(x.pattern),
 }
 
-def _exec_str_op(x: Any, name: str, op: Callable[[Any], Any], string_op) -> Any:
-    return _exec_x_op(x, name, op, string_op, _str_operations)
+def _exec_string_op(x: Any, name: str, op: Callable[[Any], Any], string_op) -> Any:
+    return _exec_x_op(x, name, op, string_op, _STRING_OPERATIONS)
+def _convert_args(args): return None if len(args) == 0 else args[0] if len(args) == 1 else list(args)
 
 @builtin("StringLen")
-def poly_stringlen(x: Any=None) -> Any:
+def poly_stringlen(*args) -> Any:
     """
 **Return the length of a string**
 
 * StringLen(*value*)
 * *value*.StringLen()
 
-If *value* is of any type except string, `None` is returned.
+The operations is distributed over lists and dictionaries,
+but for all other types except string, `None` is returned.
 
 ```vgr
 "foo".StringLen() → 3
@@ -70,10 +70,10 @@ If *value* is of any type except string, `None` is returned.
 
 Also see `Length()`
 """
-    return _exec_str_op(x, 'StringLen', poly_stringlen, str.__len__)
+    return _exec_string_op(_convert_args(args), 'StringLen', poly_stringlen, str.__len__)
 
 @builtin("ReverseStr")
-def poly_reversestr(x: Any=None) -> Any:
+def poly_reversestr(*args) -> Any:
     """
 **Returns the characters of the string in reverse order**
 
@@ -89,10 +89,10 @@ None.ReverseStr() → None
 
 Also see `Reverse()`
 """
-    return _exec_str_op(x, 'ReverseStr', poly_reversestr, lambda s: s[::-1])
+    return _exec_string_op(_convert_args(args), 'ReverseStr', poly_reversestr, lambda s: s[::-1])
 
 @builtin("Capitalize")
-def poly_capitalize(x: Any=None) -> Any:
+def poly_capitalize(*args) -> Any:
     """
 **Return the capitalized version of a string**
 
@@ -108,10 +108,10 @@ None.Capitalize() → None
 123.Capitalize() → 123
 ```
 """
-    return _exec_str_op(x, 'Capitalize', poly_capitalize, str.capitalize)
+    return _exec_string_op(_convert_args(args), 'Capitalize', poly_capitalize, str.capitalize)
 
 @builtin("CaseFold")
-def poly_casefold(x: Any=None) -> Any:
+def poly_casefold(*args) -> Any:
     """
 **Return a caseless version of a string**
 
@@ -127,10 +127,10 @@ None.CaseFold() → None
 123.CaseFold() → 123
 ```
 """
-    return _exec_str_op(x, 'CaseFold', poly_casefold, str.casefold)
+    return _exec_string_op(_convert_args(args), 'CaseFold', poly_casefold, str.casefold)
 
 @builtin("Lower")
-def poly_lower(x: Any=None) -> Any:
+def poly_lower(*args) -> Any:
     """
 **Return a lowercase version of a string**
 
@@ -146,10 +146,10 @@ None.Lower() → None
 123.Lower() → 123
 ```
 """
-    return _exec_str_op(x, 'Lower', poly_lower, str.lower)
+    return _exec_string_op(_convert_args(args), 'Lower', poly_lower, str.lower)
 
 @builtin("SwapCase")
-def poly_swapcase(x: Any=None) -> Any:
+def poly_swapcase(*args) -> Any:
     """
 **Return a string with upper and lower case characters swapped**
 
@@ -165,10 +165,10 @@ None.SwapCase() → None
 123.SwapCase() → 123
 ```
 """
-    return _exec_str_op(x, 'SwapCase', poly_swapcase, str.swapcase)
+    return _exec_string_op(_convert_args(args), 'SwapCase', poly_swapcase, str.swapcase)
 
 @builtin("TitleCase")
-def poly_title(x: Any=None) -> Any:
+def poly_title(*args) -> Any:
     """
 **Title-case words in a string**
 
@@ -184,10 +184,10 @@ None.TitleCase() → None
 123.TitleCase() → 123
 ```
 """
-    return _exec_str_op(x, 'TitleCase', poly_title, str.title)
+    return _exec_string_op(_convert_args(args), 'TitleCase', poly_title, str.title)
 
 @builtin("Upper")
-def poly_upper(x: Any=None) -> Any:
+def poly_upper(*args) -> Any:
     """
 **Return an upper case version of a string**
 
@@ -203,12 +203,12 @@ None.Upper() → None
 123.Upper() → 123
 ```
 """
-    return _exec_str_op(x, 'Upper', poly_upper, str.upper)
+    return _exec_string_op(_convert_args(args), 'Upper', poly_upper, str.upper)
 
 #---------------------------------------------
 
 # For no-args string method that returns a bool, e.g. "x.IsUpper()"
-_bool_operations = {
+_BOOL_OPERATIONS = {
     NoneType: lambda _op, _x, _sm: False,
     bool:     lambda _op, _x, _sm: False,
     int:      lambda _op, _x, _sm: False,
@@ -220,10 +220,10 @@ _bool_operations = {
 }
 
 def _exec_bool_op(x: Any, name: str, op: Callable[[Any], Any], string_op) -> Any:
-    return _exec_x_op(x, name, op, string_op, _bool_operations)
+    return _exec_x_op(x, name, op, string_op, _BOOL_OPERATIONS)
 
 @builtin("IsAlphaNumeric")
-def poly_is_alnum(x: Any=None) -> Any:
+def poly_is_alnum(*args) -> Any:
     """
 **Is a value an alpha-numeric string**
 
@@ -243,10 +243,10 @@ character-by-character basis.
 
 Also see `IsAlpha()` and `IsNumeric()`
 """
-    return _exec_bool_op(x, 'IsAlphaNnumeric', poly_is_alnum, str.isalnum)
+    return _exec_bool_op(_convert_args(args), 'IsAlphaNumeric', poly_is_alnum, str.isalnum)
 
 @builtin("IsAlpha")
-def poly_is_alpha(x: Any=None) -> Any:
+def poly_is_alpha(*args) -> Any:
     """
 **Is a value an alphabetic string**
 
@@ -262,10 +262,10 @@ are alphabetic and there is at least one character in the string.
 ["Hello", "Gruezi", "Olá"].IsAlpha() → [True, True, True]
 ```
 """
-    return _exec_bool_op(x, 'IsAlpha', poly_is_alpha, str.isalpha)
+    return _exec_bool_op(_convert_args(args), 'IsAlpha', poly_is_alpha, str.isalpha)
 
 @builtin("IsAscii")
-def poly_is_ascii(x: Any=None) -> Any:
+def poly_is_ascii(*args) -> Any:
     """
 **Is a value a string composed of all Ascii characters**
 
@@ -284,10 +284,10 @@ None.IsAscii() → False
 
 Also see `IsPrintable()`
 """
-    return _exec_bool_op(x, 'IsAscii', poly_is_ascii, str.isascii)
+    return _exec_bool_op(_convert_args(args), 'IsAscii', poly_is_ascii, str.isascii)
 
 @builtin("IsDecimal")
-def poly_is_decimal(x: Any=None) -> Any:
+def poly_is_decimal(*args) -> Any:
     """
 **Is the value a string of decimal characters**
 
@@ -309,10 +309,10 @@ This is the most restrictive of the number related tests.
 
 Also see `IsDigit()` and `IsNumeric()`
 """
-    return _exec_bool_op(x, 'IsDecimal', poly_is_decimal, str.isdecimal)
+    return _exec_bool_op(_convert_args(args), 'IsDecimal', poly_is_decimal, str.isdecimal)
 
 @builtin("IsDigit")
-def poly_is_digit(x: Any=None) -> Any:
+def poly_is_digit(*args) -> Any:
     """
 **Is a value a string of digits**
 
@@ -332,10 +332,10 @@ characters such as circled numbers.
 
 Also see `IsDecimal()` and `IsNumeric()`
 """
-    return _exec_bool_op(x, 'IsDigit', poly_is_digit, str.isdigit)
+    return _exec_bool_op(_convert_args(args), 'IsDigit', poly_is_digit, str.isdigit)
 
 @builtin("IsLower")
-def poly_is_lower(x: Any=None) -> Any:
+def poly_is_lower(*args) -> Any:
     """
 **Is a value a string of lowercase characters**
 
@@ -351,10 +351,10 @@ are lowercase and there is at least one cased character in the string.
 ["3.1415", ""].IsLower() → [False, False]
 ```
 """
-    return _exec_bool_op(x, 'IsLower', poly_is_lower, str.islower)
+    return _exec_bool_op(_convert_args(args), 'IsLower', poly_is_lower, str.islower)
 
 @builtin("IsNumeric")
-def poly_is_numeric(x: Any=None) -> Any:
+def poly_is_numeric(*args) -> Any:
     """
 **Is a value a string of numeric characters**
 
@@ -376,10 +376,10 @@ This is the most permissive of the number related tests.
 
 Also see `IsDecimal()` and `IsDigit()`
 """
-    return _exec_bool_op(x, 'IsNumeric', poly_is_numeric, str.isnumeric)
+    return _exec_bool_op(_convert_args(args), 'IsNumeric', poly_is_numeric, str.isnumeric)
 
 @builtin("IsPrintable")
-def poly_is_printable(x: Any=None) -> Any:
+def poly_is_printable(*args) -> Any:
     """
 **Is a value a string of printable characters**
 
@@ -395,10 +395,10 @@ or if it is empty.
 "foo\nbar".IsPrintable() → False
 ```
 """
-    return _exec_bool_op(x, 'IsPrintable', poly_is_printable, str.isprintable)
+    return _exec_bool_op(_convert_args(args), 'IsPrintable', poly_is_printable, str.isprintable)
 
 @builtin("IsSpace")
-def poly_is_space(x: Any=None) -> Any:
+def poly_is_space(*args) -> Any:
     """
 **Is a value a string of whitespace characters**
 
@@ -414,10 +414,10 @@ and there is at least one character in the string.
 ["\\t\\n ", None].IsSpace() → [True, False]
 ```
 """
-    return _exec_bool_op(x, 'IsSpace', poly_is_space, str.isspace)
+    return _exec_bool_op(_convert_args(args), 'IsSpace', poly_is_space, str.isspace)
 
 @builtin("IsTitleCase")
-def poly_is_titlecase(x: Any=None) -> Any:
+def poly_is_titlecase(*args) -> Any:
     """
 **Is a value a string of title-case characters**
 
@@ -433,10 +433,10 @@ follow uncased characters and lowercase characters only cased ones.
 ["aA","Bb"].IsTitleCase() → [False, True]
 ```
 """
-    return _exec_bool_op(x, 'IsTitleCase', poly_is_titlecase, str.istitle)
+    return _exec_bool_op(_convert_args(args), 'IsTitleCase', poly_is_titlecase, str.istitle)
 
 @builtin("IsUpper")
-def poly_is_upper(x: Any=None) -> Any:
+def poly_is_upper(*args) -> Any:
     """
 **Is a value a string of uppercase characters**
 
@@ -452,7 +452,7 @@ and there is at least one cased character in the string.
 ["FOO-BAR", "Foo Bar"].IsUpper() → [True, False]
 ```
 """
-    return _exec_bool_op(x, 'IsUpper', poly_is_upper, str.isupper)
+    return _exec_bool_op(_convert_args(args), 'IsUpper', poly_is_upper, str.isupper)
 
 #---------------------------------------------
 
