@@ -13,7 +13,7 @@ from .registry import builtin
 _DEFAULT_TS_FORMAT = '%FT%T'
 
 @builtin("GetDateTime")
-def get_datetime() -> int:
+def get_datetime(*args) -> int:
     """
 **Return the Unix Epoch time in seconds**
 
@@ -26,6 +26,7 @@ Printf "{} is {}\n", GetDateTime(), FormatDateTime()
 
 Also see `FormatDateTime()` and the `time.now` variable
 """
+    # NB: args ignored
     return int(time.time()) # Unix Epoch time
 
 @builtin("FormatDuration")

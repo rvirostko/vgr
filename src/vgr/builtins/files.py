@@ -11,7 +11,7 @@ from .type import poly_type
 from .registry import builtin
 
 @builtin("GetCurrentDirectory")
-def get_current_directory() -> str:
+def get_current_directory(*args) -> str:
     """
 **Return the name of the current directory**
 
@@ -19,6 +19,7 @@ def get_current_directory() -> str:
 
 Also see the `os.cwd` variable
 """
+    # NB: args ignored
     return expand_filename(os.getcwd())
 
 @builtin("DirectoryName")
