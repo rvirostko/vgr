@@ -763,41 +763,56 @@ Also see `StartsWith()`
     if not args: return False
     return _exec_bool_str_op(args[0], list(args[1:]), "EndsWith", poly_ends_with, _ends_with)
 
-_string_int_ops = {
+_STRING_INT_OPERATIONS = {
     (str, int)   : lambda _op, x, y,  sm: sm(x, y),
     (list, int)  : lambda  op, x, y, _sm: [op(x1, y) for x1 in x],
     (dict, int)  : lambda  op, x, y, _sm: {key: op(value, y) for key, value in x.items()},
 }
 
-def exec_str_int_op(x: Any, y: Any, name: str, op: Callable[[Any, Any], Any], string_op) -> Any:
+def _exec_str_int_op(x: Any, y: Any, name: str, op: Callable[[Any, Any], Any], string_op) -> Any:
     # For these types, the operation is idempotent
     if isinstance(x, (NoneType, bool, int, float, Pattern)): return x
-    return _exec_x_y_op(x, y, name, op, string_op, _string_int_ops)
+    return _exec_x_y_op(x, y, name, op, string_op, _STRING_INT_OPERATIONS)
+
+def _split_vargs_number(args) -> tuple:
+    """Splits variable args into the intented argument(s) for
+the function and an option integer argument.
+"""
+    if not args: return None, None
+    if len(args) == 1: return args[0], None
+    last = args[-1]
+    if last is None: return _convert_args(args[:-1]), None
+    if isinstance(last, (int, float)): return _convert_args(args[:-1]), int(last)
+    return _convert_args(args), None
 
 @builtin("ExpandTabs")
-def poly_expand_tabs(x: Any=None, tabsize: Any=8) -> Any:
+def poly_expand_tabs(*args) -> Any:
     """
-**Converts tabs in a string into spaces**
+**Converts tabs in a string into spaces while maintaining alignment**
 
 * ExpandTabs(*value*)
-* ExpandTabs(*value*, *tabsize*)
+* ExpandTabs(*value*, *tabstop*)
 * *value*.ExpandTabs()
-* *value*.ExpandTabs(*tabsize*)
+* *value*.ExpandTabs(*tabstop*)
 
 *tabsize* defaults to 8 and is limited from 0 to 64.
+Note that this is not a direct replacement of tabs to space, but
+an *alignment* to tab stops of the requested size.
+Using zero effectively removes tabs; one replaces them with a space.
 
 ```vgr
 None.ExpandTabs() → None
-"\\taBc\\t".ExpandTabs() → "        aBc     "
-"\\taBc\\t".ExpandTabs(2) → "  aBc "
-["A\\tbc", "X\\tyz"].ExpandTabs(0) → ["Abc", "Xyz"]
 123.ExpandTabs() → 123
+"a\\tbc\\tdef\\tghi".ExpandTabs(4) → "a   bc  def ghi"
+["A\\tbc", "X\\tyz"].ExpandTabs(0) → ["Abc", "Xyz"]
 ```
 """
-    return exec_str_int_op(x, min(max(0, int_arg(tabsize, 'Tabsize')), 64), "ExpandTabs", poly_expand_tabs, str.expandtabs)
+    x, tabstop = _split_vargs_number(args)
+    tabstop = 8 if tabstop is None else min(max(0, tabstop), 64)
+    return _exec_str_int_op(x, tabstop, "ExpandTabs", poly_expand_tabs, str.expandtabs)
 
 @builtin("LeftStr")
-def poly_leftstr(x: Any=None, length: Any=1) -> Any:
+def poly_leftstr(*args) -> Any:
     """
 **Returns the leftmost characters of a string**
 
@@ -819,10 +834,12 @@ None.LeftStr() → None
 
 Also see `RightStr()` and `SubStr()`
 """
-    return exec_str_int_op(_as_str(x), max(1, int_arg(length, 'Length')), "LeftStr", poly_leftstr, lambda x, length: x[:length])
+    x, length = _split_vargs_number(args)
+    length = 1 if length is None else max(0, length)
+    return _exec_str_int_op(_as_str(x), length, "LeftStr", poly_leftstr, lambda x, length: x[:length])
 
 @builtin("RightStr")
-def poly_rightstr(x: Any=None, length: Any=1) -> Any:
+def poly_rightstr(*args) -> Any:
     """
 **Retunrs the rightmost characters of a string**
 
@@ -844,7 +861,9 @@ None.RightStr() → None
 
 Also see `LeftStr()` and `SubStr()`
 """
-    return exec_str_int_op(_as_str(x), max(0, int_arg(length, 'Length')), "RightStr", poly_rightstr, lambda x, length: x[-length:])
+    x, length = _split_vargs_number(args)
+    length = 1 if length is None else max(0, length)
+    return _exec_str_int_op(_as_str(x), length, "RightStr", poly_rightstr, lambda x, length: x[-length:])
 
 #---------------------------------------------
 
@@ -1310,6 +1329,8 @@ def _replace(x: Any, old: Any, new: Any=None) -> Any:
     raise TypeError(f'Replacement of {poly_type(x)!r} not supported')
 
 def _as_str(value: Any) -> Any:
+    """Converts bools, ints, floats, and Patterns to strings.
+Everything else is returned unaltered."""
     if isinstance(value, (bool, int, float)): value = str(value)
     if isinstance(value, Pattern): value = value.pattern
     return value

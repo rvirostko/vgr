@@ -30,6 +30,11 @@
   IsDecimal(), IsDigit(), IsLower(), IsNumeric(), IsPrintable(),
   IsSpace(), IsTitleCase(), IsUpper(), Lower(), ReverseStr(),
   StringLen(), SwapCase(), TitleCase(), Upper()
+- The following string functions now support variable arguments:
+  ExpandTabs(), LeftStr(), RightStr(). When given multiple arguments,
+  the final one is checked to see if it is None or a numeric value.
+  If so, it is used for the length/size value rather than one of the
+  inputs to be transformed.
 - Internal change: automatic registration of built-in functions
 
 ### Deprecated
