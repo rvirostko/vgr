@@ -8,6 +8,9 @@ from functools import lru_cache
 from typing import Any, Callable
 import inspect
 
+from .builtins.general import poly_unique
+from .builtins.registry import BuiltinRegistry
+
 # Binds a (pretty) name to the function to be executed
 # Additionally, we should use functions here rather than lambdas
 # so we can grab the __DOC__ for help functions.
@@ -37,7 +40,6 @@ def function_names_pattern() -> str:
     return r"(?i)\b(?:" + "|".join(functions) + r")(?=\s*\()"
 
 def add_builtin_functions() -> None:
-    from .builtins.registry import BuiltinRegistry
     add_functions('built-in', BuiltinRegistry.items())
 
 def add_functions(extn_name: str, function_mapping) -> None:
@@ -97,7 +99,7 @@ def _gen_function_defs(weight: str, rule_name, group_label, dot_invocation: bool
         # "prefix" problems. First we order the names longest to shortest, then end
         # the pattern in such as way that we look ahead for the open paren, but don't capture it.
         rc += '\n' + f'\n{label}.{weight}: /('
-        rc += '|'.join(key for key in sorted(func_groups[(min_args, max_args)], key=lambda x: (-len(x), x)))
+        rc += '|'.join(key for key in sorted(poly_unique(func_groups[(min_args, max_args)]), key=lambda x: (-len(x), x)))
         rc += ')\\s*(?=[(])/i'
     first = True
     # The function rule is a combination of the by-arg-length names and a pattern for their argument count
