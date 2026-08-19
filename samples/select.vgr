@@ -1,3 +1,6 @@
+
+Define Function func() -> 5
+
 Print """
 The default variable name is $record"""
 Select *
@@ -21,7 +24,7 @@ Print """
 Arrays can contain mixed types
 but including dictionaries change this behavior"""
 Select *
-From [ True, False, None, Inf, vgr.version ] As Data
+From [ True, False, None, Inf, vgr.version, r/a/i, func ] As Data
 For Batch Template
 
 Print """
