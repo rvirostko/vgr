@@ -55,6 +55,8 @@
 
 - Vault calls broken by "HttpResponse object has no attribute url"
 - Http returns url and request_url as strings rather than URL instances
+- RightStr(0) returned entire string when result should have been
+  an empty string.
 
 ### Security
 

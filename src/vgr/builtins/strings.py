@@ -863,7 +863,7 @@ Also see `LeftStr()` and `SubStr()`
 """
     x, length = _split_vargs_number(args)
     length = 1 if length is None else max(0, length)
-    return _exec_str_int_op(_as_str(x), length, "RightStr", poly_rightstr, lambda x, length: x[-length:])
+    return _exec_str_int_op(_as_str(x), length, "RightStr", poly_rightstr, lambda x, length: "" if length == 0 else x[-length:])
 
 #---------------------------------------------
 
