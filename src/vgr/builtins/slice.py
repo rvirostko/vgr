@@ -70,4 +70,5 @@ True.Slice(2) → True
     if isinstance(x, Sequence): return list(x[start:stop:step])
     # Convert iterable to list then slice
     if isinstance(x, Iterable): return list(list(x)[start:stop:step])
+    # likely a bool, int, float, Pattern
     return x
