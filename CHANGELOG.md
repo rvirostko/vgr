@@ -39,6 +39,8 @@
 - The following general purpose functions now support variable arguments:
   Clone(), Hash(), Id(), IsFalse(), IsTrue(), Length(), Negate(),
   Repr(), Reverse().
+- DefaultTo() now takes multiple default values, returning the first
+  non-None one.
 - Internal change: automatic registration of built-in functions
 
 ### Deprecated

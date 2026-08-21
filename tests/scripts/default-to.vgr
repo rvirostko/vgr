@@ -1,0 +1,17 @@
+Echo On
+
+Assert DefaultTo() Is None
+Assert None.DefaultTo() Is None
+Assert None.DefaultTo(None) Is None
+
+Assert 5.DefaultTo(6) Is 5
+Assert None.DefaultTo(6) Is 6
+
+Constant jenny = "909-867-5309"
+Constant phone = {
+    "home": None,
+    "work": None,
+    "cell": jenny
+}
+
+Assert phone.home.DefaultTo(phone.work, phone.cell) Is jenny

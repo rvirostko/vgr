@@ -499,18 +499,39 @@ Also see `IsEmpty()`
     return x is not None
 
 @builtin("DefaultTo")
-def default_to(value: Any=None, default: Any=None) -> Any:
+def default_to(value: Any=None, *args) -> Any:
     """
 **Returns the default if a value is `None`**
 
-* DefaultTo(*value*, *default*)
-* *value*.DefaultTo(*default*)
+* DefaultTo(*value*, *default*&hellip;)
+* *value*.DefaultTo(*default**&hellip;)
+
+When *value* is `None` a value is choosen from those provided.
+If multiple default values are provided, the first non-`None` one
+is returned. If all default values are `None` then `None` is returned.
 
 ```vgr
-**TODO**
+DefaultTo() → None
+None.DefaultTo() → None
+None.DefaultTo(None) → None
+5.DefaultTo(6) → 5
+None.DefaultTo(6) → 6
+```
+
+```vgr
+Constant phone = {
+    "home": None,
+    "work": None,
+    "cell": "909-867-5309"
+}
+
+phone.home.DefaultTo(phone.work, phone.cell) → "909-867-5309"
 ```
 """
-    return default if value is None else value
+    if value is None:
+        for arg in args:
+            if arg is not None: return arg
+    return value
 
 @builtin("IsFunction")
 def poly_is_function(obj: Any=None) -> Any:
