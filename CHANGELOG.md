@@ -8,6 +8,7 @@
 
 - Added "GetFileInfo()" to retrieve information on one or more file/directory paths.
   Variable length arguments and supports polymorphism with lists and dictionaries.
+- Added "Head()" and "Tail()" to return a subset of lists.
 
 ### Changed
 
