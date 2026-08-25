@@ -3,19 +3,22 @@
 # an immutable variable, you actually get
 # a mutable copy
 
-Echo On
+Exhibit math
 
-Print math
-
+# t is a mutable copy
 Set t To math
-Print t
+Exhibit t
+For Each k In t.GetKeys()
+    Assert t.GetKeyValue(k) Equals math.GetKeyValue(k)
+End-For
 
-Set t.inf To Zero
+Echo On
+Unset t.pi
 Set t.new_var To "frog"
-Print t
-
-Assert math.inf == INF
-Assert t.inf == 0
-Assert 'new_var' Is In t
-
 Echo Off
+Exhibit t
+Echo On
+Assert math.pi Is Defined
+Assert math.new_var Is Undefined
+Assert t.pi is Undefined
+Assert t.new_var Is Defined

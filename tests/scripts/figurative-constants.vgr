@@ -2,6 +2,8 @@
 # Compare figurative constants (or Unicode alternatives)
 # against known or calculated values
 
+Echo On
+
 Unset none_value
 Assert none_value.IsNone()
 Assert None Equals none_value
@@ -24,23 +26,23 @@ Assert False Equals false_value
 Assert False === false_value
 Assert False.IsFalse()
 
-Assert Nan Equals math.nan
-Assert Nan === math.nan
 Assert Nan.IsNan()
+
 Assert Zero Equals 0
 Assert Zero === 0
 Assert Zero.IsZero()
-Assert Inf Equals math.inf
-Assert Inf === math.inf
-Assert Inf.IsInf()
-Assert ∞ Equals math.inf
 
-Assert Colon Equals ":"
-Assert Comma Equals ","
-Assert Newline Equals "\n"
-Assert Period Equals "."
-Assert Quote Equals '"'
-Assert Space Equals " "
-Assert Tab Equals "\t"
-Assert Escape Equals "\x1b"
-Assert Backslash Equals "\\"
+Assert Inf.IsInf()
+Assert Inf.IsFinite() Is False
+Assert ∞ Equals Inf
+Assert ∞ === Inf
+
+Assert Colon === ":"
+Assert Comma === ","
+Assert Newline === "\n"
+Assert Period === "."
+Assert Quote === '"'
+Assert Space === " "
+Assert Tab === "\t"
+Assert Escape === "\x1b"
+Assert Backslash === r"\"

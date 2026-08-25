@@ -4,7 +4,7 @@ VGR has a hierarchical, global data model, viewed as variables. Some variables a
 
 * `args` : list of positional user arguments from the command line
 * `env` : an imported view of the environment including `env.OFS` and `env.ORS` used by `Print`.
-* `math` : Python math constants such as `math.e` and `math.inf`. Read-only.
+* `math` : Python math constants such as `math.e` and `math.pi`. Read-only.
 * `os` : Operating system constants such as `os.linesep` and `os.extsep`. Read-only.
 * `string` : More constants that can be used with string functions, like `string.hexdigits` and `string.ascii_letters`. Read-only.
 * `vgr` : Read-only internals, some dynamic, other changed by commands.
@@ -159,15 +159,12 @@ You can see a bigger difference when printing variables that are dictionaries:
 
 ```vgr
 Print math
-{'pi': 3.141592653589793, 'e': 2.718281828459045, 'tau': 6.283185307179586, 'inf': inf, 'nan': nan, 'neg_inf': -inf, 'float': {'max': 1.7976931348623157e+308, 'min': 2.2250738585072014e-308}}
+{'pi': 3.141592653589793, 'e': 2.718281828459045, 'tau': 6.283185307179586, 'float': {'max': 1.7976931348623157e+308, 'min': 2.2250738585072014e-308}}
 
 Exhibit math
 math.e = 2.718281828459045
 math.float.max = 1.7976931348623157e+308
 math.float.min = 2.2250738585072014e-308
-math.inf = inf
-math.nan = nan
-math.neg_inf = -inf
 math.pi = 3.141592653589793
 math.tau = 6.283185307179586
 ```
