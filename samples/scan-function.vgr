@@ -1,0 +1,15 @@
+
+/*
+ * Implements Excel's Scan() function using CombineUsing()
+ * https://support.microsoft.com/en-us/office/scan-function-d58dfd11-9969-4439-b2dc-e7062724de29
+ */
+
+
+Define Constant Function ScanAccumulator(acc, value) -> acc.ListAppend((value.IsNumber() ? value : 0).Add(acc.LastItem()))
+Define Constant Function Scan(data) -> data.CombineUsing(ScanAccumulator, [])
+
+Set data To [5, 6, 7, 8]
+Set results To @Scan(data)
+Printf "@Scan({!r}) -> {!r}\n", data, results
+Assert results[0] Is data[0]
+Assert results[-1] Is Sum(data)
