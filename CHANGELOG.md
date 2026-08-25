@@ -17,7 +17,7 @@
 - Breaking change: Left/RightShift() renamed to ShiftLeft/Right()
   to match RotateLeft/Right()
 - Breaking change: Include/Exclude Nulls removed from Select For Text. They
-  we inherited from JSON output, but made not sense here.
+  we inherited from JSON output, but made no sense here.
 - Breaking change: Select For Text headers now works more like CSV output
   rather than JSON.
 - Breaking change: IsTitle() renamed to IsTitleCase() to match the
