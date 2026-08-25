@@ -29,9 +29,9 @@
 - The "Paths" option of Create-Zip now has an optional leading "Keep",
   so you either "Keep Paths" or "Junk Paths"
 - The following string functions now support variable arguments:
-  Capitalize(), CaseFold(), IsAlpha(), IsAlphaNumeric(), IsAscii(),
+  Capitalize(), CaseFold(), Chr(), IsAlpha(), IsAlphaNumeric(), IsAscii(),
   IsDecimal(), IsDigit(), IsLower(), IsNumeric(), IsPrintable(),
-  IsSpace(), IsTitleCase(), IsUpper(), Lower(), ReverseStr(),
+  IsSpace(), IsTitleCase(), IsUpper(), Lower(), Ord(), ReverseStr(),
   StringLen(), SwapCase(), TitleCase(), Upper()
 - The following string functions now support variable arguments:
   ExpandTabs(), LeftStr(), RightStr(). When given multiple arguments,

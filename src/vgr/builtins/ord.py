@@ -4,7 +4,7 @@ from re import Pattern
 from .registry import builtin
 
 @builtin("Ord")
-def poly_ord(x:Any=None) -> Any:
+def poly_ord(*args) -> Any:
     """
 **Convert a string to its ordinal values**
 
@@ -24,11 +24,10 @@ The operation is distributed across lists and dictionaries.
 
 Also see `Chr()`
 """
+    x = None if len(args) == 0 else args[0] if len(args) == 1 else list(args)
     if x is None: return None
     if isinstance(x, (int, float)): return int(x) if 0 <= x <= 0x10FFFF else x
-    if isinstance(x, Pattern): x = x.pattern
     if isinstance(x, str): return ord(x) if len(x) == 1 else [poly_ord(x1) for x1 in x]
-    if isinstance(x, (bytes, bytearray)): return list(x)
     if isinstance(x, list): return list(poly_ord(el) for el in x)
     if isinstance(x, dict): return {k: poly_ord(v) for k, v in x.items()}
     return x

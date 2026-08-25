@@ -1,0 +1,22 @@
+
+Echo On
+Assert Chr() Is None
+Assert None.Chr() Is None
+Assert -1.5.Chr() Is -1.5
+Assert [99, 97, 116].Chr() Is ["c", "a", "t"]
+Assert Chr(99, 97, 116) Is ["c", "a", "t"]
+Echo Off
+
+Set d To {}
+For Each c In ["c", "a", "t"]
+    Set key c In d To Ord(c)
+End-For
+Set e To d.Chr()
+Print d.FormatJson() + Newline + e.FormatJson()
+
+For Each k In e.GetKeys()
+    Assert e.GetKeyValue(k) Is k
+End-For
+
+Set r To r/a/
+Assert r.Chr() === r
