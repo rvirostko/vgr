@@ -1,0 +1,13 @@
+
+# https://github.com/rvirostko/vgr/issues/42
+Echo On
+Set a To { "dot.dot": "." }
+Assert a.GetKeyValue("dot") Is None
+Assert a.GetKeyValue("dot.dot") Is "."
+
+Set a To { "dot": { "dot": "." } }
+Assert a.GetKeyValue("dot") Is { "dot": "." }
+Assert a.GetKeyValue(["dot", "dot"]) Is "."
+Assert a.GetKeyValue("dot.dot".Split(".")) Is "."
+
+Echo off

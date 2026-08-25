@@ -270,7 +270,6 @@
 - REPL actually uses "Exit" rather than doing special checks, which
   caused weird results with "Exit Do" et al
 
-
 ## [1.1.9] - 2026-02-10
 
 ### Added

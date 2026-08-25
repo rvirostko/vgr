@@ -246,6 +246,14 @@ point1.GetKeyValue("z", 0) → 0
 Set point2 To {"x": 7, "y": 29, "meta": {"type": "2d", "name": "p2"}}
 point2.GetKeyValue(["meta", "name"]) → "p2"
 [point1, point2].GetKeyValue("y") → [7, 29]
+
+Set a To { "dot": { "dot": "." } }
+a.GetKeyValue("dot") → { "dot": "." }
+a.GetKeyValue(["dot", "dot"]) → "."
+a.GetKeyValue("dot.dot".Split(".")) → "."
+
+Set a To { "dot.dot": "." }
+a.GetKeyValue("dot.dot") → "."
 ```
 
 Also see `SetKeyValue()` and `LookupItem()`
