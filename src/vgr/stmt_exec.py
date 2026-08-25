@@ -121,6 +121,10 @@ from .stmt_sort import execute_sort
 from .stmt_zip import execute_zip
 from .tags import control_statement
 
+_TYPOGRAPHIC_QUOTES = "\u2018\u2019\u201C\u201D"
+_SINGLE_QUOTE = "'"
+_DOUBLE_QUOTE = '"'
+
 LOOP_META_PATH = ('$loop',)
 _LOOP_META_LENGTH = 'length'
 _LOOP_META_INDEX = 'index' # NB: this is zero based!
@@ -864,23 +868,27 @@ class ConstantsNormalizer(Transformer):
     @staticmethod
     def normalize_outer_quotes(s: str) -> str:
         """Fixes up typographic quotes from text pasted in from MS products like Word"""
-        if s[0].isalpha():
-            i = 0
-            while i < len(s) and s[i].isalpha(): i += 1
-            prefix = s[:i]
-            open_quote = s[i]
+        def _normalize(s: str, qc: str) -> str:
+            if prefix == '':
+                return qc + re.sub(r'\\(.)', lambda m: m.group(1) if m.group(1) in _TYPOGRAPHIC_QUOTES else m.group(0), s, flags=re.DOTALL) + qc
+            return prefix + qc + s + qc
+        if s[0] in ['r', 'R']: # we only support "raw" prefix
+            prefix = s[0]
+            open_quote = s[1]
+            close_quote = s[-1]
+            s = s[2:-1] # NB: we are ignoring the triple quote
         else:
             prefix = ''
             open_quote = s[0]
-        # the string is clean
-        if open_quote in ('"', "'"): return s
-        if prefix: s = s[1:]
-        close_quote = s[-1]
+            close_quote = s[-1]
+            s = s[1:-1] # NB: we are ignoring the triple quote
+        # Standard Python styles of quoting, including triple quoting
+        if open_quote == close_quote: return _normalize(s, open_quote)
         # Typographic single quotes
-        if open_quote == '\u2018' and close_quote == '\u2019': return prefix + "'" + s[1:-1] + "'"
+        if open_quote == '\u2018' and close_quote == '\u2019': return _normalize(s, _SINGLE_QUOTE)
         # Typographic double quotes
-        if open_quote == '\u201C' and close_quote == '\u201D': return prefix + '"' + s[1:-1] + '"'
-        return prefix + s
+        if open_quote == '\u201C' and close_quote == '\u201D': return _normalize(s, _DOUBLE_QUOTE)
+        raise ValueError(f"Unsupported quoting style: {open_quote!r}/{close_quote!r}") # pragma no cover
 
     @staticmethod
     def tolerant_literal_eval(s: str) -> str:

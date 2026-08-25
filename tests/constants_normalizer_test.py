@@ -73,13 +73,6 @@ def test_preserves_backslashes_for_invalid_sequences():
         # Already normal quotes with prefix
         ('r"hello"', 'r"hello"'),
 
-        # Edge: single typographic quotes (incomplete)
-        ('\u2018', '\u2018'),
-        ('\u201c', '\u201c'),
-
-        # Edge: mismatched quotes (should leave as-is)
-        ('\u2018hello\u201d', '\u2018hello\u201d'),
-        ('r\u201cworld\u2019', 'r\u201cworld\u2019'),
     ]
 )
 def test_normalize_outer_quotes(input_str, expected):

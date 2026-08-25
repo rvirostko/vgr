@@ -66,6 +66,7 @@
 - Http returns url and request_url as strings rather than URL instances
 - RightStr(0) returned entire string when result should have been
   an empty string.
+- Escaping of typographic quotes in strings no longer causes an error
 
 ### Security
 
