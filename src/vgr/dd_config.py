@@ -118,9 +118,11 @@ _TIME_ENTRIES = {
 }
 
 _MATH_ENTRIES = {
-    ("neg_inf",):     -math.inf,
-    ("float", "max"): sys.float_info.max,
-    ("float", "min"): sys.float_info.min,
+    ("math", "e",):           math.e,
+    ("math", "float", "max"): sys.float_info.max,
+    ("math", "float", "min"): sys.float_info.min,
+    ("math", "pi",):          math.pi,
+    ("math", "tau",):         math.tau,
 }
 
 def _get_machine_uuid() -> str:
@@ -184,13 +186,9 @@ def dd_init(dd: DataDictionary) -> None:
     for flag in _RE_FLAGS:
         dd.set_var(getattr(re, flag), _RE_PREFIX, flag)
     _add_re_patterns(_RE_PREFIX, dd)
-    # ... math and string values
-    for mod in (math, string):
-        name = mod.__name__
-        dd.add_immutable_prefix(name)
-        dd.set_var(_get_consts(mod), name)
+    dd.add_immutable_prefix('math')
     for path, value in _MATH_ENTRIES.items():
-        dd.set_var(value, math.__name__, *path)
+        dd.set_var(value, *path)
     # ... time values
     dd.add_immutable_prefix(_TIME_PREFIX)
     for path, value in _TIME_ENTRIES.items():

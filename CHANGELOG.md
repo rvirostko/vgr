@@ -57,6 +57,8 @@
 - Ascii() has been removed; use Repr() instead
 - math.random and math.random100 removed. They predated the ability to
   have functions with zero args, and both are replaced by Random().
+- math.inf, math.nan, and math.neg_inf have been removed as they were all
+  replaced with figurative constants a while ago
 
 ### Fixed
 
