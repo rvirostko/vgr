@@ -128,10 +128,6 @@ from .pow import poly_pow
 from .reg_ex import (
     compile_pattern,
 )
-from .rnd import (
-    poly_random,
-    poly_random_choice,
-)
 from .shift import poly_shift_left, poly_shift_right
 from .plural import poly_plural
 from .format import poly_format

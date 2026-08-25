@@ -55,6 +55,8 @@
   If you need this type of behavior, use a list for the path, as each
   element is a single step.
 - Ascii() has been removed; use Repr() instead
+- math.random and math.random100 removed. They predated the ability to
+  have functions with zero args, and both are replaced by Random().
 
 ### Fixed
 

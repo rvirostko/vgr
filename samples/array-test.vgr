@@ -74,11 +74,11 @@ Assert a == b && a != c && b != c
 Print ""
 
 Echo On
-Set b To a * 2 * math.random100.Div(10)
-Set c To [b.Min(), b.Mean(), b.Max()]
-Set d To b.Variance()
-Set e To b.PVariance()
-Set f To b.StDev()
+Set b To (a * 2 * Random(1, 100).Div(10)).Round(3)
+Set c To [b.Min(), b.Mean().Round(3), b.Max()]
+Set d To b.Variance().Round(3)
+Set e To b.PVariance().Round(3)
+Set f To b.StDev().Round(3)
 Echo Off
 Exhibit a, b, c, d, e, f
 Print ""

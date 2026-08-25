@@ -159,7 +159,7 @@ You can see a bigger difference when printing variables that are dictionaries:
 
 ```vgr
 Print math
-{'pi': 3.141592653589793, 'e': 2.718281828459045, 'tau': 6.283185307179586, 'inf': inf, 'nan': nan, 'neg_inf': -inf, 'float': {'max': 1.7976931348623157e+308, 'min': 2.2250738585072014e-308}, 'random': 0.8042746395530653, 'random100': 97}
+{'pi': 3.141592653589793, 'e': 2.718281828459045, 'tau': 6.283185307179586, 'inf': inf, 'nan': nan, 'neg_inf': -inf, 'float': {'max': 1.7976931348623157e+308, 'min': 2.2250738585072014e-308}}
 
 Exhibit math
 math.e = 2.718281828459045
@@ -169,8 +169,6 @@ math.inf = inf
 math.nan = nan
 math.neg_inf = -inf
 math.pi = 3.141592653589793
-math.random = 0.9730055215356191
-math.random100 = 81
 math.tau = 6.283185307179586
 ```
 
