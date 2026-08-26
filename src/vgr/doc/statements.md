@@ -146,8 +146,10 @@ Three different commenting styles are available and may be freely intermixed.
 * 'C', Java, et al Style : Comments start with `//` or blocks between `/*` and `*/`
 
 ```vgr
-# Just like in Shell Scripts, AWK, or Python...
-      // Or back in 'C' and Java
-Set x to 42 # This is fine
-Set x /* comment */ to /* again */ 42
+Set x To 42 # Like Shells, AWK, and Python
+Set x To 42 // Like 'C' and Java
+/* Multi-line
+ * Block Comments
+ */
+Set x /* in-line */ To /* blocks */ 42
 ```
