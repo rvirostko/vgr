@@ -10,11 +10,13 @@ from .app_exceptions import VgrRuntimeError
 from .builtins import (
     bound_ops,
     dsort,
+    poly_get_keys,
+    poly_join,
     poly_repr,
     poly_sort,
     poly_type,
 )
-from .data_dict import DataDictionary
+
 from .encoding import parse_encoding
 from .evaluate import bind_operations, do_set
 from .exec_context import ExecContext
@@ -114,8 +116,7 @@ class SortAnalyzer(Visitor):
         **Reads in a key name**
 
         The key can be a simple unquoted name _if_ it is undefined in the data dictionary.
-        The key can be an expression, in which case it must be a string.
-        While underlying code also supports a variable reference, the grammar does not support this.
+        The key can be an expression, in which case it must be a number or a string.
         """
         rc = self.ctx.eval_expr_or_const(arg)
         if rc is None or isinstance(rc, (str, int, float)): return rc
@@ -244,8 +245,8 @@ def _read_data(ctx: ExecContext, source: dict) -> list:
                 ctx.print_verbose('Extraneous Sort ordering ignored:', poly_repr(sort_cols[1:]))
             source[_FIELDS] = source[_SORT_COLS] = ['line']
         else:
-            # while unlikely (maybe?) we need to support non-string ordinals as keys
-            source[_FIELDS] = sorted(data[0].keys(), key=lambda x: '' if x is None else str(x))
+            # Get all the keys from the data
+            source[_FIELDS] = sorted(poly_get_keys(data))
     else:
         try:
             filename = source[_FILE]
@@ -255,9 +256,9 @@ def _read_data(ctx: ExecContext, source: dict) -> list:
             data = data if isinstance(data, list) else [] if data is None else [data]
         except Exception as e:
             raise ValueError(f'While reading {source[_FILE]!r}: {str(e)}') from e
-    # The "on" keys must all be known in our fields
+    # The sort keys must be in the input's fields
     _validate_subset(source[_SORT_COLS], source[_FIELDS])
-    # We put our sort fields in the first cols of output
+    # We put our sort fields in the first columns of output when working with columnar data
     source[_FIELDS] = _append_unique(source[_SORT_COLS], source[_FIELDS])
     return data
 
@@ -301,5 +302,5 @@ def _append_unique(x: list, y: list) -> list:
 def _validate_subset(sort_keys: list, filed_names: list) -> list:
     missing = [x for x in sort_keys if x not in filed_names]
     if missing:
-        raise ValueError(f'Unknown Keys referenced in Sort: {", ".join(missing)}')
+        raise ValueError(f'Unknown Keys referenced in Sort: {poly_join(poly_repr(*missing), ", ")}')
     return sort_keys
