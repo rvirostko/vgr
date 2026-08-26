@@ -88,7 +88,10 @@ include-package-data = true
 where = ["src"]
 
 [tool.setuptools.package-data]
-"vgr" = ["*.ini", "*.lark", "**/*.lark", "**/*.ini", "**/*.json"]
+"vgr" = ["*.ini", "*.json", "**/*.json", "*.lark", "**/*.lark"]
+
+[tool.setuptools.exclude-package-data]
+"*" = ["README.md"]
 
 [tool.pytest.ini_options]
 minversion = "8.0"
