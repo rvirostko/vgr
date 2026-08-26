@@ -86,6 +86,7 @@ from .is_in import (
     poly_not_contains,
     poly_not_in,
 )
+from .join import poly_join
 from .json_funcs import (
     strip_nulls,
 )
