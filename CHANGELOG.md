@@ -43,6 +43,8 @@
   Repr(), Reverse().
 - DefaultTo() now takes multiple default values, returning the first
   non-None one.
+- Sort keys can now be things other than strings (booleans, integers, floats)
+  although they may be turned into strings depending upon the output type
 - Internal change: automatic registration of built-in functions
 
 ### Deprecated
@@ -67,6 +69,8 @@
 - RightStr(0) returned entire string when result should have been
   an empty string.
 - Escaping of typographic quotes in strings no longer causes an error
+- Sort did not work with "sparse" dictionaries where the sort keys were
+  missing from the first item in a list
 
 ### Security
 
