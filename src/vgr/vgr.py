@@ -16,10 +16,6 @@ from .app_exceptions import (
     VgrStatementAbort,
     VgrStatementAssert,
 )
-from .auto_doc import (
-    gen_auto_docs,
-    read_doc_file,
-)
 from .builtins import (
     poly_repr,
     poly_type,
@@ -239,7 +235,8 @@ For example **help Add** will return informtion for `Add()` while
 
     def _print_md_doc(self, filename: str) -> None:
         print()
-        md_println(self._md_fixup(read_doc_file(filename)))
+        # TODO
+#        md_println(self._md_fixup(read_doc_file(filename)))
         print()
 
     def _print_running_help(self, _topic: str, _q: str) -> None:
@@ -466,8 +463,6 @@ Environment variables:
                      help='Root logging level (debug, info, warning, error, critical, or off)')
     clp.add_argument('--logoverwrite', action='store_true',
                      help='Overwrite log file instead of appending')
-    clp.add_argument('--gen-doc', action='store_true',
-                     help='Generate documentation and exit')
     clp.add_argument('--gen-vsc-extn', action='store_true',
                      help='Generate a Visual Studio Code extension and exit')
     clp.add_argument('args', nargs='*', metavar='arg', default=[],
@@ -485,13 +480,12 @@ Environment variables:
     parser = create_parser(extensions, args.debug, args.verbose)
     create_md_lexer(parser)
 
-    if args.gen_doc: gen_auto_docs()
     if args.gen_vsc_extn:
         create_vscode_extension(args.debug,
                                 keyword_pattern(parser),
                                 constants_pattern(parser),
                                 function_names_pattern())
-    if args.gen_doc or args.gen_vsc_extn: sys.exit(VgrExitingException.EXIT_SUCCESS)
+        sys.exit(VgrExitingException.EXIT_SUCCESS)
 
     ctx = create_exec_context(parser, dd)
     ctx.debug = args.debug
