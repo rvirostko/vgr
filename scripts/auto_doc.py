@@ -6,14 +6,15 @@ from pathlib import Path
 import re
 import sys
 
-from . import __version__, __version_date__
-from .functions import (
+# NB: __file__ is for the vgr package, not this one...
+from vgr import __version__, __version_date__, __file__
+from vgr.functions import (
     get_function_entries,
 )
-from .operators import (
+from vgr.operators import (
     get_operator_entries,
 )
-from .stmt_exec import (
+from vgr.stmt_exec import (
     get_statement_entries,
 )
 
@@ -157,3 +158,6 @@ def _link(text: str, anchor_id: str) -> str:
 
 def _anchor(anchor_id: str) -> str:
     return f'<a id="{_fix_anchor(anchor_id).casefold()}"></a>'
+
+if __name__ == "__main__":
+    gen_auto_docs()

@@ -1,4 +1,6 @@
+"""Main for VGR command line"""
 
+from pathlib import Path
 from typing import Any
 import argparse
 import logging
@@ -106,9 +108,9 @@ class VGRCmdLine(CmdLine):
             op_key:                    self._print_operator_help,
             ("repl",):                 self._print_repl_help,
             stmt_key:                  self._print_statement_help,
-            ("running",):              self._print_running_help,
-            ("license",):              self._print_license_help,
-            ("authors",):              self._print_authors_help,
+            ("running",):              lambda _topic, _q: self._print_md_doc("running.md"),
+            ("license",):              lambda _topic, _q: md_println("\n", self._md_fixup(read_license_file()), "\n"),
+            ("authors",):              lambda _topic, _q: md_println(self._md_fixup(get_authors()), "\n"),
             ("variables",):            self._print_variables_help,
             ("list",):                 self._print_type_list,
         }
@@ -119,9 +121,8 @@ class VGRCmdLine(CmdLine):
         }
 
     def run(self) -> int:
-        if self._ctx.verbose: self._ctx.print_verbose("CWD =", os.getcwd())
-        md_println(f"\n`VGR {__version__} ({__version_date__})`")
-        md_println('_Type **help** for more information_')
+        self._ctx.print_verbose("CWD =", os.getcwd())
+        md_println("\n", f"`VGR {__version__} ({__version_date__})`", "_Type **help** for more information_")
         self._ctx.set_var(True, 'vgr', 'repl')
         return super().run()
 
@@ -223,33 +224,23 @@ For example **help Add** will return informtion for `Add()` while
                 if stmt_help:
                     self._display_statement_help(q, stmt_help)
                 else:
-                    print()
-                    md_println('_Use **help topics** to list topics_')
-                    print()
+                    md_println("\n", "_Use **help topics** to list topics_", "\n")
 
     def _md_fixup(self, text: str) -> str:
+        # TODO is this more "common code?"
         text = self._anchor_link_re.sub(r'`\1`', text)
         text = self._html_anchor_re.sub('', text)
         text = self._heading_re.sub(lambda m: f"**{m.group(2).strip()}**", text)
         return self._collapse_newlines_re.sub('\n\n', text)
 
     def _print_md_doc(self, filename: str) -> None:
-        print()
-        # TODO
-#        md_println(self._md_fixup(read_doc_file(filename)))
-        print()
-
-    def _print_running_help(self, _topic: str, _q: str) -> None:
-        self._print_md_doc("running.md")
-
-    def _print_license_help(self, _topic: str, _q: str) -> None:
-        print()
-        md_println(self._md_fixup(read_license_file()))
-        print()
-
-    def _print_authors_help(self, _topic: str, _q: str) -> None:
-        md_println(self._md_fixup(get_authors()))
-        print()
+        module_path = Path(__file__).resolve()
+        src_file = Path(module_path.parent / "doc" / filename)
+        if src_file.is_file():
+            with open(src_file, 'r', encoding='utf-8', errors='backslashreplace') as file_in:
+                md_println("\n", self._md_fixup(file_in.read().rstrip()), "\n")
+        else:
+            md_println("\n", f"_Could not find {src_file!r}_", "\n")
 
     def _print_variables_help(self, _topic: str, _q: str) -> None:
         self._print_md_doc("variables.md")
@@ -325,9 +316,7 @@ For example **help Add** will return informtion for `Add()` while
     def _display_help_results(self, search_type: str, q: str, results: list) -> None:
         if len(results) == 0:
             # We could not find anything
-            print()
-            md_println(f'_Nothing matches{" " + repr(q) if q else ""}_')
-            print()
+            md_println("\n", f'_Nothing matches{" " + repr(q) if q else ""}_', "\n")
         elif len(results) == 1:
             # We got an single match
             # Show the help for the item
@@ -344,9 +333,7 @@ For example **help Add** will return informtion for `Add()` while
                     lines.append(f'* `{name}` - {doc.splitlines()[0].strip().strip("*").rstrip(".")}')
                 else:
                     lines.append(f'* `{name}`')
-            print()
-            md_println('\n'.join(lines))
-            print()
+            md_println("\n", "\n".join(lines), "\n")
 
 def load_extensions(dd: DataDictionary, verbose: bool) -> VgrExtensionRegistry:
     if verbose: print_stderr('Loading extensions...')
