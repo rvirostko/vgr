@@ -1,0 +1,15 @@
+{
+    "recommendations": [
+        "davidanson.vscode-markdownlint",
+        "dirk-thomas.vscode-lark",
+        "github.vscode-github-actions",
+        "kevinrose.vsc-python-indent",
+        "ms-azuretools.vscode-docker",
+        "ms-python.pylint",
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ryanluker.vscode-coverage-gutters",
+        "yzhang.markdown-all-in-one",
+        "zainchen.json"
+    ]
+}
