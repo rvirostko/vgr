@@ -89,7 +89,7 @@ _CONSTS = [
 ]
 # TODO operators
 _IGNORE_CASE = "(?i)"
-# These keep things like "foo.for" from highlighting the "foo" part
+# These keep things like "foo.for" from highlighting the "for" part
 _KEYWORD_START_BOUNDRY = r"(?<![.\w_])"
 _KEYWORD_END_BOUNDRY = r"(?![.\w-])"
 
@@ -172,22 +172,26 @@ def create_md_lexer(_parser: Lark) -> None:
 
 _CONSOLE = Console(theme=_THEME)
 
-def md_println(s: str) -> None:
-    """
-    Note: trailing whitespace is always stripped.
-    Always outputs a newline at the end.
-    """
-    _print(_CONSOLE, s)
+def md_println(*args) -> None:
+    """Prints one of more lines to the console as Markdown text"""
+    console = _CONSOLE
+    for arg in args:
+        if arg is not None:
+            s = str(arg)
+            _blank_line(console) if s.isspace() else _print(console, s)
 
 def print_doc(func: Callable) -> None:
+    """Prints the documentation for a function to the console as Markdown text"""
     doc = (func.__doc__ or "").strip()
     console = _CONSOLE
-    console.print("")
+    _blank_line(console)
     if doc:
         _print(console, doc)
     else:
         console.print(Markdown('***Sorry, no documentation available***'))
-    console.print("")
+    _blank_line(console)
+
+def _blank_line(console: Console): console.print("")
 
 def _print(console: Console, s: str) -> None:
     """Handles the formatting of VGR code blocks"""
@@ -204,7 +208,7 @@ def _print(console: Console, s: str) -> None:
 
 def _print_code_block(console: Console, code_block: str) -> None:
     """Write out a formatted VGR code block"""
-    console.print("")  # outside blank line above
+    _blank_line(console) # outside blank line above
     console.print(Syntax(
         code=code_block.strip('\n'),
         lexer=_STATE.lexer,
@@ -215,7 +219,7 @@ def _print_code_block(console: Console, code_block: str) -> None:
         tab_size=4,
         dedent=True
     ))
-    console.print("")  # outside blank line below
+    _blank_line(console)  # outside blank line below
 
 # Initially based on "default" style
 class VGRCodeStyle(Style):
@@ -295,9 +299,9 @@ class VgrLexer(RegexLexer):
             (r'\\(x[0-9A-Fa-f]{2}|u[0-9A-Fa-f]{4}|U[0-9A-Fa-f]{8}|N\{[^}]+\}|.)', String.Escape),
 
             # Single-quoted or double-quoted strings
-            (r'[BRbr]?("(?!"").*?(?<!\\)(\\\\)*?"|\'(?!\'\').*?(?<!\\)(\\\\)*?\')', String),
+            (r'[Rr]?("(?!"").*?(?<!\\)(\\\\)*?"|\'(?!\'\').*?(?<!\\)(\\\\)*?\')', String),
             # Triple-quoted strings (long strings, can be multi-line)
-            (r'[BRbr]?("""(.*?)(?<!\\)(\\\\)*?"""|\'\'\'(.*?)(?<!\\)(\\\\)*?\'\'\')', String),
+            (r'[Rr]?("""(.*?)(?<!\\)(\\\\)*?"""|\'\'\'(.*?)(?<!\\)(\\\\)*?\'\'\')', String),
             # Regular expressions
             # \x91 : [, \x92 : /, \x93 : ]
             (r"r/(?:(?:\x92[/\x92])|(?:\x91^/)|(?:\x91/)|(?:/\x93)|(?:[^\x00-\x1f\x7f/]))+/[adimsx]*", String.Regex),
