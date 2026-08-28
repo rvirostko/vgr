@@ -61,6 +61,8 @@
   have functions with zero args, and both are replaced by Random().
 - math.inf, math.nan, and math.neg_inf have been removed as they were all
   replaced with figurative constants a while ago
+- The manual is no longer created from a command line options, but is
+  created as part of the release.
 
 ### Fixed
 
