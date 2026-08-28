@@ -1,11 +1,11 @@
 Set bar To "-" * 60
 
 # NB: Both data and charsets can be a list or single entries
-#     because of the nature of For-Each
+#     because of the nature of For Each
 Define Function test_hex_encodings(data, charsets):
-    For-Each charset In charsets
+    For Each charset In charsets
         Printf "{}\n{}\n{}\n", bar, charset.DefaultTo("-default encoding-"), bar
-        For-Each d In data
+        For Each d In data
             Printf "    {!r} → {!r}\n", d, d.HexEncode(charset)
         End-For
         Print ""
@@ -27,7 +27,7 @@ End-Function
 
 Define Function test_b64(data):
     Printf "{}\nBase64\n{}\n", bar, bar
-    For-Each d In data
+    For Each d In data
         Printf "    {!r} → {!r}\n", d, d.Base64Encode()
     End-For
     Print ""
@@ -75,7 +75,7 @@ Begin
     Call test_hex_encodings(test_strings, limited_encodings)
     Print "\n* Base64"
     Call test_b64(test_strings)
-    For-Each s in test_strings + extra_tests
+    For Each s in test_strings + extra_tests
         Call hex_round_trip_test(s)
         Call b64_round_trip_test(s)
     End-For

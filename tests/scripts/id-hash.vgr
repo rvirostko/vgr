@@ -2,13 +2,13 @@
 Define Function func() -> 5
 
 // Simple loop to test type acceptance for hashable types
-For-Each item in [None, True, False, 0, 1, -.1, "", "foo", r/foo/, func]
+For Each item in [None, True, False, 0, 1, -.1, "", "foo", r/foo/, func]
     Print Repr(item), Type(item), Id(item), Hash(item)
     Assert Hash(item) Is Not None
 End-For
 
 // Non-hashable types
-For-Each item in [[], [5], {}, {"a": 5}]
+For Each item in [[], [5], {}, {"a": 5}]
     Print Repr(item), Type(item), Id(item), Hash(item)
     Assert Hash(item) Is None
 End-For

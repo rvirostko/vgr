@@ -107,7 +107,7 @@ Dictionary({"f":{"a": 1}}, ["f.b", 2]) → {"f": {"a": 1, "b": 2}}
 
 Set lines To ["a | b | c", "1 | 2 | 3", "one | two | three"]
 Set records To List()
-For-Each line In lines
+For Each line In lines
     Set elems To line.Split("|").Strip()
     If $loop.first
         Set headers To elems.Upper()

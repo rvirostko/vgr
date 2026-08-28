@@ -80,7 +80,7 @@ Define Function solve_quadratic(a, b, c):
 End-Function
 
 Print ""
-For-Each v In @solve_quadratic(1, -5, 6)
+For Each v In @solve_quadratic(1, -5, 6)
     If $loop.first
         // The equation
         Printf "{} →", v

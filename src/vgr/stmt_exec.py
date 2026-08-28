@@ -378,7 +378,7 @@ Function is_valid(item) -> /* logic here */
 Set result To None
 Set attempts To Zero
 Unless result Is Not None Or attempts > 42:
-    For-Each item In items
+    For Each item In items
         Add 1 To attempts
         Choose Using item
             When Is "skip":  Continue
@@ -547,12 +547,12 @@ End-Repeat
     exec_repeat(ctx, statement)
 
 @control_statement
-@bound_ops("For-Each")
+@bound_ops("For Each")
 def execute_foreach(ctx: ExecContext, statement: Tree) -> None:
     """
 **Iterate over a list of values**
 
-* For-Each *variable* In *expression* [:]\\
+* For Each *variable* In *expression* [:]\\
   &emsp;&emsp;*statement*&hellip;\\
   [End-For | End]
 
@@ -568,7 +568,7 @@ following it are skipped, and the loop continues with the next item.
 Statements have access to the *$loop* variable, including *index*, *length*, _first_, and _last_.
 
 ```vgr
-For-Each a In ["A", "B", "C"]
+For Each a In ["A", "B", "C"]
     Print a, $loop
 End-For
 
@@ -576,7 +576,7 @@ A {'index': 0, 'first': True, 'last': False, 'length': 3}
 B {'index': 1, 'first': False, 'last': False, 'length': 3}
 C {'index': 2, 'first': False, 'last': True, 'length': 3}
 
-For-Each kv_pair In math
+For Each kv_pair In math
     If $loop.first: Print "-" * 60; End-If
     Print kv_pair
     If $loop.last: Print "-" * 60; End-If
@@ -590,7 +590,7 @@ End-For
 ------------------------------------------------------------
 ```
 > **Note**\\
-> You can also use `Next` to close `For-Each`,
+> You can also use `Next` to close `For Each`,
 > but `End-For` or just `End` are preferred.
 
 Also see `Break` and `Continue`
@@ -663,7 +663,7 @@ Next
 4.0 {'index': 4, 'first': False, 'last': True, 'length': 5}
 ```
 
-Also see `For-Each`.
+Also see `For Each`.
 """
     def _err(value: Any, name: str) -> str: return ValueError(f"Can't use {str(value).title()} for {name}")
     def _nbr(expr: Tree, name: str) -> Any:
@@ -676,14 +676,14 @@ Also see `For-Each`.
     cindex = 0
     var_path = get_writable_var_path(ctx, statement.children[cindex])
     cindex += 1
-    value = _nbr(statement.children[cindex], 'For-Next start')
+    value = _nbr(statement.children[cindex], 'For Next start')
     cindex += 1
-    end = _nbr(statement.children[cindex], 'For-Next end')
+    end = _nbr(statement.children[cindex], 'For Next end')
     cindex += 1
     inc = 1
     if statement.data == 'for_next_by':
         # This statement has a "step" clause
-        name = 'For-Next increment'
+        name = 'For Next increment'
         step_expr = statement.children[cindex]
         inc = _nbr(step_expr, name)
         cindex += 1

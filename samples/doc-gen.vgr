@@ -74,6 +74,6 @@ Print example As Markdown
 Terminal SetClipboard example.ReplaceStr("\\", r"\\").AppendStr(NewLine)
 
 // Clean up our temp files
-For-Each fn In [setup_file, out_file, err_file]
+For Each fn In [setup_file, out_file, err_file]
     Assert fn.RemoveFile().FirstItem() : "Could not delete {}", fn
 End-For

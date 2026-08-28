@@ -18,7 +18,7 @@ Assert ["1"].Matches(None) Is False
 
 Echo Off
 
-For-Each value In [True, False, Zero, Nan, Inf, "hello", ["world"]]
+For Each value In [True, False, Zero, Nan, Inf, "hello", ["world"]]
     Exhibit value
     Echo On
     Assert value.Matches(value)

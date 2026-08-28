@@ -25,7 +25,7 @@ Until x == 1
     Set x To x + 1
 End  # keep untyped
 
-# For-Next
+# For Next
 For x = Zero To 1: # colon optional
     NOP
 Next
@@ -38,7 +38,7 @@ For x = Zero To 1
     NOP
 End  # keep untyped
 
-# For-Next w/By
+# For Next w/By
 For x = Zero To 1 Step 1: # colon optional
     NOP
 Next
@@ -51,15 +51,15 @@ For x = Zero To 1 Step 1
     NOP
 End  # keep untyped
 
-# For-Each
-For-Each x In [1, 2]: # colon optional
+# For Each
+For Each x In [1, 2]: # colon optional
     NOP
 Next
 
-For-Each x In [1, 2]
+For Each x In [1, 2]
     NOP
 Next
 
-For-Each x In [1, 2]
+For Each x In [1, 2] # keep as for-each
     NOP
 End # keep as end

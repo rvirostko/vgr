@@ -33,13 +33,13 @@ Assert r2 == [v, bob, v + v, v, None]
 Define Function strify(a):
     Declare rc Local
     Set rc To []
-    For-Each v in a
+    For Each v in a
         Set rc += v.DefaultTo('None')
     End-For
     Return rc
 End-Function
 
-For-Each r in [
+For Each r in [
               ["-default-", "$global", "$outer", "$local", "$static"],
               r0, r1, r2
              ]:

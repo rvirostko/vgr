@@ -44,8 +44,8 @@ Define Function print_matricies(operations, matrix_min, matrix_max):
     Assert operations.Length() Is Positive : "No operations defined"
     Set matrix_min To matrix_min.ToInteger().DefaultTo(0).Clamp(0, 99)
     Set matrix_max To matrix_max.ToInteger().DefaultTo(9).Clamp(matrix_min, 99)
-    For-Each item in operations
-        # operations is dictionary, so For-Each returns a key-value pair for each item
+    For Each item in operations
+        # operations is dictionary, so For Each returns a key-value pair for each item
         Set op_name To item.FirstItem()
         Set op_func To item.LastItem()
         Printf "\n{}:\n", op_name.TitleCase()

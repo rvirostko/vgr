@@ -43,5 +43,5 @@ While True: Continue-For; Exit; End-While
 For x = 1 To 3: Break-While;         Exit; Next
 For x = 1 To 3: Continue-While;      Exit; Next
 
-For-Each x In [1]: Break-While;     Exit; End-For
-For-Each x In [1]: Continue-While; Exit; End-For
+For Each x In [1]: Break-While;     Exit; End-For
+For Each x In [1]: Continue-While; Exit; End-For

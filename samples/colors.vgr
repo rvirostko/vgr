@@ -48,7 +48,7 @@ Repeat iter Times
     Set bwidth To term.box_styles.StringLen().Max() + 2
     Set bheight To 3
     Terminal SetForeground "bright white", SetBackground "bright green"
-    For-Each style In term.box_styles
+    For Each style In term.box_styles
         Terminal MoveCursorTo line:col,
                  DrawBox style:bheight:bwidth
         Printf style
@@ -76,7 +76,7 @@ Repeat iter Times
         ["hidden",             "Hidden Text"],
         ["bold blue reverse",  "Combined Settings"]
     ]
-    For-Each style In styles
+    For Each style In styles
         Terminal SetStyle style.FirstItem()
         Printf style.LastItem().Center(20)
         Terminal SetStyle "Normal",

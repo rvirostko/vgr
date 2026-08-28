@@ -44,7 +44,7 @@ For Batch Template
 
 Define Function ExtractAges(data_in):
     Set ages To []
-    For-Each item In data_in
+    For Each item In data_in
         Append item.age To ages
     End-For
     Return ages.StripNulls()

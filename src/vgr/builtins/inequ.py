@@ -503,7 +503,7 @@ Strings will be converted to numbers.
 Note that zero is neither positive nor negative.
 
 ```vgr
-For-Each v In [ None, List(), Dictionary(), -1, Zero, 1 ]
+For Each v In [ None, List(), Dictionary(), -1, Zero, 1 ]
   Choose Using v:
     When Is Negative: Print v.Repr(), "is negative"
     When Is Positive: Print v.Repr(), "is positive"
@@ -538,7 +538,7 @@ Strings will be converted to numbers.
 Note that zero is neither positive nor negative.
 
 ```vgr
-For-Each v In [ None, List(), Dictionary(), -1, Zero, 1 ]
+For Each v In [ None, List(), Dictionary(), -1, Zero, 1 ]
   Choose Using v
     When Is Negative Print v.Repr(), "is negative"
     When Is Positive Print v.Repr(), "is positive"

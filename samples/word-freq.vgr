@@ -26,7 +26,7 @@ While True
     # Split the sentence into words and tally their count using a dictionary
     Set wordCounter To Dictionary()
     # Normalize the words: lowercase Ascii letters
-    For-Each word In sentence.Split().RegexReplace(non-alpha).Lower()
+    For Each word In sentence.Split().RegexReplace(non-alpha).Lower()
         If Length(word) Is Positive
             Set wordCounter To wordCounter.SetKeyValue(word, wordCounter.GetKeyValue(word, 0).Add(1))
         End-If
@@ -49,13 +49,13 @@ While True
     Printf fmt, indent, term.box.heavy.hbar * word_col_width, term.box.heavy.hbar * count_col_width, word_col_width, count_col_width No-Flush
     Set wordList To List()
     # Convert the dictionary into a list of dictionaries we can sort
-    For-Each item In wordCounter
+    For Each item In wordCounter
         Append { "word": item.FirstItem(), "count": item.LastItem() } To List wordList
     End-For
     # Sort by word within fequency
     Sort wordList On Descending Key count, Ascending Key word
     # Print the data
-    For-Each item In wordList
+    For Each item In wordList
         Printf fmt, indent, item.word, item.count, word_col_width, count_col_width No-Flush
     End-For
     Printf "" Flush
