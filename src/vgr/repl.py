@@ -1,8 +1,3 @@
-"""
-The base of a Unix-like editable command line. Include some commands for history control
-and simple file control. Also the base of a "help" system.
-"""
-
 from abc import ABC, abstractmethod
 from argparse import ArgumentParser, ArgumentError, ArgumentTypeError, Namespace, OPTIONAL
 from shutil import which
@@ -14,11 +9,26 @@ import signal
 import socket
 import subprocess
 import time
+import sys
+import traceback
 
 from prompt_toolkit import PromptSession
 from prompt_toolkit.history import FileHistory
 
 from .builtins import poly_to_boolean, expand_filename
+
+from .app_exceptions import (
+    VgrException,
+    VgrExitingException,
+    VgrStatementAbort,
+    VgrStatementAssert,
+)
+from .builtins import poly_type
+from .exec_context import ExecContext
+from .md_print import md_println
+from .repl_help import repl_help
+
+from . import __version__, __version_date__, __description__
 
 class CustomArgParser(ArgumentParser):
     """A non-exiting argument parser"""
@@ -92,8 +102,7 @@ class VgrHistory(LimitedFileHistory):
         if string.strip().casefold() not in ["exit", "history"]:
             super().append_string(string)
 
-class CmdLine:
-    _DEFAULT_HISTORY_SIZE = 100
+class VgrRepl:
 
     _CD_PARSER: ArgumentParser = (ParserBuilder()
                     .argument('path', nargs=OPTIONAL, type=str, default='~')
@@ -121,16 +130,18 @@ class CmdLine:
         "W": lambda: os.path.basename(os.getcwd()),       # Name only
     }
 
-    def __init__(self):
-        self._history_filename = self._history_filename or '.history'
-        self._max_history_entries = self._max_history_entries or 100
+    def __init__(self, ctx: ExecContext):
+        assert ctx
+        self._ctx = ctx
+        self._history_filename = os.getenv("VGR_HISTORY", '~/.vgr_history')
+        self._max_history_entries = os.getenv("VGR_HISTORY_SIZE", 100)
         self.print_verbose("Loading history from", self.history_filename)
         self.print_verbose("Max history entries is", self.max_history_entries)
         self._history = VgrHistory(self.history_filename, self.max_history_entries)
         self.multiline = False
         self._dispatch = {}
         self.add_cmd("cd", self._exec_cd)
-        self.add_cmd("help", self._exec_help)
+        self.add_cmd("help", repl_help)
         self.add_cmd("history", self._exec_history)
         self.add_cmd("multiline", self._exec_multiline)
         self.add_cmd("pwd", self._exec_pwd)
@@ -168,7 +179,7 @@ class CmdLine:
                     try:
                         self._max_history_entries = int(values.max)
                     except ValueError:
-                        self._max_history_entries = self._DEFAULT_HISTORY_SIZE
+                        self._max_history_entries = 100
                     self.print_verbose('History max entries =', values.max)
 
     def _exec_multiline(self, *args):
@@ -176,6 +187,7 @@ class CmdLine:
         if values is not None:
             if values.multiline is not None: self.multiline = values.multiline
             self.print_verbose('Multiline mode is', self.multiline)
+            # TODO get better def for "meta" on win/linux/mac and display nicely
             if self.multiline: print('Use Meta-Return to execute commands')
 
     def _exec_subshell(self, *args) -> None:
@@ -206,10 +218,6 @@ class CmdLine:
         finally:
             signal.signal(signal.SIGINT, old_handler)
 
-    def _exec_help(self, *args) -> None: pass
-
-    def _print_doc(self, func) -> None: pass
-
     def _parse_command(self, line: str):
         """Q&D parsing of a command line so we can check for REPL commands"""
         def remove_quotes(s: str) -> str:
@@ -235,26 +243,29 @@ class CmdLine:
         # does not handle other backslash escaping or anything sophisticated
         return re.sub(r'[\\](.)',
                     lambda match : self._PROMPT_ESCAPES.get(match.group(1), lambda : match.group(1))(),
-                    self.get_prompt())
+                    self.prompt)
 
     def _parse(self, parser: ArgumentParser, *args) -> Namespace:
         try:
             return parser.parse_args(args)
         except (ArgumentError, ArgumentTypeError, TypeError, ValueError) as e:
-            self.print_exception(e)
+            # NB: no internal redirection here!
+            if self._ctx.verbose:
+                print(e, file=sys.stderr)
+            else:
+                print(e.args[0] if e.args else f'{poly_type(e)!r}', file=sys.stderr)
             return None
 
-    @abstractmethod
-    def print_exception(self, e: Exception) -> None: pass
-
-    @abstractmethod
-    def print_verbose(self, *args, **kwargs) -> None: pass
+    def print_verbose(self, *args, **kwargs) -> None:
+        self._ctx.print_verbose(*args, **kwargs)
 
     @abstractmethod
     def execute_statements(self, text: str) -> bool: pass
 
-    @abstractmethod
-    def get_prompt(self) -> str: pass
+    @property
+    def prompt(self) -> str:
+        prompt = self._ctx.get_var("env", "VGR_PROMPT")
+        return 'vgr> ' if prompt is None else prompt
 
     @property
     def history_filename(self) -> str: return expand_filename(self._history_filename)
@@ -263,6 +274,9 @@ class CmdLine:
     def max_history_entries(self) -> int: return self._max_history_entries
 
     def run(self) -> int:
+        self.print_verbose("CWD =", os.getcwd())
+        md_println("\n", f"`VGR {__version__} ({__version_date__})`", "_Type **help** for more information_")
+        self._ctx.set_var(True, 'vgr', 'repl')
         session = PromptSession(history=self._history)
         while True:
             try:
@@ -287,3 +301,22 @@ class CmdLine:
                     loop, exit_code = self.execute_statements(text)
                     if not loop:
                         return exit_code
+
+    def execute_statements(self, text: str) -> tuple:
+        try:
+            self._ctx.execute_statements(text.rstrip(), '<repl>')
+        except VgrException as e:
+            # An "Exit" terminates the REPL
+            # An "Abort" or "Assert" does not
+            if isinstance(e, VgrExitingException) and not isinstance(e, (VgrStatementAbort, VgrStatementAssert)):
+                return (False, e.exit_code)
+            if self._ctx.debug:
+                traceback.print_exc(file=sys.stderr)
+            else:
+                print(str(e))
+        except Exception as e: # pylint: disable=broad-exception-caught
+            if self._ctx.debug:
+                traceback.print_exc(file=sys.stderr)
+            else:
+                print(str(VgrException(None, e, None, None)))
+        return (True, None)

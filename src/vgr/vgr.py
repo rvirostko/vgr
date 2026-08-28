@@ -14,10 +14,7 @@ from .app_exceptions import (
     VgrStatementAbort,
     VgrStatementAssert,
 )
-from .builtins import (
-    poly_repr,
-    poly_type,
-)
+from .builtins import poly_repr
 from .data_dict import DataDictionary
 from .dd_config import (
     dd_init,
@@ -34,7 +31,7 @@ from .functions import (
     function_names_pattern,
     get_function_defs,
 )
-from .interactive import CmdLine
+from .repl import VgrRepl
 from .log_config import init_logging
 from .redir import print_stderr
 from .exec_context import ExecContext
@@ -52,69 +49,13 @@ from .stmt_log import (
 )
 from .var_name import VAR_NAME
 from .vscode_extn import create_vscode_extension
-from .repl_help import repl_help
-from .md_print import (
-    md_println,
-    md_create_lexer,
-)
+from .md_print import md_create_lexer
 
 from . import __version__, __version_date__, __description__
 
 _CMD_LINE_ASSIGN = 'cmd_line_assign'
 
 _LOG = logging.getLogger()
-
-class VGRCmdLine(CmdLine):
-    _DEFAULT_HISTORY = '~/.vgr_history'
-    _DEFAULT_PROMPT = 'vgr> '
-
-    def __init__(self, ctx: ExecContext):
-        assert ctx
-        self._ctx = ctx
-        self._history_filename = os.getenv("VGR_HISTORY", self._DEFAULT_HISTORY)
-        self._max_history_entries = os.getenv("VGR_HISTORY_SIZE", CmdLine._DEFAULT_HISTORY_SIZE)
-        super().__init__()
-
-    def run(self) -> int:
-        self._ctx.print_verbose("CWD =", os.getcwd())
-        md_println("\n", f"`VGR {__version__} ({__version_date__})`", "_Type **help** for more information_")
-        self._ctx.set_var(True, 'vgr', 'repl')
-        return super().run()
-
-    def execute_statements(self, text: str) -> tuple:
-        try:
-            self._ctx.execute_statements(text.rstrip(), '<repl>')
-        except VgrException as e:
-            # An "Exit" terminates the REPL
-            # An "Abort" or "Assert" does not
-            if isinstance(e, VgrExitingException) and not isinstance(e, (VgrStatementAbort, VgrStatementAssert)):
-                return (False, e.exit_code)
-            if self._ctx.debug:
-                traceback.print_exc(file=sys.stderr)
-            else:
-                print(str(e))
-        except Exception as e: # pylint: disable=broad-exception-caught
-            if self._ctx.debug:
-                traceback.print_exc(file=sys.stderr)
-            else:
-                print(str(VgrException(None, e, None, None)))
-        return (True, None)
-
-    def print_verbose(self, *args, **kwargs) -> None:
-        self._ctx.print_verbose(*args, **kwargs)
-
-    def print_exception(self, e: Exception) -> None:
-        if self._ctx.verbose:
-            print(e, file=sys.stderr)
-        else:
-            print(e.args[0] if e.args else f'{poly_type(e)!r}', file=sys.stderr)
-
-    def get_prompt(self) -> str:
-        prompt = self._ctx.get_var("env", "VGR_PROMPT")
-        return self._DEFAULT_PROMPT if prompt is None else prompt
-
-    def _exec_help(self, *args) -> None:
-        repl_help(*args)
 
 def load_extensions(dd: DataDictionary, verbose: bool) -> VgrExtensionRegistry:
     if verbose: print_stderr('Loading extensions...')
@@ -141,8 +82,8 @@ def create_parser(extn_registry: VgrExtensionRegistry, debug: bool, verbose: boo
         if instance.adds_statements(): extn_statements += f'| {name}_statements'
         extn_grammar += instance.grammar()
         if not extn_grammar.endswith('/n'): extn_grammar += '\n'
-    print_debug(debug, 'EXTN_STATMENTS =', extn_statements)
-    print_debug(debug, 'EXTN_GRAMMAR =', extn_grammar)
+    _print_debug(debug, 'EXTN_STATMENTS =', extn_statements)
+    _print_debug(debug, 'EXTN_GRAMMAR =', extn_grammar)
     grammar = VgrExtension.read_resource_text(__package__, 'vgr.lark')
     # NB: we can't just use str.format() because the grammar
     #     contains "{" and "}"
@@ -151,7 +92,7 @@ def create_parser(extn_registry: VgrExtensionRegistry, debug: bool, verbose: boo
                        ('{FUNCTIONS}', get_function_defs()),
                        ('{VAR_NAME}', VAR_NAME)):
         grammar = grammar.replace(tag, value)
-    print_debug(debug, 'GRAMMAR =\n', grammar)
+    _print_debug(debug, 'GRAMMAR =\n', grammar)
     return Lark(grammar,
                 start=['opt_statements', 'expr', _CMD_LINE_ASSIGN],
                 lexer='contextual',
@@ -168,14 +109,14 @@ class SaveOrderedSources(argparse.Action):
             namespace.ordered = []
         namespace.ordered.append((option.lstrip('-')[0].lower(), values))
 
-def print_debug(debug: bool, /, *args, **kwargs) -> None:
+def _print_debug(debug: bool, /, *args, **kwargs) -> None:
     """If debug is on print to stderr and maybe the log"""
     if debug:
         print_stderr(*args, **kwargs)
         if _LOG.isEnabledFor(logging.DEBUG):
             _LOG.debug(*args, **kwargs)
 
-def log_exception(ctx: ExecContext, log_label: str, e: VgrException) -> None:
+def _log_exception(ctx: ExecContext, log_label: str, e: VgrException) -> None:
     err = str(e)
     print_stderr(err)
     if ctx.debug:
@@ -276,7 +217,7 @@ Environment variables:
     _LOG.info('Ready')
 
     # NB: args.execute and args.file will always be None
-    #     as there values have been accumulated in
+    #     as their values have been accumulated in
     #     args.ordered so they can be handled in the order
     #     received. Additionally, each option can be
     #     an ordered list.
@@ -324,21 +265,21 @@ Environment variables:
         else:
             if sys.stdin.isatty() and not cmds_provided:
                 ctx.print_verbose('Starting the REPL...')
-                exit_code = VGRCmdLine(ctx).run()
+                exit_code = VgrRepl(ctx).run()
                 ctx.print_verbose('REPL exited')
     except VgrExitingException as e:
         exit_code = e.exit_code
         if isinstance(e, VgrStatementAbort):
-            log_exception(ctx, 'Aborted', e)
+            _log_exception(ctx, 'Aborted', e)
         if isinstance(e, VgrStatementAssert):
-            log_exception(ctx, 'Assertion', e)
+            _log_exception(ctx, 'Assertion', e)
     except VgrException as e:
         exit_code = VgrExitingException.EXIT_FAILED
-        log_exception(ctx, 'Exception', e)
+        _log_exception(ctx, 'Exception', e)
     except Exception as e: # pylint: disable=broad-exception-caught
         # Last resort catch: log it and exit
         exit_code = VgrExitingException.EXIT_FAILED
-        log_exception(ctx, 'Exception', VgrException(None, e, None, None))
+        _log_exception(ctx, 'Exception', VgrException(None, e, None, None))
     ctx.print_verbose('Exit code is', exit_code)
     _LOG.info('Exiting')
     sys.exit(exit_code)
