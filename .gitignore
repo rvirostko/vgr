@@ -4,7 +4,6 @@
 * - skipped.csv
 vgr-syntax/
 test-log/
-vgr-*.*.*.md
 
 # Python bytecode
 __pycache__/

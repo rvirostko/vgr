@@ -6,8 +6,7 @@ from pathlib import Path
 import re
 import sys
 
-# NB: __file__ is for the vgr package, not this one...
-from vgr import __version__, __version_date__, __file__
+from vgr import __version__, __version_date__
 from vgr.functions import (
     get_function_entries,
 )
@@ -20,22 +19,6 @@ from vgr.stmt_exec import (
 
 _STATEMENTS = []
 _OPERATORS = []
-
-def gen_auto_docs() -> None:
-    _STATEMENTS.extend(get_statement_entries().keys())
-    _OPERATORS.extend(get_operator_entries().keys())
-    path = Path("vgr-" + __version__ + ".md")
-    with path.open("w", encoding="utf-8", newline="\n", errors='backslashreplace') as f:
-        _write_cover_page(f)
-        _write_toc(f)
-        _write_running(f)
-        _write_repl(f)
-        _write_variables(f)
-        _write_statements(f)
-        _write_operators(f)
-        _write_functions(f)
-
-# TODO need to expand links in copy doc
 
 def _write_cover_page(f) -> None:
     f.write(read_doc_file("cover_pg.md").format(__version__=__version__, __version_date__=__version_date__))
@@ -127,7 +110,7 @@ def _write_all_doc(f, entries: dict, anchor_prefix: str, is_function: bool=False
 
 def read_doc_file(src_filename: str) -> str:
     module_path = Path(__file__).resolve()
-    src_file = Path(module_path.parent / "doc" / src_filename)
+    src_file = Path(module_path.parent.parent / "doc" / src_filename)
     if src_file.is_file():
         with open(src_file, 'r', encoding='utf-8', errors='backslashreplace') as file_in:
             return file_in.read().rstrip() + '\n'
@@ -160,4 +143,15 @@ def _anchor(anchor_id: str) -> str:
     return f'<a id="{_fix_anchor(anchor_id).casefold()}"></a>'
 
 if __name__ == "__main__":
-    gen_auto_docs()
+    path = Path(sys.argv[1] if len(sys.argv) >= 1 else "manual.md")
+    with path.open("w", encoding="utf-8", newline="\n", errors='backslashreplace') as f:
+        _STATEMENTS.extend(get_statement_entries().keys())
+        _OPERATORS.extend(get_operator_entries().keys())
+        _write_cover_page(f)
+        _write_toc(f)
+        _write_running(f)
+        _write_repl(f)
+        _write_variables(f)
+        _write_statements(f)
+        _write_operators(f)
+        _write_functions(f)

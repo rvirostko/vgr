@@ -12,17 +12,17 @@ msg() {
     fi
 }
 if [[ $# -gt 1 ]]; then
-    msg "ERROR:\nUsage: %s [TAG]\n" "$0" >&2
+    msg "ERROR: Usage: %s [TAG]\n" "$0" >&2
     exit 1
 fi
 
 if [ ! -d "./src/vgr" ]; then
-    msg "ERROR:\nYou are not in the project root\n" >&2
+    msg "ERROR: You are not in the project root\n" >&2
     exit 1
 fi
 
 if ! python3 -m build --version >/dev/null 2>&1; then
-    msg "ERROR:\n'build' is not installed\n" >&2
+    msg "ERROR: 'build' is not installed\n" >&2
     exit 1
 fi
 
@@ -32,12 +32,12 @@ SOURCE_VERSION=$(grep -m1 '^version' pyproject.toml | sed -E 's/version *= *"(.*
 if [[ $# -eq 1 ]]; then
     TAG="$1"
     if [[ "$TAG" != v* ]]; then
-        msg "ERROR:\nInvalid tag '%s' — expected a tag beginning with 'v'\n" "${TAG}">&2
+        msg "ERROR: Invalid tag '%s' — expected a tag beginning with 'v'\n" "${TAG}">&2
         exit 1
     fi
     VERSION="${TAG#v}"
     if [[ "$VERSION" != "$SOURCE_VERSION" ]]; then
-        msg "ERROR:\nTag version '%s' does not match source version '%s'\n" "${VERSION}" "${SOURCE_VERSION}" >&2
+        msg "ERROR: Tag version '%s' does not match source version '%s'\n" "${VERSION}" "${SOURCE_VERSION}" >&2
         exit 1
     fi
 else
@@ -54,6 +54,7 @@ SAMPLES_DIR="${PROJECT_ROOT}/samples"
 CHANGELOG="${PROJECT_ROOT}/CHANGELOG.md"
 SAMPLES_FILE="${DIST_DIR}/vgr-${VERSION}-samples.zip"
 RELEASE_NOTES="${DIST_DIR}/vgr-${VERSION}-RELEASE-NOTES.md"
+MANUAL_FILE="${DIST_DIR}/vgr-${VERSION}-manual.md"
 
 # Ensure output directory exists and is empty
 rm -rf "$DIST_DIR"
@@ -66,7 +67,7 @@ RELEASE_SECTION="$VERSION"
 if ! grep -q "^## \[$VERSION\]" "$CHANGELOG"; then
     if grep -q "^## \[Unreleased\]" "$CHANGELOG"; then
         RELEASE_SECTION="Unreleased"
-        msg "WARNING:\nUsing '%s' for Release Notes\n" "${RELEASE_SECTION}" >&2
+        msg "WARNING: Using '%s' for Release Notes\n" "${RELEASE_SECTION}" >&2
     fi
 fi
 awk -v section="$RELEASE_SECTION" '
@@ -79,13 +80,13 @@ awk -v section="$RELEASE_SECTION" '
         print
     }' "$CHANGELOG" > "$RELEASE_NOTES"
 if [ ! -s "$RELEASE_NOTES" ]; then
-    msg "ERROR:\n%s is missing or empty\n" "$(basename "${RELEASE_NOTES}")" >&2
+    msg "ERROR: %s is missing or empty\n" "$(basename "${RELEASE_NOTES}")" >&2
     exit 1
 fi
 msg "Successfully created %s\n" "$(basename "${RELEASE_NOTES}")"
 
 if [ ! -d "$SAMPLES_DIR" ]; then
-    msg "ERROR:\n%s is missing\n" "$(basename "${SAMPLES_DIR}")" >&2
+    msg "ERROR: %s is missing\n" "$(basename "${SAMPLES_DIR}")" >&2
     exit 1
 fi
 (cd "$SAMPLES_DIR" && zip -q -r -9 "$SAMPLES_FILE" . \
@@ -93,9 +94,17 @@ fi
     -x "__pycache__/*" \
     -x "*.pyc")
 if [ ! -s "$SAMPLES_FILE" ]; then
-    msg "WARNING:\n%s is missing or empty\n" "$(basename "${SAMPLES_FILE}")" >&2
+    msg "WARNING: %s is missing or empty\n" "$(basename "${SAMPLES_FILE}")" >&2
 else
     msg "Successfully created %s\n" "$(basename "${SAMPLES_FILE}")"
+fi
+
+SCRIPTPATH="$( cd -- "$(dirname "$0")" >/dev/null 2>&1 ; pwd -P )"
+python3 "${SCRIPTPATH}/mk-manual.py" "${MANUAL_FILE}"
+if [ ! -s "$MANUAL_FILE" ]; then
+    msg "WARNING: %s is missing or empty\n" "$(basename "${MANUAL_FILE}")" >&2
+else
+    msg "Successfully created %s\n" "$(basename "${MANUAL_FILE}")"
 fi
 
 if command -v sha256sum >/dev/null 2>&1; then

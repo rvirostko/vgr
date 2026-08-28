@@ -102,16 +102,14 @@ class VGRCmdLine(CmdLine):
         func_key = ("function", "func",)
         op_key = ("operator", "ops", "op",)
         stmt_key = ("statement", "stmt",)
+
         self._help_topics = {
-            func_key:                  self._print_function_help,
+            func_key:                  lambda _topic, _q: None, # TODO
+            op_key:                    lambda _topic, _q: None, # TODO
+            stmt_key:                  lambda _topic, q: self._display_statement_help(q, self._search_statement_help(q)),
             ("help", "topics", "?",) : lambda _topic, _q: print_doc(self._exec_help),
-            op_key:                    self._print_operator_help,
-            ("repl",):                 self._print_repl_help,
-            stmt_key:                  self._print_statement_help,
-            ("running",):              lambda _topic, _q: self._print_md_doc("running.md"),
             ("license",):              lambda _topic, _q: md_println("\n", self._md_fixup(read_license_file()), "\n"),
             ("authors",):              lambda _topic, _q: md_println(self._md_fixup(get_authors()), "\n"),
-            ("variables",):            self._print_variables_help,
             ("list",):                 self._print_type_list,
         }
         self._list_topics = {
@@ -162,25 +160,28 @@ class VGRCmdLine(CmdLine):
         """Look for a matching environment variable (uppercase) and return it or the default value"""
         return os.getenv('VGR_' + env_var.upper(), default)
 
+# TODO something about exit, short list of REPL commands
     def _exec_help(self, *args) -> None:
         """
+**REPL Commands**
+* **exit** : Ends the REPL session using the VGR `Exit` statement
+* **
+
+* cd
+* history : Display
+# --clear
+# --max <n>
+# multiline <on|off>
+# pwd
+# shell
+
+
 **Help Topics**
 
-* **functions** : Show help on using functions or search for one by name
 * **list [functions | statements | operators]** : List the names of the available items
-* **operators** : Show help on using operators or search for one by name
-* **repl** : Show help on using the REPL
-* **running** : How to run VGR
-* **statements** : Show help on using statements or search for one by name
-* **variables** : Using variables in VGR
 * **license** : The license which governs VGR's use
 * **authors** : VGR's authors
-
-If no value is provided with **function**, **operator**, or **statement**,
-some general information is displayed.
-
-**help** used with any other value searches through
-language features looking for an exact match.
+* *anything else* : searches language features looking for help
 
 For example **help Add** will return informtion for `Add()` while
 **help statement Add** is required to get information for the like-named statement.
@@ -188,21 +189,24 @@ For example **help Add** will return informtion for `Add()` while
 """
         if len(args) < 1:
             topic = "help"
-            q = ""
+            query = ""
         else:
-            topic, *targs = args
+            topic, *args = args
             topic = topic.strip().lower()
-            q = (' '.join(targs) if targs else '').strip()
-        if bool(re.search(r"\([^)]*\)$", topic)):
-            self._print_function_help("", topic + ' ' + q)
-            return
-        for key in sorted(self._help_topics.keys()):
+            query = ' '.join(args).strip()
+            # If the topic ends with "()" then we only search functions
+            if bool(re.search(r"\([^)]*\)$", topic)):
+                query = topic + ' ' + query
+                self._display_function_help(query, self._search_function_help(query))
+                return
+        # Go through the list of topics seeing if we have a match
+        for key in self._help_topics.keys():
             for topic_key in key:
                 # short topics need to be an exact match, longer ones can be fuzzy
                 if self._fuzzy_match(topic_key, topic):
-                    self._help_topics[key](topic, q)
+                    self._help_topics[key](topic, query)
                     return
-        self._default_help_action(topic, q)
+        self._default_help_action(topic, query)
 
     def _fuzzy_match(self, key: str, s: str) -> bool:
         # short items need to be an exact match, longer ones can be fuzzy
@@ -212,38 +216,25 @@ For example **help Add** will return informtion for `Add()` while
         # If no explicit topic that matches, then see what we can find
         # in statements, functions, and operators
         q = topic + ' ' + q
-        func_help = self._get_function_help(q)
+        func_help = self._search_function_help(q)
         if len(func_help) == 1:
             self._display_function_help(q, func_help)
         else:
-            op_help = self._get_operator_help(q)
+            op_help = self._search_operator_help(q)
             if len(op_help) == 1:
                 self._display_operator_help(q, op_help)
             else:
-                stmt_help = self._get_statement_help(q)
+                stmt_help = self._search_statement_help(q)
                 if stmt_help:
                     self._display_statement_help(q, stmt_help)
                 else:
                     md_println("\n", "_Use **help topics** to list topics_", "\n")
 
     def _md_fixup(self, text: str) -> str:
-        # TODO is this more "common code?"
         text = self._anchor_link_re.sub(r'`\1`', text)
         text = self._html_anchor_re.sub('', text)
         text = self._heading_re.sub(lambda m: f"**{m.group(2).strip()}**", text)
         return self._collapse_newlines_re.sub('\n\n', text)
-
-    def _print_md_doc(self, filename: str) -> None:
-        module_path = Path(__file__).resolve()
-        src_file = Path(module_path.parent / "doc" / filename)
-        if src_file.is_file():
-            with open(src_file, 'r', encoding='utf-8', errors='backslashreplace') as file_in:
-                md_println("\n", self._md_fixup(file_in.read().rstrip()), "\n")
-        else:
-            md_println("\n", f"_Could not find {src_file!r}_", "\n")
-
-    def _print_variables_help(self, _topic: str, _q: str) -> None:
-        self._print_md_doc("variables.md")
 
     def _print_type_list(self, _topic: str, q: str) -> None:
         sub_topic = q
@@ -254,36 +245,15 @@ For example **help Add** will return informtion for `Add()` while
                     return
         self._default_help_action('', q)
 
-    def _print_repl_help(self, _topic: str, _q: str) -> None:
-        self._print_md_doc("repl.md")
-
-    def _print_statement_help(self, _topic: str, q: str) -> None:
-        if q:
-            self._display_statement_help(q, self._get_statement_help(q))
-        else:
-            self._print_md_doc("statements.md")
-
     def _list_statements(self) -> None:
         all_stmts = self._all_help(get_statement_entries())
         all_stmts.sort(key=lambda t: t[0])
         self._display_statement_help(None, all_stmts)
 
-    def _print_function_help(self, _topic: str, q: str) -> None:
-        if q:
-            self._display_function_help(q, self._get_function_help(q))
-        else:
-            self._print_md_doc("functions.md")
-
     def _list_functions(self) -> None:
         all_funcs = self._all_help(get_function_entries())
         all_funcs.sort(key=lambda t: t[0])
         self._display_function_help(None, all_funcs)
-
-    def _print_operator_help(self, _topic: str, q: str) -> None:
-        if q:
-            self._display_operator_help(q, self._get_operator_help(q))
-        else:
-            self._print_md_doc("operators.md")
 
     def _list_operators(self) -> None:
         all_ops = self._all_help(get_operator_entries())
@@ -293,14 +263,9 @@ For example **help Add** will return informtion for `Add()` while
     def _all_help(self, entries: list) -> list:
         return unique_by_func([(name, entries[name][0]) for name in entries.keys()])
 
-    def _get_operator_help(self, q: str) -> list:
-        return search_entries(get_operator_entries(), q)
-
-    def _get_statement_help(self, q: str) -> list:
-        return search_entries(get_statement_entries(), q)
-
-    def _get_function_help(self, q: str) -> list:
-        return search_entries(get_function_entries(), q)
+    def _search_operator_help(self, q: str) -> list:  return search_entries(get_operator_entries(), q)
+    def _search_statement_help(self, q: str) -> list: return search_entries(get_statement_entries(), q)
+    def _search_function_help(self, q: str) -> list:  return search_entries(get_function_entries(), q)
 
     def _display_operator_help(self, q, results) -> None:
         results = [(func.bound_ops[0], func) for _name, func in results]
