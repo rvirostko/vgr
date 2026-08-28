@@ -1,8 +1,12 @@
 import json
 import os
+import re
 from importlib import resources as impresources
 
+from lark import Lark
+
 from . import images
+from . import __version__
 
 # Written to package.json
 _PACKAGE = {
@@ -148,13 +152,60 @@ def _vscode_syntax_highlighting(keyword_pattern: str, constants_pattern: str, fu
     }
     return json.dumps(grammar, indent=4)
 
-from . import __version__
+_CONSTS = [
+    "\u2205",
+    "\u221E",
+    "Backslash",
+    "Colon",
+    "Comma",
+    "Escape",
+    "False",
+    "Inf",
+    "Nan",
+    "Newline",
+    "None",
+    "Null",
+    "Period",
+    "Quote",
+    "Space",
+    "Tab",
+    "True",
+    "Zero",
+]
 
-def create_vscode_extension(debug: bool, keyword_pattern: str, constants_pattern: str, function_pattern: str) -> None:
+def _constants_pattern(_parser: Lark) -> str:
+    # NB: part of VSC extension
+    """Returns a regex pattern that will match a constant"""
+    return "(?i)" + r"\b(:?" + "|".join(sorted(_CONSTS, key=len, reverse=True)) + r")\b"
+
+_KEYWORD_PATTERN = re.compile("[A-Z][A-Za-z-]+")
+# These keep things like "foo.for" from highlighting the "for" part
+_KEYWORD_START_BOUNDRY = r"(?<![.\w_])"
+_KEYWORD_END_BOUNDRY = r"(?![.\w-])"
+
+def _keyword_pattern(parser: Lark) -> str:
+    """
+    Returns a regex pattern that will match a keyword.
+    Only includes terminals defined as literal strings, not regexes.
+    """
+    # NB: part of VSC extension
+    keywords = []
+    for t in parser.terminals:
+        # Lark >= 1.0 uses t.pattern.value for literals
+        value = getattr(t.pattern, "value", None)
+        if value is not None and re.fullmatch(_KEYWORD_PATTERN, value):
+            if value not in _CONSTS:
+                keywords.append(value)
+    # Pattern assures that it is a stand-alone word
+    return "(?i)" + _KEYWORD_START_BOUNDRY + "(:?" + "|".join(sorted(keywords, key=len, reverse=True)) + ")" + _KEYWORD_END_BOUNDRY
+
+def create_vscode_extension(debug: bool, parser: Lark, function_pattern: str) -> None:
     """
     Creates a directory with the required structure and files
     to be a Visual Studion Code extension.
     """
+    keyword_pattern = _keyword_pattern(parser)
+    constants_pattern = _constants_pattern(parser)
     if debug:
         print(f'(r"{keyword_pattern}", Keyword),')
         print(f'(r"{constants_pattern}", Name.Constant),')

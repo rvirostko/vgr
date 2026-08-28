@@ -1,16 +1,12 @@
 """Main for VGR command line"""
 
-from pathlib import Path
-from typing import Any
 import argparse
 import logging
 import os
-import re
 import sys
 import traceback
 
 from lark import Lark
-from rapidfuzz.fuzz import ratio
 
 from .app_exceptions import (
     VgrException,
@@ -31,37 +27,19 @@ from .dd_config import (
     VER_PATH,
 )
 from .user_args import set_user_args
-from .doc_help import (
-    create_md_lexer,
-    constants_pattern,
-    keyword_pattern,
-    print_doc,
-    md_println,
-    search_entries,
-    unique_by_func,
-)
 from .extn import VgrExtension, VgrExtensionRegistry, VER
 from .functions import (
     add_builtin_functions,
     add_functions,
     function_names_pattern,
     get_function_defs,
-    get_function_entries,
 )
-from .operators import (
-    get_operator_entries,
-)
-from .interactive import CmdLine, ArgumentParser, ParserBuilder
-from .dist_meta import (
-    read_license_file,
-    get_authors,
-)
+from .interactive import CmdLine
 from .log_config import init_logging
 from .redir import print_stderr
 from .exec_context import ExecContext
 from .stmt_exec import (
     create_exec_context,
-    get_statement_entries,
     STATEMENT_HANDLERS,
 )
 from .stmt_include import (
@@ -74,6 +52,11 @@ from .stmt_log import (
 )
 from .var_name import VAR_NAME
 from .vscode_extn import create_vscode_extension
+from .repl_help import repl_help
+from .md_print import (
+    md_println,
+    md_create_lexer,
+)
 
 from . import __version__, __version_date__, __description__
 
@@ -85,38 +68,12 @@ class VGRCmdLine(CmdLine):
     _DEFAULT_HISTORY = '~/.vgr_history'
     _DEFAULT_PROMPT = 'vgr> '
 
-    _SOURCE_PARSER: ArgumentParser = (ParserBuilder()
-                    .argument('file', type=str)
-                    .parser())
-
     def __init__(self, ctx: ExecContext):
         assert ctx
         self._ctx = ctx
-        self._history_filename = self._get_vgr_default('history', self._DEFAULT_HISTORY)
-        self._max_history_entries = self._get_vgr_default('history_size', CmdLine._DEFAULT_HISTORY_SIZE)
+        self._history_filename = os.getenv("VGR_HISTORY", self._DEFAULT_HISTORY)
+        self._max_history_entries = os.getenv("VGR_HISTORY_SIZE", CmdLine._DEFAULT_HISTORY_SIZE)
         super().__init__()
-        self._heading_re = re.compile(r'^(#+)\s+(.*)$', re.MULTILINE)
-        self._anchor_link_re = re.compile(r'\[([^\]]+)\]\(#([^)]+)\)')
-        self._html_anchor_re = re.compile(r'<a\s+id="[^"]+"></a>', re.IGNORECASE)
-        self._collapse_newlines_re = re.compile(r'\n{2,}')
-        func_key = ("function", "func",)
-        op_key = ("operator", "ops", "op",)
-        stmt_key = ("statement", "stmt",)
-
-        self._help_topics = {
-            func_key:                  lambda _topic, _q: None, # TODO
-            op_key:                    lambda _topic, _q: None, # TODO
-            stmt_key:                  lambda _topic, q: self._display_statement_help(q, self._search_statement_help(q)),
-            ("help", "topics", "?",) : lambda _topic, _q: print_doc(self._exec_help),
-            ("license",):              lambda _topic, _q: md_println("\n", self._md_fixup(read_license_file()), "\n"),
-            ("authors",):              lambda _topic, _q: md_println(self._md_fixup(get_authors()), "\n"),
-            ("list",):                 self._print_type_list,
-        }
-        self._list_topics = {
-            func_key:  self._list_functions,
-            op_key:    self._list_operators,
-            stmt_key:  self._list_statements,
-        }
 
     def run(self) -> int:
         self._ctx.print_verbose("CWD =", os.getcwd())
@@ -156,149 +113,8 @@ class VGRCmdLine(CmdLine):
         prompt = self._ctx.get_var("env", "VGR_PROMPT")
         return self._DEFAULT_PROMPT if prompt is None else prompt
 
-    def _get_vgr_default(self, env_var: str, default: Any) -> str:
-        """Look for a matching environment variable (uppercase) and return it or the default value"""
-        return os.getenv('VGR_' + env_var.upper(), default)
-
-# TODO something about exit, short list of REPL commands
     def _exec_help(self, *args) -> None:
-        """
-**REPL Commands**
-* **exit** : Ends the REPL session using the VGR `Exit` statement
-* **
-
-* cd
-* history : Display
-# --clear
-# --max <n>
-# multiline <on|off>
-# pwd
-# shell
-
-
-**Help Topics**
-
-* **list [functions | statements | operators]** : List the names of the available items
-* **license** : The license which governs VGR's use
-* **authors** : VGR's authors
-* *anything else* : searches language features looking for help
-
-For example **help Add** will return informtion for `Add()` while
-**help statement Add** is required to get information for the like-named statement.
-
-"""
-        if len(args) < 1:
-            topic = "help"
-            query = ""
-        else:
-            topic, *args = args
-            topic = topic.strip().lower()
-            query = ' '.join(args).strip()
-            # If the topic ends with "()" then we only search functions
-            if bool(re.search(r"\([^)]*\)$", topic)):
-                query = topic + ' ' + query
-                self._display_function_help(query, self._search_function_help(query))
-                return
-        # Go through the list of topics seeing if we have a match
-        for key in self._help_topics.keys():
-            for topic_key in key:
-                # short topics need to be an exact match, longer ones can be fuzzy
-                if self._fuzzy_match(topic_key, topic):
-                    self._help_topics[key](topic, query)
-                    return
-        self._default_help_action(topic, query)
-
-    def _fuzzy_match(self, key: str, s: str) -> bool:
-        # short items need to be an exact match, longer ones can be fuzzy
-        return key == s  if len(s) <= 4 else ratio(key, s) >= 70.0
-
-    def _default_help_action(self, topic: str, q: str) -> None:
-        # If no explicit topic that matches, then see what we can find
-        # in statements, functions, and operators
-        q = topic + ' ' + q
-        func_help = self._search_function_help(q)
-        if len(func_help) == 1:
-            self._display_function_help(q, func_help)
-        else:
-            op_help = self._search_operator_help(q)
-            if len(op_help) == 1:
-                self._display_operator_help(q, op_help)
-            else:
-                stmt_help = self._search_statement_help(q)
-                if stmt_help:
-                    self._display_statement_help(q, stmt_help)
-                else:
-                    md_println("\n", "_Use **help topics** to list topics_", "\n")
-
-    def _md_fixup(self, text: str) -> str:
-        text = self._anchor_link_re.sub(r'`\1`', text)
-        text = self._html_anchor_re.sub('', text)
-        text = self._heading_re.sub(lambda m: f"**{m.group(2).strip()}**", text)
-        return self._collapse_newlines_re.sub('\n\n', text)
-
-    def _print_type_list(self, _topic: str, q: str) -> None:
-        sub_topic = q
-        for key in sorted(self._list_topics.keys()):
-            for list_key in key:
-                if self._fuzzy_match(list_key, sub_topic):
-                    self._list_topics[key]()
-                    return
-        self._default_help_action('', q)
-
-    def _list_statements(self) -> None:
-        all_stmts = self._all_help(get_statement_entries())
-        all_stmts.sort(key=lambda t: t[0])
-        self._display_statement_help(None, all_stmts)
-
-    def _list_functions(self) -> None:
-        all_funcs = self._all_help(get_function_entries())
-        all_funcs.sort(key=lambda t: t[0])
-        self._display_function_help(None, all_funcs)
-
-    def _list_operators(self) -> None:
-        all_ops = self._all_help(get_operator_entries())
-        all_ops.sort(key=lambda t: t[1].bound_ops[0])
-        self._display_operator_help(None, all_ops)
-
-    def _all_help(self, entries: list) -> list:
-        return unique_by_func([(name, entries[name][0]) for name in entries.keys()])
-
-    def _search_operator_help(self, q: str) -> list:  return search_entries(get_operator_entries(), q)
-    def _search_statement_help(self, q: str) -> list: return search_entries(get_statement_entries(), q)
-    def _search_function_help(self, q: str) -> list:  return search_entries(get_function_entries(), q)
-
-    def _display_operator_help(self, q, results) -> None:
-        results = [(func.bound_ops[0], func) for _name, func in results]
-        self._display_help_results("Operators", q, results)
-
-    def _display_statement_help(self, q, results) -> None:
-        self._display_help_results("Statements", q, results)
-
-    def _display_function_help(self, q, results) -> None:
-        results = [(name + "()", func) for name, func in results]
-        self._display_help_results("Functions", q, results)
-
-    def _display_help_results(self, search_type: str, q: str, results: list) -> None:
-        if len(results) == 0:
-            # We could not find anything
-            md_println("\n", f'_Nothing matches{" " + repr(q) if q else ""}_', "\n")
-        elif len(results) == 1:
-            # We got an single match
-            # Show the help for the item
-            print_doc(results[0][1])
-        else:
-            # Multiple results
-            # Show as a list with a summary
-            lines = []
-            lines.append(f'**{"Search Results" if q else search_type}-**')
-            for name, func in results:
-                doc = (func.__doc__ or "").strip()
-                if doc:
-                    # Display first non-blank line, stripped of bolding (the convention) and no sentence
-                    lines.append(f'* `{name}` - {doc.splitlines()[0].strip().strip("*").rstrip(".")}')
-                else:
-                    lines.append(f'* `{name}`')
-            md_println("\n", "\n".join(lines), "\n")
+        repl_help(*args)
 
 def load_extensions(dd: DataDictionary, verbose: bool) -> VgrExtensionRegistry:
     if verbose: print_stderr('Loading extensions...')
@@ -430,13 +246,10 @@ Environment variables:
     add_builtin_functions() # Done prior to loading extensions to prevent them overwriting
     extensions = load_extensions(dd, args.verbose)
     parser = create_parser(extensions, args.debug, args.verbose)
-    create_md_lexer(parser)
+    md_create_lexer(parser)
 
     if args.gen_vsc_extn:
-        create_vscode_extension(args.debug,
-                                keyword_pattern(parser),
-                                constants_pattern(parser),
-                                function_names_pattern())
+        create_vscode_extension(args.debug, parser, function_names_pattern())
         sys.exit(VgrExitingException.EXIT_SUCCESS)
 
     ctx = create_exec_context(parser, dd)

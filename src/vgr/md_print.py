@@ -1,11 +1,11 @@
-"""
-The help system
-"""
-
 from typing import Callable
 import re
 
 from lark import Lark
+from rich.console import Console, Theme
+from rich.markdown import Markdown
+from rich.syntax import Syntax
+
 from pygments.lexer import RegexLexer
 from pygments.style import Style
 from pygments.styles import STYLE_MAP
@@ -26,10 +26,6 @@ from pygments.token import (
     Token,
     Whitespace,
 )
-from rapidfuzz import fuzz
-from rich.console import Console, Theme
-from rich.markdown import Markdown
-from rich.syntax import Syntax
 
 _CODE_BG = "#f8f8f8"
 
@@ -62,109 +58,12 @@ _THEME = Theme({
 
 _VGR_CODE_BLOCK_PATTERN = re.compile(r"```vgr\s*\n(.*?)```", re.DOTALL | re.IGNORECASE)
 
-# Pull out weights etc for better tuning
-_FULL_SCORE_WEIGHT = 1.5
-_WEAK_SCORE_RATIO = 0.7
-
-_KEYWORD_PATTERN = re.compile("[A-Z][A-Za-z-]+")
-_CONSTS = [
-    "\u2205",
-    "\u221E",
-    "Backslash",
-    "Colon",
-    "Comma",
-    "Escape",
-    "False",
-    "Inf",
-    "Nan",
-    "Newline",
-    "None",
-    "Null",
-    "Period",
-    "Quote",
-    "Space",
-    "Tab",
-    "True",
-    "Zero",
-]
-# TODO operators
-_IGNORE_CASE = "(?i)"
-# These keep things like "foo.for" from highlighting the "for" part
-_KEYWORD_START_BOUNDRY = r"(?<![.\w_])"
-_KEYWORD_END_BOUNDRY = r"(?![.\w-])"
-
-def constants_pattern(_parser: Lark) -> str:
-    """
-    Returns a regex pattern that will match a constant.
-    """
-    return _IGNORE_CASE + r"\b(:?" + "|".join(sorted(_CONSTS, key=len, reverse=True)) + r")\b"
-
-def keyword_pattern(parser: Lark) -> str:
-    """
-    Returns a regex pattern that will match a keyword.
-    Only includes terminals defined as literal strings, not regexes.
-    """
-    keywords = []
-    for t in parser.terminals:
-        # Lark >= 1.0 uses t.pattern.value for literals
-        value = getattr(t.pattern, "value", None)
-        if value is not None and re.fullmatch(_KEYWORD_PATTERN, value):
-            if value not in _CONSTS:
-                keywords.append(value)
-    # Pattern assures that it is a stand-alone word
-    return _IGNORE_CASE + _KEYWORD_START_BOUNDRY + "(:?" + "|".join(sorted(keywords, key=len, reverse=True)) + ")" + _KEYWORD_END_BOUNDRY
-
-def search_entries(entries: dict, query: str="", limit: int = 10) -> list[tuple[str, Callable]]:
-    """
-    Search using some fuzzy logic. entries should be in the form of:
-
-        key: Canonical name, value: (implementing function, name normalized, documentation normalized)
-
-    """
-    def norm_key(k: str) -> str:
-        return re.sub(r'\s+', ' ', k.strip().replace('-', ' ').casefold())
-    if not entries: return []
-    q = query.strip().casefold().removesuffix("()").removesuffix("(")
-    tokens = q.split()
-    scores = {}
-    for name, (_, name_norm, doc_norm) in entries.items():
-        # 1. Match against full query
-        query_score = max(fuzz.QRatio(q, name_norm), fuzz.QRatio(q, doc_norm))
-        # 2. Match individual tokens
-        token_score = sum(max(fuzz.partial_ratio(tok, name_norm), fuzz.partial_ratio(tok, doc_norm)) for tok in tokens)
-        # 3. Composite score: prioritize full match, reward partial token matches
-        scores[name] = query_score * _FULL_SCORE_WEIGHT + token_score
-    # Only include matches above threshold, sorted by score descending
-    threshold = max(scores.values()) * _WEAK_SCORE_RATIO
-    filtered_matches = [
-        (name, score) for name, score in scores.items() if score >= threshold
-    ]
-    # Sort by descending score
-    filtered_matches.sort(key=lambda x: -x[1])
-    # If the query is an "exact" match, return only that entry
-    top_name = filtered_matches[0][0] if filtered_matches else None
-    if top_name and norm_key(top_name) == norm_key(q):
-        return [(top_name, entries[top_name][0])]
-    # Otherwise, convert the filtered matches into an array and return
-    # references that are unique by function
-    return unique_by_func([(name, entries[name][0]) for name, _score in filtered_matches], limit)
-
-def unique_by_func(entries: list, limit: int=None) -> list:
-    funcs = set()
-    rc = []
-    for name, func in entries:
-        if func not in funcs:
-            rc.append((name, func))
-            funcs.add(func)
-            if limit and len(rc) >= limit: break
-    return rc
-
 class MdLexerState:
     lexer: "VgrLexer" = None
 
 _STATE = MdLexerState()
 
-def create_md_lexer(_parser: Lark) -> None:
+def md_create_lexer(_parser: Lark) -> None:
     # TODO future : figure out how to get
     # dynamic values into that class: they
     # way that you think would work doesn't
@@ -179,17 +78,6 @@ def md_println(*args) -> None:
         if arg is not None:
             s = str(arg)
             _blank_line(console) if s.isspace() else _print(console, s)
-
-def print_doc(func: Callable) -> None:
-    """Prints the documentation for a function to the console as Markdown text"""
-    doc = (func.__doc__ or "").strip()
-    console = _CONSOLE
-    _blank_line(console)
-    if doc:
-        _print(console, doc)
-    else:
-        console.print(Markdown('***Sorry, no documentation available***'))
-    _blank_line(console)
 
 def _blank_line(console: Console): console.print("")
 

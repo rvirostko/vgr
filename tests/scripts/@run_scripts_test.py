@@ -10,7 +10,7 @@ from vgr.data_dict import DataDictionary
 from vgr.dd_config import dd_init
 from vgr.user_args import set_user_args
 from vgr.functions import add_builtin_functions
-from vgr.vgr import load_extensions, create_parser, create_md_lexer
+from vgr.vgr import load_extensions, create_parser, md_create_lexer
 from vgr.stmt_exec import create_exec_context, ExecContext
 from vgr.stmt_include import do_source
 from vgr.app_exceptions import VgrException, VgrExitingException
@@ -35,7 +35,7 @@ def vgr_init():
             add_builtin_functions()
             extensions = load_extensions(dd, False)
             parser = create_parser(extensions, False, False)
-            create_md_lexer(parser)
+            md_create_lexer(parser)
             ctx = create_exec_context(parser, dd)
             _state['ctx'] = ctx
             ctx.debug = False

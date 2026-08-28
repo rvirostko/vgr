@@ -20,7 +20,7 @@ from .builtins import (
     poly_type,
 )
 from .dd_config import OFS_PATH, ORS_PATH
-from .doc_help import md_println
+from .md_print import md_println
 from .exec_context import ExecContext
 from .redir import print_stdout, print_stderr
 
