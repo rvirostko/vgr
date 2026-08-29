@@ -1,5 +1,5 @@
 """
-Transformational functions to support markdown
+Transformational functions to support Markdown
 """
 
 from itertools import starmap
@@ -17,20 +17,8 @@ _MD_CODE_FENCE = '```'
 _MD_BLOCK_QUOTE_MARKER = '> '
 _BLANK = ''
 
-def _meld(func, coll1, coll2):
-    return type(coll1)(starmap(func, zip(coll1, coll2)))
-
-def _to_str(s):
-    if s is None: return _BLANK
-    s = str(s)
-    if s.isspace(): return _BLANK
-    return s
-
-def _fmt(text: str, code: str) -> str:
-    return _BLANK if len(text) == 0 else f"{code}{text}{code}"
-
 @builtin("MdStrong")
-def md_strong(text: Any=None) -> Any:
+def md_strong(*args) -> Any:
     """
 **Format the text in Markdown as strong text**
 
@@ -45,11 +33,14 @@ MdStrong(["one", "two", "three"]) → ["**one**", "**two**", "**three**"]
 
 Also see `Print` and using the *As Markdown* clause.
 """
-    if isinstance(text, list): return type(text)(md_strong(item) for item in text)
+    if len(args) == 0: return _BLANK
+    text = args[0] if len(args) == 1 else list(args)
+    if isinstance(text, list): return list(md_strong(item) for item in text)
+    if isinstance(text, dict): return {k: md_strong(v) for (k, v) in text.items()}
     return _fmt(_to_str(text), _MD_STRONG_DELIMITER)
 
 @builtin("MdEmphasis")
-def md_emphasis(text: Any=None) -> Any:
+def md_emphasis(*args) -> Any:
     """
 **Format the text in Markdown as emphasised text**
 
@@ -64,11 +55,14 @@ MdEmphasis(["one", "two", "three"]) → ["*one*", "*two*", "*three*"]
 
 Also see `Print` and using the *As Markdown* clause.
 """
-    if isinstance(text, list): return type(text)(md_emphasis(item) for item in text)
+    if len(args) == 0: return _BLANK
+    text = args[0] if len(args) == 1 else list(args)
+    if isinstance(text, list): return list(md_emphasis(item) for item in text)
+    if isinstance(text, dict): return {k: md_emphasis(v) for (k, v) in text.items()}
     return _fmt(_to_str(text), _MD_EMPHASIS_DELIMITER)
 
 @builtin("MdStrikeThrough")
-def md_strikethrough(text: Any=None) -> Any:
+def md_strikethrough(*args) -> Any:
     """
 **Format the text in Markdown as strike-through**
 
@@ -83,11 +77,14 @@ MdStrikeThrough(["one", "two", "three"]) → ["~~one~~", "~~two~~", "~~three~~"]
 
 Also see `Print` and using the *As Markdown* clause.
 """
-    if isinstance(text, list): return type(text)(md_strikethrough(item) for item in text)
+    if len(args) == 0: return _BLANK
+    text = args[0] if len(args) == 1 else list(args)
+    if isinstance(text, list): return list(md_strikethrough(item) for item in text)
+    if isinstance(text, dict): return {k: md_strikethrough(v) for (k, v) in text.items()}
     return _fmt(_to_str(text), _MD_STRIKETHROUGH_DELIMITER)
 
 @builtin("MdCode")
-def md_code(text: Any=None) -> Any:
+def md_code(*args) -> Any:
     """
 **Format the text in Markdown as code text**
 
@@ -102,7 +99,10 @@ MdCode(["one", "two", "three"]) → ["`one`", "`two`", "`three`"]
 
 Also see `Print` and using the *As Markdown* clause.
 """
-    if isinstance(text, list): return type(text)(md_code(item) for item in text)
+    if len(args) == 0: return _BLANK
+    text = args[0] if len(args) == 1 else list(args)
+    if isinstance(text, list): return list(md_code(item) for item in text)
+    if isinstance(text, dict): return {k: md_code(v) for (k, v) in text.items()}
     return _fmt(_to_str(text), _MD_CODE_DELIMITER)
 
 @builtin("MdLink")
@@ -268,3 +268,13 @@ Also see `Print` and using the *As Markdown* clause.
         return "\n" + md_code_block("\n".join(item for item in text if item is not None), lang)
     text = _to_str(text)
     return _BLANK if len(text) == 0 else f"\n{_MD_CODE_FENCE}{lang}\n{text}\n{_MD_CODE_FENCE}\n\n"
+
+def _meld(func, coll1, coll2):
+    return type(coll1)(starmap(func, zip(coll1, coll2)))
+
+def _to_str(s: Any) -> str:
+    s = _BLANK if s is None else str(s)
+    return _BLANK if s.isspace() else s
+
+def _fmt(text: str, code: str) -> str:
+    return _BLANK if len(text) == 0 else f"{code}{text}{code}"

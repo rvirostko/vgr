@@ -1,0 +1,57 @@
+
+Echo On
+
+# TODO regex
+Constant BLANK Is ""
+
+Assert MdStrong() Is BLANK
+Assert MdStrong(None) Is BLANK
+Assert MdStrong(True) Is "**True**"
+Assert MdStrong(5) Is "**5**"
+Assert MdStrong(5.1) Is "**5.1**"
+Assert MdStrong("frog") Is "**frog**"
+Assert MdStrong(" ") Is BLANK
+Assert MdStrong([]) Is []
+Assert MdStrong(["one", "two"]) Is ["**one**", "**two**"]
+Assert MdStrong("one", "two") Is ["**one**", "**two**"]
+Assert MdStrong({}) Is {}
+Assert MdStrong({"one": 1, "two": 2}) Is {"one": "**1**", "two": "**2**"}
+
+Assert MdEmphasis() Is BLANK
+Assert MdEmphasis(None) Is BLANK
+Assert MdEmphasis(True) Is "*True*"
+Assert MdEmphasis(5) Is "*5*"
+Assert MdEmphasis(5.1) Is "*5.1*"
+Assert MdEmphasis("frog") Is "*frog*"
+Assert MdEmphasis(" ") Is BLANK
+Assert MdEmphasis([]) Is []
+Assert MdEmphasis(["one", "two"]) Is ["*one*", "*two*"]
+Assert MdEmphasis("one", "two") Is ["*one*", "*two*"]
+Assert MdEmphasis({}) Is {}
+Assert MdEmphasis({"one": 1, "two": 2}) Is {"one": "*1*", "two": "*2*"}
+
+Assert MdStrikeThrough() Is BLANK
+Assert MdStrikeThrough(None) Is BLANK
+Assert MdStrikeThrough(True) Is "~~True~~"
+Assert MdStrikeThrough(5) Is "~~5~~"
+Assert MdStrikeThrough(5.1) Is "~~5.1~~"
+Assert MdStrikeThrough("frog") Is "~~frog~~"
+Assert MdStrikeThrough(" ") Is BLANK
+Assert MdStrikeThrough([]) Is []
+Assert MdStrikeThrough(["one", "two"]) Is ["~~one~~", "~~two~~"]
+Assert MdStrikeThrough("one", "two") Is ["~~one~~", "~~two~~"]
+Assert MdStrikeThrough({}) Is {}
+Assert MdStrikeThrough({"one": 1, "two": 2}) Is {"one": "~~1~~", "two": "~~2~~"}
+
+Assert MdCode() Is BLANK
+Assert MdCode(None) Is BLANK
+Assert MdCode(True) Is "`True`"
+Assert MdCode(5) Is "`5`"
+Assert MdCode(5.1) Is "`5.1`"
+Assert MdCode("frog") Is "`frog`"
+Assert MdCode(" ") Is BLANK
+Assert MdCode([]) Is []
+Assert MdCode(["one", "two"]) Is ["`one`", "`two`"]
+Assert MdCode("one", "two") Is ["`one`", "`two`"]
+Assert MdCode({}) Is {}
+Assert MdCode({"one": 1, "two": 2}) Is {"one": "`1`", "two": "`2`"}
