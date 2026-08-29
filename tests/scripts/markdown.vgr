@@ -63,6 +63,31 @@ Assert MdCode("one", "two") Is ["`one`", "`two`"]
 Assert MdCode(EMPTY_DICT) Is EMPTY_DICT
 Assert MdCode({"one": 1, "two": 2}) Is {"one": "`1`", "two": "`2`"}
 
+# Default level of 1
+Assert MdHeading() Is BLANK
+Assert MdHeading(None) Is BLANK
+Assert MdHeading(True) Is "# True\n"
+Assert MdHeading(5) Is "# 5\n"
+Assert MdHeading(5.1) Is "# 5.1\n"
+Assert MdHeading("frog") Is "# frog\n"
+Assert MdHeading(RE) Is "# " + RE_TEXT + Newline
+Assert MdHeading(Space) Is BLANK
+Assert MdHeading(EMPTY_LIST) Is EMPTY_LIST
+Assert MdHeading(["one", "two"]) Is ["# one\n", "# two\n"]
+Assert MdHeading("one", "two") Is ["# one\n", "# two\n"]
+Assert MdHeading(EMPTY_DICT) Is EMPTY_DICT
+Assert MdHeading({"one": 1, "two": 2}) Is {"one": "# 1\n", "two": "# 2\n"}
+
+# Specific level
+Assert MdHeading("frog", 3) Is "### frog\n"
+Assert MdHeading("one", "two", 4) Is ["#### one\n", "#### two\n"]
+
+# Level range (1 to 6) and conversions
+Assert MdHeading("frog", 0) Is "# frog\n"
+Assert MdHeading("frog", 17) Is "###### frog\n"
+Assert MdHeading("frog", 2.6) Is "## frog\n"
+Assert MdHeading("frog", False) Is "# frog\n"
+
 # Sample Uses
 Set colors = ["red", "green", "blue"]
 

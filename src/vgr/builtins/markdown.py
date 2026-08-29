@@ -6,7 +6,6 @@ from itertools import starmap
 from re import Pattern
 from typing import Any
 
-from .common import int_arg
 from .types import poly_to_string
 from .registry import builtin
 
@@ -135,7 +134,7 @@ Also see `Print` and using the *As Markdown* clause.
     return "[" + text + "](" + url + ")"
 
 @builtin("MdHeading")
-def md_heading(text: Any=None, level: int=1) -> Any:
+def md_heading(*args) -> Any:
     """
 **Format the text in Markdown as a heading**
 
@@ -144,20 +143,31 @@ def md_heading(text: Any=None, level: int=1) -> Any:
 * *value*.MdHeading()
 * *value*.MdHeading(*level*)
 
+The default *level* is 1.
+
 ```vgr
 MdHeading(None) → ""
 MdHeading("Heading") → "# Heading\\n"
 MdHeading("Heading", 3) → "### Heading\\n"
+MdHeading("Chapter 1", "Chapter 2") → ["# Chapter 1\\n", "# Chapter 1\\n"]
 ```
 
 Also see `Print` and using the *As Markdown* clause.
 """
-    level = int_arg(level, "Level")
-    # NB: Markdown only goes to 6, not 11
-    level = 1 if level is None else max(1, min(level, 6))
-    if isinstance(text, (list, type)): return type(text)(md_heading(item, level) for item in text)
+    if len(args) == 0: return _BLANK
+    level = 1
+    if len(args) == 1:
+        text = args[0] # its the text and level is default
+    elif isinstance(args[-1], (int, float)):
+        text = args[0] if len(args) == 2 else list(args[0:-1]) # var args w/level at end
+        # NB: Markdown only goes to 6, not 11
+        level = max(1, min(int(args[-1]), 6))
+    else:
+        text = list(args) # var args, all text
+    if isinstance(text, list): return list(md_heading(item, level) for item in text)
+    if isinstance(text, dict): return {k: md_heading(v, level) for (k, v) in text.items()}
     text = _to_str(text)
-    return _BLANK if len(text) == 0 else f"{'#' * level} {text}\n"
+    return _BLANK if len(text) == 0 else ('#' * level) + " " + text + "\n"
 
 @builtin("MdBlockQuote")
 def md_blockquote(text: Any=None) -> Any:
