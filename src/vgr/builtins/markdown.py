@@ -3,6 +3,7 @@ Transformational functions to support Markdown
 """
 
 from itertools import starmap
+from re import Pattern
 from typing import Any
 
 from .common import int_arg
@@ -273,7 +274,7 @@ def _meld(func, coll1, coll2):
     return type(coll1)(starmap(func, zip(coll1, coll2)))
 
 def _to_str(s: Any) -> str:
-    s = _BLANK if s is None else str(s)
+    s = _BLANK if s is None else s.pattern if isinstance(s, Pattern) else str(s)
     return _BLANK if s.isspace() else s
 
 def _fmt(text: str, code: str) -> str:
