@@ -6,7 +6,7 @@ from itertools import starmap
 from re import Pattern
 from typing import Any
 
-from .types import poly_to_string
+from .common import NoneType
 from .registry import builtin
 
 _MD_STRONG_DELIMITER = '**'
@@ -37,7 +37,7 @@ Also see `Print` and using the *As Markdown* clause.
     text = args[0] if len(args) == 1 else list(args)
     if isinstance(text, list): return list(md_strong(item) for item in text)
     if isinstance(text, dict): return {k: md_strong(v) for (k, v) in text.items()}
-    return _fmt(_to_str(text), _MD_STRONG_DELIMITER)
+    return _md_fmt(_md_to_string(text), _MD_STRONG_DELIMITER)
 
 @builtin("MdEmphasis")
 def md_emphasis(*args) -> Any:
@@ -59,7 +59,7 @@ Also see `Print` and using the *As Markdown* clause.
     text = args[0] if len(args) == 1 else list(args)
     if isinstance(text, list): return list(md_emphasis(item) for item in text)
     if isinstance(text, dict): return {k: md_emphasis(v) for (k, v) in text.items()}
-    return _fmt(_to_str(text), _MD_EMPHASIS_DELIMITER)
+    return _md_fmt(_md_to_string(text), _MD_EMPHASIS_DELIMITER)
 
 @builtin("MdStrikeThrough")
 def md_strikethrough(*args) -> Any:
@@ -81,7 +81,7 @@ Also see `Print` and using the *As Markdown* clause.
     text = args[0] if len(args) == 1 else list(args)
     if isinstance(text, list): return list(md_strikethrough(item) for item in text)
     if isinstance(text, dict): return {k: md_strikethrough(v) for (k, v) in text.items()}
-    return _fmt(_to_str(text), _MD_STRIKETHROUGH_DELIMITER)
+    return _md_fmt(_md_to_string(text), _MD_STRIKETHROUGH_DELIMITER)
 
 @builtin("MdCode")
 def md_code(*args) -> Any:
@@ -103,7 +103,7 @@ Also see `Print` and using the *As Markdown* clause.
     text = args[0] if len(args) == 1 else list(args)
     if isinstance(text, list): return list(md_code(item) for item in text)
     if isinstance(text, dict): return {k: md_code(v) for (k, v) in text.items()}
-    return _fmt(_to_str(text), _MD_CODE_DELIMITER)
+    return _md_fmt(_md_to_string(text), _MD_CODE_DELIMITER)
 
 @builtin("MdLink")
 def md_link(text: Any=None, url: Any=None) -> Any:
@@ -125,10 +125,12 @@ MdLink("Hello World", "https://en.wikipedia.org/wiki/Hello,_world") →
 
 Also see `Print` and using the *As Markdown* clause.
 """
+    def _meld(func, coll1, coll2):
+        return type(coll1)(starmap(func, zip(coll1, coll2)))
     if isinstance(text, list) and isinstance(url, list):
         return _meld(md_link, text, url)
-    text = _to_str(text)
-    url = _to_str(url)
+    text = _md_to_string(text)
+    url = _md_to_string(url)
     if len(url) == 0:
         return _BLANK if len(text) == 0 else "<" + text + ">"
     return "[" + text + "](" + url + ")"
@@ -166,11 +168,11 @@ Also see `Print` and using the *As Markdown* clause.
         text = list(args) # var args, all text
     if isinstance(text, list): return list(md_heading(item, level) for item in text)
     if isinstance(text, dict): return {k: md_heading(v, level) for (k, v) in text.items()}
-    text = _to_str(text)
+    text = _md_to_string(text)
     return _BLANK if len(text) == 0 else ('#' * level) + " " + text + "\n"
 
 @builtin("MdBlockQuote")
-def md_blockquote(text: Any=None) -> Any:
+def md_blockquote(*args) -> Any:
     """
 **Format the text in Markdown as a block quote**
 
@@ -189,14 +191,12 @@ MdBlockQuote(["One", "Two", "Three"]) →
 
 Also see `Print` and using the *As Markdown* clause.
 """
-    if isinstance(text, list):
-        if not text: return _BLANK
-        return "\n" + ("\n".join([f"{_MD_BLOCK_QUOTE_MARKER}{line}" for line in [poly_to_string(i) for i in text] if line is not None])) + "\n"
-    text = _to_str(text)
-    return _BLANK if len(text) == 0 else md_blockquote(text.splitlines())
+    def _quote(text: list) -> str:
+        return "\n" + ("\n".join([f"{_MD_BLOCK_QUOTE_MARKER}{line}" for line in [_md_to_string(i) for i in text] if line is not None])) + "\n"
+    return _md_block(_quote, *args)
 
 @builtin("MdUnorderedList")
-def md_unordered_list(text: Any=None) -> Any:
+def md_unordered_list(*args) -> Any:
     """
 **Format the text in Markdown as an unordered list item**
 
@@ -213,14 +213,12 @@ MdUnorderedList(["One", "Two", "Three"]) → "\\n- One\\n- Two\\n- Three\\n"
 
 Also see `Print` and using the *As Markdown* clause.
 """
-    if isinstance(text, list):
-        if not text: return _BLANK
-        return "\n" + ("\n".join([f"- {item}" for item in [poly_to_string(i) for i in text] if item is not None])) + "\n"
-    text = _to_str(text)
-    return _BLANK if len(text) == 0 else md_unordered_list(text.splitlines())
+    def _unordered(text: list) -> str:
+        return "\n" + ("\n".join([f"- {item}" for item in [_md_to_string(i) for i in text] if item is not None])) + "\n"
+    return _md_block(_unordered, *args)
 
 @builtin("MdOrderedList")
-def md_ordered_list(text: Any=None) -> Any:
+def md_ordered_list(*args) -> Any:
     """
 **Format the text in Markdown as an ordered list item**
 
@@ -228,36 +226,33 @@ def md_ordered_list(text: Any=None) -> Any:
 * *value*.MdOrderedList()
 
 If *value* is a list, each element in it is formated as a list item.
+The number for each entry will always be "1." which allows
+Markdown to automatically number the entries itself.
 
 ```vgr
 MdOrderedList(None) → ""
 MdOrderedList("One\\nTwo\\nThree") →
-    "\\n1. One\\n2. Two\\n3. Three\\n"
+    "\\n1. One\\n1. Two\\n1. Three\\n"
 MdOrderedList(["One", "Two", "Three"]) →
-    "\\n1. One\\n2. Two\\n3. Three\\n"
+    "\\n1. One\\n1. Two\\n1. Three\\n"
 ```
 
 Also see `Print` and using the *As Markdown* clause.
 """
-    if isinstance(text, list):
-        if not text: return _BLANK
-        # Convert to strings, then filter out the nulls
-        strs = [poly_to_string(i) for i in text]
-        strs = [item for item in strs if item is not None and len(item) != 0]
-        # Now enumerate to get the index
-        return "\n" + ("\n".join([f"{index + 1}. {item}" for index, item in enumerate(strs)])) + "\n"
-    text = _to_str(text)
-    return _BLANK if len(text) == 0 else md_ordered_list(text.splitlines())
+    def _ordered(text: list) -> str:
+        # Using "1." for all elements lets MD auto number
+        return "\n" + ("\n".join([f"1. {item}" for item in [_md_to_string(i) for i in text] if item is not None])) + "\n"
+    return _md_block(_ordered, *args)
 
 @builtin("MdCodeBlock")
-def md_code_block(text: Any=None, lang: str=None) -> Any:
+def md_code_block(*args) -> Any:
     """
 **Format the text in Markdown as a code block**
 
 * MdCodeBlock(*value*)
-* MdCodeBlock(*value*, *language*)
+* MdCodeBlock(*language*, *value*[, &hellip;])
 * *value*.MdCodeBlock()
-* *value*.MdCodeBlock(*language*)
+* *language*.MdCodeBlock(*value*[, &hellip;])
 
 If *value* is a list, each element in it is formatted as part of the block.
 
@@ -265,7 +260,7 @@ If *value* is a list, each element in it is formatted as part of the block.
 MdCodeBlock(None) → ""
 MdCodeBlock("print('Hello, World')") →
     "\\n```\\nprint('Hello, World')\\n```\\n\\n"
-MdCodeBlock("print('Hello, World')", "python") →
+MdCodeBlock("python", "print('Hello, World')") →
     "\\n```python\nprint('Hello, World')\\n```\\n\\n"
 MdCodeBlock(["primes = [2, 3, 5]", "for p in primes:", "    print(p)"]) →
     "\\n\\n```\\nprimes = [2, 3, 5]\\nfor p in primes:\\n    print(p)\\n```\\n\\n"
@@ -273,19 +268,33 @@ MdCodeBlock(["primes = [2, 3, 5]", "for p in primes:", "    print(p)"]) →
 
 Also see `Print` and using the *As Markdown* clause.
 """
-    lang = _to_str(lang)
+    print("!!", repr(args))
+    if len(args) == 0: return _BLANK
+    lang = ""
+    if len(args) == 1:
+        text = args[0] # its the text and lang is default
+    elif isinstance(args[0], (NoneType, str)):
+        text = args[1] if len(args) == 2 else list(args[1:]) # var args
+        lang = args[0] or ""
+    else:
+        text = list(args) # var args, all text
+    def _code(text: list) -> str:
+        t = "\n".join(_md_to_string(item) for item in text if item is not None)
+        return _BLANK if len(t) == 0 else f"\n{_MD_CODE_FENCE}{lang}\n{t}\n{_MD_CODE_FENCE}\n\n"
+    return _md_block(_code, text)
+
+def _md_block(func, *args) -> str:
+    if len(args) == 0: return _BLANK
+    text = args[0] if len(args) == 1 else list(args)
     if isinstance(text, list):
-        if not text: return _BLANK
-        return "\n" + md_code_block("\n".join(item for item in text if item is not None), lang)
-    text = _to_str(text)
-    return _BLANK if len(text) == 0 else f"\n{_MD_CODE_FENCE}{lang}\n{text}\n{_MD_CODE_FENCE}\n\n"
+        return _BLANK if not text else func(text)
+    if isinstance(text, dict): return {k: _md_block(func, v) for (k, v) in text.items()}
+    text = _md_to_string(text)
+    return _BLANK if len(text) == 0 else _md_block(func, text.splitlines())
 
-def _meld(func, coll1, coll2):
-    return type(coll1)(starmap(func, zip(coll1, coll2)))
-
-def _to_str(s: Any) -> str:
+def _md_to_string(s: Any) -> str:
     s = _BLANK if s is None else s.pattern if isinstance(s, Pattern) else str(s)
     return _BLANK if s.isspace() else s
 
-def _fmt(text: str, code: str) -> str:
+def _md_fmt(text: str, code: str) -> str:
     return _BLANK if len(text) == 0 else f"{code}{text}{code}"

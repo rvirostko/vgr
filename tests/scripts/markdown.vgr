@@ -88,7 +88,98 @@ Assert MdHeading("frog", 17) Is "###### frog\n"
 Assert MdHeading("frog", 2.6) Is "## frog\n"
 Assert MdHeading("frog", False) Is "# frog\n"
 
+Assert MdBlockQuote() Is BLANK
+Assert MdBlockQuote(None) Is BLANK
+Assert MdBlockQuote(True) Is "\n> True\n"
+Assert MdBlockQuote(5) Is "\n> 5\n"
+Assert MdBlockQuote(5.1) Is "\n> 5.1\n"
+Assert MdBlockQuote("frog") Is "\n> frog\n"
+Assert MdBlockQuote(RE) Is MdBlockQuote(RE_TEXT)
+Assert MdBlockQuote(Space) Is BLANK
+Assert MdBlockQuote(EMPTY_LIST) Is BLANK
+Assert MdBlockQuote(["one", "two"]) Is "\n> one\n> two\n"
+Assert MdBlockQuote("one", "two") Is "\n> one\n> two\n"
+Assert MdBlockQuote("one\ntwo") Is "\n> one\n> two\n"
+Assert MdBlockQuote(EMPTY_DICT) Is EMPTY_DICT
+Assert MdBlockQuote({"one": 1, "two": 2}) Is {"one": "\n> 1\n", "two": "\n> 2\n"}
+
+Assert MdUnorderedList() Is BLANK
+Assert MdUnorderedList(None) Is BLANK
+Assert MdUnorderedList(True) Is "\n- True\n"
+Assert MdUnorderedList(5) Is "\n- 5\n"
+Assert MdUnorderedList(5.1) Is "\n- 5.1\n"
+Assert MdUnorderedList("frog") Is "\n- frog\n"
+Assert MdUnorderedList(RE) Is MdUnorderedList(RE_TEXT)
+Assert MdUnorderedList(Space) Is BLANK
+Assert MdUnorderedList(EMPTY_LIST) Is BLANK
+Assert MdUnorderedList(["one", "two"]) Is "\n- one\n- two\n"
+Assert MdUnorderedList("one", "two") Is "\n- one\n- two\n"
+Assert MdUnorderedList("one\ntwo") Is "\n- one\n- two\n"
+Assert MdUnorderedList(EMPTY_DICT) Is EMPTY_DICT
+Assert MdUnorderedList({"one": 1, "two": 2}) Is {"one": "\n- 1\n", "two": "\n- 2\n"}
+
+Assert MdOrderedList() Is BLANK
+Assert MdOrderedList(None) Is BLANK
+Assert MdOrderedList(True) Is "\n1. True\n"
+Assert MdOrderedList(5) Is "\n1. 5\n"
+Assert MdOrderedList(5.1) Is "\n1. 5.1\n"
+Assert MdOrderedList("frog") Is "\n1. frog\n"
+Assert MdOrderedList(RE) Is MdOrderedList(RE_TEXT)
+Assert MdOrderedList(Space) Is BLANK
+Assert MdOrderedList(EMPTY_LIST) Is BLANK
+Assert MdOrderedList(["one", "two"]) Is "\n1. one\n1. two\n"
+Assert MdOrderedList("one", "two") Is "\n1. one\n1. two\n"
+Assert MdOrderedList("one\ntwo") Is "\n1. one\n1. two\n"
+Assert MdOrderedList(EMPTY_DICT) Is EMPTY_DICT
+Assert MdOrderedList({"one": 1, "two": 2}) Is {"one": "\n1. 1\n", "two": "\n1. 2\n"}
+
+Assert MdCodeBlock() Is BLANK
+Assert MdCodeBlock(None) Is BLANK
+Assert MdCodeBlock(True) Is "\n```\nTrue\n```\n\n"
+Assert MdCodeBlock(5) Is "\n```\n5\n```\n\n"
+Assert MdCodeBlock(5.1) Is "\n```\n5.1\n```\n\n"
+Assert MdCodeBlock("frog") Is "\n```\nfrog\n```\n\n"
+Assert MdCodeBlock(RE) Is MdCodeBlock(RE_TEXT)
+Assert MdCodeBlock(Space) Is BLANK
+Assert MdCodeBlock(EMPTY_LIST) Is BLANK
+Assert MdCodeBlock(["one", "two"]) Is
+    "\n```\none\ntwo\n```\n\n"
+Assert MdCodeBlock(None, "one", "two") Is  # NB: A bit ugly...
+    "\n```\none\ntwo\n```\n\n"
+Assert MdCodeBlock(1, "two") Is
+    "\n```\n1\ntwo\n```\n\n"
+Assert MdCodeBlock("one\ntwo") Is
+    "\n```\none\ntwo\n```\n\n"
+Assert MdCodeBlock(EMPTY_DICT) Is EMPTY_DICT
+Assert MdCodeBlock({"one": 1, "two": 2}) Is
+    {"one": "\n```\n1\n```\n\n", "two": "\n```\n2\n```\n\n"}
+
 # Sample Uses
+Echo off
+
+Printf Newline
+For level = 1 To 6
+    Print MdHeading("Heading " + level, level) As Markdown
+Next
+
+# ToDo MdLink() - Format the text in Markdown as a link
+
+Printf Newline
+Print "Strong".MdStrong() As Markdown
+Print "Emphasis".MdEmphasis() As Markdown
+Print "Strike through".MdStrikeThrough() As Markdown
+Print "Code".MdCode() As Markdown
+
 Set colors = ["red", "green", "blue"]
 
-Print "Color".MdCode(), "-", MdEmphasis(colors).Join(", ") As Markdown
+Printf Newline
+Print "Colors".MdCode(), "-", MdEmphasis(colors).Join(", ") As Markdown
+Printf Newline
+Print MdEmphasis("Colors Code block") + Newline +
+    MdCodeBlock("vgr", "Set colors = " + colors.Repr()) As Markdown
+Print MdEmphasis("Colors Unordered List") + Newline + MdUnorderedList(colors.TitleCase()) As Markdown
+Printf Newline
+Print MdEmphasis("Colors Ordered List") + Newline + MdOrderedList(Sort(colors.TitleCase())) As Markdown
+Printf Newline
+Print MdEmphasis("Colors Block Quote") + Newline + MdBlockQuote(colors.TitleCase()) As Markdown
+Printf Newline

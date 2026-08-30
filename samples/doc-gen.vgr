@@ -59,11 +59,14 @@ Set o_err To
     RemoveSuffix(".Repr()").
     Apply(deparen)
 
+// Make a code example from
+// - Any setup strings
+// - The combined "echo" and sample output
 Set example To
-    (s_in +                     // Any setup strings
-     CombineLists(o_err, o_in). // Combine the data sources
-       Apply(arrow_join)).      // Join the statement and its output
-    MdCodeBlock("vgr")          // Make into a code example
+    MdCodeBlock("vgr",
+                s_in +
+                CombineLists(o_err, o_in).Apply(arrow_join)
+    )
 
 // Preview it for editing
 Print example As Markdown
