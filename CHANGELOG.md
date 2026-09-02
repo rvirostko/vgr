@@ -11,6 +11,7 @@
 - Added "Head()" and "Tail()" to return a subset of lists.
 - Added "RandomSample()" which returns a subset using either a percentage
   or count of items.
+- Added MdImage() to create image tags
 
 ### Changed
 
@@ -22,6 +23,7 @@
   rather than JSON.
 - Breaking change: IsTitle() renamed to IsTitleCase() to match the
   TitleCase() operation.
+- Breaking change: MdLink() arguments for url and text reversed
 - Constant statement can now create a constant from an initialized variable
   without having to use an assignment (e.g. "Set x To 5; Constant x").
   Additionally, this form of the statement is idempotent.
@@ -41,6 +43,10 @@
 - The following general purpose functions now support variable arguments:
   Clone(), Hash(), Id(), IsFalse(), IsTrue(), Length(), Negate(),
   Repr(), Reverse().
+- The following Markdown functions now support variable arguments:
+  MdEmphasis(), MdStrikeThrough(), MdCode(), MdLink(), MdImage()
+  MdHeading(), MdBlockQuote(), MdUnorderedList(), MdOrderedList(),
+  and MdCodeBlock().
 - DefaultTo() now takes multiple default values, returning the first
   non-None one.
 - Sort keys can now be things other than strings (booleans, integers, floats)
@@ -63,6 +69,7 @@
   replaced with figurative constants a while ago
 - The manual is no longer created from a command line options, but is
   created as part of the release.
+- MdLink() undocumented behavior with lists removed.
 
 ### Fixed
 

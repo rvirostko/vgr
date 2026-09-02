@@ -26,6 +26,9 @@ _DEFAULTS_BY_TYPE = {
     str : '',
 }
 
+_TRUE_STRS = ('true', 'yes', 'on')
+_FALSE_STRS = ('false', 'no', 'off')
+
 def bound_ops(*operators):
     """Attach a list of operators to a function so they show up in help"""
     def decorator(func):
@@ -42,8 +45,17 @@ def get_requires_exec_context(func) -> bool:
     """Check if a function requires an ExecContext"""
     return getattr(func, "requires_exec_context", False)
 
-_TRUE_STRS = ('true', 'yes', 'on')
-_FALSE_STRS = ('false', 'no', 'off')
+def unpack_vargs(args: Any, n: int) -> tuple:
+    """
+    Pad/truncate a positional-args sequence to exactly n values,
+    filling any missing trailing positions with None.
+    Returns an (n+1)-tuple: the n padded/truncated values, followed
+    by a tuple of whatever extra args remained beyond n (empty tuple if none).
+    """
+    length = len(args)
+    if length == n: return args + ((),)
+    if length < n:  return args + (None,) * (n - length) + ((),)
+    return args[:n] + (args[n:],)
 
 def str_to_number(s: str) -> Number:
     """

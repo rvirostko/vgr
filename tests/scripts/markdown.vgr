@@ -88,6 +88,39 @@ Assert MdHeading("frog", 17) Is "###### frog\n"
 Assert MdHeading("frog", 2.6) Is "## frog\n"
 Assert MdHeading("frog", False) Is "# frog\n"
 
+Assert MdLink() Is BLANK
+Assert MdLink(None) Is BLANK
+Assert MdLink(Space) Is BLANK
+Assert MdLink(EMPTY_LIST) Is BLANK
+Assert MdLink(EMPTY_DICT) Is BLANK
+Assert MdLink("foo.net") Is "<foo.net>"
+Assert MdLink(" foo<.net ") Is r"<foo\<.net>"
+Assert MdLink("foo.net", "Foo Net") Is "[Foo Net](foo.net)"
+Assert MdLink("foo.net", None, "See the Foo") Is "[foo.net](foo.net \"See the Foo\")"
+Assert MdLink("foo.net", "Foo Net", "See the Foo") Is "[Foo Net](foo.net \"See the Foo\")"
+Assert MdLink("foo.net", ["Foo Net"]) Is "[Foo Net](foo.net)"
+Assert MdLink("foo.net", ["Foo", "Net"]) Is "[Foo\nNet](foo.net)"
+Assert MdLink("foo.net", None, ["Foo"]) Is "[foo.net](foo.net \"Foo\")"
+Assert MdLink("foo.net", None, ["Foo", "Net"]) Is "[foo.net](foo.net \"Foo\nNet\")"
+Assert MdLink("foo.net", {"Foo": "Net"}) Is "[Foo : Net](foo.net)"
+Assert MdLink("foo.net", None, {"Foo": "Net"}) Is "[foo.net](foo.net \"Foo : Net\")"
+
+Assert MdImage() Is BLANK
+Assert MdImage(None) Is BLANK
+Assert MdImage(Space) Is BLANK
+Assert MdImage(EMPTY_LIST) Is BLANK
+Assert MdImage(EMPTY_DICT) Is BLANK
+Assert MdImage("foo.net") Is "![](foo.net)"
+Assert MdImage("foo.net", "Foo Net") Is "![Foo Net](foo.net)"
+Assert MdImage("foo.net", None, "See the Foo") Is "![](foo.net \"See the Foo\")"
+Assert MdImage("foo.net", "Foo Net", "See the Foo") Is "![Foo Net](foo.net \"See the Foo\")"
+Assert MdImage("foo.net", ["Foo Net"]) Is "![Foo Net](foo.net)"
+Assert MdImage("foo.net", ["Foo", "Net"]) Is "![Foo\nNet](foo.net)"
+Assert MdImage("foo.net", None, ["Foo"]) Is "![](foo.net \"Foo\")"
+Assert MdImage("foo.net", None, ["Foo", "Net"]) Is "![](foo.net \"Foo\nNet\")"
+Assert MdImage("foo.net", {"Foo": "Net"}) Is "![Foo : Net](foo.net)"
+Assert MdImage("foo.net", None, {"Foo": "Net"}) Is "![](foo.net \"Foo : Net\")"
+
 Assert MdBlockQuote() Is BLANK
 Assert MdBlockQuote(None) Is BLANK
 Assert MdBlockQuote(True) Is "\n> True\n"
@@ -163,6 +196,8 @@ For level = 1 To 6
 Next
 
 # ToDo MdLink() - Format the text in Markdown as a link
+
+# ToDo MdImage()
 
 Printf Newline
 Print "Strong".MdStrong() As Markdown

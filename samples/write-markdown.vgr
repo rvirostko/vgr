@@ -1,0 +1,102 @@
+# Capture the output of this script and open in a Markdown editor
+
+Constant MARK_URL Is "https://upload.wikimedia.org/wikipedia/commons/4/48/Markdown-mark.svg"
+Constant WIKI_URL Is "https://en.wikipedia.org/wiki/Markdown"
+
+Print MdHeading("Markdown")
+
+Print MdImage(MARK_URL, "Markdown logo", "The Markdown Mark")
+Printf Newline
+
+Print MdStrong("Markdown"),
+    """is a lightweight markup language for creating formatted text
+using a plain-text editor. John Gruber created Markdown in 2004 as an easy-to-read
+markup language. Markdown is widely used for blogging, instant messaging, and
+arge language models, and also used elsewhere in online forums, collaborative software,
+documentation pages, and readme files.
+"""
+
+Print "Read more about",
+      MdLink(WIKI_URL, "Markdown", "Wikipedia article on Markdown"),
+      "on Wikipedia."
+Printf Newline
+
+Print MdHeading("VGR Markdown Support")
+
+Print """VGR supports the creating of Markdown files via
+a set of functions that style the text. The""", MdCode("Select"),
+"""statement can be used to format tables of data, and the""", MdCode("Print"),
+"""statement allows for the direct presentation of Markdown as text
+in a terminal via the """, MdCode("As Markdown"), """clause.
+
+All of the REPL's help is in Markdown.
+"""
+
+Print MdHeading("Character attributes", 2)
+
+Print
+    MdCode("MdStrong()"), "creates", MdStrong("strong text"), "\n\n",
+    MdCode("MdEmphasis()"), "creates", MdEmphasis("emphasised text"), "\n\n",
+    MdCode("MdStrikeThrough()"), "creates", MdStrikeThrough("struck out text"), "\n\n",
+    MdCode("MdCode()"), "creates", MdCode("in-line code"), Newline
+
+Print MdHeading("Code blocks", 2)
+Print MdCode("MdCodeBlock()"), "is used to format blocks of code"
+
+Print MdCodeBlock("python",
+    "print('hello world')"
+)
+
+Print MdHeading("Block quotes", 2)
+Print MdCode("MdBlockQuote()"), "is used to format a quoted block"
+Print MdBlockQuote(
+    "I've seen things you people wouldn't believe.",
+    "Attack ships on fire off the shoulder of Orion.",
+    "I watched C-beams glitter in the dark near the Tannhäuser Gate.",
+    "All those moments will be lost in time, like tears in rain. Time to Die.",
+    Newline,
+    "Rutger Hauer's ",
+    MdEmphasis(MdLink("https://en.wikipedia.org/wiki/Tears_in_rain_monologue",
+    "Tears in rain monologue",
+    "Wikipedia article on the Blade Runner monologue")))
+
+Print MdHeading("Ordered lists", 2)
+Print MdCode("MdOrderedList()"), "is used to format ordered lists"
+Print MdOrderedList("Bacon", "Lettuce", "Tomato")
+
+Print MdHeading("Unordered lists", 2)
+Print MdCode("MdUnorderedList()"), "is used to format unordered lists"
+Print MdUnorderedList("Eggs", "Sausage", "Spam")
+
+Constant recipies Is [
+  {"dish": "Pad Thai", "cuisine": "Thai", "ingredients": ["rice noodles", "peanuts", "tamarind"], "url": "https://en.wikipedia.org/wiki/Pad_thai"},
+  {"dish": "Coq au Vin", "cuisine": "French", "ingredients": ["chicken", "red wine", "mushrooms"], "url": "https://en.wikipedia.org/wiki/Coq_au_vin"},
+  {"dish": "Chana Masala", "cuisine": "Indian", "ingredients": ["chickpeas", "tomato", "onion"], "url": "https://en.wikipedia.org/wiki/Chana_masala"},
+  {"dish": "Ramen", "cuisine": "Japanese", "ingredients": ["wheat noodles", "pork broth", "scallion"], "url": "https://en.wikipedia.org/wiki/Ramen"},
+  {"dish": "Moussaka", "cuisine": "Greek", "ingredients": ["eggplant", "ground lamb", "bechamel"], "url": "https://en.wikipedia.org/wiki/Moussaka"},
+  {"dish": "Tacos al Pastor", "cuisine": "Mexican", "ingredients": ["pork", "pineapple", "achiote"], "url": "https://en.wikipedia.org/wiki/Al_pastor"},
+  {"dish": "Risotto", "cuisine": "Italian", "ingredients": ["arborio rice", "parmesan", "white wine"], "url": "https://en.wikipedia.org/wiki/Risotto"},
+  {"dish": "Bibimbap", "cuisine": "Korean", "ingredients": ["rice", "gochujang", "egg"], "url": "https://en.wikipedia.org/wiki/Bibimbap"},
+  {"dish": "Shakshuka", "cuisine": "North African", "ingredients": ["eggs", "tomato", "bell pepper"], "url": "https://en.wikipedia.org/wiki/Shakshuka"},
+  {"dish": "Pho", "cuisine": "Vietnamese", "ingredients": ["beef", "rice noodles", "star anise"], "url": "https://en.wikipedia.org/wiki/Pho"}
+]
+
+Print MdHeading("Tabular data", 2)
+Print "VGR's", MdCode("Select"), "statement can directly produce Markdown tables", Newline
+
+Print MdCodeBlock("vgr",
+"""Sort recipies By "cuisine"
+Select
+    r.cuisine As "Cuisine",
+    r.url.MdLink(r.dish, "Click for {} article".Format(r.dish)) As "Dish",
+    r.ingredients.TitleCase().MdEmphasis() As "Ingredients"
+From recipies As r
+For Markdown""")
+
+Sort recipies By "cuisine"
+Select
+    r.cuisine As "Cuisine",
+    r.url.MdLink(r.dish, "Click for {} article".Format(r.dish)) As "Dish",
+    r.ingredients.TitleCase().MdEmphasis() As "Ingredients"
+From recipies As r
+For Markdown

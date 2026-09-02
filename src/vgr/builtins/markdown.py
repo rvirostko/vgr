@@ -2,11 +2,12 @@
 Transformational functions to support Markdown
 """
 
-from itertools import starmap
 from re import Pattern
 from typing import Any
+from urllib.parse import quote
+import re
 
-from .common import NoneType
+from .common import NoneType, unpack_vargs
 from .registry import builtin
 
 _MD_STRONG_DELIMITER = '**'
@@ -17,10 +18,13 @@ _MD_CODE_FENCE = '```'
 _MD_BLOCK_QUOTE_MARKER = '> '
 _BLANK = ''
 
+_TAG_BREAKER_PATTERN = re.compile(r'\n{2,}')
+_WHITESPACE_PATTERN = re.compile(r'\s')
+
 @builtin("MdStrong")
 def md_strong(*args) -> Any:
     """
-**Format the text in Markdown as strong text**
+**Format text in Markdown as strong text**
 
 * MdStrong(*value*)
 * *value*.MdStrong()
@@ -42,7 +46,7 @@ Also see `Print` and using the *As Markdown* clause.
 @builtin("MdEmphasis")
 def md_emphasis(*args) -> Any:
     """
-**Format the text in Markdown as emphasised text**
+**Format text in Markdown as emphasised text**
 
 * MdEmphasis(*value*)
 * *value*.MdEmphasis()
@@ -64,7 +68,7 @@ Also see `Print` and using the *As Markdown* clause.
 @builtin("MdStrikeThrough")
 def md_strikethrough(*args) -> Any:
     """
-**Format the text in Markdown as strike-through**
+**Format text in Markdown as strike-through**
 
 * MdStrikeThrough(*value*)
 * *value*.MdStrikeThrough()
@@ -86,7 +90,7 @@ Also see `Print` and using the *As Markdown* clause.
 @builtin("MdCode")
 def md_code(*args) -> Any:
     """
-**Format the text in Markdown as code text**
+**Format text in Markdown as code/monospaced text**
 
 * MdCode(*value*)
 * *value*.MdCode()
@@ -106,39 +110,82 @@ Also see `Print` and using the *As Markdown* clause.
     return _md_fmt(_md_to_string(text), _MD_CODE_DELIMITER)
 
 @builtin("MdLink")
-def md_link(text: Any=None, url: Any=None) -> Any:
+def md_link(*args) -> Any:
     """
-**Format the text in Markdown as a link**
+**Format a Markdown link tag**
 
 * MdLink(*url*)
-* MdLink(*value*, *url*)
-* *value*.MdLink(*url*)
+* MdLink(*url*, *text*)
+* MdLink(*url*, *text*, *title*)
 * *url*.MdLink()
+* *url*.MdLink(*text*)
+* *url*.MdLink(*text*, *title*)
 
 ```vgr
 MdLink(None) → ""
 MdLink("https://en.wikipedia.org/wiki/Hello,_world") →
     "<https://en.wikipedia.org/wiki/Hello,_world>"
-MdLink("Hello World", "https://en.wikipedia.org/wiki/Hello,_world") →
+MdLink("https://en.wikipedia.org/wiki/Hello,_world", "Hello World") →
     "[Hello World](https://en.wikipedia.org/wiki/Hello,_world)"
+MdLink("https://en.wikipedia.org/wiki/Hello,_world", "Hello World", "A link to Wikipedia") →
+    '[Hello World](https://en.wikipedia.org/wiki/Hello,_world "A link to Wikipedia")'
 ```
 
 Also see `Print` and using the *As Markdown* clause.
 """
-    def _meld(func, coll1, coll2):
-        return type(coll1)(starmap(func, zip(coll1, coll2)))
-    if isinstance(text, list) and isinstance(url, list):
-        return _meld(md_link, text, url)
-    text = _md_to_string(text)
+    url, text, title, _ = unpack_vargs(args, 3)
     url = _md_to_string(url)
-    if len(url) == 0:
-        return _BLANK if len(text) == 0 else "<" + text + ">"
-    return "[" + text + "](" + url + ")"
+    if not url: return _BLANK
+    text = _md_to_string(text)
+    title = _md_sanitize(_md_to_string(title), '"')
+    if not text:
+        if title: # [foo.net](foo.net "the foo")
+            return "[" + _md_sanitize(url, "[]") + "](" + _md_sanitize_url(url, "()") + ' "' + title  + '")'
+        # <foo.net>
+        return "<" + _md_sanitize_url(url, "<>") + ">"
+    if title: # [Foo Net](foo.net "the foo")
+        return "[" + _md_sanitize(text, "[]") + "](" + _md_sanitize_url(url, "()") + ' "' + title + '")'
+    # [Foo Net](foo.net)
+    return "[" + _md_sanitize(text, "[]") + "](" + _md_sanitize_url(url, "()") + ")"
+
+@builtin("MdImage")
+def MdImage(*args):
+    """
+**Format a Markdown image tag**
+
+* MdImage(*url*)
+* MdImage(*url*, *alt*)
+* MdImage(*url*, *alt*, *title*)
+* *url*.MdImage()
+* *url*.MdImage(*alt*)
+* *url*.MdImage(*alt*, *title*)
+
+```vgr
+MdImage(None) → ""
+MdImage("https://upload.wikimedia.org/wikipedia/commons/4/48/Markdown-mark.svg") →
+    "![](https://upload.wikimedia.org/wikipedia/commons/4/48/Markdown-mark.svg)"
+MdImage("https://upload.wikimedia.org/wikipedia/commons/4/48/Markdown-mark.svg", "Markdown logo") →
+    "![Markdown logo](https://upload.wikimedia.org/wikipedia/commons/4/48/Markdown-mark.svg)"
+MdImage("https://upload.wikimedia.org/wikipedia/commons/4/48/Markdown-mark.svg", "Markdown logo", "The Markdown Mark") →
+    '![Markdown logo](https://upload.wikimedia.org/wikipedia/commons/4/48/Markdown-mark.svg "The Markdown Mark")'
+```
+
+Also see `Print` and using the *As Markdown* clause.
+"""
+    url, alt, title, _ = unpack_vargs(args, 3)
+    url = _md_to_string(url)
+    if not url: return _BLANK
+    alt = _md_to_string(alt)
+    title = _md_sanitize(_md_to_string(title), '"')
+    if title: # ![A Foo](foo.net/img "A foo!")
+        return "![" + _md_sanitize(alt, "[]") + "](" + _md_sanitize_url(url, "()") + ' "' + title + '")'
+    # ![A Foo](foo.net/img)
+    return "![" + _md_sanitize(alt, "[]") + "](" + _md_sanitize_url(url, "()") + ")"
 
 @builtin("MdHeading")
 def md_heading(*args) -> Any:
     """
-**Format the text in Markdown as a heading**
+**Format text in Markdown as a heading**
 
 * MdHeading(*value*)
 * MdHeading(*value*, *level*)
@@ -174,7 +221,7 @@ Also see `Print` and using the *As Markdown* clause.
 @builtin("MdBlockQuote")
 def md_blockquote(*args) -> Any:
     """
-**Format the text in Markdown as a block quote**
+**Format text in Markdown as a block quote**
 
 * MdBlockQuote(*value*)
 * *value*.MdBlockQuote()
@@ -198,7 +245,7 @@ Also see `Print` and using the *As Markdown* clause.
 @builtin("MdUnorderedList")
 def md_unordered_list(*args) -> Any:
     """
-**Format the text in Markdown as an unordered list item**
+**Format text in Markdown as an unordered list item**
 
 * MdUnorderedList(*value*)
 * *value*.MdUnorderedList()
@@ -220,7 +267,7 @@ Also see `Print` and using the *As Markdown* clause.
 @builtin("MdOrderedList")
 def md_ordered_list(*args) -> Any:
     """
-**Format the text in Markdown as an ordered list item**
+**Format text in Markdown as an ordered list item**
 
 * MdOrderedList(*value*)
 * *value*.MdOrderedList()
@@ -247,7 +294,7 @@ Also see `Print` and using the *As Markdown* clause.
 @builtin("MdCodeBlock")
 def md_code_block(*args) -> Any:
     """
-**Format the text in Markdown as a code block**
+**Format text in Markdown as a code block**
 
 * MdCodeBlock(*value*)
 * MdCodeBlock(*language*, *value*[, &hellip;])
@@ -268,7 +315,6 @@ MdCodeBlock(["primes = [2, 3, 5]", "for p in primes:", "    print(p)"]) →
 
 Also see `Print` and using the *As Markdown* clause.
 """
-    print("!!", repr(args))
     if len(args) == 0: return _BLANK
     lang = ""
     if len(args) == 1:
@@ -286,15 +332,39 @@ Also see `Print` and using the *As Markdown* clause.
 def _md_block(func, *args) -> str:
     if len(args) == 0: return _BLANK
     text = args[0] if len(args) == 1 else list(args)
-    if isinstance(text, list):
-        return _BLANK if not text else func(text)
+    if isinstance(text, list): return _BLANK if not text else func(text)
     if isinstance(text, dict): return {k: _md_block(func, v) for (k, v) in text.items()}
     text = _md_to_string(text)
     return _BLANK if len(text) == 0 else _md_block(func, text.splitlines())
 
 def _md_to_string(s: Any) -> str:
+    # NB: most of the time, the caller has performed
+    # special processing on lists and dictionaries, so
+    # this simplistic text conversion doesn't take place
+    if isinstance(s, list): # recursively join elements of a list
+        return _BLANK if not s else "\n".join([_md_to_string(i) for i in s])
+    if isinstance(s, dict): # recusively join the items of a dict
+        return "\n".join([_md_to_string(k) + " : " + _md_to_string(v) for (k, v) in s.items()])
     s = _BLANK if s is None else s.pattern if isinstance(s, Pattern) else str(s)
     return _BLANK if s.isspace() else s
 
 def _md_fmt(text: str, code: str) -> str:
-    return _BLANK if len(text) == 0 else f"{code}{text}{code}"
+    return _BLANK if len(text) == 0 else code + text + code
+
+def _md_sanitize(s: str, escape_chars: str=""):
+    # A run of 2 or more line breaks breaks the tag
+    s = _TAG_BREAKER_PATTERN.sub('\n', s)
+    if s:
+        # Then we escape any other character that might
+        # break the tag, but only if the caller has
+        # passed in pre-escaped versions
+        escaped = re.escape(escape_chars)
+        pattern = re.compile(r'(?<!\\)([' + escaped + r'])')
+        s = pattern.sub(r'\\\1', s)
+    return s
+
+def _md_sanitize_url(s: str, escape_chars: str="") -> str:
+    # First perform URL encoding on stripped version
+    # which deals with embedded WS breaking things
+    s = _WHITESPACE_PATTERN.sub(lambda m: quote(m.group()), s.strip())
+    return _md_sanitize(s, escape_chars)
