@@ -45,7 +45,7 @@ Also see `Print` and using the *As Markdown* clause.
     text = args[0] if len(args) == 1 else list(args)
     if isinstance(text, list): return list(md_strong(item) for item in text)
     if isinstance(text, dict): return {k: md_strong(v) for (k, v) in text.items()}
-    return _md_fmt(_md_sanitize(_md_to_string(text), _MD_STRONG_DELIMITER[0]), _MD_STRONG_DELIMITER)
+    return _md_fmt(_md_sanitize(_md_to_string(text).strip(), _MD_STRONG_DELIMITER[0]), _MD_STRONG_DELIMITER)
 
 @builtin("MdEmphasis")
 def md_emphasis(*args) -> Any:
@@ -67,7 +67,7 @@ Also see `Print` and using the *As Markdown* clause.
     text = args[0] if len(args) == 1 else list(args)
     if isinstance(text, list): return list(md_emphasis(item) for item in text)
     if isinstance(text, dict): return {k: md_emphasis(v) for (k, v) in text.items()}
-    return _md_fmt(_md_sanitize(_md_to_string(text), _MD_EMPHASIS_DELIMITER[0]), _MD_EMPHASIS_DELIMITER)
+    return _md_fmt(_md_sanitize(_md_to_string(text).strip(), _MD_EMPHASIS_DELIMITER[0]), _MD_EMPHASIS_DELIMITER)
 
 @builtin("MdStrikeThrough")
 def md_strikethrough(*args) -> Any:
@@ -89,7 +89,7 @@ Also see `Print` and using the *As Markdown* clause.
     text = args[0] if len(args) == 1 else list(args)
     if isinstance(text, list): return list(md_strikethrough(item) for item in text)
     if isinstance(text, dict): return {k: md_strikethrough(v) for (k, v) in text.items()}
-    return _md_fmt(_md_sanitize(_md_to_string(text), _MD_STRIKETHROUGH_DELIMITER[0]), _MD_STRIKETHROUGH_DELIMITER)
+    return _md_fmt(_md_sanitize(_md_to_string(text).strip(), _MD_STRIKETHROUGH_DELIMITER[0]), _MD_STRIKETHROUGH_DELIMITER)
 
 @builtin("MdCode")
 def md_code(*args) -> Any:
@@ -118,7 +118,7 @@ Also see `Print` and using the *As Markdown* clause.
         delimiter *= max((len(r) for r in re.findall(_CODE_DELIMITER_RUN_PATTERN, s))) + 1
     # We need to add some separator between the existing backticks and what we'll
     # add: Markdown seems to ignore this leading/trailing in presentation
-    s = " " + s + " " if s.startswith('`') or s.endswith('`') else s
+    s = " " + s + " " if s.startswith('`') or s.endswith('`') else s.strip()
     return _md_fmt(s, delimiter)
 
 @builtin("MdEscape")
@@ -251,7 +251,7 @@ Also see `Print` and using the *As Markdown* clause.
     if isinstance(text, list): return list(md_heading(item, level) for item in text)
     if isinstance(text, dict): return {k: md_heading(v, level) for (k, v) in text.items()}
     text = _md_to_string(text)
-    return _BLANK if len(text) == 0 else ('#' * level) + " " + text + "\n"
+    return _BLANK if len(text) == 0 else (('#' * level) + " " + text).rstrip() + "\n"
 
 @builtin("MdBlockQuote")
 def md_blockquote(*args) -> Any:
@@ -274,7 +274,7 @@ MdBlockQuote(["One", "Two", "Three"]) →
 Also see `Print` and using the *As Markdown* clause.
 """
     def _quote(text: list) -> str:
-        return "\n" + ("\n".join([f"{_MD_BLOCK_QUOTE_MARKER}{line}" for line in [_md_to_string(i) for i in text] if line is not None])) + "\n"
+        return "\n" + ("\n".join([(_MD_BLOCK_QUOTE_MARKER + line).rstrip() for line in [_md_to_string(i) for i in text] if line is not None])) + "\n"
     return _md_block(_quote, *args)
 
 @builtin("MdUnorderedList")
@@ -296,7 +296,7 @@ MdUnorderedList(["One", "Two", "Three"]) → "\\n- One\\n- Two\\n- Three\\n"
 Also see `Print` and using the *As Markdown* clause.
 """
     def _unordered(text: list) -> str:
-        return "\n" + ("\n".join([f"- {item}" for item in [_md_to_string(i) for i in text] if item is not None])) + "\n"
+        return "\n" + ("\n".join([("- " + item.strip()).strip() for item in [_md_to_string(i) for i in text] if item is not None])) + "\n"
     return _md_block(_unordered, *args)
 
 @builtin("MdOrderedList")
@@ -323,7 +323,7 @@ Also see `Print` and using the *As Markdown* clause.
 """
     def _ordered(text: list) -> str:
         # Using "1." for all elements lets MD auto number
-        return "\n" + ("\n".join([f"1. {item}" for item in [_md_to_string(i) for i in text] if item is not None])) + "\n"
+        return "\n" + ("\n".join([("1. " + item.strip()).strip() for item in [_md_to_string(i) for i in text] if item is not None])) + "\n"
     return _md_block(_ordered, *args)
 
 @builtin("MdCodeBlock")
@@ -358,8 +358,8 @@ Also see `Print` and using the *As Markdown* clause.
         if fence in s:
             fence = _MD_CODE_DELIMITER * (max((len(r) for r in re.findall(_CODE_DELIMITER_RUN_PATTERN, s))) + 1)
         return "\n" + \
-            fence + lang + "\n" + \
-            s + "\n" + \
+            (fence + lang).rstrip() + "\n" + \
+            s.rstrip() + "\n" + \
             fence + "\n"
     if len(args) == 0: return _BLANK
     if len(args) == 1:

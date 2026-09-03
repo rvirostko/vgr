@@ -248,7 +248,7 @@ Print "Code `` Code ``` and Code".MdCode(), Newline As Markdown
 
 Print "X * Y =".MdStrong(), Space, "Z_Value".MdEmphasis(), Newline As Markdown
 
-Set colors = ["red", "green", "blue"]
+Set colors = ["red ", "green\t", "\nblue\n"]
 
 Print "Colors - ", MdEmphasis(colors).Join(", "), Newline As Markdown
 Print MdEmphasis("Colors Code block"), Newline,
@@ -258,4 +258,4 @@ Print MdEmphasis("Colors Unordered List"), Newline,
 Print MdEmphasis("Colors Ordered List"), Newline,
     MdOrderedList(Sort(colors.TitleCase())) As Markdown
 Print MdEmphasis("Colors Block Quote"), Newline,
-    MdBlockQuote(colors.TitleCase()) As Markdown
+    MdBlockQuote(colors.TitleCase().Join(Newline + Newline)) As Markdown
