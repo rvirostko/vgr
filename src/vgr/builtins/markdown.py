@@ -11,7 +11,7 @@ from .common import NoneType, unpack_vargs
 from .registry import builtin
 
 _MD_STRONG_DELIMITER = '**'
-_MD_EMPHASIS_DELIMITER = '*'
+_MD_EMPHASIS_DELIMITER = '_'
 _MD_STRIKETHROUGH_DELIMITER = '~~'
 _MD_CODE_DELIMITER = '`'
 _MD_CODE_FENCE = '```'
@@ -20,6 +20,10 @@ _BLANK = ''
 
 _TAG_BREAKER_PATTERN = re.compile(r'\n{2,}')
 _WHITESPACE_PATTERN = re.compile(r'\s')
+_INLINE_META_PATTERN = re.compile(r'(?<!\\)([' + re.escape(r'*_~[]()`') + r'])')
+_LINE_START_PATTERN = re.compile(r'^([ \t]{0,3})(#{1,6}(?=[ \t]|$)|[->+](?=[ \t]|$))', re.MULTILINE)
+_ORDERED_LIST_PATTERN = re.compile(r'^([ \t]{0,3}\d+)([.])([ \t]|$)', re.MULTILINE)
+_CODE_DELIMITER_RUN_PATTERN = re.compile(_MD_CODE_DELIMITER + "+")
 
 @builtin("MdStrong")
 def md_strong(*args) -> Any:
@@ -41,7 +45,7 @@ Also see `Print` and using the *As Markdown* clause.
     text = args[0] if len(args) == 1 else list(args)
     if isinstance(text, list): return list(md_strong(item) for item in text)
     if isinstance(text, dict): return {k: md_strong(v) for (k, v) in text.items()}
-    return _md_fmt(_md_to_string(text), _MD_STRONG_DELIMITER)
+    return _md_fmt(_md_sanitize(_md_to_string(text), _MD_STRONG_DELIMITER[0]), _MD_STRONG_DELIMITER)
 
 @builtin("MdEmphasis")
 def md_emphasis(*args) -> Any:
@@ -53,8 +57,8 @@ def md_emphasis(*args) -> Any:
 
 ```vgr
 MdEmphasis(None) → ""
-MdEmphasis("emphasis") → "*emphasis*"
-MdEmphasis(["one", "two", "three"]) → ["*one*", "*two*", "*three*"]
+MdEmphasis("emphasis") → "_emphasis_"
+MdEmphasis(["one", "two", "three"]) → ["_one_", "_two*", "_three_"]
 ```
 
 Also see `Print` and using the *As Markdown* clause.
@@ -63,7 +67,7 @@ Also see `Print` and using the *As Markdown* clause.
     text = args[0] if len(args) == 1 else list(args)
     if isinstance(text, list): return list(md_emphasis(item) for item in text)
     if isinstance(text, dict): return {k: md_emphasis(v) for (k, v) in text.items()}
-    return _md_fmt(_md_to_string(text), _MD_EMPHASIS_DELIMITER)
+    return _md_fmt(_md_sanitize(_md_to_string(text), _MD_EMPHASIS_DELIMITER[0]), _MD_EMPHASIS_DELIMITER)
 
 @builtin("MdStrikeThrough")
 def md_strikethrough(*args) -> Any:
@@ -85,7 +89,7 @@ Also see `Print` and using the *As Markdown* clause.
     text = args[0] if len(args) == 1 else list(args)
     if isinstance(text, list): return list(md_strikethrough(item) for item in text)
     if isinstance(text, dict): return {k: md_strikethrough(v) for (k, v) in text.items()}
-    return _md_fmt(_md_to_string(text), _MD_STRIKETHROUGH_DELIMITER)
+    return _md_fmt(_md_sanitize(_md_to_string(text), _MD_STRIKETHROUGH_DELIMITER[0]), _MD_STRIKETHROUGH_DELIMITER)
 
 @builtin("MdCode")
 def md_code(*args) -> Any:
@@ -107,7 +111,38 @@ Also see `Print` and using the *As Markdown* clause.
     text = args[0] if len(args) == 1 else list(args)
     if isinstance(text, list): return list(md_code(item) for item in text)
     if isinstance(text, dict): return {k: md_code(v) for (k, v) in text.items()}
-    return _md_fmt(_md_to_string(text), _MD_CODE_DELIMITER)
+    s = _md_to_string(text)
+    if s == _BLANK: return _BLANK
+    delimiter = _MD_CODE_DELIMITER
+    if delimiter in s:
+        delimiter *= max((len(r) for r in re.findall(_CODE_DELIMITER_RUN_PATTERN, s))) + 1
+    # We need to add some separator between the existing backticks and what we'll
+    # add: Markdown seems to ignore this leading/trailing in presentation
+    s = " " + s + " " if s.startswith('`') or s.endswith('`') else s
+    return _md_fmt(s, delimiter)
+
+@builtin("MdEscape")
+def md_escape(*args):
+    """**Escape Markdown meta characters so text is treated literally**
+* MdEscape(*value)
+* *value*.MdEscape()
+
+Most Markdown functions escape only those characters which would "break"
+their particular renderings. When working with text that should be
+rendedered verbatim, regardless of content, use `MdEscape()`.
+"""
+    if len(args) == 0: return _BLANK
+    text = args[0] if len(args) == 1 else list(args)
+    if isinstance(text, list): return list(md_escape(item) for item in text)
+    if isinstance(text, dict): return {k: md_escape(v) for (k, v) in text.items()}
+    if isinstance(text, str):
+        if text.isspace(): return text
+        s = text
+    else:
+        s = _md_to_string(text)
+    s = _INLINE_META_PATTERN.sub(r'\\\1', s)
+    s = _LINE_START_PATTERN.sub(lambda m: m.group(1) + '\\' + m.group(2), s)
+    return _ORDERED_LIST_PATTERN.sub(lambda m: m.group(1) + '\\' + m.group(2) + m.group(3), s)
 
 @builtin("MdLink")
 def md_link(*args) -> Any:
@@ -149,7 +184,7 @@ Also see `Print` and using the *As Markdown* clause.
     return "[" + _md_sanitize(text, "[]") + "](" + _md_sanitize_url(url, "()") + ")"
 
 @builtin("MdImage")
-def MdImage(*args):
+def md_image(*args):
     """
 **Format a Markdown image tag**
 
@@ -306,17 +341,27 @@ If *value* is a list, each element in it is formatted as part of the block.
 ```vgr
 MdCodeBlock(None) → ""
 MdCodeBlock("print('Hello, World')") →
-    "\\n```\\nprint('Hello, World')\\n```\\n\\n"
+    "\\n```\\nprint('Hello, World')\\n```\\n"
 MdCodeBlock("python", "print('Hello, World')") →
-    "\\n```python\nprint('Hello, World')\\n```\\n\\n"
+    "\\n```python\nprint('Hello, World')\\n```\\n"
 MdCodeBlock(["primes = [2, 3, 5]", "for p in primes:", "    print(p)"]) →
-    "\\n\\n```\\nprimes = [2, 3, 5]\\nfor p in primes:\\n    print(p)\\n```\\n\\n"
+    "\\n```\\nprimes = [2, 3, 5]\\nfor p in primes:\\n    print(p)\\n```\\n"
 ```
 
 Also see `Print` and using the *As Markdown* clause.
 """
-    if len(args) == 0: return _BLANK
     lang = ""
+    def _code(text: list) -> str:
+        s = "\n".join(_md_to_string(item) for item in text if item is not None)
+        if len(s) == 0: return _BLANK
+        fence = _MD_CODE_FENCE
+        if fence in s:
+            fence = _MD_CODE_DELIMITER * (max((len(r) for r in re.findall(_CODE_DELIMITER_RUN_PATTERN, s))) + 1)
+        return "\n" + \
+            fence + lang + "\n" + \
+            s + "\n" + \
+            fence + "\n"
+    if len(args) == 0: return _BLANK
     if len(args) == 1:
         text = args[0] # its the text and lang is default
     elif isinstance(args[0], (NoneType, str)):
@@ -324,9 +369,6 @@ Also see `Print` and using the *As Markdown* clause.
         lang = args[0] or ""
     else:
         text = list(args) # var args, all text
-    def _code(text: list) -> str:
-        t = "\n".join(_md_to_string(item) for item in text if item is not None)
-        return _BLANK if len(t) == 0 else f"\n{_MD_CODE_FENCE}{lang}\n{t}\n{_MD_CODE_FENCE}\n\n"
     return _md_block(_code, text)
 
 def _md_block(func, *args) -> str:
@@ -351,7 +393,7 @@ def _md_to_string(s: Any) -> str:
 def _md_fmt(text: str, code: str) -> str:
     return _BLANK if len(text) == 0 else code + text + code
 
-def _md_sanitize(s: str, escape_chars: str=""):
+def _md_sanitize(s: str, escape_chars: str="") -> str:
     # A run of 2 or more line breaks breaks the tag
     s = _TAG_BREAKER_PATTERN.sub('\n', s)
     if s:

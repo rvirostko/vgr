@@ -11,7 +11,8 @@
 - Added "Head()" and "Tail()" to return a subset of lists.
 - Added "RandomSample()" which returns a subset using either a percentage
   or count of items.
-- Added MdImage() to create image tags
+- Added MdImage() to create image tags and MdEscape() to escape
+  Markdown meta characters
 - Added GetCacheUsage() and EmptyCache() for working with function result caches
 
 ### Changed
@@ -48,6 +49,9 @@
   MdEmphasis(), MdStrikeThrough(), MdCode(), MdLink(), MdImage()
   MdHeading(), MdBlockQuote(), MdUnorderedList(), MdOrderedList(),
   and MdCodeBlock().
+- MdEmphasis() now use "_" instead of "*"
+- Markdown functions escape characters/patterns that might break
+  the tag's formatting.
 - DefaultTo() now takes multiple default values, returning the first
   non-None one.
 - IsFunction() can now take multiple arguments, returning results in
@@ -83,6 +87,8 @@
 - Escaping of typographic quotes in strings no longer causes an error
 - Sort did not work with "sparse" dictionaries where the sort keys were
   missing from the first item in a list
+- MdCodeBlock() no longer adds extra newline at end of block; behavior
+  matches that of other block functions.
 
 ### Security
 

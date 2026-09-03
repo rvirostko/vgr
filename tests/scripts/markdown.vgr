@@ -13,6 +13,7 @@ Assert MdStrong(True) Is "**True**"
 Assert MdStrong(5) Is "**5**"
 Assert MdStrong(5.1) Is "**5.1**"
 Assert MdStrong("frog") Is "**frog**"
+Assert MdStrong("X * Y") Is r"**X \* Y**"
 Assert MdStrong(Space) Is BLANK
 Assert MdStrong(RE) Is MdStrong(RE_TEXT)
 Assert MdStrong(EMPTY_LIST) Is EMPTY_LIST
@@ -23,17 +24,18 @@ Assert MdStrong({"one": 1, "two": 2}) Is {"one": "**1**", "two": "**2**"}
 
 Assert MdEmphasis() Is BLANK
 Assert MdEmphasis(None) Is BLANK
-Assert MdEmphasis(True) Is "*True*"
-Assert MdEmphasis(5) Is "*5*"
-Assert MdEmphasis(5.1) Is "*5.1*"
-Assert MdEmphasis("frog") Is "*frog*"
+Assert MdEmphasis(True) Is "_True_"
+Assert MdEmphasis(5) Is "_5_"
+Assert MdEmphasis(5.1) Is "_5.1_"
+Assert MdEmphasis("frog") Is "_frog_"
+Assert MdEmphasis("frog_bog") Is r"_frog\_bog_"
 Assert MdEmphasis(RE) Is MdEmphasis(RE_TEXT)
 Assert MdEmphasis(Space) Is BLANK
 Assert MdEmphasis(EMPTY_LIST) Is EMPTY_LIST
-Assert MdEmphasis(["one", "two"]) Is ["*one*", "*two*"]
-Assert MdEmphasis("one", "two") Is ["*one*", "*two*"]
+Assert MdEmphasis(["one", "two"]) Is ["_one_", "_two_"]
+Assert MdEmphasis("one", "two") Is ["_one_", "_two_"]
 Assert MdEmphasis(EMPTY_DICT) Is EMPTY_DICT
-Assert MdEmphasis({"one": 1, "two": 2}) Is {"one": "*1*", "two": "*2*"}
+Assert MdEmphasis({"one": 1, "two": 2}) Is {"one": "_1_", "two": "_2_"}
 
 Assert MdStrikeThrough() Is BLANK
 Assert MdStrikeThrough(None) Is BLANK
@@ -41,6 +43,7 @@ Assert MdStrikeThrough(True) Is "~~True~~"
 Assert MdStrikeThrough(5) Is "~~5~~"
 Assert MdStrikeThrough(5.1) Is "~~5.1~~"
 Assert MdStrikeThrough("frog") Is "~~frog~~"
+Assert MdStrikeThrough("frog~bog") Is r"~~frog\~bog~~"
 Assert MdStrikeThrough(RE) Is MdStrikeThrough(RE_TEXT)
 Assert MdStrikeThrough(Space) Is BLANK
 Assert MdStrikeThrough(EMPTY_LIST) Is EMPTY_LIST
@@ -62,6 +65,8 @@ Assert MdCode(["one", "two"]) Is ["`one`", "`two`"]
 Assert MdCode("one", "two") Is ["`one`", "`two`"]
 Assert MdCode(EMPTY_DICT) Is EMPTY_DICT
 Assert MdCode({"one": 1, "two": 2}) Is {"one": "`1`", "two": "`2`"}
+Assert MdCode("`Code`") Is "`` `Code` ``"
+Assert MdCode("Code `` Code ``` and Code") Is "````Code `` Code ``` and Code````"
 
 # Default level of 1
 Assert MdHeading() Is BLANK
@@ -168,27 +173,50 @@ Assert MdOrderedList({"one": 1, "two": 2}) Is {"one": "\n1. 1\n", "two": "\n1. 2
 
 Assert MdCodeBlock() Is BLANK
 Assert MdCodeBlock(None) Is BLANK
-Assert MdCodeBlock(True) Is "\n```\nTrue\n```\n\n"
-Assert MdCodeBlock(5) Is "\n```\n5\n```\n\n"
-Assert MdCodeBlock(5.1) Is "\n```\n5.1\n```\n\n"
-Assert MdCodeBlock("frog") Is "\n```\nfrog\n```\n\n"
+Assert MdCodeBlock(True) Is "\n```\nTrue\n```\n"
+Assert MdCodeBlock(5) Is "\n```\n5\n```\n"
+Assert MdCodeBlock(5.1) Is "\n```\n5.1\n```\n"
+Assert MdCodeBlock("frog") Is "\n```\nfrog\n```\n"
 Assert MdCodeBlock(RE) Is MdCodeBlock(RE_TEXT)
 Assert MdCodeBlock(Space) Is BLANK
 Assert MdCodeBlock(EMPTY_LIST) Is BLANK
 Assert MdCodeBlock(["one", "two"]) Is
-    "\n```\none\ntwo\n```\n\n"
+    "\n```\none\ntwo\n```\n"
 Assert MdCodeBlock(None, "one", "two") Is  # NB: A bit ugly...
-    "\n```\none\ntwo\n```\n\n"
+    "\n```\none\ntwo\n```\n"
 Assert MdCodeBlock(1, "two") Is
-    "\n```\n1\ntwo\n```\n\n"
+    "\n```\n1\ntwo\n```\n"
 Assert MdCodeBlock("one\ntwo") Is
-    "\n```\none\ntwo\n```\n\n"
+    "\n```\none\ntwo\n```\n"
 Assert MdCodeBlock(EMPTY_DICT) Is EMPTY_DICT
 Assert MdCodeBlock({"one": 1, "two": 2}) Is
-    {"one": "\n```\n1\n```\n\n", "two": "\n```\n2\n```\n\n"}
+    {"one": "\n```\n1\n```\n", "two": "\n```\n2\n```\n"}
+Assert MdCodeBlock([None]) Is BLANK
+Assert MdCodeBlock("Code ```` Code") Is "\n`````\nCode ```` Code\n`````\n"
+
+Assert MdEscape() Is BLANK
+Assert MdEscape(None) Is BLANK
+Assert MdEscape(True) Is "True"
+Assert MdEscape(5) Is "5"
+Assert MdEscape(5.1) Is "5.1"
+Assert MdEscape(RE) Is RE_TEXT
+Assert MdEscape("*_~[]()`") Is r"\*\_\~\[\]\(\)\`"
+Assert MdEscape("#foo#") Is r"#foo#"
+Assert MdEscape("# foo # foo") Is r"\# foo # foo"
+Assert MdEscape("> foo> ") Is r"\> foo> "
+Assert MdEscape("+ foo+ ") Is r"\+ foo+ "
+Assert MdEscape("- foo- ") Is r"\- foo- "
+Assert MdEscape("* foo* ") Is r"\* foo\* "
+Assert MdEscape("5 foo 5 ") Is r"5 foo 5 "
+Assert MdEscape("5.1 foo 5.1") Is r"5.1 foo 5.1"
+Assert MdEscape("5. foo 5.") Is r"5\. foo 5."
+Assert MdEscape(Space) Is Space
+Assert MdEscape(EMPTY_LIST) Is EMPTY_LIST
+Assert MdEscape(EMPTY_DICT) Is EMPTY_DICT
 
 # Sample Uses
 Echo off
+Set env.OFS To BLANK
 
 Printf Newline
 For level = 1 To 6
@@ -199,22 +227,35 @@ Next
 
 # ToDo MdImage()
 
-Printf Newline
-Print "Strong".MdStrong() As Markdown
-Print "Emphasis".MdEmphasis() As Markdown
-Print "Strike through".MdStrikeThrough() As Markdown
-Print "Code".MdCode() As Markdown
+Print "Strong".MdStrong(), Newline As Markdown
+Print "Strong + Emphasis".MdStrong().MdEmphasis(), Newline As Markdown
+Print "Strong + Strike through".MdStrong().MdStrikeThrough(), Newline As Markdown
+Print "Strong + Emphasis + Strike through".MdStrong().MdEmphasis().MdStrikeThrough(), Newline As Markdown
+
+Print "Emphasis".MdEmphasis(), Newline As Markdown
+Print "Emphasis + Strong".MdEmphasis().MdStrong(), Newline As Markdown
+Print "Emphasis + Strike through".MdEmphasis().MdStrikeThrough(), Newline As Markdown
+Print "Emphasis + Strong + Strike through".MdEmphasis().MdStrong().MdStrikeThrough(), Newline As Markdown
+
+Print "Strike through".MdStrikeThrough(), Newline As Markdown
+Print "Strike through + Strong".MdStrikeThrough().MdStrong(), Newline As Markdown
+Print "Strike through + Emphasis".MdStrikeThrough().MdEmphasis(), Newline As Markdown
+Print "Strike through + Emphasis + Strong".MdStrikeThrough().MdEmphasis().MdStrong(), Newline As Markdown
+
+Print "Code".MdCode(), Newline As Markdown
+Print "`Code`".MdCode(), Newline As Markdown
+Print "Code `` Code ``` and Code".MdCode(), Newline As Markdown
+
+Print "X * Y =".MdStrong(), Space, "Z_Value".MdEmphasis(), Newline As Markdown
 
 Set colors = ["red", "green", "blue"]
 
-Printf Newline
-Print "Colors".MdCode(), "-", MdEmphasis(colors).Join(", ") As Markdown
-Printf Newline
-Print MdEmphasis("Colors Code block") + Newline +
+Print "Colors - ", MdEmphasis(colors).Join(", "), Newline As Markdown
+Print MdEmphasis("Colors Code block"), Newline,
     MdCodeBlock("vgr", "Set colors = " + colors.Repr()) As Markdown
-Print MdEmphasis("Colors Unordered List") + Newline + MdUnorderedList(colors.TitleCase()) As Markdown
-Printf Newline
-Print MdEmphasis("Colors Ordered List") + Newline + MdOrderedList(Sort(colors.TitleCase())) As Markdown
-Printf Newline
-Print MdEmphasis("Colors Block Quote") + Newline + MdBlockQuote(colors.TitleCase()) As Markdown
-Printf Newline
+Print MdEmphasis("Colors Unordered List"), Newline,
+    MdUnorderedList(colors.TitleCase()) As Markdown
+Print MdEmphasis("Colors Ordered List"), Newline,
+    MdOrderedList(Sort(colors.TitleCase())) As Markdown
+Print MdEmphasis("Colors Block Quote"), Newline,
+    MdBlockQuote(colors.TitleCase()) As Markdown
