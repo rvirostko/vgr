@@ -2,10 +2,10 @@
 Echo On
 
 # This should destroy any pre-existing
-# functions so that are counts are correct
+# functions so that our counts are correct
 Reset Constants, Data
 Exhibit vgr.caches
-Assert Length(vgr.caches) Is Zero
+Assert vgr.caches Is Empty
 
 Define Cached Function a() -> "a"
 Exhibit vgr.caches
@@ -29,7 +29,7 @@ Assert Length(vgr.caches) Is 1
 
 Unset b
 Exhibit vgr.caches
-Assert Length(vgr.caches) Is Zero
+Assert vgr.caches Is Empty
 
 Define Cached Function c() -> "c"
 Exhibit vgr.caches
@@ -38,3 +38,51 @@ Assert Length(vgr.caches) Is 1
 Reset Caches # clears, but does not destroy
 Exhibit vgr.caches
 Assert Length(vgr.caches) Is 1
+Unset c
+Assert vgr.caches Is Empty
+
+# Statistics
+Define Cached Function square(b) -> b*b
+Assert Length(vgr.caches) Is 1
+Constant initial_use Is square.GetCacheUsage()
+Assert initial_use.requests Is Zero
+For x = 1 To 10_000
+    Echo Off; Call square(Random(100)); Echo On;
+Next
+Constant current_use Is square.GetCacheUsage()
+Assert initial_use.key Is current_use.key
+Assert current_use.requests Is 10_000
+Assert current_use.hits Is Not Zero
+Constant after_empty_use Is square.EmptyCache()
+Assert after_empty_use.requests Is Zero
+Assert after_empty_use.hits Is Zero
+Assert after_empty_use Is initial_use
+
+For x = 1 To 10_000
+    Echo Off; Call square(Random(100)); Echo On;
+Next
+Reset Caches
+Assert Length(vgr.caches) Is 1
+Assert square.GetCacheUsage().requests Is Zero
+
+# GetCacheUsage() edge cases
+Assert GetCacheUsage() Is None
+Assert None.GetCacheUsage() Is None
+Assert 5.GetCacheUsage() Is None
+Assert "frog".GetCacheUsage() Is None
+Assert GetCacheUsage(square.GetCacheUsage().key) Is Not None
+Assert GetCacheUsage([]) Is []
+Assert GetCacheUsage([square]).FirstItem() Is square.GetCacheUsage()
+Assert GetCacheUsage({}) Is {}
+Assert GetCacheUsage({"sq": square}).sq  Is square.GetCacheUsage()
+
+# EmptyCache() edge cases
+Assert EmptyCache() Is None
+Assert None.EmptyCache() Is None
+Assert 5.EmptyCache() Is None
+Assert "frog".EmptyCache() Is None
+Assert EmptyCache(square.EmptyCache().key) Is Not None
+Assert EmptyCache([]) Is []
+Assert EmptyCache([square]).FirstItem() Is square.EmptyCache()
+Assert EmptyCache({}) Is {}
+Assert EmptyCache({"sq": square}).sq  Is square.EmptyCache()

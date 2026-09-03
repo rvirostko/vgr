@@ -21,59 +21,18 @@ from .vgr_callable import VgrCallable
 
 _CACHE_REGISTRY = ResultCacheRegistry()
 
-import re
-def clear_caches(*args) -> int:
-    """
-**Clear the cache used for one or more functions**
+def clear_function_caches() -> None:
+    """Clears the caches of all user functions"""
+    # NB: _CACHE_REGISTRY.clear() clears out the registry itself!
+    for key in function_cache_keys(): _CACHE_REGISTRY[key].clear()
 
-* ClearCache()
-* ClearCache(*expression*&hellip;)
-* *expression*.ClearCache()
-
-The *expression*s define which caches to clear. What they do depends upon the type.
-
-* If it is a reference to a function, the cache for that function, if any, is cleared
-* If it is a string, the cache matching that key is cleared
-* If it is a regular expression, all caches with keys matching the pattern are cleared
-
-The operation is distributed across lists and the value of dictionaries.
-If no argument is provided, all caches are cleared.
-
-The function returns the number of caches actually cleared.
-
-"""
-    # TODO make a method on the registry class?
-    clear_count = 0
-    if len(args) == 0:
-        # NB: _CACHE_REGISTRY.clear() clears out the registry itself!
-        for key in _CACHE_REGISTRY.keys():
-            _CACHE_REGISTRY[key].clear()
-            clear_count += 1
-    else:
-        for arg in args:
-            if isinstance(arg, AbstractUserCallable):
-                if arg.clear_cache(): clear_count += 1
-            elif isinstance(arg, str):
-                # look it up and clear it
-                cache = _CACHE_REGISTRY[arg.strip()]
-                if cache is not None:
-                    cache.clear()
-                    clear_count += 1
-            elif isinstance(arg, re.Pattern):
-                for key in list(filter(arg.search, _CACHE_REGISTRY.keys())):
-                    cache = _CACHE_REGISTRY[key]
-                    if cache is not None:
-                        cache.clear()
-                        clear_count += 1
-            elif isinstance(arg, list):
-                for value in arg: clear_count += clear_caches(value)
-            elif isinstance(arg, dict):
-                for value in arg.values(): clear_count += clear_caches(value)
-            # Everything else is just ignored
-    return clear_count
-
-def cache_keys() -> list:
+def function_cache_keys() -> list:
+    """Returns the keys of user function caches"""
     return _CACHE_REGISTRY.keys()
+
+def lookup_function_cache(key: str) -> ResultCache:
+    """Converts a string cache key into a ResultCache instance"""
+    return _CACHE_REGISTRY[key] if key else None
 
 class AbstractUserCallable(VgrCallable):
     _SELF_PATH = ('$self',)
@@ -118,12 +77,9 @@ class AbstractUserCallable(VgrCallable):
     def cache_info(self) -> dict:
         return None if self._result_cache is None else self._result_cache.info
 
-    def clear_cache(self) -> bool:
+    def clear_cache(self) -> dict:
         """Returns True if the cache was cleared"""
-        if self._result_cache:
-            self._result_cache.clear()
-            return True
-        return False
+        return None if self._result_cache is None else self._result_cache.clear()
 
     @abstractmethod
     def _evaluate(self, ctx: ExecContext) -> Any: pass

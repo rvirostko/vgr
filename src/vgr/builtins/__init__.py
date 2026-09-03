@@ -161,7 +161,6 @@ from .types import (
     poly_to_boolean,
     poly_to_integer,
     poly_is_empty,
-    poly_is_function,
     poly_is_number,
     poly_is_string,
     poly_not_empty,

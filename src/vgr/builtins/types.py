@@ -532,19 +532,3 @@ phone.home.DefaultTo(phone.work, phone.cell) → "909-867-5309"
         for arg in args:
             if arg is not None: return arg
     return value
-
-@builtin("IsFunction")
-def poly_is_function(obj: Any=None) -> Any:
-    """
-**Is a value a function**
-
-* IsFunction(*value*)
-* *value*.IsFunction()
-
-```vgr
-None.IsFunction() → False
-Function f(x) -> x+1
-f.IsFunction() → True
-```
-"""
-    return isinstance(obj, VgrCallable)

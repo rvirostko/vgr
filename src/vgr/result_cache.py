@@ -36,12 +36,13 @@ class ResultCache:
     def keys(self) -> list:
         return list(self._data.keys())
 
-    def clear(self) -> None:
+    def clear(self) -> dict:
         """Clears data and statistics"""
         self._data.clear()
         self._requests = 0
         self._hits = 0
         self._evictions = 0
+        return self.info
 
     @property
     def key(self) -> str: return self._key
@@ -129,7 +130,7 @@ class ResultCacheRegistry():
         return cache
 
     def __getitem__(self, key: str) -> ResultCache:
-        return self._caches[key]
+        return self._caches.get(key, None)
 
     def __contains__(self, key: str) -> bool:
         return key in self._caches

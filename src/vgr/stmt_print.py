@@ -14,7 +14,6 @@ from .evaluate import _var_name_path
 from .builtins import (
     bound_ops,
     poly_format,
-    poly_is_function,
     poly_repr,
     poly_to_string,
     poly_type,
@@ -23,8 +22,10 @@ from .dd_config import OFS_PATH, ORS_PATH
 from .md_print import md_println
 from .exec_context import ExecContext
 from .redir import print_stdout, print_stderr
+from .user_callable import VgrCallable
 
 def _print_md(*args, **kwargs):
+    """Print as Markdown if stdout is a tty"""
     if sys.stdout.isatty():
         print(*args,
               file=(buf := StringIO()),
@@ -257,7 +258,7 @@ Also see `Print`, `Printf`, and `Repr()`
                 _exhibit_value(name + '.' + pkey if len(name) > 0 else pkey, value[key])
         else:
             if verbose:
-                if poly_is_function(value):
+                if isinstance(value, VgrCallable):
                     print_stdout(name, '=', poly_repr(value), _ptype(value), value.name)
                 else:
                     print_stdout(name, '=', poly_repr(value), _ptype(value))

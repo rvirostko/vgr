@@ -45,7 +45,7 @@ from .evaluate import do_set, do_unset, get_writable_var_path, _var_name_path
 from .exec_context import ExecContext
 from .redir import close_all_redirects
 from .stmt_include import clear_includes
-from .user_callable import clear_caches
+from .user_callable import clear_function_caches
 
 _LOAD_META_PATH = ('$load',)
 
@@ -552,7 +552,7 @@ Also see `Assign`, `Set`, `Constant`, and `Unset`
             ctx.dd.unset_var(prefix)
     def _caches():
         ctx.print_verbose('Resetting user function caches')
-        clear_caches()
+        clear_function_caches()
 
     if len(statement.children) == 0:
         _output()

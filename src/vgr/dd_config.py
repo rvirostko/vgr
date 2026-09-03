@@ -42,7 +42,7 @@ from .stmt_funct import (
     DEFAULT_CACHE_SIZE,
     MAX_CACHE_SIZE,
 )
-from .user_callable import cache_keys
+from .user_callable import function_cache_keys
 
 VGR_PREFIX = 'vgr'
 VER_PATH = (VGR_PREFIX, 'version')
@@ -168,7 +168,7 @@ _VGR_ENTRIES = {
     ('max_frames',):             MAX_FRAMES,
     ('default_cache_size',):     DEFAULT_CACHE_SIZE,
     ('max_cache_size',):         MAX_CACHE_SIZE,
-    ('caches',):                 DynamicValue(cache_keys)
+    ('caches',):                 DynamicValue(function_cache_keys)
 }
 
 def dd_init(dd: DataDictionary) -> None:
