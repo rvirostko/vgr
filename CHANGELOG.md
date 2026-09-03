@@ -12,6 +12,7 @@
 - Added "RandomSample()" which returns a subset using either a percentage
   or count of items.
 - Added MdImage() to create image tags
+- Added GetCacheUsage() and EmptyCache() for working with function result caches
 
 ### Changed
 
@@ -49,6 +50,8 @@
   and MdCodeBlock().
 - DefaultTo() now takes multiple default values, returning the first
   non-None one.
+- IsFunction() can now take multiple arguments, returning results in
+  in a list for each item.
 - Sort keys can now be things other than strings (booleans, integers, floats)
   although they may be turned into strings depending upon the output type
 - Internal change: automatic registration of built-in functions
