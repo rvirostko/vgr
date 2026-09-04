@@ -21,6 +21,34 @@ def get_current_directory(*_args) -> str:
     # NB: args ignored
     return expand_filename(os.getcwd())
 
+@builtin("ExpandPath")
+def poly_expand_path(*args) -> Any:
+    """
+**Expands the path to an absolute system path**
+
+* *path.ExpandPath()
+* ExpandPath(*path*)
+
+Note that this functions does *not* check for the directory
+or file name portion's existance.
+
+```vgr
+ExpandPath(None) → None
+ExpandPath("") → <current directory>
+ExpandPath("samples") → "<current directory>/samples"
+ExpandPath("samples/sse.vgr") → "<current directory>/samples/sse.vgr"
+```
+
+Also see `GetCurrentDirectory()`
+"""
+    def _expand(path) -> Any:
+        if path is None: return None
+        if isinstance(path, list): return list(_expand(path1) for path1 in path)
+        path = _stringify(path)
+        if isinstance(path, str): return expand_filename(verify_relative_path(path or "."))
+        raise ValueError(f'ExpandPath on {poly_type(path)!r} not supported')
+    return apply_vargs(args, _expand)
+
 @builtin("DirectoryName")
 def poly_dir_name(*args) -> Any:
     """
@@ -175,6 +203,8 @@ def poly_remove_file(*args) -> Any:
 * *path*.RemoveFile()
 * RemoveFile(*path*)
 
+Removes individual files, but not directories.
+
 Returns a list containing two elements:
 
 * *result*.FirstItem() - Boolean, reflecting the operations success
@@ -182,20 +212,18 @@ Returns a list containing two elements:
   otherwise `None`
 
 ```vgr
-RemoveFile("") → [False, "Missing path"]
 RemoveFile("exists.txt") → [True, None]
 RemoveFile("not-exists.txt") → [False, "[Errno 2] No such file or directory: 'not-exists.txt'"]
 RemoveFile("a_dir") → [False, "[Errno 1] Operation not permitted: 'a_dir'"]
 ```
 """
     def _remove_file(path):
-        if path is None: return [False, "Missing path"]
+        if path is None: return None
         if isinstance(path, list): return list(_remove_file(path1) for path1 in path)
         path = _stringify(path)
         if isinstance(path, str):
-            if len(path) == 0: return [False, "Missing path"]
             try:
-                os.remove(verify_relative_path(path))
+                os.remove(verify_relative_path(path or "."))
                 return [True, None]
             except OSError as e:
                 return [False, str(e)]
@@ -328,17 +356,19 @@ def verify_relative_path(filename: str) -> str:
     The filename must be relative to the current directory.
     Returns filename unchanged.
     """
-    full_path = expand_filename(filename)
-    cwd = expand_filename(os.getcwd())
-    if os.path.commonpath([cwd, full_path]) != cwd:
-        raise OSError(f'File {full_path} not relative to {cwd}')
-    return filename
+    okay, _ = _check_relative_path(filename)
+    if okay: return filename
+    # NB: don't leak parts of the file system via error messages
+    raise OSError(f'File {filename!r} not relative to current directory')
 
 def expand_filename(filename: str) -> str:
     """
     Returns the full path, absolute with user expansion et al.
     """
     return os.path.realpath(os.path.abspath(os.path.expanduser(filename)))
+
+def _check_relative_path(filename: str) -> tuple:
+    return [os.path.commonpath([cwd := expand_filename(os.getcwd()), full_path := expand_filename(filename)]) == cwd, full_path]
 
 def _stringify(x) -> Any:
     """While of limited value, behavior is consistent with other ops"""

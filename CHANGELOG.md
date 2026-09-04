@@ -58,6 +58,7 @@
   in a list for each item.
 - Sort keys can now be things other than strings (booleans, integers, floats)
   although they may be turned into strings depending upon the output type
+- ExpandPath() added that returns an expanded value for the path.
 - Internal change: automatic registration of built-in functions
 
 ### Deprecated
@@ -92,6 +93,10 @@
   matches that of other block functions.
 
 ### Security
+
+- File operations outside the CWD could leak information about the
+  file system's layout in an error message. Error message now contains
+  the value the user passed in, not an expanded/absolute version.
 
 ## [1.2.1] - 2026-08-06
 

@@ -11,6 +11,19 @@ Assert CWD Is Not None And CWD.IsString() And CWD.IsNotEmpty()
 # Variable arguments allowed, but ignored
 Assert GetCurrentDirectory(None) Equals GetCurrentDirectory("anything", "something")
 
+Assert ExpandPath() Is None
+Assert ExpandPath(None) Is None
+Assert ExpandPath(True) Is CWD + os.sep + True.Repr()
+Assert ExpandPath(Zero) Is CWD + os.sep + Zero.Repr()
+Assert ExpandPath(5.1) Is CWD + os.sep + 5.1.Repr()
+Assert ExpandPath("") Is CWD
+Assert ExpandPath("frog") Is CWD + os.sep + "frog"
+Assert ExpandPath("a_dir/frog") Is CWD + os.sep + "a_dir/frog"
+Assert ExpandPath(EMPTY_LIST) Is EMPTY_LIST
+Assert ExpandPath("one", "two") Is [CWD + os.sep + "one", CWD + os.sep + "two"]
+Assert ExpandPath(["one", "two"]) Is [CWD + os.sep + "one", CWD + os.sep + "two"]
+Assert ExpandPath(RE) Is CWD + os.sep + RE_TEXT
+
 Assert BaseName() Is None
 Assert BaseName(None) Is None
 Assert BaseName(True) Is True.Repr()
@@ -81,14 +94,15 @@ Assert IsDirectory(RE) Is False
 
 Assert RemoveFile() Is None
 Assert RemoveFile(None) Is None
-Assert RemoveFile(True) Is False
-Assert RemoveFile(Zero) Is False
-Assert RemoveFile(5.1) Is False
-Assert RemoveFile("") Is True # same as CWD
-Assert RemoveFile(".") Is True
-#Assert RemoveFile("samples") Is True # RUNTIME ASSUMPTION!
-#Assert RemoveFile("samples/10print.vgr") Is False # RUNTIME ASSUMPTION!
+Assert RemoveFile(True)[0] Is False
+Assert RemoveFile(Zero)[0] Is False
+Assert RemoveFile(5.1)[0] Is False
+Assert RemoveFile("")[0] Is False # same as CWD
+Assert RemoveFile(".")[0] Is False
+Set fname To "./RemoveFileTest-{:x}.dat".Format(Random(500_000))
+Open Output File fname; Print fname; Close Output
+Assert RemoveFile(fname)[0] Is True
 Assert RemoveFile(EMPTY_LIST) Is EMPTY_LIST
-Assert RemoveFile("one", "two") Is [False, False]
-Assert RemoveFile(["one", "two"]) Is [False, False]
-Assert RemoveFile(RE) Is False
+Assert RemoveFile("one", "two").IsList()
+Assert RemoveFile(["one", "two"]).IsList()
+Assert RemoveFile(RE)[0] Is False
