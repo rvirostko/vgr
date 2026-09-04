@@ -1,0 +1,94 @@
+
+Constant EMPTY_LIST Is []
+Constant RE_TEXT Is "ab/c"
+Constant RE Is CompilePattern(RE_TEXT)
+
+Echo On
+
+Constant CWD Is GetCurrentDirectory()
+Print CWD
+Assert CWD Is Not None And CWD.IsString() And CWD.IsNotEmpty()
+# Variable arguments allowed, but ignored
+Assert GetCurrentDirectory(None) Equals GetCurrentDirectory("anything", "something")
+
+Assert BaseName() Is None
+Assert BaseName(None) Is None
+Assert BaseName(True) Is True.Repr()
+Assert BaseName(Zero) Is Zero.Repr()
+Assert BaseName(5.1) Is 5.1.Repr()
+Assert Basename("") Is ""
+Assert BaseName("frog") Is "frog"
+Assert BaseName("a_dir/frog") Is "frog"
+Assert BaseName(EMPTY_LIST) Is EMPTY_LIST
+Assert BaseName("one", "two") Is ["one", "two"]
+Assert BaseName(["one", "two"]) Is ["one", "two"]
+Assert BaseName(RE) Is RE_TEXT.Split("/").LastItem()
+
+Assert DirectoryName() Is None
+Assert DirectoryName(None) Is None
+Assert DirectoryName(True) Is CWD
+Assert DirectoryName(Zero) Is CWD
+Assert DirectoryName(5.1) Is CWD
+Assert DirectoryName("") Is CWD.RSplit("/", 1).FirstItem()
+Assert DirectoryName("frog") Is CWD
+Assert DirectoryName("a_dir/frog") Is CWD + os.sep + "a_dir"
+Assert DirectoryName(EMPTY_LIST) Is EMPTY_LIST
+Assert DirectoryName("one", "two") Is [CWD, CWD]
+Assert DirectoryName(["one", "two"]) Is [CWD, CWD]
+Assert DirectoryName(RE) Is CWD + os.sep + RE_TEXT.Split("/").FirstItem()
+
+Assert PathExists() Is None
+Assert PathExists(None) Is None
+Assert PathExists(True) Is False
+Assert PathExists(Zero) Is False
+Assert PathExists(5.1) Is False
+Assert PathExists("") Is True # same as CWD
+Assert PathExists(".") Is True
+Assert PathExists("samples") Is True # RUNTIME ASSUMPTION!
+Assert PathExists("samples/10print.vgr") Is True # RUNTIME ASSUMPTION!
+Assert PathExists(EMPTY_LIST) Is EMPTY_LIST
+Assert PathExists("one", "two") Is [False, False]
+Assert PathExists(["one", "two"]) Is [False, False]
+Assert PathExists(RE) Is False
+
+Assert IsFile() Is None
+Assert IsFile(None) Is None
+Assert IsFile(True) Is False
+Assert IsFile(Zero) Is False
+Assert IsFile(5.1) Is False
+Assert IsFile("") Is False # same as CWD
+Assert IsFile(".") Is False
+Assert IsFile("samples") Is False # RUNTIME ASSUMPTION!
+Assert IsFile("samples/10print.vgr") Is True # RUNTIME ASSUMPTION!
+Assert IsFile(EMPTY_LIST) Is EMPTY_LIST
+Assert IsFile("one", "two") Is [False, False]
+Assert IsFile(["one", "two"]) Is [False, False]
+Assert IsFile(RE) Is False
+
+Assert IsDirectory() Is None
+Assert IsDirectory(None) Is None
+Assert IsDirectory(True) Is False
+Assert IsDirectory(Zero) Is False
+Assert IsDirectory(5.1) Is False
+Assert IsDirectory("") Is True # same as CWD
+Assert IsDirectory(".") Is True
+Assert IsDirectory("samples") Is True # RUNTIME ASSUMPTION!
+Assert IsDirectory("samples/10print.vgr") Is False # RUNTIME ASSUMPTION!
+Assert IsDirectory(EMPTY_LIST) Is EMPTY_LIST
+Assert IsDirectory("one", "two") Is [False, False]
+Assert IsDirectory(["one", "two"]) Is [False, False]
+Assert IsDirectory(RE) Is False
+
+Assert RemoveFile() Is None
+Assert RemoveFile(None) Is None
+Assert RemoveFile(True) Is False
+Assert RemoveFile(Zero) Is False
+Assert RemoveFile(5.1) Is False
+Assert RemoveFile("") Is True # same as CWD
+Assert RemoveFile(".") Is True
+#Assert RemoveFile("samples") Is True # RUNTIME ASSUMPTION!
+#Assert RemoveFile("samples/10print.vgr") Is False # RUNTIME ASSUMPTION!
+Assert RemoveFile(EMPTY_LIST) Is EMPTY_LIST
+Assert RemoveFile("one", "two") Is [False, False]
+Assert RemoveFile(["one", "two"]) Is [False, False]
+Assert RemoveFile(RE) Is False

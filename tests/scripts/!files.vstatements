@@ -1,0 +1,18 @@
+
+# Dictionaries not supported
+Print BaseName({})
+Print DirectoryName({})
+Print PathExists({})
+Print IsFile({})
+Print IsDirectory({})
+Print RemoveFile({})
+# TODO Print GetFileInfo({})
+
+# Cant move out of CWD
+Print BaseName("..")
+Print DirectoryName("..")
+Print PathExists("..")
+Print IsFile("..")
+Print IsDirectory("..")
+# NB: RemoveFile() doesn't raise an exception, but returns a result
+# TODO Print GetFileInfo("..")

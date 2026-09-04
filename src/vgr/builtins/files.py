@@ -22,7 +22,7 @@ def get_current_directory(*_args) -> str:
     return expand_filename(os.getcwd())
 
 @builtin("DirectoryName")
-def dir_name(*args) -> Any:
+def poly_dir_name(*args) -> Any:
     """
 **Returns the directory part of a path**
 
@@ -50,13 +50,12 @@ Also see `BaseName()`, `PathExists()`, and `GetCurrentDirectory()
         if isinstance(path, list): return list(_dir_name(path1) for path1 in path)
         path = _stringify(path)
         if isinstance(path, str):
-            if len(path) == 0: return get_current_directory()
-            return os.path.dirname(expand_filename(verify_relative_path(path)))
-        raise ValueError(f'DirectoryName on {poly_type(path)!r} not possible')
+            return os.path.dirname(expand_filename(verify_relative_path(path or ".")))
+        raise ValueError(f'DirectoryName on {poly_type(path)!r} not supported')
     return apply_vargs(args, _dir_name)
 
 @builtin("BaseName")
-def base_name(*args) -> Any:
+def poly_base_name(*args) -> Any:
     """
 **Returns the final component of a path**
 
@@ -87,11 +86,11 @@ Also see `DirectoryName()`, `PathExists()`, and `GetCurrentDirectory()`
         if isinstance(path, list): return list(_base_name(path1) for path1 in path)
         path = _stringify(path)
         if isinstance(path, str): return os.path.basename(verify_relative_path(path))
-        raise ValueError(f'BaseName on {poly_type(path)!r} not possible')
+        raise ValueError(f'BaseName on {poly_type(path)!r} not supported')
     return apply_vargs(args, _base_name)
 
 @builtin("PathExists")
-def path_exists(*args) -> Any:
+def poly_path_exists(*args) -> Any:
     """
 **Returns True if path refers to an existing file or directory**
 
@@ -116,11 +115,11 @@ Also see `IsFile()` and `IsDirectory()`
         if isinstance(path, str):
             if len(path) == 0: path = get_current_directory()
             return os.path.exists(verify_relative_path(path or "."))
-        raise ValueError(f'PathExists on {poly_type(path)!r} not possible')
+        raise ValueError(f'PathExists on {poly_type(path)!r} not supported')
     return apply_vargs(args, _path_exists)
 
 @builtin("IsFile")
-def is_file(*args) -> Any:
+def poly_is_file(*args) -> Any:
     """
 **Checks to see if a file exists and that it is a regular file**
 
@@ -142,11 +141,11 @@ IsFile("samples/not-a-file") → False
         path = _stringify(path)
         if isinstance(path, str):
             return os.path.isfile(verify_relative_path(path or "."))
-        raise ValueError(f'IsFile on {poly_type(path)!r} not possible')
+        raise ValueError(f'IsFile on {poly_type(path)!r} not supported')
     return apply_vargs(args, _is_file)
 
 @builtin("IsDirectory")
-def is_dir(*args) -> Any:
+def poly_is_dir(*args) -> Any:
     """
 **Checks to see if a path exist and is it a directory**
 
@@ -165,11 +164,11 @@ IsDirectory("samples/sse.vgr") → False
         if isinstance(path, list): return list(_is_dir(path1) for path1 in path)
         path = _stringify(path)
         if isinstance(path, str): return os.path.isdir(verify_relative_path(path or '.'))
-        raise ValueError(f'IsDirectory on {poly_type(path)!r} not possible')
+        raise ValueError(f'IsDirectory on {poly_type(path)!r} not supported')
     return apply_vargs(args, _is_dir)
 
 @builtin("RemoveFile")
-def remove_file(*args) -> Any:
+def poly_remove_file(*args) -> Any:
     """
 **Removes a file, returning status**
 
@@ -200,7 +199,7 @@ RemoveFile("a_dir") → [False, "[Errno 1] Operation not permitted: 'a_dir'"]
                 return [True, None]
             except OSError as e:
                 return [False, str(e)]
-        raise ValueError(f'RemoveFile on {poly_type(path)!r} not possible')
+        raise ValueError(f'RemoveFile on {poly_type(path)!r} not supported')
     return apply_vargs(args, _remove_file)
 
 @builtin("GetFileInfo")
