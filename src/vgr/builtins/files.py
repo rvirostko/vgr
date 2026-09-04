@@ -7,11 +7,12 @@ from re import Pattern
 from typing import Any
 import os
 
+from .common import apply_vargs
 from .type import poly_type
 from .registry import builtin
 
 @builtin("GetCurrentDirectory")
-def get_current_directory(*args) -> str:
+def get_current_directory(*_args) -> str:
     """
 **Return the name of the current directory**
 
@@ -21,103 +22,131 @@ def get_current_directory(*args) -> str:
     return expand_filename(os.getcwd())
 
 @builtin("DirectoryName")
-def dir_name(path: Any=None) -> Any:
+def dir_name(*args) -> Any:
     """
 **Returns the directory part of a path**
 
-* DirectoryName()
 * *path*.DirectoryName()
 * DirectoryName(*path*)
 
-If *path* is empty or `None` "." is returned, matching UNIX behavior.
+Extracts and returns the parent directory name from the path.
+If *path* does not contain a directory component, the current
+directory is returned.
+
+Note that this functions does *not* check for the directory
+or file name portion's existance.
 
 ```vgr
-DirectoryName("samples") → "." # samples dir exists in current dir
-DirectoryName("samples/sse.vgr") → "samples"
+DirectoryName(None) → None
+DirectoryName("") → <current directory>
+DirectoryName("samples") → <current directory>
+DirectoryName("samples/sse.vgr") → "<current directory>/samples"
 ```
 
-Also see `BaseName()`
+Also see `BaseName()`, `PathExists()`, and `GetCurrentDirectory()
 """
-    if path is None: return '.'
-    if isinstance(path, list): return list(dir_name(path1) for path1 in path)
-    path = _stringify(path)
-    if isinstance(path, str): return os.path.dirname(verify_relative_path(path)) or '.'
-    raise ValueError(f'DirectoryName on {poly_type(path)!r} not possible')
+    def _dir_name(path):
+        if path is None: return None
+        if isinstance(path, list): return list(_dir_name(path1) for path1 in path)
+        path = _stringify(path)
+        if isinstance(path, str):
+            if len(path) == 0: return get_current_directory()
+            return os.path.dirname(expand_filename(verify_relative_path(path)))
+        raise ValueError(f'DirectoryName on {poly_type(path)!r} not possible')
+    return apply_vargs(args, _dir_name)
 
 @builtin("BaseName")
-def base_name(path: Any=None) -> Any:
+def base_name(*args) -> Any:
     """
 **Returns the final component of a path**
 
-* BaseName()
 * *path*.Basename()
 * Basename(*path*)
 
-If *path* is empty or `None` "" is returned, matching UNIX behavior.
+Extracts and returns the file name portion from the path.
+
+Note that this functions does *not* check for the directory
+or file name portion's existance.
 
 ```vgr
 BaseName("") → ""
 BaseName("samples") → "samples"
 BaseName("samples/sse.vgr") → "sse.vgr"
+
+BaseName(None) → None
+BaseName("") → ""
+BaseName("samples") → "samples"
+BaseName("samples/sse.vgr") → "sse.vgr"
+
 ```
 
-Also see `DirectoryName()`
+Also see `DirectoryName()`, `PathExists()`, and `GetCurrentDirectory()`
 """
-    if path is None: return ''
-    if isinstance(path, list): return list(base_name(path1) for path1 in path)
-    path = _stringify(path)
-    if isinstance(path, str): return os.path.basename(verify_relative_path(path))
-    raise ValueError(f'BaseName on {poly_type(path)!r} not possible')
+    def _base_name(path):
+        if path is None: return None
+        if isinstance(path, list): return list(_base_name(path1) for path1 in path)
+        path = _stringify(path)
+        if isinstance(path, str): return os.path.basename(verify_relative_path(path))
+        raise ValueError(f'BaseName on {poly_type(path)!r} not possible')
+    return apply_vargs(args, _base_name)
 
 @builtin("PathExists")
-def path_exists(path: Any=None) -> Any:
+def path_exists(*args) -> Any:
     """
 **Returns True if path refers to an existing file or directory**
 
-* PathExists()
 * *path*.PathExists()
 * PathExists(*path*)
 
 ```vgr
+PathExists(None) → None
 PathExists("") → True
 PathExists(".") → True
 PathExists("samples") → True
 PathExists("samples/sse.vgr") → True
-PathExists("samples/no") → False
+PathExists("samples/not-a-file") → False
 ```
 
 Also see `IsFile()` and `IsDirectory()`
 """
-    if path is None: return True # same as if "."
-    if isinstance(path, list): return list(path_exists(path1) for path1 in path)
-    path = _stringify(path)
-    if isinstance(path, str): return os.path.exists(verify_relative_path(path or '.'))
-    raise ValueError(f'PathExists on {poly_type(path)!r} not possible')
+    def _path_exists(path):
+        if path is None: return None
+        if isinstance(path, list): return list(_path_exists(path1) for path1 in path)
+        path = _stringify(path)
+        if isinstance(path, str):
+            if len(path) == 0: path = get_current_directory()
+            return os.path.exists(verify_relative_path(path or "."))
+        raise ValueError(f'PathExists on {poly_type(path)!r} not possible')
+    return apply_vargs(args, _path_exists)
 
 @builtin("IsFile")
-def is_file(path: Any=None) -> Any:
+def is_file(*args) -> Any:
     """
-**Checks to see if a file exists and is it a regular file**
+**Checks to see if a file exists and that it is a regular file**
 
 * IsFile()
 * *path*.IsFile()
 * IsFile(*path*)
 
 ```vgr
+IsFile(None) → None
 IsFile("") → False
 IsFile("samples") → False
 IsFile("samples/sse.vgr") → True
-IsFile("samples/no") → False
+IsFile("samples/not-a-file") → False
 ```
 """
-    if path is None: return False # same as if "."
-    if isinstance(path, list): return list(is_file(path1) for path1 in path)
-    path = _stringify(path)
-    if isinstance(path, str): return os.path.isfile(verify_relative_path(path) or '.')
-    raise ValueError(f'IsFile on {poly_type(path)!r} not possible')
+    def _is_file(path):
+        if path is None: return None
+        if isinstance(path, list): return list(_is_file(path1) for path1 in path)
+        path = _stringify(path)
+        if isinstance(path, str):
+            return os.path.isfile(verify_relative_path(path or "."))
+        raise ValueError(f'IsFile on {poly_type(path)!r} not possible')
+    return apply_vargs(args, _is_file)
 
 @builtin("IsDirectory")
-def is_dir(path: Any=None) -> Any:
+def is_dir(*args) -> Any:
     """
 **Checks to see if a path exist and is it a directory**
 
@@ -131,14 +160,16 @@ IsDirectory("samples") → True
 IsDirectory("samples/sse.vgr") → False
 ```
 """
-    if path is None: return True
-    if isinstance(path, list): return list(is_dir(path1) for path1 in path)
-    path = _stringify(path)
-    if isinstance(path, str): return os.path.isdir(verify_relative_path(path) or '.')
-    raise ValueError(f'IsDirectory on {poly_type(path)!r} not possible')
+    def _is_dir(path):
+        if path is None: return None
+        if isinstance(path, list): return list(_is_dir(path1) for path1 in path)
+        path = _stringify(path)
+        if isinstance(path, str): return os.path.isdir(verify_relative_path(path or '.'))
+        raise ValueError(f'IsDirectory on {poly_type(path)!r} not possible')
+    return apply_vargs(args, _is_dir)
 
 @builtin("RemoveFile")
-def remove_file(path: Any=None) -> Any:
+def remove_file(*args) -> Any:
     """
 **Removes a file, returning status**
 
@@ -158,17 +189,19 @@ RemoveFile("not-exists.txt") → [False, "[Errno 2] No such file or directory: '
 RemoveFile("a_dir") → [False, "[Errno 1] Operation not permitted: 'a_dir'"]
 ```
 """
-    if path is None: return [False, "Missing path"]
-    if isinstance(path, list): return list(remove_file(path1) for path1 in path)
-    path = _stringify(path)
-    if isinstance(path, str):
-        if len(path) == 0: return [False, "Missing path"]
-        try:
-            os.remove(verify_relative_path(path))
-            return [True, None]
-        except OSError as e:
-            return [False, str(e)]
-    raise ValueError(f'RemoveFile on {poly_type(path)!r} not possible')
+    def _remove_file(path):
+        if path is None: return [False, "Missing path"]
+        if isinstance(path, list): return list(_remove_file(path1) for path1 in path)
+        path = _stringify(path)
+        if isinstance(path, str):
+            if len(path) == 0: return [False, "Missing path"]
+            try:
+                os.remove(verify_relative_path(path))
+                return [True, None]
+            except OSError as e:
+                return [False, str(e)]
+        raise ValueError(f'RemoveFile on {poly_type(path)!r} not possible')
+    return apply_vargs(args, _remove_file)
 
 @builtin("GetFileInfo")
 def poly_get_file_info(*args) -> Any:
@@ -186,7 +219,6 @@ The *path* arguments are expressions that, eventually, should resolve to a strin
 Non-string values are ignored, while lists and dictionaries are traversed for
 file paths. In the case of dictionaries, a dictionary using the keys of the
 input is returned, the associated values contain the file information.
-
 
 The contents the information varies depending upon the contents of the
 `status` and `type` attributes.
