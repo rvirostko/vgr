@@ -77,6 +77,7 @@
 - The manual is no longer created from a command line options, but is
   created as part of the release.
 - MdLink() undocumented behavior with lists removed.
+- os.cwd removed; use GetCurrentDirectory().
 
 ### Fixed
 

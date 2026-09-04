@@ -18,10 +18,7 @@ from .builtins import poly_repr
 from .data_dict import DataDictionary
 from .dd_config import (
     dd_init,
-    EXEC_NAME_PATH,
-    EXEC_VER_PATH,
-    VER_DATE_PATH,
-    VER_PATH,
+    dd_log_startup_values,
 )
 from .user_args import set_user_args
 from .extn import VgrExtension, VgrExtensionRegistry, VER
@@ -200,12 +197,7 @@ Environment variables:
     init_app_log(ctx, logfile_path, args.loglevel)
     ctx.print_verbose('Setting user args...')
     set_user_args(ctx, args.args)
-    # Dump some basics for diagnostic purposes
-    for path in [EXEC_NAME_PATH, EXEC_VER_PATH, VER_PATH, VER_DATE_PATH]:
-        value = ctx.get_var(*path)
-        var = '.'.join(path)
-        ctx.print_verbose(var, '=', poly_repr(value))
-        _LOG.info('%s = %s', var, poly_repr(value))
+    dd_log_startup_values(ctx)
     # These control how some requests are made, so
     # it is good to know their values when there are
     # issues with certificates

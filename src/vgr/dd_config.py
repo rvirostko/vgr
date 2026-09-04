@@ -6,32 +6,36 @@ Utility routines for working with the global Data Dictionary
 import getpass
 import math
 import os
+import logging
 import platform
 import re
 import socket
-import string
 import sys
 import uuid
 
 from . import __version__, __version_date__
 from .builtins import (
-    get_current_directory,
+    compile_pattern,
     get_datetime,
     get_day_name,
-    get_day,
-    get_day_of_year,
     get_day_of_week,
+    get_day_of_year,
+    get_day,
     get_hour,
     get_minute,
     get_month_name,
     get_month,
     get_second,
-    get_week_of_year,
-    get_year,
     get_timezone,
     get_utc_offset,
+    get_week_of_year,
+    get_year,
+    parse_json,
+    poly_repr,
 )
 from .data_dict import DataDictionary, DynamicValue, MAX_FRAMES
+from .exec_context import ExecContext
+from .extn import VgrExtension
 from .redir import _REDIRECTOR
 from .stmt_include import (
     get_includes,
@@ -45,10 +49,6 @@ from .stmt_funct import (
 from .user_callable import function_cache_keys
 
 VGR_PREFIX = 'vgr'
-VER_PATH = (VGR_PREFIX, 'version')
-VER_DATE_PATH = (VGR_PREFIX, 'version_date')
-EXEC_NAME_PATH = (VGR_PREFIX, 'python', 'executable')
-EXEC_VER_PATH = (VGR_PREFIX, 'python', 'version')
 
 _TIME_PREFIX = 'time'
 
@@ -153,22 +153,25 @@ _UUID_ENTRIES = {
 _STREAM_FILE = "file"
 _STREAM_ISATTY = "isatty"
 _VGR_ENTRIES = {
-    ("version",):                __version__,
-    ("version_date",):           __version_date__,
-    ("included",):               DynamicValue(get_is_included),
-    ("includes",):               DynamicValue(get_includes),
-    ("constants",):              DynamicValue(get_user_constants),
-    ("stdin", _STREAM_FILE,):    DynamicValue(_REDIRECTOR.stdin().filename),
-    ("stdin", _STREAM_ISATTY,):  DynamicValue(_REDIRECTOR.stdin().isatty),
-    ("stdout", _STREAM_FILE,):   DynamicValue(_REDIRECTOR.stdout().filename),
-    ("stdout", _STREAM_ISATTY,): DynamicValue(_REDIRECTOR.stdout().isatty),
-    ("stderr", _STREAM_FILE,):   DynamicValue(_REDIRECTOR.stderr().filename),
-    ("stderr", _STREAM_ISATTY,): DynamicValue(_REDIRECTOR.stderr().isatty),
-    ("repl",):                   False, # may be changed later...
-    ('max_frames',):             MAX_FRAMES,
-    ('default_cache_size',):     DEFAULT_CACHE_SIZE,
-    ('max_cache_size',):         MAX_CACHE_SIZE,
-    ('caches',):                 DynamicValue(function_cache_keys)
+    ('caches',):                DynamicValue(function_cache_keys),
+    ('default_cache_size',):    DEFAULT_CACHE_SIZE,
+    ('max_cache_size',):        MAX_CACHE_SIZE,
+    ('max_frames',):            MAX_FRAMES,
+    ("constants",):             DynamicValue(get_user_constants),
+    ("included",):              DynamicValue(get_is_included),
+    ("includes",):              DynamicValue(get_includes),
+    ("pid",):                   os.getpid(),
+    ('python', 'executable'):   sys.executable,
+    ('python', 'version'):      f'{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}',
+    ("repl",):                  False, # default, changed if/when REPL starts
+    ("stderr", _STREAM_FILE):   DynamicValue(_REDIRECTOR.stderr().filename),
+    ("stderr", _STREAM_ISATTY): DynamicValue(_REDIRECTOR.stderr().isatty),
+    ("stdin", _STREAM_FILE):    DynamicValue(_REDIRECTOR.stdin().filename),
+    ("stdin", _STREAM_ISATTY):  DynamicValue(_REDIRECTOR.stdin().isatty),
+    ("stdout", _STREAM_FILE):   DynamicValue(_REDIRECTOR.stdout().filename),
+    ("stdout", _STREAM_ISATTY): DynamicValue(_REDIRECTOR.stdout().isatty),
+    ("version_date",):          __version_date__,
+    ("version",):               __version__,
 }
 
 def dd_init(dd: DataDictionary) -> None:
@@ -178,9 +181,6 @@ def dd_init(dd: DataDictionary) -> None:
     dd.add_immutable_prefix(VGR_PREFIX)
     for path, value in _VGR_ENTRIES.items():
         dd.set_var(value, VGR_PREFIX, *path)
-    dd.set_var(sys.executable, *EXEC_NAME_PATH)
-    dd.set_var(f'{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}',
-               *EXEC_VER_PATH)
     # ... reg ex values
     dd.add_immutable_prefix(_RE_PREFIX)
     for flag in _RE_FLAGS:
@@ -201,16 +201,27 @@ def dd_init(dd: DataDictionary) -> None:
     for func, name in ((_get_os_consts, 'os'), (_get_sys_consts, 'sys')):
         dd.add_immutable_prefix(name)
         dd.set_var(func(), name)
-    # env as a mutable dict
+    # env is a mutable dict
     dd.set_var(_get_environment(), 'env')
     dd.set_var(os.getenv('OFS', ' '), *OFS_PATH)
     dd.set_var(os.getenv('ORS', '\n'), *ORS_PATH)
 
+def dd_log_startup_values(ctx: ExecContext) -> None:
+    # Dump some basics for diagnostic purposes
+    root_logger = logging.getLogger()
+    for path in [(VGR_PREFIX, 'python', 'executable'),
+                 (VGR_PREFIX, 'python', 'version'),
+                 (VGR_PREFIX, 'version'),
+                 (VGR_PREFIX, 'version_date')]:
+        value = poly_repr(ctx.get_var(*path))
+        var = '.'.join(path)
+        ctx.print_verbose(var, '=', value)
+        root_logger.info('%s = %s', var, value)
+
+
 def _get_os_consts() -> dict:
     rc = { key: value for key, value in _get_consts(os).items() if key in _OS_CONSTS }
-    rc['login'] = DynamicValue(lambda: getpass.getuser() or 'unknown')
-    rc['pid'] = DynamicValue(os.getpid)
-    rc['cwd'] = DynamicValue(get_current_directory)
+    rc['login'] = getpass.getuser() or 'unknown'
     rc['system'] = platform.system()
     rc['node'] = platform.node()
     rc['hostname'] = socket.gethostname()
@@ -235,8 +246,6 @@ def _get_consts(source_mod) -> dict:
                 if isinstance(value, (int, float, str, dict, list)) and not key.startswith("_")
             }
 
-from .extn import VgrExtension
-from .builtins import parse_json, compile_pattern
 def _add_re_patterns(pfx: str, dd: DataDictionary) -> None:
     for item in parse_json(VgrExtension.read_resource_text(__package__, 're_patterns.json')).items():
         name = item[0]

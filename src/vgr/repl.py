@@ -274,7 +274,6 @@ class VgrRepl:
     def max_history_entries(self) -> int: return self._max_history_entries
 
     def run(self) -> int:
-        self.print_verbose("CWD =", os.getcwd())
         md_println("\n", f"`VGR {__version__} ({__version_date__})`", "_Type **help** for more information_")
         self._ctx.set_var(True, 'vgr', 'repl')
         session = PromptSession(history=self._history)

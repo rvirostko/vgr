@@ -16,8 +16,6 @@ def get_current_directory(*args) -> str:
 **Return the name of the current directory**
 
 * GetCurrentDirectory()
-
-Also see the `os.cwd` variable
 """
     # NB: args ignored
     return expand_filename(os.getcwd())
