@@ -70,6 +70,10 @@ def load_extensions(dd: DataDictionary, verbose: bool) -> VgrExtensionRegistry:
     return VER
 
 def create_parser(extn_registry: VgrExtensionRegistry, debug: bool, verbose: bool) -> Lark:
+    def _print_debug(*args, **kwargs) -> None:
+        """If debug is on print to stderr and maybe the log"""
+        if debug: print_stderr(*args, **kwargs)
+        if _LOG.isEnabledFor(logging.DEBUG): _LOG.debug(*args, **kwargs)
     if verbose: print_stderr('Creating parser...')
     extn_statements = ''
     extn_grammar = ''
@@ -79,8 +83,8 @@ def create_parser(extn_registry: VgrExtensionRegistry, debug: bool, verbose: boo
         if instance.adds_statements(): extn_statements += f'| {name}_statements'
         extn_grammar += instance.grammar()
         if not extn_grammar.endswith('/n'): extn_grammar += '\n'
-    _print_debug(debug, 'EXTN_STATMENTS =', extn_statements)
-    _print_debug(debug, 'EXTN_GRAMMAR =', extn_grammar)
+    _print_debug('EXTN_STATMENTS =', extn_statements)
+    _print_debug('EXTN_GRAMMAR =', extn_grammar)
     grammar = VgrExtension.read_resource_text(__package__, 'vgr.lark')
     # NB: we can't just use str.format() because the grammar
     #     contains "{" and "}"
@@ -89,7 +93,7 @@ def create_parser(extn_registry: VgrExtensionRegistry, debug: bool, verbose: boo
                        ('{FUNCTIONS}', get_function_defs()),
                        ('{VAR_NAME}', VAR_NAME)):
         grammar = grammar.replace(tag, value)
-    _print_debug(debug, 'GRAMMAR =\n', grammar)
+    _print_debug('GRAMMAR =\n', grammar)
     return Lark(grammar,
                 start=['opt_statements', 'expr', _CMD_LINE_ASSIGN],
                 lexer='contextual',
@@ -105,13 +109,6 @@ class SaveOrderedSources(argparse.Action):
         if not hasattr(namespace, "ordered"):
             namespace.ordered = []
         namespace.ordered.append((option.lstrip('-')[0].lower(), values))
-
-def _print_debug(debug: bool, /, *args, **kwargs) -> None:
-    """If debug is on print to stderr and maybe the log"""
-    if debug:
-        print_stderr(*args, **kwargs)
-        if _LOG.isEnabledFor(logging.DEBUG):
-            _LOG.debug(*args, **kwargs)
 
 def _log_exception(ctx: ExecContext, log_label: str, e: VgrException) -> None:
     err = str(e)
