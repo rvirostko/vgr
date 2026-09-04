@@ -4,6 +4,7 @@ from typing import Any
 from re import Pattern
 
 from .common import (
+    apply_vargs,
     bool_arg,
     dist_x,
     int_arg,
@@ -19,10 +20,6 @@ from .inequ import (
 from .strings import poly_substr
 from .type import poly_type
 from .registry import builtin
-
-def _apply_vargs(args, op):
-    """Super simple handling for variable arguments"""
-    return None if len(args) == 0 else op(args[0]) if len(args) == 1 else [op(x) for x in args]
 
 @builtin("Reverse")
 def poly_reverse(*args) -> Any:
@@ -47,7 +44,7 @@ If *value* is an ordinal rather than a list, it is returned unchanged.
         if isinstance(x, Pattern): x = x.pattern
         if isinstance(x, str): return x[::-1]
         return x
-    return _apply_vargs(args, _op)
+    return apply_vargs(args, _op)
 
 @builtin("Negate")
 def poly_negate(*args) -> Any:
@@ -80,7 +77,7 @@ None.Negate() → True
         if isinstance(x, list): return list(poly_negate(x1) for x1 in x)
         if isinstance(x, dict): return {k: poly_negate(v) for k, v in x.items()}
         return x
-    return _apply_vargs(args, _op)
+    return apply_vargs(args, _op)
 
 @builtin("Length")
 def poly_length(*args) -> Any:
@@ -108,7 +105,7 @@ Also see `StringLen()`
     def _op(x):
         if isinstance(x, Pattern): x = x.pattern
         return len(x) if hasattr(x, '__len__') else None
-    return _apply_vargs(args, _op)
+    return apply_vargs(args, _op)
 
 @builtin("Hash")
 def poly_hash(*args) -> int:
@@ -130,7 +127,7 @@ Cannot be applied to lists or dictionaries.
 Also see `Id()`
 """
     def _op(x): return None if isinstance(x, (list, dict)) else hash(x)
-    return _apply_vargs(args, _op)
+    return apply_vargs(args, _op)
 
 @builtin("Id")
 def poly_id(*args) -> Any:
@@ -153,7 +150,7 @@ None.Id() → 4387076688
 
 Also see `Hash()`
 """
-    return _apply_vargs(args, id)
+    return apply_vargs(args, id)
 
 @builtin("Clone")
 def poly_clone(*args) -> Any:
@@ -199,7 +196,7 @@ Print z.FirstItem().Id(), z′.FirstItem().Id()
 Also see `Id()` and `Hash()`
 """
     def _op(x): return copy(x) if isinstance(x, (list, dict)) else x
-    return _apply_vargs(args, _op)
+    return apply_vargs(args, _op)
 
 @builtin("Repr")
 def poly_repr(*args) -> str:
@@ -247,7 +244,7 @@ and escapes non-printable characters.
             return 'r/' + x.pattern + '/' + _decode_flags(x)
         if isinstance(x, list): return '[' + ', '.join(poly_repr(x1) for x1 in x) + ']'
         return repr(x)
-    return _apply_vargs(args, _op)
+    return apply_vargs(args, _op)
 
 @builtin("Enumerate")
 def poly_enumerate(obj: Any=None, start_at: int=0) -> Any:

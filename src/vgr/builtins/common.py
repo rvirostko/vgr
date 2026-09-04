@@ -57,6 +57,15 @@ def unpack_vargs(args: Any, n: int) -> tuple:
     if length < n:  return args + (None,) * (n - length) + ((),)
     return args[:n] + (args[n:],)
 
+def apply_vargs(args, operation) -> Any:
+    """
+    Simple handling for variable arguments
+    * len(args) == 0 : None
+    * len(args) == 1 : op(args[0])
+    * otherwise: [op(arg) for arg in args]
+    """
+    return None if len(args) == 0 else operation(args[0]) if len(args) == 1 else [operation(arg) for arg in args]
+
 def str_to_number(s: str) -> Number:
     """
     Attempts to convert a string to a number value.
