@@ -2,53 +2,49 @@
 
 Constant MARK_URL Is "https://upload.wikimedia.org/wikipedia/commons/4/48/Markdown-mark.svg"
 Constant WIKI_URL Is "https://en.wikipedia.org/wiki/Markdown"
+Set env.OFS To ""
 
 Print MdHeading("Markdown")
 
-Print MdImage(MARK_URL, "Markdown logo", "The Markdown Mark")
-Printf Newline
+Print MdImage(MARK_URL, "Markdown logo", "The Markdown Mark"), Newline
 
 Print MdStrong("Markdown"),
-    """is a lightweight markup language for creating formatted text
+    """ is a lightweight markup language for creating formatted text
 using a plain-text editor. John Gruber created Markdown in 2004 as an easy-to-read
 markup language. Markdown is widely used for blogging, instant messaging, and
-arge language models, and also used elsewhere in online forums, collaborative software,
+large language models, and also used elsewhere in online forums, collaborative software,
 documentation pages, and readme files.
 """
 
-Print "Read more about",
+Print "Read more about ",
       MdLink(WIKI_URL, "Markdown", "Wikipedia article on Markdown"),
-      "on Wikipedia."
-Printf Newline
+      " on Wikipedia.", Newline
 
-Print MdHeading("VGR Markdown Support")
+Print MdHeading("VGR Markdown Support", 2)
 
 Print """VGR supports the creating of Markdown files via
-a set of functions that style the text. The""", MdCode("Select"),
-"""statement can be used to format tables of data, and the""", MdCode("Print"),
-"""statement allows for the direct presentation of Markdown as text
-in a terminal via the """, MdCode("As Markdown"), """clause.
+a set of functions that style the text. The """, MdCode("Select"),
+""" statement can be used to format tables of data, and the """, MdCode("Print"),
+""" statement allows for the direct presentation of Markdown as text
+in a terminal via the """, MdCode("As Markdown"), """ clause.
 
 All of the REPL's help is in Markdown.
 """
 
-Print MdHeading("Character attributes", 2)
+Print MdHeading("Character attributes", 3)
 
-Print
-    MdCode("MdStrong()"), "creates", MdStrong("strong text"), "\n\n",
-    MdCode("MdEmphasis()"), "creates", MdEmphasis("emphasised text"), "\n\n",
-    MdCode("MdStrikeThrough()"), "creates", MdStrikeThrough("struck out text"), "\n\n",
-    MdCode("MdCode()"), "creates", MdCode("in-line code"), Newline
+Print MdCode("MdStrong()"), " creates ", MdStrong("strong text"), Newline
+Print MdCode("MdEmphasis()"), " creates ", MdEmphasis("emphasised text"), Newline
+Print MdCode("MdStrikeThrough()"), " creates ", MdStrikeThrough("struck out text"), Newline
+Print MdCode("MdCode()"), " creates ", MdCode("in-line code"), Newline
 
-Print MdHeading("Code blocks", 2)
-Print MdCode("MdCodeBlock()"), "is used to format blocks of code"
+Print MdHeading("Code blocks", 3)
+Print MdCode("MdCodeBlock()"), " is used to format blocks of code"
 
-Print MdCodeBlock("python",
-    "print('hello world')"
-)
+Print MdCodeBlock("python", "print('hello world')")
 
-Print MdHeading("Block quotes", 2)
-Print MdCode("MdBlockQuote()"), "is used to format a quoted block"
+Print MdHeading("Block quotes", 3)
+Print MdCode("MdBlockQuote()"), " is used to format a quoted block"
 Print MdBlockQuote(
     "I've seen things you people wouldn't believe.",
     "Attack ships on fire off the shoulder of Orion.",
@@ -60,12 +56,12 @@ Print MdBlockQuote(
     "Tears in rain monologue",
     "Wikipedia article on the Blade Runner monologue")))
 
-Print MdHeading("Ordered lists", 2)
-Print MdCode("MdOrderedList()"), "is used to format ordered lists"
+Print MdHeading("Ordered lists", 3)
+Print MdCode("MdOrderedList()"), " is used to format ordered lists"
 Print MdOrderedList("Bacon", "Lettuce", "Tomato")
 
-Print MdHeading("Unordered lists", 2)
-Print MdCode("MdUnorderedList()"), "is used to format unordered lists"
+Print MdHeading("Unordered lists", 3)
+Print MdCode("MdUnorderedList()"), " is used to format unordered lists"
 Print MdUnorderedList("Eggs", "Sausage", "Spam")
 
 Constant recipies Is [
@@ -81,8 +77,8 @@ Constant recipies Is [
   {"dish": "Pho", "cuisine": "Vietnamese", "ingredients": ["beef", "rice noodles", "star anise"], "url": "https://en.wikipedia.org/wiki/Pho"}
 ]
 
-Print MdHeading("Tabular data", 2)
-Print "VGR's", MdCode("Select"), "statement can directly produce Markdown tables", Newline
+Print MdHeading("Tabular data", 3)
+Print "VGR's ", MdCode("Select"), " statement can directly produce Markdown tables"
 
 Print MdCodeBlock("vgr",
 """Sort recipies By "cuisine"
