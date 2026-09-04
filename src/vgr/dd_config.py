@@ -218,7 +218,6 @@ def dd_log_startup_values(ctx: ExecContext) -> None:
         ctx.print_verbose(var, '=', value)
         root_logger.info('%s = %s', var, value)
 
-
 def _get_os_consts() -> dict:
     rc = { key: value for key, value in _get_consts(os).items() if key in _OS_CONSTS }
     rc['login'] = getpass.getuser() or 'unknown'

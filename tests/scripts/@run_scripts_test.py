@@ -7,7 +7,7 @@ from contextlib import redirect_stdout, redirect_stderr
 import pytest
 
 from vgr.data_dict import DataDictionary
-from vgr.dd_config import dd_init
+from vgr.dd_config import dd_init, dd_log_startup_values
 from vgr.user_args import set_user_args
 from vgr.functions import add_builtin_functions
 from vgr.vgr import load_extensions, create_parser, md_create_lexer
@@ -42,6 +42,7 @@ def vgr_init():
             ctx.verbose = False
             ctx.echo = False
             set_user_args(ctx, [])
+            dd_log_startup_values(ctx)
             _state['init'] = True
         except Exception as e:
             print(e)
