@@ -3,6 +3,10 @@ Constant EMPTY_LIST Is []
 Constant RE_TEXT Is "ab/c"
 Constant RE Is CompilePattern(RE_TEXT)
 
+# Assumes we are running from dev root
+Constant SAMPLES_DIR = "samples"
+Constant SAMPLE_10PRINT = SAMPLES_DIR + os.sep + "10print.vgr"
+
 Echo On
 
 Constant CWD Is GetCurrentDirectory()
@@ -57,8 +61,8 @@ Assert PathExists(Zero) Is False
 Assert PathExists(5.1) Is False
 Assert PathExists("") Is True # same as CWD
 Assert PathExists(".") Is True
-Assert PathExists("samples") Is True # RUNTIME ASSUMPTION!
-Assert PathExists("samples/10print.vgr") Is True # RUNTIME ASSUMPTION!
+Assert PathExists(SAMPLES_DIR) Is True
+Assert PathExists(SAMPLE_10PRINT) Is True
 Assert PathExists(EMPTY_LIST) Is EMPTY_LIST
 Assert PathExists("one", "two") Is [False, False]
 Assert PathExists(["one", "two"]) Is [False, False]
@@ -71,8 +75,8 @@ Assert IsFile(Zero) Is False
 Assert IsFile(5.1) Is False
 Assert IsFile("") Is False # same as CWD
 Assert IsFile(".") Is False
-Assert IsFile("samples") Is False # RUNTIME ASSUMPTION!
-Assert IsFile("samples/10print.vgr") Is True # RUNTIME ASSUMPTION!
+Assert IsFile(SAMPLES_DIR) Is False
+Assert IsFile(SAMPLE_10PRINT) Is True
 Assert IsFile(EMPTY_LIST) Is EMPTY_LIST
 Assert IsFile("one", "two") Is [False, False]
 Assert IsFile(["one", "two"]) Is [False, False]
@@ -85,8 +89,8 @@ Assert IsDirectory(Zero) Is False
 Assert IsDirectory(5.1) Is False
 Assert IsDirectory("") Is True # same as CWD
 Assert IsDirectory(".") Is True
-Assert IsDirectory("samples") Is True # RUNTIME ASSUMPTION!
-Assert IsDirectory("samples/10print.vgr") Is False # RUNTIME ASSUMPTION!
+Assert IsDirectory(SAMPLES_DIR) Is True
+Assert IsDirectory(SAMPLE_10PRINT) Is False
 Assert IsDirectory(EMPTY_LIST) Is EMPTY_LIST
 Assert IsDirectory("one", "two") Is [False, False]
 Assert IsDirectory(["one", "two"]) Is [False, False]
@@ -106,3 +110,34 @@ Assert RemoveFile(EMPTY_LIST) Is EMPTY_LIST
 Assert RemoveFile("one", "two").IsList()
 Assert RemoveFile(["one", "two"]).IsList()
 Assert RemoveFile(RE)[0] Is False
+
+Assert GetFileInfo() Is None
+Assert GetFileInfo(None) Is None
+Assert GetFileInfo(True).found Is False
+Assert GetFileInfo(Zero).found Is False
+Assert GetFileInfo(5.1).found Is False
+Set info To GetFileInfo("")  # same as CWD
+Assert info.found Is True
+Assert info.type Is "directory"
+Assert info.path Is CWD
+Set info To GetFileInfo(".")
+Assert info.found Is True
+Assert info.type Is "directory"
+Assert info.path Is CWD
+Set info To GetFileInfo(SAMPLE_10PRINT)
+Assert info.found Is True
+Assert info.type Is "file"
+Assert info.suffix Is ".vgr"
+Assert GetFileInfo(EMPTY_LIST) Is EMPTY_LIST
+# Do not have to exist to be parsed
+Set info To GetFileInfo("A:command.com")
+Assert info.found Is False
+Assert info.type Is None
+Assert info.suffix Is ".com"
+Set info To GetFileInfo("foo.tar.gz")
+Assert info.found Is False
+Assert info.type Is None
+Assert info.suffixes Is [".tar", ".gz"]
+Assert GetFileInfo("one", "two").IsList()
+Assert GetFileInfo(["one", "two"]).IsList()
+Assert GetFileInfo(RE).found Is False

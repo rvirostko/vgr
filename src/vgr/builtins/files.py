@@ -238,49 +238,46 @@ def poly_get_file_info(*args) -> Any:
 * *path*.GetFileInfo()
 * GetFileInfo(*path*&hellip;)
 
-Returns one or more, depending upon argument provided, dictionaries
+Returns one or more, depending upon argument provided,
 with information about the requested files.
-All files *must* be relative to the current directory.
-
-The *path* arguments are expressions that, eventually, should resolve to a string.
-Non-string values are ignored, while lists and dictionaries are traversed for
-file paths. In the case of dictionaries, a dictionary using the keys of the
-input is returned, the associated values contain the file information.
+All file paths *must* be relative to the current directory.
 
 The contents the information varies depending upon the contents of the
-`status` and `type` attributes.
+`found`, `error`, and `type` attributes.
 
 When the file exists-
 
 ```vgr
 {
-    "status": "found",
-    "path": "/path/to/file.txt",
-    "name": "file.txt",
-    "type": "file",
-    "size": 12345,
-    "modified": 1754500000,
-    "created": 1754400000,
-    "is_readable": True,
-    "is_writable": False,
+    "found":         True,
+    "path":          "/path/to/file.txt",
+    "name":          "file.txt",
+    "suffix":        ".txt",
+    "type":          "file",
+    "size":          12345,
+    "modified":      1754500000,
+    "created":       1754400000,
+    "is_readable":   True,
+    "is_writable":   False,
     "is_executable": False,
-    "owner": "user",
-    "group": "staff"
+    "owner":         "user",
+    "group":         "staff"
 }
 ```
 
-When `type` is `dir`, the `is_executable` attribute is replaced by
+When `type` is `directory`, the `is_executable` attribute is replaced by
 `is_searchable` and `size` is omitted.
 The availability of creation and modification times, along with `owner` and `group`,
-will vary upon operating systems.
+will vary by operating environments.
 
 When the file does not exist-
 
 ```vgr
 {
-    "status": "not_found",
-    "path": "/path/to/file.txt",
-    "name": "file.txt",
+    "found":  False,
+    "path":   "/path/to/file.txt",
+    "suffix": ".txt",
+    "name":   "file.txt",
 }
 ```
 
@@ -288,68 +285,61 @@ When an error has occurred-
 
 ```vgr
 {
-    "status": "error",
-    "path": "/path/to/file.txt",
-    "name": "file.txt",
-    "error": "PermissionError",
+    "path":    "/path/to/file.txt",
+    "name":    "file.txt",
+    "suffix":  ".txt",
+    "error":   "PermissionError",
     "message": "Permission denied",
 }
 ```
 
 """
-    def _get_owner(stat):
-        owner = None
-        group = None
-        # TODO Need cross platform impl
-        return owner, group
     def _get_file_info(path: str) -> dict:
+        if path is None: return None
+        if isinstance(path, list): return list(_get_file_info(path1) for path1 in path)
+        path = _stringify(path)
+        if not isinstance(path, str):
+            raise ValueError(f'GetFileInfo on {poly_type(path)!r} not supported')
         path: Path = Path(verify_relative_path(path)).resolve()
         info = {
             "path": str(path),
             "name": path.name,
         }
+        suffixes = path.suffixes
+        if len(suffixes) == 1:
+            info["suffix"] = suffixes[0]
+        elif len(suffixes) > 1:
+            info["suffixes"] = suffixes
         try:
             if not path.exists():
-                info["status"] = "not_found"
+                info["found"] = False
                 return info
+            # Windows will likely raise NotImplemented (except WSL and Cygwin)
+            # Posix systems can raise KeyError for deleted group/user
+            # OsError for permission issues (maybe)
+            try: info["owner"] = path.owner()
+            except (NotImplementedError, KeyError, OSError): pass
+            try: info["group"] = path.group()
+            except (NotImplementedError, KeyError, OSError): pass
             stat = path.stat()
             info.update({
-                "status": "found",
-                "type": "dir" if path.is_dir() else "file",
-                "modified": int(stat.st_mtime),
-                "created": int(stat.st_birthtime) if hasattr(stat, "st_birthtime") else int(stat.st_ctime) if os.name == "nt" else None,
-                "is_readable": os.access(path, os.R_OK),
-                "is_writable": os.access(path, os.W_OK),
+                "found":        True,
+                "type":         "directory" if path.is_dir() else "file",
+                "modified":     int(stat.st_mtime),
+                "created":      int(stat.st_birthtime) if hasattr(stat, "st_birthtime") else int(stat.st_ctime) if os.name == "nt" else None,
+                "is_readable":  os.access(path, os.R_OK),
+                "is_writable":  os.access(path, os.W_OK),
                 "is_searchable" if path.is_dir() else "is_executable": os.access(path, os.X_OK)
             })
             if path.is_file(): info["size"] = stat.st_size
-            owner, group = _get_owner(stat)
-            if owner is not None: info["owner"] = owner
-            if group is not None: info["group"] = group
             return info
         except Exception as e:
             info.update({
-                "status": "error",
                 "error": type(e).__name__,
                 "message": str(e),
             })
             return info
-    def _dict_unwrap(v, r):
-        return r[0] if isinstance(v, str) and (isinstance(r, list) and len(r) == 1) else r
-    def _process(value):
-        if isinstance(value, str): return [_get_file_info(value)]
-        if isinstance(value, list):
-            result = []
-            for item in value: result.extend(_process(item))
-            return result
-        if isinstance(value, dict):
-            return [{ k: _dict_unwrap(v, _process(v)) for k, v in value.items() if isinstance(v, (str, list, dict)) }]
-        return []
-    if not args: return None
-    results = []
-    for arg in args: results.extend(_process(arg))
-    # remove superflous array wrapper if they asked for one and got one
-    return results[0] if len(args) == 1 and len(results) == 1 else results
+    return apply_vargs(args, _get_file_info)
 
 def verify_relative_path(filename: str) -> str:
     """
