@@ -5,7 +5,10 @@ Functions for working with files and directories
 from pathlib import Path
 from re import Pattern
 from typing import Any
+import fnmatch
+import glob
 import os
+import re
 
 from .common import apply_vargs
 from .type import poly_type
@@ -340,6 +343,140 @@ When an error has occurred-
             })
             return info
     return apply_vargs(args, _get_file_info)
+
+@builtin("ListFiles")
+def poly_list_files(*args) -> Any:
+    """
+**Return a list of files using a pattern match**
+
+* ListFiles() *files in current directory*
+* ListFiles(*pattern*[, *pattern*&hellip;])
+* *pattern*.ListFiles()
+
+The *pattern* follows the [Glob](https://en.wikipedia.org/wiki/Glob_\\(programming\\))
+style of meta characters:
+
+| Pattern   | Meaning                                       |
+|-----------|-----------------------------------------------|
+| _*_       | matches everything                            |
+| _?_       | matches any single character                  |
+| _**_      | match any files and zero or more directories  |
+| _[abc]_   | matches any character in sequence             |
+| _[a-c]_   | matches any character in the range            |
+| _[!...]_  | matches any character not in equence or range |
+| _~_       | expanded to the user's home directory         |
+| _~name_   | expanded to the home directory of a user      |
+
+Matching of literal character may be case sensitive depending
+upon the operating environment, including the file system format.
+
+To list files or directories that start with `.`, the pattern
+*must* start with a dot.
+Dot files are excluded from the results by default.
+
+To list directories only, end the pattern with the path
+separator character for the operating system: see `os.sep`
+
+When multiple patterns are given, the results are combined
+into a single list. The is not sorted, nor are duplicate
+items removed.
+
+```vgr
+# All files, except dot files, in the current directory
+ListFiles("*")
+
+# Only sub directories
+ListFiles("*/")
+
+# All files in the current directory and in all subdirectories
+ListFiles("**")
+
+# All the subdirectories, but no files
+ListFiles("**/")
+
+# All JSON files in a directory
+# Note: case independence not guaranteed
+ListFiles("*.json")
+
+# All JSON in the directory and all subdirectories
+ListFiles("**/*.json")
+
+# All JSON and CSV in the directory and all subdirectories
+ListFiles("**/*.json", "**/*.csv")
+
+# All files in a single subdirectory
+# Note: the final "*" is required
+ListFiles("reports/*")
+```
+
+Also see `EscapeGlobPattern()`
+"""
+    cwd: str = os.getcwd() + os.sep
+    def _list_files(path: str) -> list:
+        if path is None: return None
+        if isinstance(path, list): return list(_list_files(path1) for path1 in path)
+        path = _stringify(path)
+        if isinstance(path, str):
+            # NB: trailing "/" gets stripped after check/expansion
+            #     so record the request now
+            dirs_only: bool = path.endswith(os.sep)
+            path = str(Path(verify_relative_path(path)).resolve())
+            results = glob.glob(path, recursive="**" in path)
+            if dirs_only:
+                return [s.removeprefix(cwd).removesuffix(os.sep) for s in results if s != cwd and os.path.isdir(s)]
+            return [s.removeprefix(cwd) for s in results]
+        raise ValueError(f'ListFiles on {poly_type(path)!r} not supported')
+    def _flatten(items) -> list:
+        result = []
+        for item in items:
+            if item is None: continue
+            if isinstance(item, list):
+                result.extend(_flatten(item))
+            else:
+                result.append(item)
+        return result
+    listing = apply_vargs(("*",) if len(args) == 0 else args, _list_files)
+    return None if listing is None else _flatten(listing)
+
+@builtin("EscapeGlobPattern")
+def poly_escape_glob(*args) -> Any:
+    """
+**Escape Glob meta characters for use in literal matching**
+
+* EscapeGlobPattern(*pattern*[, *pattern*&hellip;])
+* *pattern*.EscapeGlobPattern()
+
+Also see `ListFiles()`
+"""
+    def _escape_glob(pattern: str) -> str:
+        if pattern is None: return None
+        if isinstance(pattern, list): return list(_escape_glob(pattern1) for pattern1 in pattern)
+        pattern = _stringify(pattern)
+        if isinstance(pattern, str): return glob.escape(pattern)
+        raise ValueError(f'EscapeGlobPattern on {poly_type(pattern)!r} not supported')
+    return apply_vargs(args, _escape_glob)
+
+@builtin("GlobToPattern")
+def poly_glob_to_pattern(*args) -> Any:
+    """
+**Convert a Glob pattern into a regular expression**
+
+* GlobToPattern(*pattern*[, *pattern*&hellip;])
+* *pattern*.GlobToPattern()
+
+```vgr
+GlobToPattern("file.txt") → r/(?s:file\\.txt)\\Z/
+```
+
+Also see `CompilePattern()`
+"""
+    def _glob_to_pattern(pattern: str) -> str:
+        if pattern is None: return None
+        if isinstance(pattern, list): return list(_glob_to_pattern(pattern1) for pattern1 in pattern)
+        pattern = _stringify(pattern)
+        if isinstance(pattern, str): return re.compile(fnmatch.translate(pattern))
+        raise ValueError(f'GlobToPattern on {poly_type(path)!r} not supported')
+    return apply_vargs(args, _glob_to_pattern)
 
 def verify_relative_path(filename: str) -> str:
     """
