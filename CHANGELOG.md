@@ -14,6 +14,13 @@
 - Added MdImage() to create image tags and MdEscape() to escape
   Markdown meta characters
 - Added GetCacheUsage() and EmptyCache() for working with function result caches
+- Added ExpandPath() which returns an expanded value for a file or directory path
+- Added PatternFlags() that can be used to create or extract the flags used
+  used with regular expressions.
+- Added re.NOFLAG global. If the Python platform is prior to 3.11, it will display
+  as a zero rather than "re.NOFLAG"
+- Added EscapePattern() which escapes regular expression metacharacters in a
+  string.
 
 ### Changed
 
@@ -55,10 +62,11 @@
 - DefaultTo() now takes multiple default values, returning the first
   non-None one.
 - IsFunction() can now take multiple arguments, returning results in
-  in a list for each item.
+  a list for each item.
 - Sort keys can now be things other than strings (booleans, integers, floats)
   although they may be turned into strings depending upon the output type
-- ExpandPath() added that returns an expanded value for the path.
+- Reset Caches statement clears the internal cache of regular expressions
+  as well as the user function result caches
 - Internal change: automatic registration of built-in functions
 
 ### Deprecated
