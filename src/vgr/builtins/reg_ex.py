@@ -7,7 +7,7 @@ from typing import Any
 from sys import maxsize
 import re
 
-from .common import NoneType
+from .common import NoneType, apply_vargs
 from .type import poly_type
 from .registry import builtin
 
@@ -49,7 +49,7 @@ Set vowel_pattern To CompilePattern("[aeiou]", re.IGNORECASE)
 Print ["cat", "DOG"].RegexReplace(vowel_pattern, "-") → ["c-t", "D-G"]
 ```
 
-Also see `RegexReplace()` and `IsPattern()`.
+Also see `RegexReplace()` as well as `IsPattern()` and `PatternFlags()`.
 """
     if x is None: return None
     if isinstance(x, re.Pattern):
@@ -65,38 +65,87 @@ Also see `RegexReplace()` and `IsPattern()`.
     if isinstance(x, list):
         flags = _compose_flags(flags)
         return list(compile_pattern(x1, flags) for x1 in x)
-    raise ValueError(f'Cannot compile type {poly_type(x)!r} to a pattern')
+    raise ValueError(f'CompilePattern on {poly_type(x)!r} not supported')
+
+@builtin("PatternFlags")
+def poly_pattern_flags(*args) -> Any:
+    """
+**Creates the flag value for CompilePattern()**
+
+* PatternFlags(*value*)
+* *value*.PatternFlags()
+
+The *value* argument may be a number or a string. When a string,
+the characters represent the options:
+
+* a - ASCII matching mode for character classes. Unicode is the default.
+* d - Displays debug information when a pattern is compiled
+* i - Case insensitive matching
+* m - Multiline mode which affects `^` `$` matching in text with newlines
+* s - "Dot All" mode which affects `.` so it matches newlines
+* x - Verbose mode which allows for "verbose" patterns that contain
+  extra whitespace for alignment and `#` for the addition of comments
+
+If *value* is a pattern itself, its flags are returned.
+
+"""
+    def _pattern_flags(flag) -> Any:
+        # this is the only additional check we need here
+        if isinstance(flag, list): return list(_pattern_flags(flag1) for flag1 in flag)
+        return _compose_flags(flag)
+    return apply_vargs(args, _pattern_flags)
 
 def _compose_flags(f: Any) -> int:
-    if isinstance(f, int): return f
-    if isinstance(f, float): return int(f)
+    """Called directly by compile pattern, but also used for a builtin"""
+    if f is None: return 0
+    if isinstance(f, (int, float)): return int(f)
+    if isinstance(f, re.Pattern): return f.flags
     if isinstance(f, str):
         flags = 0
         for fc in f.lower():
-            if fc == 'a':
-                flags += re.ASCII
-                continue
-            if fc == 'd':
-                flags += re.DEBUG
-                continue
-            if fc == 'i':
-                flags += re.IGNORECASE
-                continue
+            if   fc == 'a': flags += re.ASCII
+            elif fc == 'd': flags += re.DEBUG
+            elif fc == 'i': flags += re.IGNORECASE
             # NB: locale not support as it only works with bytes
-            if fc == 'm':
-                flags += re.MULTILINE
-                continue
-            if fc == 's':
-                flags += re.DOTALL
-                continue
+            elif fc == 'm': flags += re.MULTILINE
+            elif fc == 's': flags += re.DOTALL
             # NB: template not supported as obsolted by verbose
             # NB: unicode not supported as it is redundant
-            if fc == 'x':
-                flags += re.VERBOSE
-                continue
-            raise ValueError(f'Unknown regular expression pattern flag: {fc!r}')
+            elif fc == 'x': flags += re.VERBOSE
+            else:           raise ValueError(f'Unknown regular expression pattern flag: {fc!r}')
         return flags
     raise ValueError(f'Cannot convert a {poly_type(f)!r} to flags for a pattern')
+
+@builtin("EscapePattern")
+def poly_escape_pattern(*args) -> Any:
+    """
+**Escape regular expression characters for use in literal matching**
+
+* EscapePattern(*pattern*[, *pattern*&hellip;])
+* *pattern*.EscapePattern()
+
+Use `EscapePattern()` to perform exact character matching where the
+text may contain regular expression meta characters.
+
+```vgr
+EscapePattern(None) → None
+r/(a|b)+/.EscapePattern() → "\\\\(a\\\\|b\\\\)\\\\+"
+EscapePattern("*bold*") → "\\*bold\\*"
+"*BOLD*".Matches(CompilePattern(EscapePattern("*bold*"), re.IGNORECASE)) → True
+```
+
+Also see `CompilePattern()` and `EscapeGlobPattern()`
+"""
+    def _escape_pattern(pattern: str) -> str:
+        if pattern is None: return None
+        if isinstance(pattern, list): return list(_escape_pattern(pattern1) for pattern1 in pattern)
+        if isinstance(pattern, (bool, int, float)):
+            pattern = str(pattern)
+        elif isinstance(pattern, re.Pattern):
+            pattern = pattern.pattern
+        if isinstance(pattern, str): return re.escape(pattern)
+        raise ValueError(f'EscapePattern on {poly_type(pattern)!r} not supported')
+    return apply_vargs(args, _escape_pattern)
 
 @builtin("ExtractMatch")
 def poly_extract_match(*args) -> Any:
