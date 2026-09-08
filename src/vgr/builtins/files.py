@@ -472,6 +472,7 @@ Also see `CompilePattern()`
 """
     def _glob_to_pattern(pattern: str) -> str:
         if pattern is None: return None
+        if isinstance(pattern, Pattern): return pattern
         if isinstance(pattern, list): return list(_glob_to_pattern(pattern1) for pattern1 in pattern)
         pattern = _stringify(pattern)
         if isinstance(pattern, str): return re.compile(fnmatch.translate(pattern))
