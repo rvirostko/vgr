@@ -48,9 +48,12 @@ class VgrException(Exception):
         self.orig_exc = orig_exc
         self.source_origin = source_origin
         self.source_text = source_text
-        meta = node.meta if isinstance(node, Tree) else node
-        self.line = getattr(meta, 'line', None) if node else None
-        self.column = getattr(meta, 'column', None) if node else None
+        if isinstance(node, Tree):
+            self.line = getattr(node.meta, 'line', None)
+            self.column = getattr(node.meta, 'column', None)
+        else:
+            self.line = getattr(node, 'line', None)
+            self.column = getattr(node, 'column', None)
 
     def get_context(self, span=40):
         if not self.source_text or self.line is None or self.column is None: return ''
