@@ -141,3 +141,23 @@ Assert info.suffixes Is [".tar", ".gz"]
 Assert GetFileInfo("one", "two").IsList()
 Assert GetFileInfo(["one", "two"]).IsList()
 Assert GetFileInfo(RE).found Is False
+
+Assert GlobToPattern() Is None
+Assert GlobToPattern(None) Is None
+Assert "5" Matches GlobToPattern(5)
+Assert "5.1" Matches GlobToPattern(5.1)
+Assert "foo.txt" Matches GlobToPattern("*.txt")
+Assert "foo.txt" Matches GlobToPattern("*.tar", "*.txt")
+Assert GlobToPattern(EMPTY_LIST) Is EMPTY_LIST
+Assert "foo.txt" Matches GlobToPattern(["*.tar", "*.txt"])
+Assert GlobToPattern(RE) === RE
+
+Assert EscapeGlobPattern() Is None
+Assert EscapeGlobPattern(None) Is None
+Assert EscapeGlobPattern(5) Is "5"
+Assert EscapeGlobPattern(5.1) Is "5.1"
+Assert EscapeGlobPattern("*.txt") Is "[*].txt"
+Assert EscapeGlobPattern("*.txt", "*.exe") Is ["[*].txt", "[*].exe"]
+Assert EscapeGlobPattern(EMPTY_LIST) Is EMPTY_LIST
+Assert EscapeGlobPattern(["*.txt", "*.exe"]) Is ["[*].txt", "[*].exe"]
+Assert EscapeGlobPattern(RE) Is RE_TEXT

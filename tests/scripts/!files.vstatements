@@ -8,6 +8,8 @@ Print IsFile({})
 Print IsDirectory({})
 Print RemoveFile({})
 Print GetFileInfo({})
+Print GlobToPattern({})
+Print EscapeGlobPattern({})
 
 # Cant move out of CWD
 Print ExpandPath("..")
