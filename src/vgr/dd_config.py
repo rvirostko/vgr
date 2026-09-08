@@ -184,9 +184,9 @@ def dd_init(dd: DataDictionary) -> None:
     # ... reg ex values
     dd.add_immutable_prefix(_RE_PREFIX)
     for flag in _RE_FLAGS:
-        dd.set_var(getattr(re, flag), _RE_PREFIX, flag)
+        dd.set_var(int(getattr(re, flag)), _RE_PREFIX, flag)
     # NOFLAG is in 3.11, but we support down to 3.9
-    dd.set_var(getattr(re, 'NOFLAG', 0), _RE_PREFIX, "NOFLAG")
+    dd.set_var(int(getattr(re, 'NOFLAG', 0)), _RE_PREFIX, "NOFLAG")
     for item in parse_json(VgrExtension.read_resource_text(__package__, 're_patterns.json')).items():
         dd.set_var(compile_pattern(item[1]), _RE_PREFIX, "pattern", item[0])
     dd.add_immutable_prefix('math')
