@@ -60,7 +60,7 @@ def run_vgr_test_file(path: Path) -> tuple[int, str]:
             ctx.debug = False
             ctx.echo = False
             ctx.verbose = False
-            ctx.execute_statements("Reset All", '<test>')
+            ctx.execute_statements("Reset All; Unset env.OFS, env.ORS", '<test>')
             ctx.execute_statements("Const dev_test Is True", '<test>') # like --assign
             do_source(ctx, path) # like --file
         except VgrExitingException as e:
