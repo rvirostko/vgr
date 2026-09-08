@@ -161,3 +161,19 @@ Assert EscapeGlobPattern("*.txt", "*.exe") Is ["[*].txt", "[*].exe"]
 Assert EscapeGlobPattern(EMPTY_LIST) Is EMPTY_LIST
 Assert EscapeGlobPattern(["*.txt", "*.exe"]) Is ["[*].txt", "[*].exe"]
 Assert EscapeGlobPattern(RE) Is RE_TEXT
+
+Assert ListFiles().IsList()
+Assert ListFiles().IsNotEmpty()
+Assert ListFiles() Is ListFiles("*")
+Assert ListFiles(None).IsEmpty()
+Assert ListFiles(5).IsList()
+Assert ListFiles(5.1).IsList()
+Assert ListFiles("*.txt").IsNotEmpty() # we should always have our log file...
+Assert ListFiles("*") <> ListFiles("*/") # everything vs only dirs
+Assert ListFiles("**").IsNotEmpty()
+Assert ListFiles("*/") <> ListFiles("**/")
+Assert ListFiles(EMPTY_LIST) Is EMPTY_LIST
+Assert ListFiles("*.json") Is ListFiles(["*.json"])
+Assert ListFiles("*.json", "*.csv") Is ListFiles(["*.json", "*.csv"])
+Assert ListFiles(["*.json", "*.csv"]) <> ListFiles(["**/*.json", "**/*.csv"])
+Assert ListFiles(RE) Is ListFiles(RE_TEXT)

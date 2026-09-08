@@ -10,6 +10,7 @@ Print RemoveFile({})
 Print GetFileInfo({})
 Print GlobToPattern({})
 Print EscapeGlobPattern({})
+Print ListFiles({})
 
 # Cant move out of CWD
 Print ExpandPath("..")
@@ -20,3 +21,4 @@ Print IsFile("..")
 Print IsDirectory("..")
 # NB: RemoveFile() doesn't raise an exception, but returns a result
 Print GetFileInfo("..")
+Print ListFiles("..")
