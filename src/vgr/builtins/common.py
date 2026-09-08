@@ -5,6 +5,7 @@ Routines and values that can be used by operator and function implementations.
 from itertools import product
 from re import Pattern
 from typing import Any, Callable, Union
+import math
 
 from .type import poly_type
 
@@ -76,8 +77,8 @@ def apply_vargs(args, operation) -> Any:
 def str_to_number(s: str) -> Number:
     """
     Attempts to convert a string to a number value.
-    Return None for blank (zero length) and empty (all spaces) strings.
-    Raises ValueError if it can't.
+    Returns None for blank (zero length) and empty (all spaces) strings.
+    Can return Inf and Nan. Raises ValueError if conversion to a float cannot be performed.
     """
     if s is None or len(s) == 0 or s.isspace(): return None
     try:
@@ -86,13 +87,15 @@ def str_to_number(s: str) -> Number:
     except ValueError as e:
         raise ValueError(f'Cannot convert {_strunc(s)!r} to a number') from e
 
-def str_to_int(x: str) -> int:
+def str_to_int(s: str) -> int:
     """
-    See str_to_number - forces an int result
-    May return None
+    See str_to_number() - forces an integer result.
+    May return None.
     """
-    n = str_to_number(x)
-    return None if n is None else int(n)
+    value: Number = str_to_number(s)
+    if value is None: return None
+    if math.isfinite(value): return int(value)
+    raise ValueError(f"Can't convert {_strunc(s)!r} to an integer")
 
 def str_to_bool(s: str) -> bool:
     """
