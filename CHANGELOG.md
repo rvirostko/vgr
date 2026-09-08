@@ -6,6 +6,7 @@
 
 ### Added
 
+- Added "Else-If" (or "ElseIf") to "If" statement
 - Added "GetFileInfo()" to retrieve information on one or more file/directory paths.
   Variable length arguments and supports polymorphism with lists and dictionaries.
 - Added "Head()" and "Tail()" to return a subset of lists.
@@ -69,6 +70,8 @@
   although they may be turned into strings depending upon the output type
 - "Reset Caches" statement clears the internal cache of regular expressions
   as well as the user function result caches
+- "Verbose" + "Echo" prints both the line and column numbers of the statements.
+  Prevously only the line was printed.
 - Internal change: automatic registration of built-in functions
 
 ### Deprecated
@@ -101,7 +104,8 @@
   missing from the first item in a list
 - "MdCodeBlock()" no longer adds extra newline at end of block; behavior
   matches that of other block functions
-- "Echo" bug that returned too much source for conditionals such as "If"
+- "Echo" bug that returned too much source for loops and conditionals
+  such as "For" and "If"
 
 ### Security
 
