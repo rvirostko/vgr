@@ -305,17 +305,6 @@ def _declare(ctx: ExecContext, statement: Tree, as_local: bool) -> None:
         if ctx.verbose and rc is not None:
             ctx.print_verbose('.'.join(var_path), 'declared as', 'Local' if rc else 'Global')
 
-def exec_if_else(ctx: ExecContext, statement: Tree, desired_value: bool) -> None:
-    ctx.echo_source(statement, statement.children[1])
-    has_else = statement.children[-1].data == 'else'
-    if poly_is_true(ctx.eval_expr(bind_operations(statement.children[0]))) == desired_value:
-        # Execute true side: skips the expression and the else if present
-        ctx.dispatch_statements(statement.children[1:-1 if has_else else None])
-    else:
-        # Execute false side: the "else" is always the last child
-        # and its children are the statements to execute
-        if has_else: ctx.dispatch_statements(statement.children[-1].children)
-
 @control_statement
 @bound_ops("If Else")
 def execute_if(ctx: ExecContext, statement: Tree) -> None:
@@ -324,39 +313,57 @@ def execute_if(ctx: ExecContext, statement: Tree) -> None:
 
 * If *expression* [Then | :]\\
   &emsp;&emsp;*statement*&hellip;\\
-  End
+  End-If
 * If *expression* [Then | :]\\
   &emsp;&emsp;*statement*&hellip;\\
   Else [:]\\
   &emsp;&emsp;*statement*&hellip;\\
-  End
+  End-If
+* If *expression* [Then | :]\\
+  &emsp;&emsp;*statement*&hellip;\\
+  Else-If *expression* [Then | :]\\
+  &emsp;&emsp;*statement*&hellip;\\
+  Else [:]\\
+  &emsp;&emsp;*statement*&hellip;\\
+  End-If
 
-If the expression evaluates to `True` the first block of statements is executed.
-If it evaluates to `False`, the second block of statements–if provided–is executed.
-If `Break` or `Continue` is encountered, statements
-following it are skipped. Execution resumes after the `End`.
+The `If` statement may have any number of `Else-If` tests, but they must appear before
+the `Else`, which is optional.
+
+The statement may be ended with either `End-If` or `End`.
+
+If an *expression* evaluates to `True` the associated block of statements is executed.
+If the `If` and no `Else-If` are `True`, the associated `Else` statements, if present are executed.
 
 ```vgr
 Define Function CheckIfTime():
-    Set day-of-week To time.today.dow
+    Set day-of-week To time.today.day-of-week
     Set hour-of-day To time.today.hour-of-day
     # Return True if Wednesday from 2-4㏘ or Thursday from noon to 1㏘
-    If day-of-week Is "Wednesday" Then
+    If day-of-week Is 3 Then
         Return hour-of-day Is In [14, 15]
+    Else-If day-of-week Is 4 Then
+        Return hour-of-day Is 12
     Else
-        If day-of-week Is "Thursday" Then
-            Return hour-of-day Is 12
-        End-If
+        Return False
     End-If
-    Return False
 End-Function
 
 Print "Time Check is", @CheckIfTime()
 ```
 
-Also see `Break` and `Continue`
+Also see `Unless`.
 """
-    exec_if_else(ctx, statement, True)
+    for clause in statement.children:
+        if clause.data in ("if", "else_if"):
+            if ctx.echo: ctx.echo_source(clause, clause.children[1])
+            if poly_is_true(ctx.eval_expr(bind_operations(clause.children[0]))):
+                ctx.dispatch_statements(clause.children[1:])
+                break
+        else:
+            assert clause.data == "else"
+            if ctx.echo: ctx.echo_source(clause, clause.children[0])
+            ctx.dispatch_statements(clause.children)
 
 @control_statement
 @bound_ops("Unless")
@@ -369,9 +376,6 @@ def execute_unless(ctx: ExecContext, statement: Tree) -> None:
   [End-Unless | End]
 
 If the expression evaluates to `False` the block of statements is executed.
-If `Break` is encountered, looping ends regardless of the
-expression's value. If `Continue` is encountered, statements
-following it are skipped, and the expression is checked again.
 
 ```vgr
 Function is_valid(item) -> /* logic here */
@@ -394,13 +398,17 @@ Print "Result:", result
 Print "Attempts:", attempts
 ```
 
-Also see `Break` and `Continue`
+Also see `If Else`
 """
-    exec_if_else(ctx, statement, False)
+    # echo the statement and the condition
+    if ctx.echo: ctx.echo_source(statement, statement.children[1])
+    # execute the statements if the condition is false
+    if poly_is_true(ctx.eval_expr(bind_operations(statement.children[0]))) == False:
+        ctx.dispatch_statements(statement.children[1:])
 
 def exec_loop(ctx: ExecContext, statement: Tree, desired_value: bool, block_types=BlockType.ALL_BLOCKS) -> None:
     """Internal implemenation for loops with a predicate"""
-    ctx.echo_source(statement, statement.children[1])
+    if ctx.echo: ctx.echo_source(statement, statement.children[1])
     predicate = bind_operations(statement.children[0])
     meta = { }
     ctx.dd.push_frame([(LOOP_META_PATH, meta)])
@@ -422,7 +430,7 @@ def exec_loop(ctx: ExecContext, statement: Tree, desired_value: bool, block_type
 
 def exec_repeat(ctx: ExecContext, statement: Tree, block_types=BlockType.ALL_BLOCKS) -> None:
     """Internal implementation for loops with a fixed count"""
-    ctx.echo_source(statement, statement.children[1])
+    if ctx.echo: ctx.echo_source(statement, statement.children[1])
     counter = poly_to_integer(ctx.eval_expr(bind_operations(statement.children[0])))
     if isinstance(counter, (int, float)):
         counter = math.floor(counter)
@@ -595,7 +603,7 @@ End-For
 
 Also see `Break` and `Continue`
 """
-    ctx.echo_source(statement, statement.children[2])
+    if ctx.echo: ctx.echo_source(statement, statement.children[2])
     var_path = get_writable_var_path(ctx, statement.children[0])
     collection = ctx.eval_expr(bind_operations(statement.children[1]))
     if collection is None: return # very fast fail
@@ -672,7 +680,7 @@ Also see `For Each`.
             raise VgrRuntimeError(expr, _err(value, name))
         return value
     # Echo the control portion, not the statements
-    ctx.echo_source(statement, statement.children[-1])
+    if ctx.echo: ctx.echo_source(statement, statement.children[-1])
     cindex = 0
     var_path = get_writable_var_path(ctx, statement.children[cindex])
     cindex += 1
@@ -976,7 +984,7 @@ STATEMENT_HANDLERS = {
     'foreach':           execute_foreach,
     'for_next_by':       execute_for_next,
     'for_next':          execute_for_next,
-    'if':                execute_if,
+    'if_statement':      execute_if,
     'include':           execute_include,
     'list_append':       execute_list_append,
     'list_insert':       execute_list_insert,
@@ -1116,7 +1124,7 @@ class DefaultExecContext(ExecContext):
             src = src.splitlines()[0] if src else '--unknown--'
             if super().verbose:
                 # prefix the source with file and line number
-                print_stderr(f'{SSM.current[0]}({SSM.line_number(tree)}) :', src)
+                print_stderr(f'{SSM.current[0]}{SSM.source_location(tree)} :', src)
             else:
                 # just the source
                 print_stderr(src)

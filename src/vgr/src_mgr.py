@@ -59,23 +59,26 @@ class StatementSourceMgr:
         return start, end
 
     @staticmethod
-    def line_number(item: Tree) -> int:
+    def source_location(item: Tree) -> tuple[int, int]:
         """
-        Return the starting line number for a lark Tree or Token.
+        Return the starting line/column number for a lark Tree or Token.
         """
-        if isinstance(item, Token): return item.line
+        if isinstance(item, Token): return (item.line, item.column)
         assert isinstance(item, Tree)
         line = item.meta.line
+        column = item.meta.column
 
         def _walk(node: Tree) -> None:
-            nonlocal line
+            nonlocal line, column
             if isinstance(node, Tree):
                 line = min(line, node.meta.line)
+                column = min(column, node.meta.column)
                 for child in node.children: _walk(child)
             else:
                 line = min(line, node.line)
+                column = min(column, node.column)
 
         if item.children: _walk(item)
-        return line
+        return (line, column)
 
 SSM = StatementSourceMgr()
