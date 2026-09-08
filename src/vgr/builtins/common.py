@@ -2,6 +2,8 @@
 Routines and values that can be used by operator and function implementations.
 """
 
+from itertools import product
+from re import Pattern
 from typing import Any, Callable, Union
 
 from .type import poly_type
@@ -19,15 +21,18 @@ Y_None_Op = (AnyType, NoneType)
 
 # See matching_default()
 _DEFAULTS_BY_TYPE = {
-    dict : {},
+    dict :  {},
     float : 0.0,
-    int : 0,
-    list : [],
-    str : '',
+    int :   0,
+    list :  [],
+    str :   '',
 }
 
-_TRUE_STRS = ('true', 'yes', 'on')
-_FALSE_STRS = ('false', 'no', 'off')
+def _case_permutations(s: str) -> set[str]:
+    return {''.join(chars) for chars in product(*((c.lower(), c.upper()) for c in s))}
+
+_TRUE_STRS = frozenset().union(*(_case_permutations(s) for s in ("true", "yes", "on")))
+_FALSE_STRS = frozenset().union(*(_case_permutations(s) for s in ("false", "no", "off")))
 
 def bound_ops(*operators):
     """Attach a list of operators to a function so they show up in help"""
@@ -73,7 +78,6 @@ def str_to_number(s: str) -> Number:
     May return None
     """
     if s is None or s.isspace(): return None
-    s = s.strip()
     try:
         x: float = float(s)
         return int(x) if x.is_integer() else x
@@ -96,7 +100,7 @@ def str_to_bool(s: str) -> bool:
     it is compared against zero.
     """
     if s is None or s.isspace(): return False
-    s = s.strip().lower()
+    s = s.strip()
     if s in _TRUE_STRS: return True
     if s in _FALSE_STRS: return False
     try:
@@ -134,7 +138,6 @@ def int_arg(arg: Any, name: str) -> int:
         raise ValueError(f'{name} argument must be a number, found {poly_type(arg)!r}')
     return int(arg)
 
-from re import Pattern
 def str_arg(arg: Any, name: str, req_value: bool=True, allow_pattern: bool=False) -> str:
     """Type checks the argument as string (or pattern) and optionally, non-None, non-blank"""
     if arg is None:
