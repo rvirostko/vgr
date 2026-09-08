@@ -118,11 +118,7 @@ Also see `Call` for details on invoking functions.
 See `Return` for returning values and `Declare` for variable scoping.
 """
     # Echo only the declaration and signature (if present)
-    if ctx.echo:
-        # if count <= 2, then we don't have a list of params, just a name and statements
-        # TODO: not sure if working corectly...
-        #count = len(statement.children)
-        ctx.echo_source(statement, statement.children[-1])#2 if count > 3 else 1])
+    if ctx.echo: ctx.echo_source(statement, statement.children[-1])
     _create_function(ctx, statement, _new_user_function)
 
 def execute_def_arrow(ctx: ExecContext, statement: Tree) -> None:
