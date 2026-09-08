@@ -180,12 +180,11 @@ to a number. It can be any value, including `None`.
 ```
 """
     if isinstance(x, (bool, int, float)): return int(x)
-    if poly_is_string(x):
+    if isinstance(x, str):
         try:
-            return int(str_to_number(x))
+            if (v := str_to_number(x)) is not None: return int(v)
         except ValueError as e:
             if default is _SENTINEL: raise e
-            return default
     if isinstance(x, list): return list(poly_to_integer(x1, default) for x1 in x)
     return None if default is _SENTINEL else default
 
