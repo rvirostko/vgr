@@ -34,6 +34,8 @@ def _case_permutations(s: str) -> set[str]:
 _TRUE_STRS = frozenset().union(*(_case_permutations(s) for s in ("true", "yes", "on")))
 _FALSE_STRS = frozenset().union(*(_case_permutations(s) for s in ("false", "no", "off")))
 
+def _strunc(s: str, n: int = 32) -> str: return s if len(s) <= n else s[:n - 1] + "…"
+
 def bound_ops(*operators):
     """Attach a list of operators to a function so they show up in help"""
     def decorator(func):
@@ -74,15 +76,15 @@ def apply_vargs(args, operation) -> Any:
 def str_to_number(s: str) -> Number:
     """
     Attempts to convert a string to a number value.
+    Return None for blank (zero length) and empty (all spaces) strings.
     Raises ValueError if it can't.
-    May return None
     """
-    if s is None or s.isspace(): return None
+    if s is None or len(s) == 0 or s.isspace(): return None
     try:
         x: float = float(s)
         return int(x) if x.is_integer() else x
     except ValueError as e:
-        raise ValueError(f'Cannot convert {s!r} to a number') from e
+        raise ValueError(f'Cannot convert {_strunc(s)!r} to a number') from e
 
 def str_to_int(x: str) -> int:
     """
@@ -99,14 +101,14 @@ def str_to_bool(s: str) -> bool:
     If the string can be converted to a number,
     it is compared against zero.
     """
-    if s is None or s.isspace(): return False
+    if s is None or len(s) == 0 or s.isspace(): return False
     s = s.strip()
     if s in _TRUE_STRS: return True
     if s in _FALSE_STRS: return False
     try:
         return str_to_number(s) != 0
     except ValueError as e:
-        raise ValueError(f'Cannot convert {s!r} to a boolean') from e
+        raise ValueError(f'Cannot convert {_strunc(s)!r} to a boolean') from e
 
 def bool_arg(arg: Any, name: str) -> bool:
     """
