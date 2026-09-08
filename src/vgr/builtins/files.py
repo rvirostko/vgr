@@ -413,8 +413,8 @@ Also see `EscapeGlobPattern()`
 """
     cwd: str = os.getcwd() + os.sep
     def _list_files(path: str) -> list:
-        if path is None: return None
-        if isinstance(path, list): return list(_list_files(path1) for path1 in path)
+        if path is None: return []
+        if isinstance(path, list): return _accumulate_listing(path)
         path = _stringify(path)
         if isinstance(path, str):
             # NB: trailing "/" gets stripped after check/expansion
@@ -426,17 +426,17 @@ Also see `EscapeGlobPattern()`
                 return [s.removeprefix(cwd).removesuffix(os.sep) for s in results if s != cwd and os.path.isdir(s)]
             return [s.removeprefix(cwd) for s in results]
         raise ValueError(f'ListFiles on {poly_type(path)!r} not supported')
-    def _flatten(items) -> list:
-        result = []
-        for item in items:
-            if item is None: continue
-            if isinstance(item, list):
-                result.extend(_flatten(item))
-            else:
-                result.append(item)
-        return result
-    listing = apply_vargs(("*",) if len(args) == 0 else args, _list_files)
-    return None if listing is None else _flatten(listing)
+    def _accumulate_listing(path_list) -> list:
+        listing = []
+        for item in path_list:
+            if item is not None: listing.extend(_list_files(item))
+        return listing
+    # Different behavior than "apply_vargs()"
+    # - no args returns list from cwd
+    # - with multiple arg, we accumulate a list instead of returning a list of lists
+    if len(args) == 0: return _list_files("*") # cwd contents, not recursive
+    if len(args) == 1: return _list_files(args[0])
+    return _accumulate_listing(args)
 
 @builtin("EscapeGlobPattern")
 def poly_escape_glob(*args) -> Any:
