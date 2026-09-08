@@ -11,61 +11,63 @@
 - Added "Head()" and "Tail()" to return a subset of lists.
 - Added "RandomSample()" which returns a subset using either a percentage
   or count of items.
-- Added MdImage() to create image tags and MdEscape() to escape
+- Added "MdImage()" to create image tags and "MdEscape()" to escape
   Markdown meta characters
-- Added GetCacheUsage() and EmptyCache() for working with function result caches
-- Added ExpandPath() which returns an expanded value for a file or directory path
-- Added PatternFlags() that can be used to create or extract the flags used
+- Added "GetCacheUsage()" and "EmptyCache()" for working with function result caches
+- Added "ExpandPath()" which returns an expanded value for a file or directory path
+- Added "PatternFlags()" that can be used to create or extract the flags used
   used with regular expressions.
-- Added re.NOFLAG global. If the Python platform is prior to 3.11, it will display
-  as a zero rather than "re.NOFLAG"
-- Added EscapePattern() which escapes regular expression metacharacters in a
+- Added "re.NOFLAG" global
+- Added "EscapePattern()" which escapes regular expression metacharacters in a
   string.
+- Added "ListFiles()", "EscapeGlobPattern()", and "GlobToPattern()" for getting
+  a listing of files and working with [Glob](https://en.wikipedia.org/wiki/Glob_\\(programming\\))
+  patterns.
 
 ### Changed
 
-- Breaking change: Left/RightShift() renamed to ShiftLeft/Right()
-  to match RotateLeft/Right()
-- Breaking change: Include/Exclude Nulls removed from Select For Text. They
-  we inherited from JSON output, but made no sense here.
-- Breaking change: Select For Text headers now works more like CSV output
-  rather than JSON.
-- Breaking change: IsTitle() renamed to IsTitleCase() to match the
-  TitleCase() operation.
-- Breaking change: MdLink() arguments for url and text reversed
+- Breaking change: "Left/RightShift()" renamed to "ShiftLeft/Right()"
+  to match "RotateLeft/Right()"
+- Breaking change: "Include/Exclude Nulls" removed from "Select" statements
+  "For Text". They we inherited from JSON output, but made no sense here.
+- Breaking change: "Select For Text" headers now works more like CSV output
+  rather than JSON
+- Breaking change: "IsTitle()" renamed to "IsTitleCase()" to match the
+  "TitleCase()" operation
+- Breaking change: "MdLink()" arguments for url and text reversed
 - Constant statement can now create a constant from an initialized variable
   without having to use an assignment (e.g. "Set x To 5; Constant x").
   Additionally, this form of the statement is idempotent.
 - "load-from-test" updated with newer syntax
-- The "Paths" option of Create-Zip now has an optional leading "Keep",
+- The "Paths" option of "Create-Zip" now has an optional leading "Keep",
   so you either "Keep Paths" or "Junk Paths"
 - The following string functions now support variable arguments:
-  Capitalize(), CaseFold(), Chr(), IsAlpha(), IsAlphaNumeric(), IsAscii(),
-  IsDecimal(), IsDigit(), IsLower(), IsNumeric(), IsPrintable(),
-  IsSpace(), IsTitleCase(), IsUpper(), Lower(), Ord(), ReverseStr(),
-  StringLen(), SwapCase(), TitleCase(), Upper()
+  "Capitalize()", "CaseFold()", "Chr()", "IsAlpha()", "IsAlphaNumeric()", "IsAscii()",
+  "IsDecimal()", "IsDigit()", "IsLower()", "IsNumeric()", "IsPrintable()",
+  "IsSpace()", "IsTitleCase()", "IsUpper()", "Lower()", "Ord()", "ReverseStr()",
+  "StringLen()", "SwapCase()", "TitleCase()", "Upper()"
 - The following string functions now support variable arguments:
-  ExpandTabs(), LeftStr(), RightStr(). When given multiple arguments,
+  "ExpandTabs()", "LeftStr()", "RightStr()". When given multiple arguments,
   the final one is checked to see if it is None or a numeric value.
   If so, it is used for the length/size value rather than one of the
   inputs to be transformed.
 - The following general purpose functions now support variable arguments:
-  Clone(), Hash(), Id(), IsFalse(), IsTrue(), Length(), Negate(),
-  Repr(), Reverse().
+  "Clone()", "Hash()", "Id()", "IsFalse()", "IsTrue()", "Length()", "Negate()",
+  "Repr()", "Reverse()".
 - The following Markdown functions now support variable arguments:
-  MdEmphasis(), MdStrikeThrough(), MdCode(), MdLink(), MdImage()
-  MdHeading(), MdBlockQuote(), MdUnorderedList(), MdOrderedList(),
-  and MdCodeBlock().
-- MdEmphasis() now use "_" instead of "*"
+  "MdEmphasis()", "MdStrikeThrough()", "MdCode()", "MdLink()", "MdImage()"
+  "MdHeading()", "MdBlockQuote()", "MdUnorderedList()", "MdOrderedList()",
+  and "MdCodeBlock()".
+- "MdEmphasis(") now use "_" instead of "*"
 - Markdown functions escape characters/patterns that might break
-  the tag's formatting.
-- DefaultTo() now takes multiple default values, returning the first
-  non-None one.
-- IsFunction() can now take multiple arguments, returning results in
-  a list for each item.
-- Sort keys can now be things other than strings (booleans, integers, floats)
+  the tag's formatting
+- "DefaultTo()" now takes multiple default values, returning the first
+  non-None item
+- "IsFunction()" can now take multiple arguments, returning results in
+  a list for each item
+- "Sort" keys can now be things other than strings (booleans, integers, floats)
   although they may be turned into strings depending upon the output type
-- Reset Caches statement clears the internal cache of regular expressions
+- "Reset Caches" statement clears the internal cache of regular expressions
   as well as the user function result caches
 - Internal change: automatic registration of built-in functions
 
@@ -73,31 +75,31 @@
 
 ### Removed
 
-- GetKeyValue() and other dictionary functions had an undocumented behavior
+- "GetKeyValue()" and other dictionary functions had an undocumented behavior
   of using a dotted path to traverse levels. This made it impossible to
   retrieve valid keys that contained periods. This behavior has been removed.
   If you need this type of behavior, use a list for the path, as each
   element is a single step.
-- Ascii() has been removed; use Repr() instead
-- math.random and math.random100 removed. They predated the ability to
-  have functions with zero args, and both are replaced by Random().
-- math.inf, math.nan, and math.neg_inf have been removed as they were all
+- "Ascii()" has been removed; use "Repr()" instead
+- "math.random" and "math.random100" removed. They predated the ability to
+  have functions with zero args, and both are replaced by "Random()".
+- "math.inf", "math.nan", and "math.neg_inf" have been removed as they were all
   replaced with figurative constants a while ago
 - The manual is no longer created from a command line options, but is
   created as part of the release.
-- MdLink() undocumented behavior with lists removed.
-- os.cwd removed; use GetCurrentDirectory().
+- "MdLink()" undocumented behavior with lists removed.
+- "os.cwd" removed; use GetCurrentDirectory().
 
 ### Fixed
 
 - Vault calls broken by "HttpResponse object has no attribute url"
-- Http returns url and request_url as strings rather than URL instances
-- RightStr(0) returned entire string when result should have been
+- "Http" returns url and request_url as strings rather than URL instances
+- "RightStr(0)" returned entire string when result should have been
   an empty string.
 - Escaping of typographic quotes in strings no longer causes an error
-- Sort did not work with "sparse" dictionaries where the sort keys were
+- "Sort" did not work with sparse dictionaries where the sort keys were
   missing from the first item in a list
-- MdCodeBlock() no longer adds extra newline at end of block; behavior
+- "MdCodeBlock()" no longer adds extra newline at end of block; behavior
   matches that of other block functions.
 
 ### Security
