@@ -95,12 +95,13 @@
 - Vault calls broken by "HttpResponse object has no attribute url"
 - "Http" returns url and request_url as strings rather than URL instances
 - "RightStr(0)" returned entire string when result should have been
-  an empty string.
+  an empty string
 - Escaping of typographic quotes in strings no longer causes an error
 - "Sort" did not work with sparse dictionaries where the sort keys were
   missing from the first item in a list
 - "MdCodeBlock()" no longer adds extra newline at end of block; behavior
-  matches that of other block functions.
+  matches that of other block functions
+- "Echo" bug that returned too much source for conditionals such as "If"
 
 ### Security
 

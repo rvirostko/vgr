@@ -31,7 +31,7 @@ class StatementSourceMgr:
         start_pos, end_pos = StatementSourceMgr.span(node)
         if end_node is not None:
             # Up to, but not including the end node
-            end_pos = max(end_pos, StatementSourceMgr.span(end_node)[0])
+            end_pos = min(end_pos, StatementSourceMgr.span(end_node)[0])
         return text[start_pos : end_pos]
 
     @staticmethod
