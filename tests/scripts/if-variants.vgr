@@ -44,3 +44,32 @@ If False
 Else
     Print "Hello"
 End-If
+
+# These check the syntax, not the execution
+If False
+    Print "Goodbye"
+Else-If True # Hyphenated word
+    Print "Hello"
+End
+
+If False
+    Print "Goodbye"
+ElseIf True Then # One word, never two
+    Print "Hello"
+End
+
+If False
+    Print "Goodbye"
+Else-If False
+    Print "Goodbye again"
+Else-If True
+    Print "Hello"
+End
+
+If False
+    Print "Goodbye"
+Else-If False
+    Print "Goodbye again"
+Else
+    Print "Hello"
+End

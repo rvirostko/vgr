@@ -153,8 +153,11 @@ for_next: "For"i var_name _EQ expr "To"i expr _CLAUSE_SEP? statement+ _end_for
 _end_for: "End-For"i | "Next"i | "End"i
 
 // The addition of the optional "Then" allows a BASIC-like If syntax usage
-if_statement: "If"i expr ("Then"i | _CLAUSE_SEP)? statement+ else_clause? ("End-If"i | "End"i) -> if
-else_clause: "Else"i _CLAUSE_SEP? statement+ -> else
+if_statement: if else_if* else? ("End-If"i | "End"i)
+if: "If"i expr _then_sep? statement+
+else_if: ("Else-If"i | "ElseIf"i) expr _then_sep? statement+
+else: "Else"i _CLAUSE_SEP? statement+
+_then_sep: ("Then"i | _CLAUSE_SEP)
 
 repeat_statement: "Repeat"i expr ("Time"i | "Times"i)? _CLAUSE_SEP? statement+ ("End-Repeat"i | "End"i) -> repeat
 unless_statement: "Unless"i expr _CLAUSE_SEP? statement+ ("End-Unless"i | "End"i) -> unless
