@@ -787,7 +787,7 @@ with a `From` clause.
         # NB: at this point not all operations will show as bound
         # (notably in the outputs and the predicates) and
         # that is by design, so don't panic
-        ctx.print_tree(statement)
+        if ctx.debug: ctx.print_tree(statement)
         from_opts = select.from_opts
         ctx.dd.declare_var(True, (from_opts[_TARGET],))
         extractor = create_extractor(ctx, from_opts)
