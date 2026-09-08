@@ -34,7 +34,9 @@ from .redir import print_stderr
 from .exec_context import ExecContext
 from .stmt_exec import (
     create_exec_context,
-    STATEMENT_HANDLERS,
+    finalize_statements,
+    statement_defined,
+    register_statement,
 )
 from .stmt_include import (
     do_include,
@@ -62,10 +64,10 @@ def load_extensions(dd: DataDictionary, verbose: bool) -> VgrExtensionRegistry:
         extns.append((extn_name, f'{extn.__class__.__module__}.{extn.__class__.__qualname__}', extn.adds_statements(), ))
         if extn.adds_statements():
             for name, handler in extn.statement_handlers().items():
-                if name in STATEMENT_HANDLERS:
-                    raise ValueError(f'Extension {extn_name!r} tried to redefine {name!r}')
-                STATEMENT_HANDLERS[name] = handler
+                if statement_defined(name): raise ValueError(f'Extension {extn_name!r} tried to redefine {name!r}')
+                register_statement(name, handler)
         add_functions(extn_name, extn.functions().items())
+    finalize_statements()
     dd.set_var(list(list(extn) for extn in extns), *('vgr', 'extensions'))
     return VER
 

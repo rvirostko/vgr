@@ -948,9 +948,12 @@ def _exec_echo_on(ctx: ExecContext, statement: Tree) -> None: execute_echo(ctx, 
 @control_statement # same as above
 def _exec_echo_off(ctx: ExecContext, statement: Tree) -> None: execute_echo(ctx, statement, False)
 
+class DispatchDict(dict):
+    def __missing__(self, key): raise NotImplementedError(f'No handler registered for {key!r}') #SNO
+
 # NB: Extension may add items to this list,
 #     but they can't replace existing ones
-STATEMENT_HANDLERS = {
+_STATEMENT_HANDLERS = DispatchDict({
     'abort':             execute_abort,
     'accept_input':      execute_accept_input,
     'add_giving':        execute_add_giving,
@@ -1025,12 +1028,22 @@ STATEMENT_HANDLERS = {
     'verbose_off':       lambda ctx, tree: execute_verbose(ctx, tree, False),
     'while':             execute_while,
     'zip':               execute_zip,
-}
+})
+
+_CONTROL_STATEMENTS: frozenset
+
+def finalize_statements() -> None:
+    global _CONTROL_STATEMENTS
+    _CONTROL_STATEMENTS = frozenset(h for h in _STATEMENT_HANDLERS.values() if getattr(h, "_is_control_statement", False))
+
+def statement_defined(name: str) -> bool: return name in _STATEMENT_HANDLERS
+
+def register_statement(name: str, handler) -> None: _STATEMENT_HANDLERS[name] = handler
 
 @lru_cache
 def get_statement_entries() -> list:
     entries = {}
-    for _, func in STATEMENT_HANDLERS.items():
+    for _, func in _STATEMENT_HANDLERS.items():
         # See builtins/common for the bound_ops decorator
         if hasattr(func, 'bound_ops'):
             for op in func.bound_ops:
@@ -1151,7 +1164,7 @@ class DefaultExecContext(ExecContext):
             expr = ConstantsNormalizer().transform(expr)
             expr = VarRefOptimizer().transform(expr)
             expr = bind_operations(expr)
-            self.print_tree(expr)
+            if self.debug: self.print_tree(expr)
             return expr
         return None
 
@@ -1176,22 +1189,21 @@ class DefaultExecContext(ExecContext):
 
     def dispatch_statements(self, statements: Iterable[Tree]) -> None:
         """Given a sequence of parsed statements dispatch them to their handler"""
+        lookup = _STATEMENT_HANDLERS.__getitem__
         for statement in statements:
             statement = ConstantsNormalizer().transform(statement)
             statement = VarRefOptimizer().transform(statement)
-            handler = STATEMENT_HANDLERS.get(statement.data)
-            if not handler:
-                raise VgrRuntimeError(statement, NotImplementedError(f'No handler established for {statement.data}')) #SNO
-            if not getattr(handler, "_is_control_statement", False):
+            handler = lookup(statement.data)
+            if handler in _CONTROL_STATEMENTS:
+                if self.debug: self.print_tree(statement)
+            else:
                 # Simple statements: those that don't have nested
                 # statements, ones that don't interate, or have complex requirements
                 # Other statements need to handle binding
                 # and decide what to do for echo
                 statement = bind_operations(statement)
-                self.print_tree(statement)
-                self.echo_source(statement)
-            else:
-                self.print_tree(statement)
+                if self.debug: self.print_tree(statement)
+                if self.echo: self.echo_source(statement)
             try:
                 handler(self, statement)
             except VgrException as e:
@@ -1202,8 +1214,7 @@ class DefaultExecContext(ExecContext):
             except Exception as e:
                 raise VgrRuntimeError(statement, e) from e
 
-    def print_tree(self, item: Any) -> None:
-        if super().debug: print_tree(item)
+    def print_tree(self, item: Any) -> None: print_tree(item)
 
 def create_exec_context(parser: Lark, dd: DataDictionary) -> ExecContext:
     return DefaultExecContext(parser, dd)
