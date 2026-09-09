@@ -109,9 +109,9 @@ def str_to_bool(s: str) -> bool:
     if s in _TRUE_STRS: return True
     if s in _FALSE_STRS: return False
     try:
-        return str_to_number(s) != 0
-    except ValueError as e:
-        raise ValueError(f'Cannot convert {_strunc(s)!r} to a boolean') from e
+        return float(s) != 0
+    except ValueError:
+        return True # non-none string is truthy
 
 def bool_arg(arg: Any, name: str) -> bool:
     """
