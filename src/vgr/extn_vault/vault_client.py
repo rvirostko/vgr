@@ -547,7 +547,7 @@ class VaultClient():
         """
         # https://developer.hashicorp.com/vault/api-docs/secret/ldap
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_post(_encode_url(f'/v1/{mount_point}rotale-role/{name}'), None, namespace)
+        return self.do_post(_encode_url(f'/v1/{mount_point}rotate-role/{name}'), None, namespace)
 
     def create_database_connection(self, mount_point: str, name: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
         # https://developer.hashicorp.com/vault/api-docs/secret/databases#configure-connection
