@@ -1,0 +1,23 @@
+For x = None To 5: Pass; Next
+For x = 1 To None: Pass; Next
+For x = 1 To 5 Step None: Pass; Next
+
+For x = Nan To 5: Pass; Next
+For x = 1 To Nan: Pass; Next
+For x = 1 To 5 Step Nan: Pass; Next
+
+For x = Inf To 5: Pass; Next
+For x = 1 To Inf: Pass; Next
+For x = 1 To 5 Step Inf: Pass; Next
+
+For x = {} To 5: Pass; Next
+For x = 1 To {}: Pass; Next
+For x = 1 To 5 Step {}: Pass; Next
+
+For x = [] To 5: Pass; Next
+For x = 1 To []: Pass; Next
+For x = 1 To 5 Step []: Pass; Next
+
+For x = r/1/ To 5: Pass; Next
+For x = 1 To r/5/: Pass; Next
+For x = 1 To 5 Step r/1/: Pass; Next

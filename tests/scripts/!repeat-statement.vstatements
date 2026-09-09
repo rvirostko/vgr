@@ -1,0 +1,10 @@
+
+Repeat "" Time: NOP; End
+Repeat [] Times: NOP; End
+Repeat {} Times: NOP; End
+Repeat r/a/ Times: NOP; End
+Repeat Inf Times: NOP; End
+Repeat NaN Times: NOP; End
+
+Repeat "nan" Times: NOP; End # can't convert the nan to an int
+Repeat "inf" Times: NOP; End # can't convert the inf to an int

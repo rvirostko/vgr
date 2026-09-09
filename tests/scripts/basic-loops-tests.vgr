@@ -11,55 +11,112 @@ End
 
 Set x To Zero
 While x < 1
+    Assert $loop.length Is Undefined
     Set x To x + 1
 End  # keep untyped
 
 # Until
 Set x To Zero
 Until x == 1: # colon optional
+    Assert $loop.length Is Undefined
     Set x To x + 1
 End
 
 Set x To Zero
 Until x == 1
+    Assert $loop.length Is Undefined
     Set x To x + 1
 End  # keep untyped
 
 # For Next
 For x = Zero To 1: # colon optional
-    NOP
+    Assert $loop.length Is 2
 Next
 
 For x = Zero To 1
-    NOP
+    Assert $loop.length Is 2
 Next
 
 For x = Zero To 1
-    NOP
+    Assert $loop.length Is 2
 End  # keep untyped
 
 # For Next w/By
 For x = Zero To 1 Step 1: # colon optional
-    NOP
+    Assert $loop.length Is 2
 Next
 
 For x = Zero To 1 Step 1
-    NOP
+    Assert $loop.length Is 2
 Next
 
 For x = Zero To 1 Step 1
-    NOP
+    Assert $loop.length Is 2
 End  # keep untyped
+
+# Zero step allowed; length not available
+For x = 1 To 2 Step 0: Assert $loop.length Is Undefined; Break; End
+
+# Negative step prevents loop from executing
+For x = 1 To 2 Step -1: Abort; End
+
+# Positive step prevents loop from executing
+For x = 2 To 1 Step 1: Abort; End
+
+For x = 1 To 1: Assert $loop.length Is 1; End # runs once
+For x = .1 To .2 Step .1: Assert $loop.length Is 2; Next # floats are legal
+For x = .2 To .1 Step -.1: Assert $loop.length Is 2; Next # negative step legal
+For x = -1 To -.5: Assert $loop.length Is 1; Next # negative start/stop legal
+For x = -2 To -5 Step -1: Assert $loop.length Is 4; Next # all negatives legal
+For x = " 0 " To " 1 " Step " 1": Assert $loop.length Is 2; Next # strings converted to numbers
+For x = False To True Step True: Assert $loop.length Is 2; Next # booleans converted to numbers
 
 # For Each
 For Each x In [1, 2]: # colon optional
-    NOP
+    Assert $loop.length Is 2
 Next
 
 For Each x In [1, 2]
-    NOP
+    Assert $loop.length Is 2
 Next
 
 For Each x In [1, 2] # keep as for-each
-    NOP
+    Assert $loop.length Is 2
 End # keep as end
+
+For Each x In None
+    Abort
+End
+
+For Each x In [] # empty
+    Abort
+End
+
+# Repeat
+Repeat Zero Times:
+    Abort
+End
+
+Repeat 1 Time
+    Assert $loop.length Is 1
+End-Repeat
+
+Repeat True Times # one time
+    Assert $loop.length Is 1
+End-Repeat
+
+Repeat None Times
+    Abort
+End-Repeat
+
+Repeat False Times # zero
+    Abort
+End-Repeat
+
+Repeat " 1" Time
+    Assert $loop.length Is 1
+End-Repeat
+
+Repeat 2.1 Times
+    Assert $loop.length Is 2
+End-Repeat
