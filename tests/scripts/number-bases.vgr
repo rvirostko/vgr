@@ -1,0 +1,15 @@
+
+Echo On
+# Simple syntax check for non-decimal bases
+
+Assert 0b10 Is 2.Pow(1)
+Assert 0b01 Is 2.Pow(1) - 1
+Assert 0B1_0000 Is 2.Pow(4)
+
+Assert 0o10 Is 8.Pow(1)
+Assert 0o07 Is 8.Pow(1) - 1
+Assert 0O1_0000 Is 8.Pow(4)
+
+Assert 0x10 Is 16.Pow(1)
+Assert 0x0F Is 16.Pow(1) - 1
+Assert 0X1_0000 Is 16.Pow(4)
