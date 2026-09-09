@@ -32,13 +32,12 @@ from .exec_context import ExecContext
 from .builtins import (
     bound_ops,
     build_dict,
-    poly_to_boolean,
-    poly_to_integer,
     poly_to_list,
-    poly_to_number,
     poly_is_true,
     poly_type,
+    str_to_int,
     str_to_number,
+    str_to_bool,
     verify_relative_path,
 )
 from .redir import (
@@ -428,34 +427,6 @@ def exec_loop(ctx: ExecContext, statement: Tree, desired_value: bool, block_type
     finally:
         ctx.dd.pop_frame()
 
-def exec_repeat(ctx: ExecContext, statement: Tree, block_types=BlockType.ALL_BLOCKS) -> None:
-    """Internal implementation for loops with a fixed count"""
-    if ctx.echo: ctx.echo_source(statement, statement.children[1])
-    counter = poly_to_integer(ctx.eval_expr(bind_operations(statement.children[0])))
-    if isinstance(counter, (int, float)):
-        counter = math.floor(counter)
-        if counter > 0:
-            meta = { }
-            # Meta information is local to the loop
-            ctx.dd.push_frame([(LOOP_META_PATH, meta)])
-            try:
-                length = counter
-                i = 0
-                while counter > 0:
-                    # Update the meta information
-                    set_loop_meta(meta, i, length)
-                    try:
-                        ctx.dispatch_statements(statement.children[1:])
-                    except VgrStatementBreak as e:
-                        e.validate_for_block(block_types)
-                        return
-                    except VgrStatementContinue as e:
-                        e.validate_for_block(block_types)
-                    counter -= 1
-                    i += 1
-            finally:
-                ctx.dd.pop_frame()
-
 @control_statement
 @bound_ops("While")
 def execute_while(ctx: ExecContext, statement: Tree) -> None:
@@ -552,7 +523,31 @@ End-Repeat
 {'index': 2, 'first': False, 'last': True, 'length': 3}
 ```
 """
-    exec_repeat(ctx, statement)
+    if ctx.echo: ctx.echo_source(statement, statement.children[1])
+    counter = ctx.eval_to_int(bind_operations(statement.children[0]), "Repetition Count", True)
+    if counter is None: return
+    counter = math.floor(counter)
+    if counter <= 0: return
+    meta = { }
+    # Meta information is local to the loop
+    ctx.dd.push_frame([(LOOP_META_PATH, meta)])
+    try:
+        length = counter
+        i = 0
+        while counter > 0:
+            # Update the meta information
+            set_loop_meta(meta, i, length)
+            try:
+                ctx.dispatch_statements(statement.children[1:])
+            except VgrStatementBreak as e:
+                e.validate_for_block(BlockType.ALL_BLOCKS)
+                return
+            except VgrStatementContinue as e:
+                e.validate_for_block(BlockType.ALL_BLOCKS)
+            counter -= 1
+            i += 1
+    finally:
+        ctx.dd.pop_frame()
 
 @control_statement
 @bound_ops("For Each")
@@ -676,24 +671,21 @@ Also see `For Each`.
     def _err(value: Any, name: str) -> str: return ValueError(f"Can't use {str(value).title()} for {name}")
     def _nbr(expr: Tree, name: str) -> Any:
         value = ctx.eval_to_number(bind_operations(expr), name, True)
-        if value is None or math.isinf(value) or math.isnan(value):
-            raise VgrRuntimeError(expr, _err(value, name))
-        return value
+        if value is not None and math.isfinite(value): return value
+        raise VgrRuntimeError(expr, _err(value, name))
     # Echo the control portion, not the statements
     if ctx.echo: ctx.echo_source(statement, statement.children[-1])
     cindex = 0
     var_path = get_writable_var_path(ctx, statement.children[cindex])
     cindex += 1
-    value = _nbr(statement.children[cindex], 'For Next start')
+    value = _nbr(statement.children[cindex], 'Start')
     cindex += 1
-    end = _nbr(statement.children[cindex], 'For Next end')
+    end = _nbr(statement.children[cindex], 'End')
     cindex += 1
     inc = 1
     if statement.data == 'for_next_by':
-        # This statement has a "step" clause
-        name = 'For Next increment'
         step_expr = statement.children[cindex]
-        inc = _nbr(step_expr, name)
+        inc = _nbr(step_expr, "Step")
         cindex += 1
     try:
         meta = { }
@@ -702,7 +694,6 @@ Also see `For Each`.
         #     which is typical for Basic implementations
         length = None if inc == 0 else int(max(0, math.floor((end - value) / inc) + 1))
         i = 0
-        # TODO can we simplify?
         while (inc == 0) or (inc > 0 and value <= end) or (inc < 0 and value >= end):
             set_loop_meta(meta, i, length)
             ctx.set_var(value, *var_path)
@@ -1089,40 +1080,52 @@ class DefaultExecContext(ExecContext):
         return verify_relative_path(self.eval_to_str(expr, 'File name', allow_none))
 
     def eval_to_int(self, expr: Tree, name: str, allow_none: bool=False) -> int:
-        rc = self.eval_expr(expr)
-        if rc is None and allow_none: return None
-        if isinstance(rc, (bool, int, float)): return int(rc)
-        if isinstance(rc, str):
+        value = self.eval_expr(expr)
+        if value is None and allow_none: return None
+        if isinstance(value, (bool, int)): return int(value)
+        if isinstance(value, float):
+            if math.isfinite(value): return int(value)
+            raise VgrRuntimeError(expr, ValueError(f'Cannot convert {value!r} to an integer'))
+        if isinstance(value, str):
             try:
-                # NB: do not use poly_int() as non-convertable
-                #     values come back as None
-                return int(str_to_number(rc))
+                if rc := str_to_int(value) is not None: return rc
+                raise VgrRuntimeError(expr, ValueError(f'Cannot convert {value!r} to an integer'))
             except ValueError as e:
                 raise VgrRuntimeError(expr, str(e)) from e
-        raise VgrRuntimeError(expr, TypeError(f'{name} must be an integer; found {poly_type(rc)!r}'))
+        raise VgrRuntimeError(expr, TypeError(f'{name} must be an integer; found {poly_type(value)!r}'))
 
     def eval_to_number(self, expr: Tree, name: str, allow_none: bool=False):
         """
         Evaluate the expression to a number.
         Ints and floats are returned as-is.
-        Strings are converted to numbers via poly_number().
+        Strings are converted to numbers via str_to_number().
         Booleans are converted to 0 or 1.
+        May return None, Inf, or Nan.
         """
-        rc = self.eval_expr(expr)
-        if rc is None and allow_none: return None
-        # TODO better error handling including None check
-        if isinstance(rc, (int, float)): return rc
-        if isinstance(rc, bool): return int(rc)
-        if isinstance(rc, str): return poly_to_number(rc)
-        raise VgrRuntimeError(expr, TypeError(f'{name} must be a number; found {poly_type(rc)!r}'))
+        value = self.eval_expr(expr)
+        if value is None and allow_none: return None
+        if isinstance(value, bool): return int(value)
+        if isinstance(value, (int, float)): return value
+        if isinstance(value, str):
+            try:
+                if (rc := str_to_number(value)) is not None: return rc
+                raise VgrRuntimeError(expr, ValueError(f'Cannot convert {value!r} to a number'))
+            except ValueError as e:
+                raise VgrRuntimeError(expr, e) from e
+        raise VgrRuntimeError(expr, TypeError(f'{name} must be a number; found {poly_type(value)!r}'))
 
     def eval_to_bool(self, expr: Tree, name: str, allow_none: bool=False) -> bool:
         # TODO see other conv routines
         rc = self.eval_expr(expr)
         if rc is None and allow_none: return None
-        if not isinstance(rc, (bool, int, float, str)):
-            raise VgrRuntimeError(expr, TypeError(f'{name} must be a boolean; found {poly_type(rc)!r}'))
-        return poly_to_boolean(rc)
+        if isinstance(rc, (bool, int, float)): return bool(rc)
+        if isinstance(rc, str):
+            try:
+                return str_to_bool(rc)
+            except ValueError:
+                # Not, null, and not empty, so Python truthy
+                return True
+        raise VgrRuntimeError(expr, TypeError(f'{name} must be a boolean; found {poly_type(rc)!r}'))
 
     def get_source(self, tree, end_tree = None) -> str:
         return (SSM.source_for(tree, end_tree) or '').strip()
