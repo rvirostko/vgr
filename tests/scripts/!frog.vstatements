@@ -1,0 +1,11 @@
+
+# Used in tested of run_scripts_test.py's checking of required error text
+
+# no check
+Bog;
+
+# checked, right text
+Frog Bog; # {{ unexpected }}
+
+# checked, but wrong text
+#Frog; # {{ syntax }}

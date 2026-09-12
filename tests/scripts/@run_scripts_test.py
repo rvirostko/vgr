@@ -63,7 +63,7 @@ def run_vgr_test_file(path: Path) -> tuple[int, str]:
             ctx.execute_statements("Reset All; Unset env.OFS, env.ORS", '<test>')
             ctx.execute_statements("Const dev_test Is True", '<test>') # like --assign
             do_source(ctx, path) # like --file
-        except VgrExitingException as e:
+        except VgrExitingException as e: # includes Exit, Assert, and Abort
             exit_code = e.exit_code
         except VgrException as e:
             exit_code = VgrExitingException.EXIT_FAILED
@@ -83,6 +83,7 @@ def run_vgr_test_statement(line: str) -> tuple[int, str]:
     vgr_init()
     output_buf = StringIO()
     exit_code = VgrExitingException.EXIT_SUCCESS
+    exception = None
     ctx:ExecContext = _state["ctx"]
     with redirect_stdout(output_buf), redirect_stderr(output_buf):
         try:
@@ -91,20 +92,23 @@ def run_vgr_test_statement(line: str) -> tuple[int, str]:
             ctx.echo = False
             ctx.verbose = False
             ctx.execute_statements("Reset All", '<test>')
-            ctx.execute_statements("Set dev_test To True", '<test>') # like --assign
+            ctx.execute_statements("Constant dev_test Is True", '<test>') # like --assign
             ctx.echo = True # like --echo
             ctx.execute_statements(line, '<test>') # like --execute
-        except VgrExitingException as e:
+        except VgrExitingException as e: # includes Exit, Assert, and Abort
             exit_code = e.exit_code
+            exception = e
         except VgrException as e:
             exit_code = VgrExitingException.EXIT_FAILED
+            exception = e
             print_stderr(str(e))
         except Exception as e: # pylint: disable=broad-exception-caught
             exit_code = VgrExitingException.EXIT_FAILED
+            exception = e
             print_stderr(str(e))
     output = output_buf.getvalue()
     print(output)
-    return (exit_code, output)
+    return (exit_code, exception, output)
 
 # -------------------------------
 # .vgr FILES
@@ -121,7 +125,7 @@ def test_vgr_files(path: Path):
     code, stdout = run_vgr_test_file(path)
     with (LOG_DIR / (path.name + ".txt")).open("w", encoding="utf-8", errors='backslashreplace') as f:
         if stdout: f.write(stdout)
-    if "!" in path.name:
+    if path.name.startswith("!"):
         assert code != 0, f"! Expected failure but got success for {path.name!r}"
     else:
         assert code == 0, f"! Expected success but got failure for {path.name!r}"
@@ -129,6 +133,9 @@ def test_vgr_files(path: Path):
 # -------------------------------
 # .vstatement FILES
 # -------------------------------
+
+import re
+_EXPECTED_TEXT_PATTERN = re.compile(r"#\s*{{(.*)}}")
 
 @pytest.mark.parametrize(
     "path",
@@ -140,6 +147,7 @@ def test_vgr_statements(path: Path):
     LOG_DIR.mkdir(exist_ok=True)
     with path.open() as fh:
         with (LOG_DIR / (path.name + ".txt")).open("w", encoding="utf-8", errors='backslashreplace') as f:
+            failure_expected = path.name.startswith("!")
             for i, line in enumerate(fh, 1):
                 line = line.strip()
                 # ignore empty lines and comments
@@ -147,10 +155,18 @@ def test_vgr_statements(path: Path):
                     not line.startswith("#") and \
                     not line.startswith("//") and \
                     not (line.startswith("/*") and line.endswith("*/")):
-                    code, stdout = run_vgr_test_statement(line)
+                    code, exception, stdout = run_vgr_test_statement(re.sub(_EXPECTED_TEXT_PATTERN, "#", line))
                     if stdout: f.write(stdout)
-                    if "!" in path.name:
+                    if failure_expected:
                         assert code != 0, f"! Expected failure but line {i} succeeded: {path.name!r}:{i}"
+                        if exception is not None:
+                            # See if the user wants to check the type of failure
+                            m: re.Match = re.search(_EXPECTED_TEXT_PATTERN, line)
+                            if m:
+                                # pull out the expected text and treat it as a reg ex
+                                expected_text = re.compile(m.group(1).strip(), re.IGNORECASE)
+                                found_expected_text = expected_text.search(str(exception)) is not None # need to make assert look nice
+                                assert found_expected_text, f"! Expected {expected_text.pattern!r} failure but got {str(exception)!r}: {path.name!r}:{i}"
                     else:
                         assert code == 0, f"! Expected success but line {i} failed: {path.name!r}:{i}"
                 else:
