@@ -168,7 +168,7 @@ Assert ListFiles() Is ListFiles("*")
 Assert ListFiles(None).IsEmpty()
 Assert ListFiles(5).IsList()
 Assert ListFiles(5.1).IsList()
-Assert ListFiles("*.txt").IsNotEmpty() # we should always have our log file...
+Assert ListFiles("*.toml").IsNotEmpty() # we should always have pyproject.toml...
 Assert ListFiles("*") <> ListFiles("*/") # everything vs only dirs
 Assert ListFiles("**").IsNotEmpty()
 Assert ListFiles("*/") <> ListFiles("**/")
