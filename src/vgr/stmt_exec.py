@@ -325,6 +325,7 @@ def execute_if(ctx: ExecContext, statement: Tree) -> None:
   Else [:]\\
   &emsp;&emsp;*statement*&hellip;\\
   End-If
+* If *expression* [=> | ⇒] *statement*
 
 The `If` statement may have any number of `Else-If` tests, but they must appear before
 the `Else`, which is optional.
@@ -335,7 +336,7 @@ If an *expression* evaluates to `True` the associated block of statements is exe
 If the `If` and no `Else-If` are `True`, the associated `Else` statements, if present are executed.
 
 ```vgr
-Define Function CheckIfTime():
+Define Function CheckIfTime()
     Set day-of-week To time.today.day-of-week
     Set hour-of-day To time.today.hour-of-day
     # Return True if Wednesday from 2-4㏘ or Thursday from noon to 1㏘
@@ -349,6 +350,25 @@ Define Function CheckIfTime():
 End-Function
 
 Print "Time Check is", @CheckIfTime()
+```
+
+**If as a single statement "guard"**
+
+An `If` can be used as a "guard" for a single statement by
+following *expression* with `=>` or `⇒`. If the expression evaluates to
+`True` the statement is executed. No `End` or `End-If` is required.
+
+```vgr
+Define Function TestX(x)
+    If vgr.verbose => Print "About to test", x
+    Return x > Zero And x <= 1_000
+End-Function
+
+Define Function PosOrNeg(value)
+    If value Is Positive => Return True
+    If value Is Negative => Return False
+    Return None
+End-Function
 ```
 
 Also see `Unless`.

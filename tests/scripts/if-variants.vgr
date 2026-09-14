@@ -1,6 +1,7 @@
+Echo On
+
 # Different "If" syntax
 
-# VGR
 If True Then # BASIC like
     Print "Hello"
 End # keep untyped
@@ -73,3 +74,10 @@ Else-If False
 Else
     Print "Hello"
 End
+
+# Statment guards
+If True => Print "Hello"
+If False ⇒ Print "Never"
+
+If True => If True => Print "Hello"
+If True => If False => Print "Never"

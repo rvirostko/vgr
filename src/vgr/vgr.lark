@@ -152,9 +152,9 @@ for_next: "For"i var_name _EQ expr "To"i expr _CLAUSE_SEP? statement+ _end_for
     |     "For"i var_name _EQ expr "To"i expr "Step"i expr _CLAUSE_SEP? statement+ _end_for -> for_next_by
 _end_for: "End-For"i | "Next"i | "End"i
 
-// The addition of the optional "Then" allows a BASIC-like If syntax usage
-if_statement: if else_if* else? ("End-If"i | "End"i)
+if_statement: if_guard | if else_if* else? ("End-If"i | "End"i)
 if: "If"i expr _then_sep? statement+
+if_guard: "If"i expr ("=>" | "\u21D2") statement -> if // Unicode ⇒ (rightwards double arrow)
 else_if: ("Else-If"i | "ElseIf"i) expr _then_sep? statement+
 else: "Else"i _CLAUSE_SEP? statement+
 _then_sep: ("Then"i | _CLAUSE_SEP)
