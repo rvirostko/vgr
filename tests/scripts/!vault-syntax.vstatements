@@ -1,0 +1,96 @@
+
+# NB: This is actually a POSITIVE test, but
+#     since we don't have a Vault instance to
+#     test against ATM, we just look for the
+#     error that indicates we aren't connected.
+
+Vault Get "url"    # {{ address must be provided }}
+Vault Read "url"   # {{ address must be provided }}
+Vault List "url"   # {{ address must be provided }}
+Vault Delete "url" # {{ address must be provided }}
+Vault Post "url"   # {{ address must be provided }}
+Vault Create "url" # {{ address must be provided }}
+Vault Update "url" # {{ address must be provided }}
+Vault Patch "url"  # {{ address must be provided }}
+
+Vault Create Namespace "namespace"         # {{ address must be provided }}
+Vault Read Namespace "namespace"           # {{ address must be provided }}
+Vault Update Namespace "namespace"         # {{ address must be provided }}
+Vault Delete Namespace "namespace"         # {{ address must be provided }}
+Vault List Namespaces                      # {{ address must be provided }}
+Vault List Namespaces "parent"             # {{ address must be provided }}
+Vault List Namespace Namespace Is "parent" # {{ address must be provided }}
+Vault Lock Namespace "namespace"           # {{ address must be provided }}
+Vault Unlock Namespace "namespace"         # {{ address must be provided }}
+
+Vault Create Mount "mount" Type Is "type" # {{ address must be provided }}
+Vault Read Mount "mount"                  # {{ address must be provided }}
+Vault Update Mount "mount" Config Is {}   # {{ address must be provided }}
+Vault Delete Mount "mount"                # {{ address must be provided }}
+Vault List Mounts                         # {{ address must be provided }}
+Vault List Mounts "parent"                # {{ address must be provided }}
+Vault List Mounts Namespace Is "parent"   # {{ address must be provided }}
+
+Vault Create KvSecret "mount/path"        # {{ address must be provided }}
+Vault Read KvSecret "mount/path"          # {{ address must be provided }}
+Vault Read KvMetadata "mount/path"        # {{ address must be provided }}
+Vault Delete KvMetadata "mount/path"      # {{ address must be provided }}
+Vault Update KvSecret "mount/path"        # {{ address must be provided }}
+Vault Delete KvSecret "mount/path"        # {{ address must be provided }}
+Vault Undelete KvSecret "mount/path"      # {{ address must be provided }}
+Vault Destroy KvSecret "mount/path"       # {{ address must be provided }}
+Vault List KvSecrets "mount/path"         # {{ address must be provided }}
+Vault Patch KvSecret "mount/path"         # {{ address must be provided }}
+
+Vault Create LdapLibrary "mount/lib" Config Is {} # {{ address must be provided }}
+Vault Read LdapLibrary "mount/lib"                # {{ address must be provided }}
+Vault Update LdapLibrary "mount/lib" Config Is {} # {{ address must be provided }}
+Vault Delete LdapLibrary "mount/lib"              # {{ address must be provided }}
+Vault List LdapLibraries "mount"                  # {{ address must be provided }}
+
+Vault Create LdapRole "mount/role"                  # {{ address must be provided }}
+Vault Create LdapRole "mount/role" Type Is Static   # {{ address must be provided }}
+Vault Read LdapRole "mount/role"                    # {{ address must be provided }}
+Vault Read LdapRole "mount/role" Type Is Static     # {{ address must be provided }}
+Vault Update LdapRole "mount/role"                  # {{ address must be provided }}
+Vault Update LdapRole "mount/role" Type Is Static   # {{ address must be provided }}
+Vault Delete LdapRole "mount/role"                  # {{ address must be provided }}
+Vault Delete LdapRole "mount/role" Type Is Static   # {{ address must be provided }}
+Vault List LdapRoles "mount/role"                   # {{ address must be provided }}
+Vault List LdapRoles "mount/role" Type Is Static    # {{ address must be provided }}
+Vault Rotate LdapRole Credentials "mount/role"      # {{ address must be provided }}
+Vault Rotate LdapRole Credentials "mount/role" Type Is Static  # {{ address must be provided }}
+Vault Rotate LdapRole Credentials "mount/role" Type Is Dynamic # {{ can only rotate }}
+
+// NB: the Type parsing is shared, so we can check this once...
+Vault Create LdapRole "mount/role" Type Is Dynamic  # {{ address must be provided }}
+Vault Create LdapRole "mount/role" Type Is Static   # {{ address must be provided }}
+Vault Create LdapRole "mount/role" Type Is "static" # {{ address must be provided }}
+Vault Create LdapRole "mount/role" Type Is "bad"    # {{ type must be either }}
+
+Vault Create DbConnection "mount/name" Config Is {} # {{ address must be provided }}
+Vault Read DbConnection "mount/name"                # {{ address must be provided }}
+Vault Update DbConnection "mount/name" Config Is {} # {{ address must be provided }}
+Vault Delete DbConnection "mount/name"              # {{ address must be provided }}
+Vault List DbConnections "mount/name"               # {{ address must be provided }}
+Vault Reset DbConnection "mount/name"               # {{ address must be provided }}
+Vault Rotate DbConnection Credentials "mount/name"  # {{ address must be provided }}
+
+// Use "Type Is [Static | Dynamic]" with Static as the default
+Vault Create DbRole "mount/name" Config Is {}                # {{ address must be provided }}
+Vault Create DbRole "mount/name" Config Is {} Type Is Static # {{ address must be provided }}
+Vault Read DbRole "mount/name"                               # {{ address must be provided }}
+Vault Read DbRole "mount/name" Type Is Static                # {{ address must be provided }}
+Vault Update DbRole "mount/name" Config Is {}                # {{ address must be provided }}
+Vault Update DbRole "mount/name" Config Is {} Type Is Static # {{ address must be provided }}
+Vault Delete DbRole "mount/name"                             # {{ address must be provided }}
+Vault Delete DbRole "mount/name" Type Is Static              # {{ address must be provided }}
+Vault List DbRoles "mount/name"                              # {{ address must be provided }}
+Vault List DbRoles "mount/name" Type Is Static               # {{ address must be provided }}
+
+Vault Generate DbRole Credentials "mount/name"                # {{ address must be provided }}
+Vault Generate DbRole Credentials "mount/name" Type Is Static # {{ address must be provided }}
+
+Vault Rotate DbRole Credentials "mount/name"                 # {{ address must be provided }}
+Vault Rotate DbRole Credentials "mount/name" Type Is Static  # {{ address must be provided }}
+Vault Rotate DbRole Credentials "mount/name" Type Is Dynamic # {{ can only rotate }}

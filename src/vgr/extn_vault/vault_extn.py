@@ -23,6 +23,7 @@ from .vault_stmts import (
     execute_api_post,
     execute_connect,
     execute_create_db_connection,
+    execute_create_db_role,
     execute_create_kv_secret,
     execute_create_ldap_library,
     execute_create_ldap_role,
@@ -41,6 +42,7 @@ from .vault_stmts import (
     execute_disconnect,
     execute_generate_db_role_creds,
     execute_list_db_connections,
+    execute_list_db_roles,
     execute_list_kv_secrets,
     execute_list_ldap_libraries,
     execute_list_ldap_roles,
@@ -49,6 +51,7 @@ from .vault_stmts import (
     execute_lock_ns,
     execute_patch_kv_secret,
     execute_read_db_connection,
+    execute_read_db_role,
     execute_read_kv_metadata,
     execute_read_kv_secret,
     execute_read_ldap_library,
@@ -57,10 +60,12 @@ from .vault_stmts import (
     execute_read_ns,
     execute_reset_db_connection,
     execute_rotate_db_connection_creds,
+    execute_rotate_db_role_creds,
     execute_rotate_ldap_role,
     execute_undelete_kv_secret,
     execute_unlock_ns,
     execute_update_db_connection,
+    execute_update_db_role,
     execute_update_kv_secret,
     execute_update_ldap_library,
     execute_update_ldap_role,
@@ -92,71 +97,70 @@ def _vault_help(_ctx, _statement) -> None:
 
 *Namespace Management*
 
-* Vault CreateNamespace *namespace* - Create a new namesapce
-* Vault ReadNamespace *namespace* - Read a namespace
-* Vault UpdateNamespace *namespace* - Update a namespace
-* Vault DeleteNamespace *namespace* - Delete a namespace
-* Vault ListNamespaces [*namespace*] - List child namespaces
-* Vault LockNamespace *namespace* - Lock a namespace
-* Vault UnlockNamespace *namespace* - Unlock a namespace
-* Vault DefaultNamespace *namespace* - Set the namespace to be used by subsequent requests
+* Vault Create Namespace *namespace* - Create a new namesapce
+* Vault Read Namespace *namespace* - Read a namespace
+* Vault Update Namespace *namespace* - Update a namespace
+* Vault Delete Namespace *namespace* - Delete a namespace
+* Vault List Namespaces [*namespace*] - List child namespaces
+* Vault Lock Namespace *namespace* - Lock a namespace
+* Vault Unlock Namespace *namespace* - Unlock a namespace
 
 *Secret Engine Mount Points*
 
-* Vault CreateMount *mount_point* - Create and configure a secrets engine
-* Vault ReadMount *mount_point* - Read the configuration of a secrets engine mount
-* Vault UpdateMount *mount_point* - Update the configuration of a secrets engine
-* Vault DeleteMount *mount_point* - Remove a secrets engine mount
-* Vault ListMounts [*namespace*] - List the mount points in a namespace
+* Vault Create Mount *mount_point* - Create and configure a secrets engine
+* Vault Read Mount *mount_point* - Read the configuration of a secrets engine mount
+* Vault Update Mount *mount_point* - Update the configuration of a secrets engine
+* Vault Delete Mount *mount_point* - Remove a secrets engine mount
+* Vault List Mounts [*namespace*] - List the mount points in a namespace
 
 *KV2 Secrets*
 
-* Vault CreateKvSecret *mount_and_path* - Create or update the KV secrets
-* Vault ReadKvSecret *mount_and_path* - Read the KV secrets
-* Vault ReadKvMetadata *mount_and_path* - Read the KV metadata
-* Vault DeleteKvMetadata *mount_and_path* - Delete KV metadata
-* Vault UpdateKvSecret *mount_and_path* - Update the KV secrets data and/or metadata
-* Vault DeleteKvSecret *mount_and_path* - Delete a KV secret
-* Vault UndeleteKvSecret *mount_and_path* - Undelete a KV secret
-* Vault DestroyKvSecret *mount_and_path* - Destroy a KV secret
-* Vault ListKvSecrets *mount_and_path* - List KV secrets at a path location
-* Vault PatchKvSecret *mount_and_path* - Patch the KV secrets data and/or metadata
+* Vault Create KvSecret *mount_and_path* - Create or update the KV secrets
+* Vault Read KvSecret *mount_and_path* - Read the KV secrets
+* Vault Read KvMetadata *mount_and_path* - Read the KV metadata
+* Vault Delete KvMetadata *mount_and_path* - Delete KV metadata
+* Vault Update KvSecret *mount_and_path* - Update the KV secrets data and/or metadata
+* Vault Delete KvSecret *mount_and_path* - Delete a KV secret
+* Vault Undelete KvSecret *mount_and_path* - Undelete a KV secret
+* Vault Destroy KvSecret *mount_and_path* - Destroy a KV secret
+* Vault List KvSecrets *mount_and_path* - List KV secrets at a path location
+* Vault Patch KvSecret *mount_and_path* - Patch the KV secrets data and/or metadata
 
 *LDAP Libraries Sets*
 
-* Vault CreateLdapLibrary *mount_and_set* - Create a set of LDAP credentials
-* Vault ReadLdapLibrary *mount_and_set* - Get the configuraiton of a set of LDAP credentials
-* Vault UpdateLdapLibrary *mount_and_set* - Update the configuraiton of a set of LDAP credentials
-* Vault DeleteLdapLibrary *mount_and_set* - Remove a set of LDAP credentials
-* Vault ListLdapLibraries *mount_point* - List LDAP library set names
+* Vault Create LdapLibrary *mount_and_set* - Create a set of LDAP credentials
+* Vault Read LdapLibrary *mount_and_set* - Get the configuraiton of a set of LDAP credentials
+* Vault Update LdapLibrary *mount_and_set* - Update the configuraiton of a set of LDAP credentials
+* Vault Delete LdapLibrary *mount_and_set* - Remove a set of LDAP credentials
+* Vault List LdapLibraries *mount_point* - List LDAP library set names
 
-*LDAP Static Roles*
+*LDAP Roles*
 
-* Vault CreateLdapRole *mount_and_role* - Create a static LDAP role
-* Vault ReadLdapRole *mount_and_role* - Get a static LDAP role
-* Vault UpdateLdapRole *mount_and_role* - Update a static LDAP role
-* Vault DeleteLdapRole *mount_and_role* - Remove a static LDAP role
-* Vault ListLdapRoles *mount_point* - List static LDAP roles
-* Vault RotateLdapRole *mount_and_role* - Rotate the password of a static LDAP role
+* Vault Create LdapRole *mount_and_role* - Create a static LDAP role
+* Vault Read LdapRole *mount_and_role* - Get a static LDAP role
+* Vault Update LdapRole *mount_and_role* - Update a static LDAP role
+* Vault Delete LdapRole *mount_and_role* - Remove a static LDAP role
+* Vault List LdapRoles *mount_point* - List static LDAP roles
+* Vault Rotate LdapRole Credentials *mount_and_role* - Rotate the password of a static LDAP role
 
 *Database Connections*
 
-* Vault CreateDbConnection *mount_and_name* - Create and configure a Database Connection
-* Vault ReadDbConnection *mount_and_name* - Read a Database Connection configuration
-* Vault UpdateDbConnection *mount_and_name* - Update a Database Connection configuration
-* Vault DeleteDbConnection *mount_and_name* - Remove a Database Connection
-* Vault ListDbConnections *mount_point* - List Database Connections
-* Vault ResetDbConnection *mount_and_name* - Closes a Database Connection and it's plugin and restarts it
-* Vault RotateDbConnectionCredentials *mount_and_name* - Rotate the user credentials of the Database Connection
+* Vault Create DbConnection *mount_and_name* - Create and configure a Database Connection
+* Vault Read DbConnection *mount_and_name* - Read a Database Connection configuration
+* Vault Update DbConnection *mount_and_name* - Update a Database Connection configuration
+* Vault Delete DbConnection *mount_and_name* - Remove a Database Connection
+* Vault List DbConnections *mount_point* - List Database Connections
+* Vault Reset DbConnection *mount_and_name* - Closes a Database Connection and it's plugin and restarts it
+* Vault Rotate DbConnection Credentials *mount_and_name* - Rotate the user credentials of the Database Connection
 
 *Database Roles*
 
-* Vault CreateDbRole *mount_and_name* - Creates a Role for a Database
-* Vault ReadDbRole *mount_and_name* - Read a Database Role
-* Vault UpdateDbRole *mount_and_name* - Update a Role for a Database
-* Vault DeleteDbRole *mount_and_name* - Remove a Database Role
-* Vault ListDbRoles *mount_point* - List Database Roles for a mount point
-* Vault GenerateDbRoleCredentials *mount_and_name* - Generate a new credentials for a Database Role
+* Vault Create DbRole *mount_and_name* - Creates a Role for a Database
+* Vault Read DbRole *mount_and_name* - Read a Database Role
+* Vault Update DbRole *mount_and_name* - Update a Role for a Database
+* Vault Delete DbRole *mount_and_name* - Remove a Database Role
+* Vault List DbRoles *mount_point* - List Database Roles for a mount point
+* Vault Generate DbRole Credentials *mount_and_name* - Generate a new credentials for a Database Role
 
 *Universal Options*
 
@@ -207,6 +211,7 @@ STATEMENT_HANDLERS = {
     'vault_api_post'               : execute_api_post,
     'vault_connect'                : execute_connect,
     'vault_create_db_conn'         : execute_create_db_connection,
+    'vault_create_db_role'         : execute_create_db_role,
     'vault_create_kv_secret'       : execute_create_kv_secret,
     'vault_create_ldap_lib'        : execute_create_ldap_library,
     'vault_create_ldap_role'       : execute_create_ldap_role,
@@ -225,6 +230,7 @@ STATEMENT_HANDLERS = {
     'vault_disconnect'             : execute_disconnect,
     'vault_generate_db_role_creds' : execute_generate_db_role_creds,
     'vault_list_db_conns'          : execute_list_db_connections,
+    'vault_list_db_roles'          : execute_list_db_roles,
     'vault_list_kv_secrets'        : execute_list_kv_secrets,
     'vault_list_ldap_libs'         : execute_list_ldap_libraries,
     'vault_list_ldap_roles'        : execute_list_ldap_roles,
@@ -233,6 +239,7 @@ STATEMENT_HANDLERS = {
     'vault_lock_ns'                : execute_lock_ns,
     'vault_patch_kv_secret'        : execute_patch_kv_secret,
     'vault_read_db_conn'           : execute_read_db_connection,
+    'vault_read_db_role'           : execute_read_db_role,
     'vault_read_kv_metadata'       : execute_read_kv_metadata,
     'vault_read_kv_secret'         : execute_read_kv_secret,
     'vault_read_ldap_lib'          : execute_read_ldap_library,
@@ -242,9 +249,11 @@ STATEMENT_HANDLERS = {
     'vault_reset_db_conn'          : execute_reset_db_connection,
     'vault_rotate_db_conn'         : execute_rotate_db_connection_creds,
     'vault_rotate_ldap_role'       : execute_rotate_ldap_role,
+    'vault_rotate_db_role_creds'   : execute_rotate_db_role_creds,
     'vault_undelete_kv_secret'     : execute_undelete_kv_secret,
     'vault_unlock_ns'              : execute_unlock_ns,
     'vault_update_db_conn'         : execute_update_db_connection,
+    'vault_update_db_role'         : execute_update_db_role,
     'vault_update_kv_secret'       : execute_update_kv_secret,
     'vault_update_ldap_lib'        : execute_update_ldap_library,
     'vault_update_ldap_role'       : execute_update_ldap_role,

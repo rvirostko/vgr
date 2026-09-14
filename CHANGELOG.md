@@ -24,9 +24,13 @@
 - Added "ListFiles()", "EscapeGlobPattern()", and "GlobToPattern()" for getting
   a listing of files and working with [Glob](https://en.wikipedia.org/wiki/Glob_\\(programming\\))
   patterns.
+- Vault Roles listings take a "Type Is Dynamic/Static" option
 
 ### Changed
 
+- Vault commands take a multi-word command (e.g. "List Mounts" vs "ListMounts").
+  While the single-word versions are available, they are deprecated.
+- Vault "Results Is..." clause is deprecated; use "Giving..."
 - Breaking change: "Left/RightShift()" renamed to "ShiftLeft/Right()"
   to match "RotateLeft/Right()"
 - Breaking change: "Include/Exclude Nulls" removed from "Select" statements
@@ -97,6 +101,7 @@
 
 - Vault calls broken by "HttpResponse object has no attribute url"
 - Vault unable to list static roles; typo in URL
+- Vault DbRole features not wired to implementations
 - "Http" returns url and request_url as strings rather than URL instances
 - "RightStr(0)" returned entire string when result should have been
   an empty string
