@@ -502,44 +502,48 @@ class VaultClient():
         mount_point = self._fix_mount_point(mount_point)
         return self.do_list(_encode_url(f'/v1/{mount_point}library'), namespace)
 
-    def create_ldap_role(self, mount_point: str, name: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
+    @staticmethod
+    def _role_type(static_role: bool) -> str: return "static-role" if static_role else "role"
+
+    def create_ldap_role(self, mount_point: str, name: str, config: Dict[str, Any], static_role: bool, namespace: str=None) -> Dict[str, Any]:
         """
         Create or update an LDAP static role.
         """
         # https://developer.hashicorp.com/vault/api-docs/secret/ldap
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_post(_encode_url(f'/v1/{mount_point}static-role/{name}'), config, namespace)
+        return self.do_post(_encode_url(f'/v1/{mount_point}{self._role_type(static_role)}/{name}'), config, namespace)
 
-    def read_ldap_role(self, mount_point: str, name: str, namespace: str=None) -> Dict[str, Any]:
+    def read_ldap_role(self, mount_point: str, name: str, static_role: bool, namespace: str=None) -> Dict[str, Any]:
         """
         Read an LDAP static role.
         """
         # https://developer.hashicorp.com/vault/api-docs/secret/ldap
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_get(_encode_url(f'/v1/{mount_point}static-role/{name}'), namespace)
+        return self.do_get(_encode_url(f'/v1/{mount_point}{self._role_type(static_role)}/{name}'), namespace)
 
-    def update_ldap_role(self, mount_point: str, name: str, config: Dict[str, Any], namespace: str=None) -> Dict[str, Any]:
+    def update_ldap_role(self, mount_point: str, name: str, config: Dict[str, Any], static_role: bool, namespace: str=None) -> Dict[str, Any]:
         """
         Update an LDAP static role (alias for create_ldap_role).
         """
         # https://developer.hashicorp.com/vault/api-docs/secret/ldap
-        return self.create_ldap_role(mount_point, name, config, namespace)
+        return self.create_ldap_role(mount_point, name, config, static_role, namespace)
 
-    def delete_ldap_role(self, mount_point: str, name: str, namespace: str=None) -> Dict[str, Any]:
+    def delete_ldap_role(self, mount_point: str, name: str, static_role: bool, namespace: str=None) -> Dict[str, Any]:
         """
-        Delete an LDAP static role.
+        Delete an LDAP role.
         """
         # https://developer.hashicorp.com/vault/api-docs/secret/ldap
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_delete(_encode_url(f'/v1/{mount_point}static-role/{name}'), namespace)
+        return self.do_delete(_encode_url(f'/v1/{mount_point}{self._role_type(static_role)}/{name}'), namespace)
 
-    def list_ldap_roles(self, mount_point: str, namespace: str=None) -> Dict[str, Any]:
+    def list_ldap_roles(self, mount_point: str, static_role: bool, namespace: str=None) -> Dict[str, Any]:
         """
-        List LDAP static roles at the given mount point.
+        List LDAP roles at the given mount point.
         """
         # https://developer.hashicorp.com/vault/api-docs/secret/ldap
         mount_point = self._fix_mount_point(mount_point)
-        return self.do_list(_encode_url(f'/v1/{mount_point}static-role'), namespace)
+        # TODO is this plural?
+        return self.do_list(_encode_url(f'/v1/{mount_point}{self._role_type(static_role)}'), namespace)
 
     def rotate_ldap_role(self, mount_point: str, name: str, namespace: str=None) -> Dict[str, Any]:
         """
