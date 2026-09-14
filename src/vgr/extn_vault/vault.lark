@@ -1,3 +1,7 @@
+// NB: The single word directives, except for Connect/Disconnect, are
+//     DEPRECATED and will be removed in 1.2.3
+//     Additionally, "DefaultNamespace" will be removed entirely
+
 ?vault_statements: "Vault"i -> vault_help // acts as a "pass", providing a help anchor
     //------------------------------------------------------------
     // Connections
@@ -7,104 +11,104 @@
     //------------------------------------------------------------
     // Namespaces
     //------------------------------------------------------------
-    | "Vault"i "DefaultNamespace"i expr vault_args -> vault_default_ns
-    | "Vault"i "CreateNamespace"i expr vault_args  -> vault_create_ns
-    | "Vault"i "ReadNamespace"i expr vault_args    -> vault_read_ns
-    | "Vault"i "UpdateNamespace"i expr vault_args  -> vault_update_ns
-    | "Vault"i "DeleteNamespace"i expr vault_args  -> vault_delete_ns
-    | "Vault"i "ListNamespaces"i expr? vault_args  -> vault_list_ns
-    | "Vault"i "LockNamespace"i expr vault_args    -> vault_lock_ns
-    | "Vault"i "UnlockNamespace"i expr vault_args  -> vault_unlock_ns
+    | "Vault"i ("DefaultNamespace"i | "Default"i "Namespace"i) expr  vault_args -> vault_default_ns // Deprecated remove in 1.2.3
+    | "Vault"i ("CreateNamespace"i  | "Create"i "Namespace"i)  expr  vault_args -> vault_create_ns
+    | "Vault"i ("ReadNamespace"i    | "Read"i "Namespace"i)    expr  vault_args -> vault_read_ns
+    | "Vault"i ("UpdateNamespace"i  | "Update"i "Namespace"i)  expr  vault_args -> vault_update_ns
+    | "Vault"i ("DeleteNamespace"i  | "Delete"i "Namespace"i)  expr  vault_args -> vault_delete_ns
+    | "Vault"i ("ListNamespaces"i   | "List"i "Namespaces"i)   expr? vault_args -> vault_list_ns // Optional expr is the base namespace
+    | "Vault"i ("LockNamespace"i    | "Lock"i "Namespace"i)    expr  vault_args -> vault_lock_ns
+    | "Vault"i ("UnlockNamespace"i  | "Unlock"i "Namespace"i)  expr  vault_args -> vault_unlock_ns
     //------------------------------------------------------------
     // Secret Engine Mount Points
     //------------------------------------------------------------
-    | "Vault"i "CreateMount"i expr vault_args -> vault_create_mount
-    | "Vault"i "ReadMount"i expr vault_args   -> vault_read_mount
-    | "Vault"i "UpdateMount"i expr vault_args -> vault_update_mount
-    | "Vault"i "DeleteMount"i expr vault_args -> vault_delete_mount
-    | "Vault"i "ListMounts"i expr? vault_args -> vault_list_mounts
+    | "Vault"i ("CreateMount"i | "Create"i "Mount"i) expr  vault_args -> vault_create_mount
+    | "Vault"i ("ReadMount"i   | "Read"i "Mount"i)   expr  vault_args -> vault_read_mount
+    | "Vault"i ("UpdateMount"i | "Update"i "Mount"i) expr  vault_args -> vault_update_mount
+    | "Vault"i ("DeleteMount"i | "Delete"i "Mount"i) expr  vault_args -> vault_delete_mount
+    | "Vault"i ("ListMounts"i  | "List"i "Mounts"i)  expr? vault_args -> vault_list_mounts // Optional expr is the namespace
     //------------------------------------------------------------
     // KV2 Secrets
     //------------------------------------------------------------
-    | "Vault"i "CreateKvSecret"i expr vault_args   -> vault_create_kv_secret
-    | "Vault"i "ReadKvSecret"i expr vault_args     -> vault_read_kv_secret
-    | "Vault"i "ReadKvMetadata"i expr vault_args   -> vault_read_kv_metadata
-    | "Vault"i "DeleteKvMetadata"i expr vault_args -> vault_delete_kv_metadata
-    | "Vault"i "UpdateKvSecret"i expr vault_args   -> vault_update_kv_secret
-    | "Vault"i "DeleteKvSecret"i expr vault_args   -> vault_delete_kv_secret
-    | "Vault"i "UndeleteKvSecret"i expr vault_args -> vault_undelete_kv_secret
-    | "Vault"i "DestroyKvSecret"i expr vault_args  -> vault_destroy_kv_secret
-    | "Vault"i "ListKvSecrets"i expr vault_args    -> vault_list_kv_secrets
-    | "Vault"i "PatchKvSecret"i expr vault_args    -> vault_patch_kv_secret
+    | "Vault"i ("CreateKvSecret"i   | "Create"i "KvSecret"i)   expr vault_args -> vault_create_kv_secret
+    | "Vault"i ("ReadKvSecret"i     | "Read"i "KvSecret"i)     expr vault_args -> vault_read_kv_secret
+    | "Vault"i ("ReadKvMetadata"i   | "Read"i "KvMetadata"i)   expr vault_args -> vault_read_kv_metadata
+    | "Vault"i ("DeleteKvMetadata"i | "Delete"i "KvMetadata"i) expr vault_args -> vault_delete_kv_metadata
+    | "Vault"i ("UpdateKvSecret"i   | "Update"i "KvSecret"i)   expr vault_args -> vault_update_kv_secret
+    | "Vault"i ("DeleteKvSecret"i   | "Delete"i "KvSecret"i)   expr vault_args -> vault_delete_kv_secret
+    | "Vault"i ("UndeleteKvSecret"i | "Undelete"i "KvSecret"i) expr vault_args -> vault_undelete_kv_secret
+    | "Vault"i ("DestroyKvSecret"i  | "Destroy"i "KvSecret"i)  expr vault_args -> vault_destroy_kv_secret
+    | "Vault"i ("ListKvSecrets"i    | "List"i "KvSecrets"i)    expr vault_args -> vault_list_kv_secrets
+    | "Vault"i ("PatchKvSecret"i    | "Patch"i "KvSecret"i)    expr vault_args -> vault_patch_kv_secret
     //------------------------------------------------------------
-    // LDAP Libraries Sets
+    // LDAP Secrets Engine: Libraries Sets
     //------------------------------------------------------------
-    | "Vault"i "CreateLdapLibrary"i expr vault_args -> vault_create_ldap_lib
-    | "Vault"i "ReadLdapLibrary"i expr vault_args   -> vault_read_ldap_lib
-    | "Vault"i "UpdateLdapLibrary"i expr vault_args -> vault_update_ldap_lib
-    | "Vault"i "DeleteLdapLibrary"i expr vault_args -> vault_delete_ldap_lib
-    | "Vault"i "ListLdapLibraries"i expr vault_args -> vault_list_ldap_libs
+    | "Vault"i ("CreateLdapLibrary"i | "Create"i "LdapLibrary"i) expr vault_args -> vault_create_ldap_lib
+    | "Vault"i ("ReadLdapLibrary"i   | "Read"i "LdapLibrary"i)   expr vault_args -> vault_read_ldap_lib
+    | "Vault"i ("UpdateLdapLibrary"i | "Update"i "LdapLibrary"i) expr vault_args -> vault_update_ldap_lib
+    | "Vault"i ("DeleteLdapLibrary"i | "Delete"i "LdapLibrary"i) expr vault_args -> vault_delete_ldap_lib
+    | "Vault"i ("ListLdapLibraries"i | "List"i "LdapLibraries"i) expr vault_args -> vault_list_ldap_libs
     //------------------------------------------------------------
-    // LDAP Static Roles
+    // LDAP Secrets Engine: Roles
+    // Use "Type Is [Static | Dynamic]" with Dynamic as the default
     //------------------------------------------------------------
-    | "Vault"i "CreateLdapRole"i expr vault_args -> vault_create_ldap_role
-    | "Vault"i "ReadLdapRole"i expr vault_args   -> vault_read_ldap_role
-    | "Vault"i "UpdateLdapRole"i expr vault_args -> vault_update_ldap_role
-    | "Vault"i "DeleteLdapRole"i expr vault_args -> vault_delete_ldap_role
-    | "Vault"i "ListLdapRoles"i expr vault_args  -> vault_list_ldap_roles
-    | "Vault"i "RotateLdapRole"i expr vault_args -> vault_rotate_ldap_role
+    | "Vault"i ("CreateLdapRole"i | "Create"i "LdapRole"i) expr vault_args -> vault_create_ldap_role
+    | "Vault"i ("ReadLdapRole"i   | "Read"i "LdapRole"i)   expr vault_args -> vault_read_ldap_role
+    | "Vault"i ("UpdateLdapRole"i | "Update"i "LdapRole"i) expr vault_args -> vault_update_ldap_role
+    | "Vault"i ("DeleteLdapRole"i | "Delete"i "LdapRole"i) expr vault_args -> vault_delete_ldap_role
+    | "Vault"i ("ListLdapRoles"i  | "List"i "LdapRoles"i)  expr vault_args -> vault_list_ldap_roles
+    | "Vault"i ("RotateLdapRole"i | "Rotate"i "LdapRole"i "Credentials"i) expr vault_args -> vault_rotate_ldap_role // "Type Is Static" only
     //------------------------------------------------------------
-    // Database Secrets Engine: connections
+    // Database Secrets Engine: Connections
     //------------------------------------------------------------
-    | "Vault"i "CreateDbConnection"i expr vault_args -> vault_create_db_conn
-    | "Vault"i "ReadDbConnection"i expr vault_args   -> vault_read_db_conn
-    | "Vault"i "UpdateDbConnection"i expr vault_args -> vault_update_db_conn
-    | "Vault"i "DeleteDbConnection"i expr vault_args -> vault_delete_db_conn
-    | "Vault"i "ListDbConnections"i expr vault_args  -> vault_list_db_conns
-    | "Vault"i "ResetDbConnection"i expr vault_args  -> vault_reset_db_conn
-    | "Vault"i "RotateDbConnectionCredentials"i expr vault_args -> vault_rotate_db_conn
+    | "Vault"i ("CreateDbConnection"i | "Create"i "DbConnection"i) expr vault_args -> vault_create_db_conn
+    | "Vault"i ("ReadDbConnection"i   | "Read"i "DbConnection"i)   expr vault_args -> vault_read_db_conn
+    | "Vault"i ("UpdateDbConnection"i | "Update"i "DbConnection"i) expr vault_args -> vault_update_db_conn
+    | "Vault"i ("DeleteDbConnection"i | "Delete"i "DbConnection"i) expr vault_args -> vault_delete_db_conn
+    | "Vault"i ("ListDbConnections"i  | "List"i "DbConnections"i)  expr vault_args -> vault_list_db_conns
+    | "Vault"i ("ResetDbConnection"i  | "Reset"i "DbConnection"i)  expr vault_args -> vault_reset_db_conn
+    | "Vault"i ("RotateDbConnectionCredentials"i | "Rotate"i "DbConnection"i "Credentials"i) expr vault_args -> vault_rotate_db_conn
     //------------------------------------------------------------
-    // Database Secrets Engine: roles
+    // Database Secrets Engine: Roles
+    // Use "Type Is [Static | Dynamic]" with Static as the default
     //------------------------------------------------------------
-    | "Vault"i "CreateDbRole"i expr vault_args -> vault_create_db_role
-    | "Vault"i "ReadDbRole"i expr vault_args   -> vault_read_db_role
-    | "Vault"i "UpdateDbRole"i expr vault_args -> vault_update_db_role
-    | "Vault"i "DeleteDbRole"i expr vault_args -> vault_delete_db_role
-    | "Vault"i "ListDbRoles"i expr vault_args  -> vault_list_db_roles
-    | "Vault"i "GenerateDbRoleCredentials"i expr vault_args -> vault_generate_db_role_creds
-    // Note: while other db_role calls use Type is dynamic/static,
-    //       rotate only applied to static. If you specify type, if must be static
-    | "Vault"i "RotateDbRoleCredentials"i expr vault_args -> vault_rotate_db_role_creds
+    | "Vault"i ("CreateDbRole"i | "Create"i "DbRole"i) expr vault_args              -> vault_create_db_role
+    | "Vault"i ("ReadDbRole"i   | "Read"i "DbRole"i) expr vault_args                -> vault_read_db_role
+    | "Vault"i ("UpdateDbRole"i | "Update"i "DbRole"i) expr vault_args              -> vault_update_db_role
+    | "Vault"i ("DeleteDbRole"i | "Delete"i "DbRole"i) expr vault_args              -> vault_delete_db_role
+    | "Vault"i ("ListDbRoles"i  | "List"i "DbRoles"i) expr vault_args               -> vault_list_db_roles
+    | "Vault"i ("GenerateDbRoleCredentials"i | "Generate"i "DbRole"i "Credentials"i) expr vault_args -> vault_generate_db_role_creds
+    | "Vault"i ("RotateDbRoleCredentials"i   | "Rotate"i "DbRole"i "Credentials"i) expr vault_args   -> vault_rotate_db_role_creds // "Type Is Static" only
     //------------------------------------------------------------
     // Generic Vault API interactions
     // The expr is the path part of the URL. It should include everything
     // except the host name and port. It may have to be URL encoded.
     //------------------------------------------------------------
-    | "Vault"i ("Get"i | "Read"i) expr vault_args    -> vault_api_get
-    | "Vault"i "List"i expr vault_args   -> vault_api_list
-    | "Vault"i "Delete"i expr vault_args -> vault_api_delete
-    | "Vault"i ("Post"i | "Create"i | "Update"i) expr vault_args   -> vault_api_post
-    | "Vault"i "Patch"i expr vault_args  -> vault_api_patch
+    | "Vault"i ("Get"i | "Read"i) expr vault_args                -> vault_api_get
+    | "Vault"i "List"i expr vault_args                           -> vault_api_list
+    | "Vault"i "Delete"i expr vault_args                         -> vault_api_delete
+    | "Vault"i ("Post"i | "Create"i | "Update"i) expr vault_args -> vault_api_post
+    | "Vault"i "Patch"i expr vault_args                          -> vault_api_patch
 
-vault_conn_arg: "To"i "Host"i? expr -> conn_addr
+vault_conn_arg: "To"i "Host"i? expr                            -> conn_addr
     | ("With"i "Token"i? | "Token"i "Is"i) expr                -> conn_token
     | "Timeout"i option_value _unit_seconds?                   -> conn_timeout
     | ("BlockSize"i | "Block"i "Size"i) option_value "Bytes"i? -> conn_blocksize
     | "As"i expr -> conn_name
 
-# NB: Expression are treated like tokens iff they are a single name component
-#     and are undefined in the data dictionary
+// NB: Expression are treated like tokens iff they are a single name component
+//     and are undefined in the data dictionary
 vault_args: _options_list{vault_option}
-vault_option: "CAS"i option_value              -> vopt_cas
-    | "Config"i option_value                   -> vopt_config
-    | "Data"i option_value                     -> vopt_data
-    | "Description"i option_value              -> vopt_description
-    | "Key"i option_value                      -> vopt_key
-    | ("Meta"i | "Metadata"i) option_value     -> vopt_metadata
-    | "Namespace"i option_value                -> vopt_namespace
-    | ("Result"i | "Results"i) "In"i? var_name -> vopt_result
-    | "Giving"i var_name                       -> vopt_result
-    | ("Secret"i | "Secrets"i) ("Is"i | "Are"i)? expr -> vopt_data # Alias for data
-    | "Type"i option_value                     -> vopt_type
-    | "Using"i "Connection"i? expr             -> vopt_using
-    | ("Version"i | "Ver"i) option_value       -> vopt_version
+vault_option: "CAS"i option_value                     -> vopt_cas
+    | "Config"i option_value                          -> vopt_config
+    | "Data"i option_value                            -> vopt_data
+    | "Description"i option_value                     -> vopt_description
+    | "Key"i option_value                             -> vopt_key
+    | ("Meta"i | "Metadata"i) option_value            -> vopt_metadata
+    | "Namespace"i option_value                       -> vopt_namespace
+    | ("Result"i | "Results"i) "In"i? var_name        -> vopt_giving      // Deprecated, remove in 1.2.3
+    | "Giving"i var_name                              -> vopt_giving
+    | ("Secret"i | "Secrets"i) ("Is"i | "Are"i)? expr -> vopt_data        // Alias for data
+    | "Type"i option_value                            -> vopt_type        // Value varies by context
+    | "Using"i "Connection"i? expr                    -> vopt_using
+    | ("Version"i | "Ver"i) option_value              -> vopt_version
