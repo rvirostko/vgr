@@ -105,7 +105,7 @@ def run_vgr_test_statement(line: str) -> tuple[int, str]:
         except Exception as e: # pylint: disable=broad-exception-caught
             exit_code = VgrExitingException.EXIT_FAILED
             exception = e
-            print_stderr(str(e))
+            print_stderr(e)
     output = output_buf.getvalue()
     print(output)
     return (exit_code, exception, output)
