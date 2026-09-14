@@ -62,6 +62,7 @@ from .builtins import (
     poly_type,
     poly_shorten,
 )
+from .src_mgr import StatementSourceMgr
 
 def do_set(ctx: ExecContext, value: Any, *path) -> None:
     """
@@ -111,28 +112,18 @@ def create_param_list(ctx: ExecContext, node: Tree) -> tuple:
                     raise VgrRuntimeError(node, ValueError(f'Parameters {".".join(p1)!r} and {".".join(p2)!r} overlap'))
     return [entry[0] for entry in param_paths]
 
-def assert_has_meta(tree: Tree):
-    """Correct error handling relies on the metadata, so we need to check correctness"""
-    assert hasattr(tree, 'meta'), f"Tree node {tree.data} is missing .meta"
-    meta = tree.meta
-    missing = []
-    for attr in ('start_pos', 'end_pos', 'line', 'column', 'end_line', 'end_column'):
-        if not hasattr(meta, attr) or getattr(meta, attr) is None:
-            missing.append(attr)
-    assert not missing, (f"Tree node {tree.data} has incomplete meta: missing {', '.join(missing)}")
-
 class Operation(Tree, ABC):
     """A replacement Tree node that adds a slot for execution"""
 
     __slots__ = ("_meta",)
 
     def __init__(self, base: Tree):
-        assert_has_meta(base)
+        StatementSourceMgr.assert_has_meta(base)
         # Shallow copy of the children array
         super().__init__(base.data, base.children[:] or [])
         # Deep copy out of paranoia
         self._meta = deepcopy(base.meta)
-        assert_has_meta(self)
+        StatementSourceMgr.assert_has_meta(self)
 
     @abstractmethod
     def execute(self, ctx: ExecContext, args: list) -> Any:

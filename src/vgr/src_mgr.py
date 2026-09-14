@@ -35,6 +35,17 @@ class StatementSourceMgr:
         return text[start_pos : end_pos]
 
     @staticmethod
+    def assert_has_meta(tree: Tree):
+        """Correct error handling relies on the metadata, so we need to check correctness"""
+        assert hasattr(tree, 'meta'), f"Tree node {tree.data} is missing .meta"
+        meta = tree.meta
+        missing = []
+        for attr in ('start_pos', 'end_pos', 'line', 'column', 'end_line', 'end_column'):
+            if not hasattr(meta, attr) or getattr(meta, attr) is None:
+                missing.append(attr)
+        assert not missing, (f"Tree node {tree.data} has incomplete meta: missing {', '.join(missing)}")
+
+    @staticmethod
     def span(item: Tree) -> tuple:
         """
         Return (start_pos, end_pos) for a lark Tree or Token.
@@ -48,12 +59,12 @@ class StatementSourceMgr:
         def _walk(node: Tree) -> None:
             nonlocal start, end
             if isinstance(node, Tree):
-                start = min(start, node.meta.start_pos)
-                end = max(end, node.meta.end_pos)
+                start = min(start, getattr(node.meta, "start_pos", start))
+                end = max(end, getattr(node.meta, "end_pos", end))
                 for child in node.children: _walk(child)
             else:
-                start = min(start, node.start_pos)
-                end = max(end, node.end_pos)
+                start = min(start, getattr(node, "start_pos", start))
+                end = max(end, getattr(node, "end_pos", end))
 
         if item.children: _walk(item)
         return start, end
