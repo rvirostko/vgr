@@ -88,7 +88,7 @@ include-package-data = true
 where = ["src"]
 
 [tool.setuptools.package-data]
-"vgr" = ["images/*.png", "**/*.lark", "**/*.json", "**/*.ini"]
+"vgr" = ["images/*.png", "**/*.lark", "**/*.json", "**/*.ini", "**/*.js"]
 
 [tool.setuptools.exclude-package-data]
 "*" = ["README.md"]
