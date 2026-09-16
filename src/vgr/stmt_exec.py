@@ -1,6 +1,6 @@
 
 from functools import lru_cache
-from typing import Any, Iterable
+from typing import Any, Callable, Iterable
 import ast
 import math
 import re
@@ -655,7 +655,7 @@ Also see `Break` and `Continue`
             ctx.dd.pop_frame()
 
 @control_statement
-@bound_ops("For Next")
+@bound_ops("For")
 def execute_for_next(ctx: ExecContext, statement: Tree) -> None:
     """
 **Execute a set of statements based on a loop counter which controls how many repetitions are performed**
@@ -1052,14 +1052,21 @@ def statement_defined(name: str) -> bool: return name in _STATEMENT_HANDLERS
 def register_statement(name: str, handler) -> None: _STATEMENT_HANDLERS[name] = handler
 
 @lru_cache
-def get_statement_entries() -> list:
+def get_statement_entries() -> dict:
     entries = {}
     for _, func in _STATEMENT_HANDLERS.items():
         # See builtins/common for the bound_ops decorator
         if hasattr(func, 'bound_ops'):
             for op in func.bound_ops:
+                # the function, a one-work lookup, lowercase version of the doc
                 entries[op] = (func, op.lower().replace(' ', ''), (func.__doc__ or '').lower())
     return entries
+
+def get_statement_op(name: str) -> Callable[..., Any]:
+    """Given a statement name get the function that implements it"""
+    for _, func in _STATEMENT_HANDLERS.items():
+        if hasattr(func, 'bound_ops') and name in func.bound_ops: return func
+    return None
 
 class DefaultExecContext(ExecContext):
 

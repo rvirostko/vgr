@@ -27,17 +27,11 @@ def get_function_entries() -> dict[str, tuple[Callable[..., Any], str, str]]:
     value: function, name (lc), documentation
     """
     return {
-        name: (func, name.lower(), (func.__doc__ or '').lower())
+        name: (func, name.lower(), get_function_doc(func).lower())
         for name, func in _FUNC_OPS.items()
     }
 
-def function_names_pattern() -> str:
-    """
-    Return a regex string that will match built-in
-    function names.
-    """
-    functions = sorted(_FUNC_OPS.keys(), key=len, reverse=True)
-    return r"(?i)\b(?:" + "|".join(functions) + r")(?=\s*\()"
+def get_builtin_function_names() -> str: return list(_FUNC_OPS.keys())
 
 def add_builtin_functions() -> None:
     add_functions('built-in', BuiltinRegistry.items())
@@ -67,6 +61,18 @@ def get_function_op(name: str) -> Callable[..., Any]:
         # SNO
         raise NotImplementedError(f'Function {name!r} not implemented') # pragma no cover
     return function[1]
+
+def get_function_doc(func: Callable[..., Any]) -> str:
+    """Given a function get the documentation for it"""
+    return (func.__doc__ or "").strip() if func else ""
+
+def get_doc_summary(func: Callable[..., Any]) -> str:
+    """
+    Return the first non-blank line, stripped of bolding (the convention)
+    and no period at the end
+    """
+    doc = get_function_doc(func)
+    return doc.splitlines()[0].strip().strip("*").strip().rstrip(".") if doc else None
 
 def get_function_defs(weight: int=99) -> str:
     """Dynamically generate the LARK patterns for functions based on our dictionary"""

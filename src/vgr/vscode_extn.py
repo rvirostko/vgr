@@ -6,20 +6,27 @@ from importlib import resources as impresources
 from lark import Lark
 
 from . import images
+from . import js
 from . import __version__
+from .functions import (
+    get_builtin_function_names,
+    get_function_doc,
+    get_function
+)
+from .stmt_exec import get_statement_op
 
 # Written to package.json
 _PACKAGE = {
-    "name": "vgr-syntax",
-    "displayName": "VGR Syntax Highlighting",
-    "description": "Syntax highlighting for the VGR DSL",
-    "version": "",
-    "icon": "images/icon.png",
-    "publisher": "rvirostko@icloud.com",
-    "author": "Ross Virostko <rvirostko@icloud.com>",
-    "engines": {
-        "vscode": "^1.50.0"
-    },
+    "name":        "vgr-syntax",
+    "displayName": "VGR Language Highlighting and Autocomplete",
+    "description": "Syntax highlighting and completion for the VGR scripting language",
+    "version":     "", # set dynamically
+    "icon":        "images/icon.png",
+    "publisher":   "rvirostko@icloud.com",
+    "author":      "Ross Virostko <rvirostko@icloud.com>",
+    "engines":     { "vscode": "^1.60.0" },
+    "main":        "./extension.js",
+    "activationEvents": ["onLanguage:vgr"],
     "contributes": {
         "languages": [
             {
@@ -35,31 +42,36 @@ _PACKAGE = {
                 "scopeName": "source.vgr",
                 "path": "./syntaxes/vgr.tmLanguage.json"
             }
-        ]
+        ],
+        "configurationDefaults": {
+            "[vgr]": { "editor.wordBasedSuggestions": "currentDocument" }
+        }
     }
 }
 
 # Written to language-configuration.json
 _LANG_CONFIG = {
     "comments": {
-        "lineComment": "#",
-        "lineComment": "//",
+        "lineComment":  "#",
+        "lineComment":  "//",
         "blockComment": ["/*", "*/"]
     },
     "brackets": [
+        ["{", "}"],
         ["[", "]"],
         ["(", ")"]
     ],
     "autoClosingPairs": [
         { "open": "[", "close": "]" },
         { "open": "(", "close": ")" },
-        { "open": "\"", "close": "\"" },
+        { "open": '"', "close": '"' },
         { "open": "'", "close": "'" },
     ],
     "surroundingPairs": [
+        { "open": "{", "close": "}" },
         { "open": "[", "close": "]" },
         { "open": "(", "close": ")" },
-        { "open": "\"", "close": "\"" },
+        { "open": '"', "close": '"' },
         { "open": "'", "close": "'" },
         { "open": "‘", "close": "’" },
         { "open": "“", "close": "”" }
@@ -178,7 +190,7 @@ def _constants_pattern(_parser: Lark) -> str:
     """Returns a regex pattern that will match a constant"""
     return "(?i)" + r"\b(:?" + "|".join(sorted(_CONSTS, key=len, reverse=True)) + r")\b"
 
-_KEYWORD_PATTERN = re.compile("[A-Z][A-Za-z-]+")
+_KEYWORD_PATTERN = re.compile("[@A-Z][A-Za-z-]+")
 # These keep things like "foo.for" from highlighting the "for" part
 _KEYWORD_START_BOUNDRY = r"(?<![.\w_])"
 _KEYWORD_END_BOUNDRY = r"(?![.\w-])"
@@ -188,7 +200,11 @@ def _keyword_pattern(parser: Lark) -> str:
     Returns a regex pattern that will match a keyword.
     Only includes terminals defined as literal strings, not regexes.
     """
-    # NB: part of VSC extension
+    keywords = _keyword_list(parser)
+    # Pattern assures that it is a stand-alone word
+    return "(?i)" + _KEYWORD_START_BOUNDRY + "(:?" + "|".join(sorted(keywords, key=len, reverse=True)) + ")" + _KEYWORD_END_BOUNDRY
+
+def _keyword_list(parser: Lark) -> list[str]:
     keywords = []
     for t in parser.terminals:
         # Lark >= 1.0 uses t.pattern.value for literals
@@ -196,40 +212,87 @@ def _keyword_pattern(parser: Lark) -> str:
         if value is not None and re.fullmatch(_KEYWORD_PATTERN, value):
             if value not in _CONSTS:
                 keywords.append(value)
-    # Pattern assures that it is a stand-alone word
-    return "(?i)" + _KEYWORD_START_BOUNDRY + "(:?" + "|".join(sorted(keywords, key=len, reverse=True)) + ")" + _KEYWORD_END_BOUNDRY
+    return sorted(keywords)
 
-def create_vscode_extension(debug: bool, parser: Lark, function_pattern: str) -> None:
+def _keywords(parser: Lark) -> list[dict]:
+    keywords = []
+    for name in _keyword_list(parser):
+        statement = get_statement_op(name)
+        if statement is None:
+            if name.find('-') != -1:
+                statement = get_statement_op(n := name.replace('-', ' '))
+                if statement is not None: name = n
+        entry = {
+            "name":          name,
+            #"insertText":    None, defaults to name
+            #"detail":        None, not sure how to use this...
+        }
+        if doc := get_function_doc(statement):
+            entry["documentation"] = doc
+        keywords.append(entry)
+    return keywords
+
+def _functions_pattern() -> str:
+    """
+    Return a regex string that will match built-in
+    function names.
+    """
+    functions = sorted(get_builtin_function_names(), key=len, reverse=True)
+    return r"(?i)\b(?:" + "|".join(functions) + r")(?=\s*\()"
+
+def _functions() -> list[dict]:
+    functions = []
+    for name in sorted(get_builtin_function_names()):
+        func = get_function(name)[1]
+        entry = {
+            "name":          name,
+            #"insertText":    None, defaults to name, need a way to specify on the function
+            #"detail":        None, # This should be in the form of a function signiture
+        }
+        if doc := get_function_doc(func):
+            entry["documentation"] = doc
+        functions.append(entry)
+    return functions
+
+def _bin_copy(file_in: str, out_file: str) -> None:
+    # Source - https://stackoverflow.com/a/20885799
+    # Posted by ankostis, modified by community.
+    # Retrieved 2026-05-20, License - CC BY-SA 4.0
+    with file_in.open("rb") as f:
+        data = f.read()
+        with open(out_file, "wb") as f:
+            f.write(data)
+
+def create_vscode_extension(debug: bool, parser: Lark) -> None:
     """
     Creates a directory with the required structure and files
-    to be a Visual Studion Code extension.
+    to be a Visual Studio Code extension.
     """
-    keyword_pattern = _keyword_pattern(parser)
+    keywords_pattern = _keyword_pattern(parser)
     constants_pattern = _constants_pattern(parser)
+    functions_pattern = _functions_pattern()
     if debug:
-        print(f'(r"{keyword_pattern}", Keyword),')
+        print(f'(r"{keywords_pattern}", Keyword),')
         print(f'(r"{constants_pattern}", Name.Constant),')
-        print(f'(r"{function_pattern}", Name.Function),')
+        print(f'(r"{functions_pattern}", Name.Function),')
     out_dir = "vgr-syntax"
     # Ensure base folder structure
     os.makedirs(out_dir, exist_ok=True)
     _PACKAGE["version"] = __version__
     with open(os.path.join(out_dir, "package.json"), "w", encoding="utf-8", errors='backslashreplace') as f:
-        json.dump(_PACKAGE, f, indent=4)
+        json.dump(_PACKAGE, f, indent=2)
     with open(os.path.join(out_dir, "language-configuration.json"), "w", encoding="utf-8", errors='backslashreplace') as f:
-        json.dump(_LANG_CONFIG, f, indent=4)
+        json.dump(_LANG_CONFIG, f, indent=2)
+    _bin_copy(impresources.files(js) / 'extension.js', os.path.join(out_dir, "extension.js"))
+    with open(os.path.join(out_dir, "keywords.json"), "w", encoding="utf-8", errors='backslashreplace') as f:
+        json.dump(_keywords(parser), f, indent=2)
+    with open(os.path.join(out_dir, "functions.json"), "w", encoding="utf-8", errors='backslashreplace') as f:
+        json.dump(_functions(), f, indent=2)
     syntaxes_dir = os.path.join(out_dir, "syntaxes")
     os.makedirs(syntaxes_dir, exist_ok=True)
-    grammar_json = _vscode_syntax_highlighting(keyword_pattern, constants_pattern, function_pattern)
+    grammar_json = _vscode_syntax_highlighting(keywords_pattern, constants_pattern, functions_pattern)
     with open(os.path.join(syntaxes_dir, "vgr.tmLanguage.json"), "w", encoding="utf-8", errors='backslashreplace') as f:
         f.write(grammar_json)
     out_dir_images = out_dir + "/images"
     os.makedirs(out_dir_images, exist_ok=True)
-    # Source - https://stackoverflow.com/a/20885799
-    # Posted by ankostis, modified by community.
-    # Retrieved 2026-05-20, License - CC BY-SA 4.0
-    inp_file = impresources.files(images) / 'vgr-icon-128x128.png'
-    with inp_file.open("rb") as f:
-        image_data = f.read()
-        with open(os.path.join(out_dir_images, "icon.png"), "wb") as f:
-            f.write(image_data)
+    _bin_copy(impresources.files(images) / 'vgr-icon-128x128.png', os.path.join(out_dir_images, "icon.png"))

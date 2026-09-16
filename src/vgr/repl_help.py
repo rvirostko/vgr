@@ -11,8 +11,13 @@ from rapidfuzz import fuzz
 
 from .stmt_exec import get_statement_entries
 from .operators import get_operator_entries
-from .functions import get_function_entries
+from .functions import (
+    get_function_entries,
+    get_function_doc,
+    get_doc_summary
+)
 from .md_print import md_println
+from .builtins.markdown import md_code, md_unordered_list, md_strong, md_emphasis
 
 _HEADING_PATTERN = re.compile(r'^(#+)\s+(.*)$', re.MULTILINE)
 _ANCHOR_LINK_PATTERN = re.compile(r'\[([^\]]+)\]\(#([^)]+)\)')
@@ -73,7 +78,9 @@ def _all_help(entries: list) -> list: return unique_by_func([(name, entries[name
 def _display_help_results(search_type: str, q: str, results: list) -> None:
     if len(results) == 0:
         # We could not find anything
-        md_println("\n", f'_Nothing matches{" " + repr(q) if q else ""}_', "\n")
+        md_println("\n",
+                   md_emphasis(f'Nothing matches{" " + repr(q) if q else ""}'),
+                   "\n")
     elif len(results) == 1:
         # We got an single match
         # Show the help for the item
@@ -82,20 +89,21 @@ def _display_help_results(search_type: str, q: str, results: list) -> None:
         # Multiple results
         # Show as a list with a summary
         lines = []
-        lines.append(f'**{"Search Results" if q else search_type}-**')
         for name, func in results:
-            doc = (func.__doc__ or "").strip()
-            if doc:
-                # Display first non-blank line, stripped of bolding (the convention) and no sentence
-                lines.append(f'* `{name}` - {doc.splitlines()[0].strip().strip("*").rstrip(".")}')
+            if summary := get_doc_summary(func):
+                lines.append(md_code(name) + " - " + summary)
             else:
-                lines.append(f'* `{name}`')
-        md_println("\n", "\n".join(lines), "\n")
+                lines.append(md_code(name))
+        md_println("\n",
+                   md_strong(("Search Results" if q else search_type) + "-"),
+                   md_unordered_list(lines),
+                   "\n")
 
 def print_doc(func: Callable) -> None:
     """Prints the documentation for a function to the console as Markdown text"""
-    doc = (func.__doc__ or "").strip()
-    md_println("\n", doc or '***Sorry, no documentation available***', "\n")
+    md_println("\n",
+               get_function_doc(func) or md_strong('Sorry, no documentation available'),
+               "\n")
 
 _LIST_TOPICS = { # help list <topic>
     _FUNCTION_TOPIC_KEY:  _list_functions,

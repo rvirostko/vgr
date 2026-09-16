@@ -25,7 +25,6 @@ from .extn import VgrExtension, VgrExtensionRegistry, VER
 from .functions import (
     add_builtin_functions,
     add_functions,
-    function_names_pattern,
     get_function_defs,
 )
 from .repl import VgrRepl
@@ -186,7 +185,7 @@ Environment variables:
     md_create_lexer(parser)
 
     if args.gen_vsc_extn:
-        create_vscode_extension(args.debug, parser, function_names_pattern())
+        create_vscode_extension(args.debug, parser)
         sys.exit(VgrExitingException.EXIT_SUCCESS)
 
     ctx = create_exec_context(parser, dd)

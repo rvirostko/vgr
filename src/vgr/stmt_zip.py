@@ -16,12 +16,12 @@ from .builtins import bound_ops, poly_type, verify_relative_path
 from .exec_context import ExecContext
 from .redir import prepare_path
 
-@bound_ops("Create ZIP")
+@bound_ops("Create Zip")
 def execute_zip(ctx: ExecContext, statement: Tree):
     """
 **Create a ZIP Archive**
 
-* Create-Zip [File] *zip-file*\\
+* Create Zip [File] *zip-file*\\
   &emsp;&emsp;[*option*[, *option*]&hellip;]
 
 Options are
@@ -52,7 +52,7 @@ Both files and directories must be relative to the current directory.
 If `Comment` is specified multiple times, only the last one is used.
 
 ```vgr
-Create-Zip File "reports.zip"
+Create Zip File "reports.zip"
   Include "out",
   Include ["*.csv", "*.json"],
   Exclude ["*.log", "*.err"],

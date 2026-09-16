@@ -9,6 +9,7 @@ import sys
 from vgr import __version__, __version_date__
 from vgr.functions import (
     get_function_entries,
+    get_function_doc
 )
 from vgr.operators import (
     get_operator_entries,
@@ -81,7 +82,7 @@ def _write_all_doc(f, entries: dict, anchor_prefix: str, is_function: bool=False
     names.sort(key=_alpha_first_key)
     for name in names:
         func = entries[name][0]
-        doc = (func.__doc__ or "").strip()
+        doc = get_function_doc(func)
         if doc:
             lines = doc.splitlines()
             title = lines[0].strip().strip("*").rstrip(".")
