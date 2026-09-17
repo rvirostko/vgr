@@ -43,8 +43,24 @@ _PACKAGE = {
                 "path": "./syntaxes/vgr.tmLanguage.json"
             }
         ],
+        "views": {
+            "explorer": [{ "id": "vgrReference", "name": "VGR Reference" }]
+        },
         "configurationDefaults": {
             "[vgr]": { "editor.wordBasedSuggestions": "currentDocument" }
+        },
+        "commands": [
+            { "command": "vgr.runFile",   "category": "VGR", "title": "Run Script", "icon": "$(play)" },
+            { "command": "vgr.startRepl", "category": "VGR", "title": "Open REPL",  "icon": "$(terminal)" }
+        ],
+        "menus": {
+            "editor/title/run": [
+                {
+                    "command": "vgr.runFile",
+                    "when": "editorLangId == vgr",
+                    "group": "navigation@0"
+                }
+            ]
         }
     }
 }
