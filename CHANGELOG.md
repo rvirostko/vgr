@@ -2,7 +2,7 @@
 
 # VGR Changelog
 
-## [Unreleased]
+## [1.2.2] - 2026-09-18
 
 ### Added
 
@@ -85,8 +85,6 @@
 - "Verbose" + "Echo" prints both the line and column numbers of the statements.
   Prevously only the line was printed.
 - Internal change: automatic registration of built-in functions
-
-### Deprecated
 
 ### Removed
 
@@ -416,7 +414,7 @@ have been checked and documented.
 Fixes for Windows and newer
 revs of Python.
 
-[Unreleased]: https://github.com/rvirostko/vgr/compare/v1.2.1...HEAD
+[1.2.2]: https://github.com/rvirostko/vgr/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/rvirostko/vgr/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/rvirostko/vgr/compare/v1.1.10...v1.2.0
 [1.1.10]: https://github.com/rvirostko/vgr/compare/v1.1.9...v1.1.10
