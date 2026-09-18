@@ -6,8 +6,11 @@
 
 ### Added
 
-- Added "Else-If" (or "ElseIf") to the "If" statement
-- Added "If ... =>/⇒" guard format to the "If" statement
+- Added "Else-If"/"ElseIf" to the "If" statement
+- Added single statement formats to "For Each", "If", "Unless", "Repeat", "Until", and "While".
+  Instead of defining a block of statement defined by an "End", follow the expression with a right
+  arrow (->, =>, →, or ⇒) and a single statement to be executed.
+  Note that the "For-Next" does not support this.
 - Added "GetFileInfo()" to retrieve information on one or more file/directory paths.
   Variable length arguments and supports polymorphism with lists and dictionaries.
 - Added "Head()" and "Tail()" to return a subset of lists.
@@ -32,6 +35,10 @@
 - Vault commands take a multi-word command (e.g. "List Mounts" vs "ListMounts").
   While the single-word versions are available, they are deprecated.
 - Vault "Results Is..." clause is deprecated; use "Giving..."
+- The Visual Studio Code extension now provides completion, triggered by Ctrl-Space,
+  hover help, and an on-line help reference in the side bar. When editing a VGR
+  script, you can execute it in a terminal using the "play" button in the
+  upper right. These features are currently considered preliminary at best.
 - Breaking change: "Left/RightShift()" renamed to "ShiftLeft/Right()"
   to match "RotateLeft/Right()"
 - Breaking change: "Include/Exclude Nulls" removed from "Select" statements

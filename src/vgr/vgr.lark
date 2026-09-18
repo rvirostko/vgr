@@ -133,36 +133,43 @@ declare: _decl _csep_list{var_name}
     |    _decl _csep_list{var_name} "As"i? "Global"i -> declare_global
 _decl: "Declare"i
 
+_right_arrow: "->" | "\u2192"| "=>" | "\u21D2" // Unicode → (RIGHTWARDS ARROW) and ⇒ (rightwards double arrow)
 
 function_def: "Define"i? func_modifier* "Function"i
 func_modifier: ("Constant"i | "Const"i)               -> mod_const
     |          ("Cached"i | "Cache"i) ("(" expr ")")? -> mod_cached
-_function_arrow: "->" | "=>" | "\u2192"
 define_statements: function_def var_name func_params? _CLAUSE_SEP? func_body ("End-Function"i | "End"i) -> def_function
-    |              function_def var_name func_params? _function_arrow expr                              -> def_arrow
-    |              function_def var_name func_params? _function_arrow "Compile"i "(" expr ")"           -> compile_arrow
+    |              function_def var_name func_params? _right_arrow expr                                 -> def_arrow
+    |              function_def var_name func_params? _right_arrow "Compile"i "(" expr ")"              -> compile_arrow
 // NB: doesn't work with template; probably should be changed to use var_name anyway
 func_params: "(" (NAME (_SEP NAME)*)? ")" -> params
 func_body: statement+ -> body
 
-// Note: this combines BASIC-like syntax (For Each) and VGR (For-Each)
 foreach_statement: ("For-Each"i | "For"i "Each"i) var_name "In"i expr _CLAUSE_SEP? statement+ _end_for -> foreach
+    |              ("For-Each"i | "For"i "Each"i) var_name "In"i expr _right_arrow statement           -> foreach
 
 for_next: "For"i var_name _EQ expr "To"i expr _CLAUSE_SEP? statement+ _end_for
     |     "For"i var_name _EQ expr "To"i expr "Step"i expr _CLAUSE_SEP? statement+ _end_for -> for_next_by
 _end_for: "End-For"i | "Next"i | "End"i
 
-if_statement: if_guard | if else_if* else? ("End-If"i | "End"i)
+if_statement: if_immediate | if else_if* else? ("End-If"i | "End"i)
 if: "If"i expr _then_sep? statement+
-if_guard: "If"i expr ("=>" | "\u21D2") statement -> if // Unicode ⇒ (rightwards double arrow)
+if_immediate: "If"i expr _right_arrow statement -> if
 else_if: ("Else-If"i | "ElseIf"i) expr _then_sep? statement+
 else: "Else"i _CLAUSE_SEP? statement+
 _then_sep: ("Then"i | _CLAUSE_SEP)
 
-repeat_statement: "Repeat"i expr ("Time"i | "Times"i)? _CLAUSE_SEP? statement+ ("End-Repeat"i | "End"i) -> repeat
 unless_statement: "Unless"i expr _CLAUSE_SEP? statement+ ("End-Unless"i | "End"i) -> unless
+    |             "Unless"i expr _right_arrow statement                           -> unless
+
+repeat_statement: "Repeat"i expr ("Time"i | "Times"i)? _CLAUSE_SEP? statement+ ("End-Repeat"i | "End"i) -> repeat
+    |             "Repeat"i expr ("Time"i | "Times"i)? _right_arrow statement                           -> repeat
+
 until_statement: "Until"i expr _CLAUSE_SEP? statement+ ("End-Until"i | "End"i) -> until
+    |            "Until"i expr _right_arrow statement                          -> until
+
 while_statement: "While"i expr _CLAUSE_SEP? statement+ ("End-While"i | "End"i) -> while
+    |            "While"i expr _right_arrow statement                          -> while
 
 break: "Break"i
 continue: "Continue"i

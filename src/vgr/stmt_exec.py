@@ -305,7 +305,7 @@ def _declare(ctx: ExecContext, statement: Tree, as_local: bool) -> None:
             ctx.print_verbose('.'.join(var_path), 'declared as', 'Local' if rc else 'Global')
 
 @control_statement
-@bound_ops("If Else")
+@bound_ops("If")
 def execute_if(ctx: ExecContext, statement: Tree) -> None:
     """
 **Conditionally execute a block of statements**
@@ -325,7 +325,7 @@ def execute_if(ctx: ExecContext, statement: Tree) -> None:
   Else [:]\\
   &emsp;&emsp;*statement*&hellip;\\
   End-If
-* If *expression* [=> | ⇒] *statement*
+* If *expression* [-> | => | → | ⇒] *statement*
 
 The `If` statement may have any number of `Else-If` tests, but they must appear before
 the `Else`, which is optional.
@@ -355,8 +355,9 @@ Print "Time Check is", @CheckIfTime()
 **If as a single statement "guard"**
 
 An `If` can be used as a "guard" for a single statement by
-following *expression* with `=>` or `⇒`. If the expression evaluates to
-`True` the statement is executed. No `End` or `End-If` is required.
+following *expression* with a right arrow (`->`, `=>`, `→`, or `⇒`).
+If the expression evaluates to `True` the statement is executed.
+No `End` or `End-If` is required.
 
 ```vgr
 Define Function TestX(x)
@@ -371,7 +372,7 @@ Define Function PosOrNeg(value)
 End-Function
 ```
 
-Also see `Unless`.
+Also see the `Unless` statement.
 """
     for clause in statement.children:
         if clause.data in ("if", "else_if"):
@@ -393,8 +394,16 @@ def execute_unless(ctx: ExecContext, statement: Tree) -> None:
 * Unless *expression* [:]\\
   &emsp;&emsp;*statement*&hellip;\\
   [End-Unless | End]
+* Unless *expression* [-> | => | → | ⇒] *statement*
 
 If the expression evaluates to `False` the block of statements is executed.
+
+**Unless as a single statement "guard"**
+
+An `Unless` can be used as a "guard" for a single statement by
+following *expression* with a right arrow (`->`, `=>`, `→`, or `⇒`).
+If the expression evaluates to `True` the statement is executed.
+No `End` or `End-Unless` is required.
 
 ```vgr
 Function is_valid(item) -> /* logic here */
@@ -417,7 +426,7 @@ Print "Result:", result
 Print "Attempts:", attempts
 ```
 
-Also see `If Else`
+Also see the `If` statement
 """
     # echo the statement and the condition
     if ctx.echo: ctx.echo_source(statement, statement.children[1])
@@ -425,7 +434,7 @@ Also see `If Else`
     if poly_is_true(ctx.eval_expr(bind_operations(statement.children[0]))) == False:
         ctx.dispatch_statements(statement.children[1:])
 
-def exec_loop(ctx: ExecContext, statement: Tree, desired_value: bool, block_types=BlockType.ALL_BLOCKS) -> None:
+def _exec_loop(ctx: ExecContext, statement: Tree, desired_value: bool) -> None:
     """Internal implemenation for loops with a predicate"""
     if ctx.echo: ctx.echo_source(statement, statement.children[1])
     predicate = bind_operations(statement.children[0])
@@ -439,10 +448,10 @@ def exec_loop(ctx: ExecContext, statement: Tree, desired_value: bool, block_type
             try:
                 ctx.dispatch_statements(statement.children[1:])
             except VgrStatementBreak as e:
-                e.validate_for_block(block_types)
+                e.validate_for_block(BlockType.ALL_BLOCKS)
                 return
             except VgrStatementContinue as e:
-                e.validate_for_block(block_types)
+                e.validate_for_block(BlockType.ALL_BLOCKS)
             i += 1
     finally:
         ctx.dd.pop_frame()
@@ -456,6 +465,7 @@ def execute_while(ctx: ExecContext, statement: Tree) -> None:
 * While *expression* [:]\\
   &emsp;&emsp;*statement*&hellip;\\
   [End-While | End]
+* While *expression* [-> | => | → | ⇒] *statement*
 
 As long as the expression evaluates to `True`, the block of statements is
 repeatedly executed.
@@ -479,7 +489,7 @@ End-While
 
 Also see `Until` in addition to `Break` and `Continue`
 """
-    exec_loop(ctx, statement, True)
+    _exec_loop(ctx, statement, True)
 
 @control_statement
 @bound_ops("Until")
@@ -490,6 +500,7 @@ def execute_until(ctx: ExecContext, statement: Tree) -> None:
 * Until *expression* [:]\\
   &emsp;&emsp;*statement*&hellip;\\
   [End-Until | End]
+* Until *expression* [-> | => | → | ⇒] *statement*
 
 The block of statements is executed until the expression evaluates to `True`.
 If `Break` is encountered, looping ends regardless of the
@@ -512,7 +523,7 @@ End-Until
 
 Also see `While` in addition to `Break` and `Continue`
 """
-    exec_loop(ctx, statement, False)
+    _exec_loop(ctx, statement, False)
 
 @control_statement
 @bound_ops("Repeat")
@@ -520,9 +531,10 @@ def execute_repeat(ctx: ExecContext, statement: Tree) -> None:
     """
 **Execute a block of statements a fixed number of times**
 
-* Repeat *expression* [:]\\
+* Repeat *expression* [Time | Times] [:]\\
   &emsp;&emsp;*statement*&hellip;\\
   [End-Repeat | End]
+* Repeat *expression* [Time | Times] [-> | => | → | ⇒] *statement*
 
 The block of statements is executed the given number of times.
 The expression is evaluated an converted to an integer, rounding down.
@@ -531,10 +543,10 @@ If `Break` is encountered, looping ends regardless of the
 expression's value. If `Continue` is encountered, statements
 following it are skipped and looping continues.
 
-Statements have access to the *$loop* variable, including *index*, *length*, _first_, and _last_.
+Statements have access to the *$loop* variable, including *index*, *length*, *first*, and *last*.
 
 ```vgr
-Repeat 3:
+Repeat 3 Times:
    Print $loop
 End-Repeat
 
@@ -578,6 +590,7 @@ def execute_foreach(ctx: ExecContext, statement: Tree) -> None:
 * For Each *variable* In *expression* [:]\\
   &emsp;&emsp;*statement*&hellip;\\
   [End-For | End]
+* For Each *variable* In *expression* [-> | => | → | ⇒] *statement*
 
 If expression is a single, non-`None` value, the statements are executed
 exactly once. If a list, the statements are executed once for each item,

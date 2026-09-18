@@ -1,0 +1,37 @@
+Echo On
+
+# Different "Unless" syntax
+
+Unless False: # keep colon
+    Print "Hello"
+End # keep untyped
+
+Unless False
+    Print "Hello"
+End # keep untyped
+
+Unless True
+    Print "Goodbye"
+End # keep untyped
+
+Unless False: # keep colon
+    Print "Hello"
+End-Unless
+
+Unless False
+    Print "Hello"
+End-Unless
+
+Unless True
+    Print "Goodbye"
+End-Unless
+
+# These check the syntax, not the execution
+
+Unless False -> Print "Hello"
+Unless True → Print "Never"
+Unless False => Print "Hello"
+Unless True ⇒ Print "Never"
+
+Unless False => Unless False => Print "Hello"
+Unless False => Unless True => Print "Never"
