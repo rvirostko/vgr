@@ -2,6 +2,20 @@
 
 # VGR Changelog
 
+## [Unreleased]
+
+### Added
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
 ## [1.2.2] - 2026-09-18
 
 ### Added
@@ -414,6 +428,7 @@ have been checked and documented.
 Fixes for Windows and newer
 revs of Python.
 
+[Unreleased]: https://github.com/rvirostko/vgr/compare/v1.2.2...HEAD
 [1.2.2]: https://github.com/rvirostko/vgr/compare/v1.2.1...v1.2.2
 [1.2.1]: https://github.com/rvirostko/vgr/compare/v1.2.0...v1.2.1
 [1.2.0]: https://github.com/rvirostko/vgr/compare/v1.1.10...v1.2.0
