@@ -5,8 +5,11 @@
 // and echoes back the method name under response.method
 // -------------------------------------------------------------------------
 
-Set host To "httpbin.org"
-Set anything_url To "https://{}/anything".Format(host)
+Constant host Is "httpbin.org"
+Constant anything_url Is "https://{}/anything".Format(host)
+
+Constant TIMEOUT Is 30 # seconds
+Constant DELAY Is 1/3 # seconds
 
 Define Function CheckMethod(test_no, expected):
     If http.result.status_code Is http.status.method_not_allowed
@@ -22,21 +25,26 @@ End-Function
 
 // Using keywords
 Set n To 1
-Http Delete anything_url                 Call CheckMethod(n, "DELETE")   Add 1 To n
-Http Get anything_url                    Call CheckMethod(n, "GET")      Add 1 To n
-Http Head "https://{}/get".Format(host)  Call CheckMethod(n, "HEAD")     Add 1 To n
-Http List anything_url                   Call CheckMethod(n, "LIST")     Add 1 To n
-Http Options anything_url                Call CheckMethod(n, "OPTIONS")
+Define Function NextTest()
+    Add 1 To n
+    Sleep DELAY
+End-Function
+
+Http Delete anything_url Timeout Is TIMEOUT                 Call CheckMethod(n, "DELETE")   Call NextTest
+Http Get anything_url Timeout Is TIMEOUT                    Call CheckMethod(n, "GET")      Call NextTest
+Http Head "https://{}/get".Format(host) Timeout Is TIMEOUT  Call CheckMethod(n, "HEAD")     Call NextTest
+Http List anything_url Timeout Is TIMEOUT                   Call CheckMethod(n, "LIST")     Call NextTest
+Http Options anything_url Timeout Is TIMEOUT                Call CheckMethod(n, "OPTIONS")
 # Additional check
-Assert http.result.headers.Allow.Split(",").Strip() Contains "OPTIONS" : "Test {}: Did not return OPTIONS", n  Add 1 To n
-Http Patch anything_url                  Call CheckMethod(n, "PATCH")    Add 1 To n
-Http Post anything_url                   Call CheckMethod(n, "POST")     Add 1 To n
-Http Put anything_url                    Call CheckMethod(n, "PUT")      Add 1 To n
-Http Trace anything_url                  Call CheckMethod(n, "TRACE")    Add 1 To n
+Assert http.result.headers.Allow.Split(",").Strip() Contains "OPTIONS" : "Test {}: Did not return OPTIONS", n  Call NextTest
+Http Patch anything_url Timeout Is TIMEOUT                  Call CheckMethod(n, "PATCH")    Call NextTest
+Http Post anything_url Timeout Is TIMEOUT                   Call CheckMethod(n, "POST")     Call NextTest
+Http Put anything_url Timeout Is TIMEOUT                    Call CheckMethod(n, "PUT")      Call NextTest
+Http Trace anything_url Timeout Is TIMEOUT                  Call CheckMethod(n, "TRACE")    Call NextTest
 
 // Using dynamic methods
-Http "purge" anything_url                Call CheckMethod(n, "PURGE")    Add 1 To n
-Http " SEARCH " anything_url             Call CheckMethod(n, "SEARCH")   Add 1 To n
-Http " get " anything_url                Call CheckMethod(n, "GET")      Add 1 To n
+Http "purge" anything_url Timeout Is TIMEOUT                Call CheckMethod(n, "PURGE")    Call NextTest
+Http " SEARCH " anything_url Timeout Is TIMEOUT             Call CheckMethod(n, "SEARCH")   Call NextTest
+Http " get " anything_url Timeout Is TIMEOUT                Call CheckMethod(n, "GET")      Call NextTest
 
 Print "All method tests passed"

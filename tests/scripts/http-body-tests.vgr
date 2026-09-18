@@ -5,8 +5,11 @@
 // depending on content type
 // -------------------------------------------------------------------------
 
-Set host To "httpbin.org"
-Set target_url To "https://{}/post".Format(host)
+Constant host Is "httpbin.org"
+Constant target_url Is "https://{}/post".Format(host)
+
+Constant TIMEOUT Is 30 # seconds
+Constant DELAY Is 1/3 # seconds
 
 Define Function AssertResult(test_no):
     Assert http.result.reason Is None : "Test {} failed: {}", test_no, http.result.reason
@@ -54,43 +57,49 @@ Set n To 1
 // Bool body — no Content-Type
 // -------------------------------------------------------------------------
 Set expected To True
-Http Post target_url Body Is expected
+Http Post target_url Body Is expected Timeout Is TIMEOUT
 Call CheckDataResponse(n, expected) Giving n
+Sleep DELAY
 
 // -------------------------------------------------------------------------
 // Int body — no Content-Type
 // -------------------------------------------------------------------------
 Set expected To 42
-Http Post target_url Body Is expected
+Http Post target_url Body Is expected Timeout Is TIMEOUT
 Call CheckDataResponse(n, expected) Giving n
+Sleep DELAY
 
 // -------------------------------------------------------------------------
 // Float body — no Content-Type
 // -------------------------------------------------------------------------
 Set expected To math.pi
-Http Post target_url Body Is expected
+Http Post target_url Body Is expected Timeout Is TIMEOUT
 Call CheckDataResponse(n, expected) Giving n
+Sleep DELAY
 
 // -------------------------------------------------------------------------
 // String body — no Content-Type
 // -------------------------------------------------------------------------
 Set expected To "Hello World!"
-Http Post target_url Body Is expected
+Http Post target_url Body Is expected Timeout Is TIMEOUT
 Call CheckDataResponse(n, expected) Giving n
+Sleep DELAY
 
 // -------------------------------------------------------------------------
 // Empty string body — no Content-Type
 // -------------------------------------------------------------------------
 Set expected To ""
-Http Post target_url Body Is expected
+Http Post target_url Body Is expected Timeout Is TIMEOUT
 Call CheckDataResponse(n, expected) Giving n
+Sleep DELAY
 
 // -------------------------------------------------------------------------
 // None body — no Content-Type, expect empty data
 // -------------------------------------------------------------------------
 Set expected To None
-Http Post target_url Body Is expected
+Http Post target_url Body Is expected Timeout Is TIMEOUT
 Call CheckDataResponse(n, "") Giving n
+Sleep DELAY
 
 // =========================================================================
 // JSON types — no Content-Type specified
@@ -101,43 +110,49 @@ Call CheckDataResponse(n, "") Giving n
 // Simple dict body — no Content-Type
 // -------------------------------------------------------------------------
 Set expected To { "name": "alice", "age": 30 }
-Http Post target_url Body Is expected
+Http Post target_url Body Is expected Timeout Is TIMEOUT
 Call CheckJsonResponse(n, expected) Giving n
+Sleep DELAY
 
 // -------------------------------------------------------------------------
 // Nested dict body — no Content-Type
 // -------------------------------------------------------------------------
 Set expected To { "a": { "b": 1 } }
-Http Post target_url Body Is expected
+Http Post target_url Body Is expected Timeout Is TIMEOUT
 Call CheckJsonResponse(n, expected) Giving n
+Sleep DELAY
 
 // -------------------------------------------------------------------------
 // Empty dict body — no Content-Type
 // -------------------------------------------------------------------------
 Set expected To { }
-Http Post target_url Body Is expected
+Http Post target_url Body Is expected Timeout Is TIMEOUT
 Call CheckJsonResponse(n, expected) Giving n
+Sleep DELAY
 
 // -------------------------------------------------------------------------
 // Simple list body — no Content-Type
 // -------------------------------------------------------------------------
 Set expected To [ "a", "b", "c" ]
-Http Post target_url Body Is expected
+Http Post target_url Body Is expected Timeout Is TIMEOUT
 Call CheckJsonResponse(n, expected) Giving n
+Sleep DELAY
 
 // -------------------------------------------------------------------------
 // Mixed list body — no Content-Type
 // -------------------------------------------------------------------------
 Set expected To [ 1, "two", True ]
-Http Post target_url Body Is expected
+Http Post target_url Body Is expected Timeout Is TIMEOUT
 Call CheckJsonResponse(n, expected) Giving n
+Sleep DELAY
 
 // -------------------------------------------------------------------------
 // Empty list body — no Content-Type
 // -------------------------------------------------------------------------
 Set expected To [ ]
-Http Post target_url Body Is expected
+Http Post target_url Body Is expected Timeout Is TIMEOUT
 Call CheckJsonResponse(n, expected) Giving n
+Sleep DELAY
 
 // =========================================================================
 // Section 3: Type conflict tests — explicit Content-Type overrides default
@@ -149,33 +164,37 @@ Call CheckJsonResponse(n, expected) Giving n
 # NB - because this is a string-like check, data needs to be kept simple
 Set expected To { "key": "value" }
 Set type To http.type.text
-Http Post target_url Body Is expected Header "{}: {}".Format(http.header.content_type, type)
+Http Post target_url Body Is expected Header "{}: {}".Format(http.header.content_type, type) Timeout Is TIMEOUT
 Call CheckDataResponse(n, expected.ToString(), type) Giving n
+Sleep DELAY
 
 // -------------------------------------------------------------------------
 // List body with text/plain — should dumps() and send as text
 // -------------------------------------------------------------------------
 Set expected To [1, 2, 3]
 Set type To http.type.text
-Http Post target_url Body Is expected Header "{}: {}".Format(http.header.content_type, type)
+Http Post target_url Body Is expected Header "{}: {}".Format(http.header.content_type, type) Timeout Is TIMEOUT
 # Can't use "ToString()" here because it is distributive!
 Call CheckDataResponse(n, expected.FormatJson(None), type) Giving n
+Sleep DELAY
 
 // -------------------------------------------------------------------------
 // None body with application/json — send "null", type stays JSON
 // -------------------------------------------------------------------------
 Set expected To None
 Set type To http.type.json
-Http Post target_url Body Is expected Header "{}: {}".Format(http.header.content_type, type)
+Http Post target_url Body Is expected Header "{}: {}".Format(http.header.content_type, type) Timeout Is TIMEOUT
 Call CheckJsonResponse(n, expected, type) Giving n
+Sleep DELAY
 
 // -------------------------------------------------------------------------
 // Int body with application/json - retains int
 // -------------------------------------------------------------------------
 Set expected To 99
 Set type To http.type.json
-Http Post target_url Body Is expected Header "{}: {}".Format(http.header.content_type, type)
+Http Post target_url Body Is expected Header "{}: {}".Format(http.header.content_type, type) Timeout Is TIMEOUT
 Call CheckJsonResponse(n, expected, type) Giving n
+Sleep DELAY
 
 // -------------------------------------------------------------------------
 // String body with application/octet-stream
@@ -184,8 +203,9 @@ Set expected To ""
 For c = Zero To 255: Set expected += Chr(c); Next
 Assert expected.Length() == 256
 Set type To http.type.binary
-Http Post target_url Body Is expected Header "{}: {}".Format(http.header.content_type, type)
+Http Post target_url Body Is expected Header "{}: {}".Format(http.header.content_type, type) Timeout Is TIMEOUT
 Call CheckDataResponse(n, expected, type) Giving n
+Sleep DELAY
 
 // -------------------------------------------------------------------------
 // Handle charset correctly and perform substitions for non-encodables
@@ -194,8 +214,9 @@ Set body_value To "🎉 Hello World"
 Set expected To body_value.ReplaceStr("🎉", "?")
 For Each charset In ["ascii", "latin-1", "cp1252"]
     Set type To http.type.text + "; charset=" + charset
-    Http Post target_url Body Is body_value Header "{}: {}".Format(http.header.content_type, type)
+    Http Post target_url Body Is body_value Header "{}: {}".Format(http.header.content_type, type) Timeout Is TIMEOUT
     Call CheckDataResponse(n, expected, type) Giving n
+    Sleep DELAY
 End-For
 
 Print "All body tests passed"
