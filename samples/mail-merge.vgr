@@ -1,7 +1,7 @@
 # Example of passing in values via the command line:
 # today=`date +"%Y-%m-%d"`
 # subj="Hello Again!"
-# python3 -m vgr "${today}" "${subj}" mail-template.txt
+# vgr "${today}" "${subj}" mail-template.txt
 
 Set today To args.Item(0).DefaultTo(time.now.FormatDateTime(time.format.ymd))
 Set subj To args.Item(1).DefaultTo("Hello")
