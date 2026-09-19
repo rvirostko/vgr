@@ -11,8 +11,23 @@ Define Function RPartition(text, pattern)
     Return result.IsEmpty() ? [text, "", ""] : [ text.Slice(0, result.start), result.match, text.Slice(result.end) ]
 End-Function
 
-Print None.@Partition("=")
-Print "no match".@RPartition("=")
-Print "a=b".@Partition("=")
-Print "a<=b".@Partition(r/[=<>!]+/)
-Print "a==b!>c".@RPartition(r/[=<>!]+/)
+Constant function_map Is {
+    "Partition":  Partition,
+    "RPartition": RPartition
+}
+
+For Each sample In [
+        [ None,       "=",        "Partition" ],
+        [ "a=b",      "=",        "Partition" ],
+        [ "a<=b",     r/[=<>!]+/, "Partition" ],
+        [ "no match", "=",        "RPartition" ],
+        [ "a==b!>c",  r/[=<>!]+/, "RPartition" ],
+    ]
+    Set text To sample[0], pattern To sample[1], func_name To sample[2]
+    # Look up the function by name in the map
+    # and execute it against the data
+    Set func To function_map.GetKeyValue(func_name)
+    Set result To @func(text, pattern)
+    Printf "{}({}, {}) → {}\n",
+        func_name, Repr(text), Repr(pattern), Repr(result)
+End-For
