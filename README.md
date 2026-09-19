@@ -35,16 +35,20 @@ VGR is a scripting language designed around the following principles
 
 ## Installation
 
+Download a [release](https://github.com/rvirostko/vgr/releases) and
+install the `whl` file.
+
 ```bash
-pip install vgr
+pip install vgr-1.2.2-py3-none-any.whl
 ```
 
-<!-- Or, if not yet published to PyPI: -->
+Alternately, clone the [repository](https://github.com/rvirostko/vgr.git)
+and work from a development environment.
 
 ```bash
 git clone https://github.com/rvirostko/vgr.git
 cd vgr
-pip install -e .
+source scripts/setup
 ```
 
 ## Quick Start
@@ -56,24 +60,23 @@ command line.
 vgr --execute "Print 'Hello, world'"
 ```
 
-> Note:
-> The first run will take some extra time as VGR builds out and caches
-> internal data. Subsequent start-up times will be shorter.
+> **Note**
+>
+> The first run will take some extra time as caches
+> and internal data are built out.
+> Subsequent start-up times will be shorter.
 
-See [`samples/`](./samples) for more complete examples.
+See [`samples/`](./samples/README.md) for more complete examples.
 
-Run `vgr` without argument to enter the REPL.
+Run `vgr` without argument to enter the REPL.  Use `Exit` to exit the REPL.
 
 ## Documentation
 
-A full language reference in Markdown can be produced by using
-
-```bash
-vgr --gen-doc
-```
+A full language reference in Markdown is available as part
+of each [release](https://github.com/rvirostko/vgr/releases).
 
 This information is available from inside the REPL by using `help`
-at the prompt. Use `Exit` to exit the REPL.
+at the prompt. It is also availble inside Visual Studio Code when the VGR Language extension has been installed.
 
 ## Development Environment
 
@@ -94,21 +97,24 @@ search the scripts directory automatically. Additionally it sets
 ### Testing
 
 ```bash
-run-tests
+scripts/test
 ```
 
-A coverage file which can be used with VSC is produced.
+An XML coverage file which can be used with Visual Studio Code is produced. To produce a coverage file as a set of HTML files
+use:
 
-<!-- Add coverage invocation, markers, or any harness-specific notes here. -->
+```bash
+scripts/test --cov-report=html
+```
 
 ### Building
 
 ```bash
-scripts/mk-dist
+scripts/build
 ```
 
 This will create the dist directory for a wheel file and a zip file
-of the samples. It will also contains an installer file, install-vgr.
+of the samples.
 
 ### Utilities
 
@@ -116,8 +122,7 @@ These utilities live in [`scripts/`](./scripts).
 
 #### `bump-version`
 
-Modifies source artifacts to set the version and release date. Takes a
-single argument:
+Modifies source artifacts to set the version and release date. Takes a single argument:
 
 - `major` : increments the major version, clearing minor and rev, and sets the date
 - `minor` : increments the minor version, clearing rev, and sets the date
@@ -126,20 +131,16 @@ single argument:
 
 #### `clean`
 
-Cleans up the development environment. Removes logs, test results, and
-other generated artifacts.
-
-#### `dump-commits.py`
-
-Generates a text file used in preparation of release notes / `CHANGELOG.md`
-entries.
+Cleans up the development environment. Removes logs, test results,
+and other generated artifacts.
 
 #### `vgr-debug` and `watch-debug`
 
-Work together via a FIFO where VGR's stderr is redirected. Run them in
-separate windows, in any order. `Debug` is not started automatically; enable
+These work together via a FIFO, redirecting VGR's stderr there. Run them in
+separate windows, in any order. Note that `Debug` is not started automatically; enable
 it with `--debug` on the `vgr-debug` command line, or from inside a script
-or the REPL.
+or the REPL. You can also these to observe the results of `--verbose` and
+`--echo`, as all options send their output to stderr.
 
 ## Changelog
 
