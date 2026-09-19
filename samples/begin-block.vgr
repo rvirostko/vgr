@@ -1,11 +1,34 @@
+# "counter" is created with global scope
+# just by setting it to a value
 Set counter To Zero
+Assert counter Is Defined
+Assert temp Is Not Defined
+
+# A loop opens a new frame that can
+# hold local variables. Access to
+# local variables are bracketed by
+# the loop's matching end.
 While counter < 3
+    # The "Begin" also opens a new frame
+    # which can hold locals
     Begin
+        Assert temp Is Not Defined
+        Assert counter Is Defined
+        # When setting temp, VGR checks the
+        # outer frames to see if it is already
+        # defined. Since it isn't, it is created
+        # as a local inside the "Begin".
+        # You can explicity define a local variable
+        # by using "Declare <var> As Local".
         Set temp To counter * 2
-        Exhibit counter temp
+        Exhibit counter, temp
     End
-    # temp is scoped to Begin/End
+    # "temp" was scoped to Begin/End
+    # so it is no longer available
     Assert temp Is Not Defined
+    Assert counter Is Defined
     Add 1 to counter
 End-While
+
+Assert counter Is Defined
 Print "Final counter:", counter
