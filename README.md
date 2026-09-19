@@ -12,6 +12,10 @@ VGR is a scripting language designed around the following principles
     `Multiply`, and `Divide`
   - Stand-alone functions - e.g. `Mul(Add(x, y), z)`
   - Expressions as *transformative pipelines* - e.g. `x.Add(y).Mul(z)`
+- *Solve more problems than you create* - Language features should
+  strive to solve problems and avoid creating new ones
+- *If it hasn’t been tested, it doesn’t work* - As features are developed
+  they should be tested and code coverage should be as complete as possible
 
 ## Table of Contents
 
