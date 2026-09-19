@@ -8,6 +8,9 @@
 
 ### Changed
 
+- Initialization of VGR terminal session fixed so Python debugger
+  warning removed. The session is also now transient.
+
 ### Deprecated
 
 ### Removed
