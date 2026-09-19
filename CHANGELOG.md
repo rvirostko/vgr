@@ -6,6 +6,8 @@
 
 ### Added
 
+- Added README.md to samples
+
 ### Changed
 
 - Initialization of VGR terminal session fixed so Python debugger
@@ -16,6 +18,8 @@
 ### Removed
 
 ### Fixed
+
+- Updated/corrected top-level README.md
 
 ### Security
 
