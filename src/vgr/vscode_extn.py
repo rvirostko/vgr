@@ -97,8 +97,11 @@ _LANG_CONFIG = {
 def _vscode_syntax_highlighting(keyword_pattern: str, constants_pattern: str, function_pattern: str):
     """
     Generate a VS Code TextMate grammar JSON for a DSL.
+
     - keywords: list of reserved words
     - functions: list of built-in function names
+
+    Written to vgr.tmLanguage.json
     """
     grammar = {
         "scopeName": "source.vgr",
