@@ -114,26 +114,61 @@ class VgrDocProvider {
   }
 }
 
+async function waitForShellIntegration(terminal, timeoutMs = 3000) {
+  if (terminal.shellIntegration) return terminal.shellIntegration;
+  return new Promise(resolve => {
+    const timeout = setTimeout(() => { sub.dispose(); resolve(terminal.shellIntegration ?? null); }, timeoutMs);
+    const sub = vscode.window.onDidChangeTerminalShellIntegration(e => {
+      if (e.terminal === terminal) {
+        clearTimeout(timeout);
+        sub.dispose();
+        resolve(e.shellIntegration);
+      }
+    });
+  });
+}
+
+async function waitForPendingCommand(terminal, quietMs = 500, timeoutMs = 5000) {
+  return new Promise(resolve => {
+    let started = false;
+    const overall = setTimeout(cleanup, timeoutMs);
+    const quiet = setTimeout(() => { if (!started) cleanup(); }, quietMs);
+
+    const onStart = vscode.window.onDidStartTerminalShellExecution(e => {
+      if (e.terminal === terminal) { started = true; clearTimeout(quiet); }
+    });
+    const onEnd = vscode.window.onDidEndTerminalShellExecution(e => {
+      if (e.terminal === terminal && started) cleanup();
+    });
+
+    function cleanup() {
+      clearTimeout(overall); clearTimeout(quiet);
+      onStart.dispose(); onEnd.dispose();
+      resolve();
+    }
+  });
+}
+
 let vgrTerminal;
 vscode.window.onDidCloseTerminal(terminal => {
   if (terminal === vgrTerminal) vgrTerminal = undefined;
 });
 
-function getVgrTerminal() {
-    if (vgrTerminal) return vgrTerminal;
-    vgrTerminal = vscode.window.terminals.find(
-        terminal => terminal.name === 'VGR'
-    );
-    if (!vgrTerminal) vgrTerminal = vscode.window.createTerminal('VGR');
-    return vgrTerminal;
-}
-
-async function getPython(resource) {
-  const pythonExtension = vscode.extensions.getExtension('ms-python.python');
-  if (!pythonExtension) return 'python3';
-  const pythonApi = await pythonExtension.activate();
-  const environment = pythonApi.environments.getActiveEnvironmentPath(resource);
-  return environment?.path || 'python3';
+async function getVgrTerminal() {
+  if (vgrTerminal) return vgrTerminal;
+  vgrTerminal = vscode.window.terminals.find(
+      terminal => terminal.name === 'VGR'
+  );
+  if (!vgrTerminal) {
+    vgrTerminal = vscode.window.createTerminal({
+      name: 'VGR',
+      isTransient: true,
+      strictEnv: true,
+    });
+    await waitForShellIntegration(vgrTerminal);
+    await waitForPendingCommand(vgrTerminal);
+  }
+  return vgrTerminal;
 }
 
 function activate(context) {
@@ -152,19 +187,18 @@ function activate(context) {
     vscode.commands.registerCommand('vgr.runFile', async () => {
       const editor = vscode.window.activeTextEditor;
       if (!editor) return;
-      const terminal = getVgrTerminal();
+      const terminal = await getVgrTerminal();
       terminal.show();
-      const python = await getPython(editor.document.uri);
-      terminal.sendText(`${python} -m vgr --file "${editor.document.uri.fsPath}"`);
+      const relPath = vscode.workspace.asRelativePath(editor.document.uri, false);
+      terminal.sendText(`vgr --file "${relPath}"`);
     }),
     //-----
     vscode.commands.registerCommand('vgr.startRepl', async () => {
       const editor = vscode.window.activeTextEditor;
       if (!editor) return;
-      const terminal = vscode.window.createTerminal({ name: 'VGR REPL', });
+      const terminal = await vscode.window.createTerminal({ name: 'VGR REPL', });
       terminal.show();
-      const python = await getPython(editor.document.uri);
-      terminal.sendText(`${python} -m vgr`);
+      terminal.sendText('vgr');
     }),
   );
   vscode.window.registerTreeDataProvider('vgrReference', new VgrReferenceProvider());
