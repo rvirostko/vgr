@@ -130,18 +130,26 @@ def execute_printf(ctx: ExecContext, statement: Tree) -> None:
     """
 **Print formatted values, similar to AWK's printf statement**
 
-* Printf *expression*[, *expression*]&hellip;
-* Printf [On | To] [Output | Error] *expression*[, *expression*]&hellip;
-* Printf [As] Markdown *expression*[, *expression*]&hellip;
+* Printf *expression*[, *expression*]&hellip; [*options*&hellip;]
+* Printf *expression*[, *expression*]&hellip; To [Output | Error] [*options*&hellip;]
+* Printf *expression*[, *expression*]&hellip; As Markdown [*options*&hellip;]
 
 Default destination is `Output`. `Markdown` always goes to the current console.
 If the console is redirected to a file `Markdown` output written as text.
 
-By default, no `Newline` is printed at the end of the statement. If you require
-a `Newline` include a *\\n* in your format string.
+By default, no `Newline` is printed at the end of the statement. If
+a `Newline` is required include a *\\n* in the format string.
 
 The first expression is resolved to a string and used to format the other values.
 The formatting syntax is that used by `Format()`.
+
+***Options***
+
+* Flush [Is *expression*] : flush output immediately.
+  Flushing output is the default.
+  Without an argument, flushing is set to `True`
+* No-Flush [Is *expression*] : negation of `Flush`.
+  Whithout an argument, flushing is set to `False`.
 
 ```vgr
 # Empty format string
@@ -167,9 +175,9 @@ Printf "{1} then {0}\\n", "second", "first", "ignored" → "first then second\\n
 Printf "{1}, {0}, then {2}\\n", "second", "first" → "first, second, then None\\n"
 
 # Explicit destinations
-Printf On Output "Out: {}\\n", "value"
-Printf To Error "Error: {} ({})\\n", "failure", 1
-Printf As Markdown "# {}\\n", "Header"
+Printf "Out: {}\\n", "value" To Output
+Printf "Error: {} ({})\\n", "failure", 1 To Error
+Printf "# {}\\n", "Header" As Markdown
 ```
 
 Also see `Print`, `Format()`, in addition to `Open` and `Close`
