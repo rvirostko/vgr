@@ -1,5 +1,6 @@
 from enum import Enum, auto
 from typing import Any
+import os
 import re
 import sys
 import traceback
@@ -18,6 +19,7 @@ from lark.exceptions import (
 )
 
 from .src_mgr import SSM
+from .builtins import poly_repr
 
 _ERRNO_RE = re.compile(r'^\[[^\s]+\s+\d+\]\s*')
 
@@ -72,18 +74,20 @@ class VgrException(Exception):
         pointer_line = ' ' * (adjusted_column - 1 - start) + '^'
         return f"{snippet}\n{pointer_line}"
 
+    @staticmethod
+    def _strip_cwd(s: str) -> str:
+        if s.startswith('<') and s.endswith('>'): return s
+        cwd = os.getcwd()
+        return poly_repr(s[len(cwd):].lstrip("/\\") if s.startswith(cwd) else s)
+
     def __str__(self):
         try:
             msg = self._exception_message() or _exception_type(self.orig_exc) or 'Error'
-            src = self.source_origin if self.source_origin and self.source_origin != '<repl>' else None
+            src = self._strip_cwd(self.source_origin) if self.source_origin and self.source_origin != '<repl>' else None
             line = f'line {self.line}' if self.line else None
             col = f'column {self.column}' if self.column else None
             if src or line or col:
-                # All this because join() suxs
-                msg += ' at'
-                if src: msg += ' ' + src
-                if line: msg += ' ' + line
-                if col: msg += (', ' if line else ' ') + col
+                msg += ' at ' + (", ".join([x for x in [src, line, col] if x is not None]))
             return '\n'.join((self.get_context(), msg))
         except Exception:
             traceback.print_exc(file=sys.stderr)
