@@ -33,9 +33,9 @@ If *variable* is not defined it is created as an empty list.
 If *variable* is not a list, it is converted to a list.
 
 ```vgr
-// Assuming animals is ["cat", "dog", "fish"]
+Set animals To ["cat", "dog", "fish"]
 
-Append None To animals  → ["cat", "dog", "fish", None]
+Append None To animals → ["cat", "dog", "fish", None]
 
 Append "rabbit" To animals → ["cat", "dog", "fish", "rabbit"]
 

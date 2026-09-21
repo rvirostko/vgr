@@ -20,7 +20,7 @@ def poly_matches(*args) -> bool:
 **Perform a regular expression match**
 
 * *value* Matches *pattern*
-* *value* Matches [ _pattern&hellip; ]
+* *value* Matches [ *pattern*&hellip; ]
 * *value* ~ *pattern*
 * *value* ~ [ *pattern*&hellip; ]
 * Matches(*value*, *pattern*&hellip;)
