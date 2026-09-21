@@ -6,17 +6,17 @@ Reset All
 
 Define Function FibonacciRecursive(n)
     Choose Using n
-        When Less Than Zero: Abort "Negative numbers not supported"
-        When Zero, 1:        Return n
-        Otherwise:           Return @$self(n - 1) + @$self(n - 2)
+        When Less Than Zero Abort "Negative numbers not supported"
+        When Zero, 1        Return n
+        Otherwise           Return @$self(n - 1) + @$self(n - 2)
     End-Choose
 End-Function
 
 Define Function FibonacciIterative(n)
     Choose Using n
-        When Less Than Zero: Abort "Negative numbers not supported"
-        When Zero, 1:        Return n
-        Otherwise:
+        When Less Than Zero Abort "Negative numbers not supported"
+        When Zero, 1        Return n
+        Otherwise
             Set prev To Zero, curr To 1
             For i = 2 To n
                 Set next_val To prev + curr
@@ -28,9 +28,9 @@ End-Function
 
 Define Cache(vgr.max_cache_size) Function FibonacciRecursiveCached(n)
     Choose Using n
-        When Less Than Zero: Abort "Negative numbers not supported"
-        When Zero, 1:        Return n
-        Otherwise:           Return @$self(n - 1) + @$self(n - 2)
+        When Less Than Zero Abort "Negative numbers not supported"
+        When Zero, 1        Return n
+        Otherwise           Return @$self(n - 1) + @$self(n - 2)
     End-Choose
 End-Function
 
@@ -42,7 +42,7 @@ Define Function TestFunction(name, func, iterations)
     Printf "{} : {:,d} iterations took {}\n", name, iterations, FormatDuration(start_time, time.now)
 End-Function
 
-Set iterations To 18
+Constant iterations Is 16
 Call TestFunction("FibonacciRecursive", FibonacciRecursive, iterations)
-Call TestFunction("FibonacciIterative", FibonacciIterative, iterations * 10)
-Call TestFunction("FibonacciRecursiveCached", FibonacciRecursiveCached, iterations * 80)
+Call TestFunction("FibonacciIterative", FibonacciIterative, iterations * 8)
+Call TestFunction("FibonacciRecursiveCached", FibonacciRecursiveCached, iterations * 160)
