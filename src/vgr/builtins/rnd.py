@@ -12,7 +12,7 @@ from .types import poly_to_number
 @builtin("Random")
 def poly_random(*args) -> Any:
     """
-**Generate a random number within limits
+**Generate a random number within limits**
 
 * Random()
 * Random(*limit*)
