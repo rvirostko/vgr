@@ -33,7 +33,7 @@ DEFAULT_CACHE_SIZE: int = 64
 MAX_CACHE_SIZE: int = 32_768
 
 @control_statement
-@bound_ops("Define Function")
+@bound_ops("Function", "Define Function")
 def execute_def_function(ctx: ExecContext, statement: Tree) -> None:
     """
 **Define a function**
@@ -58,7 +58,7 @@ def execute_def_function(ctx: ExecContext, statement: Tree) -> None:
   caching is turned off.
 
 ```vgr
-Define Function lcm(a, b):
+Define Function lcm(a, b)
     Declare i, limit, g, s As Local
     Set g To a.Max(b)  // Larger value
     Set s To a.Min(b)  // Smaller value
@@ -175,14 +175,14 @@ def _read_function_def(ctx: ExecContext, definition: Tree) -> tuple:
             raise ValueError(f'{mod} not implemented')
     return (bool(is_const), cache_size if bool(is_cached) else 0)
 
-@bound_ops("Call")
+@bound_ops("Call", "Call Function")
 def execute_call(ctx: ExecContext, statement: Tree) -> None:
     """
 **Invoke a user function**
 
-* Call *variable* [Giving *variable*]
-* Call *variable* Using *expression*&hellip; [Giving *variable*]
-* Call *variable*(*expression*&hellip;) [Giving *variable*]
+* Call [Function] *variable* [Giving *variable*]
+* Call [Function] *variable* Using *expression*&hellip; [Giving *variable*]
+* Call [Function] *variable*(*expression*&hellip;) [Giving *variable*]
 * @*variable*(*expression*&hellip;)
 * *value*.@*variable*(*expression*&hellip;)
 
