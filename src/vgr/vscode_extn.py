@@ -13,6 +13,9 @@ from .functions import (
     get_function_doc,
     get_function
 )
+from .operators import (
+    get_operator_entries,
+)
 from .stmt_exec import get_statement_op
 
 # Written to package.json
@@ -273,6 +276,21 @@ def _functions() -> list[dict]:
         functions.append(entry)
     return functions
 
+def _operators() -> list[dict]:
+    operators = []
+    entries = get_operator_entries()
+    for name in sorted(entries.keys()):
+        entry = {
+            "name":          name,
+            #"insertText":    None, defaults to name, need a way to specify on the function
+            #"detail":        None, # NA here
+        }
+        func = entries.get(name)[0]
+        if doc := get_function_doc(func):
+            entry["documentation"] = doc
+        operators.append(entry)
+    return operators
+
 def _bin_copy(file_in: str, out_file: str) -> None:
     # Source - https://stackoverflow.com/a/20885799
     # Posted by ankostis, modified by community.
@@ -307,6 +325,11 @@ def create_vscode_extension(debug: bool, parser: Lark) -> None:
         json.dump(_keywords(parser), f, indent=2)
     with open(os.path.join(out_dir, "functions.json"), "w", encoding="utf-8", errors='backslashreplace') as f:
         json.dump(_functions(), f, indent=2)
+
+    with open(os.path.join(out_dir, "operators.json"), "w", encoding="utf-8", errors='backslashreplace') as f:
+        json.dump(_operators(), f, indent=2)
+
+
     syntaxes_dir = os.path.join(out_dir, "syntaxes")
     os.makedirs(syntaxes_dir, exist_ok=True)
     grammar_json = _vscode_syntax_highlighting(keywords_pattern, constants_pattern, functions_pattern)

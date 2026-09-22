@@ -22,6 +22,17 @@ const FUNCTION_ITEMS = FUNCTIONS.map(rec => {
   return item;
 });
 
+const OPERATORS = require('./operators.json');
+const OPERATOR_LOWER_SET = new Set(OPERATORS.map(f => f.name.toLowerCase()));
+const OPERATOR_ITEMS = OPERATORS.map(rec => {
+  const item = new vscode.CompletionItem(rec.name, vscode.CompletionItemKind.Function);
+  item.filterText = rec.name;
+  item.insertText = new vscode.SnippetString(rec.insertText ? insertText : `${rec.name}`);
+  if (rec.detail) item.detail = rec.detail;
+  if (rec.documentation) item.documentation = new vscode.MarkdownString(rec.documentation);
+  return item;
+});
+
 function buildHoverMap(entries) {
   const map = new Map();
   for (const e of entries) {
@@ -32,6 +43,7 @@ function buildHoverMap(entries) {
 
 const FUNCTION_HOVER = buildHoverMap(FUNCTIONS);
 const KEYWORD_HOVER = buildHoverMap(KEYWORDS);
+const OPERATOR_HOVER = buildHoverMap(OPERATORS);
 
 function stripComments(text) {
   return text
@@ -52,6 +64,7 @@ function getDocWordItems(document) {
   return [...docWords]
     .filter(w => !KEYWORD_LOWER_SET.has(w.toLowerCase()))
     .filter(w => !FUNCTION_LOWER_SET.has(w.toLowerCase()))
+    .filter(w => !OPERATOR_LOWER_SET.has(w.toLowerCase()))
     .map(w => {
       const item = new vscode.CompletionItem(w, vscode.CompletionItemKind.Text);
       item.filterText = w;
@@ -69,33 +82,63 @@ function provideCompletionItems(document, position, token, context) {
   // So everything except keywords
   if (ctx === '.' || ctx === '(') return [...FUNCTION_ITEMS, ...getDocWordItems(document)];
   // Everything else we suggest keywords, function, or "text"
-  return [...KEYWORD_ITEMS, ...FUNCTION_ITEMS, ...getDocWordItems(document)];
+  return [...KEYWORD_ITEMS, ...FUNCTION_ITEMS, ...OPERATOR_ITEMS, ...getDocWordItems(document)];
 }
 
 function provideHover(document, position) {
   const range = document.getWordRangeAtPosition(position, /\$?\w+/);
   if (!range) return undefined;
   const word = document.getText(range).toLowerCase();
-  const text = FUNCTION_HOVER.get(word) ?? KEYWORD_HOVER.get(word);
+  const text = OPERATOR_HOVER ?? FUNCTION_HOVER.get(word) ?? KEYWORD_HOVER.get(word);
   if (!text) return undefined;
   return new vscode.Hover(text, range);
 }
 
-function toDocTreeItem(rec, iconId) {
-  const item = new vscode.TreeItem(rec.filterText);
+function toDocTreeItem(rec, iconId, extraText) {
+  const docName = rec.filterText + extraText
+  const item = new vscode.TreeItem(docName);
   if (rec.detail) item.tooltip = new vscode.MarkdownString(rec.detail);
-  item.command = { command: 'vgr.showDoc', title: 'Show Documentation', arguments: [rec.filterText] };
+  item.command = { command: 'vgr.showDoc', title: 'Show Documentation', arguments: [docName] };
   item.iconPath = new vscode.ThemeIcon(iconId);
   return item;
 }
 
 class VgrReferenceProvider {
-  getTreeItem(el) { return el; }
-  getChildren() {
-    return [
-      ...FUNCTION_ITEMS.filter(f => f.documentation || f.detail).map(f => toDocTreeItem(f, 'symbol-function')),
-      ...KEYWORD_ITEMS.filter(k => k.documentation || k.detail).map(k => toDocTreeItem(k, 'symbol-keyword')),
+  constructor() {
+    this.functionItems = FUNCTION_ITEMS
+      .filter(f => f.documentation || f.detail)
+      .map(f => toDocTreeItem(f, 'symbol-function', '()'));
+
+    this.keywordItems = KEYWORD_ITEMS
+      .filter(k => k.documentation || k.detail)
+      .map(k => toDocTreeItem(k, 'symbol-keyword', ' Statement'));
+
+    this.operatorItems = OPERATOR_ITEMS
+      .filter(k => k.documentation || k.detail)
+      .map(k => toDocTreeItem(k, 'symbol-operator', ' Operator'));
+
+    this.rootItems = [
+      this.category('Statements', 'statements'),
+      this.category('Functions', 'functions'),
+      this.category('Operators', 'operators'),
+      //this.category('Constants', 'constants'),
     ];
+  }
+
+  getTreeItem(el) { return el; }
+
+  getChildren(el) {
+    if (!el) return this.rootItems;
+    if (el.contextValue === 'functions') return this.functionItems;
+    if (el.contextValue === 'statements') return this.keywordItems;
+    if (el.contextValue === 'operators') return this.operatorItems;
+    return [];
+  }
+
+  category(label, contextValue) {
+    const item = new vscode.TreeItem(label, vscode.TreeItemCollapsibleState.Collapsed);
+    item.contextValue = contextValue;
+    return item;
   }
 }
 
@@ -106,11 +149,18 @@ function nameFromDocUri(uri) {
 class VgrDocProvider {
   provideTextDocumentContent(uri) {
     const name = nameFromDocUri(uri)
-    const rec = [...FUNCTION_ITEMS, ...KEYWORD_ITEMS].find(r => r.filterText === name);
+    let rec;
+    if (name.endsWith('()')) {
+      rec = FUNCTION_ITEMS.find(r => r.filterText === name.slice(0, -2));
+    } else if (name.endsWith(' Statement')) {
+      rec = KEYWORD_ITEMS.find(r => r.filterText === name.slice(0, -' Statement'.length));
+    } else if (name.endsWith(' Operator')) {
+      rec = OPERATOR_ITEMS.find(r => r.filterText === name.slice(0, -' Operator'.length));
+    }
     if (!rec) return `No documentation for ${name}`;
     const doc = rec.documentation instanceof vscode.MarkdownString
       ? rec.documentation.value : (rec.documentation || rec.detail || `No documentation for ${name}`);
-    return `# ${rec.filterText}\n\n${doc}`;
+    return `## ${name}\n\n${doc}`;
   }
 }
 
