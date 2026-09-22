@@ -1116,8 +1116,11 @@ class DefaultExecContext(ExecContext):
 
     def eval_filename_expr(self, expr: Any, allow_none: bool=False) -> str:
         """Helper that gets a string that should be a relative filename"""
-        # TODO better error handling?
-        return verify_relative_path(self.eval_to_str(expr, 'File name', allow_none))
+        filename = self.eval_to_str(expr, 'File name', allow_none)
+        try:
+            return verify_relative_path(filename)
+        except OSError as e:
+            raise VgrRuntimeError(expr, e) from e
 
     def eval_to_int(self, expr: Tree, name: str, allow_none: bool=False) -> int:
         value = self.eval_expr(expr)
