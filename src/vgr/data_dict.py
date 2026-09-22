@@ -94,13 +94,10 @@ class DataDictionary():
     def keys(self) -> list[str]:
         """Return all the top-level keys in the dictionary"""
         keys = set()
-        f = self._current_frame
+        f : Frame = self._current_frame
         while f is not None:
             keys.update(f.keys())
-            # NB: the fact that I have to ignore this shows that pylint,
-            #     like other "linters" have a limited understanding of
-            #     object oriented models
-            f = f.outer_frame() # pylint: disable=assignment-from-none
+            f = f.outer_frame()
         return [*keys]
 
     def reset(self) -> None:
