@@ -18,4 +18,18 @@ if [[ "$HAS_COV_REPORT" == false ]]; then
     PYTEST_ARGS+=(--cov-report=xml)
 fi
 
+readonly_file="tests/scripts/data/read-only-file"
+writeonly_file="tests/scripts/data/write-only-file"
+
+cleanup()
+{
+    rm -f "$readonly_file" "$writeonly_file"
+}
+
+trap cleanup EXIT
+printf 'read-only\n' > "$readonly_file"
+chmod 0444 "$readonly_file"
+printf 'write-only\n' > "$writeonly_file"
+chmod 0222 "$writeonly_file"
+
 python -m pytest --capture=no "${PYTEST_ARGS[@]}" --cov=vgr --cov-branch
