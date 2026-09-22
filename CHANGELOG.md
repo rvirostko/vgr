@@ -17,6 +17,8 @@
 
 ### Removed
 
+- Vault "Results" option removed; use "Giving" instead
+
 ### Fixed
 
 - Updated/corrected top-level README.md
