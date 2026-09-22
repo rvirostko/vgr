@@ -22,17 +22,14 @@ Set frog_tests To [
     { "ftype": "hcl",  "dtype": "dictionary", "keys": ["frog"] },
 ]
 
-Assert $load Is None
-Set $load To "global load"
 For Each test In frog_tests
-    Load t From data + "frog." + test.ftype
+    Load t From data + "frog." + test.ftype Giving meta
     Assert t.Type() Is test.dtype
-    Assert $load Is Not None
-    Call check_load_meta($load, test.ftype, test.keys, 1)
-    Assert $load.keys.Sort() Equals t.GetKeys().Sort()
+    Assert meta Is Not None
+    Call check_load_meta(meta, test.ftype, test.keys, 1)
+    Assert meta.keys.Sort() Equals t.GetKeys().Sort()
     Printf "{} - {}, {} record{}\nkeys : {}\n{}\n\n",
-        $load.filename, $load.format, $load.records, $load.records.Plural(),
-        $load.keys.Sort().Repr(),
+        meta.filename, meta.format, meta.records, meta.records.Plural(),
+        meta.keys.Sort().Repr(),
         t.FormatJson()
 End-For
-Assert $load Is "global load"

@@ -48,8 +48,6 @@ from .redir import close_all_redirects
 from .stmt_include import clear_includes
 from .user_callable import clear_function_caches
 
-_LOAD_META_PATH = ('$load',)
-
 _EXTENSION_MAP = {
     '.csv':    'csv_file',
     '.hcl':    'hcl_file',
@@ -494,13 +492,13 @@ def execute_reset(ctx: ExecContext, statement: Tree) -> None:
 
 Where *option* is
 
-* Args - Resets user arguments stored in the *args* variable
-* Constants - Resets all user constants
-* Data - Resets user variables except for user arguments and constants
+* `Args` - Resets user arguments stored in the *args* variable
+* `Constants` - Resets all user constants
+* `Data` - Resets user variables except for user arguments and constants
   and `Debug`, `Verbose`, and `Echo` settings
-* Includes - Clears the list of `@Include` files
-* Output - Resets all output redirection
-* All - Resets all of the above plus `Debug`, `Echo`, and `Verbose` settings
+* `Includes` - Clears the list of `@Include` files
+* `Output` - Resets all output redirection
+* `All` - Resets all of the above plus `Debug`, `Echo`, and `Verbose` settings
 
 If no options are given, a `Reset All` is performed.
 
@@ -609,46 +607,71 @@ Also see `Set` and `Assign`
 @bound_ops("Load")
 def execute_load_from(ctx: ExecContext, statement: Tree) -> None:
     """
-**Assign a value to a variable from a file**
+**Assign a variable from the contents of a file**
 
 * Load *variable* From [File] *file_name*\\
   &emsp;&emsp;[Type [Is]] *file_type*\\
-  &emsp;&emsp;[Encoding [Is] _encoding_]
+  &emsp;&emsp;[Encoding [Is] *encoding*]\\
+  &emsp;&emsp;[Giving *variable*]\\
 
 The *file_name* argument is a string expression for the file to be loaded.
 
+***File Type***
+
 If a *file_type* is specified, it must be one of:
 
-* CSV - The CSV data is read as a list of dictionaries, with the
+* `CSV` - The CSV data is read as a list of dictionaries, with the
   column headers as attribute names
-* HCL - The data is read creating a dictionary
-* INI - The INI sections are used to create a dictionary
-* JSON [Object] - The data is a single JSON object;
-  a dictionary is created
-* JSON [Object] Per Line - The data is a text file with one
-  JSON object per line; a list of dictionaries is created
-* Text - The data is read as a string
-* Text Lines - The data is read line-by-line, creating a list of strings
-* YAML - The data is read creating a dictionary
+* `HCL` - The data is read creating a dictionary
+* `INI` - The INI sections are used to create a dictionary
+* `JSON [Object]` - The data is a single JSON object
+* `JSON [Object] Per Line` - The data is a text file with one
+  JSON object per line; a list is created
+* `Text` - The data is read as a string
+* `Text Lines` - The data is read line-by-line, creating a list of strings
+* `YAML` - The data is read creating a dictionary
 
 If not specified, it is inferred from the file's extension
-with _Text_ as the default.
+with *Text* as the default.
 
-Then optional _encoding_ is a string expression for the character encoding.
-If none is specified, then _utf-8-sig_ is used as the default.
+***File Encoding***
 
-Both *file_type* and _encoding_ are optional and can be specified in any order.
-For readability, they can be separated with commas.
+The optional *encoding* is a string expression for the character encoding.
+If not specified, then `utf-8-sig` is used as the default.
 
-After the data is loaded, the following metadata values are available:
+To locate encoding errors in a file, use `Debug`: when debug is on,
+illegal encodings are replaced by backslash sequences.
 
-* $load.filename - name of the loaded file
-* $load.format - source format: json, yaml, hcl, ini, csv, text
-* $load.keys - list of top-level keys if applicable
-* $load.records - number of top-level records
+***Metadata and `Giving`***
+
+When a variable is provided by `Giving`, the following metadata
+is made available:
+
+* `filename` - name of the loaded file
+* `format` - source format: json, yaml, hcl, ini, csv, text
+* `keys` - list of top-level keys if applicable
+* `records` - number of top-level records
+
+> **Note**\\
+> For readability, options may be separated with commas.
 
 ```vgr
-**TODO**
+Load people From "people.json" Giving meta
+Print people[0].FormatJson()
+{
+  'first_name': 'Fons',
+  'last_name': 'Hellier',
+  'email': 'fhellier0@youku.com',
+  'position': 'Marketing Assistant',
+  'age': None
+}
+Print meta.FormatJson()
+{
+  'filename': 'people.json',
+  'format': 'json',
+  'keys': ['email', 'age', 'position', 'last_name', 'first_name'],
+  'records': 100
+}
 ```
 
 > **Windows Note**\\
@@ -663,24 +686,34 @@ Also see `ParseCSV()`, `ParseHCL()`, `ParseINI()`, `ParseJSON()`, and `ParseYAML
     filename = ctx.eval_filename_expr(fn_child)
     ftype = None
     encoding = None
+    giving_path = None
     for opt in statement.children[2:]:
         if opt.data == "encoding":
             encoding = parse_encoding(ctx, opt)
+        elif opt.data == "giving":
+            giving_path = get_writable_var_path(ctx, opt.children[0])
         else:
             ftype = opt.data
     try:
-        with open(filename, 'r', encoding=encoding or 'utf-8-sig', errors='backslashreplace' if ctx.debug else 'replace') as f:
+        with open(filename, 'r', encoding=encoding or 'utf-8-sig', errors='backslashreplace' if ctx.debug else None) as f:
             data, metadata = load_file_as(filename, f, load_data_type(filename, ftype))
             ctx.set_var(data, *var_path)
-            # Try to make the meta variable a local if possible
-            ctx.dd.declare_var(ctx.dd.in_local_frame, *_LOAD_META_PATH)
-            ctx.set_var(metadata, *_LOAD_META_PATH)
+            if giving_path: ctx.set_var(metadata, *giving_path)
+    except FileNotFoundError as e:
+        raise VgrRuntimeError(fn_child, ValueError(f"{filename!r} - Not found")) from e
+    except PermissionError as e:
+        raise VgrRuntimeError(fn_child, ValueError(f"{filename!r} - Permission denied")) from e
+    except IsADirectoryError as e:
+        raise VgrRuntimeError(fn_child, ValueError(f"{filename!r} - Expected a file, but found a directory")) from e
+    except UnicodeDecodeError as e:
+        raise VgrRuntimeError(fn_child, ValueError(f"{filename!r} - Encoding error")) from e
     except Exception as e:
-        raise VgrRuntimeError(fn_child, OSError(f'While reading {filename!r}: {str(e)}')) from e
+        raise VgrRuntimeError(fn_child, ValueError(f"Unable to read file {filename!r}: {str(e)}")) from e
     if ctx.verbose:
         length = metadata['records']
-        ctx.print_verbose('Loaded', '.'.join(var_path), 'With', length, poly_plural(length, 'Records', 'Record'))
+        ctx.print_verbose('Loaded', '.'.join(var_path), 'with', length, poly_plural(length, 'records', 'record'))
         if len(metadata['keys']) > 0: ctx.print_verbose('Keys :', ', '.join(poly_repr(key) for key in metadata['keys']))
+        if giving_path: ctx.print_verbose('Metadata in', '.'.join(giving_path))
 
 def load_data_type(filename: str, ftype: str) -> str:
     """Returns one of:
@@ -699,34 +732,24 @@ def load_data_type(filename: str, ftype: str) -> str:
 
 def load_file_as(filename: str, file: TextIOWrapper, dtype: str) -> tuple:
     """Read the file in according to the type, which comes for load_file_type().
-Returns a tuple with the data and metadata used for the $load variable:
+Returns a tuple with the data and metadata used for the meta variable:
 
-* $load.filename - name of the loaded file
-* $load.format   - logical format: json, yaml, hcl, ini, csv, text
-* $load.keys     - list of top-level keys
-* $load.records  - number of top-level records
+* filename - name of the loaded file
+* format   - logical format: json, yaml, hcl, ini, csv, text
+* keys     - list of top-level keys
+* records  - number of top-level records
 
 """
     data = file.read()
-    if dtype == 'text_file':
-        pass # data alread read in
-    elif dtype == 'text_lines':
-        data = data.splitlines()
-    elif dtype == 'json_object':
-        data = parse_json(data)
-    elif dtype == 'json_objects':
-        data = [parse_json(line) for line in data.splitlines() if line.strip()]
-    elif dtype == 'csv_file':
-        data = parse_csv(data)
-    elif dtype == 'yaml_file':
-        data = parse_yaml(data)
-    elif dtype == 'hcl_file':
-        data = parse_hcl(data)
-    elif dtype == 'ini_file':
-        data = parse_ini(data)
-    else:
-        # SNO
-        raise ValueError(f'Unknown file content type {dtype!r}') # pragma no cover
+    if   dtype == 'text_file':      pass # data alread read in
+    elif dtype == 'text_lines':     data = data.splitlines()
+    elif dtype == 'json_object':    data = parse_json(data)
+    elif dtype == 'json_objects':   data = [parse_json(line) for line in data.splitlines() if line.strip()]
+    elif dtype == 'csv_file':       data = parse_csv(data)
+    elif dtype == 'yaml_file':      data = parse_yaml(data)
+    elif dtype == 'hcl_file':       data = parse_hcl(data)
+    elif dtype == 'ini_file':       data = parse_ini(data)
+    else: raise ValueError(f'Unknown file content type {dtype!r}') # pragma no cover
     return (data,
             {
                 'filename': filename,

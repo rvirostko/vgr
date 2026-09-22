@@ -21,9 +21,9 @@ Define Function sort_file_and_check(fn):
     Echo On
     Sort File fn On Key name
     Echo Off
-    Load t With File fn
+    Load t With File fn Giving meta
     Select name, legs From t For Batch Template
-    Assert $load.records ≥ 3
+    Assert meta.records ≥ 3
     Assert t.FirstItem().name ≤ t.LastItem().name
     Assert t.Item(1).name.IsBetween(t.FirstItem().name, t.LastItem().name)
 End-Function

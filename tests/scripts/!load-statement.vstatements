@@ -1,0 +1,17 @@
+
+# This should cause a problem reading the file as ASCII 😀
+
+# Option tests
+Load frog From 5                        # {{ must be a string }}
+Load frog From "frog" Encoding Is 5     # {{ must be a string }}
+Load frog From "frog" Encoding Is "bob" # {{ is not valid }}
+Load frog From "frog" Encoding Is "utf-8" Giving math # {{ is immutable }}
+Load math From "frog"                   # {{ is immutable }}
+
+# Access test
+Load frog From "bad file" # {{ not found }}
+Load frog From "/etc"     # {{ not relative }}
+Load frog From "." # {{ found a directory }}
+Load frog From "tests/scripts/!load-statement.vstatements" Encoding Is "Ascii" # {{ encoding error }}
+Load frog From "tests/scripts/data/write-only-file" # {{ permission denied }}
+Load frog From "test" * 300 # {{ file name too long }}

@@ -299,28 +299,29 @@ swap: "Swap"i var_name ("With"i | "And"i) var_name
 unset: "Unset"i _csep_list{var_name}
 
 reset: "Reset"i _options_list{reset_opt}
-?reset_opt: "All"i                     -> all
-    |       "Args"i                    -> args
-    |       "Constants"i               -> consts
-    |       "Caches"i                  -> caches
-    |       "Data"i                    -> data
-    |       "Includes"i                -> includes
-    |       "Output"i                  -> output
+?reset_opt: "All"i       -> all
+    |       "Args"i      -> args
+    |       "Constants"i -> consts
+    |       "Caches"i    -> caches
+    |       "Data"i      -> data
+    |       "Includes"i  -> includes
+    |       "Output"i    -> output
 
 source: "Source"i _files_option? _csep_list{expr}
 include: "@Include"i _files_option? _csep_list{expr}
 
 load_from: "Load"i var_name ("From"i | "With"i) _file_option? expr _options_list{load_from_opts}
 ?load_from_opts: encoding
-    | ("Type"i "Is"i?)? load_source_type
-load_source_type: "CSV"i -> csv_file
-    | "HCL"i -> hcl_file
-    | "INI"i -> ini_file
-    | "JSON"i "Object"i? -> json_object
-    | "JSON"i "Object"i? "Per"i "Line"i -> json_objects
-    | "Text"i -> text_file
-    | "Text"i? "Lines"i -> text_lines
-    | "YAML"i -> yaml_file
+    |            ("Type"i "Is"i?)? load_source_type
+    |            "Giving"i var_name -> giving
+load_source_type: "CSV"i                            -> csv_file
+    |             "HCL"i                            -> hcl_file
+    |             "INI"i                            -> ini_file
+    |             "JSON"i "Object"i?                -> json_object
+    |             "JSON"i "Object"i? "Per"i "Line"i -> json_objects
+    |             "Text"i                           -> text_file
+    |             "Text"i? "Lines"i                 -> text_lines
+    |             "YAML"i                           -> yaml_file
 
 abort: "Abort"i _csep_list{expr}?
 assert: "Assert"i expr (_CLAUSE_SEP _csep_list{expr})?
@@ -328,7 +329,7 @@ assert: "Assert"i expr (_CLAUSE_SEP _csep_list{expr})?
 print:  "Print"i  _csep_list{expr} print_channel? _options_list{print_option}
 printf: "Printf"i _csep_list{expr} print_channel? _options_list{printf_option}
 ?print_channel: "To"i (stderr | stdout) // -> stderr or stdout
-    | "As"i "Markdown"i                     -> markdown
+    |           "As"i "Markdown"i          -> markdown
 ?print_sep_opt: (("Field"i "Separator"i) | "OFS"i) option_value  -> ofs
     |           (("Record"i "Separator"i) | "ORS"i) option_value -> ors
 ?print_flush_opt: ("Flush"i) option_value?                       -> flush

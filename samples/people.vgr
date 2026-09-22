@@ -4,9 +4,9 @@ Set limit To 10
 Set env.OFS To ''
 Set env.ORF To Newline
 
-Print "Reading from ", filename, "..."
-Load people From File filename
-Print $load.records, " record", $load.records.Plural()
+Verbose On
+Load people From File filename Giving meta
+Verbose Off
 
 Print Newline, "Original, first ", limit
 Select
