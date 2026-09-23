@@ -1,8 +1,8 @@
 
 from typing import Any
-import re
 
 from .registry import builtin
+from .vpattern import VPattern
 
 from ..vgr_callable import VgrCallable
 
@@ -38,7 +38,7 @@ Also see `IsNone()`, `IsBoolean()`, `IsDictionary()`, `IsInteger()`,
     if isinstance(x, bool): return 'boolean'
     if isinstance(x, dict): return 'dictionary'
     if isinstance(x, int): return 'integer'
-    if isinstance(x, re.Pattern): return 'pattern'
+    if isinstance(x, VPattern): return 'pattern'
     if isinstance(x, str): return 'string'
     if isinstance(x, VgrCallable): return 'function'
     if callable(x) and not isinstance(x, type): return poly_type(x())

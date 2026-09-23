@@ -4,7 +4,6 @@ Modulo operation.
 
 from functools import reduce
 from math import nan
-from re import Pattern
 from typing import Any
 
 from .common import (
@@ -16,6 +15,7 @@ from .common import (
 )
 from .type import poly_type
 from .registry import builtin
+from .vpattern import VPattern
 
 _NUMERIC_TYPES = (bool, int, float, str)
 
@@ -145,7 +145,7 @@ Also see `Is Even` and `Mod()`
 
 def _check_remainder(x: Any, remainder: int) -> bool:
     if not isinstance(x, _NUMERIC_TYPES): return False
-    if isinstance(x, Pattern): x = x.pattern
+    if isinstance(x, VPattern): x = x.pattern
     if isinstance(x, str):
         try:
             x = str_to_number(x)

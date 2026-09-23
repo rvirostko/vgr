@@ -220,10 +220,7 @@ overwritten.
                     raise ValueError(f'Improper use of {step!r} variable context')
                 if not isinstance(data, (Frame, dict)) or step not in data: return None
                 data = self._value_for(data[step])
-        # We can skip a copy of simple types like bool, int, float because it would just be a NOP
-        # re.Pattern is an immutable object itself, so no point in copying
-        # Other items, like constant functions can be skipped as they are like re.Pattern
-        # Of our supported types, that just leaves lists and dictionaries, which are mutable.
+        # Of our supported types, collections are the only things we need to duplicate
         return copy.deepcopy(data) if is_immutable and isinstance(data, (list, dict)) else data
 
     def var_exists(self, *path: str) -> tuple[bool, str, Any]:

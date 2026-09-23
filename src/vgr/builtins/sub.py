@@ -1,5 +1,4 @@
 from functools import reduce
-from re import Pattern
 from typing import Any
 
 from .common import (
@@ -11,6 +10,7 @@ from .common import (
 from .dict import poly_remove_key
 from .type import poly_type
 from .registry import builtin
+from .vpattern import VPattern
 
 @bound_ops("-", "－")
 @builtin("Sub")
@@ -74,12 +74,12 @@ def _remove_keys(_op, x: dict, y: dict) -> dict:
     return {k:v for k, v in x.items() if k not in keys}
 
 _SUB_OPERATIONS = {
-    (str, str):      lambda op, x, y: op(empty_is_zero(x), empty_is_zero(y)),
-    (dict, bool):    _remove_key,
-    (dict, int):     _remove_key,
-    (dict, float):   _remove_key,
-    (dict, str):     _remove_key,
-    (dict, list):    _remove_key,
-    (dict, dict):    _remove_keys,
-    (dict, Pattern): lambda op, x, y: _remove_key(op, x, y.pattern)
+    (str, str):       lambda op, x, y: op(empty_is_zero(x), empty_is_zero(y)),
+    (dict, bool):     _remove_key,
+    (dict, int):      _remove_key,
+    (dict, float):    _remove_key,
+    (dict, str):      _remove_key,
+    (dict, list):     _remove_key,
+    (dict, dict):     _remove_keys,
+    (dict, VPattern): lambda op, x, y: _remove_key(op, x, y.pattern)
 }

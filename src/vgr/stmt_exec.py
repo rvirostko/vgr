@@ -811,7 +811,7 @@ class ConstantsNormalizer(Transformer):
             raise VgrRuntimeError(token, ValueError(str(e.msg).strip())) from e
 
     def REGEX(self, token):
-        """Convert the value of the token into a compiled re.Pattern"""
+        """Convert the value of the token into a compiled Regular Expression pattern"""
         # r(egex)/<pattern>/<flags>?
         value = token.value
         pattern_start = value.find('/') + 1

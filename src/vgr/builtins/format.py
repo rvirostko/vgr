@@ -1,9 +1,9 @@
 import string
-from re import Pattern
 
 from .as_str import as_str
 from .registry import builtin
 from .type import poly_type
+from .vpattern import VPattern
 
 class SafeFormatter(string.Formatter):
     def get_value(self, key, args, kwargs):
@@ -29,7 +29,7 @@ class SafeFormatter(string.Formatter):
 
     def _filter_types(self, value):
         # Filter out unsupported types
-        return value if isinstance(value, (bool, int, float, str, list, dict, Pattern)) else None
+        return value if isinstance(value, (bool, int, float, str, list, dict, VPattern)) else None
 
 @builtin("Format")
 def poly_format(*args) -> str:

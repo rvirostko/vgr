@@ -1,7 +1,6 @@
 from copy import copy
 from functools import cmp_to_key
 from typing import Any
-from re import Pattern
 
 from .common import (
     apply_vargs,
@@ -20,6 +19,7 @@ from .inequ import (
 from .strings import poly_substr
 from .type import poly_type
 from .registry import builtin
+from .vpattern import VPattern
 
 @builtin("Reverse")
 def poly_reverse(*args) -> Any:
@@ -41,7 +41,7 @@ If *value* is an ordinal rather than a list, it is returned unchanged.
 """
     def _op(x):
         if isinstance(x, list): return list(reversed(x))
-        if isinstance(x, Pattern): x = x.pattern
+        if isinstance(x, VPattern): x = x.pattern
         if isinstance(x, str): return x[::-1]
         return x
     return apply_vargs(args, _op)
@@ -103,7 +103,7 @@ None.Length() → None
 Also see `StringLen()`
 """
     def _op(x):
-        if isinstance(x, Pattern): x = x.pattern
+        if isinstance(x, VPattern): x = x.pattern
         return len(x) if hasattr(x, '__len__') else None
     return apply_vargs(args, _op)
 
@@ -216,21 +216,6 @@ and escapes non-printable characters.
 ["five", 5, 5.0].Repr() → ['"five"', '5', '5.0']
 ```
 """
-    import re
-    def _decode_flags(x: Pattern) -> str:
-        rc = ''
-        f = x.flags
-        if f > 0:
-            if f & re.A: rc += 'a'
-            if f & re.DEBUG: rc += 'd'
-            if f & re.I: rc += 'i'
-            # re.L unlikely since it can only be used with bytes
-            if f & re.M: rc += 'm'
-            if f & re.S: rc += 's'
-            # We don't support templates (re.T)
-            # If not re.A, then re.U, so we skip it
-            if f & re.X: rc += 'x'
-        return rc
     def _op(x):
         # These are of limited aesthetic value
         if isinstance(x, str) and '"' not in x:
@@ -238,10 +223,6 @@ and escapes non-printable characters.
             if r[0] == r[-1] == "'":
                 return '"' + r[1:-1] + '"'
             return r
-        if isinstance(x, Pattern):
-            # NB: there are probably escaping issue with "/"
-            #     inside the pattern...
-            return 'r/' + x.pattern + '/' + _decode_flags(x)
         if isinstance(x, list): return '[' + ', '.join(poly_repr(x1) for x1 in x) + ']'
         return repr(x)
     return apply_vargs(args, _op)

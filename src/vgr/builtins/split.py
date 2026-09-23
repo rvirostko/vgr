@@ -1,11 +1,10 @@
 from typing import Any
-import re
-from re import Pattern
 
 from .as_str import as_str
 from .registry import builtin
 from .type import poly_type
 from .common import int_arg, str_arg
+from .vpattern import VPattern
 
 @builtin("Split")
 def poly_split(x: Any=None, sep: str=None, maxsplit: int=-1) -> Any:
@@ -49,7 +48,7 @@ None.Split() → []
 
 Also see `RSplit()` and `CompilePattern()`
 """
-    if isinstance(sep, Pattern): return _re_split(x, sep, maxsplit)
+    if isinstance(sep, VPattern): return _re_split(x, sep, maxsplit)
     return _split('Split', poly_split, str.split, x, sep, maxsplit)
 
 @builtin("RSplit")
@@ -80,23 +79,23 @@ None.RSplit() → []
 
 Also see `Split()`
 """
-    if isinstance(sep, Pattern): return _re_rsplit(x, sep, maxsplit)
+    if isinstance(sep, VPattern): return _re_rsplit(x, sep, maxsplit)
     return _split('RSplit', poly_rsplit, str.rsplit, x, sep, maxsplit)
 
-def _re_split(x: Any, sep: Pattern, maxsplit: int=0):
+def _re_split(x: Any, sep: VPattern, maxsplit: int=0):
     if x is None: x = ''
     x = as_str(x)
-    if isinstance(x, str):  return re.split(sep, x, max(0, maxsplit))
+    if isinstance(x, str):  return VPattern.compile(sep).split(x, max(0, maxsplit))
     if isinstance(x, list): return list(_re_split(x1, sep, maxsplit) for x1 in x)
     if isinstance(x, dict): return {key: _re_split(value, sep, maxsplit) for key, value in x.items()}
     raise TypeError(f'Split of {poly_type(x)!r} not supported')
 
-def _re_rsplit(x: Any, sep: Pattern, maxsplit: int=0):
+def _re_rsplit(x: Any, sep: VPattern, maxsplit: int=0):
     if x is None: x = ''
     x = as_str(x)
     if isinstance(x, str):
         maxsplit = max(0, maxsplit)
-        if maxsplit == 0: return re.split(sep, x)
+        if maxsplit == 0: return sep.split(x)
         matches = list(sep.finditer(x))
         if not matches: return [x]
         # Only the last `maxsplit` matches act as split points.

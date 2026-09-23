@@ -4,12 +4,12 @@ Includes case independent variations.
 """
 
 from typing import Any
-import re
 
 from .common import bound_ops
 from .inequ import poly_eq
 from .types import poly_to_string
 from .registry import builtin
+from .vpattern import VPattern
 
 def _pop_single(args): return args[0] if len(args) == 1 else [*args]
 
@@ -136,9 +136,9 @@ def _do_match(x: Any, y: Any, do_all: bool=False) -> bool:
         return all(_do_match(x1, y, do_all) for x1 in x)
     if isinstance(x, (bool, int, float)) and isinstance(y, (bool, int, float)): return poly_eq(x, y)
     if y is None: return False
-    if not isinstance(y, re.Pattern):
+    if not isinstance(y, VPattern):
         try:
-            y = re.compile(str(y))
+            y = VPattern.compile(str(y))
         except Exception as e:
             raise ValueError(f'Match Pattern error: {y!r}') from e
-    return re.search(y, poly_to_string(x)) is not None
+    return y.search(poly_to_string(x)) is not None

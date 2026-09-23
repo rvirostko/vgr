@@ -3,16 +3,15 @@ Functions for working with files and directories
 """
 
 from pathlib import Path
-from re import Pattern
 from typing import Any
 import fnmatch
 import glob
 import os
-import re
 
 from .common import apply_vargs
 from .type import poly_type
 from .registry import builtin
+from .vpattern import VPattern
 
 @builtin("GetCurrentDirectory")
 def get_current_directory(*_args) -> str:
@@ -470,12 +469,12 @@ GlobToPattern("file.txt") → r/(?s:file\\.txt)\\Z/
 
 Also see `CompilePattern()`
 """
-    def _glob_to_pattern(pattern: str) -> str:
+    def _glob_to_pattern(pattern: str) -> Any:
         if pattern is None: return None
-        if isinstance(pattern, Pattern): return pattern
+        if isinstance(pattern, VPattern): return pattern
         if isinstance(pattern, list): return list(_glob_to_pattern(pattern1) for pattern1 in pattern)
         pattern = _stringify(pattern)
-        if isinstance(pattern, str): return re.compile(fnmatch.translate(pattern))
+        if isinstance(pattern, str): return VPattern.compile(fnmatch.translate(pattern))
         raise ValueError(f'GlobToPattern on {poly_type(path)!r} not supported')
     return apply_vargs(args, _glob_to_pattern)
 
@@ -501,5 +500,5 @@ def _check_relative_path(filename: str) -> tuple:
 def _stringify(x) -> Any:
     """While of limited value, behavior is consistent with other ops"""
     if isinstance(x, (bool, int, float)): return str(x)
-    if isinstance(x, Pattern): return x.pattern
+    if isinstance(x, VPattern): return x.pattern
     return x

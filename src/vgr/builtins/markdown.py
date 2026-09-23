@@ -2,13 +2,12 @@
 Transformational functions to support Markdown
 """
 
-from re import Pattern
 from typing import Any
 from urllib.parse import quote
-import re
 
 from .common import NoneType, unpack_vargs
 from .registry import builtin
+from .vpattern import VPattern
 
 _MD_STRONG_DELIMITER = '**'
 _MD_EMPHASIS_DELIMITER = '_'
@@ -18,12 +17,12 @@ _MD_CODE_FENCE = '```'
 _MD_BLOCK_QUOTE_MARKER = '> '
 _BLANK = ''
 
-_TAG_BREAKER_PATTERN = re.compile(r'\n{2,}')
-_WHITESPACE_PATTERN = re.compile(r'\s')
-_INLINE_META_PATTERN = re.compile(r'(?<!\\)([' + re.escape(r'*_~[]()`') + r'])')
-_LINE_START_PATTERN = re.compile(r'^([ \t]{0,3})(#{1,6}(?=[ \t]|$)|[->+](?=[ \t]|$))', re.MULTILINE)
-_ORDERED_LIST_PATTERN = re.compile(r'^([ \t]{0,3}\d+)([.])([ \t]|$)', re.MULTILINE)
-_CODE_DELIMITER_RUN_PATTERN = re.compile(_MD_CODE_DELIMITER + "+")
+_TAG_BREAKER_PATTERN = VPattern.compile(r'\n{2,}')
+_WHITESPACE_PATTERN = VPattern.compile(r'\s')
+_INLINE_META_PATTERN = VPattern.compile(r'(?<!\\)([' + VPattern.escape(r'*_~[]()`') + r'])')
+_LINE_START_PATTERN = VPattern.compile(r'^([ \t]{0,3})(#{1,6}(?=[ \t]|$)|[->+](?=[ \t]|$))', VPattern.MULTILINE)
+_ORDERED_LIST_PATTERN = VPattern.compile(r'^([ \t]{0,3}\d+)([.])([ \t]|$)', VPattern.MULTILINE)
+_CODE_DELIMITER_RUN_PATTERN = VPattern.compile(_MD_CODE_DELIMITER + "+")
 
 @builtin("MdStrong")
 def md_strong(*args) -> Any:
@@ -115,7 +114,7 @@ Also see `Print` and using the *As Markdown* clause.
     if s == _BLANK: return _BLANK
     delimiter = _MD_CODE_DELIMITER
     if delimiter in s:
-        delimiter *= max((len(r) for r in re.findall(_CODE_DELIMITER_RUN_PATTERN, s))) + 1
+        delimiter *= max((len(r) for r in _CODE_DELIMITER_RUN_PATTERN.findall(s))) + 1
     # We need to add some separator between the existing backticks and what we'll
     # add: Markdown seems to ignore this leading/trailing in presentation
     s = " " + s + " " if s.startswith('`') or s.endswith('`') else s.strip()
@@ -356,7 +355,7 @@ Also see `Print` and using the *As Markdown* clause.
         if len(s) == 0: return _BLANK
         fence = _MD_CODE_FENCE
         if fence in s:
-            fence = _MD_CODE_DELIMITER * (max((len(r) for r in re.findall(_CODE_DELIMITER_RUN_PATTERN, s))) + 1)
+            fence = _MD_CODE_DELIMITER * (max((len(r) for r in _CODE_DELIMITER_RUN_PATTERN.findall(s))) + 1)
         return "\n" + \
             (fence + lang).rstrip() + "\n" + \
             s.rstrip() + "\n" + \
@@ -387,7 +386,7 @@ def _md_to_string(s: Any) -> str:
         return _BLANK if not s else "\n".join([_md_to_string(i) for i in s])
     if isinstance(s, dict): # recusively join the items of a dict
         return "\n".join([_md_to_string(k) + " : " + _md_to_string(v) for (k, v) in s.items()])
-    s = _BLANK if s is None else s.pattern if isinstance(s, Pattern) else str(s)
+    s = _BLANK if s is None else s.pattern if isinstance(s, VPattern) else str(s)
     return _BLANK if s.isspace() else s
 
 def _md_fmt(text: str, code: str) -> str:
@@ -400,9 +399,7 @@ def _md_sanitize(s: str, escape_chars: str="") -> str:
         # Then we escape any other character that might
         # break the tag, but only if the caller has
         # passed in pre-escaped versions
-        escaped = re.escape(escape_chars)
-        pattern = re.compile(r'(?<!\\)([' + escaped + r'])')
-        s = pattern.sub(r'\\\1', s)
+        return VPattern.compile(r'(?<!\\)([' + VPattern.escape(escape_chars) + r'])').sub(r'\\\1', s)
     return s
 
 def _md_sanitize_url(s: str, escape_chars: str="") -> str:

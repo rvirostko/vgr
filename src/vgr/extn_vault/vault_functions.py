@@ -3,12 +3,12 @@ Functions applicable to Vault data types.
 """
 
 from typing import Any
-import re
 
 from ..builtins import poly_type, poly_floor_multiple
+from ..builtins.vpattern import VPattern
 
 # Used in str -> ms
-_DURATION_STR_PATTERN = re.compile(r'(-?\d+\.?\d*)(ns|us|µs|ms|s|m|h|d)?', re.IGNORECASE)
+_DURATION_STR_PATTERN = VPattern.compile(r'(-?\d+\.?\d*)(ns|us|µs|ms|s|m|h|d)?', VPattern.IGNORECASE)
 _TIME_UNITS_LOOKUP = {
     'd': 24 * 60 * 60 * 1_000,
     'h': 60 * 60 * 1_000,

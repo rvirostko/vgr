@@ -5,11 +5,12 @@ Functions using regular expressions
 from functools import reduce
 from typing import Any
 from sys import maxsize
-import re
+from re import Match
 
 from .common import NoneType, apply_vargs
 from .type import poly_type
 from .registry import builtin
+from .vpattern import VPattern
 
 @builtin("IsPattern")
 def poly_is_pattern(x:Any=None) -> bool:
@@ -26,7 +27,7 @@ CompilePattern("[abc]").IsPattern() → True
 
 Also see `CompilePattern()`
 """
-    return isinstance(x, re.Pattern)
+    return isinstance(x, VPattern)
 
 @builtin("CompilePattern")
 def compile_pattern(x: Any=None, flags: int=0) -> Any:
@@ -52,14 +53,14 @@ Print ["cat", "DOG"].RegexReplace(vowel_pattern, "-") → ["c-t", "D-G"]
 Also see `RegexReplace()` as well as `IsPattern()` and `PatternFlags()`.
 """
     if x is None: return None
-    if isinstance(x, re.Pattern):
+    if isinstance(x, VPattern):
         # Recompile with the provided flags if we have a mismatch
         flags = _compose_flags(flags)
         if flags == x.flags: return x
         x = x.pattern
     if isinstance(x, str):
         try:
-            return re.compile(x, _compose_flags(flags))
+            return VPattern.compile(x, _compose_flags(flags))
         except Exception as e:
             raise ValueError(f'Pattern error: {x!r}') from e
     if isinstance(x, list):
@@ -99,21 +100,8 @@ def _compose_flags(f: Any) -> int:
     """Called directly by compile pattern, but also used for a builtin"""
     if f is None: return 0
     if isinstance(f, (int, float)): return int(f)
-    if isinstance(f, re.Pattern): return f.flags
-    if isinstance(f, str):
-        flags = 0
-        for fc in f.lower():
-            if   fc == 'a': flags += re.ASCII
-            elif fc == 'd': flags += re.DEBUG
-            elif fc == 'i': flags += re.IGNORECASE
-            # NB: locale not support as it only works with bytes
-            elif fc == 'm': flags += re.MULTILINE
-            elif fc == 's': flags += re.DOTALL
-            # NB: template not supported as obsolted by verbose
-            # NB: unicode not supported as it is redundant
-            elif fc == 'x': flags += re.VERBOSE
-            else:           raise ValueError(f'Unknown regular expression pattern flag: {fc!r}')
-        return flags
+    if isinstance(f, VPattern): return f.flags
+    if isinstance(f, str): return VPattern.compose_flags(f)
     raise ValueError(f'Cannot convert a {poly_type(f)!r} to flags for a pattern')
 
 @builtin("EscapePattern")
@@ -141,11 +129,53 @@ Also see `CompilePattern()` and `EscapeGlobPattern()`
         if isinstance(pattern, list): return list(_escape_pattern(pattern1) for pattern1 in pattern)
         if isinstance(pattern, (bool, int, float)):
             pattern = str(pattern)
-        elif isinstance(pattern, re.Pattern):
+        elif isinstance(pattern, VPattern):
             pattern = pattern.pattern
-        if isinstance(pattern, str): return re.escape(pattern)
+        if isinstance(pattern, str): return VPattern.escape(pattern)
         raise ValueError(f'EscapePattern on {poly_type(pattern)!r} not supported')
     return apply_vargs(args, _escape_pattern)
+
+@builtin("PatternGroups")
+def poly_pattern_groups(*args) -> Any:
+    """
+**Return the number of groups defined in a regular expression pattern**
+
+* PatternGroups(*pattern*)
+* *pattern*.PatternGroups()
+
+```vgr
+None.PatternGroups() → None
+PatternGroups(r/abc/) → 0
+PatternGroups(r/(a)b(c)/) → 2
+```
+
+Also see `PatternGroupMap()`
+"""
+    def _pattern_groups(pattern: Any) -> Any:
+        if isinstance(pattern, list): return list(_pattern_groups(pattern1) for pattern1 in pattern)
+        return pattern.groups if isinstance(pattern, VPattern) else 0
+    return apply_vargs(args, _pattern_groups)
+
+@builtin("PatternGroupMap")
+def poly_pattern_group_map(*args) -> Any:
+    """
+**Return a mapping of named groups defined in a regular expression pattern**
+
+* PatternGroupMap(*pattern*)
+* *pattern*.PatternGroupMap()
+
+```vgr
+None.PatternGroupMap() → {}
+re.pattern.version.PatternGroups() → 6
+re.pattern.version.PatternGroupMap() → {'version': 1, 'major': 2, 'minor': 3, 'patch': 4, 'prerelease': 5, 'build': 6}
+```
+
+Also see `PatternGroups()`
+"""
+    def _pattern_group_index(pattern: Any) -> Any:
+        if isinstance(pattern, list): return list(_pattern_group_index(pattern1) for pattern1 in pattern)
+        return dict(pattern.groupindex) if isinstance(pattern, VPattern) else {}
+    return apply_vargs(args, _pattern_group_index)
 
 @builtin("ExtractMatch")
 def poly_extract_match(*args) -> Any:
@@ -318,7 +348,7 @@ Also see `CompilePattern()`
 
 def _regex_replace(value: Any, pattern: Any, replacement: Any=None) -> Any:
     # For these types, the operation is idempotent
-    if isinstance(value, (NoneType, re.Pattern, bool, int, float)) or pattern is None: return value
+    if isinstance(value, (NoneType, VPattern, bool, int, float)) or pattern is None: return value
     if replacement is None:
         replacement = ''
     else:
@@ -329,20 +359,20 @@ def _regex_replace(value: Any, pattern: Any, replacement: Any=None) -> Any:
         return reduce(lambda x, pattern1: _regex_replace(x, pattern1, replacement), pattern, value)
     # in case we are going to loop, pre-compile the pattern
     pattern = _to_pattern(pattern)
-    if isinstance(value, re.Pattern): value = value.pattern
-    if isinstance(value, str): return re.sub(pattern, replacement, value)
+    if isinstance(value, VPattern): value = value.pattern
+    if isinstance(value, str): return pattern.sub(replacement, value)
     if isinstance(value, list): return list(_regex_replace(x1, pattern, replacement) for x1 in value)
     if isinstance(value, dict): return {key: _regex_replace(value, pattern, replacement) for key, value in value.items() }
     raise TypeError(f'RegEx replacement on {poly_type(value)!r} not supported')
 
-def _to_pattern(pattern: Any) -> re.Pattern:
-    if isinstance(pattern, re.Pattern): return pattern
-    if isinstance(pattern, str): return re.compile(pattern)
+def _to_pattern(pattern: Any) -> VPattern:
+    if isinstance(pattern, VPattern): return pattern
+    if isinstance(pattern, str): return VPattern.compile(pattern)
     raise TypeError(f'Unexpected type for RegEx pattern: {poly_type(pattern)!r}')
 
 def _regex_search(value: Any, pattern: Any) -> Any:
     # For these types, the operation is idempotent
-    if isinstance(value, (NoneType, re.Pattern, bool, int, float, dict)) or pattern is None: return None
+    if isinstance(value, (NoneType, VPattern, bool, int, float, dict)) or pattern is None: return None
     if isinstance(pattern, list):
         for p1 in pattern:
             m = _regex_search(value, p1)
@@ -350,13 +380,13 @@ def _regex_search(value: Any, pattern: Any) -> Any:
         return None
     # in case we are going to loop, pre-compile the pattern
     pattern = _to_pattern(pattern)
-    if isinstance(value, str): return _match(re.search(pattern, value))
+    if isinstance(value, str): return _match(pattern.search(value))
     if isinstance(value, list): return list(_regex_search(v1, pattern) for v1 in value)
     raise TypeError(f'RegEx extraction from {poly_type(value)!r} not supported')
 
 def _regex_search_all(value: Any, pattern: Any) -> Any:
     # For these types, the operation is idempotent
-    if isinstance(value, (NoneType, re.Pattern, bool, int, float, dict)) or pattern is None: return None
+    if isinstance(value, (NoneType, VPattern, bool, int, float, dict)) or pattern is None: return None
     if isinstance(pattern, list):
         # precomp all patterns
         pattern = list(_to_pattern(p1) for p1 in pattern)
@@ -381,12 +411,12 @@ def _regex_search_all(value: Any, pattern: Any) -> Any:
         # in case we are going to loop, pre-compile the pattern
         pattern = _to_pattern(pattern)
         if isinstance(value, str):
-            rc = list(_match(m) for m in re.finditer(pattern, value))
+            rc = list(_match(m) for m in pattern.finditer(value))
             return rc if len(rc) > 0 else None
         if isinstance(value, list): return list(_regex_search_all(v1, pattern) for v1 in value)
     raise TypeError(f'RegEx extraction from {poly_type(value)!r} not supported')
 
-def _match(m: re.Match) -> dict:
+def _match(m: Match) -> dict:
     if m is None: return None
     rc = {
         "pattern": m.re.pattern,

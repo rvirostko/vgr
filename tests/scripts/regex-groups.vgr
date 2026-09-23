@@ -1,0 +1,5 @@
+
+Echo On
+Assert re.pattern.version Is Defined
+Assert re.pattern.version.PatternGroups() Is 6
+Assert re.pattern.version.PatternGroupMap().GetKeys() == ['version', 'major', 'minor', 'patch', 'prerelease', 'build']

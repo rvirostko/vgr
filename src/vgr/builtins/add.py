@@ -1,5 +1,4 @@
 from functools import reduce
-from re import Pattern
 from typing import Any
 
 from .registry import builtin
@@ -13,6 +12,7 @@ from .common import (
 )
 from .dict import poly_set_key_value
 from .type import poly_type
+from .vpattern import VPattern
 
 @bound_ops("+", "＋")
 @builtin("Add")
@@ -72,10 +72,10 @@ def _add(x: Any, y: Any) -> Any:
         raise TypeError(f"Cannot add types {poly_type(x)!r} and {poly_type(y)!r}") from e
 
 def _add_key(_op, d: dict, key: Any) -> dict: return poly_set_key_value(d, key)
-def op_pattern_str(op, pattern: Pattern, value: Any) -> str:
+def op_pattern_str(op, pattern: VPattern, value: Any) -> str:
     """Convert both values to a string and invoke op()"""
     return op(pattern.pattern, str(value))
-def op_str_pattern(op, value: Any, pattern: Pattern) -> str:
+def op_str_pattern(op, value: Any, pattern: VPattern) -> str:
     """Convert both values to a string and invoke op()"""
     return op(str(value), pattern.pattern)
 def op_str_str(op, x: Any, y: Any) -> str:
@@ -83,34 +83,34 @@ def op_str_str(op, x: Any, y: Any) -> str:
     return op(str(x), str(y))
 
 _add_operations = {
-    (bool, Pattern):    op_str_pattern,
-    (int, list):        dist_y,
-    (int, Pattern):     op_str_pattern,
-    (float, list):      dist_y,
-    (float, Pattern):   op_str_pattern,
-    (str, bool):        op_str_str,
-    (str, int):         op_str_str,
-    (str, float):       op_str_str,
-    (str, str):         lambda _, x, y: x + y,
-    (str, list):        dist_y,
-    (str, Pattern):     op_str_pattern,
-    (list, bool):       dist_x,
-    (list, int):        dist_x,
-    (list, float):      dist_x,
-    (list, Pattern):    lambda op, x, y: dist_x(op, x, y.pattern),
-    (dict, bool):       _add_key,
-    (dict, int):        _add_key,
-    (dict, float):      _add_key,
-    (dict, str):        _add_key,
-    (dict, list):       _add_key,
-    (dict, dict):       lambda _, x, y: {**x, **y},
-    (dict, Pattern):    lambda op, x, y: _add_key(op, y, x.pattern),
-    (Pattern, bool):    op_pattern_str,
-    (Pattern, int):     op_pattern_str,
-    (Pattern, float):   op_pattern_str,
-    (Pattern, str):     op_pattern_str,
-    (Pattern, list):    lambda op, x, y: dist_y(op, x.pattern, y),
-    (Pattern, Pattern): lambda _, x, y: x.pattern + y.pattern,
+    (bool, VPattern):     op_str_pattern,
+    (int, list):          dist_y,
+    (int, VPattern):      op_str_pattern,
+    (float, list):        dist_y,
+    (float, VPattern):    op_str_pattern,
+    (str, bool):          op_str_str,
+    (str, int):           op_str_str,
+    (str, float):         op_str_str,
+    (str, str):           lambda _, x, y: x + y,
+    (str, list):          dist_y,
+    (str, VPattern):      op_str_pattern,
+    (list, bool):         dist_x,
+    (list, int):          dist_x,
+    (list, float):        dist_x,
+    (list, VPattern):     lambda op, x, y: dist_x(op, x, y.pattern),
+    (dict, bool):         _add_key,
+    (dict, int):          _add_key,
+    (dict, float):        _add_key,
+    (dict, str):          _add_key,
+    (dict, list):         _add_key,
+    (dict, dict):         lambda _, x, y: {**x, **y},
+    (dict, VPattern):     lambda op, x, y: _add_key(op, y, x.pattern),
+    (VPattern, bool):     op_pattern_str,
+    (VPattern, int):      op_pattern_str,
+    (VPattern, float):    op_pattern_str,
+    (VPattern, str):      op_pattern_str,
+    (VPattern, list):     lambda op, x, y: dist_y(op, x.pattern, y),
+    (VPattern, VPattern): lambda _, x, y: x.pattern + y.pattern,
 }
 
 @builtin("Sum")
@@ -148,7 +148,7 @@ def _num_value(obj):
     if obj is None: return 0
     if isinstance(obj, (int, float)): return obj
     # Likely "unuseful" but is consistent
-    if isinstance(obj, Pattern): obj = obj.pattern
+    if isinstance(obj, VPattern): obj = obj.pattern
     if isinstance(obj, str):
         try:
             return str_to_number(obj) or 0

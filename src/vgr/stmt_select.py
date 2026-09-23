@@ -5,7 +5,6 @@ Implementation of the SELECT statement
 from copy import deepcopy
 from io import StringIO
 from typing import Any
-import re
 
 from lark import (
     Tree,
@@ -27,6 +26,7 @@ from .builtins import (
     poly_to_string,
     poly_type,
 )
+from .builtins.vpattern import VPattern
 from .data_xtract import (
     DataExtractor,
     EndExtractException,
@@ -100,7 +100,7 @@ class SelectAnalyzer(Visitor):
     # Unique object to mark "*" in columns
     _ALL_COLS = object()
 
-    _VAR_NAME = re.compile(VAR_NAME)
+    _VAR_NAME = VPattern.compile(VAR_NAME)
 
     _BOOL_OPTS = (
         'array_wrapper',
@@ -270,7 +270,7 @@ class SelectAnalyzer(Visitor):
                 else:
                     product[_colref_range_check(expr, int(col_ref), ncols)] = True
                 return
-            if isinstance(col_ref, re.Pattern): col_ref = poly_repr(col_ref)
+            if isinstance(col_ref, VPattern): col_ref = poly_repr(col_ref)
             if isinstance(col_ref, str):
                 # 1-to-1 match with something?
                 i = name_to_index.get(col_ref)
@@ -365,7 +365,7 @@ class SelectAnalyzer(Visitor):
         # If they have some type of constant, we'll use it if it is a simple type
         if isinstance(node, Token):
             value = node.value
-            if isinstance(value, (re.Pattern, bool, int, float)): return poly_repr(value)
+            if isinstance(value, (VPattern, bool, int, float)): return poly_repr(value)
             if isinstance(value, (str)):
                 value = str(value).strip()
                 return value if value else None

@@ -5,9 +5,8 @@ Functions to check or change types
 from typing import Any
 import json
 import math
-import re
 
-from ..vgr_callable import VgrCallable
+from .vpattern import VPattern
 
 from .common import (
     bound_ops,
@@ -389,7 +388,7 @@ If *value* is `None` it is left as `None`.
     if x is None: return None
     if isinstance(x, bytes): return x.decode('utf-8')
     if isinstance(x, str): return x
-    if isinstance(x, re.Pattern): return x.pattern
+    if isinstance(x, VPattern): return x.pattern
     if isinstance(x, list): return list(poly_to_string(x1) for x1 in x)
     if isinstance(x, dict): return json.dumps(x, allow_nan=True, default=str)
     return str(x)

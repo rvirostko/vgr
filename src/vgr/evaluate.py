@@ -724,8 +724,8 @@ def eval_expr(ctx: ExecContext, expr: Any) -> Any:
                 raise e
             except Exception as e:
                 raise VgrRuntimeError(expr, e) from e
-        raise VgrRuntimeError(expr, NotImplementedError(f'Unhandled type {expr.data!r}')) #SNO
-    if isinstance(expr, Token):
-        # All tokens should be CONSTs so we don't want users mucking them up
-        return deepcopy(expr.value)
-    raise VgrRuntimeError(expr, NotImplementedError(f'Unknown type {poly_type(expr)!r}')) #SNO
+        raise VgrRuntimeError(expr, NotImplementedError(f'Unhandled type {expr.data!r}')) # pragma no cover
+    elif isinstance(expr, Token):
+        # All collection tokens should be CONSTs so we don't want users mucking them up
+        return deepcopy(expr.value) if isinstance(expr.value, (list, dict)) else expr.value
+    raise VgrRuntimeError(expr, NotImplementedError(f'Unknown type {poly_type(expr)!r}')) # pragma no cover

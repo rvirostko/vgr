@@ -3,7 +3,6 @@ Dictionary related functions
 """
 
 from copy import copy, deepcopy
-from re import Pattern
 from typing import Any
 
 from ..vgr_callable import VgrCallable
@@ -18,6 +17,7 @@ from .match import poly_matches
 from .type import poly_type
 from .types import poly_to_boolean
 from .registry import builtin
+from .vpattern import VPattern
 
 @bound_ops("{...}")
 def build_dict(*values: Any) -> dict:
@@ -557,7 +557,7 @@ Also see `GetKeyValue()` and `CompilePattern()`
         # If the desired value is a function, then x is passed to it for evaluation
         if isinstance(y, VgrCallable): return poly_to_boolean(y.evaluate(ctx, [x]))
         # If the desired value is a Pattern, use matches rather than equals
-        return poly_matches(x, y) if isinstance(y, Pattern) else poly_eq(x, y)
+        return poly_matches(x, y) if isinstance(y, VPattern) else poly_eq(x, y)
     def _in_list(value: Any, values: list) -> bool:
         # Our own value of "in" which includes Patterns as per above
         for v in values:

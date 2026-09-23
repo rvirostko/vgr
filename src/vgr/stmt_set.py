@@ -5,8 +5,6 @@ Includes the implemenation for SET/UNSET, MOVE, and LOAD FROM.
 from io import TextIOWrapper
 from typing import Any
 import os
-import re
-
 from lark import Tree, Token
 
 from .app_exceptions import VgrRuntimeError
@@ -37,6 +35,7 @@ from .builtins import (
     poly_sub,
     poly_type,
 )
+from .builtins.vpattern import VPattern
 from .user_args import (
     USER_ARGS,
     set_user_args,
@@ -552,9 +551,8 @@ Also see `Assign`, `Set`, `Constant`, and `Unset`
     def _caches():
         ctx.print_verbose('Resetting user function caches')
         clear_function_caches()
-        # As a totally arbitrary feature, we also
-        # purge Python's regex cache
-        re.purge()
+        # As a totally arbitrary feature, we also purge regex cache
+        VPattern.purge_cache()
 
     if len(statement.children) == 0:
         _output()

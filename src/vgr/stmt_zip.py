@@ -2,7 +2,6 @@
 Contains the implementation for the Create Zip statement
 """
 
-from re import Pattern
 from typing import Any
 import glob
 import os
@@ -13,6 +12,7 @@ from lark import Tree
 
 from .app_exceptions import VgrRuntimeError
 from .builtins import bound_ops, poly_type, verify_relative_path
+from .builtins.vpattern import VPattern
 from .exec_context import ExecContext
 from .redir import prepare_path
 
@@ -129,7 +129,7 @@ def _eval_to_list_str(ctx: ExecContext, clause: Tree, name: str) -> list[str]:
             if isinstance(val, (str, int, float)):
                 # Handle ordinals as strings
                 rc.append(str(val))
-            elif isinstance(val, Pattern):
+            elif isinstance(val, VPattern):
                 rc.append(val.pattern)
             elif isinstance(val, list):
                 # Recurse into collections

@@ -1,0 +1,16 @@
+
+Reset; // Everything
+Echo On
+
+Set a To r/abc/i
+
+Repeat 2 Times
+    Assert a Is Defined
+    Assert a.IsPattern()
+    Assert a.clone().id() == a.id()
+    Assert a.clone().id() != r/abc/i.id()
+    Assert a.clone() == r/abc/i
+    Assert a.clone() === r/abc/i
+    // Make sure resetting caches does mess up extant regexs
+    If ! $loop.last -> Reset Caches
+End-Repeat

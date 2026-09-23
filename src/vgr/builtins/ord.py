@@ -1,5 +1,4 @@
 from typing import Any
-from re import Pattern
 
 from .registry import builtin
 

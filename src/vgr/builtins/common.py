@@ -3,11 +3,11 @@ Routines and values that can be used by operator and function implementations.
 """
 
 from itertools import product
-from re import Pattern
 from typing import Any, Callable, Union
 import math
 
 from .type import poly_type
+from .vpattern import VPattern
 
 Number = Union[int, float]
 
@@ -148,7 +148,7 @@ def str_arg(arg: Any, name: str, req_value: bool=True, allow_pattern: bool=False
     if arg is None:
         if req_value: raise ValueError(f'{name} argument cannot be None')
         return arg
-    if allow_pattern and isinstance(arg, Pattern): return arg
+    if allow_pattern and isinstance(arg, VPattern): return arg
     if isinstance(arg, str):
         if req_value and len(arg) == 0:
             raise ValueError(f'{name} argument cannot be blank')

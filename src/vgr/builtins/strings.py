@@ -4,8 +4,6 @@ Various string manipulation functions using either the string class or regular e
 
 from functools import reduce
 from typing import Any, Callable
-from re import Pattern
-import re
 
 from .common import (
     AnyType,
@@ -19,9 +17,10 @@ from .match import poly_matches_all, poly_matches
 from .reg_ex import poly_regex_replace
 from .type import poly_type
 from .registry import builtin
+from .vpattern import VPattern
 
 _NOT_FOUND = -1
-_SCALAR_TYPES = (bool, int, float, str, Pattern)
+_SCALAR_TYPES = (bool, int, float, str, VPattern)
 
 # Operations table key for when Y value is a collection
 Y_Coll_Op = (AnyType, list)
@@ -44,7 +43,7 @@ _STRING_OPERATIONS = {
     str:      lambda _op,  x,  sm: sm(x),
     list:     lambda  op,  x, _sm: [op(x1) for x1 in x],
     dict:     lambda  op,  x, _sm: {key: op(value) for key, value in x.items()},
-    Pattern:  lambda _op,  x,  sm: sm(x.pattern),
+    VPattern: lambda _op,  x,  sm: sm(x.pattern),
 }
 
 def _exec_string_op(x: Any, name: str, op: Callable[[Any], Any], string_op) -> Any:
@@ -216,7 +215,7 @@ _BOOL_OPERATIONS = {
     str:      lambda _op,  x,  sm: sm(x),
     list:     lambda  op,  x, _sm: [op(x1) for x1 in x],
     dict:     lambda  op,  x, _sm: {key: op(value) for key, value in x.items() if isinstance(value, (str, list, dict))},
-    Pattern:  lambda _op,  x,  sm: sm(x.pattern),
+    VPattern: lambda _op,  x,  sm: sm(x.pattern),
 }
 
 def _exec_bool_op(x: Any, name: str, op: Callable[[Any], Any], string_op) -> Any:
@@ -486,7 +485,7 @@ def _exec_x_y_op(x: Any, y: Any, name: str, op: Callable[[Any, Any], Any], strin
 
 def _exec_str_str_op(x: Any, y: Any, name: str, op: Callable[[Any, Any], Any], string_op) -> Any:
     """For str/str transformational methods that are idempotent on non-string ordinals"""
-    if isinstance(x, (NoneType, bool, int, float, Pattern)): return x
+    if isinstance(x, (NoneType, bool, int, float, VPattern)): return x
     return _exec_x_y_op(x, y, name, op, string_op, _str_str_operations)
 
 #---------------------------------------------
@@ -517,18 +516,18 @@ None.Strip() → None
 Also see `LeftStrip()` and `RightStrip()`
 """
     def _strip(x: Any, chars: Any=None) -> Any:
-        if isinstance(chars, Pattern):
+        if isinstance(chars, VPattern):
             start = 0
             xlen = len(x)
             end = xlen + 1
-            for m in re.finditer(chars, x):
+            for m in chars.finditer(x):
                 if m.start() == 0: start = m.end()
                 if m.end() == xlen: end = m.start()
             return x[start:end]
         return _exec_str_str_op(x, chars, 'Strip', _strip, str.strip)
     if not args: return None
     x, *args = args
-    if isinstance(x, (NoneType, bool, int, float, Pattern)): return x
+    if isinstance(x, (NoneType, bool, int, float, VPattern)): return x
     return _strip(x) if not args else reduce(_strip, args, x)
 
 @builtin("LeftStrip")
@@ -553,15 +552,15 @@ None.LeftStrip() → None
 Also see `Strip()` and `RightStrip()`
 """
     def _lstrip(x: Any, chars: Any=None) -> Any:
-        if isinstance(chars, Pattern):
+        if isinstance(chars, VPattern):
             start = 0
-            for m in re.finditer(chars, x):
+            for m in chars.finditer(x):
                 if m.start() == 0: start = m.end()
             return x[start:len(x) + 1]
         return _exec_str_str_op(x, chars, 'LeftStrip', _lstrip, str.lstrip)
     if not args: return None
     x, *args = args
-    if isinstance(x, (NoneType, bool, int, float, Pattern)): return x
+    if isinstance(x, (NoneType, bool, int, float, VPattern)): return x
     return _lstrip(x) if not args else reduce(_lstrip, args, x)
 
 @builtin("RightStrip")
@@ -586,16 +585,16 @@ None.RightStrip() → None
 Also see `Strip()` and `LeftStrip()`
 """
     def _rstrip(x: Any, chars: Any=None) -> Any:
-        if isinstance(chars, Pattern):
+        if isinstance(chars, VPattern):
             xlen = len(x)
             end = xlen + 1
-            for m in re.finditer(chars, x):
+            for m in chars.finditer(x):
                 if m.end() == xlen: end = m.start()
             return x[0:end]
         return _exec_str_str_op(x, chars, 'RightStrip', _rstrip, str.rstrip)
     if not args: return None
     x, *args = args
-    if isinstance(x, (NoneType, bool, int, float, Pattern)): return x
+    if isinstance(x, (NoneType, bool, int, float, VPattern)): return x
     return _rstrip(x) if not args else reduce(_rstrip, args, x)
 
 @builtin("RemovePrefix")
@@ -623,9 +622,9 @@ Also see `RemoveSuffix()`
 """
     def _removeprefix(x: Any, prefix: Any) -> Any:
         if prefix is None: return x
-        if isinstance(prefix, Pattern):
+        if isinstance(prefix, VPattern):
             start = 0
-            for m in re.finditer(prefix, x):
+            for m in prefix.finditer(x):
                 if m.start() == 0: start = m.end()
             return x[start:len(x) + 1]
         if isinstance(prefix, (bool, int, float)): prefix = str(prefix)
@@ -661,10 +660,10 @@ Also see `RemovePrefix()`
 """
     def _removesuffix(x: Any, suffix: Any) -> Any:
         if suffix is None: return x
-        if isinstance(suffix, Pattern):
+        if isinstance(suffix, VPattern):
             xlen = len(x)
             end = xlen + 1
-            for m in re.finditer(suffix, x):
+            for m in suffix.finditer(x):
                 if m.end() == xlen: end = m.start()
             return x[0:end]
         if isinstance(suffix, (bool, int, float)): suffix = str(suffix)
@@ -686,7 +685,7 @@ def _exec_bool_str_op(x: Any, y: Any, name: str, op: Callable[[Any, Any], Any], 
     if isinstance(x, str):
         for y1 in flatten(y):
             if y1 is None: continue
-            if isinstance(y1, Pattern):
+            if isinstance(y1, VPattern):
                 if string_op(x, y1): return True
             else:
                 y1 = _as_str(y1)
@@ -722,8 +721,8 @@ Also see `EndsWith()`
 """
     def _starts_with(s: str, prefix: Any) -> bool:
         if isinstance(prefix, str): return s.startswith(prefix)
-        if isinstance(prefix, Pattern):
-            m = re.match(prefix, s)
+        if isinstance(prefix, VPattern):
+            m = prefix.match(s)
             return m is not None and m.start() == 0
     if not args: return False
     return _exec_bool_str_op(args[0], list(args[1:]), "StartsWith", poly_starts_with, _starts_with)
@@ -755,9 +754,9 @@ Also see `StartsWith()`
 """
     def _ends_with(s: str, suffix: Any) -> bool:
         if isinstance(suffix, str): return s.endswith(suffix)
-        if isinstance(suffix, Pattern):
+        if isinstance(suffix, VPattern):
             slen = len(s)
-            for m in re.finditer(suffix, s):
+            for m in suffix.finditer(s):
                 if m.end() == slen: return True
         return False
     if not args: return False
@@ -771,7 +770,7 @@ _STRING_INT_OPERATIONS = {
 
 def _exec_str_int_op(x: Any, y: Any, name: str, op: Callable[[Any, Any], Any], string_op) -> Any:
     # For these types, the operation is idempotent
-    if isinstance(x, (NoneType, bool, int, float, Pattern)): return x
+    if isinstance(x, (NoneType, bool, int, float, VPattern)): return x
     return _exec_x_y_op(x, y, name, op, string_op, _STRING_INT_OPERATIONS)
 
 def _split_vargs_number(args) -> tuple:
@@ -907,13 +906,13 @@ Also see `LeftStr()`, `RightStr()`, and `Slice()`
     raise ValueError(f'SubStr() on {poly_type(x)!r} not possible')
 
 _string_loc_ops = {
-    (str, str):     lambda _op, x, y,  sm: sm(x, y),
-    (str, Pattern): lambda _op, x, y,  sm: sm(x, y),
-    (list, str):    lambda  op, x, y, _sm: [op(x1, y) for x1 in x],
-    (dict, str):    lambda  op, x, y, _sm: {
+    (str, str):      lambda _op, x, y,  sm: sm(x, y),
+    (str, VPattern): lambda _op, x, y,  sm: sm(x, y),
+    (list, str):     lambda  op, x, y, _sm: [op(x1, y) for x1 in x],
+    (dict, str):     lambda  op, x, y, _sm: {
                                             key: op(value, y) for key, value in x.items()
                                                 if isinstance(value, (str, list, dict))
-                                          },
+                                            },
 }
 
 @builtin("CountOf")
@@ -953,17 +952,17 @@ fruit_colors.CountOf("grape") → 0
 fruit_colors.CountOf(r/a/) → 2 // both contain "a"
 ```
 """
-    def _re_count(x: str, p: Pattern) -> int: return len(re.findall(p, x))
+    def _re_count(x: str, p: VPattern) -> int: return len(p.findall(x))
     if x is None: return 0
     sub = str_arg(sub, 'Substr', False, True)
     if isinstance(x, dict): x = list(x.keys())
     if isinstance(x, list):
         if isinstance(sub, str) and len(sub) == 0: return len(x)
-        cmp = poly_matches_all if isinstance(sub, Pattern) else poly_eq
+        cmp = poly_matches_all if isinstance(sub, VPattern) else poly_eq
         return sum(1 for x1 in x if cmp(x1, sub))
     x = _as_str(x)
     if len(x) == 0: return 0
-    if isinstance(sub, Pattern):
+    if isinstance(sub, VPattern):
         return _exec_x_y_op(x, sub, 'CountOf', poly_count, _re_count, _string_loc_ops)
     sub = '' if sub is None else sub
     return len(x) if len(sub) == 0 else _exec_x_y_op(x, sub, 'CountOf', poly_count, str.count, _string_loc_ops)
@@ -1002,12 +1001,12 @@ Also see `RIndexOf()` and `FindStr()`
     if isinstance(value, _SCALAR_TYPES):
         if sub is None: return _NOT_FOUND
         value = _as_str(value)
-        if isinstance(sub, Pattern): return _re_find(value, sub)
+        if isinstance(sub, VPattern): return _re_find(value, sub)
         sub = _as_str(sub)
         if isinstance(sub, str): return _NOT_FOUND if len(sub) == 0 else value.find(sub)
         raise TypeError(f'Type {poly_type(sub)!r} cannot be used for Substr argument')
     if isinstance(value, list):
-        if isinstance(sub, Pattern):
+        if isinstance(sub, VPattern):
             # We skip None, list, and dict
             return next((i for i, v in enumerate(value)
                          if isinstance(v, _SCALAR_TYPES) and poly_matches(_as_str(v), sub)),
@@ -1017,8 +1016,8 @@ Also see `RIndexOf()` and `FindStr()`
                     _NOT_FOUND)
     raise TypeError(f'Type {poly_type(value)!r} cannot be used with IndexOf')
 
-def _re_find(x: str, p: Pattern) -> int:
-    return _NOT_FOUND if (m := re.search(p, x)) is None else m.start()
+def _re_find(x: str, p: VPattern) -> int:
+    return _NOT_FOUND if (m := p.search(x)) is None else m.start()
 
 @builtin("RIndexOf")
 def poly_rindex(x: Any=None, sub: Any=None) -> Any:
@@ -1058,17 +1057,15 @@ Also see `IndexOf()` and `RFindStr()`
     sub = str_arg(sub, 'str', False, True) or ''
     if isinstance(x, list):
         if isinstance(sub, str) and len(sub) == 0: return -1
-        cmp = poly_matches_all if isinstance(sub, Pattern) else poly_eq
+        cmp = poly_matches_all if isinstance(sub, VPattern) else poly_eq
         return next((i for i in range(len(x) - 1, -1, -1) if cmp(x[i], sub)), -1)
     if isinstance(x, dict): return 0 if sub in x else -1
     if isinstance(x, (bool, int, float)): x = str(x)
-
     x = _as_str(x)
     if len(x) == 0: return -1
-    if isinstance(sub, Pattern):
+    if isinstance(sub, VPattern):
         return -1 if len(m := list(sub.finditer(x))) == 0 else m[-1].start()
     if sub is None or len(sub) == 0: return -1
-
     return _exec_x_y_op(x, sub, 'RIndexOf', poly_rindex, str.rfind, _string_loc_ops)
 
 @builtin("FindStr")
@@ -1095,18 +1092,18 @@ None.FindStr("a") → None
 Also see `RFindStr()` and `IndexOf()`
 """
     def _findstr(s: str, sub: Any) -> int:
-        if isinstance(sub, Pattern):
+        if isinstance(sub, VPattern):
             return _NOT_FOUND if (m := sub.search(s)) is None else m.start()
         return _NOT_FOUND if len(sub) == 0 else s.find(sub)
     value = _as_str(value)
     if substr is None: return _NOT_FOUND
-    if isinstance(substr, Pattern):
+    if isinstance(substr, VPattern):
         pass
     elif isinstance(substr, _SCALAR_TYPES):
         substr = _as_str(substr)
     else:
         raise TypeError(f'Type {poly_type(substr)!r} cannot be used for Substr argument')
-    substr = substr if isinstance(substr, Pattern) else str_arg(substr, 'Substr', False)
+    substr = substr if isinstance(substr, VPattern) else str_arg(substr, 'Substr', False)
     return _exec_x_y_op(value, substr, 'FindStr', poly_findstr, _findstr, _string_loc_ops)
 
 @builtin("RFindStr")
@@ -1138,11 +1135,11 @@ None.RFindStr("a") → None
 Also see `FindStr()` and `RIndexOf()`
 """
     def _rfindstr(s: str, sub: Any) -> int:
-        if isinstance(sub, Pattern):
+        if isinstance(sub, VPattern):
             return -1 if len(m := list(sub.finditer(s))) == 0 else m[-1].start()
         return s.rfind(sub)
     x = _as_str(x)
-    sub = sub if isinstance(sub, Pattern) else str_arg(sub, 'Substr', False) or ''
+    sub = sub if isinstance(sub, VPattern) else str_arg(sub, 'Substr', False) or ''
     return _exec_x_y_op(x, sub, 'RFindStr', poly_rfindstr, _rfindstr, _string_loc_ops)
 
 
@@ -1306,7 +1303,7 @@ def _prepend(x: Any, y: Any) -> Any:
     raise TypeError(f'Concatenation between {poly_type(x)!r} and {poly_type(y)!r} not supported')
 
 def _replace(x: Any, old: Any, new: Any=None) -> Any:
-    if isinstance(old, Pattern): return poly_regex_replace(x, old, new)
+    if isinstance(old, VPattern): return poly_regex_replace(x, old, new)
     if old is None: return x
     if x is None: x = ''
     x = _as_str(x)
@@ -1332,5 +1329,5 @@ def _as_str(value: Any) -> Any:
     """Converts bools, ints, floats, and Patterns to strings.
 Everything else is returned unaltered."""
     if isinstance(value, (bool, int, float)): value = str(value)
-    if isinstance(value, Pattern): value = value.pattern
+    if isinstance(value, VPattern): value = value.pattern
     return value
