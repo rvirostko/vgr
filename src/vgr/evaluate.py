@@ -56,6 +56,7 @@ from .builtins import (
     poly_repr,
     poly_shift_left,
     poly_shift_right,
+    poly_slice,
     poly_sub,
     poly_subscript,
     poly_is_true,
@@ -245,6 +246,23 @@ class Subscript(Operation):
 
     def op_name(self) -> str:
         return 'subscript'
+
+class Slice(Operation):
+    """
+    Dereference a value using a Python-like slice expression
+    """
+
+    def execute(self, ctx: ExecContext, args: list) -> Any:
+        # <expr>[<expr>:<expr>:<expr>]...
+        value = ctx.eval_expr(args[0]) # the in-line <expr>
+        # There will be three arguments. Their children[0] will be the
+        # associated value for start, stop, step respectively.
+        # If they have no children, then that means None.
+        slice_args = [ctx.eval_expr(arg.children[0]) if arg.children else None for arg in args[1:]]
+        return poly_slice(value, *slice_args)
+
+    def op_name(self) -> str:
+        return 'slice'
 
 def is_var_constant(ctx: ExecContext, expr: Tree) -> bool:
     # Actual constants (string, ints, None, inf, etc) are constants
@@ -559,7 +577,6 @@ def _var_name_path(node: Tree) -> tuple[str]:
         # extracts and validates the parts of the path
         try:
             if not _is_name_token(token):
-                # SNO
                 raise ValueError('Expected NAME') # pragma no cover
             return DataDictionary.valid_path_step(token.value)
         except ValueError as e:
@@ -685,6 +702,7 @@ class OperationBinder(Transformer):
     def invoke_func(self, tree): return InvokeFunctionOperation(tree)
     def invoke_func_inline(self, tree): return InvokeInlineFunctionOperation(tree)
     def subscript(self, tree): return Subscript(tree)
+    def slice(self, tree): return Slice(tree)
 
     # Transformational pipeline style: "foo".Upper()
     def dotfunction_call(self, tree):
