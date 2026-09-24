@@ -60,6 +60,7 @@ from .files import (
     get_current_directory,
     verify_relative_path,
 )
+from .format import poly_format
 from .general import (
      dsort,
      poly_repr,
@@ -125,17 +126,17 @@ from .parse import (
     parse_json,
     parse_yaml,
 )
+from .plural import poly_plural
 from .pow import poly_pow
 from .reg_ex import (
     compile_pattern,
 )
 from .shift import poly_shift_left, poly_shift_right
-from .plural import poly_plural
-from .format import poly_format
 from .strings import (
      poly_shorten,
      poly_strip,
 )
+from .slice import poly_slice
 from .sub import poly_sub
 from .time_funcs import (
     format_duration,
