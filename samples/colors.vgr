@@ -31,13 +31,13 @@ Repeat iter Times
     Call Function StartTest("Boxes and Lines")
     Terminal SetForeground "bright white", SetBackground "bright red"
     For i = 1 To 7
-        Terminal MoveCursorTo 2+i:0,
+        Terminal MoveCursorTo 2 + i:0,
                  DrawHLine i*10
-        Terminal MoveCursorTo 3:(i*10)+1,
+        Terminal MoveCursorTo 3:(i * 10) + 1,
                  DrawVLine i
     Next
     For i = 2 To 8
-        Terminal MoveCursorTo 10:(i - 2)*10,
+        Terminal MoveCursorTo 10:(i - 2) * 10,
                  DrawBox i:i
         Terminal BoldAttr True
         Printf "{0}x{0}", i
