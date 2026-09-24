@@ -15,6 +15,9 @@ def poly_slice(x: Any=None, start: Any=None, stop: Any=None, step: Any=None) -> 
 * *value*.Slice(*start*)
 * *value*.Slice(*start*, *stop*)
 * *value*.Slice(*start*, *stop*, *step*)
+* *value*[*start*:]
+* *value*[*start*:*stop*]
+* *value*[*start*:*stop*:*step]
 
 `Slice()` works with strings, lists, and dictionaries. For other types,
 *value* is returned unchanged.
@@ -41,11 +44,16 @@ True.Slice(2) → True
 "".Slice() → ""
 "cake".Slice() → "cake"
 "cake".Slice(2) → "ke"
+"cake"[2:] → "ke" # default end
 "cake".Slice(1, 3) → "ak"
+"cake"[1:3] → "ak"
+"cake"[1:3:] → "ak" # default step
 "cake".Slice(1, 4, 2) → "ae"
+"cake"[1:4:2] → "ae"
 
 [].Slice(2) → []
 [1, 2, 3, 4, 5].Slice(2) → [3, 4, 5]
+[1, 2, 3, 4, 5][2:] → [3, 4, 5]
 [1, 2, 3, 4, 5].Slice(1, 4) → [2, 3, 4]
 [1, 2, 3, 4, 5].Slice(0, 5, 2) → [1, 3, 5]
 [10, 20, 30, 40].Slice(-2) → [30, 40]
