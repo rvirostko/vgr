@@ -33,6 +33,8 @@
 - Updated/corrected top-level README.md
 - Open mode in "Load" masked encoding errors. Note that if "Debug" is on
   encoding errors are replaced with backslash codes in the loaded data.
+- Visual Studio Code highlighted variables as keywords in cases where
+  punctuation following it indicated it wasn't a keyword.
 
 ### Security
 

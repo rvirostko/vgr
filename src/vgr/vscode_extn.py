@@ -78,10 +78,12 @@ _LANG_CONFIG = {
     "brackets": [
         ["{", "}"],
         ["[", "]"],
+        ["［", "］"], # fullwidth variant
         ["(", ")"]
     ],
     "autoClosingPairs": [
         { "open": "[", "close": "]" },
+        { "open": "［", "close": "］" },# fullwidth variant
         { "open": "(", "close": ")" },
         { "open": '"', "close": '"' },
         { "open": "'", "close": "'" },
@@ -89,6 +91,7 @@ _LANG_CONFIG = {
     "surroundingPairs": [
         { "open": "{", "close": "}" },
         { "open": "[", "close": "]" },
+        { "open": "［", "close": "］" },# fullwidth variant
         { "open": "(", "close": ")" },
         { "open": '"', "close": '"' },
         { "open": "'", "close": "'" },
@@ -212,10 +215,10 @@ def _constants_pattern(_parser: Lark) -> str:
     """Returns a regex pattern that will match a constant"""
     return "(?i)" + r"\b(:?" + "|".join(sorted(_CONSTS, key=len, reverse=True)) + r")\b"
 
-_KEYWORD_PATTERN = re.compile("[@A-Z][A-Za-z-]+")
+_KEYWORD_PATTERN = re.compile("(?i)[@A-Z][A-Z-]+")
 # These keep things like "foo.for" from highlighting the "for" part
-_KEYWORD_START_BOUNDRY = r"(?<![.\w_])"
-_KEYWORD_END_BOUNDRY = r"(?![.\w-])"
+_KEYWORD_START_BOUNDARY = r"(?<![.\w_])"
+_KEYWORD_END_BOUNDARY = r"(?![.\(\[［\w-])"
 
 def _keyword_pattern(parser: Lark) -> str:
     """
@@ -224,7 +227,7 @@ def _keyword_pattern(parser: Lark) -> str:
     """
     keywords = _keyword_list(parser)
     # Pattern assures that it is a stand-alone word
-    return "(?i)" + _KEYWORD_START_BOUNDRY + "(:?" + "|".join(sorted(keywords, key=len, reverse=True)) + ")" + _KEYWORD_END_BOUNDRY
+    return "(?i)" + _KEYWORD_START_BOUNDARY + "(:?" + "|".join(sorted(keywords, key=len, reverse=True)) + ")" + _KEYWORD_END_BOUNDARY
 
 def _keyword_list(parser: Lark) -> list[str]:
     keywords = []
@@ -325,11 +328,8 @@ def create_vscode_extension(debug: bool, parser: Lark) -> None:
         json.dump(_keywords(parser), f, indent=2)
     with open(os.path.join(out_dir, "functions.json"), "w", encoding="utf-8", errors='backslashreplace') as f:
         json.dump(_functions(), f, indent=2)
-
     with open(os.path.join(out_dir, "operators.json"), "w", encoding="utf-8", errors='backslashreplace') as f:
         json.dump(_operators(), f, indent=2)
-
-
     syntaxes_dir = os.path.join(out_dir, "syntaxes")
     os.makedirs(syntaxes_dir, exist_ok=True)
     grammar_json = _vscode_syntax_highlighting(keywords_pattern, constants_pattern, functions_pattern)
