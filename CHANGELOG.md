@@ -9,6 +9,8 @@
 - Added README.md to samples
 - Reference section in Visual Studio Code side bar now
   contains operator information
+- Slicing can now be performed using Python-like
+  syntax e.g. "[start:end:step]"
 
 ### Changed
 
@@ -21,6 +23,9 @@
 - Internal references to Python's re.Pattern replaced by an
   internal class to consolidate some methods and provide a simple
   "repr()" solution.
+- Integer constants now support optional leading plus and minus
+- Numeric constants now support Unicode fullwidth characters
+- Many, but not all, operations support Unicode fullwidth characters
 
 ### Deprecated
 

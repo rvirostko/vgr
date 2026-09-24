@@ -2,27 +2,38 @@
 // VGR - A DSL for scripting reports
 //----------------------------------------------------------
 
-// These are functionally named, but as terminals,
+// Most of these are functionally named, but as terminals,
 // you should use them anywhere the characters are required.
-_CLAUSE_SEP: ":"
-_SEP: ","
+_CLAUSE_SEP:       ":" | "\uFF1A"   // Unicode ： (fullwidth colon)
+_SEP:              "," | "\uFF0C"   // Unicode ， (fullwidth comma)
+_STMT_END:         ";" | "\uFF1B"   // Unicode ； (fullwidth semicolon)
+_PERIOD:           "." | "\uFF0E"   // Unicode ． (fullwidth period)
+_EQ:               "=" | "\uFF1D"   // Unicode ＝ (fullwidth =)
+_OPEN_SQ_BRACKET:  "[" | "\uFF3B"   // Unicode ［ (fullwidth [)
+_CLOSE_SQ_BRACKET: "]" | "\uFF3D"   // Unicode ］ (fullwidth ])
+_AT_SIGN:          "@" | "\uFF20"   // Unicode ＠ (fullwidth commercial at)
 
 // Numeric values
+// TODO : this doesn't look like it is true anymore
 // NB: octal and binary regexs are shorter than the length
 //     of the decimal regex, so we need to boost their
 //     priorities so the former's leading zero doesn't get
 //     prematurely matched by the latter.
-HEX_NUMBER.2: /0[xX](?:_?[0-9a-fA-F])+/
-OCT_NUMBER.2: /0[oO](?:_?[0-7])+/
-BIN_NUMBER.2: /0[bB](?:_?[01])+/
-DEC_NUMBER: /-?[0-9](?:_?[0-9])*/
-_SPECIAL_DEC: /[0-9](?:_?[0-9])*/
-_EXP_PART: /[eE][+-][0-9](?:_?[0-9])*/
-// NB: slight difference from Python as floats can't end with a "."
-_DECIMAL: "." _SPECIAL_DEC | _SPECIAL_DEC "." _SPECIAL_DEC
-FLOAT_NUMBER: "-"? (_SPECIAL_DEC _EXP_PART | _DECIMAL _EXP_PART?)
+HEX_NUMBER.2: /[＋+－-]?[0０][XxＸｘ](?:[_＿]?[0-9０-９A-Fa-fＡ-Ｆａ-ｆ])+/
+OCT_NUMBER.2: /[＋+－-]?[0０][OoＯｏ](?:[_＿]?[0-7０-７])+/
+BIN_NUMBER.2: /[＋+－-]?[0０][BbＢｂ](?:[_＿]?[0０1１])+/
+DEC_NUMBER:   /[＋+－-]?[0-9０-９](?:[_＿]?[0-9０-９])*/
+_SPECIAL_DEC: /[0-9０-９](?:[_＿]?[0-9０-９])*/
+_EXP_PART:    /[EeＥｅ][＋+－-]?[0-9０-９](?:[_＿]?[0-9０-９])*/
+_DEC_PT:      /[.．]/
+// NB: slight difference from Python as this float can't end with a "."
+// TODO can we make the first pattern optional?
+_DECIMAL:              _DEC_PT _SPECIAL_DEC
+    |     _SPECIAL_DEC _DEC_PT _SPECIAL_DEC
+FLOAT_NUMBER: /[＋+－-]?/ (_SPECIAL_DEC _EXP_PART | _DECIMAL _EXP_PART?)
 
 // This becomes either a FLOAT or INT (when no decimal referenced) at runtime
+// TODO compress, then see if we can have unicode lib convert this for us
 SUPERSCRIPT_FLOAT: /⁽[⁺⁻]?(?:[⁰¹²³⁴⁵⁶⁷⁸⁹]+(·[⁰¹²³⁴⁵⁶⁷⁸⁹]+)?|·[⁰¹²³⁴⁵⁶⁷⁸⁹]+)⁾|[⁺⁻]?(?:[⁰¹²³⁴⁵⁶⁷⁸⁹]+(·[⁰¹²³⁴⁵⁶⁷⁸⁹]+)?|·[⁰¹²³⁴⁵⁶⁷⁸⁹]+)/
 
 // NB: This pattern is very long and tends to win out over keyword tokens
@@ -31,13 +42,13 @@ SUPERSCRIPT_FLOAT: /⁽[⁺⁻]?(?:[⁰¹²³⁴⁵⁶⁷⁸⁹]+(·[⁰¹²³�
 NAME: /{VAR_NAME}/
 
 //----------------------------------------------------------
-_EQ: "="
-_assignment: _EQ | "To"i
-_file_option: "File"i
-_files_option: "File"i | "Files"i
-_headers_option: "Header"i | "Headers"i
+_right_arrow:        "->" | "\u2192"| "=>" | "\u21D2" // Unicode → (rightwards arrow) and ⇒ (rightwards double arrow)
+_assignment:         _EQ | "To"i
+_file_option:        "File"i
+_files_option:       "File"i | "Files"i
+_headers_option:     "Header"i | "Headers"i
 _null_values_option: "Nulls"i | "Null"i "Values"i
-_unit_seconds: "Second"i | "Seconds"i
+_unit_seconds:       "Second"i | "Seconds"i
 //----------------------------------------------------------
 
 //----------------------------------------------------------
@@ -52,8 +63,8 @@ _options_list{t_type}: (_SEP? t_type (_SEP? t_type)*)?
 opt_statements: statement*
 
 // NB: this is the only place where we have to reference the optional statement ender
-?statement: (simple_statement | select | control_statements | define_statements {EXTN_STATEMENTS}) ";"?
-    | ";" -> pass // blank statement synonymous with "pass"
+?statement: (simple_statement | select | control_statements | define_statements {EXTN_STATEMENTS}) _STMT_END?
+    | _STMT_END -> pass // blank statement synonymous with "pass"
 
 ?simple_statement: abort
     | accept_input
@@ -133,14 +144,12 @@ declare: _decl _csep_list{var_name}
     |    _decl _csep_list{var_name} "As"i? "Global"i -> declare_global
 _decl: "Declare"i
 
-_right_arrow: "->" | "\u2192"| "=>" | "\u21D2" // Unicode → (RIGHTWARDS ARROW) and ⇒ (rightwards double arrow)
-
 function_def: "Define"i? func_modifier* "Function"i
 func_modifier: ("Constant"i | "Const"i)               -> mod_const
     |          ("Cached"i | "Cache"i) ("(" expr ")")? -> mod_cached
-define_statements: function_def var_name func_params? _CLAUSE_SEP? func_body ("End-Function"i | "End"i) -> def_function
-    |              function_def var_name func_params? _right_arrow expr                                 -> def_arrow
-    |              function_def var_name func_params? _right_arrow "Compile"i "(" expr ")"              -> compile_arrow
+define_statements: function_def var_name func_params? _CLAUSE_SEP? func_body ("End-Function"i | "End"i)     -> def_function
+    |              function_def var_name func_params? _right_arrow expr                                     -> def_arrow
+    |              function_def var_name func_params? _right_arrow "Compile"i "(" expr ")" -> compile_arrow
 // NB: doesn't work with template; probably should be changed to use var_name anyway
 func_params: "(" (NAME (_SEP NAME)*)? ")" -> params
 func_body: statement+ -> body
@@ -199,8 +208,11 @@ _is_even_operators: ("Is"i "Even"i | "Is"i? "Not"i "Odd"i)
 _is_odd_operators: ("Is"i "Odd"i | "Is"i? "Not"i "Even"i)
 _is_defined_operators: "Is"i ("Defined"i | "Not"i "Undefined"i)
 _is_undefined_operators: "Is"i ("Undefined"i | "Not"i "Defined"i)
-_is_const_operators: "Is"i ("Constant"i | "Const"i) // TODO
-_is_not_const_operators: "Is"i "Not"i ("Constant"i | "Const"i) // TODO
+_is_const_operators: "Is"i ("Constant"i | "Const"i)
+_is_not_const_operators: "Is"i "Not"i ("Constant"i | "Const"i)
+
+_slice_operator: _OPEN_SQ_BRACKET slice_arg _CLAUSE_SEP slice_arg (_CLAUSE_SEP slice_arg)? _CLOSE_SQ_BRACKET
+slice_arg: expr?
 
 choose_statement: "Choose"i choose_all? _CLAUSE_SEP? choice_block* otherwise_block? ("End-Choose"i | "End"i)   -> choose
     | "Choose"i choose_all? "Using"i expr _CLAUSE_SEP? values_block* otherwise_block? ("End-Choose"i | "End"i) -> choose_using
@@ -213,8 +225,8 @@ values_block: "When"i _is_empty_operators _CLAUSE_SEP? statement+               
     | "When"i _is_odd_operators _CLAUSE_SEP? statement+                          -> is_odd_block
     | "When"i _is_defined_operators _CLAUSE_SEP? statement+                      -> is_defined_block
     | "When"i _is_undefined_operators _CLAUSE_SEP? statement+                    -> is_undefined_block
-    | "When"i _is_const_operators _CLAUSE_SEP? statement+                        -> is_const_block // TODO
-    | "When"i _is_not_const_operators _CLAUSE_SEP? statement+                    -> is_not_const_block // TODO
+    | "When"i _is_const_operators _CLAUSE_SEP? statement+                        -> is_const_block
+    | "When"i _is_not_const_operators _CLAUSE_SEP? statement+                    -> is_not_const_block
     | "When"i expr _through expr _CLAUSE_SEP? statement+                         -> range_block
     | "When"i "Not"i expr _through expr _CLAUSE_SEP? statement+                  -> not_range_block
     // These operators work with a single value
@@ -465,13 +477,13 @@ include_nulls: "Include"i _null_values_option option_value?
 //     and while we diferentiate the style by name,
 //     it is unlikely that anything other than a
 //     'C'/Java style will be supported.
-ternary: expr "?" expr _CLAUSE_SEP expr -> c_ternary
+ternary: expr ("?" | "\uFF1F") expr _CLAUSE_SEP expr -> c_ternary              // Unicode ？(fullwidth ?)
 
 ?and_expr: or_expr
-    | or_expr (("&&" | "\u2227" | "And"i) or_expr)+ -> and_op // Unicode ∧ (conjunction)
+    | or_expr (("&&" | "\uFF06\uFF06" | "\u2227" | "And"i) or_expr)+ -> and_op // Unicode ＆ (fullwidth &) and ∧ (conjunction)
 
 ?or_expr: expr2
-    | expr2 (("||" | "\u2228" | "Or"i) expr2)+ -> or_op // Unicode ∨ (disjunction)
+    | expr2 (("||" | "\uFF5C\uFF5C" | "\u2228" | "Or"i) expr2)+ -> or_op       // Unicode ｜ (fullwidth vertical bar) and ∨ (disjunction)
 
 // Flattening operations out here allows the parse tree to hold
 // the operation type explicitly instead of a generic "OP" where
@@ -484,11 +496,12 @@ ternary: expr "?" expr _CLAUSE_SEP expr -> c_ternary
     | "(" expr ")"
     // must be expr2 not expr else it binds across and/or
     | ("!" | "\uFF01" | "\u00AC") expr2 -> unary_not // Unicode ！(fullwidth excl) and ¬ (logical not)
-    | expr2 "." dotfunction                            -> dotfunction_call
-    | expr2 "." NAME                                   -> deref
-    | expr2 ("[" expr "]")+                            -> subscript
-    | expr2 "." "@" var_name "(" _csep_list{expr}? ")" -> invoke_func_inline
-    | "@" var_name "(" _csep_list{expr}? ")"           -> invoke_func
+    | expr2 _PERIOD dotfunction                        -> dotfunction_call
+    | expr2 _PERIOD NAME                               -> deref
+    | expr2 (_OPEN_SQ_BRACKET expr _CLOSE_SQ_BRACKET)+ -> subscript
+    | expr2 _slice_operator                            -> slice
+    | expr2 _PERIOD _AT_SIGN var_name "(" _csep_list{expr}? ")" -> invoke_func_inline
+    | _AT_SIGN var_name "(" _csep_list{expr}? ")"               -> invoke_func
     | function                                         -> function_call
     | expr2 _is_negative_operators                     -> is_negative_op
     | expr2 _is_positive_operators                     -> is_positive_op
@@ -496,22 +509,22 @@ ternary: expr "?" expr _CLAUSE_SEP expr -> c_ternary
     | expr2 _is_odd_operators                          -> is_odd_op
     | expr2 _is_defined_operators                      -> is_defined_op
     | expr2 _is_undefined_operators                    -> is_undefined_op
-    | expr2 _is_const_operators                        -> is_const_op // TODO
-    | expr2 _is_not_const_operators                    -> is_not_const_op // TODO
+    | expr2 _is_const_operators                        -> is_const_op
+    | expr2 _is_not_const_operators                    -> is_not_const_op
     | expr2 _is_empty_operators                        -> is_empty_op
     | expr2 _is_not_empty_operators                    -> is_not_empty_op
     // Binary operators
-    | expr2 ("+" | "\uFF0B") expr2                     -> add_op // Unicode ＋ (fullwidth plus)
-    | expr2 ("-" | "\u2212" | "\uFF0D") expr2          -> sub_op // Unicode − (minus sign) and － (fullwidth minus)
-    | expr2 ("*" | "\u00D7") expr2                     -> mul_op // Unicode × (multiplication)
-    | expr2 ("/" | "\u00F7") expr2                     -> div_op // Unicode ÷ (division)
-    | expr2 "%" expr2                                  -> mod_op
-    | expr2 "**" expr2                                 -> pow_op
-    | expr2 "&" expr2                                  -> bit_and_op
-    | expr2 "|" expr2                                  -> bit_or_op
-    | expr2 "^" expr2                                  -> bit_xor_op
-    | expr2 "<<" expr2                                 -> shl_op
-    | expr2 ">>" expr2                                 -> shr_op
+    | expr2 ("+" | "\uFF0B") expr2                     -> add_op     // Unicode ＋ (fullwidth plus)
+    | expr2 ("-" | "\uFF0D" | "\u2212") expr2          -> sub_op     // Unicode － (fullwidth minus) and − (minus sign)
+    | expr2 ("*" | "\uFF0A" | "\u00D7") expr2          -> mul_op     // Unicode ＊ (fullwidth asterisk) and × (multiplication)
+    | expr2 ("/" | "\uFF0F" | "\u00F7") expr2          -> div_op     // Unicode ／ (fullwidth solidus) and ÷ (division)
+    | expr2 ("%" | "\uFF05") expr2                     -> mod_op     // Unicode ％ (fullwidth percent sign)
+    | expr2 ("**" | "\uFF0A\uFF0A") expr2              -> pow_op     // Unicode ＊ (fullwidth asterisk)
+    | expr2 ("&" | "\uFF06") expr2                     -> bit_and_op // Unicode ＆ (fullwidth ampersand)
+    | expr2 ("|" | "\uFF5C") expr2                     -> bit_or_op  // Unicode ｜ (fullwidth vertical bar)
+    | expr2 ("^" | "\uFF3E") expr2                     -> bit_xor_op // Unicode ＾ (fullwidth circumflex)
+    | expr2 ("<<" | "\uFF1C\uFF1C") expr2              -> shl_op     // Unicode ＜ (fullwidth less than)
+    | expr2 (">>" | "\uFF1E\uFF1E") expr2              -> shr_op     // Unicode ＞ (fullwidth greater than)
     // Relation operators bools
     | expr2 _exact_eq_operators expr2                  -> exact_eq_op
     | expr2 _eq_operators expr2                        -> eq_op
@@ -533,8 +546,8 @@ ternary: expr "?" expr _CLAUSE_SEP expr -> c_ternary
     | "\u230A" expr "\u230B"                            -> floor_op     // Unicode floor ⌊ x ⌋
     | expr2 SUPERSCRIPT_FLOAT                           -> pow_op
     // NB: neither of the following work with trailing commas if you use the template
-    | "[" (expr (_SEP expr)*)? _SEP? "]"                -> array        // [], [x], [x,y], [x,y,]
-    | "{" (_dict_entry (_SEP _dict_entry)*)? _SEP? "}"  -> dict         // {}, {x:y}, {a:b,x:y}, {a:b,x:y,}
+    | _OPEN_SQ_BRACKET (expr (_SEP expr)*)? _SEP? _CLOSE_SQ_BRACKET -> array        // [], [x], [x,y], [x,y,]
+    | "{" (_dict_entry (_SEP _dict_entry)*)? _SEP? "}"  -> dict                     // {}, {x:y}, {a:b,x:y}, {a:b,x:y,}
 
 _dict_entry: expr _CLAUSE_SEP expr // key and value
 
@@ -565,7 +578,7 @@ _dict_entry: expr _CLAUSE_SEP expr // key and value
     | STRING
     | NAME -> var_ref
 
-var_name: NAME ("." NAME)*
+var_name: NAME (_PERIOD NAME)*
 
 {EXTN_GRAMMAR}
 
