@@ -4,6 +4,7 @@ from typing import Any, Callable, Iterable
 import ast
 import math
 import re
+import unicodedata
 import warnings
 
 from lark import Lark, Tree, Token, Transformer, v_args, exceptions
@@ -875,11 +876,13 @@ class ConstantsNormalizer(Transformer):
     def HEX_NUMBER(self, token): return self._to_int(token, 16)
     def OCT_NUMBER(self, token): return self._to_int(token, 8)
     def BIN_NUMBER(self, token): return self._to_int(token, 2)
-    def FLOAT_NUMBER(self, token): return self._const_token(token, float(token.value))
+    def FLOAT_NUMBER(self, token):
+        return self._const_token(token, float(unicodedata.normalize("NFKC", token.value)))
     def SUPERSCRIPT_FLOAT(self, token):
         val = float(token.value.translate(self.SUPERSCRIPT_TRANSLATION))
         return self._const_token(token, val if '·' in token.value else int(val))
-    def _to_int(self, token, base: int): return self._const_token(token, int(token.value, base))
+    def _to_int(self, token, base: int):
+        return self._const_token(token, int(unicodedata.normalize("NFKC", token.value), base))
 
     def _const_token(self, token, value: Any):
         """The token is replaced by a CONST value"""
