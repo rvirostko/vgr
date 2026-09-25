@@ -748,24 +748,6 @@ Also see `For Each`.
 # and the tokens MUST have uppercase names
 class ConstantsNormalizer(Transformer):
 
-    SUPERSCRIPT_TRANSLATION = str.maketrans({
-        '⁰': '0',
-        '¹': '1',
-        '²': '2',
-        '³': '3',
-        '⁴': '4',
-        '⁵': '5',
-        '⁶': '6',
-        '⁷': '7',
-        '⁸': '8',
-        '⁹': '9',
-        '⁺': '+',
-        '⁻': '-',
-        '·': '.',
-        '⁽': '',     # remove left paren
-        '⁾': '',     # remove right paren
-    })
-
     def transform(self, tree):
         try:
             return super().transform(tree)
@@ -877,12 +859,17 @@ class ConstantsNormalizer(Transformer):
     def OCT_NUMBER(self, token): return self._to_int(token, 8)
     def BIN_NUMBER(self, token): return self._to_int(token, 2)
     def FLOAT_NUMBER(self, token):
-        return self._const_token(token, float(unicodedata.normalize("NFKC", token.value)))
+        return self._const_token(token, float(self._normalize_number(token.value)))
     def SUPERSCRIPT_FLOAT(self, token):
-        val = float(token.value.translate(self.SUPERSCRIPT_TRANSLATION))
-        return self._const_token(token, val if '·' in token.value else int(val))
+        val = float(self._normalize_number(token.value).removeprefix('(').removesuffix(')'))
+        return self._const_token(token, int(val) if val.is_integer() else val)
     def _to_int(self, token, base: int):
-        return self._const_token(token, int(unicodedata.normalize("NFKC", token.value), base))
+        return self._const_token(token, int(self._normalize_number(token.value), base))
+
+    @classmethod
+    def _normalize_number(cls, value: str) -> str:
+        # extra clean ups deal with conversions of supperscripts
+        return unicodedata.normalize("NFKC", value).replace("\u2212", "-").replace("\u00b7", ".")
 
     def _const_token(self, token, value: Any):
         """The token is replaced by a CONST value"""
