@@ -41,6 +41,7 @@
   encoding errors are replaced with backslash codes in the loaded data.
 - Visual Studio Code highlighted variables as keywords in cases where
   punctuation following it indicated it wasn't a keyword.
+- Fixed parsing and display issued in the word-freq sample
 
 ### Security
 

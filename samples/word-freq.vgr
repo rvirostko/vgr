@@ -8,11 +8,11 @@ If !vgr.stdout.isatty
     Exit
 End-If
 
-Set non-alpha To CompilePattern("[^A-Za-z]")
-Set indent To Space * 3
-Set word_header To "Word"
-Set count_header To "Count"
-Set fmt To "{0} {1:<{3}} {2:>{4}}\n"
+Constant non-alpha Is r/[^A-Z]/i
+Constant indent Is Space * 3
+Constant word_header Is "Word"
+Constant count_header Is "Count"
+Constant fmt Is "{0} {1:<{3}} {2:>{4}}\n"
 
 Print "\n--- Word Frequency Counter ---"
 While True
@@ -26,7 +26,7 @@ While True
     # Split the sentence into words and tally their count using a dictionary
     Set wordCounter To Dictionary()
     # Normalize the words: lowercase Ascii letters
-    For Each word In sentence.Split().RegexReplace(non-alpha).Lower()
+    For Each word In sentence.RegexReplace(non-alpha, " ").Lower().Split()
         If Length(word) Is Positive
             Set wordCounter To wordCounter.SetKeyValue(word, wordCounter.GetKeyValue(word, 0).Add(1))
         End-If
@@ -38,12 +38,15 @@ While True
         Continue
     End-If
     # Using the keys and the values, along with the headers, determine the column widths
-    Set word_col_width To Max(counter.GetKeys().StringLen().Max(), word_header.StringLen()).Add(1)
-    Set count_col_width To Max(counter.GetValues().Max().ToString().StringLen(), count_header.StringLen()).Add(1)
+    Set word_col_width To Max(wordCounter.GetKeys().StringLen().Max(), word_header.StringLen()).Add(1)
+    Set count_col_width To Max(wordCounter.GetValues().Max().ToString().StringLen(), count_header.StringLen()).Add(1)
+    exhibit word_col_width, count_col_width
     # Print a summary
+    Set unique_wc To wordCounter.Length()
     Set wc To wordCounter.GetValues().Sum()
     Printf Newline
-    Print indent, "Found", wc, "unique", wc.Plural("words", "word"), Newline No-Flush
+    Print indent, "Read", wc, wc.Plural("words", "word") No-Flush
+    Print indent, "Found", unique_wc, "unique", unique_wc.Plural("words", "word"), Newline No-Flush
     # Print the headers
     Printf fmt, indent, word_header, count_header, word_col_width, count_col_width No-Flush
     Printf fmt, indent, term.box.heavy.hbar * word_col_width, term.box.heavy.hbar * count_col_width, word_col_width, count_col_width No-Flush
