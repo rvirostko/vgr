@@ -14,11 +14,17 @@ If !vgr.stdout.isatty
 End-If
 
 Reset Data
-Assert vgr.source.FirstItem() Is Not None
-# Ascii art file should be stored in the same dir as this script
-# so use the source name's directory to always find it
-Load sse from vgr.source.FirstItem().DirectoryName() + "/NCC-1701A.txt" Type Is Text Lines
-Set sse_max To sse.StringLen().Max()
+Set sse To [
+    r"___________________          _-_",
+    r"\==============_=_/ ____.---'---`---.____",
+    r"            \_ \    \----._________.----/",
+    r"              \ \   /  /    `-_-'",
+    r"          __,--`.`-'..'-_",
+    r"         /____          ||",
+    r"              `--.____,-'",
+]
+
+Constant sse_max Is sse.StringLen().Max()
 Set sse To sse.LeftJustify(sse_max)
 
 # Command line controllable options
