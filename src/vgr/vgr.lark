@@ -13,27 +13,27 @@ _OPEN_SQ_BRACKET:  "[" | "\uFF3B"   // Unicode ［ (fullwidth [)
 _CLOSE_SQ_BRACKET: "]" | "\uFF3D"   // Unicode ］ (fullwidth ])
 _AT_SIGN:          "@" | "\uFF20"   // Unicode ＠ (fullwidth commercial at)
 
-// Numeric values
-// TODO : this doesn't look like it is true anymore
-// NB: octal and binary regexs are shorter than the length
-//     of the decimal regex, so we need to boost their
-//     priorities so the former's leading zero doesn't get
-//     prematurely matched by the latter.
-HEX_NUMBER.2: /[＋+－-]?[0０][XxＸｘ](?:[_＿]?[0-9０-９A-Fa-fＡ-Ｆａ-ｆ])+/
-OCT_NUMBER.2: /[＋+－-]?[0０][OoＯｏ](?:[_＿]?[0-7０-７])+/
-BIN_NUMBER.2: /[＋+－-]?[0０][BbＢｂ](?:[_＿]?[0０1１])+/
-DEC_NUMBER:   /[＋+－-]?[0-9０-９](?:[_＿]?[0-9０-９])*/
-_SPECIAL_DEC: /[0-9０-９](?:[_＿]?[0-9０-９])*/
-_EXP_PART:    /[EeＥｅ][＋+－-]?[0-9０-９](?:[_＿]?[0-9０-９])*/
+// Numeric values, non-decimal bases
+// ASCII and fullwidth characters supported
+HEX_NUMBER: /[＋+－-]?[0０][XxＸｘ](?:[_＿]?[0-9０-９A-Fa-fＡ-Ｆａ-ｆ])+/
+OCT_NUMBER: /[＋+－-]?[0０][OoＯｏ](?:[_＿]?[0-7０-７])+/
+BIN_NUMBER: /[＋+－-]?[0０][BbＢｂ](?:[_＿]?[0０1１])+/
+
+// Numeric values, decimal
+// All numbering systems supported, except for
+// the "e" in scientific notation, where ASCII
+// and fullwidth values are supported
+DEC_NUMBER:   /[＋+－-]?\d(?:[_＿]?\d)*/
+_SPECIAL_DEC: /\d(?:[_＿]?\d)*/
+_EXP_PART:    /[EeＥｅ][＋+－-]?\d(?:[_＿]?\d)*/
 _DEC_PT:      /[.．]/
 // NB: slight difference from Python as this float can't end with a "."
 // TODO can we make the first pattern optional?
-_DECIMAL:              _DEC_PT _SPECIAL_DEC
-    |     _SPECIAL_DEC _DEC_PT _SPECIAL_DEC
+_DECIMAL: _SPECIAL_DEC? _DEC_PT _SPECIAL_DEC
 FLOAT_NUMBER: /[＋+－-]?/ (_SPECIAL_DEC _EXP_PART | _DECIMAL _EXP_PART?)
 
 // This becomes either a FLOAT or INT (when no decimal referenced) at runtime
-// TODO compress, then see if we can have unicode lib convert this for us
+// NB: the "decimal point" is \u00B7
 SUPERSCRIPT_FLOAT: /⁽[⁺⁻]?(?:[⁰¹²³⁴⁵⁶⁷⁸⁹]+(·[⁰¹²³⁴⁵⁶⁷⁸⁹]+)?|·[⁰¹²³⁴⁵⁶⁷⁸⁹]+)⁾|[⁺⁻]?(?:[⁰¹²³⁴⁵⁶⁷⁸⁹]+(·[⁰¹²³⁴⁵⁶⁷⁸⁹]+)?|·[⁰¹²³⁴⁵⁶⁷⁸⁹]+)/
 
 // NB: This pattern is very long and tends to win out over keyword tokens
