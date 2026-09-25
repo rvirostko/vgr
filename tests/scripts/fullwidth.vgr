@@ -1,0 +1,59 @@
+Echo On
+
+// Numeric constants
+Assert ０ｘ０ === 0x0
+Assert ＋０ｘ０ === +0x0
+Assert ０ｘＦＦ＿ＦＦ＿ＦＦ === 0xff_ff_ff
+Assert －０ｘ８０００＿００００ === -0x8000_0000
+Assert ０ｏ０ === 0O0
+Assert ０ｏ７７７＿７７７ === 0o777_777
+Assert －０ｏ４００ === -0o400
+Assert ０ｂ０ === 0B0
+Assert ０ｂ１１１１＿００００ === 0B1111_0000
+Assert －０ｂ１０００ === -0b1000
+Assert ０ === Zero
+Assert －０ === -0
+Assert ＋０ === +0
+Assert １２３ === 123
+Assert －１２３ === -123
+Assert ０．０ === 0.0
+Assert －０．０ === -0.0
+Assert １．２３ｅ４ === 1.23E4
+Assert １．２３ｅ＋４ === 1.23E+4
+Assert ＋１．２３ｅ＋４ === 1.23E+4
+Assert －１．２３ｅ－４ === -1.23E-4
+
+// Operators
+// NB: Spaces around operators generally recommended
+//     and required for +/- when preceeding a
+//     numeric constant
+// TODO: fix op precedence so we don't need the parens!
+Assert (5 ＋ 3) === (5 + 3)
+Assert (5 － 3) === (5 - 3)
+Assert (5 ＊ 3) === (5 * 3)
+Assert (5 ／ 3) === (5 / 3)
+Assert (5 ％ 3) === (5 % 3)
+Assert (5 ＆ 3) === (5 & 3)
+Assert (5 ｜ 3) === (5 | 3)
+Assert (5 ＾ 3) === (5 ^ 3)
+Assert (5 ＊＊ 3) === (5 ** 3)
+Assert (5 ＜＜ 3) === (5 << 3)
+Assert (5 ＞＞ 3) === (5 >> 3)
+
+Assert (True ＆＆ False) === (True && False)
+Assert (True ＆＆ True) === (True && True)
+
+Assert (False ｜｜ True) === (False || True)
+Assert (False ｜｜ False) === (False || False)
+
+Assert "abc"［1］ === "abc"[1]
+Assert "abc"［1：2］ === "abc"[1:2]
+
+Set a＝5；// fullwidth = and ;
+Assert a === 5;
+
+// NB: fullwidth parens not yet supported
+Function f(x，y) -> x＋y // fullwidth command and plus
+Assert ＠f(5，3) === @f(5,3) // fullwidth at and comma
+
+Echo Off
