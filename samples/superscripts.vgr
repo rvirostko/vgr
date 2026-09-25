@@ -1,7 +1,8 @@
+Echo On
+
 Set x To 2
 
 // Visual checks
-Echo On
 Print x¹
 Print x¹⁰
 Print x⁽¹⁾
@@ -10,6 +11,15 @@ Print x⁺¹
 Print x⁻¹⁰
 Print x⁽⁺¹⁾
 Print x⁽⁻¹⁰⁾
+
+Print x¹·⁰
+Print x¹⁰·⁰
+Print x⁽¹·⁰⁾
+Print x⁽¹⁰·⁰⁾
+Print x⁺¹·⁰
+Print x⁻¹⁰·⁰
+Print x⁽⁺¹·⁰⁾
+Print x⁽⁻¹⁰·⁰⁾
 
 Print x¹·⁵
 Print x¹⁰·⁵
