@@ -24,7 +24,8 @@
   internal class to consolidate some methods and provide a simple
   "repr()" solution.
 - Integer constants now support optional leading plus and minus
-- Numeric constants now support Unicode fullwidth characters
+- Non-base10 constants now support Unicode fullwidth characters
+- Base10 constants now support all Unicode digit characters
 - Many, but not all, operations support Unicode fullwidth characters
 
 ### Deprecated
