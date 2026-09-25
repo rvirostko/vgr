@@ -40,7 +40,6 @@ While True
     # Using the keys and the values, along with the headers, determine the column widths
     Set word_col_width To Max(wordCounter.GetKeys().StringLen().Max(), word_header.StringLen()).Add(1)
     Set count_col_width To Max(wordCounter.GetValues().Max().ToString().StringLen(), count_header.StringLen()).Add(1)
-    exhibit word_col_width, count_col_width
     # Print a summary
     Set unique_wc To wordCounter.Length()
     Set wc To wordCounter.GetValues().Sum()
