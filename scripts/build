@@ -60,7 +60,7 @@ MANUAL_FILE="${DIST_DIR}/vgr-${VERSION}-manual.md"
 rm -rf "$DIST_DIR"
 mkdir -p "$DIST_DIR"
 
-python3 -m build --quiet --outdir "$DIST_DIR"
+python3 -m build --wheel --quiet --outdir "$DIST_DIR"
 
 # Grab the changes for this version
 RELEASE_SECTION="$VERSION"
