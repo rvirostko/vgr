@@ -42,13 +42,21 @@ SUPERSCRIPT_FLOAT: /⁽[⁺⁻]?(?:[⁰¹²³⁴⁵⁶⁷⁸⁹]+(·[⁰¹²³�
 NAME: /{VAR_NAME}/
 
 //----------------------------------------------------------
-_right_arrow:        "->" | "\u2192"| "=>" | "\u21D2" // Unicode → (rightwards arrow) and ⇒ (rightwards double arrow)
 _assignment:         _EQ | "To"i
+_call_function:      ("Call-Function"i | "Call"i "Function"i?)
+_decl:               "Declare"i
 _file_option:        "File"i
 _files_option:       "File"i | "Files"i
+_for_each:           "For-Each"i | "For"i "Each"i
 _headers_option:     "Header"i | "Headers"i
 _null_values_option: "Nulls"i | "Null"i "Values"i
+_repeat:             "Repeat"i
+_right_arrow:        "->" | "\u2192"| "=>" | "\u21D2" // Unicode → (rightwards arrow) and ⇒ (rightwards double arrow)
+_times:              "Time"i | "Times"i
 _unit_seconds:       "Second"i | "Seconds"i
+_unless:             "Unless"i
+_until:              "Until"i
+_while:              "While"i
 //----------------------------------------------------------
 
 //----------------------------------------------------------
@@ -137,12 +145,10 @@ call: _call_function var_name ("(" _csep_list{expr}? ")")?
     | _call_function var_name ("(" _csep_list{expr}? ")")? giving_clause -> call_giving
     | _call_function var_name "Using"i _csep_list{expr}
     | _call_function var_name "Using"i _csep_list{expr} giving_clause -> call_giving
-_call_function: ("Call-Function"i | "Call"i "Function"i?)
 
 declare: _decl _csep_list{var_name}
     |    _decl _csep_list{var_name} "As"i? "Local"i  -> declare_local
     |    _decl _csep_list{var_name} "As"i? "Global"i -> declare_global
-_decl: "Declare"i
 
 function_def: "Define"i? func_modifier* "Function"i
 func_modifier: ("Constant"i | "Const"i)               -> mod_const
@@ -154,8 +160,8 @@ define_statements: function_def var_name func_params? _CLAUSE_SEP? func_body ("E
 func_params: "(" (NAME (_SEP NAME)*)? ")" -> params
 func_body: statement+ -> body
 
-foreach_statement: ("For-Each"i | "For"i "Each"i) var_name "In"i expr _CLAUSE_SEP? statement+ _end_for -> foreach
-    |              ("For-Each"i | "For"i "Each"i) var_name "In"i expr _right_arrow statement           -> foreach
+foreach_statement: _for_each var_name "In"i expr _CLAUSE_SEP? statement+ _end_for -> foreach
+    |              _for_each var_name "In"i expr _right_arrow statement           -> foreach
 
 for_next: "For"i var_name _EQ expr "To"i expr _CLAUSE_SEP? statement+ _end_for
     |     "For"i var_name _EQ expr "To"i expr "Step"i expr _CLAUSE_SEP? statement+ _end_for -> for_next_by
@@ -168,17 +174,17 @@ else_if: ("Else-If"i | "ElseIf"i) expr _then_sep? statement+
 else: "Else"i _CLAUSE_SEP? statement+
 _then_sep: ("Then"i | _CLAUSE_SEP)
 
-unless_statement: "Unless"i expr _CLAUSE_SEP? statement+ ("End-Unless"i | "End"i) -> unless
-    |             "Unless"i expr _right_arrow statement                           -> unless
+unless_statement: _unless expr _CLAUSE_SEP? statement+ ("End-Unless"i | "End"i) -> unless
+    |             _unless expr _right_arrow statement                           -> unless
 
-repeat_statement: "Repeat"i expr ("Time"i | "Times"i)? _CLAUSE_SEP? statement+ ("End-Repeat"i | "End"i) -> repeat
-    |             "Repeat"i expr ("Time"i | "Times"i)? _right_arrow statement                           -> repeat
+repeat_statement: _repeat expr _times? _CLAUSE_SEP? statement+ ("End-Repeat"i | "End"i) -> repeat
+    |             _repeat expr _times? _right_arrow statement                           -> repeat
 
-until_statement: "Until"i expr _CLAUSE_SEP? statement+ ("End-Until"i | "End"i) -> until
-    |            "Until"i expr _right_arrow statement                          -> until
+until_statement: _until expr _CLAUSE_SEP? statement+ ("End-Until"i | "End"i) -> until
+    |            _until expr _right_arrow statement                          -> until
 
-while_statement: "While"i expr _CLAUSE_SEP? statement+ ("End-While"i | "End"i) -> while
-    |            "While"i expr _right_arrow statement                          -> while
+while_statement: _while expr _CLAUSE_SEP? statement+ ("End-While"i | "End"i) -> while
+    |            _while expr _right_arrow statement                          -> while
 
 break: "Break"i
 continue: "Continue"i
