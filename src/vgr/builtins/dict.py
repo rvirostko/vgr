@@ -72,20 +72,20 @@ Set mixed To {
 > that you use `ToString()` to convert the key before using it in
 > a dictionary.
 
-Also see `Dictionary()`, `GetKeyValue()`, and `LookupItem()`
+Also see `CreateDictionary()`, `GetKeyValue()`, and `LookupItem()`
 """
     # Values is alternating pairs of key/values
     # so we use a "stride" of two to form two groups
     # and recombine into pairs using zip()
     return None if values is None else dict(zip(values[::2], values[1::2]))
 
-@builtin("Dictionary")
+@builtin("CreateDictionary", "Dictionary")
 def poly_dict_create(*args: Any) -> dict:
     """
 **Compose a dictionary from hetrogenous data**
 
-* Dictionary()
-* Dictionary(*expression*[, *expression*&hellip;])
+* CreateDictionary()
+* CreateDictionary(*expression*[, *expression*&hellip;])
 
 Creates a dictionary and optionally initializes it.
 Sources for initialization can be ordinals used as keys or composite keys,
@@ -95,15 +95,15 @@ When dictionaries are added, a deep merge is performed, unlike
 the shallow merge performed by `Add()`.
 
 ```vgr
-Dictionary(None) → {}
-Dictionary([]) → {}
-Dictionary("a") → {"a": None}
-Dictionary(["a"]) → {"a": None}
-Dictionary(["a", 1]) → {"a": 1}
-Dictionary(["a", 1, 2]) → {"a": [1, 2]}
-Dictionary(["f.a", 1], ["f.b", 2]) → {"f": {"a": 1, "b": 2}}
-Dictionary([["f.a", 1], ["f.b", 2]]) → {"f": {"a": 1, "b": 2}}
-Dictionary({"f":{"a": 1}}, ["f.b", 2]) → {"f": {"a": 1, "b": 2}}
+CreateDictionary(None) → {}
+CreateDictionary([]) → {}
+CreateDictionary("a") → {"a": None}
+CreateDictionary(["a"]) → {"a": None}
+CreateDictionary(["a", 1]) → {"a": 1}
+CreateDictionary(["a", 1, 2]) → {"a": [1, 2]}
+CreateDictionary(["f.a", 1], ["f.b", 2]) → {"f": {"a": 1, "b": 2}}
+CreateDictionary([["f.a", 1], ["f.b", 2]]) → {"f": {"a": 1, "b": 2}}
+CreateDictionary({"f":{"a": 1}}, ["f.b", 2]) → {"f": {"a": 1, "b": 2}}
 
 Set lines To ["a | b | c", "1 | 2 | 3", "one | two | three"]
 Set records To List()
@@ -112,7 +112,7 @@ For Each line In lines
     If $loop.first
         Set headers To elems.Upper()
     Else
-        Append Dictionary(CombineLists(headers, elems)) To records
+        Append CreateDictionary(CombineLists(headers, elems)) To records
     End-If
 End-For
 Print records.FormatJSON(2, True)

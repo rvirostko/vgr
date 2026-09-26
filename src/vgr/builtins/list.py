@@ -18,15 +18,15 @@ from .registry import builtin
 from ..vgr_callable import VgrCallable
 
 @bound_ops("[...]")
-@builtin("List")
+@builtin("CreateList", "List")
 def poly_list(*args: Any) -> list[Any]:
     """
 **Create a list from the collected values**
 
 * **[** **]**
 * **[** *expression*[, *expression*]&hellip; **]**
-* List()
-* List(*expression*[, *expression*]&hellip;)
+* CreateList()
+* CreateList(*expression*[, *expression*]&hellip;)
 
 Lists can contain any type including `None`, other lists, and dictionaries.
 
@@ -55,14 +55,14 @@ Set mixed To [
     [1, 2, 3]
 ]
 
-List() → []
-List(None) → [None]
-List(2, 3, 4) → [2, 3, 4]
-List(2, 3, [4]) → [2, 3, [4]]
+CreateList() → []
+CreateList(None) → [None]
+CreateList(2, 3, 4) → [2, 3, 4]
+CreateList(2, 3, [4]) → [2, 3, [4]]
 ```
 
 Also see `Append`, `Insert`, `Prepend`, `Remove`, and `Replace` statements,
-and the `List()` and `ToList()` functions
+and the `CreateList()` and `ToList()` functions
 """
     return list(args)
 

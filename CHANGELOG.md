@@ -33,10 +33,13 @@
 
 ### Deprecated
 
+- "Dictionary()" is deprecated in favor of "CreateDictionary()"
+- "List()" is deprecated in favor of "CreateList()"
+
 ### Removed
 
 - Vault "Results" option removed; use "Giving" instead
-- SubStr() undocumented behavior with negative start index removed
+- "SubStr()" undocumented behavior with negative start index removed
 
 ### Fixed
 
