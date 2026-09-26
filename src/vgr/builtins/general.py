@@ -1,22 +1,23 @@
 from copy import copy
-from functools import cmp_to_key
+from functools import (
+    cmp_to_key,
+    reduce,
+)
 from typing import Any
 
 from .common import (
     apply_vargs,
     bool_arg,
-    dist_x,
     int_arg,
     str_to_int,
+    unpack_vargs,
 )
-from .dict import poly_get_key_value
 from .inequ import (
     poly_eq,
     poly_gt,
     poly_lt,
     poly_ne,
 )
-from .strings import poly_substr
 from .type import poly_type
 from .registry import builtin
 from .vpattern import VPattern
@@ -47,7 +48,7 @@ If *value* is an ordinal rather than a list, it is returned unchanged.
     return apply_vargs(args, _op)
 
 @builtin("Negate")
-def poly_negate(*args) -> Any:
+def poly_negate(*args: Any) -> Any:
     """
 **Returns the negation of a value**
 
@@ -80,7 +81,7 @@ None.Negate() → True
     return apply_vargs(args, _op)
 
 @builtin("Length")
-def poly_length(*args) -> Any:
+def poly_length(*args: Any) -> Any:
     """
 **Return the length of an an item**
 
@@ -108,7 +109,7 @@ Also see `StringLen()`
     return apply_vargs(args, _op)
 
 @builtin("Hash")
-def poly_hash(*args) -> int:
+def poly_hash(*args: Any) -> int:
     """
 **Returns the internal hashcode for an object**
 
@@ -130,7 +131,7 @@ Also see `Id()`
     return apply_vargs(args, _op)
 
 @builtin("Id")
-def poly_id(*args) -> Any:
+def poly_id(*args: Any) -> Any:
     """
 **Returns the internal, unique ID used by the value**
 
@@ -153,7 +154,7 @@ Also see `Hash()`
     return apply_vargs(args, id)
 
 @builtin("Clone")
-def poly_clone(*args) -> Any:
+def poly_clone(*args: Any) -> Any:
     """
 **Ceates a copy of complex objects**
 
@@ -199,7 +200,7 @@ Also see `Id()` and `Hash()`
     return apply_vargs(args, _op)
 
 @builtin("Repr")
-def poly_repr(*args) -> str:
+def poly_repr(*args: Any) -> str:
     """
 **Returns a string representation of an item**
 
@@ -293,22 +294,22 @@ Also see `Unique()`
     return x
 
 @builtin("Item")
-def poly_get_item(x:Any=None, index: Any=0) -> Any:
+def poly_get_item(*args: Any) -> Any:
     """
 **Return the N-th item from a list**
 
-* Item(*value*, *index*)
-* *value*.Item(*index*)
+* Item(*value*, *index*&hellip;)
+* *value*.Item(*index*&hellip;)
 * *value*[*index*]
 
-For non-list types *value* is returned unchanged.
-If *index* itself is a list, the corresponding items
-will be returned in an list. Index values are zero-based.
-
-Requests for items outside the list's bounds results in `None`.
+For non-list/string *value*s the value is returned unchanged.
+Index values are zero-based.
+Requests for items outside a list's bounds results in `None`.
+Requests for items outside a strings's bounds results in an empty string.
 
 ```vgr
 None.Item(0) → None
+5.Item(1) → 5
 [].Item(0) → None
 [None].Item(0) → None
 ["apple", "banana", "cantaloupe"].Item(1) → "banana"
@@ -316,36 +317,39 @@ None.Item(0) → None
 ["apple", "banana", "cantaloupe"].Item(-2) → "banana"
 ["apple", "banana", "cantaloupe"].Item(-5) → None
 "apple".Item(1) → "p"
-5.Item(1) → 5
+["apple", "banana", "cantaloupe"].Item(0,1) → "p"
 ```
 
 Also see `FirstItem()` and `LastItem()`
 """
-    # TODO var args
-    # A number becomes an int, strings coerced, None becomes 0
-    if index is None:
-        index: int = 0
-    else:
-        index: int = int(index) if isinstance(index, (int, float)) else str_to_int(index) if isinstance(index, str) else 0
-        if index is None: index = 0
-    if isinstance(x, str):
-        # in-range returns the character, out of range returns empty string
-        length: int = len(x)
-        if index >= 0: return x[index] if index < length else ''
-        return x[index] if length >= abs(index) else ''
-    if isinstance(x, list):
-        # in-range returns the element, out of range returns None
-        length: int = len(x)
-        if index >= 0: return x[index] if index < length else None
-        return x[index] if length >= abs(index) else None
-    return x
+    def _item(x: Any, index: Any) -> Any:
+        # A number becomes an int, strings coerced, None becomes 0
+        if index is None:
+            index: int = 0
+        else:
+            index: int = int(index) if isinstance(index, (int, float)) else str_to_int(index) if isinstance(index, str) else 0
+            if index is None: index = 0
+        if isinstance(x, str):
+            # in-range returns the character, out of range returns empty string
+            length: int = len(x)
+            if index >= 0: return x[index] if index < length else ''
+            return x[index] if length >= abs(index) else ''
+        if isinstance(x, list):
+            # in-range returns the element, out of range returns None
+            length: int = len(x)
+            if index >= 0: return x[index] if index < length else None
+            return x[index] if length >= abs(index) else None
+        return x
+    # args is a list of indicies to be sequentially dereferenced
+    value, args = unpack_vargs(args, 1)
+    return reduce(_item, args, value)
 
 @builtin("FirstItem")
-def poly_first_item(x: Any=None) -> Any:
+def poly_first_item(*args: Any) -> Any:
     """
 **Return the first item from a list**
 
-* FirstItem(*value*)
+* FirstItem(*value*&hellip;)
 * *value*.FirstItem()
 * *value*[0]
 
@@ -354,23 +358,24 @@ For non-list types *value* is returned unchanged.
 
 ```vgr
 None.FirstItem() → None
+5.FirstItem() → 5
 [].FirstItem() → None
 [None].FirstItem() → None
 ["apple", "banana", "cantaloupe"].FirstItem() → "apple"
 "apple".FirstItem() → "a"
-5.FirstItem() → 5
+FirstItem("apple", "banana", "cantaloupe") → ["a", "b", "c"]
 ```
 
 Also see `Item()` and `LastItem()`
 """
-    return poly_get_item(x, 0)
+    return apply_vargs(args, lambda x: poly_get_item(x, 0))
 
 @builtin("LastItem")
-def poly_last_item(x: Any=None) -> Any:
+def poly_last_item(*args: Any) -> Any:
     """
 **Return the last item from a list**
 
-* LastItem(*value*)
+* LastItem(*value*&hellip;)
 * *value*.LastItem()
 * *value*[-1]
 
@@ -379,16 +384,17 @@ For non-list types *value* is returned unchanged.
 
 ```vgr
 None.LastItem() → None
+5.LastItem() → 5
 [].LastItem() → None
 [None].LastItem() → None
 ["apple", "banana", "cantaloupe"].LastItem() → "cantaloupe"
 "apple".LastItem() → "e"
-5.LastItem() → 5
+LastItem("apple", "banana", "cantaloupe") → ["e", "a", "e"]
 ```
 
 Also see `Item()` and `FirstItem()`
 """
-    return poly_get_item(x, -1)
+    return apply_vargs(args, lambda x: poly_get_item(x, -1))
 
 @builtin("Unique")
 def poly_unique(x: Any=None) -> Any:

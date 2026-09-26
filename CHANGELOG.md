@@ -10,7 +10,7 @@
 - Reference section in Visual Studio Code side bar now
   contains operator information
 - Slicing can now be performed using Python-like
-  syntax e.g. "[start:end:step]"
+  syntax e.g. "\[start:end:step\]"
 
 ### Changed
 
@@ -27,6 +27,9 @@
 - Non-base10 constants now support Unicode fullwidth characters
 - Base10 constants now support all Unicode digit characters
 - Many, but not all, operations support Unicode fullwidth characters
+- "FirstItem()", "LastItem()", and "Item()" now support variable
+  arguments. In the case of "Item()" the arguments are indicies
+  which will be sequentially derefferenced.
 
 ### Deprecated
 
