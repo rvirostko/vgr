@@ -821,6 +821,7 @@ def poly_leftstr(*args) -> Any:
 * *value*.LeftStr(*length*)
 
 Without a *length* argument a single character is returned.
+Zero and negative *length* values return an empty string.
 
 ```vgr
 None.LeftStr() → None
@@ -848,6 +849,7 @@ def poly_rightstr(*args) -> Any:
 * *value*.RightStr(*length*)
 
 Without a *length* argument a single character is returned.
+Zero and negative *length* values return an empty string.
 
 ```vgr
 None.RightStr() → None
@@ -880,7 +882,8 @@ def poly_substr(x: Any=None, start: Any=0, length: Any=1) -> Any:
 * *value*[*index*]
 
 If not provided, *start* defaults to zero and *length* to one.
-The *start* index is zero based.
+The *start* index is zero based. Negative *start* or *length*
+values return an empty string.
 
 ```vgr
 None.SubStr() → None
@@ -901,8 +904,7 @@ Also see `LeftStr()`, `RightStr()`, and `Slice()`
     if isinstance(x, dict): return {key: poly_substr(value, start, length) for key, value in x.items()}
     x = _as_str(x)
     if isinstance(x, str):
-        start = start if start >= 0 else start + len(x)
-        return x[start:start + length]
+        return x[start:start + length] if start >= 0 else ''
     raise ValueError(f'SubStr() on {poly_type(x)!r} not possible')
 
 _string_loc_ops = {

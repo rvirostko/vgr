@@ -33,6 +33,7 @@
 ### Removed
 
 - Vault "Results" option removed; use "Giving" instead
+- SubStr() undocumented behavior with negative start index removed
 
 ### Fixed
 
