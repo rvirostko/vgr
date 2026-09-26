@@ -160,14 +160,14 @@ def empty_is_zero(v: str) -> Any:
 
 def dist_x(op: Callable[[Any, Any], Any], x: list, y: Any) -> list:
     """
-    Distribute op over the colleciton: op(<list>, y)
+    Distribute op over the colleciton: op(*list*, y)
     See dist_y()
     """
     return list(op(x1, y) for x1 in x)
 
 def dist_y(op: Callable[[Any, Any], Any], x: Any, y: list) -> list:
     """
-    Distribute op over the collection: op(x, <list>)
+    Distribute op over the collection: op(x, *list*)
     Used by commutative operations with a scalar x and list y
     See dist_x()
     """
