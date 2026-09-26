@@ -51,6 +51,7 @@ from .dict import (
     dict_remove_key,
     dict_set_key_value,
     poly_get_keys,
+    poly_get_key_value,
 )
 from .div import (
     poly_div,
@@ -65,7 +66,7 @@ from .general import (
      dsort,
      poly_repr,
      poly_sort,
-     poly_subscript,
+     poly_get_item,
 )
 from .inequ import (
     poly_is_between,

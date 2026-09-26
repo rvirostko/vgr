@@ -292,11 +292,6 @@ Also see `Unique()`
         return _unique_sorted(rc) if unique else rc
     return x
 
-def poly_subscript(x:Any=None, index: Any=None) -> Any:
-    if isinstance(x, (list, str)): return poly_get_item(x, index)
-    if isinstance(x, dict): return poly_get_key_value(x, index)
-    return x
-
 @builtin("Item")
 def poly_get_item(x:Any=None, index: Any=0) -> Any:
     """
@@ -326,14 +321,24 @@ None.Item(0) → None
 
 Also see `FirstItem()` and `LastItem()`
 """
-    if isinstance(x, str): return poly_substr(x, index)
-    if not isinstance(x, list): return x
-    if isinstance(index, list): return dist_x(poly_get_item, x, index)
-    i: int = int(index) if isinstance(index, (int, float)) else str_to_int(index) if isinstance(index, str) else None
-    if i is None: i = 0
-    l = len(x)
-    if i >= 0: return x[i] if i < l else None
-    return x[i] if l >= abs(i) else None
+    # TODO var args
+    # A number becomes an int, strings coerced, None becomes 0
+    if index is None:
+        index: int = 0
+    else:
+        index: int = int(index) if isinstance(index, (int, float)) else str_to_int(index) if isinstance(index, str) else 0
+        if index is None: index = 0
+    if isinstance(x, str):
+        # in-range returns the character, out of range returns empty string
+        length: int = len(x)
+        if index >= 0: return x[index] if index < length else ''
+        return x[index] if length >= abs(index) else ''
+    if isinstance(x, list):
+        # in-range returns the element, out of range returns None
+        length: int = len(x)
+        if index >= 0: return x[index] if index < length else None
+        return x[index] if length >= abs(index) else None
+    return x
 
 @builtin("FirstItem")
 def poly_first_item(x: Any=None) -> Any:

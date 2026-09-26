@@ -7,7 +7,6 @@ Functions to:
 from abc import ABC, abstractmethod
 from copy import deepcopy
 from typing import Any, Iterable
-import textwrap
 
 from lark import v_args, Tree, Token, Transformer
 
@@ -19,7 +18,6 @@ from .functions import get_function_op
 from .builtins import (
     bound_ops,
     build_dict,
-    poly_list,
     get_requires_exec_context,
     poly_add,
     poly_bit_and,
@@ -31,17 +29,21 @@ from .builtins import (
     poly_div,
     poly_eq,
     poly_exact_eq,
-    poly_is_false,
     poly_floor,
     poly_ge,
+    poly_get_item,
+    poly_get_key_value,
     poly_gt,
     poly_in,
     poly_is_empty,
     poly_is_even,
+    poly_is_false,
     poly_is_negative,
     poly_is_odd,
     poly_is_positive,
+    poly_is_true,
     poly_le,
+    poly_list,
     poly_lt,
     poly_matches_all,
     poly_matches,
@@ -56,12 +58,10 @@ from .builtins import (
     poly_repr,
     poly_shift_left,
     poly_shift_right,
+    poly_shorten,
     poly_slice,
     poly_sub,
-    poly_subscript,
-    poly_is_true,
     poly_type,
-    poly_shorten,
 )
 from .src_mgr import StatementSourceMgr
 
@@ -238,10 +238,14 @@ class Subscript(Operation):
     Dereference a value using a subscript or key value
     """
     def execute(self, ctx: ExecContext, args: list) -> Any:
+        def _subscript(x:Any=None, index: Any=None) -> Any:
+            if isinstance(x, (list, str)): return poly_get_item(x, index)
+            if isinstance(x, dict): return poly_get_key_value(x, index)
+            return x
         # <expr>[<expr>]...
         value = ctx.eval_expr(args[0]) # the in-line <expr>
         for arg in args[1:]:
-            value = poly_subscript(value, ctx.eval_expr(arg))
+            value = _subscript(value, ctx.eval_expr(arg))
         return value
 
     def op_name(self) -> str:
