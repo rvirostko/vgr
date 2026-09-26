@@ -42,20 +42,32 @@ SUPERSCRIPT_FLOAT: /⁽[⁺⁻]?(?:[⁰¹²³⁴⁵⁶⁷⁸⁹]+(·[⁰¹²³�
 NAME: /{VAR_NAME}/
 
 //----------------------------------------------------------
-_assignment:         _EQ | "To"i
-_call_function:      ("Call-Function"i | "Call"i "Function"i?)
-_decl:               "Declare"i
+_all:                "All"i
+_assignment:         _EQ | _to
+_call_function:      "Call-Function"i | "Call"i _function?
+_choose:             "Choose"i
+_declare:            "Declare"i
+_dictionary:         "Dictionary"i
 _file_option:        "File"i
 _files_option:       "File"i | "Files"i
-_for_each:           "For-Each"i | "For"i "Each"i
+_for_each:           "For-Each"i | _for "Each"i
+_for:                "For"i
+_function:           "Function"i
 _headers_option:     "Header"i | "Headers"i
+_list:               "List"i
 _null_values_option: "Nulls"i | "Null"i "Values"i
+_remove_key:         "Remove-Key"i | "Remove"i "Key"i
 _repeat:             "Repeat"i
 _right_arrow:        "->" | "\u2192"| "=>" | "\u21D2" // Unicode → (rightwards arrow) and ⇒ (rightwards double arrow)
+_set_key:            "Set-Key"i | _set "Key"i
+_set:                "Set"i
 _times:              "Time"i | "Times"i
+_to:                 "To"i
 _unit_seconds:       "Second"i | "Seconds"i
 _unless:             "Unless"i
 _until:              "Until"i
+_using:              "Using"i
+_when:               "When"i
 _while:              "While"i
 //----------------------------------------------------------
 
@@ -143,14 +155,14 @@ block_statement: "Begin"i _CLAUSE_SEP? statement+ "End"i -> block
 
 call: _call_function var_name ("(" _csep_list{expr}? ")")?
     | _call_function var_name ("(" _csep_list{expr}? ")")? giving_clause -> call_giving
-    | _call_function var_name "Using"i _csep_list{expr}
-    | _call_function var_name "Using"i _csep_list{expr} giving_clause -> call_giving
+    | _call_function var_name _using _csep_list{expr}
+    | _call_function var_name _using _csep_list{expr} giving_clause -> call_giving
 
-declare: _decl _csep_list{var_name}
-    |    _decl _csep_list{var_name} "As"i? "Local"i  -> declare_local
-    |    _decl _csep_list{var_name} "As"i? "Global"i -> declare_global
+declare: _declare _csep_list{var_name}
+    |    _declare _csep_list{var_name} "As"i? "Local"i  -> declare_local
+    |    _declare _csep_list{var_name} "As"i? "Global"i -> declare_global
 
-function_def: "Define"i? func_modifier* "Function"i
+function_def: "Define"i? func_modifier* _function
 func_modifier: ("Constant"i | "Const"i)               -> mod_const
     |          ("Cached"i | "Cache"i) ("(" expr ")")? -> mod_cached
 define_statements: function_def var_name func_params? _CLAUSE_SEP? func_body ("End-Function"i | "End"i)     -> def_function
@@ -163,8 +175,8 @@ func_body: statement+ -> body
 foreach_statement: _for_each var_name "In"i expr _CLAUSE_SEP? statement+ _end_for -> foreach
     |              _for_each var_name "In"i expr _right_arrow statement           -> foreach
 
-for_next: "For"i var_name _EQ expr "To"i expr _CLAUSE_SEP? statement+ _end_for
-    |     "For"i var_name _EQ expr "To"i expr "Step"i expr _CLAUSE_SEP? statement+ _end_for -> for_next_by
+for_next: _for var_name _EQ expr _to expr _CLAUSE_SEP? statement+ _end_for
+    |     _for var_name _EQ expr _to expr "Step"i expr _CLAUSE_SEP? statement+ _end_for -> for_next_by
 _end_for: "End-For"i | "Next"i | "End"i
 
 if_statement: if_immediate | if else_if* else? ("End-If"i | "End"i)
@@ -191,8 +203,8 @@ continue: "Continue"i
 
 return: "Return"i expr?
 
-_eq_operators: ("==" | "\uFF1D\uFF1D" | "\u2A75" | "Equals"i | "Is"i | "Is"i? "Equal"i "To"i)       // Unicode ＝ (fullwidth =) and ⩵ (two consecutive equals signs)
-_neq_operators: ("!=" | "\u2260" | "<>" | "\u00AC=" | "Is"i "Not"i | "Is"i? "Not"i "Equal"i "To"i)  // Unicode ≠ (not eq) and ¬ (not)
+_eq_operators: ("==" | "\uFF1D\uFF1D" | "\u2A75" | "Equals"i | "Is"i | "Is"i? "Equal"i _to)         // Unicode ＝ (fullwidth =) and ⩵ (two consecutive equals signs)
+_neq_operators: ("!=" | "\u2260" | "<>" | "\u00AC=" | "Is"i "Not"i | "Is"i? "Not"i "Equal"i _to)    // Unicode ≠ (not eq) and ¬ (not)
 _exact_eq_operators: "===" | "\uFF1D\uFF1D\uFF1D" | "\u2A76" | "\u2261"                             // Unicode ＝ (fullwidth =), ⩶ (three consecutive equals signs) and ≡ (identical to)
 _lt_operators: ("<" | "\uFF1C" | "Is"i? "Less"i "Than"i)                                            // Unicode ＜ (fullwidth <)
 _gt_operators: (">" | "\uFF1E" | "Is"i? "Greater"i "Than"i)                                         // Unicode ＞ (fullwidth >)
@@ -200,10 +212,10 @@ _le_operators: ("<=" | "\u2264" | "\u00AC>" | "!>" | "Is"i? "Not"i "Greater"i "T
 _ge_operators: (">=" | "\u2265" | "\u00AC<" | "!<" | "Is"i? "Not"i "Less"i "Than"i)                 // Unicode ≥ (greater than or equal to) and ¬ (not)
 _matches_operators: "~" | "Matches"i
 _not_matches_operators: "!~" | "Not"i "~" | "Does"i "Not"i "Match"i
-_matches_all_operators: "Matches"i "All"i
+_matches_all_operators: "Matches"i _all
 _contains_operators: "Contains"i
 _not_contains_operators: "Does"i "Not"i "Contain"i
-_contains_all_operators: "Contains"i "All"i
+_contains_all_operators: "Contains"i _all
 _is_in_operators: ("Is"i "In"i) | "\u2208"                                                          // Unicode ∈ (element of)
 _not_is_in_operators: ("Is"i? "Not"i "In"i) | "\u2209"                                              // Unicode ∉ (not an element of)
 _is_empty_operators: "Is"i "Empty"i
@@ -220,32 +232,32 @@ _is_not_const_operators: "Is"i "Not"i ("Constant"i | "Const"i)
 _slice_operator: _OPEN_SQ_BRACKET slice_arg _CLAUSE_SEP slice_arg (_CLAUSE_SEP slice_arg)? _CLOSE_SQ_BRACKET
 slice_arg: expr?
 
-choose_statement: "Choose"i choose_all? _CLAUSE_SEP? choice_block* otherwise_block? ("End-Choose"i | "End"i)   -> choose
-    | "Choose"i choose_all? "Using"i expr _CLAUSE_SEP? values_block* otherwise_block? ("End-Choose"i | "End"i) -> choose_using
-choice_block: "When"i expr _CLAUSE_SEP? statement+
-values_block: "When"i _is_empty_operators _CLAUSE_SEP? statement+                -> is_empty_block
-    | "When"i _is_not_empty_operators _CLAUSE_SEP? statement+                    -> is_not_empty_block
-    | "When"i _is_positive_operators _CLAUSE_SEP? statement+                     -> is_pos_block
-    | "When"i _is_negative_operators _CLAUSE_SEP? statement+                     -> is_neg_block
-    | "When"i _is_even_operators _CLAUSE_SEP? statement+                         -> is_even_block
-    | "When"i _is_odd_operators _CLAUSE_SEP? statement+                          -> is_odd_block
-    | "When"i _is_defined_operators _CLAUSE_SEP? statement+                      -> is_defined_block
-    | "When"i _is_undefined_operators _CLAUSE_SEP? statement+                    -> is_undefined_block
-    | "When"i _is_const_operators _CLAUSE_SEP? statement+                        -> is_const_block
-    | "When"i _is_not_const_operators _CLAUSE_SEP? statement+                    -> is_not_const_block
-    | "When"i expr _through expr _CLAUSE_SEP? statement+                         -> range_block
-    | "When"i "Not"i expr _through expr _CLAUSE_SEP? statement+                  -> not_range_block
+choose_statement: _choose choose_all?             _CLAUSE_SEP? choice_block* otherwise_block? ("End-Choose"i | "End"i) -> choose
+    |             _choose choose_all? _using expr _CLAUSE_SEP? values_block* otherwise_block? ("End-Choose"i | "End"i) -> choose_using
+choice_block: _when expr _CLAUSE_SEP? statement+
+values_block: _when _is_empty_operators _CLAUSE_SEP? statement+                   -> is_empty_block
+    |         _when _is_not_empty_operators _CLAUSE_SEP? statement+               -> is_not_empty_block
+    |         _when _is_positive_operators _CLAUSE_SEP? statement+                -> is_pos_block
+    |         _when _is_negative_operators _CLAUSE_SEP? statement+                -> is_neg_block
+    |         _when _is_even_operators _CLAUSE_SEP? statement+                    -> is_even_block
+    |         _when _is_odd_operators _CLAUSE_SEP? statement+                     -> is_odd_block
+    |         _when _is_defined_operators _CLAUSE_SEP? statement+                 -> is_defined_block
+    |         _when _is_undefined_operators _CLAUSE_SEP? statement+               -> is_undefined_block
+    |         _when _is_const_operators _CLAUSE_SEP? statement+                   -> is_const_block
+    |         _when _is_not_const_operators _CLAUSE_SEP? statement+               -> is_not_const_block
+    |         _when expr _through expr _CLAUSE_SEP? statement+                    -> range_block
+    |         _when "Not"i expr _through expr _CLAUSE_SEP? statement+             -> not_range_block
     // These operators work with a single value
-    | "When"i (op_lt | op_gt | op_ge | op_le) expr _CLAUSE_SEP? statement+       -> ineq_block
+    |         _when (op_lt | op_gt | op_ge | op_le) expr _CLAUSE_SEP? statement+  -> ineq_block
     // This is a specialized version of "Not Equals"
-    | "When"i "Not"i value_list _CLAUSE_SEP? statement+                          -> not_values_block
+    |         _when "Not"i value_list _CLAUSE_SEP? statement+                     -> not_values_block
     // These operators work with one or more values
     // Note that the "op"s are optional, with the default being op_eq
-    | "When"i (op_eq | op_ne | op_xeq | op_contains | op_not_contains | op_contains_all | op_is_in | op_not_is_in | op_matches | op_not_matches | op_matches_all)? value_list _CLAUSE_SEP? statement+
+    |         _when (op_eq | op_ne | op_xeq | op_contains | op_not_contains | op_contains_all | op_is_in | op_not_is_in | op_matches | op_not_matches | op_matches_all)? value_list _CLAUSE_SEP? statement+
 value_list: _csep_list{expr}
 otherwise_block: "Otherwise"i _CLAUSE_SEP? statement+
-choose_all: "All"i
-_through: "Through"i | "Thru"i | "To"i
+choose_all: _all
+_through: "Through"i | "Thru"i | _to
 op_eq: _eq_operators
 op_ne: _neq_operators
 op_xeq: _exact_eq_operators
@@ -275,33 +287,33 @@ verbose: "Verbose"i  "On"i  -> verbose_on
 
 pass: ("Pass"i | "Nop"i)
 
-accept_input: ("Accept-Input"i | "Accept"i "Input"i) ("From"i stdin)? "To"i? var_name accept_input_option?
+accept_input: ("Accept-Input"i | "Accept"i "Input"i) ("From"i stdin)? _to? var_name accept_input_option?
 ?accept_input_option: "Echo"i        -> echo
     | ("No-Echo"i | ("No"i "Echo"i)) -> no_echo
     | "Secure"i                      -> secure
 
-sleep: "Sleep"i "For"i? expr _unit_seconds?
+sleep: "Sleep"i _for? expr _unit_seconds?
 
 // NB: This is one of the parsing start points which is used for --assign.
 //     It is effectively "set" without the leading statement
 //     and only simple assignment can be performed.
 cmd_line_assign: var_name _assignment expr -> set
 
-_set: var_name (_assignment | SET_OP) expr
-set:  "Set"i _csep_list{_set}
-    | "Set"i var_name "Up"i   "By"i expr                         -> set_up
-    | "Set"i var_name "Down"i "By"i expr                         -> set_down
-    | "Set"i "Corresponding"i expr "In"i "Dictionary"i? var_name -> set_corresponding
+_set_var: var_name (_assignment | SET_OP) expr
+set:  _set _csep_list{_set_var}
+    | _set var_name "Up"i   "By"i expr                        -> set_up
+    | _set var_name "Down"i "By"i expr                        -> set_down
+    | _set "Corresponding"i expr "In"i _dictionary? var_name  -> set_corresponding
 SET_OP: ("+=" | "-=" | "*=" | "/=" | "%=" | "**=" | "&=" | "|=" | "^=" | "<<=" | ">>=" )
 // Alternate to "Set" to get around conflicts
-_assign: expr "To"i var_name
-assign: "Assign"i _csep_list{_assign}
+_assign_var: expr _to var_name
+assign: "Assign"i _csep_list{_assign_var}
 
 const_set: var_name ((_EQ | "Is"i) expr)?
 const: ("Constant"i | "Const"i) _csep_list{const_set}
 
-add_to:     "Add"i _csep_list{expr} "To"i var_name
-add_giving: "Add"i _csep_list{expr} "To"i expr "Giving"i var_name
+add_to:     "Add"i _csep_list{expr} _to var_name
+add_giving: "Add"i _csep_list{expr} _to expr "Giving"i var_name
 
 sub_from:   "Subtract"i _csep_list{expr} "From"i var_name
 sub_giving: "Subtract"i _csep_list{expr} "From"i expr "Giving"i var_name
@@ -309,15 +321,15 @@ sub_giving: "Subtract"i _csep_list{expr} "From"i expr "Giving"i var_name
 mul_by: "Multiply"i var_name "By"i _csep_list{expr}
 div_by: "Divide"i   var_name "By"i _csep_list{expr}
 
-set_key_value: ("Set-Key"i | ("Set"i "Key"i))     expr "In"i   "Dictionary"i? var_name (_assignment expr)?
-remove_key:    ("Remove-Key"i | "Remove"i "Key"i) expr "From"i "Dictionary"i? var_name
+set_key_value: _set_key    expr "In"i   _dictionary? var_name (_assignment expr)?
+remove_key:    _remove_key expr "From"i _dictionary? var_name
 
 swap: "Swap"i var_name ("With"i | "And"i) var_name
 
 unset: "Unset"i _csep_list{var_name}
 
 reset: "Reset"i _options_list{reset_opt}
-?reset_opt: "All"i       -> all
+?reset_opt: _all         -> all
     |       "Args"i      -> args
     |       "Constants"i -> consts
     |       "Caches"i    -> caches
@@ -346,7 +358,7 @@ assert: "Assert"i expr (_CLAUSE_SEP _csep_list{expr})?
 
 print:  "Print"i  _csep_list{expr} print_channel? _options_list{print_option}
 printf: "Printf"i _csep_list{expr} print_channel? _options_list{printf_option}
-?print_channel: "To"i (stderr | stdout) // -> stderr or stdout
+?print_channel: _to (stderr | stdout) // -> stderr or stdout
     |           "As"i "Markdown"i          -> markdown
 ?print_sep_opt: (("Field"i "Separator"i) | "OFS"i) option_value  -> ofs
     |           (("Record"i "Separator"i) | "ORS"i) option_value -> ors
@@ -396,14 +408,14 @@ sort_key: sort_dir? "Key"i? expr -> key
     | ("Descending"i | "Des"i) -> sort_des
 unique_clause: "Unique"i ("On"i _csep_list{expr})? -> unique
 
-list_append: "Append"i list_all? expr "To"i "List"i? var_name
-list_prepend: "Prepend"i list_all? expr "To"i "List"i? var_name
-list_insert: "Insert"i list_all? expr "Into"i "List"i? var_name "At"i ("Position"i | "Index"i)? expr
-list_remove: "Remove"i ("Position"i | "Index"i)? expr "From"i "List"i? var_name giving_clause?
-list_remove_first: "Remove"i "First"i "Item"i? "From"i "List"i? var_name giving_clause?
-list_remove_last: "Remove"i "Last"i "Item"i? "From"i "List"i? var_name giving_clause?
-list_replace: "Replace"i ("Position"i | "Index"i)? expr "In"i "List"i? var_name "With"i expr giving_clause?
-list_all: "All"i
+list_append:       "Append"i  list_all? expr _to _list? var_name
+list_prepend:      "Prepend"i list_all? expr _to _list? var_name
+list_insert:       "Insert"i  list_all? expr "Into"i _list? var_name "At"i ("Position"i | "Index"i)? expr
+list_remove:       "Remove"i ("Position"i | "Index"i)? expr "From"i _list? var_name giving_clause?
+list_remove_first: "Remove"i "First"i "Item"i? "From"i _list? var_name giving_clause?
+list_remove_last:  "Remove"i "Last"i "Item"i? "From"i _list? var_name giving_clause?
+list_replace:      "Replace"i ("Position"i | "Index"i)? expr "In"i _list? var_name "With"i expr giving_clause?
+list_all: _all
 
 _records: ("Record"i | "Records"i)
 _columns: ("Column"i | "Columns"i)
@@ -423,13 +435,13 @@ file_from: _file_option expr (_SEP? (load_from_opts | as_clause))*
 where_clause: "Where"i _csep_list{expr}
 
 product_clause: "Cartesian"i? "Product"i "Of"i? _columns? product_cols
-product_cols: ("All"i | "*") -> product_all
+product_cols: (_all | "*") -> product_all
     |         _csep_list{expr}
 
 limit_clause: "Limit"i "Input"i option_value _records? (_SEP? "Offset"i option_value)? -> limit_input
     |         "Limit"i          option_value _records? (_SEP? "Offset"i option_value)? -> limit_output
 
-?for_clause: "For"i (for_json | for_csv | for_markdown | for_text | for_template)
+?for_clause: _for (for_json | for_csv | for_markdown | for_text | for_template)
 
 into_clause: "Into"i var_name
     | "Into"i (stdout | stderr)
