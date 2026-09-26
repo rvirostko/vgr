@@ -50,7 +50,10 @@ Assert "abc"［1］ === "abc"[1]
 Assert "abc"［1：2］ === "abc"[1:2]
 
 Set a＝5；// fullwidth = and ;
-Assert a === 5;
+Assert a == 5.0
+Assert a ＝＝ 5.0 // fullwidth =
+Assert a === 5
+Assert a ＝＝＝ 5 // fullwidth =
 
 // NB: fullwidth parens not yet supported
 Function f(x，y) -> x＋y // fullwidth command and plus

@@ -185,9 +185,9 @@ continue: "Continue"i
 
 return: "Return"i expr?
 
-_eq_operators: ("==" | "\u2A75" | "Equals"i | "Is"i | "Is"i? "Equal"i "To"i)                        // Unicode ⩵ (two consecutive equals signs)
+_eq_operators: ("==" | "\uFF1D\uFF1D" | "\u2A75" | "Equals"i | "Is"i | "Is"i? "Equal"i "To"i)       // Unicode ＝ (fullwidth =) and ⩵ (two consecutive equals signs)
 _neq_operators: ("!=" | "\u2260" | "<>" | "\u00AC=" | "Is"i "Not"i | "Is"i? "Not"i "Equal"i "To"i)  // Unicode ≠ (not eq) and ¬ (not)
-_exact_eq_operators: "===" | "\u2A76" | "\u2261"                                                    // Unicode ⩶ (three consecutive equals signs) and  ≡ (identical to)
+_exact_eq_operators: "===" | "\uFF1D\uFF1D\uFF1D" | "\u2A76" | "\u2261"                             // Unicode ＝ (fullwidth =), ⩶ (three consecutive equals signs) and ≡ (identical to)
 _lt_operators: ("<" | "\uFF1C" | "Is"i? "Less"i "Than"i)                                            // Unicode ＜ (fullwidth <)
 _gt_operators: (">" | "\uFF1E" | "Is"i? "Greater"i "Than"i)                                         // Unicode ＞ (fullwidth >)
 _le_operators: ("<=" | "\u2264" | "\u00AC>" | "!>" | "Is"i? "Not"i "Greater"i "Than"i)              // Unicode ≤ (less than or equal to) and ¬ (not)
