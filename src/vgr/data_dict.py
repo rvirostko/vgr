@@ -74,10 +74,9 @@ class DataDictionary():
     @property
     def in_local_frame(self) -> bool:
         """
-        Is the current frame a _local_ frame vs the _global_ frame?
+        Is the current frame a *local* frame vs the *global* frame?
 
-        :return: True if the current frame is a local frame
-        :rtype: bool
+        Returns `True` if the current frame is a local frame
         """
         return len(self._frames) > 1
 
