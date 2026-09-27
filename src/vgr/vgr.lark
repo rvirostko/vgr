@@ -46,6 +46,7 @@ _all:                "All"i
 _assignment:         _EQ | _to
 _call_function:      "Call-Function"i | "Call"i _function?
 _choose:             "Choose"i
+_columns:            "Column"i | "Columns"i
 _declare:            "Declare"i
 _dictionary:         "Dictionary"i
 _file_option:        "File"i
@@ -57,6 +58,7 @@ _giving:             "Giving"i
 _headers_option:     "Header"i | "Headers"i
 _list:               "List"i
 _null_values_option: "Nulls"i | "Null"i "Values"i
+_records:            "Record"i | "Records"i
 _remove_key:         "Remove-Key"i | "Remove"i "Key"i
 _repeat:             "Repeat"i
 _right_arrow:        "->" | "\u2192"| "=>" | "\u21D2" // Unicode → (rightwards arrow) and ⇒ (rightwards double arrow)
@@ -417,9 +419,6 @@ list_remove_first: "Remove"i "First"i "Item"i? "From"i _list? var_name giving_cl
 list_remove_last:  "Remove"i "Last"i "Item"i? "From"i _list? var_name giving_clause?
 list_replace:      "Replace"i ("Position"i | "Index"i)? expr "In"i _list? var_name "With"i expr giving_clause?
 list_all: _all
-
-_records: ("Record"i | "Records"i)
-_columns: ("Column"i | "Columns"i)
 
 select: "Select"i _records? select_outputs from_clause where_clause? product_clause? limit_clause? for_clause? into_clause?
 
