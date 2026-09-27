@@ -346,7 +346,7 @@ include: "@Include"i _files_option? _csep_list{expr}
 load_from: "Load"i var_name ("From"i | "With"i) _file_option? expr _options_list{load_from_opts}
 ?load_from_opts: encoding
     |            ("Type"i "Is"i?)? load_source_type
-    |            "Giving"i var_name -> giving
+    |            giving_clause                      -> giving
 load_source_type: "CSV"i                            -> csv_file
     |             "HCL"i                            -> hcl_file
     |             "INI"i                            -> ini_file
