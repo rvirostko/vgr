@@ -74,7 +74,7 @@ Assert GetCacheUsage(square.GetCacheUsage().key) Is Not None
 Assert GetCacheUsage([]) Is []
 Assert GetCacheUsage([square]).FirstItem() Is square.GetCacheUsage()
 Assert GetCacheUsage({}) Is {}
-Assert GetCacheUsage({"sq": square}).sq  Is square.GetCacheUsage()
+Assert GetCacheUsage({"sq": square}).sq Is square.GetCacheUsage()
 
 # EmptyCache() edge cases
 Assert EmptyCache() Is None
@@ -85,4 +85,4 @@ Assert EmptyCache(square.EmptyCache().key) Is Not None
 Assert EmptyCache([]) Is []
 Assert EmptyCache([square]).FirstItem() Is square.EmptyCache()
 Assert EmptyCache({}) Is {}
-Assert EmptyCache({"sq": square}).sq  Is square.EmptyCache()
+Assert EmptyCache({"sq": square}).sq Is square.EmptyCache()
