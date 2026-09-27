@@ -154,4 +154,4 @@
 //----------------------------------------------------------------------------
 ?http_request_opt: "Using"i "Connection"i? expr -> hopt_connection_name // string
     | ("Data"i | "Body"i) option_value          -> hopt_body   // see type rules above
-    | "Giving"i var_name                        -> hopt_giving // variable path
+    | giving_clause                             -> hopt_giving // variable path
