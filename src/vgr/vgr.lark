@@ -316,10 +316,10 @@ const_set: var_name ((_EQ | "Is"i) expr)?
 const: ("Constant"i | "Const"i) _csep_list{const_set}
 
 add_to:     "Add"i _csep_list{expr} _to var_name
-add_giving: "Add"i _csep_list{expr} _to expr "Giving"i var_name
+add_giving: "Add"i _csep_list{expr} _to expr giving_clause
 
 sub_from:   "Subtract"i _csep_list{expr} "From"i var_name
-sub_giving: "Subtract"i _csep_list{expr} "From"i expr "Giving"i var_name
+sub_giving: "Subtract"i _csep_list{expr} "From"i expr giving_clause
 
 mul_by: "Multiply"i var_name "By"i _csep_list{expr}
 div_by: "Divide"i   var_name "By"i _csep_list{expr}
