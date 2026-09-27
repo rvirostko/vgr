@@ -53,6 +53,7 @@ _files_option:       "File"i | "Files"i
 _for_each:           "For-Each"i | _for "Each"i
 _for:                "For"i
 _function:           "Function"i
+_giving:             "Giving"i
 _headers_option:     "Header"i | "Headers"i
 _list:               "List"i
 _null_values_option: "Nulls"i | "Null"i "Values"i
@@ -144,7 +145,7 @@ opt_statements: statement*
     | while_statement
 
 // Some common patterns
-?giving_clause: "Giving"i var_name
+?giving_clause: _giving var_name
 ?option_value: "Is"i? expr
 stderr: ("Error"i | "stderr"i)
 stdout: ("Output"i | "stdout"i)
@@ -397,16 +398,16 @@ zip: ("Create-Zip"i | "Create"i "Zip"i) _file_option? expr _options_list{zip_opt
 
 exit: "Exit"i expr?
 
-sort: "Sort"i sort_source sort_keys? unique_clause? sort_giving?
-sort_source: sort_obj -> source
-sort_giving: "Giving"i sort_obj -> target
-?sort_obj: _file_option expr (_SEP? load_from_opts)* -> file
-    | var_name -> var
-sort_keys: ("On"i | "By"i) _csep_list{sort_key} -> keys
-sort_key: sort_dir? "Key"i? expr -> key
-?sort_dir: ("Ascending"i | "Asc"i) -> sort_asc
-    | ("Descending"i | "Des"i) -> sort_des
-unique_clause: "Unique"i ("On"i _csep_list{expr})? -> unique
+sort:           "Sort"i sort_source sort_keys? unique_clause? sort_giving?
+sort_source:    sort_obj                                  -> source
+sort_giving:    _giving sort_obj                          -> target
+?sort_obj:      _file_option expr (_SEP? load_from_opts)* -> file
+    |           var_name                                  -> var
+sort_keys:      ("On"i | "By"i) _csep_list{sort_key}      -> keys
+sort_key:       sort_dir? "Key"i? expr                    -> key
+?sort_dir:      ("Ascending"i | "Asc"i)                   -> sort_asc
+    |           ("Descending"i | "Des"i)                  -> sort_des
+unique_clause:  "Unique"i ("On"i _csep_list{expr})?       -> unique
 
 list_append:       "Append"i  list_all? expr _to _list? var_name
 list_prepend:      "Prepend"i list_all? expr _to _list? var_name
