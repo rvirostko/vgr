@@ -21,5 +21,5 @@ ldap_conn_arg: ("To"i | "URL"i "Is"i?) expr          -> lopt_url                
     | "Get"i "Operational"i ("Attributes"i | "Attrs"i) option_value? -> lopt_get_operational_attributes  // bool
     | "Timeout"i option_value _unit_seconds?                         -> lopt_time_limit                  // int, seconds
     | "Size"i "Limit"i option_value                                  -> lopt_size_limit                  // int
-    | "Giving"i var_name                                             -> lopt_giving                      // variable path
+    | giving_clause                                                  -> lopt_giving                      // variable path
     | "Using"i "Connection"i? expr                                   -> lopt_using                       // string

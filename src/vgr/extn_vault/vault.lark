@@ -106,7 +106,7 @@ vault_option: "CAS"i option_value                     -> vopt_cas
     | "Key"i option_value                             -> vopt_key
     | ("Meta"i | "Metadata"i) option_value            -> vopt_metadata
     | "Namespace"i option_value                       -> vopt_namespace
-    | "Giving"i var_name                              -> vopt_giving
+    | giving_clause                                   -> vopt_giving
     | ("Secret"i | "Secrets"i) ("Is"i | "Are"i)? expr -> vopt_data        // Alias for data
     | "Type"i option_value                            -> vopt_type        // Value varies by context
     | "Using"i "Connection"i? expr                    -> vopt_using
