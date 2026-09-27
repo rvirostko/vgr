@@ -53,6 +53,7 @@ _file_option:        "File"i
 _files_option:       "File"i | "Files"i
 _for_each:           "For-Each"i | _for "Each"i
 _for:                "For"i
+_from:               "From"i
 _function:           "Function"i
 _giving:             "Giving"i
 _headers_option:     "Header"i | "Headers"i
@@ -290,7 +291,7 @@ verbose: "Verbose"i  "On"i  -> verbose_on
 
 pass: ("Pass"i | "Nop"i)
 
-accept_input: ("Accept-Input"i | "Accept"i "Input"i) ("From"i stdin)? _to? var_name accept_input_option?
+accept_input: ("Accept-Input"i | "Accept"i "Input"i) (_from stdin)? _to? var_name accept_input_option?
 ?accept_input_option: "Echo"i        -> echo
     | ("No-Echo"i | ("No"i "Echo"i)) -> no_echo
     | "Secure"i                      -> secure
@@ -318,14 +319,14 @@ const: ("Constant"i | "Const"i) _csep_list{const_set}
 add_to:     "Add"i _csep_list{expr} _to var_name
 add_giving: "Add"i _csep_list{expr} _to expr giving_clause
 
-sub_from:   "Subtract"i _csep_list{expr} "From"i var_name
-sub_giving: "Subtract"i _csep_list{expr} "From"i expr giving_clause
+sub_from:   "Subtract"i _csep_list{expr} _from var_name
+sub_giving: "Subtract"i _csep_list{expr} _from expr giving_clause
 
 mul_by: "Multiply"i var_name "By"i _csep_list{expr}
 div_by: "Divide"i   var_name "By"i _csep_list{expr}
 
-set_key_value: _set_key    expr "In"i   _dictionary? var_name (_assignment expr)?
-remove_key:    _remove_key expr "From"i _dictionary? var_name
+set_key_value: _set_key    expr "In"i _dictionary? var_name (_assignment expr)?
+remove_key:    _remove_key expr _from _dictionary? var_name
 
 swap: "Swap"i var_name ("With"i | "And"i) var_name
 
@@ -343,7 +344,7 @@ reset: "Reset"i _options_list{reset_opt}
 source: "Source"i _files_option? _csep_list{expr}
 include: "@Include"i _files_option? _csep_list{expr}
 
-load_from: "Load"i var_name ("From"i | "With"i) _file_option? expr _options_list{load_from_opts}
+load_from: "Load"i var_name (_from | "With"i) _file_option? expr _options_list{load_from_opts}
 ?load_from_opts: encoding
     |            ("Type"i "Is"i?)? load_source_type
     |            giving_clause                      -> giving
@@ -414,9 +415,9 @@ unique_clause:  "Unique"i ("On"i _csep_list{expr})?       -> unique
 list_append:       "Append"i  list_all? expr _to _list? var_name
 list_prepend:      "Prepend"i list_all? expr _to _list? var_name
 list_insert:       "Insert"i  list_all? expr "Into"i _list? var_name "At"i ("Position"i | "Index"i)? expr
-list_remove:       "Remove"i ("Position"i | "Index"i)? expr "From"i _list? var_name giving_clause?
-list_remove_first: "Remove"i "First"i "Item"i? "From"i _list? var_name giving_clause?
-list_remove_last:  "Remove"i "Last"i "Item"i? "From"i _list? var_name giving_clause?
+list_remove:       "Remove"i  ("Position"i | "Index"i)? expr _from _list? var_name giving_clause?
+list_remove_first: "Remove"i  "First"i "Item"i? _from _list? var_name giving_clause?
+list_remove_last:  "Remove"i  "Last"i "Item"i? _from _list? var_name giving_clause?
 list_replace:      "Replace"i ("Position"i | "Index"i)? expr "In"i _list? var_name "With"i expr giving_clause?
 list_all: _all
 
@@ -428,7 +429,7 @@ select_output: "*"   -> output_all
     | expr           -> output
 ?as_clause: "As"i expr
 
-?from_clause: "From"i (expr_from | file_from)
+?from_clause: _from (expr_from | file_from)
 expr_from: expr as_clause?
 file_from: _file_option expr (_SEP? (load_from_opts | as_clause))*
 

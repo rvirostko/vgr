@@ -7,7 +7,7 @@
     // Connections
     //------------------------------------------------------------
     | "Vault"i "Connect"i _options_list{vault_conn_arg} -> vault_connect
-    | "Vault"i "Disconnect"i ("From"i? expr)?           -> vault_disconnect
+    | "Vault"i "Disconnect"i (_from? expr)?             -> vault_disconnect
     //------------------------------------------------------------
     // Namespaces
     //------------------------------------------------------------

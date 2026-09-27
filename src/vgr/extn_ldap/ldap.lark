@@ -1,6 +1,6 @@
 ?ldap_statements: "Ldap"i                                 -> ldap_help
     | "Ldap"i "Connect"i _options_list{ldap_conn_arg}     -> ldap_connect
-    | "Ldap"i "Disconnect"i ("From"i? expr)?              -> ldap_disconnect
+    | "Ldap"i "Disconnect"i (_from? expr)?                -> ldap_disconnect
     | "Ldap"i "Search"i _options_list{ldap_search_option} -> ldap_search
 
 ldap_conn_arg: ("To"i | "URL"i "Is"i?) expr          -> lopt_url                            // string

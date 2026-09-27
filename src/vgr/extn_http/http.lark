@@ -34,7 +34,7 @@
     // Tears down a named connection, closing the underlying httpx.Client and
     // releasing pooled connections.
     //----------------------------------------------------------------------------
-    | "Http"i "Disconnect"i "From"i? expr -> http_disconnect
+    | "Http"i "Disconnect"i _from? expr -> http_disconnect
     //----------------------------------------------------------------------------
     // Request
     // Performs a single HTTP interaction against an optional named connection.
