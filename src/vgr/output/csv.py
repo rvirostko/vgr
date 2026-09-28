@@ -9,10 +9,10 @@ NoneType = type(None)
 class CSVRecordWriter(FileRecordWriter):
 
     __QUOTING = {
-            'all': csv.QUOTE_ALL,
-            'minimal': csv.QUOTE_MINIMAL,
+            'all':        csv.QUOTE_ALL,
+            'minimal':    csv.QUOTE_MINIMAL,
             'nonnumeric': csv.QUOTE_NONNUMERIC,
-            'none': csv.QUOTE_NONE
+            'none':       csv.QUOTE_NONE,
         }
     __DEFAULT_QUOTING = csv.QUOTE_NONNUMERIC
     __DEFAULT_DELIMITER = ','
@@ -74,7 +74,7 @@ class CSVRecordWriter(FileRecordWriter):
     @quoting.setter
     def quoting(self, value: str=None):
         if value is None:
-            self._quoting = self.__DEFAULT_QUOTING
+            self._quoting = csv.QUOTE_NONE
         else:
             self._quoting = self.__QUOTING.get(value.strip().lower(), self.__DEFAULT_QUOTING)
 
