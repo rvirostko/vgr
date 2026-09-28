@@ -10,6 +10,7 @@ import json
 import sys
 
 from ..builtins import poly_to_string
+from ..builtins.vpattern import VPattern
 
 class RecordWriter(ABC):
 
@@ -194,4 +195,5 @@ class FileRecordWriter(RecordWriter):
         if isinstance(obj, dict): return json.dumps(obj, separators=(",", ":"))
         # Recursively stringify to comma separated elements, but NO square brackets
         if isinstance(obj, list): return ", ".join(map(cls.stringify, obj))
+        if isinstance(obj, VPattern): return repr(obj)
         return poly_to_string(obj)
