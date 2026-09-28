@@ -153,7 +153,7 @@ class SelectAnalyzer(Visitor):
     }
 
     # keep title case for display purposes
-    _VALID_QUOTING_STYLES = ["Minimal", "All", "Nonnumeric", "None"]
+    _VALID_QUOTING_STYLES = ["Minimal", "All", "Nonnumeric", "None", "Default"]
 
     def __init__(self, ctx: ExecContext):
         super().__init__()
@@ -582,18 +582,15 @@ class SelectAnalyzer(Visitor):
     def _csv_quote_arg(self, node:Tree) -> str:
         expr = node.children[0]
         rc = self.ctx.eval_expr_or_const(expr)
-        if rc is None:
-            rc = 'none'
-        else:
-            if not isinstance(rc, str):
-                raise VgrRuntimeError(expr, TypeError(f'Quoting Style must be a string; found {poly_type(rc)!r}'))
-            rc = rc.strip()
-            if rc:
-                if rc.title() not in self._VALID_QUOTING_STYLES:
-                    raise VgrRuntimeError(expr, TypeError(f'Unknown Quoting Style {rc!r}. Must be one of {",".join(self._VALID_QUOTING_STYLES)}'))
-            else:
-                rc = "none"
-        return rc.lower()
+        if rc is None: return None
+        if not isinstance(rc, str):
+            raise VgrRuntimeError(expr, TypeError(f'Quoting Style must be a string; found {poly_type(rc)!r}'))
+        rc = rc.strip()
+        if rc:
+            if rc.title() not in self._VALID_QUOTING_STYLES:
+                raise VgrRuntimeError(expr, TypeError(f'Unknown Quoting Style {rc!r}. Must be one of {",".join(self._VALID_QUOTING_STYLES)}'))
+            return rc.lower()
+        return "default"
 
     @staticmethod
     def is_token(child, token_type: str) -> bool:
