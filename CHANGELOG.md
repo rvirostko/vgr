@@ -15,6 +15,8 @@
 ### Changed
 
 - Short form "Const" removed; use "Constant"
+- When creating a dictionary, a string key may be unquoted as long
+  as an same-named variable is not in scope
 - Initialization of VGR terminal session fixed so Python debugger
   warning removed. The session is also now transient.
 - "Load" no longer sets the $load variable. Use the "Giving" option
@@ -50,6 +52,8 @@
 - Visual Studio Code highlighted variables as keywords in cases where
   punctuation following it indicated it wasn't a keyword.
 - Fixed parsing and display issued in the word-freq sample
+- Ambiguous "Invalid syntax" errors generated when creating dictionaries
+  with invalid key types
 
 ### Security
 

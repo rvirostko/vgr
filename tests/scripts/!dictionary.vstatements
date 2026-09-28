@@ -1,0 +1,10 @@
+
+# For all-constant dictionary
+Print {None: 1} # {{ invalid type }}
+Print {[]: 1} # {{ invalid type }}
+Print {{}: 1} # {{ invalid type }}
+
+# For dynamically created dictionary
+Set a To None; Print {a: 1} # {{ invalid type }}
+Set a To [];   Print {a: 1} # {{ invalid type }}
+Set a To {};   Print {a: 1} # {{ invalid type }}

@@ -150,8 +150,7 @@ class SimpleOperation(Operation):
         # Pass in the context if required, but as a kwargs value
         return self._op(*positional_args, ctx=ctx) if self._requires_ctx else self._op(*positional_args)
 
-    def op_name(self) -> str:
-        return self._op.__name__
+    def op_name(self) -> str: return self._op.__name__  # pragma no cover
 
 class VarRef(Operation):
     """
@@ -166,8 +165,7 @@ class VarRef(Operation):
         """
         return ctx.get_var(*_var_name_path(self))
 
-    def op_name(self) -> str:
-        return 'var_ref'
+    def op_name(self) -> str: return 'var_ref' # pragma no cover
 
 # Reserved: not working in the grammar
 #class AssignmentExpr(Operation):
@@ -186,13 +184,11 @@ class VarRef(Operation):
 #        do_set(ctx, value, *path)
 #        return value
 
-#    def op_name(self) -> str:
-#        return 'assignment_expr'
+#    def op_name(self) -> str: return 'assignment_expr' # pragma no cover
 
 def get_function(ctx: ExecContext, statement: Tree):
     fn = ctx.get_var(*_var_name_path(statement))
-    if fn is None:
-        raise VgrRuntimeError(statement, ValueError('Function is not defined'))
+    if fn is None: raise VgrRuntimeError(statement, ValueError('Function is not defined')) # pragma no cover
     return fn
 
 class InvokeFunctionOperation(Operation):
@@ -210,8 +206,7 @@ class InvokeFunctionOperation(Operation):
         values = [ctx.eval_expr(arg) for arg in args[1:]]
         return UserFunction.invoke(ctx, fn, values)
 
-    def op_name(self) -> str:
-        return 'invoke_func'
+    def op_name(self) -> str: return 'invoke_func' # pragma no cover
 
 class InvokeInlineFunctionOperation(Operation):
     """
@@ -230,8 +225,24 @@ class InvokeInlineFunctionOperation(Operation):
         values.insert(0, inline_value)
         return UserFunction.invoke(ctx, fn, values)
 
-    def op_name(self) -> str:
-        return 'invoke_in_linefunc'
+    def op_name(self) -> str: return 'invoke_in_linefunc' # pragma no cover
+
+class BuildDictionary(Operation):
+    """
+    Convert the key args so they can use unquoted constants
+    """
+
+    def execute(self, ctx: ExecContext, args: list) -> Any:
+        positional_args = []
+        for key_arg, value_arg in zip(args[0::2], args[1::2]):
+            key = ctx.eval_expr_or_const(key_arg)
+            if not isinstance(key, (int, float, str)):
+                raise VgrRuntimeError(key_arg, TypeError(f'Invalid type {poly_type(key)!r} for key'))
+            positional_args.append(key)
+            positional_args.append(ctx.eval_expr(value_arg))
+        return build_dict(*positional_args)
+
+    def op_name(self) -> str: return 'build_dictionary' # pragma no cover
 
 class Subscript(Operation):
     """
@@ -248,8 +259,7 @@ class Subscript(Operation):
             value = _subscript(value, ctx.eval_expr(arg))
         return value
 
-    def op_name(self) -> str:
-        return 'subscript'
+    def op_name(self) -> str: return 'subscript' # pragma no cover
 
 class Slice(Operation):
     """
@@ -265,8 +275,7 @@ class Slice(Operation):
         slice_args = [ctx.eval_expr(arg.children[0]) if arg.children else None for arg in args[1:]]
         return poly_slice(value, *slice_args)
 
-    def op_name(self) -> str:
-        return 'slice'
+    def op_name(self) -> str: return 'slice' # pragma no cover
 
 def is_var_constant(ctx: ExecContext, expr: Tree) -> bool:
     # Actual constants (string, ints, None, inf, etc) are constants
@@ -274,7 +283,6 @@ def is_var_constant(ctx: ExecContext, expr: Tree) -> bool:
     # References to a variable might be constants
     # Critically, they have to exist
     return _is_var_ref(expr) and (expr.children[0] in ctx.dd.immutable_prefixes) and ctx.var_exists(*_var_name_path(expr))[0]
-
 
 class IsVarConstant(Operation):
     @bound_ops("Is Constant")
@@ -291,8 +299,7 @@ Also See `Is Not Constant`
         ctx.eval_expr(expr) # evaluated for side effects
         return is_var_constant(ctx, expr)
 
-    def op_name(self) -> str:
-        return 'is_constant'
+    def op_name(self) -> str: return 'is_constant' # pragma no cover
 
 class IsVarNotConstant(Operation):
     @bound_ops("Is Not Constant")
@@ -309,8 +316,7 @@ Also See `Is Constant`
         ctx.eval_expr(expr) # evaluated for side effects
         return not is_var_constant(ctx, expr)
 
-    def op_name(self) -> str:
-        return 'is_not_constant'
+    def op_name(self) -> str: return 'is_not_constant' # pragma no cover
 
 def is_var_defined(ctx: ExecContext, expr: Tree) -> bool:
     # non-var references are defined (expr or constant)
@@ -333,8 +339,7 @@ Also See `Is Undefined`
         ctx.eval_expr(expr) # evaluated for side effects
         return is_var_defined(ctx, expr)
 
-    def op_name(self) -> str:
-        return 'is_defined'
+    def op_name(self) -> str: return 'is_defined' # pragma no cover
 
 class IsVarUndefined(Operation):
     @bound_ops("Is Undefined", "Is Not Defined")
@@ -352,8 +357,7 @@ Also See `Is Defined`
         ctx.eval_expr(expr) # evaluated for side effects
         return not is_var_defined(ctx, expr)
 
-    def op_name(self) -> str:
-        return 'is_undefined'
+    def op_name(self) -> str: return 'is_undefined' # pragma no cover
 
 class AndOperation(Operation):
 
@@ -423,8 +427,7 @@ Also see `And` and `IsTrue()`
             if not poly_is_true(ctx.eval_expr(arg)): return False
         return True
 
-    def op_name(self) -> str:
-        return 'and'
+    def op_name(self) -> str: return 'and' # pragma no cover
 
 class OrOperation(Operation):
 
@@ -494,8 +497,7 @@ Also see `And` and `IsTrue()`
             if poly_is_true(ctx.eval_expr(arg)): return True
         return False
 
-    def op_name(self) -> str:
-        return 'or'
+    def op_name(self) -> str: return 'or' # pragma no cover
 
 class NotOperation(Operation):
 
@@ -503,8 +505,7 @@ class NotOperation(Operation):
         # NB: grammar defines this as taking a single arg
         return poly_is_false(ctx.eval_expr(args[0]))
 
-    def op_name(self) -> str:
-        return 'not'
+    def op_name(self) -> str: return 'not' # pragma no cover
 
 class Ternary(Operation):
     """
@@ -531,8 +532,7 @@ class Ternary(Operation):
             return ctx.eval_expr(args[self._seq[1]])
         return ctx.eval_expr(args[self._seq[2]])
 
-    def op_name(self) -> str:
-        return 'ternary' + poly_repr(self._seq)
+    def op_name(self) -> str: return 'ternary' + poly_repr(self._seq) # pragma no cover
 
 # TODO needs to be replaced with a more sophisticated
 # sig: path is a set of strings now, not the tokens
@@ -699,7 +699,7 @@ class OperationBinder(Transformer):
 
     # Other operations
     def array(self, tree): return SimpleOperation(tree, poly_list)
-    def dict(self, tree): return SimpleOperation(tree, build_dict)
+    def dict(self, tree): return BuildDictionary(tree)
     def deref(self, tree): return SimpleOperation(tree, deref_var)
     def var_ref(self, tree): return VarRef(tree)
     #def assignment_expr(self, tree): return AssignmentExpr(tree)

@@ -778,8 +778,15 @@ class ConstantsNormalizer(Transformer):
             return Token('CONST', {}, meta.start_pos, meta.line, meta.column,
                          meta.end_line, meta.end_column, meta.end_pos)
         if all(isinstance(child, Token) and child.type == "CONST" for child in items):
+            positional_args = []
+            for key_arg, value_arg in zip(items[0::2], items[1::2]):
+                key = key_arg.value
+                if not isinstance(key, (int, float, str)):
+                    raise VgrRuntimeError(key_arg, TypeError(f'Invalid type {poly_type(key)!r} for key'))
+                positional_args.append(key)
+                positional_args.append(value_arg.value)
             first, last = tree.children[0], tree.children[-1]
-            return Token('CONST', build_dict(*[child.value for child in items]),
+            return Token('CONST', build_dict(*positional_args),
                         first.start_pos, first.line, first.column,
                         last.end_line, last.end_column, last.end_pos)
         return tree
