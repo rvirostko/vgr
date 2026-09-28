@@ -1,0 +1,8 @@
+
+@Include DirectoryName(vgr.source.FirstItem()) + "/output-data.vgr"
+
+Print bar
+Select $rec-index As "№", $record as "Data" From data For Text Include Headers
+Print bar
+Select $rec-index As "№", $record as "Data" From data For Text Exclude Headers
+Print bar

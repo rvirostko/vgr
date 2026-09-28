@@ -1,0 +1,11 @@
+Constant data = [
+    None,
+    True, False,
+    0, 5,
+    0.0, 5.1,
+    "", "five",
+    ["a", "b", "c"],
+    { a: 1, b: 2, c: 3 },
+    r/abc/i,
+]
+Constant bar = "//" + ("*" * 77)
