@@ -391,7 +391,7 @@ _USER_CONSTANTS = [] # the prefixes
 def get_user_constants() -> list:
     return sorted(_USER_CONSTANTS)
 
-@bound_ops("Constant", "Const")
+@bound_ops("Constant")
 def execute_const(ctx: ExecContext, statement: Tree) -> None:
     """
 **Create an immutable value**

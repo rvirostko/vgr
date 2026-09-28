@@ -167,7 +167,7 @@ declare: _declare _csep_list{var_name}
     |    _declare _csep_list{var_name} "As"i? "Global"i -> declare_global
 
 function_def: "Define"i? func_modifier* _function
-func_modifier: ("Constant"i | "Const"i)               -> mod_const
+func_modifier: "Constant"i                            -> mod_const
     |          ("Cached"i | "Cache"i) ("(" expr ")")? -> mod_cached
 define_statements: function_def var_name func_params? _CLAUSE_SEP? func_body ("End-Function"i | "End"i)     -> def_function
     |              function_def var_name func_params? _right_arrow expr                                     -> def_arrow
@@ -230,8 +230,8 @@ _is_even_operators: ("Is"i "Even"i | "Is"i? "Not"i "Odd"i)
 _is_odd_operators: ("Is"i "Odd"i | "Is"i? "Not"i "Even"i)
 _is_defined_operators: "Is"i ("Defined"i | "Not"i "Undefined"i)
 _is_undefined_operators: "Is"i ("Undefined"i | "Not"i "Defined"i)
-_is_const_operators: "Is"i ("Constant"i | "Const"i)
-_is_not_const_operators: "Is"i "Not"i ("Constant"i | "Const"i)
+_is_const_operators: "Is"i "Constant"i
+_is_not_const_operators: "Is"i "Not"i "Constant"i
 
 _slice_operator: _OPEN_SQ_BRACKET slice_arg _CLAUSE_SEP slice_arg (_CLAUSE_SEP slice_arg)? _CLOSE_SQ_BRACKET
 slice_arg: expr?
@@ -314,7 +314,7 @@ _assign_var: expr _to var_name
 assign: "Assign"i _csep_list{_assign_var}
 
 const_set: var_name ((_EQ | "Is"i) expr)?
-const: ("Constant"i | "Const"i) _csep_list{const_set}
+const: "Constant"i _csep_list{const_set}
 
 add_to:     "Add"i _csep_list{expr} _to var_name
 add_giving: "Add"i _csep_list{expr} _to expr giving_clause

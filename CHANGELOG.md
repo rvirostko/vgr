@@ -14,6 +14,7 @@
 
 ### Changed
 
+- Short form "Const" removed; use "Constant"
 - Initialization of VGR terminal session fixed so Python debugger
   warning removed. The session is also now transient.
 - "Load" no longer sets the $load variable. Use the "Giving" option

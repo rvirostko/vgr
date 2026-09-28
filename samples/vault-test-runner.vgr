@@ -7,7 +7,7 @@
 
 # --- Configuration -----------------------------------------------------
 
-Const DEFAULT_EXPECTED_STATUS Is 200
+Constant DEFAULT_EXPECTED_STATUS Is 200
 
 # Stub — result comparison is genuinely open-ended (deep equality?
 # subset match? schema check?). Flagging rather than guessing.
