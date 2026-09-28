@@ -61,7 +61,6 @@ def run_vgr_test_file(path: Path) -> tuple[int, str]:
             ctx.echo = False
             ctx.verbose = False
             ctx.execute_statements("Reset All; Unset env.OFS, env.ORS", '<test>')
-            ctx.execute_statements("Const dev_test Is True", '<test>') # like --assign
             do_source(ctx, path) # like --file
         except VgrExitingException as e: # includes Exit, Assert, and Abort
             exit_code = e.exit_code
@@ -92,7 +91,6 @@ def run_vgr_test_statement(line: str) -> tuple[int, str]:
             ctx.echo = False
             ctx.verbose = False
             ctx.execute_statements("Reset All", '<test>')
-            ctx.execute_statements("Constant dev_test Is True", '<test>') # like --assign
             ctx.echo = True # like --echo
             ctx.execute_statements(line, '<test>') # like --execute
         except VgrExitingException as e: # includes Exit, Assert, and Abort
