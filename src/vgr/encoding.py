@@ -21,7 +21,7 @@ def parse_encoding(ctx: ExecContext, opt: Tree) -> str:
     encoding = ctx.eval_expr_or_const(expr)
     if encoding is not None:
         if not isinstance(encoding, str):
-            raise VgrRuntimeError(expr, TypeError(f'Encoding must be a string, found {poly_type(encoding)}'))
+            raise VgrRuntimeError(expr, TypeError(f'Encoding must be a string, found {poly_type(encoding)!r}'))
         encoding = encoding.strip()
         if encoding:
             if not is_valid_encoding(encoding):
