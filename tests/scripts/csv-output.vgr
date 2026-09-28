@@ -6,3 +6,12 @@ Select $rec-index As "№", $record as "Data" From data For CSV Include Headers
 Print bar
 Select $rec-index As "№", $record as "Data" From data For CSV Exclude Headers
 Print bar
+
+For Each quoting_style In ["all", "minimal", "nonnumeric", "none",
+    "default", // nonnumeric
+    Space, // same as default
+    None] // same as literal "none"
+    Printf "Quoting Style {!r}\n", quoting_style
+    Select $rec-index As "№", $record as "Data" From data For CSV Quoting Style Is quoting_style
+    Print bar
+End-For
