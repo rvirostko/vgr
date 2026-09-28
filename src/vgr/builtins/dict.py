@@ -77,7 +77,7 @@ Also see `CreateDictionary()`, `GetKeyValue()`, and `LookupItem()`
     # Values is alternating pairs of key/values
     # so we use a "stride" of two to form two groups
     # and recombine into pairs using zip()
-    return None if values is None else dict(zip(values[::2], values[1::2]))
+    return None if values is None else dict(zip(values[0::2], values[1::2]))
 
 @builtin("CreateDictionary", "Dictionary")
 def poly_dict_create(*args: Any) -> dict:
