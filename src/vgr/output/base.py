@@ -153,8 +153,7 @@ class FileRecordWriter(RecordWriter):
         self._include_headers = bool(enable)
 
     def start(self) -> bool:
-        if self._headers and self._include_headers: self.write_headers()
-        return True
+        return self.write_headers() if self._headers and self._include_headers else True
 
     def finish(self):
         self.flush()
@@ -166,8 +165,9 @@ class FileRecordWriter(RecordWriter):
             self._file = None
             super().close()
 
-    def write_headers(self):
-        """This class doesn't write out headers"""
+    def write_headers(self) -> bool:
+        """Write out headers for the data"""
+        return True
 
     def print(self, *args: any) -> None:
         """Utility method: does not add separator or line ending"""
