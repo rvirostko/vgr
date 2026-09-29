@@ -57,7 +57,7 @@ def md_emphasis(*args) -> Any:
 ```vgr
 MdEmphasis(None) → ""
 MdEmphasis("emphasis") → "_emphasis_"
-MdEmphasis(["one", "two", "three"]) → ["_one_", "_two*", "_three_"]
+MdEmphasis(["one", "two", "three"]) → ["_one_", "_two_", "_three_"]
 ```
 
 Also see `Print` and using the *As Markdown* clause.
