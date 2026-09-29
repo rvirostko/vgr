@@ -4,6 +4,7 @@ Echo On
 Constant BLANK Is ""
 Constant RE_TEXT = "abc"
 Constant RE Is CompilePattern(RE_TEXT)
+Constant RE_REPR Is RE.Repr()
 Constant EMPTY_LIST Is []
 Constant EMPTY_DICT Is {}
 
@@ -15,7 +16,7 @@ Assert MdStrong(5.1) Is "**5.1**"
 Assert MdStrong("frog") Is "**frog**"
 Assert MdStrong("X * Y") Is r"**X \* Y**"
 Assert MdStrong(Space) Is BLANK
-Assert MdStrong(RE) Is MdStrong(RE_TEXT)
+Assert MdStrong(RE) Is MdStrong(RE_REPR)
 Assert MdStrong(EMPTY_LIST) Is EMPTY_LIST
 Assert MdStrong(["one", "two"]) Is ["**one**", "**two**"]
 Assert MdStrong("one", "two") Is ["**one**", "**two**"]
@@ -29,7 +30,7 @@ Assert MdEmphasis(5) Is "_5_"
 Assert MdEmphasis(5.1) Is "_5.1_"
 Assert MdEmphasis("frog") Is "_frog_"
 Assert MdEmphasis("frog_bog") Is r"_frog\_bog_"
-Assert MdEmphasis(RE) Is MdEmphasis(RE_TEXT)
+Assert MdEmphasis(RE) Is MdEmphasis(RE_REPR)
 Assert MdEmphasis(Space) Is BLANK
 Assert MdEmphasis(EMPTY_LIST) Is EMPTY_LIST
 Assert MdEmphasis(["one", "two"]) Is ["_one_", "_two_"]
@@ -44,7 +45,7 @@ Assert MdStrikeThrough(5) Is "~~5~~"
 Assert MdStrikeThrough(5.1) Is "~~5.1~~"
 Assert MdStrikeThrough("frog") Is "~~frog~~"
 Assert MdStrikeThrough("frog~bog") Is r"~~frog\~bog~~"
-Assert MdStrikeThrough(RE) Is MdStrikeThrough(RE_TEXT)
+Assert MdStrikeThrough(RE) Is MdStrikeThrough(RE_REPR)
 Assert MdStrikeThrough(Space) Is BLANK
 Assert MdStrikeThrough(EMPTY_LIST) Is EMPTY_LIST
 Assert MdStrikeThrough(["one", "two"]) Is ["~~one~~", "~~two~~"]
@@ -58,7 +59,7 @@ Assert MdCode(True) Is "`True`"
 Assert MdCode(5) Is "`5`"
 Assert MdCode(5.1) Is "`5.1`"
 Assert MdCode("frog") Is "`frog`"
-Assert MdCode(RE) Is MdCode(RE_TEXT)
+Assert MdCode(RE) Is MdCode(RE_REPR)
 Assert MdCode(Space) Is BLANK
 Assert MdCode(EMPTY_LIST) Is EMPTY_LIST
 Assert MdCode(["one", "two"]) Is ["`one`", "`two`"]
@@ -75,7 +76,7 @@ Assert MdHeading(True) Is "# True\n"
 Assert MdHeading(5) Is "# 5\n"
 Assert MdHeading(5.1) Is "# 5.1\n"
 Assert MdHeading("frog") Is "# frog\n"
-Assert MdHeading(RE) Is "# " + RE_TEXT + Newline
+Assert MdHeading(RE) Is "# " + RE_REPR + Newline
 Assert MdHeading(Space) Is BLANK
 Assert MdHeading(EMPTY_LIST) Is EMPTY_LIST
 Assert MdHeading(["one", "two"]) Is ["# one\n", "# two\n"]
@@ -132,7 +133,7 @@ Assert MdBlockQuote(True) Is "\n> True\n"
 Assert MdBlockQuote(5) Is "\n> 5\n"
 Assert MdBlockQuote(5.1) Is "\n> 5.1\n"
 Assert MdBlockQuote("frog") Is "\n> frog\n"
-Assert MdBlockQuote(RE) Is MdBlockQuote(RE_TEXT)
+Assert MdBlockQuote(RE) Is MdBlockQuote(RE_REPR)
 Assert MdBlockQuote(Space) Is BLANK
 Assert MdBlockQuote(EMPTY_LIST) Is BLANK
 Assert MdBlockQuote(["one", "two"]) Is "\n> one\n> two\n"
@@ -147,7 +148,7 @@ Assert MdUnorderedList(True) Is "\n- True\n"
 Assert MdUnorderedList(5) Is "\n- 5\n"
 Assert MdUnorderedList(5.1) Is "\n- 5.1\n"
 Assert MdUnorderedList("frog") Is "\n- frog\n"
-Assert MdUnorderedList(RE) Is MdUnorderedList(RE_TEXT)
+Assert MdUnorderedList(RE) Is MdUnorderedList(RE_REPR)
 Assert MdUnorderedList(Space) Is BLANK
 Assert MdUnorderedList(EMPTY_LIST) Is BLANK
 Assert MdUnorderedList(["one", "two"]) Is "\n- one\n- two\n"
@@ -162,7 +163,7 @@ Assert MdOrderedList(True) Is "\n1. True\n"
 Assert MdOrderedList(5) Is "\n1. 5\n"
 Assert MdOrderedList(5.1) Is "\n1. 5.1\n"
 Assert MdOrderedList("frog") Is "\n1. frog\n"
-Assert MdOrderedList(RE) Is MdOrderedList(RE_TEXT)
+Assert MdOrderedList(RE) Is MdOrderedList(RE_REPR)
 Assert MdOrderedList(Space) Is BLANK
 Assert MdOrderedList(EMPTY_LIST) Is BLANK
 Assert MdOrderedList(["one", "two"]) Is "\n1. one\n1. two\n"
@@ -177,7 +178,7 @@ Assert MdCodeBlock(True) Is "\n```\nTrue\n```\n"
 Assert MdCodeBlock(5) Is "\n```\n5\n```\n"
 Assert MdCodeBlock(5.1) Is "\n```\n5.1\n```\n"
 Assert MdCodeBlock("frog") Is "\n```\nfrog\n```\n"
-Assert MdCodeBlock(RE) Is MdCodeBlock(RE_TEXT)
+Assert MdCodeBlock(RE) Is MdCodeBlock(RE_REPR)
 Assert MdCodeBlock(Space) Is BLANK
 Assert MdCodeBlock(EMPTY_LIST) Is BLANK
 Assert MdCodeBlock(["one", "two"]) Is
@@ -199,7 +200,7 @@ Assert MdEscape(None) Is BLANK
 Assert MdEscape(True) Is "True"
 Assert MdEscape(5) Is "5"
 Assert MdEscape(5.1) Is "5.1"
-Assert MdEscape(RE) Is RE_TEXT
+Assert MdEscape(RE) Is RE_REPR
 Assert MdEscape("*_~[]()`") Is r"\*\_\~\[\]\(\)\`"
 Assert MdEscape("#foo#") Is r"#foo#"
 Assert MdEscape("# foo # foo") Is r"\# foo # foo"
