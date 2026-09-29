@@ -271,7 +271,7 @@ ConfluenceCodeBlock(["primes = [2, 3, 5]", "for p in primes:", "    print(p)"]) 
         text = args[0] # its the text and lang is default
     elif isinstance(args[0], (NoneType, str)):
         text = args[1] if len(args) == 2 else list(args[1:]) # var args
-        lang = args[0].strip() or ""
+        lang = (args[0] or "").strip()
     else:
         text = list(args) # var args, all text
     return _cf_block(_code, text)
