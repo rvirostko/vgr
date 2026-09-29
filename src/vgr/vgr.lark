@@ -45,6 +45,7 @@ NAME: /{VAR_NAME}/
 _all:                "All"i
 _assignment:         _EQ | _to
 _call_function:      "Call-Function"i | "Call"i _function?
+_character_option:   "Char"i | "Character"i
 _choose:             "Choose"i
 _columns:            "Column"i | "Columns"i
 _declare:            "Declare"i
@@ -445,45 +446,49 @@ limit_clause: "Limit"i "Input"i option_value _records? (_SEP? "Offset"i option_v
 ?for_clause: _for (for_json | for_csv | for_markdown | for_text | for_template)
 
 into_clause: "Into"i var_name
-    | "Into"i (stdout | stderr)
-    | "Into"i _file_option expr _options_list{open_option}
+    |        "Into"i (stdout | stderr)
+    |        "Into"i _file_option expr _options_list{open_option}
 
 for_json: "JSON"i _options_list{json_option}
-?json_option: exclude_nulls | include_nulls
-    | "Root"i option_value?                        -> root
-    | "Indent"i option_value?                      -> indent
-    | "Compact"i option_value?                     -> compact
-    | "Array"i "Wrapper"i option_value?            -> array_wrapper
-    | ("Sort"i "Keys"i? | "Sorted"i) option_value? -> sort_keys
+?json_option: exclude_nulls
+    |         include_nulls
+    |         "Root"i option_value?              -> root
+    |         "Indent"i option_value?            -> indent
+    |         "Compact"i option_value?           -> compact
+    |         "Array"i "Wrapper"i option_value?  -> array_wrapper
+    |         "Sort"i "Keys"i option_value?      -> sort_keys
 
 for_csv: "CSV"i _options_list{csv_option}
-?csv_option: include_headers | exclude_headers
-    | "Delimiter"i _character_option? option_value -> delimiter
-    | "Quote"i _character_option option_value      -> quotechar
-    | "Escape"i _character_option option_value     -> escapechar
-    | "Line"i "Terminator"i option_value           -> lineterminator
-    | "Quoting"i "Style"i option_value             -> quoting
-_character_option: "Char"i | "Character"i
+?csv_option: include_headers
+    |        exclude_headers
+    |        "Delimiter"i _character_option? option_value  -> delimiter
+    |        "Quote"i _character_option option_value       -> quotechar
+    |        "Escape"i _character_option option_value      -> escapechar
+    |        "Line"i "Terminator"i option_value            -> lineterminator
+    |        "Quoting"i "Style"i option_value              -> quoting
 
 for_markdown: "MarkDown"i _options_list{markdown_option}
-?markdown_option: include_headers | exclude_headers
+?markdown_option: include_headers
+    |             exclude_headers
 
 for_template: template_type? ("Template"i | "Jinja"i | "Jinja2"i) (template_filename | "Default"i)? _options_list{template_option}
-?template_type: "Record"i -> record
-    |           "Batch"i  -> batch
+?template_type: "Record"i  -> record
+    |           "Batch"i   -> batch
 template_filename: _file_option? expr
-?template_option: include_headers | exclude_headers
-    | "Auto"i "Escape"i option_value?                   -> auto_escape
-    | "Trim"i "Blocks"i? option_value?                  -> trim_blocks
-    | "Left"i "Strip"i "Blocks"i? option_value?         -> lstrip_blocks
-    | "Keep"i "Last"i "Newline"i option_value?          -> keep_last_newline
-    | "Chain"i "Undefined"i "Variables"i? option_value? -> chain_undefined
+?template_option: include_headers
+    |             exclude_headers
+    |             "Auto"i "Escape"i option_value?                    -> auto_escape
+    |             "Trim"i "Blocks"i? option_value?                   -> trim_blocks
+    |             "Left"i "Strip"i "Blocks"i? option_value?          -> lstrip_blocks
+    |             "Keep"i "Last"i "Newline"i option_value?           -> keep_last_newline
+    |             "Chain"i "Undefined"i "Variables"i? option_value?  -> chain_undefined
 
 for_text: "Text"i _options_list{for_text_option}
-?for_text_option: include_headers | exclude_headers
-    | "Field"i "Separator"i option_value  -> field_sep
-    | "Header"i "Separator"i option_value -> header_sep
-    | "Record"i "Separator"i option_value -> record_sep
+?for_text_option: include_headers
+    |             exclude_headers
+    |             "Field"i "Separator"i option_value   -> field_sep
+    |             "Header"i "Separator"i option_value  -> header_sep
+    |             "Record"i "Separator"i option_value  -> record_sep
 
 include_headers: "Include"i _headers_option option_value?
 exclude_headers: "Exclude"i _headers_option option_value?
