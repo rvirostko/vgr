@@ -33,6 +33,10 @@
 - "FirstItem()", "LastItem()", and "Item()" now support variable
   arguments. In the case of "Item()" the arguments are indicies
   which will be sequentially derefferenced.
+- "Select" Markdown output can now include column alignment hints
+  in the header by using ":" prefixes/suffixes to indicate left/right
+  alignment and both for centered. The ":" will be omitted from
+  the actual header text.
 
 ### Deprecated
 
@@ -61,6 +65,8 @@
   with invalid key types
 - Fixed unwrapped dictionaries when specified in "Select" with JSON output
   and a named output column
+- Fixed "Select" Markdown output with headers excluded- no longer collapses
+  into an unusable mess
 
 ### Security
 
