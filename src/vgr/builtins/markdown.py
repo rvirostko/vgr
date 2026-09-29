@@ -386,7 +386,7 @@ def _md_to_string(s: Any) -> str:
         return _BLANK if not s else "\n".join([_md_to_string(i) for i in s])
     if isinstance(s, dict): # recusively join the items of a dict
         return "\n".join([_md_to_string(k) + " : " + _md_to_string(v) for (k, v) in s.items()])
-    s = _BLANK if s is None else s.pattern if isinstance(s, VPattern) else str(s)
+    s = _BLANK if s is None else repr(s) if isinstance(s, VPattern) else str(s)
     return _BLANK if s.isspace() else s
 
 def _md_fmt(text: str, code: str) -> str:
