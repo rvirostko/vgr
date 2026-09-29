@@ -92,9 +92,9 @@ class TemplateRecordWriter(FileRecordWriter):
     _BATCH_DEFAULT_TEMPLATE = """{%- if record_keys and record_data -%}
 {%- set ns = namespace(fmt="",col_widths=[],bar="") -%}
 {%- set box = namespace(H="\u2500", V="\u2502", DR="\u250C", DL="\u2510", UR="\u2514", UL="\u2518", X="\u253C", T="\u252C", B="\u2534", L="\u251C", R="\u2524" ) -%}
-{%- set ns.col_widths = record_keys | map("string") | map("length") | list -%}
+{%- set ns.col_widths = record_keys | map("stringify") | map("length") | list -%}
 {%- for row in record_data -%}
-    {% set data_widths = row | map("string") | map("length") | list -%}
+    {% set data_widths = row | map("stringify") | map("length") | list -%}
     {%- set t = [] %}{% for x, y in ns.col_widths | zip(data_widths) %}{% set _ = t.append([x, y] | max) %}{% endfor -%}
     {%- set ns.col_widths = t -%}
 {%- endfor -%}
@@ -103,18 +103,18 @@ class TemplateRecordWriter(FileRecordWriter):
 {%- endfor -%}
 {%- set ns.fmt = (ns.fmt | trim) ~ " " ~ box.V -%}
 {%- set ns.bar = box.H * (ns.col_widths | max) -%}
-{%- set divider = record_keys | map("string") | map("truncate", 0, True, "", 0) | map("replace", "", ns.bar) | list -%}
+{%- set divider = record_keys | map("stringify") | map("truncate", 0, True, "", 0) | map("replace", "", ns.bar) | list -%}
 {%- set ns.bar = ns.fmt.format(*divider) | replace(" ", box.H) -%}
 {%- set st = box.V ~ box.H -%}
 {%- set md = box.H ~ box.V ~ box.H -%}
 {%- set ed = box.H ~ box.V  -%}
 {{ ns.bar | replace(md, box.H ~ box.T ~ box.H) | replace(st, box.DR ~ box.H) | replace(ed, box.H ~ box.DL) }}
 {%- if include_headers %}
-{{ ns.fmt.format(*record_keys | map("string")) }}
+{{ ns.fmt.format(*record_keys | map("stringify")) }}
 {{ ns.bar | replace(md, box.H ~ box.X ~ box.H) | replace(st, box.L ~ box.H) | replace(ed, box.H ~ box.R) }}
 {%- endif %}
 {% for row in record_data -%}
-    {{ ns.fmt.format(*row | map("string")) }}
+    {{ ns.fmt.format(*row | map("stringify")) }}
 {% endfor -%}
 {{ ns.bar | replace(md, box.H ~ box.B ~ box.H) | replace(st, box.UR ~ box.H) | replace(ed, box.H ~ box.UL) }}
 {% endif %}"""
@@ -122,8 +122,8 @@ class TemplateRecordWriter(FileRecordWriter):
     _DEFAULT_TEMPLATE = """{%- if record_keys and record_data %}
 {%- set ns = namespace(fmt="",key_width=0,data_width=0,bar="") -%}
 {%- set box = namespace(H="\u2500", V="\u2502", DR="\u250C", DL="\u2510", UR="\u2514", UL="\u2518", X="\u253C", T="\u252C", B="\u2534", L="\u251C", R="\u2524" ) -%}
-{% set key_width = record_keys | map("string") | map("length") | max -%}
-{% set data_width = record_data | map("string") | map("length") | max -%}
+{% set key_width = record_keys | map("stringify") | map("length") | max -%}
+{% set data_width = record_data | map("stringify") | map("length") | max -%}
 {%- set ns.fmt = box.V ~ " {:<" ~ key_width ~ "." ~ key_width ~ "} " ~ box.V ~ " {:<" ~ data_width ~ "." ~ data_width ~ "} " ~ box.V -%}
 {%- set ns.bar = ns.fmt.format(box.H * key_width, box.H * data_width) | replace(" ", box.H) -%}
 {%- set st = box.V ~ box.H -%}
@@ -131,7 +131,7 @@ class TemplateRecordWriter(FileRecordWriter):
 {%- set ed = box.H ~ box.V  -%}
 {{ ns.bar | replace(md, box.H ~ box.T ~ box.H) | replace(st, box.DR ~ box.H) | replace(ed, box.H ~ box.DL) }}
 {% for key, data in record_keys | zip(record_data) -%}
-{{ ns.fmt.format(key | string , data | string) }}
+{{ ns.fmt.format(key | stringify , data | stringify) }}
 {% endfor -%}
 {{ ns.bar | replace(md, box.H ~ box.B ~ box.H) | replace(st, box.UR ~ box.H) | replace(ed, box.H ~ box.UL) }}
 {% endif %}"""
@@ -191,6 +191,10 @@ class TemplateRecordWriter(FileRecordWriter):
     @staticmethod
     def filter_zip(seq1, seq2):
         return zip(seq1 or [], seq2 or [])
+
+    @staticmethod
+    def filter_stringify(obj: Any) -> str:
+        return TemplateRecordWriter.stringify(obj)
 
 _FILTER_PREFIX = 'filter_'
 def auto_register_filters(env: Environment, cls):
