@@ -232,7 +232,7 @@ The default *level* is 1.
 MdHeading(None) → ""
 MdHeading("Heading") → "# Heading\\n"
 MdHeading("Heading", 3) → "### Heading\\n"
-MdHeading("Chapter 1", "Chapter 2") → ["# Chapter 1\\n", "# Chapter 1\\n"]
+MdHeading("Chapter 1", "Chapter 2") → ["# Chapter 1\\n", "# Chapter 2\\n"]
 ```
 
 Also see `Print` and using the *As Markdown* clause.
