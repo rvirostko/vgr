@@ -55,16 +55,16 @@ class TextRecordWriter(FileRecordWriter):
     def record_sep(self, value: str):
         self._record_sep = '' if value is None else str(value)
 
-    def write_headers(self):
-        if self.include_headers:
-            first = True
-            for header in self.headers:
-                if first:
-                    self.print(header)
-                    first = False
-                else:
-                    self.print(self._header_sep, header)
-            self.print(self.record_sep)
+    def write_headers(self) -> bool:
+        first = True
+        for header in self.headers:
+            if first:
+                self.print(header)
+                first = False
+            else:
+                self.print(self._header_sep, header)
+        self.print(self.record_sep)
+        return True
 
     def write(self, record: list[any]) -> bool:
         first = True
