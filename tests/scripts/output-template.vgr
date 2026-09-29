@@ -1,0 +1,16 @@
+
+@Include DirectoryName(vgr.source.FirstItem()) + "/output-data.vgr"
+
+Set env.OFS = ""
+
+Print NewLine, "Record Template", NewLine, bar
+Select $rec-index As "№", $record As "Data", Type($record) As "Type" From data For Record Template
+Print bar
+
+Print NewLine, "Batch Template, Include Headers", NewLine, bar
+Select $rec-index As "№", $record As "Data", Type($record) As "Type" From data For Batch Template Include Headers
+Print bar
+
+Print NewLine, "Batch Template, Exclude Headers", NewLine, bar
+Select $rec-index As "№", $record As "Data", Type($record) As "Type" From data For Batch Template Exclude Headers
+Print bar
