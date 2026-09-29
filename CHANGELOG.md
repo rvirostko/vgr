@@ -11,6 +11,11 @@
   contains operator information
 - Slicing can now be performed using Python-like
   syntax e.g. "\[start:end:step\]"
+- "Select" now supports "For Confluence"
+- Confluence output support functions: "ConfluenceStrong()", "ConfluenceEmphasis()",
+  "ConfluenceUnderline()", "ConfluenceStrikeThrough()", "ConfluenceCode()",
+  "ConfluenceLink()", "ConfluenceHeading()","ConfluenceUnorderedList()",
+  "ConfluenceOrderedList()", "ConfluenceCodeBlock()",
 
 ### Changed
 

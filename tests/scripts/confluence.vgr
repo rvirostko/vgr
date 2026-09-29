@@ -1,0 +1,206 @@
+
+Echo On
+
+Constant BLANK Is ""
+Constant RE_TEXT = "abc"
+Constant RE Is CompilePattern(RE_TEXT)
+Constant RE_REPR Is RE.Repr()
+Constant EMPTY_LIST Is []
+Constant EMPTY_DICT Is {}
+
+Assert ConfluenceStrong() Is BLANK
+Assert ConfluenceStrong(None) Is BLANK
+Assert ConfluenceStrong(True) Is "*True*"
+Assert ConfluenceStrong(5) Is "*5*"
+Assert ConfluenceStrong(5.1) Is "*5.1*"
+Assert ConfluenceStrong("frog") Is "*frog*"
+Assert ConfluenceStrong("X * Y") Is r"*X \* Y*"
+Assert ConfluenceStrong(Space) Is BLANK
+Assert ConfluenceStrong(RE) Is ConfluenceStrong(RE_REPR)
+Assert ConfluenceStrong(EMPTY_LIST) Is EMPTY_LIST
+Assert ConfluenceStrong(["one", "two"]) Is ["*one*", "*two*"]
+Assert ConfluenceStrong("one", "two") Is ["*one*", "*two*"]
+Assert ConfluenceStrong(EMPTY_DICT) Is EMPTY_DICT
+Assert ConfluenceStrong({"one": 1, "two": 2}) Is {"one": "*1*", "two": "*2*"}
+
+Assert ConfluenceEmphasis() Is BLANK
+Assert ConfluenceEmphasis(None) Is BLANK
+Assert ConfluenceEmphasis(True) Is "_True_"
+Assert ConfluenceEmphasis(5) Is "_5_"
+Assert ConfluenceEmphasis(5.1) Is "_5.1_"
+Assert ConfluenceEmphasis("frog") Is "_frog_"
+Assert ConfluenceEmphasis("frog_bog") Is r"_frog\_bog_"
+Assert ConfluenceEmphasis(RE) Is ConfluenceEmphasis(RE_REPR)
+Assert ConfluenceEmphasis(Space) Is BLANK
+Assert ConfluenceEmphasis(EMPTY_LIST) Is EMPTY_LIST
+Assert ConfluenceEmphasis(["one", "two"]) Is ["_one_", "_two_"]
+Assert ConfluenceEmphasis("one", "two") Is ["_one_", "_two_"]
+Assert ConfluenceEmphasis(EMPTY_DICT) Is EMPTY_DICT
+Assert ConfluenceEmphasis({"one": 1, "two": 2}) Is {"one": "_1_", "two": "_2_"}
+
+Assert ConfluenceStrikeThrough() Is BLANK
+Assert ConfluenceStrikeThrough(None) Is BLANK
+Assert ConfluenceStrikeThrough(True) Is "-True-"
+Assert ConfluenceStrikeThrough(5) Is "-5-"
+Assert ConfluenceStrikeThrough(5.1) Is "-5.1-"
+Assert ConfluenceStrikeThrough("frog") Is "-frog-"
+Assert ConfluenceStrikeThrough("frog-bog") Is r"-frog\-bog-"
+Assert ConfluenceStrikeThrough(RE) Is ConfluenceStrikeThrough(RE_REPR)
+Assert ConfluenceStrikeThrough(Space) Is BLANK
+Assert ConfluenceStrikeThrough(EMPTY_LIST) Is EMPTY_LIST
+Assert ConfluenceStrikeThrough(["one", "two"]) Is ["-one-", "-two-"]
+Assert ConfluenceStrikeThrough("one", "two") Is ["-one-", "-two-"]
+Assert ConfluenceStrikeThrough(EMPTY_DICT) Is EMPTY_DICT
+Assert ConfluenceStrikeThrough({"one": 1, "two": 2}) Is {"one": "-1-", "two": "-2-"}
+
+Assert ConfluenceCode() Is BLANK
+Assert ConfluenceCode(None) Is BLANK
+Assert ConfluenceCode(True) Is "{{True}}"
+Assert ConfluenceCode(5) Is "{{5}}"
+Assert ConfluenceCode(5.1) Is "{{5.1}}"
+Assert ConfluenceCode("frog") Is "{{frog}}"
+Assert ConfluenceCode(RE) Is ConfluenceCode(RE_REPR)
+Assert ConfluenceCode(Space) Is BLANK
+Assert ConfluenceCode(EMPTY_LIST) Is EMPTY_LIST
+Assert ConfluenceCode(["one", "two"]) Is ["{{one}}", "{{two}}"]
+Assert ConfluenceCode("one", "two") Is ["{{one}}", "{{two}}"]
+Assert ConfluenceCode(EMPTY_DICT) Is EMPTY_DICT
+Assert ConfluenceCode({"one": 1, "two": 2}) Is {"one": "{{1}}", "two": "{{2}}"}
+Assert ConfluenceCode("{{Code}}") Is r"{{\{\{Code\}\}}}"
+
+# Default level of 1
+Assert ConfluenceHeading() Is BLANK
+Assert ConfluenceHeading(None) Is BLANK
+Assert ConfluenceHeading(True) Is "h1. True\n"
+Assert ConfluenceHeading(5) Is "h1. 5\n"
+Assert ConfluenceHeading(5.1) Is "h1. 5.1\n"
+Assert ConfluenceHeading("frog") Is "h1. frog\n"
+Assert ConfluenceHeading(RE) Is "h1. " + RE_REPR + Newline
+Assert ConfluenceHeading(Space) Is BLANK
+Assert ConfluenceHeading(EMPTY_LIST) Is EMPTY_LIST
+Assert ConfluenceHeading(["one", "two"]) Is ["h1. one\n", "h1. two\n"]
+Assert ConfluenceHeading("one", "two") Is ["h1. one\n", "h1. two\n"]
+Assert ConfluenceHeading(EMPTY_DICT) Is EMPTY_DICT
+Assert ConfluenceHeading({"one": 1, "two": 2}) Is {"one": "h1. 1\n", "two": "h1. 2\n"}
+
+# Specific level
+Assert ConfluenceHeading("frog", 3) Is "h3. frog\n"
+Assert ConfluenceHeading("one", "two", 4) Is ["h4. one\n", "h4. two\n"]
+
+# Level range (1 to 6) and conversions
+Assert ConfluenceHeading("frog", 0) Is "h1. frog\n"
+Assert ConfluenceHeading("frog", 17) Is "h6. frog\n"
+Assert ConfluenceHeading("frog", 2.6) Is "h2. frog\n"
+Assert ConfluenceHeading("frog", False) Is "h1. frog\n"
+
+Assert ConfluenceLink() Is BLANK
+Assert ConfluenceLink(None) Is BLANK
+Assert ConfluenceLink(Space) Is BLANK
+Assert ConfluenceLink(EMPTY_LIST) Is BLANK
+Assert ConfluenceLink(EMPTY_DICT) Is BLANK
+Assert ConfluenceLink("foo.net") Is "[foo.net]"
+Assert ConfluenceLink(" foo[.net ") Is r"[foo\[.net]"
+Assert ConfluenceLink("foo.net", "Foo Net") Is "[Foo Net|foo.net]"
+Assert ConfluenceLink("foo.net", None, "See the Foo") Is "[foo.net|foo.net|See the Foo]"
+Assert ConfluenceLink("foo.net", "Foo Net", "See the Foo") Is "[Foo Net|foo.net|See the Foo]"
+Assert ConfluenceLink("foo.net", ["Foo Net"]) Is "[Foo Net|foo.net]"
+Assert ConfluenceLink("foo.net", ["Foo", "Net"]) Is "[Foo\\\\\nNet|foo.net]"
+Assert ConfluenceLink("foo.net", None, ["Foo"]) Is "[foo.net|foo.net|Foo]"
+Assert ConfluenceLink("foo.net", None, ["Foo", "Net"]) Is "[foo.net|foo.net|Foo\\\\\nNet]"
+Assert ConfluenceLink("foo.net", {"Foo": "Net"}) Is "[Foo : Net|foo.net]"
+Assert ConfluenceLink("foo.net", None, {"Foo": "Net"}) Is "[foo.net|foo.net|Foo : Net]"
+
+Assert ConfluenceUnorderedList() Is BLANK
+Assert ConfluenceUnorderedList(None) Is BLANK
+Assert ConfluenceUnorderedList(True) Is "\n* True\n"
+Assert ConfluenceUnorderedList(5) Is "\n* 5\n"
+Assert ConfluenceUnorderedList(5.1) Is "\n* 5.1\n"
+Assert ConfluenceUnorderedList("frog") Is "\n* frog\n"
+Assert ConfluenceUnorderedList(RE) Is ConfluenceUnorderedList(RE_REPR)
+Assert ConfluenceUnorderedList(Space) Is BLANK
+Assert ConfluenceUnorderedList(EMPTY_LIST) Is BLANK
+Assert ConfluenceUnorderedList(["one", "two"]) Is "\n* one\n* two\n"
+Assert ConfluenceUnorderedList("one", "two") Is "\n* one\n* two\n"
+Assert ConfluenceUnorderedList("one\ntwo") Is "\n* one\n* two\n"
+Assert ConfluenceUnorderedList(EMPTY_DICT) Is EMPTY_DICT
+Assert ConfluenceUnorderedList({"one": 1, "two": 2}) Is {"one": "\n* 1\n", "two": "\n* 2\n"}
+
+Assert ConfluenceOrderedList() Is BLANK
+Assert ConfluenceOrderedList(None) Is BLANK
+Assert ConfluenceOrderedList(True) Is "\n# True\n"
+Assert ConfluenceOrderedList(5) Is "\n# 5\n"
+Assert ConfluenceOrderedList(5.1) Is "\n# 5.1\n"
+Assert ConfluenceOrderedList("frog") Is "\n# frog\n"
+Assert ConfluenceOrderedList(RE) Is ConfluenceOrderedList(RE_REPR)
+Assert ConfluenceOrderedList(Space) Is BLANK
+Assert ConfluenceOrderedList(EMPTY_LIST) Is BLANK
+Assert ConfluenceOrderedList(["one", "two"]) Is "\n# one\n# two\n"
+Assert ConfluenceOrderedList("one", "two") Is "\n# one\n# two\n"
+Assert ConfluenceOrderedList("one\ntwo") Is "\n# one\n# two\n"
+Assert ConfluenceOrderedList(EMPTY_DICT) Is EMPTY_DICT
+Assert ConfluenceOrderedList({"one": 1, "two": 2}) Is {"one": "\n# 1\n", "two": "\n# 2\n"}
+
+Assert ConfluenceCodeBlock() Is BLANK
+Assert ConfluenceCodeBlock(None) Is BLANK
+Assert ConfluenceCodeBlock(True) Is "\n{code}\nTrue\n{code}\n"
+Assert ConfluenceCodeBlock(5) Is "\n{code}\n5\n{code}\n"
+Assert ConfluenceCodeBlock(5.1) Is "\n{code}\n5.1\n{code}\n"
+Assert ConfluenceCodeBlock("frog") Is "\n{code}\nfrog\n{code}\n"
+Assert ConfluenceCodeBlock(RE) Is ConfluenceCodeBlock(RE_REPR)
+Assert ConfluenceCodeBlock(Space) Is BLANK
+Assert ConfluenceCodeBlock(EMPTY_LIST) Is BLANK
+Assert ConfluenceCodeBlock(["one", "two"]) Is
+    "\n{code}\none\ntwo\n{code}\n"
+Assert ConfluenceCodeBlock(None, "one", "two") Is  # NB: A bit ugly...
+    "\n{code}\none\ntwo\n{code}\n"
+Assert ConfluenceCodeBlock(1, "two") Is
+    "\n{code}\n1\ntwo\n{code}\n"
+Assert ConfluenceCodeBlock("one\ntwo") Is
+    "\n{code}\none\ntwo\n{code}\n"
+Assert ConfluenceCodeBlock(EMPTY_DICT) Is EMPTY_DICT
+Assert ConfluenceCodeBlock({"one": 1, "two": 2}) Is
+    {"one": "\n{code}\n1\n{code}\n", "two": "\n{code}\n2\n{code}\n"}
+Assert ConfluenceCodeBlock([None]) Is BLANK
+
+# Sample Uses
+Echo off
+Set env.OFS To BLANK
+
+Printf Newline
+For level = 1 To 6
+    Print ConfluenceHeading("Heading " + level, level)
+Next
+
+Print ConfluenceLink("https://en.wikipedia.org/wiki/Hello,_world"), Newline
+Print ConfluenceLink("https://en.wikipedia.org/wiki/Hello,_world", "Hello World"), Newline
+Print ConfluenceLink("https://en.wikipedia.org/wiki/Hello,_world", "Hello World", "A link to Wikipedia"), Newline
+Printf Newline
+
+Print "Strong".ConfluenceStrong(), Newline
+Print "Strong + Emphasis".ConfluenceStrong().ConfluenceEmphasis(), Newline
+Print "Strong + Strike through".ConfluenceStrong().ConfluenceStrikeThrough(), Newline
+Print "Strong + Emphasis + Strike through".ConfluenceStrong().ConfluenceEmphasis().ConfluenceStrikeThrough(), Newline
+
+Print "Emphasis".ConfluenceEmphasis(), Newline
+Print "Emphasis + Strong".ConfluenceEmphasis().ConfluenceStrong(), Newline
+Print "Emphasis + Strike through".ConfluenceEmphasis().ConfluenceStrikeThrough(), Newline
+Print "Emphasis + Strong + Strike through".ConfluenceEmphasis().ConfluenceStrong().ConfluenceStrikeThrough(), Newline
+
+Print "Strike through".ConfluenceStrikeThrough(), Newline
+Print "Strike through + Strong".ConfluenceStrikeThrough().ConfluenceStrong(), Newline
+Print "Strike through + Emphasis".ConfluenceStrikeThrough().ConfluenceEmphasis(), Newline
+Print "Strike through + Emphasis + Strong".ConfluenceStrikeThrough().ConfluenceEmphasis().ConfluenceStrong(), Newline
+
+Print "Code".ConfluenceCode(), Newline
+
+Print "X * Y =".ConfluenceStrong(), Space, "Z_Value".ConfluenceEmphasis(), Newline
+
+Set colors = ["red ", "green\t", "\nblue\n"]
+
+Print "Colors - ", ConfluenceEmphasis(colors).Join(", "), Newline
+Print ConfluenceEmphasis("Colors Code block"), Newline,
+    ConfluenceCodeBlock("vgr", "Set colors = " + colors.Repr())
+Print ConfluenceEmphasis("Colors Unordered List"), Newline,
+    ConfluenceUnorderedList(colors.TitleCase())
+Print ConfluenceEmphasis("Colors Ordered List"), Newline,
+    ConfluenceOrderedList(Sort(colors.TitleCase()))

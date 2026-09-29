@@ -38,6 +38,7 @@ from .evaluate import bind_operations
 from .exec_context import ExecContext
 from .output import (
     CSVRecordWriter,
+    ConfluenceRecordWriter,
     JSONRecordWriter,
     MarkdownRecordWriter,
     TemplateRecordWriter,
@@ -491,6 +492,12 @@ class SelectAnalyzer(Visitor):
         self._output_opts[_TYPE] = 'markdown'
         self._parse_output_ops(node)
 
+    def for_confluence(self, node: Tree):
+        """... For Confluence <opts>* ..."""
+        node = bind_operations(node)
+        self._output_opts[_TYPE] = 'confluence'
+        self._parse_output_ops(node)
+
     def for_template(self, node: Tree):
         """... For [Record|Batch]? Template <template_filename> <opts>* ..."""
         node = bind_operations(node)
@@ -725,7 +732,7 @@ with a `From` clause.
   &emsp;Sort [Keys] [*expression*]
 * *Root* names a top-level key wrapping an array of records
 * *Indent* sets pretty-print indentation; omit for compact output
-* *Compact** TODO
+* *Compact** reduces whitespace in output
 * *Array Wrapper* wraps records in an array even when only one record is produced
 * *Sort Keys* sorts each record's keys alphabetically
 
@@ -745,8 +752,19 @@ with a `From` clause.
 
 **Markdown output**
 
-* For MarkDown
+* For Markdown
 * Produces a Markdown table from the records
+
+**Markdown output**
+
+* For Markdown
+* Produces a Markdown table from the records
+* Use `:` prefix/suffix in labels to control column alignment
+  (e.g. `:Left`, `Right:`, `:Center:`)
+
+**Confluence output**
+* For Conflunce
+* Produces Atlassian Confluence’s wiki table markup
 
 **Text output**
 
@@ -990,6 +1008,8 @@ def create_writer(from_opts:dict, output_opts: dict, controls: dict, dest) -> Re
         writer.direct_write = output_opts['headers'] == [from_opts['target']]
     elif otype == 'markdown':
         writer = MarkdownRecordWriter(dest, stderr=stderr(), **output_opts)
+    elif otype == 'confluence':
+        writer = ConfluenceRecordWriter(dest, stderr=stderr(), **output_opts)
     elif otype in ('template', 'template-batch'):
         if otype == 'template-batch': output_opts['template_type'] = 'batch'
         writer = TemplateRecordWriter(dest, stderr=stderr(), **output_opts)

@@ -443,7 +443,7 @@ product_cols: (_all | "*") -> product_all
 limit_clause: "Limit"i "Input"i option_value _records? (_SEP? "Offset"i option_value)? -> limit_input
     |         "Limit"i          option_value _records? (_SEP? "Offset"i option_value)? -> limit_output
 
-?for_clause: _for (for_json | for_csv | for_markdown | for_text | for_template)
+?for_clause: _for (for_json | for_csv | for_markdown | for_text | for_template | for_confluence)
 
 into_clause: "Into"i var_name
     |        "Into"i (stdout | stderr)
@@ -467,8 +467,12 @@ for_csv: "CSV"i _options_list{csv_option}
     |        "Line"i "Terminator"i option_value            -> lineterminator
     |        "Quoting"i "Style"i option_value              -> quoting
 
-for_markdown: "MarkDown"i _options_list{markdown_option}
+for_markdown: "Markdown"i _options_list{markdown_option}
 ?markdown_option: include_headers
+    |             exclude_headers
+
+for_confluence: "Confluence"i _options_list{confluence_option}
+?confluence_option: include_headers
     |             exclude_headers
 
 for_template: template_type? ("Template"i | "Jinja"i | "Jinja2"i) (template_filename | "Default"i)? _options_list{template_option}

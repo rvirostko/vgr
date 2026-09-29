@@ -1,0 +1,21 @@
+
+@Include DirectoryName(vgr.source.FirstItem()) + "/output-data.vgr"
+
+Constant md_special_data = [
+    "two\nlines", "three\r\nlines\nhere",
+    "data|with|bars",
+    "Emspace - [&emsp;]",
+    "<u>HTML Underscored</u>",
+    "{color:red}C{color}{color:orange}o{color}{color:yellow}l{color}{color:green}o{color}{color:blue}r{color}{color:indigo}s{color}{color:violet}!{color}"
+]
+
+Set env.OFS = ""
+
+Print NewLine, ConfluenceStrong("Include Headers"), NewLine
+Select $rec-index As "№", $record As "Data", Type($record).ConfluenceCode() As "Type" From data For Confluence Include Headers
+
+Print NewLine, ConfluenceStrong("Exclude Headers"), NewLine
+Select $rec-index As "№", $record As "Data", Type($record).ConfluenceCode() As "Type" From data For Confluence Exclude Headers
+
+Print NewLine, ConfluenceStrong("Special contents"), NewLine
+Select $rec-index As "№", $record As "Data", Type($record).ConfluenceCode() As "Type" From md_special_data For Confluence
