@@ -90,6 +90,7 @@ from .is_in import (
 )
 from .join import poly_join
 from .json_funcs import (
+    json_dumps,
     strip_nulls,
 )
 from .list import (

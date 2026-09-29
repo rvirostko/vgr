@@ -128,4 +128,13 @@ Out of range float values are not JSON compliant: nan
 """
     indent = None if indent is None else min(max(0, int_arg(indent, 'Indent')), 32)
     sort_keys = bool_arg(sort_keys, "SortKeys")
-    return json.dumps(obj, indent=indent, default=str, sort_keys=sort_keys, allow_nan=False, ensure_ascii=False)
+    return json_dumps(obj, indent=indent, sort_keys=sort_keys, allow_nan=False, ensure_ascii=False)
+
+def json_dumps(obj, **kwargs):
+    """This in an internal version that knows about VPattern"""
+    def _encode(obj):
+        from .vpattern import VPattern
+        if isinstance(obj, VPattern): return repr(obj)
+        return str(obj)
+    kwargs["default"] = _encode
+    return json.dumps(obj, **kwargs)
