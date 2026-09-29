@@ -3,12 +3,12 @@ Checksum function
 """
 
 import hashlib
-import json
 from typing import Any
 
 import _hashlib
 
 from .common import str_arg
+from .json_funcs import json_dumps
 from .registry import builtin
 
 _DEFAULT_ALGO = 'md5'
@@ -57,7 +57,7 @@ None.Checksum() → None
     if isinstance(x, list):
         return list(poly_checksum(x1, algo) for x1 in x)
     if isinstance(x, dict):
-        x = json.dumps(x, sort_keys=True, default=str, indent=None, separators=(',', ':'))
+        x = json_dumps(x, sort_keys=True, indent=None, separators=(',', ':'))
     if not isinstance(x, str): x = str(x)
     hasher.update(x.encode("utf-8"))
     return hasher.hexdigest()

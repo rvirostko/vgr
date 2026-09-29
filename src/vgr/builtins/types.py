@@ -3,8 +3,8 @@ Functions to check or change types
 """
 
 from typing import Any
-import json
 import math
+from .json_funcs import json_dumps
 
 from .vpattern import VPattern
 
@@ -390,7 +390,7 @@ If *value* is `None` it is left as `None`.
     if isinstance(x, str): return x
     if isinstance(x, VPattern): return x.pattern
     if isinstance(x, list): return list(poly_to_string(x1) for x1 in x)
-    if isinstance(x, dict): return json.dumps(x, allow_nan=True, default=str)
+    if isinstance(x, dict): return json_dumps(x)
     return str(x)
 
 @builtin("IsString")
