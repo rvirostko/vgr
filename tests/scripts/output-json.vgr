@@ -1,24 +1,40 @@
 
-@Include DirectoryName(vgr.source.FirstItem()) + "/output-data.vgr"
 
+@Include DirectoryName(vgr.source.FirstItem()) + "/output-data.vgr"
+Set env.OFS = ""
+
+Print NewLine, "As Attributes", NewLine, bar
+Select $rec-index As "index", $record as "data", Type($record) As "type" From data For JSON
 Print bar
-Select $rec-index As "index", $record as "data" From data For JSON
-Print bar
+
+Print NewLine, "As Record, Custom name", NewLine, bar
 Select $record as "data" From data For JSON
 Print bar
+
+Print NewLine, "As Record, No name", NewLine, bar
 Select X From data As X For JSON
 Print bar
+
+Print NewLine, "With Root", NewLine, bar
 Select X From data As X For JSON Root Is "the_root"
 Print bar
+
 For Each opt In [True, False]
+    Print NewLine, "Array Wrapper Is {}".Format(opt), NewLine, bar
     Select X From data As X For JSON Array Wrapper Is opt
     Print bar
+
+    Print NewLine, "Compact Is {}".Format(opt), NewLine, bar
     Select X From data As X For JSON Compact Is opt
     Print bar
+
+    Print NewLine, "Sort Keys Is {}".Format(opt), NewLine, bar
     Select X From data As X For JSON Sort Keys Is opt
     Print bar
 End-For
+
 For indent = 0 To 4 Step 2
+    Print NewLine, "Indent Is {}".Format(indent), NewLine, bar
     Select $record as "data" From data For JSON Indent Is indent
     Print bar
 End-For

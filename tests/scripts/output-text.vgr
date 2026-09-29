@@ -1,8 +1,12 @@
 
 @Include DirectoryName(vgr.source.FirstItem()) + "/output-data.vgr"
 
+Set env.OFS = ""
+
+Print NewLine, "Include Headers", NewLine, bar
+Select $rec-index As "№", $record As "Data", Type($record) As "Type" From data For Text Include Headers
 Print bar
-Select $rec-index As "№", $record as "Data" From data For Text Include Headers
-Print bar
-Select $rec-index As "№", $record as "Data" From data For Text Exclude Headers
+
+Print NewLine, "Exclude Headers", NewLine, bar
+Select $rec-index As "№", $record As "Data", Type($record) As "Type" From data For Text Exclude Headers
 Print bar
