@@ -268,7 +268,8 @@ def _write_data(ctx: ExecContext, data: list, target: dict, input_encoding: str)
         do_set(ctx, data, *target[_VAR])
         return
     # The user can either change the encoding or we can use the input's or default to UTF-8
-    encoding = target.get(_ENCODING, input_encoding or 'utf-8') # NB: We down write BOMs by default
+    # NB: We don't write BOMs by default
+    encoding = target.get(_ENCODING, input_encoding or 'utf-8')
     with open(target[_FILE], 'w', encoding=encoding, errors='backslashreplace' if ctx.debug else 'replace') as f:
         # build a writer and send the data to it
         dtype = target[_DTYPE]
@@ -281,10 +282,11 @@ def _write_data(ctx: ExecContext, data: list, target: dict, input_encoding: str)
             rw.finish()
             return
         if dtype in ('json_object', 'json_objects'):
-            rw = JSONRecordWriter(f, headers=headers, array_wrapper=dtype=='json_object')
+            # Direct write tells the writer to write the entire data element
+            # Because of that, headers does really apply, even if they are correct for the object
+            rw = JSONRecordWriter(f, direct_write=True, headers=[""], array_wrapper=(dtype == 'json_object'))
             rw.start()
-            for row in data:
-                rw.write([row])
+            for row in data: rw.write([row])
             rw.finish()
             return
         if dtype == 'csv_file':
