@@ -1,0 +1,30 @@
+
+@Include DirectoryName(vgr.source.FirstItem()) + "/output-data.vgr"
+
+Constant md_special_data = [
+    "two\nlines", "three\r\nlines\nhere",
+    "data|with|bars",
+    "Emspace - [&emsp;]",
+    "<u>HTML Underscored</u>",
+    '<span style="background-color: lightgray">&nbsp;</span><span style="color: red; background-color: lightgray">C</span><span style="color: orange; background-color: lightgray">o</span><span style="color: yellow; background-color: lightgray">l</span><span style="color: green; background-color: lightgray">o</span><span style="color: blue; background-color: lightgray">r</span><span style="color: indigo; background-color: lightgray">s</span><span style="color: violet; background-color: lightgray">!</span><span style="background-color: lightgray">&nbsp;</span>'
+]
+
+Set env.OFS = ""
+
+Print NewLine, MdStrong("Include Headers"), NewLine
+Select $rec-index As "№", $record As "Data", Type($record).MdCode() As "Type" From data For Markdown Include Headers
+
+Print NewLine, MdStrong("Exclude Headers"), NewLine
+Select $rec-index As "№", $record As "Data", Type($record).MdCode() As "Type" From data For Markdown Exclude Headers
+
+Print NewLine, MdStrong("Special contents"), NewLine
+Select $rec-index As "№", $record As "Data", Type($record).MdCode() As "Type" From md_special_data For Markdown
+
+Print NewLine, MdStrong("Left Alignment"), NewLine
+Select $rec-index As ":№", $record As ":Data", Type($record).MdCode() As ":Type" From md_special_data For Markdown
+
+Print NewLine, MdStrong("Center Alignment"), NewLine
+Select $rec-index As ":№:", $record As ":Data:", Type($record).MdCode() As ":Type:" From md_special_data For Markdown
+
+Print NewLine, MdStrong("Right Alignment"), NewLine
+Select $rec-index As "№:", $record As "Data:", Type($record).MdCode() As "Type:" From md_special_data For Markdown
