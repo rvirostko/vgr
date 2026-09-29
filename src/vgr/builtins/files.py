@@ -209,7 +209,7 @@ Removes individual files, but not directories.
 
 Returns a list containing two elements:
 
-* *result*.FirstItem() - Boolean, reflecting the operations success
+* *result*.FirstItem() - Boolean, reflecting the operation's success
 * *result*.LastItem() - String, description of the error on failure
   otherwise `None`
 
