@@ -1,0 +1,24 @@
+
+@Include DirectoryName(vgr.source.FirstItem()) + "/output-data.vgr"
+
+Print bar
+Select $rec-index As "index", $record as "data" From data For JSON
+Print bar
+Select $record as "data" From data For JSON
+Print bar
+Select X From data As X For JSON
+Print bar
+Select X From data As X For JSON Root Is "the_root"
+Print bar
+For Each opt In [True, False]
+    Select X From data As X For JSON Array Wrapper Is opt
+    Print bar
+    Select X From data As X For JSON Compact Is opt
+    Print bar
+    Select X From data As X For JSON Sort Keys Is opt
+    Print bar
+End-For
+For indent = 0 To 4 Step 2
+    Select $record as "data" From data For JSON Indent Is indent
+    Print bar
+End-For

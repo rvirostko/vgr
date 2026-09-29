@@ -43,6 +43,9 @@
 
 - Vault "Results" option removed; use "Giving" instead
 - "SubStr()" undocumented behavior with negative start index removed
+- For "Select" with JSON ouput, the key sorting option has been
+  changed to "Sort Keys", removing the short forms of "Sort" and "Sorted"
+  as they could be construed as sorting the records
 
 ### Fixed
 
@@ -51,9 +54,13 @@
   encoding errors are replaced with backslash codes in the loaded data.
 - Visual Studio Code highlighted variables as keywords in cases where
   punctuation following it indicated it wasn't a keyword.
+- Fixed "FormatJSON()" output of regular expressions, which
+  now work like "Repr()" not "ToString()"
 - Fixed parsing and display issued in the word-freq sample
 - Ambiguous "Invalid syntax" errors generated when creating dictionaries
   with invalid key types
+- Fixed unwrapped dictionaries when specified in "Select" with JSON output
+  and a named output column
 
 ### Security
 

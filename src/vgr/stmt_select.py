@@ -792,7 +792,7 @@ with a `From` clause.
         # create the final outputs
         output_opts, output_controls = select.create_output_opts(extractor.attrs)
         def exec_query(dest):
-            writer = create_writer(output_opts, output_controls, dest)
+            writer = create_writer(from_opts, output_opts, output_controls, dest)
             if ctx.debug: ctx.print_debug(repr(writer))
             QueryRunner(ctx, select, writer).run_extraction(extractor)
         into_opts = select.into_opts
@@ -973,26 +973,31 @@ def create_extractor(ctx: ExecContext, opts: dict) -> DataExtractor:
         raise NotImplementedError(f'Extractor type {xtype!r} : no data and no file') #SNO
     raise NotImplementedError(f'Extractor type {xtype!r}') #SNO
 
-def create_writer(opts: dict, controls: dict, dest) -> RecordWriter:
+def create_writer(from_opts:dict, output_opts: dict, controls: dict, dest) -> RecordWriter:
     """
     Using the options, create and configure a writer instance.
     opts - options that define the type and configure the writer
     controls - used in wrapper creation and configuration
     """
     writer: RecordWriter = None
-    otype = opts[_TYPE]
+    otype = output_opts[_TYPE]
     if otype == 'json':
-        writer = JSONRecordWriter(dest, stderr=stderr(), **opts)
+        writer = JSONRecordWriter(dest, stderr=stderr(), **output_opts)
+        # This means the user is selecting the entire record
+        # and has not given it a default header. Therefore, the writer
+        # is instructed to just write the data rather than making a
+        # new record itself.
+        writer.direct_write = output_opts['headers'] == [from_opts['target']]
     elif otype == 'markdown':
-        writer = MarkdownRecordWriter(dest, stderr=stderr(), **opts)
+        writer = MarkdownRecordWriter(dest, stderr=stderr(), **output_opts)
     elif otype in ('template', 'template-batch'):
-        if otype == 'template-batch': opts['template_type'] = 'batch'
-        writer = TemplateRecordWriter(dest, stderr=stderr(), **opts)
+        if otype == 'template-batch': output_opts['template_type'] = 'batch'
+        writer = TemplateRecordWriter(dest, stderr=stderr(), **output_opts)
     elif otype == 'text':
-        writer = TextRecordWriter(dest, stderr=stderr(), **opts)
+        writer = TextRecordWriter(dest, stderr=stderr(), **output_opts)
     else:
         # CSV is the ultimate fallback
-        writer = CSVRecordWriter(dest, stderr=stderr(), **opts)
+        writer = CSVRecordWriter(dest, stderr=stderr(), **output_opts)
     if 'limit_input' in controls:
         # any limit/offset counts input before cartesian product
         writer = RecordCartesianProduct.wrap(writer, **controls)

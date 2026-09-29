@@ -6,10 +6,12 @@ from abc import ABC, abstractmethod
 from collections.abc import Iterable
 from io import IOBase
 from typing import Any
-import json
 import sys
 
-from ..builtins import poly_to_string
+from ..builtins import (
+    json_dumps,
+    poly_to_string,
+)
 from ..builtins.vpattern import VPattern
 
 class RecordWriter(ABC):
@@ -191,8 +193,7 @@ class FileRecordWriter(RecordWriter):
         """
         if obj is None: return ''
         # Compact JSON format for dictionaries
-        # TODO this and "ToString" need to be recursive with values
-        if isinstance(obj, dict): return json.dumps(obj, separators=(",", ":"))
+        if isinstance(obj, dict): return json_dumps(obj, separators=(",", ":"), allow_nan=False)
         # Recursively stringify to comma separated elements, but NO square brackets
         if isinstance(obj, list): return ", ".join(map(cls.stringify, obj))
         if isinstance(obj, VPattern): return repr(obj)

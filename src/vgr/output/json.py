@@ -3,6 +3,7 @@ import sys
 from io import FileIO
 
 from .base import FileRecordWriter
+from ..builtins import json_dumps
 
 class JSONRecordWriter(FileRecordWriter):
 
@@ -12,13 +13,14 @@ class JSONRecordWriter(FileRecordWriter):
         self._root = None
         self._indent = None
         self._compact = False
+        self._direct_write = False
         self._include_nulls = True
         self._sort_keys = False
         self._array_wrapper = True
         self._setattrs(**kwargs)
 
     def _attrs(self) -> list:
-        return super()._attrs() + ['root', 'indent', 'compact', 'include_nulls', 'sort_keys', 'array_wrapper' ]
+        return super()._attrs() + ['root', 'indent', 'compact', 'direct_write', 'include_nulls', 'sort_keys', 'array_wrapper' ]
 
     @property
     def root(self) -> str:
@@ -34,7 +36,7 @@ class JSONRecordWriter(FileRecordWriter):
 
     @indent.setter
     def indent(self, value) -> None:
-        self._indent = None if value is None else min(max(0, value), 64)
+        self._indent = None if value is None else min(max(0, value), 32)
 
     @property
     def compact(self) -> bool:
@@ -44,6 +46,14 @@ class JSONRecordWriter(FileRecordWriter):
     def compact(self, enable: bool):
         self._compact = bool(enable)
         if enable: self.indent = None
+
+    @property
+    def direct_write(self) -> bool:
+        return self._direct_write
+
+    @compact.setter
+    def direct_write(self, enable: bool):
+        self._direct_write = bool(enable)
 
     @property
     def include_nulls(self) -> bool:
@@ -86,14 +96,12 @@ class JSONRecordWriter(FileRecordWriter):
 
     def write(self, record: list[any]) -> bool:
         obj: dict = None
-        # Special case for "Select From..." or "Select x From x..."
-        # where the entire source record is being written as an object
-        if len(record) == 1 and isinstance(record[0], dict):
-            # Try to keep checks and rewrite logic down to a minimum
-            if self._include_nulls:
-                obj = record[0]
-            else:
-                obj = {k: v for k, v in record[0].items() if v is not None}
+        # Write record[0] as an object
+        if self._direct_write:
+            obj = record[0]
+            if not self._include_nulls:
+                if obj is None: return True
+                if isinstance(obj, dict): obj = {k: v for k, v in obj.items() if v is not None}
         elif self._include_nulls:
             obj = dict(zip(self._headers, record))
         else:
@@ -148,7 +156,7 @@ class JSONRecordWriter(FileRecordWriter):
             else:
                 self.print(',')
             self.println()
-            self.print(json.dumps(obj,
+            self.print(json_dumps(obj,
                         indent=self._writer.indent,
                         sort_keys=self._writer.sort_keys,
                         separators=self._separators,
@@ -176,20 +184,18 @@ class JSONRecordWriter(FileRecordWriter):
             else:
                 self.print(',')
             self.println()
-            self.print(json.dumps(obj,
+            self.print(json_dumps(obj,
                         indent=self._writer.indent,
                         sort_keys=self._writer.sort_keys,
-                        separators=self._separators,
-                        default=str))
+                        separators=self._separators))
             self.flush()
 
     class ListModeFormater(JFormater):
         def write(self, obj: dict) -> None:
-            self.println(json.dumps(obj,
+            self.println(json_dumps(obj,
                         indent=None,
                         sort_keys=self._writer.sort_keys,
-                        separators=self._separators,
-                        default=str))
+                        separators=self._separators))
             self.flush()
 
         def finish(self) -> None:
