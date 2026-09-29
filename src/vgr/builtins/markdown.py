@@ -197,7 +197,7 @@ def md_image(*args):
 ```vgr
 MdImage(None) → ""
 MdImage("https://upload.wikimedia.org/wikipedia/commons/4/48/Markdown-mark.svg") →
-    "![](https://upload.wikimedia.org/wikipedia/commons/4/48/Markdown-mark.svg)"
+    "![https://upload.wikimedia.org/wikipedia/commons/4/48/Markdown-mark.svg](https://upload.wikimedia.org/wikipedia/commons/4/48/Markdown-mark.svg)"
 MdImage("https://upload.wikimedia.org/wikipedia/commons/4/48/Markdown-mark.svg", "Markdown logo") →
     "![Markdown logo](https://upload.wikimedia.org/wikipedia/commons/4/48/Markdown-mark.svg)"
 MdImage("https://upload.wikimedia.org/wikipedia/commons/4/48/Markdown-mark.svg", "Markdown logo", "The Markdown Mark") →
@@ -212,9 +212,9 @@ Also see `Print` and using the *As Markdown* clause.
     alt = _md_to_string(alt)
     title = _md_sanitize(_md_to_string(title), '"')
     if title: # ![A Foo](foo.net/img "A foo!")
-        return "![" + _md_sanitize(alt, "[]") + "](" + _md_sanitize_url(url, "()") + ' "' + title + '")'
+        return "![" + _md_sanitize(alt or title, "[]") + "](" + _md_sanitize_url(url, "()") + ' "' + title + '")'
     # ![A Foo](foo.net/img)
-    return "![" + _md_sanitize(alt, "[]") + "](" + _md_sanitize_url(url, "()") + ")"
+    return "![" + (_md_sanitize(alt or url, "[]")) + "](" + _md_sanitize_url(url, "()") + ")"
 
 @builtin("MdHeading")
 def md_heading(*args) -> Any:

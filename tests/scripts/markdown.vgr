@@ -116,16 +116,16 @@ Assert MdImage(None) Is BLANK
 Assert MdImage(Space) Is BLANK
 Assert MdImage(EMPTY_LIST) Is BLANK
 Assert MdImage(EMPTY_DICT) Is BLANK
-Assert MdImage("foo.net") Is "![](foo.net)"
+Assert MdImage("foo.net") Is "![foo.net](foo.net)"
 Assert MdImage("foo.net", "Foo Net") Is "![Foo Net](foo.net)"
-Assert MdImage("foo.net", None, "See the Foo") Is "![](foo.net \"See the Foo\")"
+Assert MdImage("foo.net", None, "See the Foo") Is "![See the Foo](foo.net \"See the Foo\")"
 Assert MdImage("foo.net", "Foo Net", "See the Foo") Is "![Foo Net](foo.net \"See the Foo\")"
 Assert MdImage("foo.net", ["Foo Net"]) Is "![Foo Net](foo.net)"
 Assert MdImage("foo.net", ["Foo", "Net"]) Is "![Foo\nNet](foo.net)"
-Assert MdImage("foo.net", None, ["Foo"]) Is "![](foo.net \"Foo\")"
-Assert MdImage("foo.net", None, ["Foo", "Net"]) Is "![](foo.net \"Foo\nNet\")"
+Assert MdImage("foo.net", None, ["Foo"]) Is "![Foo](foo.net \"Foo\")"
+Assert MdImage("foo.net", None, ["Foo", "Net"]) Is "![Foo\nNet](foo.net \"Foo\nNet\")"
 Assert MdImage("foo.net", {"Foo": "Net"}) Is "![Foo : Net](foo.net)"
-Assert MdImage("foo.net", None, {"Foo": "Net"}) Is "![](foo.net \"Foo : Net\")"
+Assert MdImage("foo.net", None, {"Foo": "Net"}) Is "![Foo : Net](foo.net \"Foo : Net\")"
 
 Assert MdBlockQuote() Is BLANK
 Assert MdBlockQuote(None) Is BLANK
@@ -224,9 +224,14 @@ For level = 1 To 6
     Print MdHeading("Heading " + level, level) As Markdown
 Next
 
-# ToDo MdLink() - Format the text in Markdown as a link
+Print MdLink("https://en.wikipedia.org/wiki/Hello,_world"), Newline As Markdown
+Print MdLink("https://en.wikipedia.org/wiki/Hello,_world", "Hello World"), Newline As Markdown
+Print MdLink("https://en.wikipedia.org/wiki/Hello,_world", "Hello World", "A link to Wikipedia"), Newline As Markdown
+Printf Newline
 
-# ToDo MdImage()
+Print MdImage("https://upload.wikimedia.org/wikipedia/commons/4/48/Markdown-mark.svg"), Newline As Markdown
+Print MdImage("https://upload.wikimedia.org/wikipedia/commons/4/48/Markdown-mark.svg", "Markdown logo"), Newline As Markdown
+Print MdImage("https://upload.wikimedia.org/wikipedia/commons/4/48/Markdown-mark.svg", "Markdown logo", "The Markdown Mark"), Newline As Markdown
 
 Print "Strong".MdStrong(), Newline As Markdown
 Print "Strong + Emphasis".MdStrong().MdEmphasis(), Newline As Markdown
