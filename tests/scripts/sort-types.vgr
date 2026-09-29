@@ -46,6 +46,7 @@ Close Output
 # have to defrefence and sort as a variable
 Load t With File fn
 Call sort_and_check(t.animals)
+Assert fn.RemoveFile()[0]
 #-------------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------
@@ -74,6 +75,7 @@ Close Output
 # have to defrefence and sort as a variable
 Load t With File fn
 Call sort_and_check(t.GetValues())
+Assert fn.RemoveFile()[0]
 #-------------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------
@@ -91,6 +93,7 @@ Printf "{}", """\
 """
 Close Output
 Call sort_file_and_check(fn)
+Assert fn.RemoveFile()[0]
 #-------------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------
@@ -107,6 +110,7 @@ sparrow,2
 """
 Close Output
 Call sort_file_and_check(fn)
+Assert fn.RemoveFile()[0]
 #-------------------------------------------------------------------------------
 
 #-------------------------------------------------------------------------------
@@ -153,3 +157,4 @@ Assert t.Length() ≥ 3
 Assert t.FirstItem() ≥ t.LastItem()
 Assert t.Item(1).IsBetween(t.FirstItem(), t.LastItem())
 #-------------------------------------------------------------------------------
+Assert fn.RemoveFile()[0]
