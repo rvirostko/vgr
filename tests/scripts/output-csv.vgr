@@ -3,6 +3,10 @@
 
 Set env.OFS = ""
 
+Print NewLine, "Debug Output", NewLine, bar
+Debug On; Select $record From ["debug"] For CSV; Debug Off;
+Print bar
+
 Print NewLine, "Include Headers", NewLine, bar
 Select $rec-index As "№", $record As "Data", Type($record) As "Type" From data For CSV Include Headers
 Print bar

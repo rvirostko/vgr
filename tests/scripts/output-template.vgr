@@ -3,6 +3,10 @@
 
 Set env.OFS = ""
 
+Print NewLine, "Debug Output", NewLine, bar
+Debug On; Select $record From ["debug"] For Template; Debug Off;
+Print bar
+
 Print NewLine, "Record Template", NewLine, bar
 Select $rec-index As "№", $record As "Data", Type($record) As "Type" From data For Record Template
 Print bar

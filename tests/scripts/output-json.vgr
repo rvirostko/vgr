@@ -1,18 +1,25 @@
 
-
 @Include DirectoryName(vgr.source.FirstItem()) + "/output-data.vgr"
 Set env.OFS = ""
 
+Print NewLine, "Debug Output", NewLine, bar
+Debug On; Select $record From ["debug"] For JSON; Debug Off;
+Print bar
+
 Print NewLine, "As Attributes", NewLine, bar
 Select $rec-index As "index", $record as "data", Type($record) As "type" From data For JSON
+Print bar
+
+Print NewLine, "As Attributes, Exclude Nulls", NewLine, bar
+Select $rec-index As "index", $record as "data", Type($record) As "type" From data For JSON Exclude Nulls
 Print bar
 
 Print NewLine, "As Record, Custom name", NewLine, bar
 Select $record as "data" From data For JSON
 Print bar
 
-Print NewLine, "As Record, No name", NewLine, bar
-Select X From data As X For JSON
+Print NewLine, "As Record, No name, Exclude Nulls", NewLine, bar
+Select X From data As X For JSON Exclude Nulls
 Print bar
 
 Print NewLine, "With Root", NewLine, bar

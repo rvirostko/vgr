@@ -11,6 +11,10 @@ Constant md_special_data = [
 
 Set env.OFS = ""
 
+Print NewLine, "Debug Output", NewLine, bar
+Debug On; Select $record From ["debug"] For Confluence; Debug Off;
+Print bar
+
 Print NewLine, ConfluenceStrong("Include Headers"), NewLine
 Select $rec-index As "№", $record As "Data", Type($record).ConfluenceCode() As "Type" From data For Confluence Include Headers
 
