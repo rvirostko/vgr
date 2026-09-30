@@ -1,0 +1,47 @@
+@Include DirectoryName(vgr.source.FirstItem()) + "/output-data.vgr"
+
+Set env.OFS = ""
+
+Print NewLine, "Debug Output", NewLine, bar
+Debug On; Select $record From ["debug"] Limit 1 Record For Markdown; Debug Off;
+Debug On; Select $record From ["debug"] Limit Zero Records For Markdown; Debug Off;
+Print bar
+
+Print NewLine, MdStrong("Limit 2"), NewLine
+Select $rec-index As "№", $record As "Data", Type($record).MdCode() As "Type"
+    From data
+    Limit 2 Records
+    For Markdown
+
+Print NewLine, MdStrong("Limit 2 Offset 2"), NewLine
+Select $rec-index As "№", $record As "Data", Type($record).MdCode() As "Type"
+    From data
+    Limit 2 Records Offset 2
+    For Markdown
+
+Print NewLine, MdStrong("Limit 2 Offset 1 Where IsTrue()"), NewLine
+Select $rec-index As "№", $record As "Data", Type($record).MdCode() As "Type"
+    From data
+    Where IsTrue($record)
+    Limit 2 Records Offset 1 # skips the first selected (output) record
+    For Markdown
+
+Print NewLine, MdStrong("Limit Input 2"), NewLine
+Select $rec-index As "№", $record As "Data", Type($record).MdCode() As "Type"
+    From data
+    Limit Input 2 Records
+    For Markdown
+
+Print NewLine, MdStrong("Limit Input 2 Offset 1"), NewLine
+Select $rec-index As "№", $record As "Data", Type($record).MdCode() As "Type"
+    From data
+    Limit Input 2 Records Offset 1
+    For Markdown
+
+# TODO I think this should act like "head" instead of what it is doing
+Print NewLine, MdStrong("Limit Input 2 Offset 1 Where IsTrue()"), NewLine
+Select $rec-index As "№", $record As "Data", Type($record).MdCode() As "Type"
+    From data
+    Where IsTrue($record)
+    Limit Input 2 Records Offset 1
+    For Markdown

@@ -1,0 +1,50 @@
+Constant data = [
+    [1, ["a"],                      ["z", "zz", "zzz"]],
+    [2, ["b", "bb"],                ["z", "zz"]],
+    [3, ["c", "cc", "ccc"],         ["z"]],
+    [4, ["d", "dd", "ddd", "dddd"], []]
+]
+Constant bar = "---"
+
+Set env.OFS = ""
+
+Print NewLine, MdStrong("Data"), NewLine, bar
+Print MdCodeBlock("json", data.FormatJson(None)) ORS Is ""
+
+Print NewLine, MdStrong("Debug Output"), NewLine, bar, Newline
+Debug On; Select $record From ["debug"] Product * For Markdown; Debug Off;
+Print NewLine, bar
+
+Print NewLine, MdStrong("First Two"), NewLine, bar, NewLine
+Select $rec-index As "№",
+       $record[0] As "data[0]",
+       $record[1] As "data[1]",
+       $record[2] As "data[2]"
+       From data Product 2,3 For Markdown
+Print NewLine, bar
+
+Print NewLine, MdStrong("Last Two"), NewLine, bar, NewLine
+Select $rec-index As "№",
+       $record[0] As "data[0]",
+       $record[1] As "data[1]",
+       $record[2] As "data[2]"
+       From data Product "data[1]","data[2]" For Markdown
+Print NewLine, bar
+
+Print NewLine, MdStrong("All"), NewLine, bar, NewLine
+Select $rec-index As "№",
+       $record[0] As "data[0]",
+       $record[1] As "data[1]",
+       $record[2] As "data[2]"
+       From data Product 2,"data[1]",4 For Markdown
+Print NewLine, bar
+
+Print NewLine, MdStrong("All, Limit 4"), NewLine, bar, NewLine
+Select $rec-index As "№",
+       $record[0] As "data[0]",
+       $record[1] As "data[1]",
+       $record[2] As "data[2]"
+       From data Product 2,"data[1]",4
+       Limit 4 Records
+       For Markdown
+Print NewLine, bar
