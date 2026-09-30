@@ -16,42 +16,12 @@ from ..builtins.vpattern import VPattern
 
 class RecordWriter(ABC):
 
-    def __init__(self):
-        self._debug = False
-        self._verbose = False
-        self._stderr = None
-
-    @property
-    def debug(self) -> bool:
-        return self._debug
-
-    @debug.setter
-    def debug(self, enable: bool):
-        self._debug = bool(enable)
-
-    @property
-    def verbose(self) -> bool:
-        return self._verbose
-
-    @verbose.setter
-    def verbose(self, enable: bool):
-        self._verbose = bool(enable)
-
-
-    @property
-    def stderr(self) -> bool:
-        return self._stderr or sys.stderr
-
-    @stderr.setter
-    def stderr(self, out: IOBase):
-        self._stderr = out if out is not None and isinstance(out, IOBase) else None
+    @abstractmethod
+    def start(self) -> None:
+        """Called at the start of writing"""
 
     @abstractmethod
-    def start(self) -> bool:
-        """Returns True if writing can continue"""
-
-    @abstractmethod
-    def finish(self):
+    def finish(self) -> None:
         """Called when writing is complete"""
 
     @abstractmethod
@@ -61,39 +31,21 @@ class RecordWriter(ABC):
         Returns True if writing can continue
         """
 
-    def print_stderr(self, *args, **kwargs) -> None:
-        """Same as print() except that it can redirect to an output file"""
-        print(*args, file=self.stderr, **kwargs)
-
-    def print_debug(self, *args, **kwargs) -> None:
-        """If debug is on print to stderr"""
-        if self.debug: self.print_stderr(*args, **kwargs)
-
-    def print_verbose(self, *args, **kwargs) -> None:
-        """If verbose is on print to stderr"""
-        if self.verbose: self.print_stderr(*args, **kwargs)
-
-    @abstractmethod
-    def close(self):
-        """Called to close/release resources"""
-
     def __enter__(self):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        self.close()
+        self.finish()
 
     def _attrs(self) -> list:
         """Return a list of attribute names to include in __repr__"""
-        return ['debug', 'verbose', 'stderr']
+        return []
 
     def __repr__(self):
         attr_repr = []
         for attr in self._attrs():
-            if hasattr(self, attr):
-                attr_repr.append(f'{attr}={getattr(self, attr)!r}')
-            else:
-                attr_repr.append(f'{attr}=<missing>')
+            if not hasattr(self, attr): raise ValueError(f'{attr}=<missing>') #pragma no cover
+            attr_repr.append(f'{attr}={getattr(self, attr)!r}')
         return f'{self.__class__.__name__}({", ".join(attr_repr)})'
 
     def _setattrs(self, **kwargs) -> None:
@@ -113,17 +65,14 @@ class DelegatingRecordWriter(RecordWriter):
         self._delegate = delegate
         super().__init__()
 
-    def start(self) -> bool:
-        return self._delegate.start()
+    def start(self) -> None:
+        self._delegate.start()
 
     def finish(self):
         self._delegate.finish()
 
     def write(self, record: list[Any]) -> bool:
         return self._delegate.write(record)
-
-    def close(self):
-        self._delegate.close()
 
     def _attrs(self) -> list:
         return super()._attrs() + ['_delegate']
@@ -152,28 +101,25 @@ class FileRecordWriter(RecordWriter):
     def include_headers(self, enable: bool):
         self._include_headers = bool(enable)
 
-    def start(self) -> bool:
-        return self.write_headers() if self._headers and self._include_headers else True
+    def start(self) -> None:
+        if self._headers and self._include_headers: self.write_headers()
 
     def finish(self):
-        self.flush()
+        super().finish()
+        self._file = None
 
-    def close(self):
-        try:
-            self.flush()
-        finally:
-            self._file = None
-            super().close()
-
+    @abstractmethod
     def write_headers(self) -> bool:
-        """Write out headers for the data"""
-        return True
+        """
+        Write out headers for the data.
+        Abstact at base class as the concept of headers if format specific
+        """
 
-    def print(self, *args: any) -> None:
+    def print(self, *args: any) -> None: # TODO
         """Utility method: does not add separator or line ending"""
         print(*args, sep='', end='', file=self._file)
 
-    def println(self, *args: any) -> None:
+    def println(self, *args: any) -> None: # TODO
         """Utility method: does not add separator"""
         print(*args, sep='', file=self._file)
 

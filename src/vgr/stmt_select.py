@@ -190,10 +190,6 @@ class SelectAnalyzer(Visitor):
         return self._into_opts
 
     def create_output_opts(self, attrs: list[str]):
-        # We add these here because they get passed to down to
-        # writers et al for possible extra output (mostly Templates)
-        self._output_opts['debug'] = self.ctx.debug
-        self._output_opts['verbose'] = self.ctx.verbose
         # We need to expand the "*"s in headers and output statements
         if self._ALL_COLS in self._headers:
             attr_statement = []
@@ -809,32 +805,31 @@ with a `From` clause.
         if ctx.debug: ctx.print_debug(repr(extractor))
         # create the final outputs
         output_opts, output_controls = select.create_output_opts(extractor.attrs)
-        def exec_query(dest):
-            writer = create_writer(from_opts, output_opts, output_controls, dest)
-            if ctx.debug: ctx.print_debug(repr(writer))
-            QueryRunner(ctx, select, writer).run_extraction(extractor)
+        def _exec_query(dest):
+            with create_writer(from_opts, output_opts, output_controls, dest) as writer:
+                if ctx.debug: ctx.print_debug(repr(writer))
+                QueryRunner(ctx, select, writer).run_extraction(extractor)
         into_opts = select.into_opts
         dest = into_opts.get(_TYPE, 'stdout')
         if dest == 'stdout':
-            exec_query(stdout())
+            _exec_query(stdout())
         elif dest == 'stderr':
-            exec_query(stderr())
+            _exec_query(stderr())
         elif dest == _FILE:
             mode = into_opts[_FMODE]
             try:
-                f = open(prepare_path(into_opts[_FILE], mode),
+                with open(prepare_path(into_opts[_FILE], mode),
                         mode,
                         encoding=into_opts.get(_ENCODING, 'utf-8'),
-                        errors='backslashreplace' if ctx.debug else 'replace')
+                        errors='backslashreplace' if ctx.debug else 'replace') as f:
+                    _exec_query(f)
             except OSError as e:
                 raise VgrRuntimeError(into_opts[_SRC], e) from e
-            with f: exec_query(f)
         elif dest == _VAR:
             with StringIO() as buffer:
-                exec_query(buffer)
+                _exec_query(buffer)
                 buffer_data = buffer.getvalue()
         else:
-            # SNO
             raise TypeError(f"Destination type {dest!r} not handled") # pragma no cover
     finally:
         ctx.dd.pop_frame()
@@ -875,17 +870,15 @@ class QueryRunner(QueryFilter, InfoOutput):
         this should be caught.
         """
         extractor.start(self)
-        if self._writer.start():
+        try:
+            self.rowid = -1
             try:
-                self.rowid = -1
-                try:
-                    extractor.extract(self, self)
-                except EndExtractException:
-                    pass
-                finally:
-                    self._writer.finish()
-            finally:
-                extractor.finish(self)
+                self._writer.start()
+                extractor.extract(self, self)
+            except EndExtractException:
+                pass
+        finally:
+            extractor.finish(self)
 
     # An "applicable" predicate is one that has either no var refs ("True" or "5 < 7")
     # or whose top-level var ref step is "satisfied" by being present in the
@@ -928,12 +921,9 @@ class QueryRunner(QueryFilter, InfoOutput):
             # the entirty of the target data.
             # NB: The JSON writer has special handling for this
             record = [ data ]
-        try:
-            if not self._writer.write(record):
-                raise EndExtractException()
-            return True
-        finally:
-            pass
+        if not self._writer.write(record):
+            raise EndExtractException()
+        return True
 
     def set_data(self, key: str, data: Any) -> None:
         """
@@ -988,8 +978,8 @@ def create_extractor(ctx: ExecContext, opts: dict) -> DataExtractor:
                 records = metadata['records']
                 ctx.print_verbose('Read', records, poly_plural(records,'Records', 'Record'), 'From', metadata['filename'])
             return InMemoryExtractor(target, data)
-        raise NotImplementedError(f'Extractor type {xtype!r} : no data and no file') #SNO
-    raise NotImplementedError(f'Extractor type {xtype!r}') #SNO
+        raise NotImplementedError(f'Extractor type {xtype!r} : no data and no file') #pragma no cover
+    raise NotImplementedError(f'Extractor type {xtype!r}') #pragma no cover
 
 def create_writer(from_opts:dict, output_opts: dict, controls: dict, dest) -> RecordWriter:
     """
@@ -1000,24 +990,23 @@ def create_writer(from_opts:dict, output_opts: dict, controls: dict, dest) -> Re
     writer: RecordWriter = None
     otype = output_opts[_TYPE]
     if otype == 'json':
-        writer = JSONRecordWriter(dest, stderr=stderr(), **output_opts)
-        # This means the user is selecting the entire record
+        # "direct_write" means the user is selecting the entire record
         # and has not given it a default header. Therefore, the writer
         # is instructed to just write the data rather than making a
-        # new record itself.
-        writer.direct_write = output_opts['headers'] == [from_opts['target']]
+        # new record using the header name.
+        writer = JSONRecordWriter(dest, direct_write=(output_opts['headers'] == [from_opts['target']]), **output_opts)
     elif otype == 'markdown':
-        writer = MarkdownRecordWriter(dest, stderr=stderr(), **output_opts)
+        writer = MarkdownRecordWriter(dest, **output_opts)
     elif otype == 'confluence':
-        writer = ConfluenceRecordWriter(dest, stderr=stderr(), **output_opts)
+        writer = ConfluenceRecordWriter(dest, **output_opts)
     elif otype in ('template', 'template-batch'):
         if otype == 'template-batch': output_opts['template_type'] = 'batch'
-        writer = TemplateRecordWriter(dest, stderr=stderr(), **output_opts)
+        writer = TemplateRecordWriter(dest, **output_opts)
     elif otype == 'text':
-        writer = TextRecordWriter(dest, stderr=stderr(), **output_opts)
+        writer = TextRecordWriter(dest, **output_opts)
     else:
         # CSV is the ultimate fallback
-        writer = CSVRecordWriter(dest, stderr=stderr(), **output_opts)
+        writer = CSVRecordWriter(dest, **output_opts)
     if 'limit_input' in controls:
         # any limit/offset counts input before cartesian product
         writer = RecordCartesianProduct.wrap(writer, **controls)

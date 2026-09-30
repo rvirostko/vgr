@@ -136,13 +136,13 @@ class TemplateRecordWriter(FileRecordWriter):
 {{ ns.bar | replace(md, box.H ~ box.B ~ box.H) | replace(st, box.UR ~ box.H) | replace(ed, box.H ~ box.UL) }}
 {% endif %}"""
 
-    def start(self) -> bool:
+    def start(self) -> None:
         self._env = Environment(loader=FileSystemLoader('.'),
                                 autoescape=self.auto_escape,
                                 trim_blocks=self.trim_blocks,
                                 lstrip_blocks=self.lstrip_blocks,
                                 keep_trailing_newline=self.keep_last_newline,
-                                undefined=ChainableUndefined if self.chain_undefined else DebugUndefined if self.debug else StrictUndefined,
+                                undefined=ChainableUndefined if self.chain_undefined else StrictUndefined,
                                 )
         auto_register_filters(self._env, type(self))
         t = None
@@ -151,7 +151,7 @@ class TemplateRecordWriter(FileRecordWriter):
         else:
             t = self._env.from_string(self._BATCH_DEFAULT_TEMPLATE if self._is_batch else self._DEFAULT_TEMPLATE)
         self._template = t
-        return super().start()
+        super().start()
 
     def finish(self):
         try:
@@ -163,7 +163,7 @@ class TemplateRecordWriter(FileRecordWriter):
                     self._batch_data = []
         finally:
             self._template = None
-        return super().finish()
+        super().finish()
 
     def write(self, record: list[any]) -> bool:
         # Save up in batch mode: the template must handle data as a list
@@ -173,12 +173,14 @@ class TemplateRecordWriter(FileRecordWriter):
             self._render(record)
         return True
 
+    def write_headers(self) -> bool:
+        """Nothing here: rendering of headers must be done in the template itself"""
+        return True
+
     def _render(self, data: Any) -> None:
         try:
             self.print(
                 self._template.render(
-                    debug=self.debug,
-                    verbose=self.verbose,
                     is_batch=self._is_batch,
                     include_headers=self.include_headers,
                     record_keys=self.headers,

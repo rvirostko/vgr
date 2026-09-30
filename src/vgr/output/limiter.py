@@ -37,10 +37,9 @@ class RecordLimiter(DelegatingRecordWriter):
     def offset(self, offset: int):
         self._offset = offset if self._is_gt_zero(offset) else None
 
-    def start(self) -> bool:
+    def start(self) -> None:
         # Deal with starting with a limit of <= 1
-        if self._exhausted(): return False
-        return False if self._exhausted() else self._delegate.start()
+        if not self._exhausted(): self._delegate.start()
 
     def write(self, record: list[any]) -> bool:
         if self._exhausted(): return False
@@ -48,7 +47,7 @@ class RecordLimiter(DelegatingRecordWriter):
             self._offset -= 1
             return True
         if self._limit is not None: self._limit -= 1
-        return self._delegate.write(record)
+        return super().write(record)
 
     def _exhausted(self) -> bool:
         return self._limit is not None and self._limit <= 0

@@ -275,28 +275,25 @@ def _write_data(ctx: ExecContext, data: list, target: dict, input_encoding: str)
         dtype = target[_DTYPE]
         headers = target[_FIELDS]
         if dtype == 'text_file':
-            rw = TextRecordWriter(f, headers=headers)
-            rw.start()
-            for row in data:
-                rw.write([row.get(p, None) for p in headers] if isinstance(row, dict) else [row])
-            rw.finish()
+            with TextRecordWriter(f, headers=headers) as rw:
+                rw.start()
+                for row in data:
+                    rw.write([row.get(p, None) for p in headers] if isinstance(row, dict) else [row])
             return
         if dtype in ('json_object', 'json_objects'):
             # Direct write tells the writer to write the entire data element
-            # Because of that, headers does really apply, even if they are correct for the object
-            rw = JSONRecordWriter(f, direct_write=True, headers=[""], array_wrapper=(dtype == 'json_object'))
-            rw.start()
-            for row in data: rw.write([row])
-            rw.finish()
+            # Because of that, headers doesn't really apply, even if they are correct for the object
+            with JSONRecordWriter(f, direct_write=True, headers=[""], array_wrapper=(dtype == 'json_object')) as rw:
+                rw.start()
+                for row in data: rw.write([row])
             return
         if dtype == 'csv_file':
-            rw = CSVRecordWriter(f, headers=headers, quoting='minimal')
-            rw.start()
-            for row in data:
-                rw.write([row.get(p, None) for p in headers] if isinstance(row, dict) else [row])
-            rw.finish()
+            with CSVRecordWriter(f, headers=headers, quoting='minimal') as rw:
+                rw.start()
+                for row in data:
+                    rw.write([row.get(p, None) for p in headers] if isinstance(row, dict) else [row])
             return
-        raise ValueError(f'Sort: {dtype!r} not supported for writing')
+        raise ValueError(f'Sort: {dtype!r} not supported for writing') # pragma no cover
 
 def _append_unique(x: list, y: list) -> list:
     return x + [x1 for x1 in y if x1 not in x]

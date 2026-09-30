@@ -83,7 +83,7 @@ class CSVRecordWriter(FileRecordWriter):
         # Use only the first character
         return value[0] if value else None
 
-    def start(self) -> bool:
+    def start(self) -> None:
         self._outstr = StringIO()
         self._writer = csv.writer(self._outstr,
                                   delimiter=self._delimiter,
@@ -93,7 +93,7 @@ class CSVRecordWriter(FileRecordWriter):
                                   quoting=self._quoting,
                                 )
         self._flush_str()
-        return super().start()
+        super().start()
 
     def finish(self) -> None:
         try:

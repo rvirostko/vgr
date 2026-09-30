@@ -30,7 +30,7 @@ class RecordCartesianProduct(DelegatingRecordWriter):
 
     def write(self, record: list[any]) -> bool:
         for row in self._row_product(record):
-            if not self._delegate.write(row): return False
+            if not super().write(row): return False
         return True
 
     def _row_product(self, record: list[any]):

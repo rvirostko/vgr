@@ -15,9 +15,9 @@ class MarkdownRecordWriter(FileRecordWriter):
         super().__init__(file)
         self._setattrs(**kwargs)
 
-    def start(self) -> bool:
+    def start(self) -> None:
         # Override base class because we interpret the "no headers" differently
-        return self.write_headers()
+        self.write_headers()
 
     def write(self, record: list[Any]) -> bool:
         for item in record: self.print(self.__BAR, self._encode_markdown(item))

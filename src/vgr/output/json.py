@@ -1,6 +1,6 @@
-import json
-import sys
 from io import FileIO
+from abc import ABC, abstractmethod
+import sys
 
 from .base import FileRecordWriter
 from ..builtins import json_dumps
@@ -51,7 +51,7 @@ class JSONRecordWriter(FileRecordWriter):
     def direct_write(self) -> bool:
         return self._direct_write
 
-    @compact.setter
+    @direct_write.setter
     def direct_write(self, enable: bool):
         self._direct_write = bool(enable)
 
@@ -79,8 +79,8 @@ class JSONRecordWriter(FileRecordWriter):
     def array_wrapper(self, enable: bool):
         self._array_wrapper = bool(enable)
 
-    def start(self) -> bool:
-        if not super().start(): return False
+    def start(self) -> None:
+        super().start()
         if self.root:
             # "object mode" : entire output is an object with <root> as an array
             self._formater = JSONRecordWriter.ObjectModeFormater(self)
@@ -97,7 +97,7 @@ class JSONRecordWriter(FileRecordWriter):
     def write(self, record: list[any]) -> bool:
         obj: dict = None
         # Write record[0] as an object
-        if self._direct_write:
+        if self.direct_write:
             obj = record[0]
             if not self._include_nulls:
                 if obj is None: return True
@@ -109,6 +109,10 @@ class JSONRecordWriter(FileRecordWriter):
         self._formater.write(obj)
         return True
 
+    def write_headers(self) -> bool:
+        """Do nothing as "headers" are "attributes" in JSON"""
+        return True
+
     def finish(self) -> None:
         try:
             if self._formater: self._formater.finish()
@@ -116,16 +120,22 @@ class JSONRecordWriter(FileRecordWriter):
             self._formater = None
             super().finish()
 
-    class JFormater():
+    class JFormater(ABC):
 
         def __init__(self, writer: "JSONRecordWriter"):
             self._writer = writer
             self._separators = (',', ':') if writer.compact else (', ', ': ')
             self._sp = '' if writer.compact else ' '
 
-        def start(self) -> None: pass
-        def finish(self) -> None: pass
-        def write(self, obj: dict) -> None: pass
+        def start(self) -> None:
+            self.flush()
+
+        def finish(self) -> None:
+            self.flush()
+
+        @abstractmethod
+        def write(self, obj: dict) -> None:
+            """Write out the object"""
 
         def print(self, *args: any) -> None:
             self._writer.print(*args)
@@ -143,12 +153,12 @@ class JSONRecordWriter(FileRecordWriter):
         def start(self) -> None:
             self.print('[')
             self._first = True
-            self.flush()
+            super().start()
 
         def finish(self) -> None:
             self.println()
             self.println(']')
-            self.flush()
+            super().finish()
 
         def write(self, obj: dict) -> None:
             if self._first:
@@ -171,12 +181,12 @@ class JSONRecordWriter(FileRecordWriter):
         def start(self) -> None:
             self.print('{', self._sp, '"', self._writer.root, '":', self._sp, '[')
             self._first = True
-            self.flush()
+            super().start()
 
         def finish(self) -> None:
             self.println()
             self.println(']', self._sp, '}')
-            self.flush()
+            super().finish()
 
         def write(self, obj: dict) -> None:
             if self._first:
@@ -196,7 +206,4 @@ class JSONRecordWriter(FileRecordWriter):
                         indent=None,
                         sort_keys=self._writer.sort_keys,
                         separators=self._separators))
-            self.flush()
-
-        def finish(self) -> None:
             self.flush()
