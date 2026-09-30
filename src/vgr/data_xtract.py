@@ -71,7 +71,7 @@ class DataExtractor(ABC):
 
     @abstractmethod
     def extract(self, qfilter: QueryFilter, io: InfoOutput) -> None:
-        pass
+        """Performs the extraction process"""
 
     def finish(self, io: InfoOutput) -> None:
         """Override if your class requires some activity after extracting"""
