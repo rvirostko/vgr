@@ -72,6 +72,7 @@
   and a named output column
 - Fixed "Select" Markdown output with headers excluded- no longer collapses
   into an unusable mess
+- Fixed error in "Sleep" when a whole number is requested and "Verbose" is on
 
 ### Security
 

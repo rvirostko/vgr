@@ -1,0 +1,7 @@
+
+
+Verbose On
+For Each sleep_time In [Null, -1, 0, ".01", 1, 1.0]
+    Print "Sleep", sleep_time
+    Sleep sleep_time
+End-For

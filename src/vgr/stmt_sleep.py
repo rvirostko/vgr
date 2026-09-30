@@ -26,7 +26,7 @@ Floating point values are allowed, e.g. .01 to delay for ten milliseconds.
 The maximum sleep time is 300 seconds or five minutes.
 
 ```vgr
-Verbose
+Verbose On
 Verbose = True
 Sleep None
 Sleep skipped
@@ -48,18 +48,17 @@ Sleeping for 333.333 ms
 ```
 
 """
-    def fmt(x: float) -> str:
-        if x.is_integer(): return str(int(x))
-        return f"{x:.3f}".rstrip("0").rstrip(".")
+    def _fmt(x: float) -> str:
+        return str(int(x)) if isinstance(x, int) or x.is_integer() else f"{x:.3f}".rstrip("0").rstrip(".")
     n = ctx.eval_to_number(statement.children[0], 'Sleep time', True)
     if n is not None:
         n = min(max(n, 0), 300)
         if n > 0:
             if ctx.verbose:
                 if n >= 1:
-                    ctx.print_verbose('Sleeping for', fmt(n), poly_plural(n, 'seconds', 'second'))
+                    ctx.print_verbose('Sleeping for', _fmt(n), poly_plural(n, 'seconds', 'second'))
                 else:
-                    ctx.print_verbose('Sleeping for', fmt(n * 1000), 'ms')
+                    ctx.print_verbose('Sleeping for', _fmt(n * 1000), 'ms')
             time.sleep(n)
             return
     ctx.print_verbose('Sleep skipped')
