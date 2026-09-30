@@ -28,3 +28,7 @@ Select $rec-index As ":№:", $record As ":Data:", Type($record).MdCode() As ":T
 
 Print NewLine, MdStrong("Right Alignment"), NewLine
 Select $rec-index As "№:", $record As "Data:", Type($record).MdCode() As "Type:" From md_special_data For Markdown
+
+Print NewLine, MdStrong("Mixed Alignment"), NewLine
+// Default (and edge condition), Left, Right
+Select $rec-index As "", $record As ":Data", Type($record).MdCode() As "Type:" From md_special_data For Markdown
