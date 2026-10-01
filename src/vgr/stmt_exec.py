@@ -3,6 +3,7 @@ from functools import lru_cache
 from typing import Any, Callable, Iterable
 import ast
 import math
+import os
 import re
 import unicodedata
 import warnings
@@ -19,7 +20,6 @@ from .app_exceptions import (
 )
 from .builtins import compile_pattern
 from .data_dict import DataDictionary, DynamicValue
-from .dbg import print_tree
 from .dd_config import (
     VGR_PREFIX,
 )
@@ -1088,122 +1088,24 @@ class DefaultExecContext(ExecContext):
         # We maintain the state, but the user can still
         # read the values, which are global.
         self.set_var(DynamicValue(lambda: self._source_stack), VGR_PREFIX,  'source')
-        self.set_var(DynamicValue(lambda: self.debug), VGR_PREFIX,  'debug')
-        self.set_var(DynamicValue(lambda: self.echo), VGR_PREFIX, 'echo')
-        self.set_var(DynamicValue(lambda: self.verbose), VGR_PREFIX, 'verbose')
-
-    def get_var(self, *path: str) -> Any: return self.dd.get_var(*path)
-    def set_var(self, data: Any, /, *path: str) -> Any: return self.dd.set_var(data, *path)
-    def var_exists(self, *path: str) -> tuple[bool, str, Any]: return self.dd.var_exists(*path)
-
-    def set_var_user(self, data: Any, /, *path: str):
-        """*deprecated*"""
-        return self.dd.set_var_user(data, *path)
-
-    def eval_expr(self, expr: Any) -> Any: return eval_expr(self, expr)
-    def eval_expr_or_const(self, expr: Any) -> Any: return eval_expr_or_const(self, expr)
-
-    def eval_to_str(self, expr: Tree, name: str, allow_none: bool=False) -> str:
-        """Helper that makes sure you got a string back from an expression"""
-        rc = self.eval_expr(expr)
-        if rc is None and allow_none: return None
-        if not isinstance(rc, str):
-            raise VgrRuntimeError(expr, TypeError(f'{name} must be a string; found {poly_type(rc)!r}'))
-        return rc
-
-    def eval_filename_expr(self, expr: Any, allow_none: bool=False) -> str:
-        """Helper that gets a string that should be a relative filename"""
-        filename = self.eval_to_str(expr, 'File name', allow_none)
-        try:
-            return verify_relative_path(filename)
-        except OSError as e:
-            raise VgrRuntimeError(expr, e) from e
-
-    def eval_to_int(self, expr: Tree, name: str, allow_none: bool=False) -> int:
-        value = self.eval_expr(expr)
-        if value is None and allow_none: return None
-        if isinstance(value, (bool, int)): return int(value)
-        if isinstance(value, float):
-            if math.isfinite(value): return int(value)
-            raise VgrRuntimeError(expr, ValueError(f'Cannot convert {value!r} to an integer'))
-        if isinstance(value, str):
-            try:
-                if rc := str_to_int(value) is not None: return rc
-                raise VgrRuntimeError(expr, ValueError(f'Cannot convert {value!r} to an integer'))
-            except ValueError as e:
-                raise VgrRuntimeError(expr, str(e)) from e
-        raise VgrRuntimeError(expr, TypeError(f'{name} must be an integer; found {poly_type(value)!r}'))
-
-    def eval_to_number(self, expr: Tree, name: str, allow_none: bool=False):
-        """
-        Evaluate the expression to a number.
-        Ints and floats are returned as-is.
-        Strings are converted to numbers via str_to_number().
-        Booleans are converted to 0 or 1.
-        May return None, Inf, or Nan.
-        """
-        value = self.eval_expr(expr)
-        if value is None and allow_none: return None
-        if isinstance(value, bool): return int(value)
-        if isinstance(value, (int, float)): return value
-        if isinstance(value, str):
-            try:
-                if (rc := str_to_number(value)) is not None: return rc
-                raise VgrRuntimeError(expr, ValueError(f'Cannot convert {value!r} to a number'))
-            except ValueError as e:
-                raise VgrRuntimeError(expr, e) from e
-        raise VgrRuntimeError(expr, TypeError(f'{name} must be a number; found {poly_type(value)!r}'))
-
-    def eval_to_bool(self, expr: Tree, name: str, allow_none: bool=False) -> bool:
-        # TODO see other conv routines
-        rc = self.eval_expr(expr)
-        if rc is None and allow_none: return None
-        if isinstance(rc, (bool, int, float)): return bool(rc)
-        if isinstance(rc, str):
-            try:
-                return str_to_bool(rc)
-            except ValueError:
-                # Not, null, and not empty, so Python truthy
-                return True
-        raise VgrRuntimeError(expr, TypeError(f'{name} must be a boolean; found {poly_type(rc)!r}'))
-
-    def get_source(self, tree, end_tree = None) -> str:
-        return (SSM.source_for(tree, end_tree) or '').strip()
 
     @ExecContext.echo.setter
     def echo(self, v: bool):
         super(DefaultExecContext, DefaultExecContext).echo.__set__(self, v)
 
-    def echo_source(self, tree, end_tree = None) -> None:
-        if super().echo:
-            src = self.get_source(tree, end_tree)
-            src = src.splitlines()[0] if src else '--unknown--'
-            if super().verbose:
-                # prefix the source with file and line number
-                print_stderr(f'{SSM.current[0]}{SSM.source_location(tree)} :', src)
-            else:
-                # just the source
-                print_stderr(src)
-
     @ExecContext.debug.setter
     def debug(self, v: bool):
         super(DefaultExecContext, DefaultExecContext).debug.__set__(self, v)
-
-    def print_debug(self, *args, **kwargs) -> None:
-        if super().debug: print_stderr(*args, **kwargs)
 
     @ExecContext.verbose.setter
     def verbose(self, v: bool):
         super(DefaultExecContext, DefaultExecContext).verbose.__set__(self, v)
 
-    def print_verbose(self, *args, **kwargs) -> None:
-        if super().verbose: print_stderr(*args, **kwargs)
-
     def parse_expression(self, expr_text: str) -> Tree:
         # TODO push source here?
         # when we create it, we need to know the origin
         if expr_text and not expr_text.isspace():
-            expr = self._parser.parse(expr_text, start='expr')
+            expr = self.parser.parse(expr_text, start='expr')
             expr = ConstantsNormalizer().transform(expr)
             expr = VarRefOptimizer().transform(expr)
             expr = bind_operations(expr)
@@ -1212,7 +1114,6 @@ class DefaultExecContext(ExecContext):
         return None
 
     def execute_statements(self, statement_text: str, origin: str, start: str=None) -> None:
-        """Parse the text and execute the resulting statements"""
         if statement_text and not statement_text.isspace():
             SSM.push(origin, statement_text)
             # the <...> notation is used to indicate cmd line, stdin, etc
@@ -1221,7 +1122,7 @@ class DefaultExecContext(ExecContext):
             origin = '' if origin.startswith('<') and origin.endswith('>') else origin
             if origin: self._source_stack.insert(0, origin)
             try:
-                tree = self._parser.parse(statement_text, start=start or self._DEFAULT_PARSE_START)
+                tree = self.parser.parse(statement_text, start=start or self._DEFAULT_PARSE_START)
                 # NB: this assumes that a user provided "start" is a single statement
                 self.dispatch_statements(tree.children if start is None else [tree])
             except exceptions.LarkError as e:
@@ -1231,7 +1132,6 @@ class DefaultExecContext(ExecContext):
                 SSM.pop()
 
     def dispatch_statements(self, statements: Iterable[Tree]) -> None:
-        """Given a sequence of parsed statements dispatch them to their handler"""
         lookup = _STATEMENT_HANDLERS.__getitem__
         for statement in statements:
             statement = ConstantsNormalizer().transform(statement)
@@ -1253,11 +1153,34 @@ class DefaultExecContext(ExecContext):
                 raise e
             except KeyboardInterrupt as e:
                 print_stdout('')
-                raise VgrRuntimeError(statement, e) from e
+                raise self.wrap_error(statement, e) from e
             except Exception as e:
-                raise VgrRuntimeError(statement, e) from e
+                raise self.wrap_error(statement, e) from e
 
-    def print_tree(self, item: Any) -> None: print_tree(item)
+    def eval_expr_or_const(self, expr: Any) -> Any: return eval_expr_or_const(self, expr)
+
+    def eval_expr(self, expr: Any) -> Any: return eval_expr(self, expr)
+
+    def print_stderr(self, *args, **kwargs) -> None: print_stderr(*args, **kwargs)
+
+    def str_to_bool(self, string: str) -> bool: return str_to_bool(string)
+
+    def str_to_int(self, string: str) -> int: return str_to_int(string)
+
+    def str_to_number(self, string: str) -> Any: return str_to_number(string)
+
+    def type_name(self, value: Any) -> str: return poly_type(value)
+
+    def verify_relative_path(self, filename: str) -> str: return verify_relative_path(filename)
+
+    def wrap_error(self, item, error: Exception) -> Exception: return VgrRuntimeError(item, error)
+
+    def source_name(self) -> str: return SSM.current[0].removeprefix(os.path.join(os.getcwd(), ""))
+
+    def source_location(self, tree: Tree) -> str: return SSM.source_location(tree)
+
+    def get_source(self, tree, end_tree = None) -> str: return (SSM.source_for(tree, end_tree) or '').strip()
+
 
 def create_exec_context(parser: Lark, dd: DataDictionary) -> ExecContext:
     return DefaultExecContext(parser, dd)
