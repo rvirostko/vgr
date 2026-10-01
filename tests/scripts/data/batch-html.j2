@@ -1,0 +1,27 @@
+{%- if record_keys and record_data %}<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Records</title>
+<style>
+  table { border-collapse: collapse; }
+  th, td { border: 1pt solid #888; padding: 0.25em 0.75em; text-align: left; }
+  thead th { background: #eee; }
+</style>
+</head>
+<body>
+<table>
+{%- if include_headers %}
+  <thead>
+    <tr>{%- for key in record_keys %}<th scope="col">{{ key | stringify | e }}</th>{%- endfor %}</tr>
+  </thead>
+{%- endif %}
+  <tbody>
+  {%- for row in record_data %}
+    <tr>{%- for cell in row %}<td>{{ cell | stringify | e }}</td>{%- endfor %}</tr>
+  {%- endfor %}
+  </tbody>
+</table>
+</body>
+</html>
+{%- endif %}

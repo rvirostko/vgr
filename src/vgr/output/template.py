@@ -6,7 +6,7 @@ It can operate in either in record-by-record or batch mode.
 from importlib import resources as impresources
 from io import FileIO
 from typing import Any
-import inspect
+import os
 import sys
 
 from jinja2 import Environment, FileSystemLoader, Template, ChainableUndefined, DebugUndefined, StrictUndefined
@@ -98,8 +98,11 @@ class TemplateRecordWriter(FileRecordWriter):
                                 keep_trailing_newline=self.keep_last_newline,
                                 undefined=ChainableUndefined if self.chain_undefined else StrictUndefined,
                                 )
-        auto_register_filters(self._env, type(self))
-        if not self.template_filename: self.template_filename = 'batch.j2' if self._is_batch else 'record.j2'
+        self._auto_register_filters(self._env)
+        if self.template_filename:
+            self.template_filename = self.template_filename.removeprefix(os.path.join(os.getcwd(), ""))
+        else:
+            self.template_filename = 'batch.j2' if self._is_batch else 'record.j2'
         self._template = self._env.get_template(self.template_filename)
         super().start()
 
@@ -136,20 +139,21 @@ class TemplateRecordWriter(FileRecordWriter):
                 record_data=data
         ))
 
+    # Static methods starting with this prefix are registered
+    # with Jinja for templates to use.
+    # These are mostly for the benifit of the default templates.
+    _FILTER_PREFIX = '_filter_'
+
     @staticmethod
-    def filter_zip(seq1, seq2):
+    def _filter_zip(seq1, seq2):
         return zip(seq1 or [], seq2 or [])
 
     @staticmethod
-    def filter_stringify(obj: Any) -> str:
+    def _filter_stringify(obj: Any) -> str:
         return TemplateRecordWriter.stringify(obj)
 
-_FILTER_PREFIX = 'filter_'
-def auto_register_filters(env: Environment, cls):
-    for method_name in dir(cls):
-        if method_name.startswith(_FILTER_PREFIX):
-            method = getattr(cls, method_name)
-            if callable(method):
-                signature = inspect.signature(method)
-                if 0 < len(signature.parameters) <= 3:
-                    env.filters[method_name.removeprefix(_FILTER_PREFIX)] = method
+    @classmethod
+    def _auto_register_filters(cls, env: Environment):
+        for name in dir(cls):
+            if name.startswith(cls._FILTER_PREFIX) and callable(method := getattr(cls, name)):
+                env.filters[name.removeprefix(cls._FILTER_PREFIX)] = method

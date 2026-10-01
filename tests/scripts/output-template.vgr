@@ -18,3 +18,21 @@ Print bar
 Print NewLine, "Batch Template, Exclude Headers", NewLine, bar
 Select $rec-index As "№", $record As "Data", Type($record) As "Type" From data For Batch Template Exclude Headers
 Print bar
+
+Print NewLine, "Batch Template, All options Fasle", NewLine, bar
+Select $rec-index As "№", $record As "Data", Type($record) As "Type" From data
+    For Batch Template
+        Include Headers Is False
+        Auto Escape Is False
+        Trim Blocks Is False
+        Left Strip Blocks Is False
+        Keep Last Newline Is False
+        Chain Undefined Variables Is False
+Print bar
+
+Constant TEST_TEMPLATE Is DirectoryName(vgr.source[0]) + os.sep + "data" + os.sep + "batch-html.j2"
+
+Print NewLine, "Batch Template, HTML File", NewLine, bar
+Select $rec-index As "№", $record As "Data", Type($record) As "Type" From data
+    For Batch Template File TEST_TEMPLATE
+Print bar
