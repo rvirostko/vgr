@@ -8,7 +8,6 @@ from io import FileIO
 from typing import Any
 import inspect
 import sys
-import traceback
 
 from jinja2 import Environment, FileSystemLoader, Template, ChainableUndefined, DebugUndefined, StrictUndefined
 
@@ -129,17 +128,13 @@ class TemplateRecordWriter(FileRecordWriter):
         return True
 
     def _render(self, data: Any) -> None:
-        try:
-            self.print(
-                self._template.render(
-                    is_batch=self._is_batch,
-                    include_headers=self.include_headers,
-                    record_keys=self.headers,
-                    record_data=data
-            ))
-        except Exception as e:
-            traceback.print_exc(file=sys.stderr)
-            raise e
+        self.print(
+            self._template.render(
+                is_batch=self._is_batch,
+                include_headers=self.include_headers,
+                record_keys=self.headers,
+                record_data=data
+        ))
 
     @staticmethod
     def filter_zip(seq1, seq2):
