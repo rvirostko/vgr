@@ -3,15 +3,17 @@ A RecordWriter that uses Jinja2 to produce output.
 It can operate in either in record-by-record or batch mode.
 """
 
+from importlib import resources as impresources
 from io import FileIO
 from typing import Any
-import traceback
 import inspect
 import sys
+import traceback
 
 from jinja2 import Environment, FileSystemLoader, Template, ChainableUndefined, DebugUndefined, StrictUndefined
 
 from .base import FileRecordWriter
+from . import templates
 
 class TemplateRecordWriter(FileRecordWriter):
 
@@ -89,55 +91,8 @@ class TemplateRecordWriter(FileRecordWriter):
     def template_filename(self, filename: str) -> str:
         self._template_filename = filename or ''
 
-    _BATCH_DEFAULT_TEMPLATE = """{%- if record_keys and record_data -%}
-{%- set ns = namespace(fmt="",col_widths=[],bar="") -%}
-{%- set box = namespace(H="\u2500", V="\u2502", DR="\u250C", DL="\u2510", UR="\u2514", UL="\u2518", X="\u253C", T="\u252C", B="\u2534", L="\u251C", R="\u2524" ) -%}
-{%- set ns.col_widths = record_keys | map("stringify") | map("length") | list -%}
-{%- for row in record_data -%}
-    {% set data_widths = row | map("stringify") | map("length") | list -%}
-    {%- set t = [] %}{% for x, y in ns.col_widths | zip(data_widths) %}{% set _ = t.append([x, y] | max) %}{% endfor -%}
-    {%- set ns.col_widths = t -%}
-{%- endfor -%}
-{%- for w in ns.col_widths -%}
-    {%- set ns.fmt = ns.fmt ~ " " ~ box.V ~ " " ~ "{:<" ~ w ~ "." ~ w ~ "}" -%}
-{%- endfor -%}
-{%- set ns.fmt = (ns.fmt | trim) ~ " " ~ box.V -%}
-{%- set ns.bar = box.H * (ns.col_widths | max) -%}
-{%- set divider = record_keys | map("stringify") | map("truncate", 0, True, "", 0) | map("replace", "", ns.bar) | list -%}
-{%- set ns.bar = ns.fmt.format(*divider) | replace(" ", box.H) -%}
-{%- set st = box.V ~ box.H -%}
-{%- set md = box.H ~ box.V ~ box.H -%}
-{%- set ed = box.H ~ box.V  -%}
-{{ ns.bar | replace(md, box.H ~ box.T ~ box.H) | replace(st, box.DR ~ box.H) | replace(ed, box.H ~ box.DL) }}
-{%- if include_headers %}
-{{ ns.fmt.format(*record_keys | map("stringify")) }}
-{{ ns.bar | replace(md, box.H ~ box.X ~ box.H) | replace(st, box.L ~ box.H) | replace(ed, box.H ~ box.R) }}
-{%- endif %}
-{% for row in record_data -%}
-    {{ ns.fmt.format(*row | map("stringify")) }}
-{% endfor -%}
-{{ ns.bar | replace(md, box.H ~ box.B ~ box.H) | replace(st, box.UR ~ box.H) | replace(ed, box.H ~ box.UL) }}
-{% endif %}"""
-
-    _DEFAULT_TEMPLATE = """{%- if record_keys and record_data %}
-{%- set ns = namespace(fmt="",key_width=0,data_width=0,bar="") -%}
-{%- set box = namespace(H="\u2500", V="\u2502", DR="\u250C", DL="\u2510", UR="\u2514", UL="\u2518", X="\u253C", T="\u252C", B="\u2534", L="\u251C", R="\u2524" ) -%}
-{% set key_width = record_keys | map("stringify") | map("length") | max -%}
-{% set data_width = record_data | map("stringify") | map("length") | max -%}
-{%- set ns.fmt = box.V ~ " {:<" ~ key_width ~ "." ~ key_width ~ "} " ~ box.V ~ " {:<" ~ data_width ~ "." ~ data_width ~ "} " ~ box.V -%}
-{%- set ns.bar = ns.fmt.format(box.H * key_width, box.H * data_width) | replace(" ", box.H) -%}
-{%- set st = box.V ~ box.H -%}
-{%- set md = box.H ~ box.V ~ box.H -%}
-{%- set ed = box.H ~ box.V  -%}
-{{ ns.bar | replace(md, box.H ~ box.T ~ box.H) | replace(st, box.DR ~ box.H) | replace(ed, box.H ~ box.DL) }}
-{% for key, data in record_keys | zip(record_data) -%}
-{{ ns.fmt.format(key | stringify , data | stringify) }}
-{% endfor -%}
-{{ ns.bar | replace(md, box.H ~ box.B ~ box.H) | replace(st, box.UR ~ box.H) | replace(ed, box.H ~ box.UL) }}
-{% endif %}"""
-
     def start(self) -> None:
-        self._env = Environment(loader=FileSystemLoader('.'),
+        self._env = Environment(loader=FileSystemLoader(['.', str(impresources.files(templates))]),
                                 autoescape=self.auto_escape,
                                 trim_blocks=self.trim_blocks,
                                 lstrip_blocks=self.lstrip_blocks,
@@ -145,18 +100,14 @@ class TemplateRecordWriter(FileRecordWriter):
                                 undefined=ChainableUndefined if self.chain_undefined else StrictUndefined,
                                 )
         auto_register_filters(self._env, type(self))
-        t = None
-        if self._template_filename:
-            t = self._env.get_template(self._template_filename)
-        else:
-            t = self._env.from_string(self._BATCH_DEFAULT_TEMPLATE if self._is_batch else self._DEFAULT_TEMPLATE)
-        self._template = t
+        if not self.template_filename: self.template_filename = 'batch.j2' if self._is_batch else 'record.j2'
+        self._template = self._env.get_template(self.template_filename)
         super().start()
 
     def finish(self):
         try:
             if self._is_batch:
-                # finally render all the records
+                # finally render the accumulated records
                 try:
                     self._render(self._batch_data)
                 finally:
