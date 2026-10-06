@@ -1,0 +1,60 @@
+load_from: "Load"i var_name (_from | "With"i) _file_option? expr _options_list{load_from_opts}
+?load_from_opts: encoding
+    |            ("Type"i "Is"i?)? load_source_type
+    |            giving_clause                      -> giving
+load_source_type: load_csv                          -> csv_file
+    |             load_excel                        -> excel_file
+    |             "HCL"i                            -> hcl_file
+    |             "INI"i                            -> ini_file
+    |             "JSON"i "Object"i?                -> json_object
+    |             "JSON"i "Object"i? "Per"i "Line"i -> json_objects
+    |             "Text"i                           -> text_file
+    |             load_text_lines                   -> text_lines
+    |             "YAML"i                           -> yaml_file
+
+load_csv: "CSV"i _options_list{csv_read_option}
+    |        "Delimiter"i _character_option? option_value  -> delimiter       // char, separator between values
+    |        "Quote"i     _character_option  option_value  -> quote_char      // char, quoting character
+    |        "Escape"i    _character_option  option_value  -> escape_char     // char, character used to escape special meaning
+    |        "Line"i "Terminator"i           option_value  -> line_terminator // string, defines line/row end
+    |        "Quoting"i "Style"i             option_value  -> quoting         // TODO used here?
+    // TODO others?
+
+load_excel: "Excel"i _options_list{excel_read_option}
+?excel_read_option: "Headers"i                      option_value   -> headers        // see below
+    |               "Range"i                        option_value   -> named_range    // string, "Second_Qtr"
+    |               ("Row"i | "Rows"i)              option_value   -> row_range      // string, "5" or "5:95"
+    |               ("Columns"i | "Columns"i)       option_value   -> column_range   // string, "B" or "B:H"
+    |               ("Cell"i | "Cells"i)            option_value   -> cell_range     // string, "B5" or "B5:H95"
+    |               "Sheet"i                        option_value   -> sheet          // integer index or string name
+    |               "Include"i "Hidden"i "Rows"i    option_value?  -> hidden_rows    // boolean, default is False
+    |               "Include"i "Hidden"i "Columns"i option_value?  -> hidden_columns // boolean, default is False
+    |               "Blank"i                        option_value   -> blank          // ordinal, default is None
+    |               "Dates"i                        option_value   -> date_mode      // string, "numeric" or "text"
+    |               "Calculated"i "Values"i         option_value   -> formula_mode   // string, "value", "formula", or "blank"/"none", default is "value"
+
+// Headers -
+// - omitted - from first row of data, dictionary entries created
+// - None - lists are generated, not dictionaries
+// - [...] - literal headers to use. If excess, ignored; if short padded with "col_<value>".
+
+// Blank -
+// - None - Use None, the default
+// - ordinal value - use none for a blank cell
+
+// Calculated Values -
+// - None - Use None
+// - Value - Use the cached value, the default
+// - Formula - Use text version of the formula
+// - Blank - Use value from "Blank" (or None if not specified)
+
+load_text_lines: "Text"i? "Lines"i _options_list{text_lines_read_option}
+?text_line_read_option: "Keep"i "Terminator"i     option_value?  -> keep_terminator  // boolean, defaults to False
+    |                   "Line"i "Terminator"i     option_value   -> line_terminator  // string or regex, defaults to r/\r?\n/
+    |                   "Strip"i                  option_value   -> strip            // string/regex, remove leading and trailing values, default to None
+    |                   "Strip"i "Leading"i       option_value   -> strip_leading    // string/regex, remove leading value, default to None
+    |                   "Strip"i "Trailing"i      option_value   -> strip_trailing   // string/regex, remove trailing value, default to None
+    |                   "Skip"i "Blank"i "Lines"i option_value?  -> skip_blank_lines // boolean, default to False
+    |                   "Comment"i "Prefix"i      option_value   -> comment_prefix   // string/regex, removes comment lines
+    |                   "Matching"i               expr           -> matching         // line retained if matching
+    |                   "Not"i "Matching"i        expr           -> not_matching     // line retained if not matching
