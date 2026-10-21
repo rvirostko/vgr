@@ -97,11 +97,11 @@ def poly_parse_int(x: Any=None, base: Any=10) -> Any:
 **Convert a non-numeric value into an integer**
 
 * ParseInt(*value*)
-* ParseInt(*value*, _base_)
+* ParseInt(*value*, *base*)
 * *value*.ParseInt()
-* *value*.ParseInt(_base_)
+* *value*.ParseInt(*base*)
 
-The default base is decimal.
+The default base is *10*.
 
 ```vgr
 None.ParseInt() → None
