@@ -1,0 +1,101 @@
+# Validates For Each iterating over a shallow clone of the container.
+#   A  iteration over lists and dicts (data-driven)
+#   B  list: appends mid-loop are not visited, no runaway loop
+#   C  list: removes mid-loop do not shorten the visit sequence
+#   D  dict: adds mid-loop are not visited
+#   E  dict: removes mid-loop do not shorten the visit sequence
+#   F  element mutation is visible through the original container
+#   G  Break stops iteration
+#   H  loop variable shadows an outer variable and leaves it intact
+
+# --- A: plain iteration, data-driven ---------------------------------
+Set cases To [
+    {"name": "none",       "data": None,               "expect": None},
+    {"name": "empty list", "data": [],                 "expect": None},
+    {"name": "item",       "data": "foo",              "expect": ["foo"]},
+    {"name": "list",       "data": [10, 20, 30],       "expect": [10, 20, 30]},
+    {"name": "dict elems", "data": {"a": 1, "b": 2},   "expect": [["a", 1], ["b", 2]]}
+]
+For Each case In cases
+    Set visited To None
+    For Each item In case.data
+        Append item To List visited
+    Next
+    Assert visited == case.expect: "A({}): visited {}", case.name, visited
+Next
+
+# --- B: list append during iteration ---------------------------------
+Set nums To [1, 2, 3]
+Set nums_id To Id(nums)
+Set visited To None
+For Each n In nums
+    Append n To List visited
+    Append n * 10 To List nums
+Next
+Assert visited == [1, 2, 3]: "B: visited {}", visited
+Assert nums == [1, 2, 3, 10, 20, 30]: "B: container is {}", nums
+Assert Id(nums) == nums_id: "B: container was rebound"
+
+# --- C: list remove during iteration (a later element, then the current one)
+Set nums To [1, 2, 3, 4]
+Set visited To None
+For Each n In nums
+    Append n To List visited
+    Choose Using n
+        When 1 Remove Index nums.IndexOf(3) From List nums
+        When 2 Remove Index nums.IndexOf(2) From List nums
+    End-Choose
+Next
+Assert visited == [1, 2, 3, 4]: "C: visited {}", visited
+Assert nums == [1, 4]: "C: container is {}", nums
+
+# --- D: dict add during iteration ------------------------------------
+Set d To {"a": 1, "b": 2}
+Set visited To None
+For Each item In d
+    Assign item[0] To key, item[1] To value
+    Append key To List visited
+    Set Key key + "_copy" In d To value
+Next
+Assert visited == ["a", "b"]: "D: visited {}", visited
+Assert d == {"a": 1, "b": 2, "a_copy": 1, "b_copy": 2}: "D: dict is {}", d
+
+# --- E: dict remove during iteration (a later key, then the current one)
+Set d To {"a": 1, "b": 2, "c": 3}
+Set visited To None
+For Each item In d
+    Assign item[0] To key
+    Append key To List visited
+    Choose Using key
+        When "a" Remove Key "c" From d
+        When "b" Remove Key "b" From d
+    End-Choose
+Next
+Assert visited == ["a", "b", "c"]: "E: visited {}", visited
+Assert d == {"a": 1}: "E: dict is {}", d
+
+# --- F: element mutation reaches the original (shallow clone) --------
+Set rows To [{"id": 1, "seen": False}, {"id": 2, "seen": False}]
+For Each row In rows
+    Set Key "seen" In row To True
+Next
+Assert rows == [{"id": 1, "seen": True}, {"id": 2, "seen": True}]: "F: rows {}", rows
+
+# --- G: Break ---------------------------------------------------------
+Set nums To [1, 2, 3, 4]
+Set visited To None
+For Each n In nums
+    Append n To List visited
+    If n == 2 -> Break
+Next
+Assert visited == [1, 2]: "G: visited {}", visited
+
+# --- H: loop variable shadows, outer survives -------------------------
+Assert $loop Is Not Defined
+Set n To "outer"
+For Each n In [1, 2]
+    Assert $loop Is Defined
+    Assert n != "outer": "H: outer value leaked into loop"
+Next
+Assert n == "outer": "H: outer variable became {}", n
+Assert $loop Is Not Defined
