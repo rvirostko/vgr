@@ -106,19 +106,28 @@ types of the two values match. No conversions are performed.
 
 Also see the `==` and `!=` operators
 """
-    # None is only equal to itself
-    if x is None: return y is None
-    if y is None: return False
     tx = type(x)
     ty = type(y)
     if tx != ty: return False
-    # Nan is only equal to itself, so reuse equals logic
-    if tx == float and math.isnan(x): return poly_eq(x, y)
-    override = _overrides.get((tx, ty))
-    try:
-        return override(poly_exact_eq, x, y) if override else x == y
-    except TypeError as e:
-        raise _type_error(x, y) from e
+    # Nan is only equal to itself
+    if tx == float and math.isnan(x): return math.isnan(y)
+    if tx == list:
+        if len(x) != len(y): return False
+        for pair in zip(x, y):
+            if not poly_exact_eq(pair[0], pair[1]): return False
+        return True
+    elif tx == dict:
+        x_keys = set(x.keys())
+        y_keys = set(y.keys())
+        if x_keys != y_keys: return False
+        for key in x_keys:
+            if not poly_exact_eq(x[key], y[key]): return False
+        return True
+    else:
+        try:
+            return x == y
+        except TypeError as e:
+            raise _type_error(x, y) from e
 
 @bound_ops("Is Not Equal To", "!=", "≠", "<>", "¬=")
 @builtin("IsNotEqualTo")
