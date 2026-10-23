@@ -130,14 +130,15 @@ to a number. It can be any value, including `None`.
 **TODO**
 ```
 """
-    if isinstance(x, (bool, int, float)): return float(x)
-    if poly_is_string(x):
+    if isinstance(x, (bool, int, float)):
+        return float(x)
+    elif isinstance(x, str):
         try:
-            return float(str_to_number(x))
+            if (v := str_to_number(x)) is not None: return float(v)
         except ValueError as e:
             if default is _SENTINEL: raise e
-            return default
-    if isinstance(x, list): return list(poly_to_float(x1, default) for x1 in x)
+    elif isinstance(x, list):
+        return list(poly_to_float(x1, default) for x1 in x)
     return None if default is _SENTINEL else default
 
 @builtin("IsFloat")
@@ -178,13 +179,18 @@ to a number. It can be any value, including `None`.
 **TODO**
 ```
 """
-    if isinstance(x, (bool, int, float)): return int(x)
-    if isinstance(x, str):
+    # TODO we can't just use int() because we need to
+    # deal with inf and nan, both which should look to the default value
+    if isinstance(x, (bool, int, float)):
+        return int(x)
+    elif isinstance(x, str):
         try:
+            # TODO same inf/nan check here
             if (v := str_to_number(x)) is not None: return int(v)
         except ValueError as e:
             if default is _SENTINEL: raise e
-    if isinstance(x, list): return list(poly_to_integer(x1, default) for x1 in x)
+    elif isinstance(x, list):
+        return list(poly_to_integer(x1, default) for x1 in x)
     return None if default is _SENTINEL else default
 
 @builtin("IsInteger")
