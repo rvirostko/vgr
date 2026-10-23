@@ -1,0 +1,49 @@
+Echo On
+
+Constant neg_inf = ToFloat("-inf")
+
+# --- 1. Parseable str x str (=== is type-exact) ------------------------
+Assert ("3" * "4") === 12
+Assert ("3.5" * "2") === 7.0
+Assert ("-3" * "4") === -12
+Assert ("0" * "5") === 0
+Assert ("007" * "2") === 14
+Assert ("1e3" * "2") === 2000
+Assert (" 3 " * "2") === 6
+Assert ("1_0" * "2") === 20
+Assert ("1_000.5" * "2") === 2001.0
+
+# --- 2. nan / inf spelled as strings -----------------------------------
+Assert ("nan" * "2") === nan
+Assert ("inf" * "2") === inf
+Assert ("-inf" * "2") === neg_inf
+Assert ("infinity" * "2") === inf
+Assert ("inf" * "0") === 0
+Assert ("1e999" * "1") === inf             # overflow on parse
+
+# --- 3. Mixed str x number ---------------------------------------------
+Assert ("3" * 4) === "3333"
+Assert (4 * "3") === "3333"
+Assert ("3.5" * 2) === "3.53.5"
+Assert ("ab" * 3) === "ababab"
+Assert (3 * "ab") === "ababab"
+Assert ("ab" * 0) === ""
+Assert ("ab" * -1) === ""
+
+# --- 4. None interaction -----------------------------------------------
+Assert (None * "3") === ""
+Assert ("3" * None) === ""
+Assert (None * None) === None
+Assert (None * "ab") === ""
+Assert ("ab" * None) === ""
+
+# --- 5. Varargs edge cases ---------------------------------------------
+Assert Mul("5") === "5"
+Assert Mul("2", "3", "4").IsString() # because end up being 6 * "4"
+
+# --- 6. Reference: numeric behavior ------------------------------------
+Assert (3 * 4) === 12
+Assert (None * 3) === 0
+Assert (3 * None) === 0
+Assert Mul(2, None, 3) === 0
+Assert Mul(2.0, inf, 3) === inf
