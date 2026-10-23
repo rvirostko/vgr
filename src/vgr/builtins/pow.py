@@ -57,7 +57,7 @@ None ** "5" → 0
     return reduce(_pow, args[1:], args[0]) if args else None
 
 def _pow(x: Any, y: Any) -> Any:
-    if math.isnan(x) or math.isnan(y): return math.nan
+    if isinstance(x, float) and math.isnan(x) or isinstance(y, float) and math.isnan(y): return math.nan
     operation = get_operation(x, y, pow_operations, numeric_operations)
     try:
         return operation(_pow, x, y) if operation else x ** y
