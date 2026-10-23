@@ -42,6 +42,7 @@
   in the header by using ":" prefixes/suffixes to indicate left/right
   alignment and both for centered. The ":" will be omitted from
   the actual header text.
+- Pow() and "**" return nan if either operand is nan
 
 ### Deprecated
 
