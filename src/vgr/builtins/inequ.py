@@ -367,7 +367,7 @@ Also see the `<` and `>=` operators
     # Nan is only equal to itself
     if tx == float and math.isnan(x): return ty == float and math.isnan(y)
     if ty == float and math.isnan(y): return False
-    override = _overrides.get((tx, y))
+    override = _overrides.get((tx, ty))
     try:
         return override(poly_le, x, y) if override else x <= y
     except TypeError as e:
