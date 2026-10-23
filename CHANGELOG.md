@@ -43,6 +43,12 @@
   alignment and both for centered. The ":" will be omitted from
   the actual header text.
 - Pow() and "**" return nan if either operand is nan
+- Mul() and "*" between strings now handled as a mathematical operation
+- Mul() and "*" with None operands treat the None as a zero in much
+  the same what as other operations. Only the None * None combination
+  still returns None. Additionally, multiplying a regular expression
+  creates multiple copies of it, similar to how multiplication of
+  a number by a string is handled (string repetition).
 
 ### Deprecated
 
