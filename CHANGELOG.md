@@ -75,6 +75,7 @@
 - Fixed error in "Sleep" when a whole number is requested and "Verbose" is on
 - Fixed error in "Select" with Template file specified with full path
 - Fixed error with === where type conversion was permitted in lists and dictionaries.
+- Operators and inequality functions: nan <=/>= nan did not follow == semantics
 
 ### Security
 

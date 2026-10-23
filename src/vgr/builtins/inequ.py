@@ -362,7 +362,12 @@ Also see the `<` and `>=` operators
     # None is less than everything or equal to itself
     if x is None: return True
     if y is None: return False
-    override = _overrides.get((type(x), type(y)))
+    tx = type(x)
+    ty = type(y)
+    # Nan is only equal to itself
+    if tx == float and math.isnan(x): return ty == float and math.isnan(y)
+    if ty == float and math.isnan(y): return False
+    override = _overrides.get((tx, y))
     try:
         return override(poly_le, x, y) if override else x <= y
     except TypeError as e:
@@ -423,7 +428,12 @@ Also see the `>` and `<=` operators
     # Everything is greater than None and it is equal to itself
     if x is None: return y is None
     if y is None: return True
-    override = _overrides.get((type(x), type(y)))
+    tx = type(x)
+    ty = type(y)
+    # Nan is only equal to itself
+    if tx == float and math.isnan(x): return ty == float and math.isnan(y)
+    if ty == float and math.isnan(y): return False
+    override = _overrides.get((tx, ty))
     try:
         return override(poly_ge, x, y) if override else x >= y
     except TypeError as e:
