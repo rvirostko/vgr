@@ -1,0 +1,258 @@
+# This is based on text found at https://eev.ee/blog/2012/04/09/php-a-fractal-of-bad-design/
+# which enumerates the author's issues with PHP interal inconsistencies.
+#
+# Issues in the text are, where appropriate, replicated in VGR script to show
+# the behavior and explain VGR's behavior.
+#
+# The goal is neither to be like PHP nor to have behavior matching the author's
+# desire, but to discover and address issues that a script author may find astonishing.
+
+# Operators
+# == is useless.
+# It’s not transitive. "foo" == TRUE, and "foo" == 0… but, of course, TRUE != 0.
+Assert "foo" == TRUE                   # VGR: follows truthiness rules of a string
+Assert ("foo" == 0) == FALSE           # VGR: string comparison, zero cast to string
+Assert TRUE != 0                       # VGR: boolean comparison, zero cast to boolean
+
+# == converts to numbers when possible (123 == "123foo"… although "123" != "123foo"),
+# which means it converts to floats when possible.
+Assert (123 == "123foo") == FALSE      # VGR: "123foo" is NOT convertable to a number, so it is a string comparison
+
+# So large hex strings (like, say, password hashes) may occasionally
+# compare true when they’re not. Even JavaScript doesn’t do this.
+# NB- no PHP example provided by author
+
+# For the same reason, "6" == " 6", "4.2" == "4.20", and "133" == "0133".
+Assert ("6" == " 6") == FALSE          # VGR: string comparison becuase of first operator
+Assert ("4.2" == "4.20") == FALSE      # VGR: string comparison becuase of first operator
+Assert ("133" == "0133") == FALSE      # VGR: string comparison becuase of first operator
+Assert 6 == " 6"                       # VGR: when asked to compare a string/number combination,
+Assert " 6" == 6                       #      we first try to convert the string to a number and
+Assert 4.2 == "4.20"                   #      then compare the result. If it cannot be converted,
+Assert "4.20" == 4.2                   #      the number is converted to a string and then
+Assert 133 == "0133"                   #      the comparison is performed. This preserves
+Assert "0133" == 133                   #      the transience of inequalities.
+
+# But note that 133 != 0133, because 0133 is octal.
+Assert 133 == 0133                     # VGR: both are decimal values
+Assert 133 != 0o133                    # VGR: second operand is octal representation
+
+# But "0x10" == "16"
+Assert ("0x10" == "16") == FALSE       # VGR: string comparison
+Assert (16 == "0x10") == FALSE         # VGR: only implicit decimal conversion
+Assert "0x10".ParseHex() == "16"       # VGR: explicit parsing
+# and "1e3" == "1000"!
+Assert ("1e3" == "1000") == FALSE      # VGR: string comparison
+Assert 1000 == "1e3"                   # VGR: implicit cast to a number
+Assert "1e3".ToFloat() == "1000"       # VGR: explicit cast
+
+# === compares values and type… except with objects, where === is only true if both operands
+# are actually the same object! For objects, == compares both value (of every attribute) and type,
+# which is what === does for every other type. What.
+Assert [0] == ["0"]                    # VGR: length and elements are equivalent
+Assert ([0] === ["0"]) == FALSE        # VGR: should use === on the elements within
+
+# Comparison isn’t much better.
+# It’s not even consistent: NULL < -1, and NULL == 0.
+Assert Null < -1                       # VGR: None is smaller than (most) anything
+Assert (Null == 0) == FALSE            # VGR: Null/None only equal to itself
+Assert (0 == Null) == FALSE
+Assert (Null == FALSE) == FALSE
+Assert (False == Null) == FALSE
+
+# Sorting is thus nondeterministic; it depends on the order in which the sort algorithm happens
+# to compare elements.
+Assert [0, "0", 1].Sort() == [0, "0", 1] # VGR: heterogeneous stable, but can be unpredictable when there
+Assert ["0", 0, 1].Sort() == ["0", 0, 1] #      are are equivalent but not identical strings and numbers
+
+# The comparison operators try to sort arrays, two different ways:
+# first by length, then by elements. If they have the same number of elements but different sets of keys,
+# though, they are uncomparable.
+# VGR: can only compare dictionaries for equality, not </> et al
+
+# Objects compare as greater than anything else… except other objects,
+# which they are neither less than nor greater than.
+# VGR: not applicable
+
+# For a more type-safe ==, we have ===.
+Assert 123 == "123"                    # VGR: second operand converted to an integer
+Assert (123 === "123") == False        # VGR: requires both type and value match
+
+# For a more type-safe <, we have… nothing. "123" < "0124", always, no matter what you do.
+Assert ("123" < "0124") == FALSE       # VGR: both operands are strings, so string comparison performed
+Assert 123 < "0124"                    # VGR: numeric comparison as first operand is numeric and second can be converted to an integer
+
+# Casting doesn’t help, either.
+Assert "123".ToInteger() < "0124".ToInteger() # VGR: explicit casts work as expected
+
+# Despite the craziness above, and the explicit rejection of Perl’s pairs of string and numeric operators,
+# PHP does not overload +. + is always addition, and . is always concatenation.
+Assert (5 + 6) == 11                   # VGR: plus as addition
+Assert (5 + "6") == 11                 # VGR: addition because first operand is numeric
+Assert ("5" + 6) == "56"               # VGR: concatenation because first operand is a string
+Assert ("5" + "6") == "56"             # VGR: plus as concatenation (strings, arrays, dictionaries)
+
+# The [] indexing operator can also be spelled {}.
+# VGR: not applicable, {} is a dictionary
+
+# [] can be used on any variable, not just strings and arrays. It returns null and issues no warning.
+Assert Null[0] == Null                 # VGR: anything can be treated as a list
+Assert 123[0] == 123                   # VGR: same as above
+
+# [] cannot slice; it only retrieves individual elements.
+Assert "foo"[0:1] == "f"               # VGR: slicing as per Python semantics
+Assert "fox"[:1] == "f"
+Assert "fox"[::1] == "fox"
+Assert "fox"[::-1] == "xof"
+
+# foo()[0] is a syntax error. (Fixed in PHP 5.4.)
+Assert Upper("foo")[0] == 'F'          # VGR: indexing treated like a function
+Assert Upper("foo")[:1] == 'F'         # VGR: slicing treated like a function
+
+# Unlike (literally!) every other language with a similar operator, ?: is left associative. So this:
+Set x = 'T';
+Set vehicle = ( ( x == 'B' ) ? 'bus' :
+                ( x == 'A' ) ? 'airplane' :
+                ( x == 'T' ) ? 'train' :
+                ( x == 'C' ) ? 'car' :
+                ( x == 'H' ) ? 'horse' :
+                'feet' );
+# prints horse.
+Assert vehicle == "train"                          # VGR: ?: is left associative
+
+# Variables
+# There is no way to declare a variable.
+Assert glob1 Is Not Defined
+Declare glob1
+Assert glob1 Is Defined
+
+# Variables that don’t exist are created with a null value when first used.
+Unset glob1; Assert glob1 Is Not Defined           # VGR: variable no longer exists
+Assert glob1 === None                              # VGR: when referenced its value is None
+Assert glob1 Is Not Defined                        # VGR: but it is not created by referencing
+# VGR: With Add, Subtract, Append, Remove, et al, the undefined value will be zero, [], or {}
+#      This is because the variable is an lvalue, not an rvalue as above
+Add 1 To glob1
+Assert glob1 Is Defined
+Assert glob1 === 1
+# VGR: The in-place versions of set work similarly
+Unset glob1
+Set glob1 += "frog"
+Assert glob1 == "frog"
+# VGR: And the same for key mutations
+Unset glob1
+Set Key "frog" In glob1 To TRUE
+Assert glob1 === {"frog": TRUE}
+Unset glob1
+Remove Key "frog" From glob1
+Assert glob1 Is Undefined                          # VGR: this lacks symmetry with other rvalue usage
+
+# Global variables need a global declaration before they can be used.
+# This is a natural consequence of the above, so it would be perfectly reasonable,
+# except that globals can’t even be read without an explicit declaration—
+# PHP will quietly create a local with the same name, instead.
+# I’m not aware of another language with similar scoping issues.
+# TODO global/local scope in VGR needs review
+
+# There are no references. What PHP calls references are really aliases;
+# there’s nothing that’s a step back, like Perl’s references, and there’s
+# no pass-by-object identity like in Python.
+# VGR: No aliases/references like PHP or Perl, but we follow Python behavior
+#
+# Python pass-by-object identity:
+# def append_item(items):
+#    items.append(4)
+# numbers = [1, 2, 3]
+# append_item(numbers)
+# print(numbers)  # [1, 2, 3, 4]
+Define Function append_item(items)
+    Append 4 To List items
+End-Function
+Set numbers To [1, 2, 3]
+Call append_item(numbers)
+Assert numbers === [1, 2, 3, 4]
+
+# Python "rebinding":
+# def replace_list(items):
+#    items = [4, 5, 6]
+# numbers = [1, 2, 3]
+# replace_list(numbers)
+# print(numbers)  # [1, 2, 3]
+Define Function replace_list(items)
+    Set items To [4, 5, 6]
+End-Function
+Set numbers To [1, 2, 3]
+Call replace_list(numbers)
+Assert numbers === [1, 2, 3]
+
+# “Referenceness” infects a variable unlike anything else in the language.
+# PHP is dynamically-typed, so variables generally have no type… except references,
+# which adorn function definitions, variable syntax, and assignment.
+# Once a variable is made a reference (which can happen anywhere), it’s stuck as a reference.
+# There’s no obvious way to detect this and un-referencing requires nuking the variable entirely.
+# VGR: does not apply
+
+# Okay, I lied. There are “SPL types” which also infect variables:
+# $x = new SplBool(true); $x = "foo"; will fail. This is like static typing, you see.
+# VGR: does not apply
+
+# A reference can be taken to a key that doesn’t exist within an undefined variable (which becomes an array).
+# Using a non-existent array normally issues a notice, but this does not.
+# VGR: does not apply
+
+# Constants are defined by a function call taking a string;
+# before that, they don’t exist. (This may actually be a copy of Perl’s use constant behavior.)
+Constant not_variable Is "not_variable"            # VGR: creation of constant by keyword
+
+# Variable names are case-sensitive.
+Set a To 3, A To 5
+Assert (a == A) == FALSE
+Unset a, A
+
+# Function and class names are not. This includes method names, which makes camelCase a
+# strange choice for naming.
+assert TitleCase("foo") is equal to titlecase("foo")
+# VGR: keywords are also case independent, which is very handy (maybe?) for
+#      working in the REPL (is it?). Regardless, a large number of scripting language
+#      besides PHP, and more "formal" ones too, use case insensitive keywords and/or functions.
+
+# Constructs
+# array() and a few dozen similar constructs are not functions.
+# array on its own means nothing, $func = "array"; $func(); doesn’t work.
+
+# Array unpacking can be done with the list($a, $b) = ... operation. list() is function-like syntax just like array. I don’t know why this wasn’t given real dedicated syntax, or why the name is so obviously confusing.
+
+# (int) is obviously designed to look like C, but it’s a single token; there’s nothing called int in the language. Try it: not only does var_dump(int) not work, it throws a parse error because the argument looks like the cast operator.
+# (integer) is a synonym for (int). There’s also (bool)/(boolean) and (float)/(double)/(real).
+
+# There’s an (array) operator for casting to array and an (object) for casting to object. That sounds nuts, but there’s almost a use: you can use (array) to have a function argument that’s either a single item or a list, and treat it identically. Except you can’t do that reliably, because if someone passes a single object, casting it to an array will actually produce an array containing that object’s attributes. (Casting to object performs the reverse operation.)
+# include() and friends are basically C’s #include: they dump another source file into yours. There is no module system, even for PHP code.
+# There’s no such thing as a nested or locally-scoped function or class. They’re only global. Including a file dumps its variables into the current function’s scope (and gives the file access to your variables), but dumps functions and classes into global scope.
+
+# Appending to an array is done with $foo[] = $bar.
+# echo is a statement-y kind of thing, not a function.
+# VGR: Print/Printf are decidely statements. The Terminal and Select statements also produce output.
+#      No built-in function by itself produces output.
+
+# empty($var) is so extremely not-a-function that anything but a variable, e.g. empty($var || $var2),
+# is a parse error. Why on Earth does the parser need to know about empty? (Fixed in 5.5.)
+Assert "".IsEmpty()                                # VGR: IsEmpty() is polymorphic, but primarily works with string, list, dictionary
+Assert IsEmpty(" ".Strip())                        # VGR: as a function, it works with expressions
+
+# There’s redundant syntax for blocks: if (...): ... endif;, etc.
+# while ($x < 3) {
+#    $x++;
+# }
+# while ($x < 3):
+#    $x++;
+# endwhile;
+# VGR has optional separator following the predicate, variants on the block-ending, including
+# omitting that entirely for statement guards
+Set x To Zero
+While x < 3:  Add 1 To x; End                      # VGR: optional colon/semi, generic end
+While x < 4   Add 1 To x  End-While                # VGR: colon/semi omitted, specific end
+If x < 5 :    Add 1 To x; End                      # VGR: optional colon/semi, generic end
+If x < 6 Then Add 1 To x  End                      # VGR: optional Then, generic end
+If x < 7      Add 1 To x  End-If                   # VGR: colon/Then omitted, specific end
+If x < 8 ->   Add 1 To x                           # VGR: single guard using "right arrow"
+Assert x == 8
