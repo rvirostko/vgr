@@ -266,11 +266,21 @@ def poly_sort(x: Any=None, unique: bool=False, reverse: bool=False) -> Any:
 **Sort lists and strings with unique and reverse**
 
 * Sort(*value*)
-* Sort(*value*, _unique_)
-* Sort(*value*, _unique_, _reverse_)
+* Sort(*value*, *unique*)
+* Sort(*value*, *unique*, *reverse*)
 * *value*.Sort()
-* *value*.Sort(_unique_)
-* *value*.Sort(_unique_, _reverse_)
+* *value*.Sort(*unique*)
+* *value*.Sort(*unique*, *reverse*)
+
+While `Sort()` as intended for use with strings and homogeneous lists,
+with `None` as the exception, it can work with hetrogeneous ones.
+Its ordering follows the semantics of `IsEqualTo()` and
+`IsLessThan()`. Generally, sorting is stable.
+
+With heterogeneous lists, the resulting order may return unexpected results
+when strings which can be parsed as numbers are intermixed with integers and floats.
+
+Lists of dictionaries cannot be sorted and will result in a type error.
 
 ```vgr
 None.Sort() → None
