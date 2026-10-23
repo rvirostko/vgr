@@ -1,0 +1,13 @@
+# --- Value errors
+Print ("ab" * "3")
+Print ("3" * "ab")
+Print ("ab" * "cd")
+Print ("3x" * "2")
+Print ("1 000" * "2")            # interior whitespace
+Print ("0x10" * "2")             # decimal values only
+
+# --- Blanks
+Print ("" * "3")
+Print (" " * "3")
+Print ("3" * "")
+Print ("" * "")

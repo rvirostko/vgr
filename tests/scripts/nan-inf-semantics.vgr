@@ -1,0 +1,154 @@
+# Defines and verifies nan and inf behavior.
+
+Define Function check(label, actual, expected)
+    Printf "{} -> {!r}\n", label, actual
+    Assert actual === expected:
+        "{}: got {!r}, expected {!r}", label, actual, expected
+End-Function
+
+# TODO general : we don't have a "-inf" and we don't have a uninary minus
+Constant neg_inf Is -1 * inf
+
+# --- 1. Equality and identity ------------------------------------------
+Call check("nan === nan",        (nan === nan),              True)
+Call check("nan == nan",         (nan == nan),               True)
+Call check("nan != nan",         (nan != nan),               False)
+Call check("inf === inf",        (inf === inf),              True)
+Call check("inf == inf",         (inf == inf),               True)
+Call check("-inf === -inf",      (neg_inf === neg_inf),      True)
+Call check("inf != -inf",        (inf != neg_inf),           True)
+Call check("nan != inf",         (nan != inf),               True)
+Call check("nan === None",       (nan === None),             False)
+Call check("inf === None",       (inf === None),             False)
+Call check("inf == 1",           (inf == 1),                 False)
+
+# --- 2. inf arithmetic (IEEE) ------------------------------------------
+Call check("inf + 1",            (inf + 1),                  inf)
+Call check("inf - 1",            (inf - 1),                  inf)
+Call check("1 - inf",            (1 - inf),                  neg_inf)
+Call check("inf + inf",          (inf + inf),                inf)
+Call check("inf - inf",          (inf - inf),                nan)
+Call check("inf * 2",            (inf * 2),                  inf)
+Call check("inf * -1",           (inf * -1),                 neg_inf)
+Call check("inf * 0",            (inf * 0),                  0)
+Call check("0 * inf",            (0 * inf),                  0)
+Call check("inf / inf",          (inf / inf),                nan)
+Call check("1 / inf",            (1 / inf),                  0.0)
+Call check("inf / 2",            (inf / 2),                  inf)
+
+# --- 3. Division by zero / None: keep going -> nan ---------------------
+Call check("1 / 0",              (1 / 0),                    nan)
+Call check("-1 / 0",             (-1 / 0),                   nan)      # IEEE would be -inf
+Call check("0 / 0",              (0 / 0),                    nan)
+Call check("inf / 0",            (inf / 0),                  nan)      # IEEE would be inf
+Call check("1 / None",           (1 / None),                 nan)      # None as zero
+Call check("-1 / None",          (-1 / None),                nan)      # None as zero
+Call check("inf / None",         (inf / None),               nan)      # None as zero
+
+# --- 4. nan propagation ------------------------------------------------
+Call check("nan + 1",            (nan + 1),                  nan)
+Call check("1 + nan",            (1 + nan),                  nan)
+Call check("nan + inf",          (nan + inf),                nan)
+Call check("inf + nan",          (inf + nan),                nan)
+Call check("nan - 1",            (nan - 1),                  nan)
+Call check("1 - nan",            (1 - nan),                  nan)
+Call check("nan - inf",          (nan - inf),                nan)
+Call check("inf - nan",          (inf - nan),                nan)
+Call check("nan * 1",            (nan * 1),                  nan)
+Call check("1 * nan",            (1 * nan),                  nan)
+Call check("nan * inf",          (nan * inf),                nan)
+Call check("inf * nan",          (inf * nan),                nan)
+Call check("nan / 1",            (nan / 1),                  nan)
+Call check("1 / nan",            (1 / nan),                  nan)
+Call check("nan / inf",          (nan / inf),                nan)
+Call check("inf / nan",          (inf / nan),                nan)
+
+# --- 5. None interaction (None is 0 beside a number) -------------------
+Call check("None + inf",         (None + inf),               inf)
+Call check("inf + None",         (inf + None),               inf)
+Call check("None - inf",         (None - inf),               neg_inf)
+Call check("inf - None",         (inf - None),               inf)
+Call check("None * inf",         (None * inf),               0)
+Call check("inf * None",         (inf * None),               0)
+Call check("None / inf",         (None / inf),               0.0)
+Call check("inf / None",         (inf / None),               nan)
+
+Call check("None + nan",         (None + nan),               nan)
+Call check("nan + None",         (nan + None),               nan)
+Call check("None - nan",         (None - nan),               nan)
+Call check("nan - None",         (nan - None),               nan)
+Call check("None * nan",         (None * nan),               nan)
+Call check("nan * None",         (nan * None),               nan)
+Call check("None / nan",         (None / nan),               nan)
+Call check("nan / None",         (nan / None),               nan)
+
+# --- 6. Ordering -------------------------------------------------------
+Constant big = Pow(10.0, 300), neg_big = -1 * big
+Call check("inf > big",          (inf > big),                True)
+Call check("-inf < -big",        (neg_inf < neg_big),        True)
+Call check("inf >= inf",         (inf >= inf),               True)
+Call check("inf <= inf",         (inf <= inf),               True)
+Call check("-inf >= -inf",       (neg_inf >= neg_inf),       True)
+Call check("-inf <= -inf",       (neg_inf <= neg_inf),       True)
+Call check("inf > inf",          (inf > inf),                False)
+Call check("inf < inf",          (inf < inf),                False)
+Call check("nan < 1",            (nan < 1),                  False)
+Call check("nan > 1",            (nan > 1),                  False)
+Call check("nan < inf",          (nan < inf),                False)
+Call check("nan < nan",          (nan < nan),                False)
+Call check("nan > inf",          (nan > inf),                False)
+Call check("nan > nan",          (nan > nan),                False)
+Call check("nan <= nan",         (nan <= nan),               True)     # follows == semantics
+Call check("nan >= nan",         (nan >= nan),               True)     # follows == semantics
+
+# --- 7. Containers and membership --------------------------------------
+Constant NAN_LIST_A = [nan, 1],
+         NAN_LIST_B = [nan, 1]
+Constant INF_LIST_A = [inf, neg_inf, 1],
+         INF_LIST_B = [inf, neg_inf, 1]
+Constant NAN_DICT_A = {"a": nan},
+         NAN_DICT_B = {"a": nan}
+Call check("nan in list nan",    (nan ∈ NAN_LIST_A),           True)
+Call check("nan in list inf",    (nan ∈ INF_LIST_A),           False)
+Call check("inf in list nan",    (inf ∈ NAN_LIST_A),           False)
+Call check("inf in list inf",    (inf ∈ INF_LIST_A),           True)
+Call check("None in list nan",   (None ∈ NAN_LIST_A),          False)
+Call check("None in list inf",   (None ∈ INF_LIST_A),          False)
+Call check("list nan",           (NAN_LIST_A === NAN_LIST_B),  True)
+Call check("dict nan",           (NAN_DICT_A === NAN_DICT_B),  True)
+Call check("list inf",           (INF_LIST_A === INF_LIST_B),  True)
+
+# --- 8. Math functions -------------------------------------------------
+Call check("Mul(2.0, inf, 3)",   Mul(2.0, inf, 3),             inf)
+Call check("Mul(2.0, nan, 3)",   Mul(2.0, nan, 3),             nan)
+Call check("Pow(inf, 0)",        Pow(inf, 0),                  1.0)      # IEEE 1.0
+Call check("Pow(inf, 3)",        Pow(inf, 3),                  inf)
+Call check("Pow(3, inf)",        Pow(3, inf),                  inf)
+
+Call check("Pow(-inf, 0)",        Pow(neg_inf, 0),             1.0)      # IEEE 1.0
+Call check("Pow(-inf, 2)",        Pow(neg_inf, 2),             inf)
+Call check("Pow(-inf, 3)",        Pow(neg_inf, 3),             neg_inf)
+Call check("Pow(3, -inf)",        Pow(3, neg_inf),             0.0)      # IEEE 0.0
+
+
+Call check("Pow(nan, 0)",        Pow(nan, 0),                  nan)
+Call check("Pow(nan, 3)",        Pow(nan, 3),                  nan)
+Call check("Pow(3, nan)",        Pow(3, nan),                  nan)
+Call check("inf.Clamp(0, 10)",   inf.Clamp(0, 10),             10)
+Call check("-inf.Clamp(0, 10)",  neg_inf.Clamp(0, 10),         0)
+Call check("nan.Clamp(0, 10)",   nan.Clamp(0, 10),             nan)
+
+# --- 9. String form ----------------------------------------------------
+Call check("fmt nan",            "{}".Format(nan),             "nan")
+Call check("fmt inf",            "{}".Format(inf),             "inf")
+Call check("fmt -inf",           "{}".Format(neg_inf),         "-inf")
+
+# --- 10. Sanitizing ----------------------------------------------------
+Call check("None.DefaultTo(0)",  None.DefaultTo(0),            0)      # show it only works with None
+Call check("nan.DefaultTo(0)",   nan.DefaultTo(0),             nan)
+Call check("inf.DefaultTo(0)",   inf.DefaultTo(0),             inf)    # inf is a value, not missing
+Call check("IsNan(nan)",         IsNan(nan),                   True)
+Call check("IsNan(inf)",         IsNan(inf),                   False)
+Call check("IsInf(inf)",         IsInf(inf),                   True)
+Call check("IsInf(-inf)",        IsInf(neg_inf),               True)
+Call check("IsInf(nan)",         IsInf(nan),                   False)
