@@ -16,7 +16,6 @@ from .builtins import (
     poly_format,
     poly_repr,
     poly_to_string,
-    poly_type,
 )
 from .dd_config import OFS_PATH, ORS_PATH
 from .md_print import md_println
@@ -252,7 +251,7 @@ string.whitespace = ' \\t\\n\\r\\x0b\\x0c'
 
 Also see `Print`, `Printf`, and `Repr()`
 """
-    def _ptype(x): return "<" + poly_type(x) + ">"
+    def _ptype(x): return "<" + ctx.type_name(x) + ">"
     verbose = ctx.verbose
     def _exhibit_value(name: str, value: Any) -> None:
         if isinstance(value, dict):

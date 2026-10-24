@@ -2,6 +2,7 @@
 from functools import lru_cache
 from typing import Any, Callable, Iterable
 import ast
+import copy
 import math
 import os
 import re
@@ -9,8 +10,17 @@ import unicodedata
 import warnings
 
 from lark import Lark, Tree, Token, Transformer, v_args, exceptions
+from lark.tree import Meta
 from lark.exceptions import VisitError
 
+from .ast_util import (
+    create_const_token,
+    create_meta,
+    create_path_token,
+    is_name_token,
+    is_var_ref,
+    VAR_REF,
+)
 from .app_exceptions import (
     BlockType,
     VgrException,
@@ -748,7 +758,7 @@ Also see `For Each`.
 # and the tokens MUST have uppercase names
 class ConstantsNormalizer(Transformer):
 
-    def transform(self, tree):
+    def transform(self, tree: Tree):
         try:
             return super().transform(tree)
         except VisitError as e:
@@ -757,26 +767,20 @@ class ConstantsNormalizer(Transformer):
             raise
 
     @v_args(tree=True)
-    def array(self, tree: Tree):
+    def array(self, tree: Tree) -> Tree:
         items = tree.children
         if not items:
-            meta = tree.meta
-            return Token('CONST', [], meta.start_pos, meta.line, meta.column,
-                         meta.end_line, meta.end_column, meta.end_pos)
+            return create_const_token([], tree.meta)
         if all(isinstance(child, Token) and child.type == "CONST" for child in items):
-            first, last = tree.children[0], tree.children[-1]
-            return Token('CONST', [child.value for child in items],
-                        first.start_pos, first.line, first.column,
-                        last.end_line, last.end_column, last.end_pos)
+            return create_const_token([child.value for child in items],
+                                      create_meta(tree.children[0]), create_meta(tree.children[-1]))
         return tree
 
     @v_args(tree=True)
-    def dict(self, tree: Tree):
+    def dict(self, tree: Tree) -> Tree:
         items = tree.children
         if not items:
-            meta = tree.meta
-            return Token('CONST', {}, meta.start_pos, meta.line, meta.column,
-                         meta.end_line, meta.end_column, meta.end_pos)
+            return create_const_token({}, tree.meta)
         if all(isinstance(child, Token) and child.type == "CONST" for child in items):
             positional_args = []
             for key_arg, value_arg in zip(items[0::2], items[1::2]):
@@ -785,10 +789,8 @@ class ConstantsNormalizer(Transformer):
                     raise VgrRuntimeError(key_arg, TypeError(f'Invalid type {poly_type(key)!r} for key'))
                 positional_args.append(key)
                 positional_args.append(value_arg.value)
-            first, last = tree.children[0], tree.children[-1]
-            return Token('CONST', build_dict(*positional_args),
-                        first.start_pos, first.line, first.column,
-                        last.end_line, last.end_column, last.end_pos)
+            return create_const_token(build_dict(*positional_args),
+                                      create_meta(tree.children[0]), create_meta(tree.children[-1]))
         return tree
 
     def STRING(self, token):
@@ -884,10 +886,7 @@ class ConstantsNormalizer(Transformer):
 
     def _const_tree(self, tree: Tree, value: Any):
         """The tree is replaced by a CONST value"""
-        meta = tree.meta
-        return Token('CONST', value,
-                     meta.start_pos, meta.line, meta.column,
-                     meta.end_line, meta.end_column, meta.end_pos)
+        return create_const_token(value, tree.meta)
 
     @staticmethod
     def normalize_outer_quotes(s: str) -> str:
@@ -951,18 +950,46 @@ class ConstantsNormalizer(Transformer):
 
 @v_args(tree=True)
 class VarRefOptimizer(Transformer):
-    """
-    Replaces deref(var_ref(NAME,...), NAME2) -> var_ref(NAME,...,NAME2)
-    This eliminates any derefs that are dotted paths from the root
-    """
-    def deref(self, tree):
-        if len(tree.children) == 2:
-            c1, c2 = tree.children
-            if isinstance(c1, Tree) and c1.data == 'var_ref':
-                if isinstance(c2, Token) and c2.type == 'NAME':
-                    c1.children.append(c2)
-                    tree = c1
+    def transform(self, tree: Tree):
+        """Transform the tree"""
+        try:
+            return super().transform(tree)
+        except VisitError as e:
+            if isinstance(e.orig_exc, VgrException): raise e.orig_exc
+            raise VgrRuntimeError(tree, e) from e
+
+    def deref(self, tree: Tree):
+        """Roles up var_ref/NAME combinations into a single var_ref"""
+        assert len(tree.children) == 2
+        c1, c2 = tree.children
+        if is_var_ref(c1) and is_name_token(c2):
+            c1.children[0].value += (c2.value, )
+            return c1
         return tree
+
+    def var_ref(self, tree: Tree):
+        """Validates the path component (a single NAME), converting it to a PATH"""
+        return self._make_var(tree, VAR_REF)
+
+    def var_name(self, tree: Tree):
+        """Validates path components (one or more NAMEs), converting it to a PATH"""
+        return self._make_var(tree, 'var')
+
+    def _make_var(self, tree: Tree, name:str):
+        path = list()
+        for token in tree.children:
+            if is_name_token(token):
+                step = token.value
+                if isinstance(step, str) and len(step) > 0 and not step.isspace():
+                    path.append(step)
+                else:
+                    raise VgrRuntimeError(token, ValueError(f'Invalid name component: {step!r}')) # pragma no cover
+            else:
+                raise VgrRuntimeError(token, ValueError(f'Expected NAME, found {token.type!r}')) # pragma no cover
+        meta = tree.meta
+        tokens = [ create_path_token(path, meta) ]
+        # TODO if tree type doesn't change, can we just change the children?
+        return Tree(name, tokens, meta=copy.deepcopy(meta))
 
 @control_statement # not really, but turns off echoing...
 def _exec_echo_on(ctx: ExecContext, statement: Tree) -> None: execute_echo(ctx, statement, True)
@@ -1124,7 +1151,12 @@ class DefaultExecContext(ExecContext):
             try:
                 tree = self.parser.parse(statement_text, start=start or self._DEFAULT_PARSE_START)
                 # NB: this assumes that a user provided "start" is a single statement
-                self.dispatch_statements(tree.children if start is None else [tree])
+                statements = list()
+                for statement in tree.children if start is None else [tree]:
+                    statement = ConstantsNormalizer().transform(statement)
+                    statement = VarRefOptimizer().transform(statement)
+                    statements.append(statement)
+                self.dispatch_statements(statements)
             except exceptions.LarkError as e:
                 raise VgrException(e, e, *SSM.current) from e
             finally:
@@ -1134,8 +1166,8 @@ class DefaultExecContext(ExecContext):
     def dispatch_statements(self, statements: Iterable[Tree]) -> None:
         lookup = _STATEMENT_HANDLERS.__getitem__
         for statement in statements:
-            statement = ConstantsNormalizer().transform(statement)
-            statement = VarRefOptimizer().transform(statement)
+#            statement = ConstantsNormalizer().transform(statement)
+#            statement = VarRefOptimizer().transform(statement)
             handler = lookup(statement.data)
             if handler in _CONTROL_STATEMENTS:
                 if self.debug: self.print_tree(statement)
@@ -1173,7 +1205,7 @@ class DefaultExecContext(ExecContext):
 
     def verify_relative_path(self, filename: str) -> str: return verify_relative_path(filename)
 
-    def wrap_error(self, item, error: Exception) -> Exception: return VgrRuntimeError(item, error)
+    def wrap_error(self, item, error: Exception) -> Exception: return error if isinstance(error, VgrRuntimeError) else VgrRuntimeError(item, error)
 
     def source_name(self) -> str: return SSM.current[0].removeprefix(os.path.join(os.getcwd(), ""))
 

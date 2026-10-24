@@ -13,8 +13,13 @@ from lark import (
     Visitor,
     v_args,
 )
-from lark.tree import Meta
 
+from .ast_util import (
+    VAR_REF,
+    is_name_token,
+    is_var_ref,
+    create_path_token,
+)
 from .app_exceptions import VgrRuntimeError
 from .builtins import (
     bound_ops,
@@ -34,7 +39,7 @@ from .data_xtract import (
     QueryFilter,
 )
 from .encoding import parse_encoding
-from .evaluate import bind_operations
+from .evaluate import bind_operations, _var_name_path
 from .exec_context import ExecContext
 from .output import (
     CSVRecordWriter,
@@ -71,30 +76,6 @@ _DTYPE = 'dtype' # the data file's type
 _ENCODING = 'encoding'# encoding used to read data file
 _DATA = 'data' # what we'll iterate over
 _SRC = 'src' # source context for errors
-
-def create_var_ref(statement, *names):
-    # Extract metadata from source statement
-    src_meta = statement.meta
-    # Create tokens with position info
-    tokens = [
-        Token('NAME', name,
-              line=src_meta.line,
-              column=src_meta.column,
-              end_line=src_meta.end_line,
-              end_column=src_meta.end_column,
-              start_pos=src_meta.start_pos,
-              end_pos=src_meta.end_pos)
-        for name in names
-    ]
-    # Create meta object
-    meta = Meta()
-    meta.line = src_meta.line
-    meta.column = src_meta.column
-    meta.end_line = src_meta.end_line
-    meta.end_column = src_meta.end_column
-    meta.start_pos = src_meta.start_pos
-    meta.end_pos = src_meta.end_pos
-    return Tree('var_ref', tokens, meta=meta)
 
 class SelectAnalyzer(Visitor):
 
@@ -190,6 +171,10 @@ class SelectAnalyzer(Visitor):
         return self._into_opts
 
     def create_output_opts(self, attrs: list[str]):
+        def _create_var_ref(statement, *names):
+            # Create a path, which is the sole child
+            meta = statement.meta
+            return Tree(VAR_REF, [ create_path_token(names, meta) ], meta=deepcopy(meta))
         # We need to expand the "*"s in headers and output statements
         if self._ALL_COLS in self._headers:
             attr_statement = []
@@ -197,9 +182,9 @@ class SelectAnalyzer(Visitor):
             if not attrs:
                 # The the only attr is the value associated with the "For ... As <target>"
                 attrs = [target]
-                attr_statement = [ create_var_ref(self._select_statement, target) ]
+                attr_statement = [ _create_var_ref(self._select_statement, target) ]
             else:
-                attr_statement = [ create_var_ref(self._select_statement, target, attr) for attr in attrs ]
+                attr_statement = [ _create_var_ref(self._select_statement, target, attr) for attr in attrs ]
             headers = []
             outputs_statements = []
             i = 0
@@ -234,8 +219,7 @@ class SelectAnalyzer(Visitor):
         # Then fully qualified versions of variable references
         # Constant and expressions are not included: you have to use
         # numeric references
-        def _get_source_text(s) -> str:
-            return '.'.join(c.value for c in s.children) if isinstance(s, Tree) and s.data == 'var_ref' else None
+        def _get_source_text(node: Tree) -> str: return '.'.join(_var_name_path(node)) if isinstance(node, Tree) and node.data == 'var_ref' else None
         for i, output_statement in enumerate(self._output_statements, 0):
             src = _get_source_text(output_statement)
             if src is not None and src not in name_to_index: name_to_index[src] = i
@@ -287,7 +271,7 @@ class SelectAnalyzer(Visitor):
                     product[_colref_range_check(expr, poly_to_integer(col_ref), ncols)] = True
                     return
                 raise VgrRuntimeError(expr, ValueError(f"Cannot find output column named {col_ref!r}"))
-            raise VgrRuntimeError(expr, TypeError(f"Unsupported type for column reference: {poly_type(col_ref)!r}"))
+            raise VgrRuntimeError(expr, TypeError(f"Unsupported type for column reference: {self.ctx.type_name(col_ref)!r}"))
         for expr in self._product_cols:
             _set_col_ref(self.ctx.eval_expr_or_const(expr))
         return product
@@ -368,8 +352,8 @@ class SelectAnalyzer(Visitor):
                 return value if value else None
         else:
             if isinstance(node, Tree):
-                # For variable names, we just make that into a string
-                if node.data == 'var_ref': return '.'.join(name.value for name in node.children)
+                # For variables, we take the components and make it into a string
+                if is_var_ref(node): return '.'.join(_var_name_path(node))
                 # We'll inherit the name for function calls, but not other ops
                 if node.data in ['function_call', 'dotfunction_call']: return cls.get_default_col_name(node.children[0])
         # We'll figure out the default later
@@ -413,7 +397,7 @@ class SelectAnalyzer(Visitor):
             name = child.data.lower()
             if name == 'encoding':
                 encoding = parse_encoding(self._ctx, bind_operations(child))
-            elif name == 'var_ref':
+            elif is_name_token(child):
                 target = self._get_target_name(child)
             else:
                 dtype = load_data_type(filename, name)
@@ -516,7 +500,7 @@ class SelectAnalyzer(Visitor):
         into_type = first_child.data if isinstance(first_child, Tree) else ""
         if into_type in ('stdout', 'stderr'):
             self._into_opts[_TYPE] = into_type
-        elif into_type == 'var_name':
+        elif into_type in ('var', 'var_name'):
             self._into_opts[_TYPE] = _VAR
             self._into_opts[_VAR] = get_writable_var_path(self.ctx, first_child)
         else:
@@ -606,7 +590,7 @@ class SelectAnalyzer(Visitor):
 @v_args(tree=True)
 class ImplicitContextAdder(Transformer):
     """
-    Modifies 'var_ref' nodes by prepending TARGET if needed
+    Modifies var_ref nodes by prepending TARGET if needed
     Assuming target is "kv":
         * kv -> kv (no change, type is a target type)
         * name -> kv.name (not a target type)
@@ -626,11 +610,11 @@ class ImplicitContextAdder(Transformer):
             self._target = None
             self._valid_contexts = None
 
-    def var_ref(self, tree):
-        first_child = tree.children[0]
-        if first_child.value not in self._valid_contexts:
+    def var_ref(self, tree: Tree) -> Tree:
+        path = _var_name_path(tree)
+        if path[0] not in self._valid_contexts:
             # Add the target as an implied context for the name
-            tree.children.insert(0, Token("NAME", self._target))
+            tree.children[0].value = (self._target,) + path
         return tree
 
 @control_statement

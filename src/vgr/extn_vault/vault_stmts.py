@@ -1452,7 +1452,7 @@ def _extract_args(ctx: ExecContext, statement: Tree) -> dict:
                 raise VgrRuntimeError(child, NotImplementedError(f'Vault argument {arg_name!r} not implemented')) # pragma no cover
         else:
             # SNO
-            raise VgrRuntimeError(child, ValueError(f'Unexpected Vault argument {child.data!r}:{poly_type(child)!r}')) # pragma no cover
+            raise VgrRuntimeError(child, ValueError(f'Unexpected Vault argument {child.data!r}:{ctx.type_name(child)!r}')) # pragma no cover
     return args
 
 def _display_name(name: str) -> str: return name.removeprefix("vopt_").title()
@@ -1460,7 +1460,7 @@ def _display_name(name: str) -> str: return name.removeprefix("vopt_").title()
 def _resolve_str_arg(ctx: ExecContext, expr: Tree, name: str, allow_none: bool=False) -> str:
     rc = ctx.eval_expr_or_const(expr)
     if rc is None and allow_none: return None
-    if not isinstance(rc, str): raise TypeError(f'{_display_name(name)} must be a string; found {poly_type(rc)!r}')
+    if not isinstance(rc, str): raise TypeError(f'{_display_name(name)} must be a string; found {ctx.type_name(rc)!r}')
     return rc
 
 def _resolve_int_arg(ctx: ExecContext, expr: Tree, name: str, allow_none: bool=False) -> int:
@@ -1470,7 +1470,7 @@ def _resolve_number_arg(ctx: ExecContext, expr: Tree, name: str, allow_none: boo
     rc = ctx.eval_expr_or_const(expr)
     if isinstance(rc, (str, int, float)): return poly_to_number(rc)
     if rc is None and allow_none: return None
-    raise TypeError(f'{_display_name(name)} must be a number or string; found {poly_type(rc)!r}')
+    raise TypeError(f'{_display_name(name)} must be a number or string; found {ctx.type_name(rc)!r}')
 
 def _allowed_args(args: dict, *allowed_keys) -> None:
     """Raise an error if any key in args is not in allowed_keys."""

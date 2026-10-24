@@ -233,7 +233,7 @@ def _resolve_bool(ctx: ExecContext, opt: Tree, name: str) -> bool:
     expr = opt.children[0]
     rc = ctx.eval_expr_or_const(expr)
     if isinstance(rc, (dict, list)):
-        raise VgrRuntimeError(expr, TypeError(f'{name} must be a boolean; found {poly_type(rc)!r}'))
+        raise VgrRuntimeError(expr, TypeError(f'{name} must be a boolean; found {ctx.type_name(rc)!r}'))
     return None if rc is None or (isinstance(rc, str) and poly_is_empty(rc)) else poly_to_boolean(rc)
 
 def _to_number(expr: Tree, name: str, value: any) -> Any:
@@ -378,7 +378,7 @@ def _handle_kv_option(ctx: ExecContext, opt: Tree, data: dict, name: str, separa
         elif isinstance(value, (str, int, float, bool)):
             _extract_kv_entry(data, str(value), separator, strip_value)
         else:
-            raise VgrRuntimeError(expr, TypeError(f'Type {poly_type(value)!r} unsupported for {name}'))
+            raise VgrRuntimeError(expr, TypeError(f'Type {ctx.type_name(value)!r} unsupported for {name}'))
 
 def _extract_kv_entry(target: dict, value: str, separator: str, strip_value: bool) -> None:
     if not poly_is_empty(value):

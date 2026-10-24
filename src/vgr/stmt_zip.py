@@ -11,7 +11,7 @@ import zipfile
 from lark import Tree
 
 from .app_exceptions import VgrRuntimeError
-from .builtins import bound_ops, poly_type, verify_relative_path
+from .builtins import bound_ops, poly_type
 from .builtins.vpattern import VPattern
 from .exec_context import ExecContext
 from .redir import prepare_path
@@ -91,7 +91,7 @@ by an `Include` that match those given patterns.
     # General follow zip's -r behavior when it comes to subdirs
     for pattern in include_patterns:
         for match in glob.glob(pattern, recursive=True):
-            abs_match = verify_relative_path(os.path.abspath(match))
+            abs_match = ctx.verify_relative_path(os.path.abspath(match))
             if os.path.isfile(abs_match):
                 added_files.add(abs_match)
             elif os.path.isdir(abs_match):

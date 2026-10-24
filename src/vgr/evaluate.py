@@ -10,6 +10,13 @@ from typing import Any, Iterable
 
 from lark import v_args, Tree, Token, Transformer
 
+from .ast_util import (
+    is_constant,
+    is_name_token,
+    is_var_name,
+    is_var_ref,
+    VAR_REF,
+)
 from .app_exceptions import VgrRuntimeError
 from .data_dict import DataDictionary
 from .exec_context import ExecContext
@@ -61,7 +68,6 @@ from .builtins import (
     poly_shorten,
     poly_slice,
     poly_sub,
-    poly_type,
 )
 from .src_mgr import StatementSourceMgr
 
@@ -157,15 +163,11 @@ class VarRef(Operation):
     The children form the path to info in the data dictionary
     """
 
-    def execute(self, ctx: ExecContext, args: list) -> Any:
-        """
-        This is the lookup of a top-level variable.
-        args are the children of a var_ref Tree, comprising
-        the path and are all NAME tokens
-        """
+    def execute(self, ctx: ExecContext, _args: list) -> Any:
+        """This is the lookup of a top-level variable"""
         return ctx.get_var(*_var_name_path(self))
 
-    def op_name(self) -> str: return 'var_ref' # pragma no cover
+    def op_name(self) -> str: return VAR_REF # pragma no cover
 
 # Reserved: not working in the grammar
 #class AssignmentExpr(Operation):
@@ -237,7 +239,7 @@ class BuildDictionary(Operation):
         for key_arg, value_arg in zip(args[0::2], args[1::2]):
             key = ctx.eval_expr_or_const(key_arg)
             if not isinstance(key, (int, float, str)):
-                raise VgrRuntimeError(key_arg, TypeError(f'Invalid type {poly_type(key)!r} for key'))
+                raise VgrRuntimeError(key_arg, TypeError(f'Invalid type {ctx.type_name(key)!r} for key'))
             positional_args.append(key)
             positional_args.append(ctx.eval_expr(value_arg))
         return build_dict(*positional_args)
@@ -278,11 +280,13 @@ class Slice(Operation):
     def op_name(self) -> str: return 'slice' # pragma no cover
 
 def is_var_constant(ctx: ExecContext, expr: Tree) -> bool:
+    if is_var_ref(expr):
+        # References to a variable might be constants
+        # Critically, they have to exist
+        path = _var_name_path(expr)
+        return (path[0] in ctx.dd.immutable_prefixes) and ctx.var_exists(*path)[0]
     # Actual constants (string, ints, None, inf, etc) are constants
-    if _is_constant(expr): return True
-    # References to a variable might be constants
-    # Critically, they have to exist
-    return _is_var_ref(expr) and (expr.children[0] in ctx.dd.immutable_prefixes) and ctx.var_exists(*_var_name_path(expr))[0]
+    return is_constant(expr)
 
 class IsVarConstant(Operation):
     @bound_ops("Is Constant")
@@ -320,7 +324,7 @@ Also See `Is Constant`
 
 def is_var_defined(ctx: ExecContext, expr: Tree) -> bool:
     # non-var references are defined (expr or constant)
-    if not _is_var_ref(expr): return True
+    if not is_var_ref(expr): return True
     return ctx.var_exists(*_var_name_path(expr))[0]
 
 class IsVarDefined(Operation):
@@ -552,44 +556,14 @@ def deref_var(data: Any, /, *path: str) -> Any:
             raise VgrRuntimeError(step, e) from e
     return data
 
-def _is_name_token(node) -> bool:
-    return isinstance(node, Token) and node.type == 'NAME'
-
-def _is_var_name(node) -> bool:
-    return isinstance(node, Tree) and node.data == 'var_name'
-
-def _is_var_ref(node) -> bool:
-    return isinstance(node, Tree) and node.data == 'var_ref'
-
-def _is_constant(node) -> bool:
-    return isinstance(node, Token) and node.type == 'CONST'
-
 def _var_name_path(node: Tree) -> tuple[str]:
     """
-    Returns a path into the data dictionary, typically used with lvalues.
-
-    * var_name tree: path from children which should be NAME tokens
-    * var_ref tree: same as var_name
-    * NAME token: single level path
-
-    The path is partially validated: steps are checked, but we
-    can't check for valid write because we don't know the context.
-
+    Returns a path into the data dictionary.
     See get_writable_var_path()
     """
-    def _step_name(token: Token) -> str:
-        # extracts and validates the parts of the path
-        try:
-            if not _is_name_token(token):
-                raise ValueError('Expected NAME') # pragma no cover
-            return DataDictionary.valid_path_step(token.value)
-        except ValueError as e:
-            raise VgrRuntimeError(token, e) from e
-
-    if _is_var_name(node) or _is_var_ref(node): return tuple(_step_name(name) for name in node.children)
-    if _is_name_token(node): return (_step_name(node),)
-    # SNO
-    raise VgrRuntimeError(node, TypeError('Expected var_name, var_ref or NAME')) # pragma no cover
+    if is_name_token(node): return (node,)
+    if isinstance(node, Tree) and node.data in ('var', VAR_REF): return node.children[0].value # PATH Token which is a tuple of strings
+    raise VgrRuntimeError(node, TypeError(f'Expected var, {VAR_REF}, NAME, found {node!r}')) # pragma no cover
 
 def eval_expr_or_const(ctx: ExecContext, expr: Any) -> Any:
     """
@@ -615,13 +589,12 @@ def eval_expr_or_const(ctx: ExecContext, expr: Any) -> Any:
     expression (see eval_expr())
     """
     if isinstance(expr, Tree):
-        # var_name is typically used as a lvalue, but here the
-        # syntax is an explicit "value of" rather than a constant value
-        if _is_var_name(expr): return ctx.get_var(*_var_name_path(expr))
+        if is_var_name(expr): return ctx.get_var(*_var_name_path(expr))
         # This allows for arguments to be unquoted if it is a simple (one part) name
         # and its value is not known in the data dictionary
-        if _is_var_ref(expr) and len(expr.children) == 1 and _is_name_token(expr.children[0]):
-            name = expr.children[0].value
+        path: tuple = None
+        if is_var_ref(expr) and len(path := expr.children[0].value) == 1:
+            name = path[0]
             exists, _, value = ctx.var_exists(name)
             return value if exists else name
     # If not one of the special cases, treat this as an expression
@@ -702,6 +675,7 @@ class OperationBinder(Transformer):
     def dict(self, tree): return BuildDictionary(tree)
     def deref(self, tree): return SimpleOperation(tree, deref_var)
     def var_ref(self, tree): return VarRef(tree)
+    def var(self, tree): return VarRef(tree)
     #def assignment_expr(self, tree): return AssignmentExpr(tree)
     def invoke_func(self, tree): return InvokeFunctionOperation(tree)
     def invoke_func_inline(self, tree): return InvokeInlineFunctionOperation(tree)
@@ -737,17 +711,15 @@ def bind_operations(statement: Tree) -> Tree:
     return OperationBinder().transform(statement)
 
 def eval_expr(ctx: ExecContext, expr: Any) -> Any:
-    """Evalutates an expression"""
+    """Evaluates an expression"""
     if isinstance(expr, Tree):
         if isinstance(expr, Operation):
             try:
                 return expr.execute(ctx, expr.children)
-            except VgrRuntimeError as e:
-                raise e
             except Exception as e:
-                raise VgrRuntimeError(expr, e) from e
-        raise VgrRuntimeError(expr, NotImplementedError(f'Unhandled type {expr.data!r}')) # pragma no cover
+                raise ctx.wrap_error(expr, e) from e
+        raise ctx.wrap_error(expr, NotImplementedError(f'Unhandled type {expr.data!r}')) # pragma no cover
     elif isinstance(expr, Token):
         # All collection tokens should be CONSTs so we don't want users mucking them up
         return deepcopy(expr.value) if isinstance(expr.value, (list, dict)) else expr.value
-    raise VgrRuntimeError(expr, NotImplementedError(f'Unknown type {poly_type(expr)!r}')) # pragma no cover
+    raise ctx.wrap_error(expr, NotImplementedError(f'Unknown type {ctx.type_name(expr)!r}')) # pragma no cover

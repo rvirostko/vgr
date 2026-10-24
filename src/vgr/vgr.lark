@@ -604,8 +604,10 @@ _dict_entry: expr _CLAUSE_SEP expr // key and value
     | FLOAT_NUMBER                                      // becomes FLOAT at runtime
     | REGEX                                             // becomes Pattern at runtime
     | STRING
-    | NAME -> var_ref
+    | NAME                  -> var_ref                  // root of a variable name
 
+// These become a 'var' with a single child PATH token
+// containing a tuple of the path components
 var_name: NAME (_PERIOD NAME)*
 
 {EXTN_GRAMMAR}

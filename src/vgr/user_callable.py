@@ -13,7 +13,6 @@ from .app_exceptions import (
     VgrStatementContinue,
     VgrStatementReturn,
 )
-from .builtins import poly_type
 from .exec_context import ExecContext
 from .result_cache import ResultCacheRegistry, ResultCache
 from .src_mgr import SSM
@@ -146,7 +145,7 @@ class UserFunction(AbstractUserCallable):
         #     would need to be either expressions as strings or constants. You COULD
         #     have string constants returned by using "ToString('const string')" but
         #     it seems like a hack, so we don't support it.
-        raise TypeError(f'Cannot use {poly_type(source)!r} as the source for an Arrow Function')
+        raise TypeError(f'Cannot use {ctx.type_name(source)!r} as the source for an Arrow Function')
 
 class ArrowFunction(AbstractUserCallable):
 

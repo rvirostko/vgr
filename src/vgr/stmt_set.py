@@ -33,7 +33,6 @@ from .builtins import (
     poly_shorten,
     poly_shift_right,
     poly_sub,
-    poly_type,
 )
 from .builtins.vpattern import VPattern
 from .user_args import (
@@ -258,8 +257,9 @@ def execute_set_key_value(ctx: ExecContext, statement: Tree) -> None:
 * Set Key *path* In [Dictionary] *variable*
 * Set Key *path* In [Dictionary] *variable* [= | To] *expression*
 
-The *variable* must either be a dictionary or list.
-If it does not exist, it will be created as a dictionary.
+The *variable* must contain a dictionary or list.
+If it does not exist or contains a `None`,
+it will be treated as an empty dictionary.
 
 If no *expression* is provided, the value `None` will be used.
 
@@ -276,7 +276,7 @@ The *path* can be:
 ```vgr
 Set d To {"a": 1}
 Set Key "b" In d To 2 → {"a": 1, "b": 2}
-Set Key "c.d" In d To 3 → {"a": 1, "b": 2, "c": {"d": 3}}
+Set Key "c.d" In d To 3 → {"a": 1, "b": 2, "c.d": 3}
 
 Set a To [ {"a": 1}, {"b": 2} ]
 Set Key ["c", "d"] In a To 3 →
@@ -296,7 +296,7 @@ Also see `Remove Key` and `SetKeyValue()`
         do_set(ctx, data, *var_path)
     else:
         if not isinstance(data, (list, dict)):
-            raise VgrRuntimeError(var_path_expr, TypeError(f"Cannot alter keys in type {poly_type(data)!r}"))
+            raise VgrRuntimeError(var_path_expr, TypeError(f"Cannot alter keys in type {ctx.type_name(data)!r}"))
     try:
         dict_set_key_value(data, key_path, new_value, False)
     except TypeError as e:
@@ -312,7 +312,9 @@ def execute_remove_key(ctx: ExecContext, statement: Tree) -> None:
 
 * Remove Key *path* From [Dictionary] *variable*
 
-The *value* must either be a dictionary, a list, or `None`.
+The *variable* must contain either a dictionary or a list. If `None`
+or it does not exist, the operation is skipped. Other types
+will generate a value error.
 
 The *path* can be:
 
@@ -341,7 +343,7 @@ Also see `Set Key` and `RemoveKey()`
     exists, _true_path, data = ctx.var_exists(*var_path)
     if exists and data is not None:
         if not isinstance(data, (list, dict)):
-            raise VgrRuntimeError(var_path_expr, TypeError(f"Cannot alter keys in type {poly_type(data)!r}"))
+            raise VgrRuntimeError(var_path_expr, TypeError(f"Cannot alter keys in type {ctx.type_name(data)!r}"))
         try:
             dict_remove_key(data, key_path, False)
         except TypeError as e:

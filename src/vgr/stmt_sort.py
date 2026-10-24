@@ -14,11 +14,14 @@ from .builtins import (
     poly_join,
     poly_repr,
     poly_sort,
-    poly_type,
 )
 
 from .encoding import parse_encoding
-from .evaluate import bind_operations, do_set
+from .evaluate import (
+    _var_name_path,
+    bind_operations,
+    do_set,
+)
 from .exec_context import ExecContext
 from .output import CSVRecordWriter, JSONRecordWriter, TextRecordWriter
 from .stmt_set import load_file_as, load_data_type
@@ -120,7 +123,7 @@ class SortAnalyzer(Visitor):
         """
         rc = self.ctx.eval_expr_or_const(arg)
         if rc is None or isinstance(rc, (str, int, float)): return rc
-        raise VgrRuntimeError(arg, TypeError(f'{name} must be a number or string; found {poly_type(rc)!r}'))
+        raise self.ctx.type_error(arg, name, "number or string", rc)
 
     def _store_io(self, node: Tree, io: dict) -> None:
         """
@@ -142,8 +145,8 @@ class SortAnalyzer(Visitor):
             io[_DTYPE] = load_data_type(io[iotype], ftype)
         elif iotype == _VAR:
             io[_TYPE] = iotype
-            # Extract the path (which seems risky...)
-            io[iotype] = list(name.value for name in node.children[0].children)
+            # Record the path
+            io[iotype] = list(_var_name_path(node.children[0]))
         else:
             # SNO
             raise VgrRuntimeError(node, NotImplementedError('Sort type not implemented')) # pragma no cover

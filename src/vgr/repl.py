@@ -23,7 +23,6 @@ from .app_exceptions import (
     VgrStatementAbort,
     VgrStatementAssert,
 )
-from .builtins import poly_type
 from .exec_context import ExecContext
 from .md_print import md_println
 from .repl_help import repl_help
@@ -253,7 +252,7 @@ class VgrRepl:
             if self._ctx.verbose:
                 print(e, file=sys.stderr)
             else:
-                print(e.args[0] if e.args else f'{poly_type(e)!r}', file=sys.stderr)
+                print(e.args[0] if e.args else f'{self._ctx.type_name(e)!r}', file=sys.stderr)
             return None
 
     def print_verbose(self, *args, **kwargs) -> None:
