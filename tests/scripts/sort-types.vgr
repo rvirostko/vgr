@@ -5,6 +5,9 @@ Set data To vgr.source.FirstItem().DirectoryName() + os.sep + "data" + os.sep
 Define Function sort_and_check(var):
     Print "Sorting data in memory" To Output
     Assert var.IsList() And var.FirstItem().IsDictionary()
+    # Extra check to make sure that the unquoted sort key will
+    # be unknown and read as a string
+    Assert name Is Not Defined
     Echo On
     Sort var On Asc Key name
     Echo Off
@@ -17,9 +20,10 @@ End-Function
 
 #-------------------------------------------------------------------------------
 Define Function sort_file_and_check(fn):
-    Print "Sorting file in place" To Output
+    Print "Sorting file", fn.BaseName().Repr(), "in place" To Output
+    # Here we use a quoted sort key
     Echo On
-    Sort File fn On Key name
+    Sort File fn On Key "name"
     Echo Off
     Load t With File fn Giving meta
     Select name, legs From t For Batch Template
