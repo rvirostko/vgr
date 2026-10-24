@@ -47,3 +47,27 @@ Assert (None * 3) === 0
 Assert (3 * None) === 0
 Assert Mul(2, None, 3) === 0
 Assert Mul(2.0, inf, 3) === inf
+
+# --- 7. String Copies --------------------------------------------------
+Assert ("frog" * True) === "frog"
+Assert (True * "frog") === "frog"
+Assert ("frog" * False) === ""
+Assert (False * "frog") === ""
+Assert ("frog" * 2) === "frogfrog"
+Assert (2 * "frog") === "frogfrog"
+Assert ("frog" * 2.1) === "frogfrog"
+Assert (2.1 * "frog") === "frogfrog"
+Assert (nan * "frog") === ""
+
+# --- 8. Boolean non-copies ----------------------------------------------
+Assert (True * True) === 1
+Assert (False * True) === 0
+Assert (True * 5) === 5
+Assert (True * 5.1) === 5.1
+Assert (True * [5]) === [5]
+Assert (5 * False) === 0
+Assert (5.1 * False) === 0.0
+Assert ([5] * False) === [0]
+
+# --- 9. Array product ---------------------------------------------------
+Assert ([5] * [1, 2]) == [[5, 1], [5, 2]]
