@@ -83,16 +83,17 @@ def _mul_str_str(op, x: Any, y: Any) -> Any:
     return op(x1, y1)
 
 def _copy_count(x: Any) -> int:
+    # NB: usage pattern dictates that x is either a float, int, or bool
     if isinstance(x, float):
         if x == math.inf: raise ValueError("Cannot create infinite copies")
         x = 0 if math.isnan(x) else int(x)
-    else:
-        if isinstance(x, str): x = str_to_int(x)
     return max(0, x)
 
 _MUL_OPERATIONS = {
     X_None_Op:            lambda op, _x, y: op(0, y),            # None as zero
     Y_None_Op:            lambda op, x, _y: op(x, 0),            # None as zero
+    (bool, str):          lambda _, x, y: y * _copy_count(x),    # x copies of string y
+    (bool, list):         lambda op, x, y: dist_y(op, int(x), y),
     (int, str):           lambda _, x, y: y * _copy_count(x),    # x copies of string y
     (int, VPattern):      lambda _, x, y: [y] * x,               # x copies of pattern y
 #    (int, VgrCallable):   lambda _, x, y: [y] * x,               # x copies of function y
@@ -101,10 +102,12 @@ _MUL_OPERATIONS = {
     (float, list):        dist_y,
     (float, VPattern):    lambda _, x, y: [y] * _copy_count(x),  # x copies of pattern y
 #    (float, VgrCallable): lambda _, x, y: [y] * _copy_count(x),  # x copies of function y
+    (str, bool):          lambda _, x, y: x * _copy_count(y),    # y copies of string x
     (str, int):           lambda _, x, y: x * _copy_count(y),    # y copies of string x
     (str, float):         lambda _, x, y: x * _copy_count(y),    # y copies of string x
     (str, str):           _mul_str_str,
     (str, list):          dist_y,
+    (list, bool):         lambda op, x, y: dist_x(op, x, int(y)),
     (list, int):          dist_x,
     (list, float):        dist_x,
     (list, str):          dist_x,
