@@ -53,6 +53,21 @@ Assert ConfluenceStrikeThrough("one", "two") Is ["-one-", "-two-"]
 Assert ConfluenceStrikeThrough(EMPTY_DICT) Is EMPTY_DICT
 Assert ConfluenceStrikeThrough({"one": 1, "two": 2}) Is {"one": "-1-", "two": "-2-"}
 
+Assert ConfluenceUnderline() Is BLANK
+Assert ConfluenceUnderline(None) Is BLANK
+Assert ConfluenceUnderline(True) Is "+True+"
+Assert ConfluenceUnderline(5) Is "+5+"
+Assert ConfluenceUnderline(5.1) Is "+5.1+"
+Assert ConfluenceUnderline("frog") Is "+frog+"
+Assert ConfluenceUnderline("frog+bog") Is r"+frog\+bog+"
+Assert ConfluenceUnderline(RE) Is ConfluenceUnderline(RE_REPR)
+Assert ConfluenceUnderline(Space) Is BLANK
+Assert ConfluenceUnderline(EMPTY_LIST) Is EMPTY_LIST
+Assert ConfluenceUnderline(["one", "two"]) Is ["+one+", "+two+"]
+Assert ConfluenceUnderline("one", "two") Is ["+one+", "+two+"]
+Assert ConfluenceUnderline(EMPTY_DICT) Is EMPTY_DICT
+Assert ConfluenceUnderline({"one": 1, "two": 2}) Is {"one": "+1+", "two": "+2+"}
+
 Assert ConfluenceCode() Is BLANK
 Assert ConfluenceCode(None) Is BLANK
 Assert ConfluenceCode(True) Is "{{True}}"
@@ -190,6 +205,8 @@ Print "Strike through".ConfluenceStrikeThrough(), Newline
 Print "Strike through + Strong".ConfluenceStrikeThrough().ConfluenceStrong(), Newline
 Print "Strike through + Emphasis".ConfluenceStrikeThrough().ConfluenceEmphasis(), Newline
 Print "Strike through + Emphasis + Strong".ConfluenceStrikeThrough().ConfluenceEmphasis().ConfluenceStrong(), Newline
+
+Print "Underlined".ConfluenceUnderline(), Newline
 
 Print "Code".ConfluenceCode(), Newline
 
