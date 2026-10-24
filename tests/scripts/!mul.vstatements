@@ -1,4 +1,4 @@
-# --- Value errors
+# --- String conversion content issues
 Print ("ab" * "3")
 Print ("3" * "ab")
 Print ("ab" * "cd")
@@ -6,8 +6,14 @@ Print ("3x" * "2")
 Print ("1 000" * "2")            # interior whitespace
 Print ("0x10" * "2")             # decimal values only
 
-# --- Blanks
+# --- String conversion of blanks
 Print ("" * "3")
 Print (" " * "3")
 Print ("3" * "")
 Print ("" * "")
+
+# --- Incompatible types
+Print ({} * {})
+
+# --- Copies
+Print ("foo" * inf)
