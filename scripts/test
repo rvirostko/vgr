@@ -1,6 +1,9 @@
 #! /usr/bin/env bash
 set -euo pipefail
 
+# Use "-x --runxfail" on the command line to halt on the first failure
+# Use "--cov-report=html" on the command line to generate HTML results
+
 if [ ! -d "./src/vgr" ]; then
     echo "You are not in the project root" >&2
     exit 1
