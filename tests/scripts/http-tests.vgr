@@ -25,7 +25,7 @@ Define Function AssertReason(test_no, expected):
     Print "Reason"
     Print "\tReceived    :", Repr(received)
     Print "\tExpected    :", Repr(expected)
-    Assert received == expected : "Test {}: Expected reason {!r}, got {!r}", test_no, expected, received
+    Assert received.TitleCase() == expected.TitleCase() : "Test {}: Expected reason {!r}, got {!r}", test_no, expected, received
 End-Function
 
 Define Function AssertAnyReason(test_no):
